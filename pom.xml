@@ -6,5 +6,9 @@
   <packaging>pom</packaging>
   <modules>
   	<module>FS_Client</module>
+  	<module>FS_Commons</module>
+  	<module>FS_Dispatcher</module>
+  	<module>FS_Proto</module>
+  	<module>FS_Server</module>
   </modules>
 </project>
