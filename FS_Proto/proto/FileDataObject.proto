@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+package brfs.proto;
+option java_package = "com.bonree.brfs.common.proto";
+option java_outer_classname = "FileDataProtos";
+
+option java_generic_services = false;
+
+
+message FileDataReqRes{
+	required string sessionId = 1; //一次交互
+	required string storageName = 2;	//存储空间名称
+	required string user = 3;	//用户名用来进行权限校验
+	
+	repeated string fileData = 4 [packed=true]; //真实数据
+	repeated string fid = 5 [packed=true];	//fid
+	
+	enum OptType {  //操作类型
+    	WRITE = 0;
+    	READ = 1;
+    	DELETE = 2;
+  	}
+  	
+	required OptType optType = 6;
+}
