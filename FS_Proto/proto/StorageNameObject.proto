@@ -13,7 +13,7 @@ message StorageNameRequest{
 	optional int32 ttl = 3;	//可修改，修改需校验
 	optional string desc = 4;	//可修改
 	optional int32 replicas = 5;	//不可修改
-	optional boolean recoverFlag = 6;	//不可修改
+	optional bool recoverFlag = 6;	//不可修改
 	//权限需要
 	required string user = 7; //用户名用来进行权限校验
 	

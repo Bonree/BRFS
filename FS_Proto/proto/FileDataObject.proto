@@ -12,8 +12,8 @@ message FileDataReqRes{
 	required string storageName = 2;	//存储空间名称
 	required string user = 3;	//用户名用来进行权限校验
 	
-	repeated string fileData = 4 [packed=true]; //真实数据
-	repeated string fid = 5 [packed=true];	//fid
+	repeated string data = 4;//真实数据
+	repeated string fid = 5;//fid
 	
 	enum OptType {  //操作类型
     	WRITE = 0;
