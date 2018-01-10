@@ -1,0 +1,36 @@
+syntax = "proto2";
+
+package brfs.proto;
+option java_package = "com.bonree.brfs.common.proto";
+option java_outer_classname = "StorageNameProtos";
+
+option java_generic_services = false;
+
+
+message StorageNameRequest{
+	required string sessionId = 1;
+	required string name = 2;	//不可修改
+	optional int32 ttl = 3;	//可修改，修改需校验
+	optional string desc = 4;	//可修改
+	optional int32 replicas = 5;	//不可修改
+	optional boolean recoverFlag = 6;	//不可修改
+	//权限需要
+	required string user = 7; //用户名用来进行权限校验
+	
+	enum OptType {  //操作类型
+    	CREATE = 0;
+    	UPDATE = 1;
+    	DELETE = 2;
+  	}
+	required OptType optType = 8;
+}
+
+message StorageNameResponse{
+	enum ResultCode {  //后期定义返回码，每个返回码代表一种情况
+    	SUCCESS = 200;
+  	}
+  	
+  	required ResultCode code = 1;
+  	
+  	optional string desc = 2; //详细描述信息
+}
