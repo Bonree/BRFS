@@ -8,18 +8,25 @@ option java_generic_services = false;
 
 
 message FileDataReqRes{
-	required string sessionId = 1; //一次交互
-	required string storageName = 2;	//存储空间名称
-	required string user = 3;	//用户名用来进行权限校验
+	required string storageName = 1;	//存储空间名称
+	required string user = 2;	//用户名用来进行权限校验
 	
-	repeated string data = 4;//真实数据
-	repeated string fid = 5;//fid
+	repeated string data = 3;//真实数据
+	repeated string fid = 4;//fid
 	
-	enum OptType {  //操作类型
+	optional uint64 beginTime = 5; //开始时间
+	optional uint64 endTime = 6; //结束时间
+	
+	enum DeleteDataType {  //操作类型
+    	ASYN = 0;
+    	SYN = 1;
+  	}
+	optional DeleteDataType deleteDataType = 7 [default = ASYN]; //默认为异步删除
+	
+	enum DataOptType {  //操作类型
     	WRITE = 0;
     	READ = 1;
     	DELETE = 2;
   	}
-  	
-	required OptType optType = 6;
+	required DataOptType dataOptType = 8;
 }
