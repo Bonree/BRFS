@@ -1,0 +1,21 @@
+syntax = "proto2";
+
+package brfs.proto;
+option java_package = "com.bonree.brfs.common.proto";
+option java_outer_classname = "NettyMessageProto";
+
+option java_generic_services = false;
+
+import "StorageNameObject.proto";
+import "FileDataObject.proto";
+
+message NettyMessageReqRes{
+	enum OptType {  //后期定义返回码，每个返回码代表一种情况
+    	STORATE_NAME = 0;
+    	DATA_FILE = 1;
+  	}
+  	required string sessionId = 1;
+	required OptType optType = 2;
+	optional StorageNameReqRes snReqRes = 3;
+	optional FileDataReqRes dataReqRes = 4;
+}
