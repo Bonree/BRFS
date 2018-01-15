@@ -1,0 +1,18 @@
+syntax = "proto2";
+
+package brfs.proto;
+option java_package = "com.bonree.brfs.common.proto";
+option java_outer_classname = "ReturnCodeProtos";
+
+option java_generic_services = false;
+//3开头为认证类错误,4开头为sn类异常错误,5开头为数据错误
+enum ReturnCodeEnum{
+	SUCCESS = 2000;	//成功
+	AUTH_FAILED_ERROR = 3001;	//认证失败
+	STORAGE_NAME_EXIST_ERROR = 4001;	//sn已存在
+	STORAGE_NAME_NOT_EXIST_ERROR = 4002;	//sn不存在
+	STORAGE_NAME_UPDATE_ERROR = 4003;	//sn更新错误
+	DATA_DELETE_ERROR = 5001;	//数据删除错误
+	DATA_WRITE_ERROR = 5002;	//数据写入错误
+	DATA_READ_ERROR = 5003;	//数据读取错误
+}
