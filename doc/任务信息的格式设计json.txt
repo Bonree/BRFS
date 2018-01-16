@@ -1,0 +1,38 @@
+{
+	"createTime": "", //创建时间
+	"taskType": "", //任务类型
+	"taskStatus": "", // 任务状态
+	"taskContents": [],//任务信息
+	"result": {
+		"code":""
+		"size": "", //正常时为处理的个数
+		"errorFiles": [//异常文件列表
+			{
+				"fileName": "", //异常文件的完整路径
+				"errorInfo": "", //异常文件的信息
+				"code":""
+			}, {
+				"fileName": "",
+				"errorInfo": "",
+				"code":""
+			},
+		],
+		"info": "" //信息
+	}
+}
+//任务信息
+//BaseTaskContent
+{
+	"storageName": "", //
+	"files": [], //文件集合
+	"size": "" //文件的数量
+},
+//MergeTaskContent
+{
+	"mergePath": "", //文件归并路径
+	"mergeStorageType": "", //第三方介质类型
+	"storageName": "", //
+	"files": [], //文件集合
+	"size": "" //文件的数量
+}
+
