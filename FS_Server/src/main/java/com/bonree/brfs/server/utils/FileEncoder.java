@@ -15,6 +15,24 @@ import com.bonree.brfs.common.code.FSCode;
 public class FileEncoder {
 
     /**
+     * 概述：消息开头
+     * @return
+     * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
+     */
+    public static byte[] start() {
+        return FSCode.start;
+    }
+
+    /**
+     * 概述：消息结尾
+     * @return
+     * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
+     */
+    public static byte[] tail() {
+        return FSCode.tail;
+    }
+
+    /**
      * 概述：编码文件的header
      * @param version 协议版本
      * @param validateFlag 校验标识 0:不开启 1.crc 2和3:保留
@@ -34,15 +52,8 @@ public class FileEncoder {
      * @throws Exception
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public byte[] validate(String validateCode) throws Exception {
-        byte[] validateByte = null;
-        if (validateCode != null) {
-            validateByte = validateCode.getBytes("utf-8");
-            long value = validateByte.length;
-            byte[] validateLengthByte = FSCode.moreFlagEncoder(value, 7);
-            validateByte = FSCode.addBytes(validateLengthByte, validateByte);
-        }
-        return validateByte;
+    public byte[] validate(long validateCode) throws Exception {
+        return FSCode.LongToByte(validateCode, 8);
     }
 
     /**

@@ -26,7 +26,7 @@ public class FileDecoder {
     }
 
     /**
-     * 概述：获取检验标识
+     * 概述：获取检验码标识
      * @param bytes
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
@@ -85,12 +85,8 @@ public class FileDecoder {
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static String validate(byte[] bytes, int pos) {
-        int validateLength = (int) FSCode.moreFlagDecoder(bytes, 7);        // 检验码的长度
-        int moreFlagLength = FSCode.moreFlagLength(validateLength, 5) + 1;  // 扩展次数加上moreFlag所在的一个字节.
-        pos += moreFlagLength;
-        byte[] result = FSCode.subBytes(bytes, pos, validateLength);
-        return new String(result);
+    public static long validate(byte[] bytes, int pos) {
+        return FSCode.byteToLong(bytes, pos, 8);
     }
 
 }

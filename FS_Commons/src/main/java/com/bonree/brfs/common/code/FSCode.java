@@ -24,10 +24,10 @@ public class FSCode {
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static byte[] LongToByte(long size, int length) {
+    public static byte[] LongToByte(long value, int length) {
         byte[] sizeByte = new byte[length];
         for (int i = 0; i < length; i++) {
-            sizeByte[i] = (byte) ((size >> (i * 8)) & 0xFF);
+            sizeByte[i] = (byte) ((value >> (i * 8)) & 0xFF);
         }
         return sizeByte;
     }
