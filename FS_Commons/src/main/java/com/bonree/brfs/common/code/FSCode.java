@@ -181,7 +181,7 @@ public class FSCode {
         }
         return value;
     }
-    
+
     /**
      * 概述：获取moreFlag扩展的次数
      * @param value moreFlag存储的数值
@@ -212,7 +212,9 @@ public class FSCode {
         int index = 0;  // 获取复制到目标数组的起始点，
         int totalLength = 0;
         for (int i = 0; i < src.length; i++) {
-            totalLength += src[i].length;
+            if (src[i] != null) {
+                totalLength += src[i].length;
+            }
         }
         byte[] dest = new byte[totalLength]; // 目标数组
         for (int i = 0; i < src.length; i++) {
@@ -224,7 +226,7 @@ public class FSCode {
         }
         return dest;
     }
-    
+
     /**
      * 概述：截取指定长度的数组
      * @param src 源字节数组
@@ -233,10 +235,10 @@ public class FSCode {
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static byte[] subBytes(byte[] src, int pos, int count) {  
-        byte[] dest = new byte[count];  
-        System.arraycopy(src, pos, dest, 0, count);  
-        return dest;  
-    }  
+    public static byte[] subBytes(byte[] src, int pos, int count) {
+        byte[] dest = new byte[count];
+        System.arraycopy(src, pos, dest, 0, count);
+        return dest;
+    }
 
 }

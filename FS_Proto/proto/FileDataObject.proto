@@ -8,71 +8,74 @@ option java_generic_services = false;
 
 message DataWriteRequest{
 	optional string seesionId = 1;	//会话ID
-	optional string storageName = 2;	//存储空间名称
-	optional string user = 3;	//用户名用来进行权限校验
-	optional bool crcFlag = 4;	//是否开启crc校验码
-	repeated string data = 5;	//数据
-	repeated bytes crcCheckCode = 6;	//crc校验码
+	optional string storageName = 2;//存储空间名称
+	optional string user = 3;		//用户名用来进行权限校验
+	repeated FileContent file = 4;	//文件信息
 }
+
 message DataWriteResponse{
 	optional string seesionId = 1;	//回话ID
-	optional string storageName = 2;	//存储空间名称
-	optional string user = 3;	//用户名用来进行权限校验
-	optional bool crcFlag = 4;	//是否开启crc校验码
-	optional int32 returnCode = 5;	//返回状态码
-	optional string description = 6;	//详细描述信息
-	repeated string fid = 7;	//fid
-	repeated bytes crcCheckCode = 8;	//crc校验码
+	optional string storageName = 2;//存储空间名称
+	optional string user = 3;		//用户名用来进行权限校验
+	optional int32 returnCode = 4;	//返回状态码
+	optional string description = 5;//状态码对应的描述信息
+	repeated string fid = 6;		//fid
 }
 
 message DataReadRequest{
 	optional string seesionId = 1;	//会话ID
-	optional string storageName = 2;	//存储空间名称
-	optional string user = 3;	//用户名用来进行权限校验
-	optional bool crcFlag = 4;	//是否开启crc校验码
-	repeated string fid = 5;	//fid
-	repeated bytes crcCheckCode = 6;	//crc校验码
+	optional string storageName = 2;//存储空间名称
+	optional string user = 3;		//用户名用来进行权限校验
+	repeated string fid = 4;		//fid
 }
 
 message DataReadResponse{
 	optional string seesionId = 1;	//会话ID
-	optional string storageName = 2;	//存储空间名称
-	optional string user = 3;	//用户名用来进行权限校验
+	optional string storageName = 2;//存储空间名称
+	optional string user = 3;		//用户名用来进行权限校验
 	optional int32 returnCode = 4;	//返回状态码
-	optional string description = 5;	//详细描述信息
-	optional bool crcFlag = 6;	//是否开启crc校验码
-	repeated string data = 7;	//数据
-	repeated bytes crcCheckCode = 8;	//crc校验码
+	optional string description = 5;//状态码对应的描述信息
+	repeated FileContent file = 6;	//文件信息
 }
 
 message DataDeleteRequest{
 	optional string seesionId = 1;	//会话ID
-	optional string storageName = 2;	//存储空间名称
-	optional string user = 3;	//用户名用来进行权限校验
-	optional uint64 beginTime = 4; //开始时间
-	optional uint64 endTime = 5; //结束时间
-	enum DeleteDataType {  //操作类型
+	optional string storageName = 2;//存储空间名称
+	optional string user = 3;		//用户名用来进行权限校验
+	optional uint64 beginTime = 4;	//开始时间
+	optional uint64 endTime = 5;	//结束时间
+	enum DeleteDataType {  			//操作类型
     	ASYN = 0;
     	SYN = 1;
   	}
 	optional DeleteDataType deleteDataType = 6 [default = ASYN]; //默认为异步删除
 }
+
 message DataDeleteResponse{
 	optional string seesionId = 1;	//会话ID
-	optional string storageName = 2;	//存储空间名称
-	optional string user = 3;	//用户名用来进行权限校验
+	optional string storageName = 2;//存储空间名称
+	optional string user = 3;		//用户名用来进行权限校验
 	optional int32 returnCode = 4;	//返回状态码
-	optional string description = 5;	//详细描述信息
+	optional string description = 5;//状态码对应的描述信息
+}
+
+
+message FileContent{
+	optional bool crcFlag = 1;		//是否开启crc校验码
+	optional int64 crcCheckCode = 2;//crc校验码
+	optional string description = 3;//详细描述信息
+	optional string data = 4;		//数据内容
+    optional int32 compress = 5;    //是否压缩,0:不压缩,1:gzip,2:snappy,3保留
 }
 
 message Fid{
-    optional int32 version = 1;     // 版本号
-    optional int32 compress = 2;    // 默认无压缩
+    optional int32 version = 1;     	// 版本号
+    optional int32 compress = 2;    	// 默认无压缩,0:不压缩,1:gzip,2:snappy,3保留
     optional int64 storageNameCode = 3; // 存储空间
     optional string uuid = 4;           // 唯一码
     optional int64 time = 5;            // 时间戳, 精确到分钟
-    optional int32 replica = 6;     // 默认副本数为2
-    optional string serverId= 7;       // 服务标识
-    optional int64 offset = 8;      // 当前文件所在大文件里的偏移量
-    optional int64 size = 9;        // 当前文件的长度
+    optional int32 replica = 6;     	// 默认副本数为2
+    optional string serverId= 7;       	// 服务标识
+    optional int64 offset = 8;      	// 当前文件所在大文件里的偏移量
+    optional int64 size = 9;        	// 当前文件的长度
 }

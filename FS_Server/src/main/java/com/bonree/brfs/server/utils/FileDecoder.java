@@ -1,6 +1,7 @@
 package com.bonree.brfs.server.utils;
 
 import com.bonree.brfs.common.code.FSCode;
+import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 
 /**
  * *****************************************************************************
@@ -26,7 +27,7 @@ public class FileDecoder {
     }
 
     /**
-     * 概述：获取检验码标识
+     * 概述：获取大文件检验码类型
      * @param bytes
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
@@ -37,49 +38,52 @@ public class FileDecoder {
     }
 
     /**
-     * 概述：获取描述信息
-     * @param bytes 源数据
-     * @return
-     * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
-     */
-    public static String description(byte[] bytes) {
-        int describeLength = (int) FSCode.moreFlagDecoder(bytes, 5);        // 描述信息的长度
-        int moreFlagLength = FSCode.moreFlagLength(describeLength, 5) + 1;  // 扩展次数加上moreFlag所在的一个字节.
-        byte[] result = FSCode.subBytes(bytes, moreFlagLength, describeLength);
-        int compress = bytes[0] >> 6;// 获取压缩标识
-        if (compress == 1) {        // gzip解压
-            // result =
-        } else if (compress == 2) { // snappy解压
-            // result =
-        }
-        return new String(result);
-    }
-
-    /**
      * 概述：获取内容信息
      * @param bytes 源数据
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static String content(byte[] bytes) {
-        int describeLength = (int) FSCode.moreFlagDecoder(bytes, 5);// 描述信息的长度
-        int describeMoreFlagLength = FSCode.moreFlagLength(describeLength, 5) + 1;// 扩展次数加上moreFlag所在的一个字节.
+    public static FileContent contents(byte[] bytes) {
+        FileContent.Builder file = FileContent.newBuilder();
+        int describeLength = (int) FSCode.moreFlagDecoder(bytes, 4);// 描述信息的长度
+        int describeMoreFlagLength = FSCode.moreFlagLength(describeLength, 4) + 1;// 扩展次数加上moreFlag所在的一个字节.
+        byte[] destResult = FSCode.subBytes(bytes, describeMoreFlagLength, describeLength);
+
         int contestStart = describeLength + describeMoreFlagLength; // 内容的开始位置(包含moreflag)
         int contentLength = (int) FSCode.moreFlagDecoder(bytes, 7, contestStart); // 内容的长度
         int contentMoreFlagLength = FSCode.moreFlagLength(contentLength, 7) + 1;  // 扩展次数加上moreFlag所在的一个字节.
         contestStart += contentMoreFlagLength;      // 内容的开始位置
-        byte[] result = FSCode.subBytes(bytes, contestStart, contentLength);
+        byte[] data = FSCode.subBytes(bytes, contestStart, contentLength);
+
         int compress = (bytes[0] & 0xFF) >> 6;// 获取压缩标识
         if (compress == 1) {        // gzip解压
             // result =
+            // data =
         } else if (compress == 2) { // snappy解压
             // result =
+            // data =
         }
-        return new String(result);
+        file.setCompress(compress);
+        if (destResult != null && destResult.length != 0) {
+            file.setDescription(new String(destResult));
+        }
+        if (data != null && data.length != 0) {
+            file.setData(new String(data));
+        }
+
+        int crcFlag = (bytes[0] & 0xFF) >> 5;// 获取校验码标识
+        if (crcFlag == 1) {
+            int crcStart = contestStart + contentLength;
+            long crcCode = FSCode.moreFlagDecoder(bytes, 7, crcStart);
+            file.setCrcCheckCode(crcCode);
+            file.setCrcFlag(true);
+        }
+
+        return file.build();
     }
 
     /**
-     * 概述：获取校验码
+     * 概述：获取大文件校验码
      * @param bytes 源数据字节数组
      * @param pos 检验码的起始位置
      * @return

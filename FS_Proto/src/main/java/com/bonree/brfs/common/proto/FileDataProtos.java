@@ -23,19 +23,15 @@ public final class FileDataProtos {
     boolean hasUser();
     String getUser();
     
-    // optional bool crcFlag = 4;
-    boolean hasCrcFlag();
-    boolean getCrcFlag();
-    
-    // repeated string data = 5;
-    java.util.List<String> getDataList();
-    int getDataCount();
-    String getData(int index);
-    
-    // repeated bytes crcCheckCode = 6;
-    java.util.List<com.google.protobuf.ByteString> getCrcCheckCodeList();
-    int getCrcCheckCodeCount();
-    com.google.protobuf.ByteString getCrcCheckCode(int index);
+    // repeated .brfs.proto.FileContent file = 4;
+    java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> 
+        getFileList();
+    com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index);
+    int getFileCount();
+    java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
+        getFileOrBuilderList();
+    com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
+        int index);
   }
   public static final class DataWriteRequest extends
       com.google.protobuf.GeneratedMessage
@@ -162,51 +158,32 @@ public final class FileDataProtos {
       }
     }
     
-    // optional bool crcFlag = 4;
-    public static final int CRCFLAG_FIELD_NUMBER = 4;
-    private boolean crcFlag_;
-    public boolean hasCrcFlag() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+    // repeated .brfs.proto.FileContent file = 4;
+    public static final int FILE_FIELD_NUMBER = 4;
+    private java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> file_;
+    public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> getFileList() {
+      return file_;
     }
-    public boolean getCrcFlag() {
-      return crcFlag_;
+    public java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
+        getFileOrBuilderList() {
+      return file_;
     }
-    
-    // repeated string data = 5;
-    public static final int DATA_FIELD_NUMBER = 5;
-    private com.google.protobuf.LazyStringList data_;
-    public java.util.List<String>
-        getDataList() {
-      return data_;
+    public int getFileCount() {
+      return file_.size();
     }
-    public int getDataCount() {
-      return data_.size();
+    public com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index) {
+      return file_.get(index);
     }
-    public String getData(int index) {
-      return data_.get(index);
-    }
-    
-    // repeated bytes crcCheckCode = 6;
-    public static final int CRCCHECKCODE_FIELD_NUMBER = 6;
-    private java.util.List<com.google.protobuf.ByteString> crcCheckCode_;
-    public java.util.List<com.google.protobuf.ByteString>
-        getCrcCheckCodeList() {
-      return crcCheckCode_;
-    }
-    public int getCrcCheckCodeCount() {
-      return crcCheckCode_.size();
-    }
-    public com.google.protobuf.ByteString getCrcCheckCode(int index) {
-      return crcCheckCode_.get(index);
+    public com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
+        int index) {
+      return file_.get(index);
     }
     
     private void initFields() {
       seesionId_ = "";
       storageName_ = "";
       user_ = "";
-      crcFlag_ = false;
-      data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      crcCheckCode_ = java.util.Collections.emptyList();;
+      file_ = java.util.Collections.emptyList();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -229,14 +206,8 @@ public final class FileDataProtos {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeBytes(3, getUserBytes());
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBool(4, crcFlag_);
-      }
-      for (int i = 0; i < data_.size(); i++) {
-        output.writeBytes(5, data_.getByteString(i));
-      }
-      for (int i = 0; i < crcCheckCode_.size(); i++) {
-        output.writeBytes(6, crcCheckCode_.get(i));
+      for (int i = 0; i < file_.size(); i++) {
+        output.writeMessage(4, file_.get(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -259,27 +230,9 @@ public final class FileDataProtos {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(3, getUserBytes());
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      for (int i = 0; i < file_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(4, crcFlag_);
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < data_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(data_.getByteString(i));
-        }
-        size += dataSize;
-        size += 1 * getDataList().size();
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < crcCheckCode_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(crcCheckCode_.get(i));
-        }
-        size += dataSize;
-        size += 1 * getCrcCheckCodeList().size();
+          .computeMessageSize(4, file_.get(i));
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -397,6 +350,7 @@ public final class FileDataProtos {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getFileFieldBuilder();
         }
       }
       private static Builder create() {
@@ -411,12 +365,12 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000002);
         user_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
-        crcFlag_ = false;
-        bitField0_ = (bitField0_ & ~0x00000008);
-        data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000010);
-        crcCheckCode_ = java.util.Collections.emptyList();;
-        bitField0_ = (bitField0_ & ~0x00000020);
+        if (fileBuilder_ == null) {
+          file_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000008);
+        } else {
+          fileBuilder_.clear();
+        }
         return this;
       }
       
@@ -467,21 +421,15 @@ public final class FileDataProtos {
           to_bitField0_ |= 0x00000004;
         }
         result.user_ = user_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
+        if (fileBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) == 0x00000008)) {
+            file_ = java.util.Collections.unmodifiableList(file_);
+            bitField0_ = (bitField0_ & ~0x00000008);
+          }
+          result.file_ = file_;
+        } else {
+          result.file_ = fileBuilder_.build();
         }
-        result.crcFlag_ = crcFlag_;
-        if (((bitField0_ & 0x00000010) == 0x00000010)) {
-          data_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              data_);
-          bitField0_ = (bitField0_ & ~0x00000010);
-        }
-        result.data_ = data_;
-        if (((bitField0_ & 0x00000020) == 0x00000020)) {
-          crcCheckCode_ = java.util.Collections.unmodifiableList(crcCheckCode_);
-          bitField0_ = (bitField0_ & ~0x00000020);
-        }
-        result.crcCheckCode_ = crcCheckCode_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -507,28 +455,31 @@ public final class FileDataProtos {
         if (other.hasUser()) {
           setUser(other.getUser());
         }
-        if (other.hasCrcFlag()) {
-          setCrcFlag(other.getCrcFlag());
-        }
-        if (!other.data_.isEmpty()) {
-          if (data_.isEmpty()) {
-            data_ = other.data_;
-            bitField0_ = (bitField0_ & ~0x00000010);
-          } else {
-            ensureDataIsMutable();
-            data_.addAll(other.data_);
+        if (fileBuilder_ == null) {
+          if (!other.file_.isEmpty()) {
+            if (file_.isEmpty()) {
+              file_ = other.file_;
+              bitField0_ = (bitField0_ & ~0x00000008);
+            } else {
+              ensureFileIsMutable();
+              file_.addAll(other.file_);
+            }
+            onChanged();
           }
-          onChanged();
-        }
-        if (!other.crcCheckCode_.isEmpty()) {
-          if (crcCheckCode_.isEmpty()) {
-            crcCheckCode_ = other.crcCheckCode_;
-            bitField0_ = (bitField0_ & ~0x00000020);
-          } else {
-            ensureCrcCheckCodeIsMutable();
-            crcCheckCode_.addAll(other.crcCheckCode_);
+        } else {
+          if (!other.file_.isEmpty()) {
+            if (fileBuilder_.isEmpty()) {
+              fileBuilder_.dispose();
+              fileBuilder_ = null;
+              file_ = other.file_;
+              bitField0_ = (bitField0_ & ~0x00000008);
+              fileBuilder_ = 
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   getFileFieldBuilder() : null;
+            } else {
+              fileBuilder_.addAllMessages(other.file_);
+            }
           }
-          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -576,19 +527,10 @@ public final class FileDataProtos {
               user_ = input.readBytes();
               break;
             }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              crcFlag_ = input.readBool();
-              break;
-            }
-            case 42: {
-              ensureDataIsMutable();
-              data_.add(input.readBytes());
-              break;
-            }
-            case 50: {
-              ensureCrcCheckCodeIsMutable();
-              crcCheckCode_.add(input.readBytes());
+            case 34: {
+              com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder subBuilder = com.bonree.brfs.common.proto.FileDataProtos.FileContent.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addFile(subBuilder.buildPartial());
               break;
             }
           }
@@ -705,132 +647,190 @@ public final class FileDataProtos {
         onChanged();
       }
       
-      // optional bool crcFlag = 4;
-      private boolean crcFlag_ ;
-      public boolean hasCrcFlag() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      public boolean getCrcFlag() {
-        return crcFlag_;
-      }
-      public Builder setCrcFlag(boolean value) {
-        bitField0_ |= 0x00000008;
-        crcFlag_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearCrcFlag() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        crcFlag_ = false;
-        onChanged();
-        return this;
-      }
-      
-      // repeated string data = 5;
-      private com.google.protobuf.LazyStringList data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      private void ensureDataIsMutable() {
-        if (!((bitField0_ & 0x00000010) == 0x00000010)) {
-          data_ = new com.google.protobuf.LazyStringArrayList(data_);
-          bitField0_ |= 0x00000010;
+      // repeated .brfs.proto.FileContent file = 4;
+      private java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> file_ =
+        java.util.Collections.emptyList();
+      private void ensureFileIsMutable() {
+        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+          file_ = new java.util.ArrayList<com.bonree.brfs.common.proto.FileDataProtos.FileContent>(file_);
+          bitField0_ |= 0x00000008;
          }
       }
-      public java.util.List<String>
-          getDataList() {
-        return java.util.Collections.unmodifiableList(data_);
-      }
-      public int getDataCount() {
-        return data_.size();
-      }
-      public String getData(int index) {
-        return data_.get(index);
-      }
-      public Builder setData(
-          int index, String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureDataIsMutable();
-        data_.set(index, value);
-        onChanged();
-        return this;
-      }
-      public Builder addData(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureDataIsMutable();
-        data_.add(value);
-        onChanged();
-        return this;
-      }
-      public Builder addAllData(
-          java.lang.Iterable<String> values) {
-        ensureDataIsMutable();
-        super.addAll(values, data_);
-        onChanged();
-        return this;
-      }
-      public Builder clearData() {
-        data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000010);
-        onChanged();
-        return this;
-      }
-      void addData(com.google.protobuf.ByteString value) {
-        ensureDataIsMutable();
-        data_.add(value);
-        onChanged();
-      }
       
-      // repeated bytes crcCheckCode = 6;
-      private java.util.List<com.google.protobuf.ByteString> crcCheckCode_ = java.util.Collections.emptyList();;
-      private void ensureCrcCheckCodeIsMutable() {
-        if (!((bitField0_ & 0x00000020) == 0x00000020)) {
-          crcCheckCode_ = new java.util.ArrayList<com.google.protobuf.ByteString>(crcCheckCode_);
-          bitField0_ |= 0x00000020;
-         }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> fileBuilder_;
+      
+      public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> getFileList() {
+        if (fileBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(file_);
+        } else {
+          return fileBuilder_.getMessageList();
+        }
       }
-      public java.util.List<com.google.protobuf.ByteString>
-          getCrcCheckCodeList() {
-        return java.util.Collections.unmodifiableList(crcCheckCode_);
+      public int getFileCount() {
+        if (fileBuilder_ == null) {
+          return file_.size();
+        } else {
+          return fileBuilder_.getCount();
+        }
       }
-      public int getCrcCheckCodeCount() {
-        return crcCheckCode_.size();
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index) {
+        if (fileBuilder_ == null) {
+          return file_.get(index);
+        } else {
+          return fileBuilder_.getMessage(index);
+        }
       }
-      public com.google.protobuf.ByteString getCrcCheckCode(int index) {
-        return crcCheckCode_.get(index);
-      }
-      public Builder setCrcCheckCode(
-          int index, com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureCrcCheckCodeIsMutable();
-        crcCheckCode_.set(index, value);
-        onChanged();
+      public Builder setFile(
+          int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
+        if (fileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureFileIsMutable();
+          file_.set(index, value);
+          onChanged();
+        } else {
+          fileBuilder_.setMessage(index, value);
+        }
         return this;
       }
-      public Builder addCrcCheckCode(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureCrcCheckCodeIsMutable();
-        crcCheckCode_.add(value);
-        onChanged();
+      public Builder setFile(
+          int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
+        if (fileBuilder_ == null) {
+          ensureFileIsMutable();
+          file_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          fileBuilder_.setMessage(index, builderForValue.build());
+        }
         return this;
       }
-      public Builder addAllCrcCheckCode(
-          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
-        ensureCrcCheckCodeIsMutable();
-        super.addAll(values, crcCheckCode_);
-        onChanged();
+      public Builder addFile(com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
+        if (fileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureFileIsMutable();
+          file_.add(value);
+          onChanged();
+        } else {
+          fileBuilder_.addMessage(value);
+        }
         return this;
       }
-      public Builder clearCrcCheckCode() {
-        crcCheckCode_ = java.util.Collections.emptyList();;
-        bitField0_ = (bitField0_ & ~0x00000020);
-        onChanged();
+      public Builder addFile(
+          int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
+        if (fileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureFileIsMutable();
+          file_.add(index, value);
+          onChanged();
+        } else {
+          fileBuilder_.addMessage(index, value);
+        }
         return this;
+      }
+      public Builder addFile(
+          com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
+        if (fileBuilder_ == null) {
+          ensureFileIsMutable();
+          file_.add(builderForValue.build());
+          onChanged();
+        } else {
+          fileBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      public Builder addFile(
+          int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
+        if (fileBuilder_ == null) {
+          ensureFileIsMutable();
+          file_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          fileBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      public Builder addAllFile(
+          java.lang.Iterable<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContent> values) {
+        if (fileBuilder_ == null) {
+          ensureFileIsMutable();
+          super.addAll(values, file_);
+          onChanged();
+        } else {
+          fileBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      public Builder clearFile() {
+        if (fileBuilder_ == null) {
+          file_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000008);
+          onChanged();
+        } else {
+          fileBuilder_.clear();
+        }
+        return this;
+      }
+      public Builder removeFile(int index) {
+        if (fileBuilder_ == null) {
+          ensureFileIsMutable();
+          file_.remove(index);
+          onChanged();
+        } else {
+          fileBuilder_.remove(index);
+        }
+        return this;
+      }
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder getFileBuilder(
+          int index) {
+        return getFileFieldBuilder().getBuilder(index);
+      }
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
+          int index) {
+        if (fileBuilder_ == null) {
+          return file_.get(index);  } else {
+          return fileBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      public java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
+           getFileOrBuilderList() {
+        if (fileBuilder_ != null) {
+          return fileBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(file_);
+        }
+      }
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder addFileBuilder() {
+        return getFileFieldBuilder().addBuilder(
+            com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance());
+      }
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder addFileBuilder(
+          int index) {
+        return getFileFieldBuilder().addBuilder(
+            index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance());
+      }
+      public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder> 
+           getFileBuilderList() {
+        return getFileFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
+          getFileFieldBuilder() {
+        if (fileBuilder_ == null) {
+          fileBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder>(
+                  file_,
+                  ((bitField0_ & 0x00000008) == 0x00000008),
+                  getParentForChildren(),
+                  isClean());
+          file_ = null;
+        }
+        return fileBuilder_;
       }
       
       // @@protoc_insertion_point(builder_scope:brfs.proto.DataWriteRequest)
@@ -859,27 +859,18 @@ public final class FileDataProtos {
     boolean hasUser();
     String getUser();
     
-    // optional bool crcFlag = 4;
-    boolean hasCrcFlag();
-    boolean getCrcFlag();
-    
-    // optional int32 returnCode = 5;
+    // optional int32 returnCode = 4;
     boolean hasReturnCode();
     int getReturnCode();
     
-    // optional string description = 6;
+    // optional string description = 5;
     boolean hasDescription();
     String getDescription();
     
-    // repeated string fid = 7;
+    // repeated string fid = 6;
     java.util.List<String> getFidList();
     int getFidCount();
     String getFid(int index);
-    
-    // repeated bytes crcCheckCode = 8;
-    java.util.List<com.google.protobuf.ByteString> getCrcCheckCodeList();
-    int getCrcCheckCodeCount();
-    com.google.protobuf.ByteString getCrcCheckCode(int index);
   }
   public static final class DataWriteResponse extends
       com.google.protobuf.GeneratedMessage
@@ -907,1829 +898,6 @@ public final class FileDataProtos {
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable;
-    }
-    
-    private int bitField0_;
-    // optional string seesionId = 1;
-    public static final int SEESIONID_FIELD_NUMBER = 1;
-    private java.lang.Object seesionId_;
-    public boolean hasSeesionId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    public String getSeesionId() {
-      java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          seesionId_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getSeesionIdBytes() {
-      java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        seesionId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string storageName = 2;
-    public static final int STORAGENAME_FIELD_NUMBER = 2;
-    private java.lang.Object storageName_;
-    public boolean hasStorageName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    public String getStorageName() {
-      java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          storageName_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getStorageNameBytes() {
-      java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        storageName_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string user = 3;
-    public static final int USER_FIELD_NUMBER = 3;
-    private java.lang.Object user_;
-    public boolean hasUser() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    public String getUser() {
-      java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          user_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getUserBytes() {
-      java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        user_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional bool crcFlag = 4;
-    public static final int CRCFLAG_FIELD_NUMBER = 4;
-    private boolean crcFlag_;
-    public boolean hasCrcFlag() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    public boolean getCrcFlag() {
-      return crcFlag_;
-    }
-    
-    // optional int32 returnCode = 5;
-    public static final int RETURNCODE_FIELD_NUMBER = 5;
-    private int returnCode_;
-    public boolean hasReturnCode() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    public int getReturnCode() {
-      return returnCode_;
-    }
-    
-    // optional string description = 6;
-    public static final int DESCRIPTION_FIELD_NUMBER = 6;
-    private java.lang.Object description_;
-    public boolean hasDescription() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
-    }
-    public String getDescription() {
-      java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          description_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getDescriptionBytes() {
-      java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        description_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // repeated string fid = 7;
-    public static final int FID_FIELD_NUMBER = 7;
-    private com.google.protobuf.LazyStringList fid_;
-    public java.util.List<String>
-        getFidList() {
-      return fid_;
-    }
-    public int getFidCount() {
-      return fid_.size();
-    }
-    public String getFid(int index) {
-      return fid_.get(index);
-    }
-    
-    // repeated bytes crcCheckCode = 8;
-    public static final int CRCCHECKCODE_FIELD_NUMBER = 8;
-    private java.util.List<com.google.protobuf.ByteString> crcCheckCode_;
-    public java.util.List<com.google.protobuf.ByteString>
-        getCrcCheckCodeList() {
-      return crcCheckCode_;
-    }
-    public int getCrcCheckCodeCount() {
-      return crcCheckCode_.size();
-    }
-    public com.google.protobuf.ByteString getCrcCheckCode(int index) {
-      return crcCheckCode_.get(index);
-    }
-    
-    private void initFields() {
-      seesionId_ = "";
-      storageName_ = "";
-      user_ = "";
-      crcFlag_ = false;
-      returnCode_ = 0;
-      description_ = "";
-      fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      crcCheckCode_ = java.util.Collections.emptyList();;
-    }
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
-      memoizedIsInitialized = 1;
-      return true;
-    }
-    
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getSerializedSize();
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getSeesionIdBytes());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getStorageNameBytes());
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getUserBytes());
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBool(4, crcFlag_);
-      }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        output.writeInt32(5, returnCode_);
-      }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        output.writeBytes(6, getDescriptionBytes());
-      }
-      for (int i = 0; i < fid_.size(); i++) {
-        output.writeBytes(7, fid_.getByteString(i));
-      }
-      for (int i = 0; i < crcCheckCode_.size(); i++) {
-        output.writeBytes(8, crcCheckCode_.get(i));
-      }
-      getUnknownFields().writeTo(output);
-    }
-    
-    private int memoizedSerializedSize = -1;
-    public int getSerializedSize() {
-      int size = memoizedSerializedSize;
-      if (size != -1) return size;
-    
-      size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getSeesionIdBytes());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getStorageNameBytes());
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getUserBytes());
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(4, crcFlag_);
-      }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(5, returnCode_);
-      }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(6, getDescriptionBytes());
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < fid_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(fid_.getByteString(i));
-        }
-        size += dataSize;
-        size += 1 * getFidList().size();
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < crcCheckCode_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(crcCheckCode_.get(i));
-        }
-        size += dataSize;
-        size += 1 * getCrcCheckCodeList().size();
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
-      return size;
-    }
-    
-    private static final long serialVersionUID = 0L;
-    @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
-    }
-    
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
-    }
-    
-    public static Builder newBuilder() { return Builder.create(); }
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse prototype) {
-      return newBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() { return newBuilder(this); }
-    
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponseOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_descriptor;
-      }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable;
-      }
-      
-      // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-      
-      private Builder(BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-        }
-      }
-      private static Builder create() {
-        return new Builder();
-      }
-      
-      public Builder clear() {
-        super.clear();
-        seesionId_ = "";
-        bitField0_ = (bitField0_ & ~0x00000001);
-        storageName_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
-        user_ = "";
-        bitField0_ = (bitField0_ & ~0x00000004);
-        crcFlag_ = false;
-        bitField0_ = (bitField0_ & ~0x00000008);
-        returnCode_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000010);
-        description_ = "";
-        bitField0_ = (bitField0_ & ~0x00000020);
-        fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000040);
-        crcCheckCode_ = java.util.Collections.emptyList();;
-        bitField0_ = (bitField0_ & ~0x00000080);
-        return this;
-      }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.getDescriptor();
-      }
-      
-      public com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse getDefaultInstanceForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.getDefaultInstance();
-      }
-      
-      public com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse build() {
-        com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-      
-      private com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
-      public com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse buildPartial() {
-        com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse result = new com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse(this);
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
-        result.seesionId_ = seesionId_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
-        result.storageName_ = storageName_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
-        result.user_ = user_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
-        }
-        result.crcFlag_ = crcFlag_;
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
-          to_bitField0_ |= 0x00000010;
-        }
-        result.returnCode_ = returnCode_;
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
-          to_bitField0_ |= 0x00000020;
-        }
-        result.description_ = description_;
-        if (((bitField0_ & 0x00000040) == 0x00000040)) {
-          fid_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              fid_);
-          bitField0_ = (bitField0_ & ~0x00000040);
-        }
-        result.fid_ = fid_;
-        if (((bitField0_ & 0x00000080) == 0x00000080)) {
-          crcCheckCode_ = java.util.Collections.unmodifiableList(crcCheckCode_);
-          bitField0_ = (bitField0_ & ~0x00000080);
-        }
-        result.crcCheckCode_ = crcCheckCode_;
-        result.bitField0_ = to_bitField0_;
-        onBuilt();
-        return result;
-      }
-      
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse) {
-          return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-      
-      public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse other) {
-        if (other == com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.getDefaultInstance()) return this;
-        if (other.hasSeesionId()) {
-          setSeesionId(other.getSeesionId());
-        }
-        if (other.hasStorageName()) {
-          setStorageName(other.getStorageName());
-        }
-        if (other.hasUser()) {
-          setUser(other.getUser());
-        }
-        if (other.hasCrcFlag()) {
-          setCrcFlag(other.getCrcFlag());
-        }
-        if (other.hasReturnCode()) {
-          setReturnCode(other.getReturnCode());
-        }
-        if (other.hasDescription()) {
-          setDescription(other.getDescription());
-        }
-        if (!other.fid_.isEmpty()) {
-          if (fid_.isEmpty()) {
-            fid_ = other.fid_;
-            bitField0_ = (bitField0_ & ~0x00000040);
-          } else {
-            ensureFidIsMutable();
-            fid_.addAll(other.fid_);
-          }
-          onChanged();
-        }
-        if (!other.crcCheckCode_.isEmpty()) {
-          if (crcCheckCode_.isEmpty()) {
-            crcCheckCode_ = other.crcCheckCode_;
-            bitField0_ = (bitField0_ & ~0x00000080);
-          } else {
-            ensureCrcCheckCodeIsMutable();
-            crcCheckCode_.addAll(other.crcCheckCode_);
-          }
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        return this;
-      }
-      
-      public final boolean isInitialized() {
-        return true;
-      }
-      
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              seesionId_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              storageName_ = input.readBytes();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              user_ = input.readBytes();
-              break;
-            }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              crcFlag_ = input.readBool();
-              break;
-            }
-            case 40: {
-              bitField0_ |= 0x00000010;
-              returnCode_ = input.readInt32();
-              break;
-            }
-            case 50: {
-              bitField0_ |= 0x00000020;
-              description_ = input.readBytes();
-              break;
-            }
-            case 58: {
-              ensureFidIsMutable();
-              fid_.add(input.readBytes());
-              break;
-            }
-            case 66: {
-              ensureCrcCheckCodeIsMutable();
-              crcCheckCode_.add(input.readBytes());
-              break;
-            }
-          }
-        }
-      }
-      
-      private int bitField0_;
-      
-      // optional string seesionId = 1;
-      private java.lang.Object seesionId_ = "";
-      public boolean hasSeesionId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      public String getSeesionId() {
-        java.lang.Object ref = seesionId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          seesionId_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
-      }
-      public Builder setSeesionId(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-        seesionId_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearSeesionId() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        seesionId_ = getDefaultInstance().getSeesionId();
-        onChanged();
-        return this;
-      }
-      void setSeesionId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000001;
-        seesionId_ = value;
-        onChanged();
-      }
-      
-      // optional string storageName = 2;
-      private java.lang.Object storageName_ = "";
-      public boolean hasStorageName() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      public String getStorageName() {
-        java.lang.Object ref = storageName_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          storageName_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
-      }
-      public Builder setStorageName(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        storageName_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearStorageName() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        storageName_ = getDefaultInstance().getStorageName();
-        onChanged();
-        return this;
-      }
-      void setStorageName(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000002;
-        storageName_ = value;
-        onChanged();
-      }
-      
-      // optional string user = 3;
-      private java.lang.Object user_ = "";
-      public boolean hasUser() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      public String getUser() {
-        java.lang.Object ref = user_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          user_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
-      }
-      public Builder setUser(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-        user_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearUser() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        user_ = getDefaultInstance().getUser();
-        onChanged();
-        return this;
-      }
-      void setUser(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000004;
-        user_ = value;
-        onChanged();
-      }
-      
-      // optional bool crcFlag = 4;
-      private boolean crcFlag_ ;
-      public boolean hasCrcFlag() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      public boolean getCrcFlag() {
-        return crcFlag_;
-      }
-      public Builder setCrcFlag(boolean value) {
-        bitField0_ |= 0x00000008;
-        crcFlag_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearCrcFlag() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        crcFlag_ = false;
-        onChanged();
-        return this;
-      }
-      
-      // optional int32 returnCode = 5;
-      private int returnCode_ ;
-      public boolean hasReturnCode() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
-      }
-      public int getReturnCode() {
-        return returnCode_;
-      }
-      public Builder setReturnCode(int value) {
-        bitField0_ |= 0x00000010;
-        returnCode_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearReturnCode() {
-        bitField0_ = (bitField0_ & ~0x00000010);
-        returnCode_ = 0;
-        onChanged();
-        return this;
-      }
-      
-      // optional string description = 6;
-      private java.lang.Object description_ = "";
-      public boolean hasDescription() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
-      }
-      public String getDescription() {
-        java.lang.Object ref = description_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          description_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
-      }
-      public Builder setDescription(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000020;
-        description_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearDescription() {
-        bitField0_ = (bitField0_ & ~0x00000020);
-        description_ = getDefaultInstance().getDescription();
-        onChanged();
-        return this;
-      }
-      void setDescription(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000020;
-        description_ = value;
-        onChanged();
-      }
-      
-      // repeated string fid = 7;
-      private com.google.protobuf.LazyStringList fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      private void ensureFidIsMutable() {
-        if (!((bitField0_ & 0x00000040) == 0x00000040)) {
-          fid_ = new com.google.protobuf.LazyStringArrayList(fid_);
-          bitField0_ |= 0x00000040;
-         }
-      }
-      public java.util.List<String>
-          getFidList() {
-        return java.util.Collections.unmodifiableList(fid_);
-      }
-      public int getFidCount() {
-        return fid_.size();
-      }
-      public String getFid(int index) {
-        return fid_.get(index);
-      }
-      public Builder setFid(
-          int index, String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureFidIsMutable();
-        fid_.set(index, value);
-        onChanged();
-        return this;
-      }
-      public Builder addFid(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureFidIsMutable();
-        fid_.add(value);
-        onChanged();
-        return this;
-      }
-      public Builder addAllFid(
-          java.lang.Iterable<String> values) {
-        ensureFidIsMutable();
-        super.addAll(values, fid_);
-        onChanged();
-        return this;
-      }
-      public Builder clearFid() {
-        fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000040);
-        onChanged();
-        return this;
-      }
-      void addFid(com.google.protobuf.ByteString value) {
-        ensureFidIsMutable();
-        fid_.add(value);
-        onChanged();
-      }
-      
-      // repeated bytes crcCheckCode = 8;
-      private java.util.List<com.google.protobuf.ByteString> crcCheckCode_ = java.util.Collections.emptyList();;
-      private void ensureCrcCheckCodeIsMutable() {
-        if (!((bitField0_ & 0x00000080) == 0x00000080)) {
-          crcCheckCode_ = new java.util.ArrayList<com.google.protobuf.ByteString>(crcCheckCode_);
-          bitField0_ |= 0x00000080;
-         }
-      }
-      public java.util.List<com.google.protobuf.ByteString>
-          getCrcCheckCodeList() {
-        return java.util.Collections.unmodifiableList(crcCheckCode_);
-      }
-      public int getCrcCheckCodeCount() {
-        return crcCheckCode_.size();
-      }
-      public com.google.protobuf.ByteString getCrcCheckCode(int index) {
-        return crcCheckCode_.get(index);
-      }
-      public Builder setCrcCheckCode(
-          int index, com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureCrcCheckCodeIsMutable();
-        crcCheckCode_.set(index, value);
-        onChanged();
-        return this;
-      }
-      public Builder addCrcCheckCode(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureCrcCheckCodeIsMutable();
-        crcCheckCode_.add(value);
-        onChanged();
-        return this;
-      }
-      public Builder addAllCrcCheckCode(
-          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
-        ensureCrcCheckCodeIsMutable();
-        super.addAll(values, crcCheckCode_);
-        onChanged();
-        return this;
-      }
-      public Builder clearCrcCheckCode() {
-        crcCheckCode_ = java.util.Collections.emptyList();;
-        bitField0_ = (bitField0_ & ~0x00000080);
-        onChanged();
-        return this;
-      }
-      
-      // @@protoc_insertion_point(builder_scope:brfs.proto.DataWriteResponse)
-    }
-    
-    static {
-      defaultInstance = new DataWriteResponse(true);
-      defaultInstance.initFields();
-    }
-    
-    // @@protoc_insertion_point(class_scope:brfs.proto.DataWriteResponse)
-  }
-  
-  public interface DataReadRequestOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional string seesionId = 1;
-    boolean hasSeesionId();
-    String getSeesionId();
-    
-    // optional string storageName = 2;
-    boolean hasStorageName();
-    String getStorageName();
-    
-    // optional string user = 3;
-    boolean hasUser();
-    String getUser();
-    
-    // optional bool crcFlag = 4;
-    boolean hasCrcFlag();
-    boolean getCrcFlag();
-    
-    // repeated string fid = 5;
-    java.util.List<String> getFidList();
-    int getFidCount();
-    String getFid(int index);
-    
-    // repeated bytes crcCheckCode = 6;
-    java.util.List<com.google.protobuf.ByteString> getCrcCheckCodeList();
-    int getCrcCheckCodeCount();
-    com.google.protobuf.ByteString getCrcCheckCode(int index);
-  }
-  public static final class DataReadRequest extends
-      com.google.protobuf.GeneratedMessage
-      implements DataReadRequestOrBuilder {
-    // Use DataReadRequest.newBuilder() to construct.
-    private DataReadRequest(Builder builder) {
-      super(builder);
-    }
-    private DataReadRequest(boolean noInit) {}
-    
-    private static final DataReadRequest defaultInstance;
-    public static DataReadRequest getDefaultInstance() {
-      return defaultInstance;
-    }
-    
-    public DataReadRequest getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-    
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_descriptor;
-    }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_fieldAccessorTable;
-    }
-    
-    private int bitField0_;
-    // optional string seesionId = 1;
-    public static final int SEESIONID_FIELD_NUMBER = 1;
-    private java.lang.Object seesionId_;
-    public boolean hasSeesionId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    public String getSeesionId() {
-      java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          seesionId_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getSeesionIdBytes() {
-      java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        seesionId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string storageName = 2;
-    public static final int STORAGENAME_FIELD_NUMBER = 2;
-    private java.lang.Object storageName_;
-    public boolean hasStorageName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    public String getStorageName() {
-      java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          storageName_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getStorageNameBytes() {
-      java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        storageName_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string user = 3;
-    public static final int USER_FIELD_NUMBER = 3;
-    private java.lang.Object user_;
-    public boolean hasUser() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    public String getUser() {
-      java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          user_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getUserBytes() {
-      java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        user_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional bool crcFlag = 4;
-    public static final int CRCFLAG_FIELD_NUMBER = 4;
-    private boolean crcFlag_;
-    public boolean hasCrcFlag() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    public boolean getCrcFlag() {
-      return crcFlag_;
-    }
-    
-    // repeated string fid = 5;
-    public static final int FID_FIELD_NUMBER = 5;
-    private com.google.protobuf.LazyStringList fid_;
-    public java.util.List<String>
-        getFidList() {
-      return fid_;
-    }
-    public int getFidCount() {
-      return fid_.size();
-    }
-    public String getFid(int index) {
-      return fid_.get(index);
-    }
-    
-    // repeated bytes crcCheckCode = 6;
-    public static final int CRCCHECKCODE_FIELD_NUMBER = 6;
-    private java.util.List<com.google.protobuf.ByteString> crcCheckCode_;
-    public java.util.List<com.google.protobuf.ByteString>
-        getCrcCheckCodeList() {
-      return crcCheckCode_;
-    }
-    public int getCrcCheckCodeCount() {
-      return crcCheckCode_.size();
-    }
-    public com.google.protobuf.ByteString getCrcCheckCode(int index) {
-      return crcCheckCode_.get(index);
-    }
-    
-    private void initFields() {
-      seesionId_ = "";
-      storageName_ = "";
-      user_ = "";
-      crcFlag_ = false;
-      fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      crcCheckCode_ = java.util.Collections.emptyList();;
-    }
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
-      memoizedIsInitialized = 1;
-      return true;
-    }
-    
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getSerializedSize();
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getSeesionIdBytes());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getStorageNameBytes());
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getUserBytes());
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBool(4, crcFlag_);
-      }
-      for (int i = 0; i < fid_.size(); i++) {
-        output.writeBytes(5, fid_.getByteString(i));
-      }
-      for (int i = 0; i < crcCheckCode_.size(); i++) {
-        output.writeBytes(6, crcCheckCode_.get(i));
-      }
-      getUnknownFields().writeTo(output);
-    }
-    
-    private int memoizedSerializedSize = -1;
-    public int getSerializedSize() {
-      int size = memoizedSerializedSize;
-      if (size != -1) return size;
-    
-      size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getSeesionIdBytes());
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getStorageNameBytes());
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getUserBytes());
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(4, crcFlag_);
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < fid_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(fid_.getByteString(i));
-        }
-        size += dataSize;
-        size += 1 * getFidList().size();
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < crcCheckCode_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(crcCheckCode_.get(i));
-        }
-        size += dataSize;
-        size += 1 * getCrcCheckCodeList().size();
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
-      return size;
-    }
-    
-    private static final long serialVersionUID = 0L;
-    @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
-    }
-    
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
-    }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
-    }
-    
-    public static Builder newBuilder() { return Builder.create(); }
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest prototype) {
-      return newBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() { return newBuilder(this); }
-    
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.DataReadRequestOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_descriptor;
-      }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_fieldAccessorTable;
-      }
-      
-      // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-      
-      private Builder(BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-        }
-      }
-      private static Builder create() {
-        return new Builder();
-      }
-      
-      public Builder clear() {
-        super.clear();
-        seesionId_ = "";
-        bitField0_ = (bitField0_ & ~0x00000001);
-        storageName_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
-        user_ = "";
-        bitField0_ = (bitField0_ & ~0x00000004);
-        crcFlag_ = false;
-        bitField0_ = (bitField0_ & ~0x00000008);
-        fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000010);
-        crcCheckCode_ = java.util.Collections.emptyList();;
-        bitField0_ = (bitField0_ & ~0x00000020);
-        return this;
-      }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.getDescriptor();
-      }
-      
-      public com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest getDefaultInstanceForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.getDefaultInstance();
-      }
-      
-      public com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest build() {
-        com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-      
-      private com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
-      public com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest buildPartial() {
-        com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest result = new com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest(this);
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
-        result.seesionId_ = seesionId_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
-        result.storageName_ = storageName_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
-        result.user_ = user_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
-        }
-        result.crcFlag_ = crcFlag_;
-        if (((bitField0_ & 0x00000010) == 0x00000010)) {
-          fid_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              fid_);
-          bitField0_ = (bitField0_ & ~0x00000010);
-        }
-        result.fid_ = fid_;
-        if (((bitField0_ & 0x00000020) == 0x00000020)) {
-          crcCheckCode_ = java.util.Collections.unmodifiableList(crcCheckCode_);
-          bitField0_ = (bitField0_ & ~0x00000020);
-        }
-        result.crcCheckCode_ = crcCheckCode_;
-        result.bitField0_ = to_bitField0_;
-        onBuilt();
-        return result;
-      }
-      
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest) {
-          return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-      
-      public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest other) {
-        if (other == com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.getDefaultInstance()) return this;
-        if (other.hasSeesionId()) {
-          setSeesionId(other.getSeesionId());
-        }
-        if (other.hasStorageName()) {
-          setStorageName(other.getStorageName());
-        }
-        if (other.hasUser()) {
-          setUser(other.getUser());
-        }
-        if (other.hasCrcFlag()) {
-          setCrcFlag(other.getCrcFlag());
-        }
-        if (!other.fid_.isEmpty()) {
-          if (fid_.isEmpty()) {
-            fid_ = other.fid_;
-            bitField0_ = (bitField0_ & ~0x00000010);
-          } else {
-            ensureFidIsMutable();
-            fid_.addAll(other.fid_);
-          }
-          onChanged();
-        }
-        if (!other.crcCheckCode_.isEmpty()) {
-          if (crcCheckCode_.isEmpty()) {
-            crcCheckCode_ = other.crcCheckCode_;
-            bitField0_ = (bitField0_ & ~0x00000020);
-          } else {
-            ensureCrcCheckCodeIsMutable();
-            crcCheckCode_.addAll(other.crcCheckCode_);
-          }
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        return this;
-      }
-      
-      public final boolean isInitialized() {
-        return true;
-      }
-      
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              seesionId_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              storageName_ = input.readBytes();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              user_ = input.readBytes();
-              break;
-            }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              crcFlag_ = input.readBool();
-              break;
-            }
-            case 42: {
-              ensureFidIsMutable();
-              fid_.add(input.readBytes());
-              break;
-            }
-            case 50: {
-              ensureCrcCheckCodeIsMutable();
-              crcCheckCode_.add(input.readBytes());
-              break;
-            }
-          }
-        }
-      }
-      
-      private int bitField0_;
-      
-      // optional string seesionId = 1;
-      private java.lang.Object seesionId_ = "";
-      public boolean hasSeesionId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      public String getSeesionId() {
-        java.lang.Object ref = seesionId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          seesionId_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
-      }
-      public Builder setSeesionId(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-        seesionId_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearSeesionId() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        seesionId_ = getDefaultInstance().getSeesionId();
-        onChanged();
-        return this;
-      }
-      void setSeesionId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000001;
-        seesionId_ = value;
-        onChanged();
-      }
-      
-      // optional string storageName = 2;
-      private java.lang.Object storageName_ = "";
-      public boolean hasStorageName() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      public String getStorageName() {
-        java.lang.Object ref = storageName_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          storageName_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
-      }
-      public Builder setStorageName(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        storageName_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearStorageName() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        storageName_ = getDefaultInstance().getStorageName();
-        onChanged();
-        return this;
-      }
-      void setStorageName(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000002;
-        storageName_ = value;
-        onChanged();
-      }
-      
-      // optional string user = 3;
-      private java.lang.Object user_ = "";
-      public boolean hasUser() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      public String getUser() {
-        java.lang.Object ref = user_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          user_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
-      }
-      public Builder setUser(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-        user_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearUser() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        user_ = getDefaultInstance().getUser();
-        onChanged();
-        return this;
-      }
-      void setUser(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000004;
-        user_ = value;
-        onChanged();
-      }
-      
-      // optional bool crcFlag = 4;
-      private boolean crcFlag_ ;
-      public boolean hasCrcFlag() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      public boolean getCrcFlag() {
-        return crcFlag_;
-      }
-      public Builder setCrcFlag(boolean value) {
-        bitField0_ |= 0x00000008;
-        crcFlag_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearCrcFlag() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        crcFlag_ = false;
-        onChanged();
-        return this;
-      }
-      
-      // repeated string fid = 5;
-      private com.google.protobuf.LazyStringList fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      private void ensureFidIsMutable() {
-        if (!((bitField0_ & 0x00000010) == 0x00000010)) {
-          fid_ = new com.google.protobuf.LazyStringArrayList(fid_);
-          bitField0_ |= 0x00000010;
-         }
-      }
-      public java.util.List<String>
-          getFidList() {
-        return java.util.Collections.unmodifiableList(fid_);
-      }
-      public int getFidCount() {
-        return fid_.size();
-      }
-      public String getFid(int index) {
-        return fid_.get(index);
-      }
-      public Builder setFid(
-          int index, String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureFidIsMutable();
-        fid_.set(index, value);
-        onChanged();
-        return this;
-      }
-      public Builder addFid(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureFidIsMutable();
-        fid_.add(value);
-        onChanged();
-        return this;
-      }
-      public Builder addAllFid(
-          java.lang.Iterable<String> values) {
-        ensureFidIsMutable();
-        super.addAll(values, fid_);
-        onChanged();
-        return this;
-      }
-      public Builder clearFid() {
-        fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000010);
-        onChanged();
-        return this;
-      }
-      void addFid(com.google.protobuf.ByteString value) {
-        ensureFidIsMutable();
-        fid_.add(value);
-        onChanged();
-      }
-      
-      // repeated bytes crcCheckCode = 6;
-      private java.util.List<com.google.protobuf.ByteString> crcCheckCode_ = java.util.Collections.emptyList();;
-      private void ensureCrcCheckCodeIsMutable() {
-        if (!((bitField0_ & 0x00000020) == 0x00000020)) {
-          crcCheckCode_ = new java.util.ArrayList<com.google.protobuf.ByteString>(crcCheckCode_);
-          bitField0_ |= 0x00000020;
-         }
-      }
-      public java.util.List<com.google.protobuf.ByteString>
-          getCrcCheckCodeList() {
-        return java.util.Collections.unmodifiableList(crcCheckCode_);
-      }
-      public int getCrcCheckCodeCount() {
-        return crcCheckCode_.size();
-      }
-      public com.google.protobuf.ByteString getCrcCheckCode(int index) {
-        return crcCheckCode_.get(index);
-      }
-      public Builder setCrcCheckCode(
-          int index, com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureCrcCheckCodeIsMutable();
-        crcCheckCode_.set(index, value);
-        onChanged();
-        return this;
-      }
-      public Builder addCrcCheckCode(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureCrcCheckCodeIsMutable();
-        crcCheckCode_.add(value);
-        onChanged();
-        return this;
-      }
-      public Builder addAllCrcCheckCode(
-          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
-        ensureCrcCheckCodeIsMutable();
-        super.addAll(values, crcCheckCode_);
-        onChanged();
-        return this;
-      }
-      public Builder clearCrcCheckCode() {
-        crcCheckCode_ = java.util.Collections.emptyList();;
-        bitField0_ = (bitField0_ & ~0x00000020);
-        onChanged();
-        return this;
-      }
-      
-      // @@protoc_insertion_point(builder_scope:brfs.proto.DataReadRequest)
-    }
-    
-    static {
-      defaultInstance = new DataReadRequest(true);
-      defaultInstance.initFields();
-    }
-    
-    // @@protoc_insertion_point(class_scope:brfs.proto.DataReadRequest)
-  }
-  
-  public interface DataReadResponseOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional string seesionId = 1;
-    boolean hasSeesionId();
-    String getSeesionId();
-    
-    // optional string storageName = 2;
-    boolean hasStorageName();
-    String getStorageName();
-    
-    // optional string user = 3;
-    boolean hasUser();
-    String getUser();
-    
-    // optional int32 returnCode = 4;
-    boolean hasReturnCode();
-    int getReturnCode();
-    
-    // optional string description = 5;
-    boolean hasDescription();
-    String getDescription();
-    
-    // optional bool crcFlag = 6;
-    boolean hasCrcFlag();
-    boolean getCrcFlag();
-    
-    // repeated string data = 7;
-    java.util.List<String> getDataList();
-    int getDataCount();
-    String getData(int index);
-    
-    // repeated bytes crcCheckCode = 8;
-    java.util.List<com.google.protobuf.ByteString> getCrcCheckCodeList();
-    int getCrcCheckCodeCount();
-    com.google.protobuf.ByteString getCrcCheckCode(int index);
-  }
-  public static final class DataReadResponse extends
-      com.google.protobuf.GeneratedMessage
-      implements DataReadResponseOrBuilder {
-    // Use DataReadResponse.newBuilder() to construct.
-    private DataReadResponse(Builder builder) {
-      super(builder);
-    }
-    private DataReadResponse(boolean noInit) {}
-    
-    private static final DataReadResponse defaultInstance;
-    public static DataReadResponse getDefaultInstance() {
-      return defaultInstance;
-    }
-    
-    public DataReadResponse getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-    
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_descriptor;
-    }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_fieldAccessorTable;
     }
     
     private int bitField0_;
@@ -2871,42 +1039,18 @@ public final class FileDataProtos {
       }
     }
     
-    // optional bool crcFlag = 6;
-    public static final int CRCFLAG_FIELD_NUMBER = 6;
-    private boolean crcFlag_;
-    public boolean hasCrcFlag() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
-    }
-    public boolean getCrcFlag() {
-      return crcFlag_;
-    }
-    
-    // repeated string data = 7;
-    public static final int DATA_FIELD_NUMBER = 7;
-    private com.google.protobuf.LazyStringList data_;
+    // repeated string fid = 6;
+    public static final int FID_FIELD_NUMBER = 6;
+    private com.google.protobuf.LazyStringList fid_;
     public java.util.List<String>
-        getDataList() {
-      return data_;
+        getFidList() {
+      return fid_;
     }
-    public int getDataCount() {
-      return data_.size();
+    public int getFidCount() {
+      return fid_.size();
     }
-    public String getData(int index) {
-      return data_.get(index);
-    }
-    
-    // repeated bytes crcCheckCode = 8;
-    public static final int CRCCHECKCODE_FIELD_NUMBER = 8;
-    private java.util.List<com.google.protobuf.ByteString> crcCheckCode_;
-    public java.util.List<com.google.protobuf.ByteString>
-        getCrcCheckCodeList() {
-      return crcCheckCode_;
-    }
-    public int getCrcCheckCodeCount() {
-      return crcCheckCode_.size();
-    }
-    public com.google.protobuf.ByteString getCrcCheckCode(int index) {
-      return crcCheckCode_.get(index);
+    public String getFid(int index) {
+      return fid_.get(index);
     }
     
     private void initFields() {
@@ -2915,9 +1059,7 @@ public final class FileDataProtos {
       user_ = "";
       returnCode_ = 0;
       description_ = "";
-      crcFlag_ = false;
-      data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      crcCheckCode_ = java.util.Collections.emptyList();;
+      fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2946,14 +1088,8 @@ public final class FileDataProtos {
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeBytes(5, getDescriptionBytes());
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        output.writeBool(6, crcFlag_);
-      }
-      for (int i = 0; i < data_.size(); i++) {
-        output.writeBytes(7, data_.getByteString(i));
-      }
-      for (int i = 0; i < crcCheckCode_.size(); i++) {
-        output.writeBytes(8, crcCheckCode_.get(i));
+      for (int i = 0; i < fid_.size(); i++) {
+        output.writeBytes(6, fid_.getByteString(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -2984,27 +1120,14 @@ public final class FileDataProtos {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(5, getDescriptionBytes());
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(6, crcFlag_);
-      }
       {
         int dataSize = 0;
-        for (int i = 0; i < data_.size(); i++) {
+        for (int i = 0; i < fid_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(data_.getByteString(i));
+            .computeBytesSizeNoTag(fid_.getByteString(i));
         }
         size += dataSize;
-        size += 1 * getDataList().size();
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < crcCheckCode_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(crcCheckCode_.get(i));
-        }
-        size += dataSize;
-        size += 1 * getCrcCheckCodeList().size();
+        size += 1 * getFidList().size();
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3018,41 +1141,41 @@ public final class FileDataProtos {
       return super.writeReplace();
     }
     
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data).buildParsed();
     }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data, extensionRegistry)
                .buildParsed();
     }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(byte[] data)
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data).buildParsed();
     }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return newBuilder().mergeFrom(data, extensionRegistry)
                .buildParsed();
     }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(java.io.InputStream input)
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input).buildParsed();
     }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input, extensionRegistry)
                .buildParsed();
     }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseDelimitedFrom(java.io.InputStream input)
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       Builder builder = newBuilder();
       if (builder.mergeDelimitedFrom(input)) {
@@ -3061,7 +1184,7 @@ public final class FileDataProtos {
         return null;
       }
     }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseDelimitedFrom(
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -3072,12 +1195,12 @@ public final class FileDataProtos {
         return null;
       }
     }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return newBuilder().mergeFrom(input).buildParsed();
     }
-    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -3087,7 +1210,7 @@ public final class FileDataProtos {
     
     public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse prototype) {
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse prototype) {
       return newBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() { return newBuilder(this); }
@@ -3100,18 +1223,18 @@ public final class FileDataProtos {
     }
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.DataReadResponseOrBuilder {
+       implements com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponseOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_descriptor;
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_descriptor;
       }
       
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable;
       }
       
-      // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.newBuilder()
+      // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -3140,12 +1263,8 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000008);
         description_ = "";
         bitField0_ = (bitField0_ & ~0x00000010);
-        crcFlag_ = false;
+        fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000020);
-        data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000040);
-        crcCheckCode_ = java.util.Collections.emptyList();;
-        bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
       
@@ -3155,24 +1274,24 @@ public final class FileDataProtos {
       
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.getDescriptor();
+        return com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.getDescriptor();
       }
       
-      public com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse getDefaultInstanceForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.getDefaultInstance();
+      public com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse getDefaultInstanceForType() {
+        return com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.getDefaultInstance();
       }
       
-      public com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse build() {
-        com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse result = buildPartial();
+      public com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse build() {
+        com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
       
-      private com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse buildParsed()
+      private com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse buildParsed()
           throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse result = buildPartial();
+        com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(
             result).asInvalidProtocolBufferException();
@@ -3180,8 +1299,8 @@ public final class FileDataProtos {
         return result;
       }
       
-      public com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse buildPartial() {
-        com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse result = new com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse(this);
+      public com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse buildPartial() {
+        com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse result = new com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
@@ -3204,37 +1323,28 @@ public final class FileDataProtos {
           to_bitField0_ |= 0x00000010;
         }
         result.description_ = description_;
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
-          to_bitField0_ |= 0x00000020;
+        if (((bitField0_ & 0x00000020) == 0x00000020)) {
+          fid_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              fid_);
+          bitField0_ = (bitField0_ & ~0x00000020);
         }
-        result.crcFlag_ = crcFlag_;
-        if (((bitField0_ & 0x00000040) == 0x00000040)) {
-          data_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              data_);
-          bitField0_ = (bitField0_ & ~0x00000040);
-        }
-        result.data_ = data_;
-        if (((bitField0_ & 0x00000080) == 0x00000080)) {
-          crcCheckCode_ = java.util.Collections.unmodifiableList(crcCheckCode_);
-          bitField0_ = (bitField0_ & ~0x00000080);
-        }
-        result.crcCheckCode_ = crcCheckCode_;
+        result.fid_ = fid_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
       
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse) {
-          return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse)other);
+        if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse) {
+          return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
       
-      public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse other) {
-        if (other == com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.getDefaultInstance()) return this;
+      public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse other) {
+        if (other == com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.getDefaultInstance()) return this;
         if (other.hasSeesionId()) {
           setSeesionId(other.getSeesionId());
         }
@@ -3250,26 +1360,13 @@ public final class FileDataProtos {
         if (other.hasDescription()) {
           setDescription(other.getDescription());
         }
-        if (other.hasCrcFlag()) {
-          setCrcFlag(other.getCrcFlag());
-        }
-        if (!other.data_.isEmpty()) {
-          if (data_.isEmpty()) {
-            data_ = other.data_;
-            bitField0_ = (bitField0_ & ~0x00000040);
+        if (!other.fid_.isEmpty()) {
+          if (fid_.isEmpty()) {
+            fid_ = other.fid_;
+            bitField0_ = (bitField0_ & ~0x00000020);
           } else {
-            ensureDataIsMutable();
-            data_.addAll(other.data_);
-          }
-          onChanged();
-        }
-        if (!other.crcCheckCode_.isEmpty()) {
-          if (crcCheckCode_.isEmpty()) {
-            crcCheckCode_ = other.crcCheckCode_;
-            bitField0_ = (bitField0_ & ~0x00000080);
-          } else {
-            ensureCrcCheckCodeIsMutable();
-            crcCheckCode_.addAll(other.crcCheckCode_);
+            ensureFidIsMutable();
+            fid_.addAll(other.fid_);
           }
           onChanged();
         }
@@ -3329,19 +1426,9 @@ public final class FileDataProtos {
               description_ = input.readBytes();
               break;
             }
-            case 48: {
-              bitField0_ |= 0x00000020;
-              crcFlag_ = input.readBool();
-              break;
-            }
-            case 58: {
-              ensureDataIsMutable();
-              data_.add(input.readBytes());
-              break;
-            }
-            case 66: {
-              ensureCrcCheckCodeIsMutable();
-              crcCheckCode_.add(input.readBytes());
+            case 50: {
+              ensureFidIsMutable();
+              fid_.add(input.readBytes());
               break;
             }
           }
@@ -3515,132 +1602,1721 @@ public final class FileDataProtos {
         onChanged();
       }
       
-      // optional bool crcFlag = 6;
-      private boolean crcFlag_ ;
-      public boolean hasCrcFlag() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
-      }
-      public boolean getCrcFlag() {
-        return crcFlag_;
-      }
-      public Builder setCrcFlag(boolean value) {
-        bitField0_ |= 0x00000020;
-        crcFlag_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearCrcFlag() {
-        bitField0_ = (bitField0_ & ~0x00000020);
-        crcFlag_ = false;
-        onChanged();
-        return this;
-      }
-      
-      // repeated string data = 7;
-      private com.google.protobuf.LazyStringList data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      private void ensureDataIsMutable() {
-        if (!((bitField0_ & 0x00000040) == 0x00000040)) {
-          data_ = new com.google.protobuf.LazyStringArrayList(data_);
-          bitField0_ |= 0x00000040;
+      // repeated string fid = 6;
+      private com.google.protobuf.LazyStringList fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureFidIsMutable() {
+        if (!((bitField0_ & 0x00000020) == 0x00000020)) {
+          fid_ = new com.google.protobuf.LazyStringArrayList(fid_);
+          bitField0_ |= 0x00000020;
          }
       }
       public java.util.List<String>
-          getDataList() {
-        return java.util.Collections.unmodifiableList(data_);
+          getFidList() {
+        return java.util.Collections.unmodifiableList(fid_);
       }
-      public int getDataCount() {
-        return data_.size();
+      public int getFidCount() {
+        return fid_.size();
       }
-      public String getData(int index) {
-        return data_.get(index);
+      public String getFid(int index) {
+        return fid_.get(index);
       }
-      public Builder setData(
+      public Builder setFid(
           int index, String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  ensureDataIsMutable();
-        data_.set(index, value);
+  ensureFidIsMutable();
+        fid_.set(index, value);
         onChanged();
         return this;
       }
-      public Builder addData(String value) {
+      public Builder addFid(String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  ensureDataIsMutable();
-        data_.add(value);
+  ensureFidIsMutable();
+        fid_.add(value);
         onChanged();
         return this;
       }
-      public Builder addAllData(
+      public Builder addAllFid(
           java.lang.Iterable<String> values) {
-        ensureDataIsMutable();
-        super.addAll(values, data_);
+        ensureFidIsMutable();
+        super.addAll(values, fid_);
         onChanged();
         return this;
       }
-      public Builder clearData() {
-        data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000040);
+      public Builder clearFid() {
+        fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000020);
         onChanged();
         return this;
       }
-      void addData(com.google.protobuf.ByteString value) {
-        ensureDataIsMutable();
-        data_.add(value);
+      void addFid(com.google.protobuf.ByteString value) {
+        ensureFidIsMutable();
+        fid_.add(value);
         onChanged();
       }
       
-      // repeated bytes crcCheckCode = 8;
-      private java.util.List<com.google.protobuf.ByteString> crcCheckCode_ = java.util.Collections.emptyList();;
-      private void ensureCrcCheckCodeIsMutable() {
-        if (!((bitField0_ & 0x00000080) == 0x00000080)) {
-          crcCheckCode_ = new java.util.ArrayList<com.google.protobuf.ByteString>(crcCheckCode_);
-          bitField0_ |= 0x00000080;
+      // @@protoc_insertion_point(builder_scope:brfs.proto.DataWriteResponse)
+    }
+    
+    static {
+      defaultInstance = new DataWriteResponse(true);
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:brfs.proto.DataWriteResponse)
+  }
+  
+  public interface DataReadRequestOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+    
+    // optional string seesionId = 1;
+    boolean hasSeesionId();
+    String getSeesionId();
+    
+    // optional string storageName = 2;
+    boolean hasStorageName();
+    String getStorageName();
+    
+    // optional string user = 3;
+    boolean hasUser();
+    String getUser();
+    
+    // repeated string fid = 4;
+    java.util.List<String> getFidList();
+    int getFidCount();
+    String getFid(int index);
+  }
+  public static final class DataReadRequest extends
+      com.google.protobuf.GeneratedMessage
+      implements DataReadRequestOrBuilder {
+    // Use DataReadRequest.newBuilder() to construct.
+    private DataReadRequest(Builder builder) {
+      super(builder);
+    }
+    private DataReadRequest(boolean noInit) {}
+    
+    private static final DataReadRequest defaultInstance;
+    public static DataReadRequest getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public DataReadRequest getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_fieldAccessorTable;
+    }
+    
+    private int bitField0_;
+    // optional string seesionId = 1;
+    public static final int SEESIONID_FIELD_NUMBER = 1;
+    private java.lang.Object seesionId_;
+    public boolean hasSeesionId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    public String getSeesionId() {
+      java.lang.Object ref = seesionId_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          seesionId_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getSeesionIdBytes() {
+      java.lang.Object ref = seesionId_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        seesionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // optional string storageName = 2;
+    public static final int STORAGENAME_FIELD_NUMBER = 2;
+    private java.lang.Object storageName_;
+    public boolean hasStorageName() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    public String getStorageName() {
+      java.lang.Object ref = storageName_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          storageName_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getStorageNameBytes() {
+      java.lang.Object ref = storageName_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        storageName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // optional string user = 3;
+    public static final int USER_FIELD_NUMBER = 3;
+    private java.lang.Object user_;
+    public boolean hasUser() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    public String getUser() {
+      java.lang.Object ref = user_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          user_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getUserBytes() {
+      java.lang.Object ref = user_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        user_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // repeated string fid = 4;
+    public static final int FID_FIELD_NUMBER = 4;
+    private com.google.protobuf.LazyStringList fid_;
+    public java.util.List<String>
+        getFidList() {
+      return fid_;
+    }
+    public int getFidCount() {
+      return fid_.size();
+    }
+    public String getFid(int index) {
+      return fid_.get(index);
+    }
+    
+    private void initFields() {
+      seesionId_ = "";
+      storageName_ = "";
+      user_ = "";
+      fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+      
+      memoizedIsInitialized = 1;
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBytes(1, getSeesionIdBytes());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, getStorageNameBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(3, getUserBytes());
+      }
+      for (int i = 0; i < fid_.size(); i++) {
+        output.writeBytes(4, fid_.getByteString(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, getSeesionIdBytes());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getStorageNameBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, getUserBytes());
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < fid_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(fid_.getByteString(i));
+        }
+        size += dataSize;
+        size += 1 * getFidList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+    
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements com.bonree.brfs.common.proto.FileDataProtos.DataReadRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_descriptor;
+      }
+      
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_fieldAccessorTable;
+      }
+      
+      // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+      
+      private Builder(BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+      
+      public Builder clear() {
+        super.clear();
+        seesionId_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        storageName_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        user_ = "";
+        bitField0_ = (bitField0_ & ~0x00000004);
+        fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.getDescriptor();
+      }
+      
+      public com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest getDefaultInstanceForType() {
+        return com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.getDefaultInstance();
+      }
+      
+      public com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest build() {
+        com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+      
+      private com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return result;
+      }
+      
+      public com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest buildPartial() {
+        com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest result = new com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.seesionId_ = seesionId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.storageName_ = storageName_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.user_ = user_;
+        if (((bitField0_ & 0x00000008) == 0x00000008)) {
+          fid_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              fid_);
+          bitField0_ = (bitField0_ & ~0x00000008);
+        }
+        result.fid_ = fid_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest) {
+          return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest other) {
+        if (other == com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.getDefaultInstance()) return this;
+        if (other.hasSeesionId()) {
+          setSeesionId(other.getSeesionId());
+        }
+        if (other.hasStorageName()) {
+          setStorageName(other.getStorageName());
+        }
+        if (other.hasUser()) {
+          setUser(other.getUser());
+        }
+        if (!other.fid_.isEmpty()) {
+          if (fid_.isEmpty()) {
+            fid_ = other.fid_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+          } else {
+            ensureFidIsMutable();
+            fid_.addAll(other.fid_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public final boolean isInitialized() {
+        return true;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              onChanged();
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                onChanged();
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              bitField0_ |= 0x00000001;
+              seesionId_ = input.readBytes();
+              break;
+            }
+            case 18: {
+              bitField0_ |= 0x00000002;
+              storageName_ = input.readBytes();
+              break;
+            }
+            case 26: {
+              bitField0_ |= 0x00000004;
+              user_ = input.readBytes();
+              break;
+            }
+            case 34: {
+              ensureFidIsMutable();
+              fid_.add(input.readBytes());
+              break;
+            }
+          }
+        }
+      }
+      
+      private int bitField0_;
+      
+      // optional string seesionId = 1;
+      private java.lang.Object seesionId_ = "";
+      public boolean hasSeesionId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      public String getSeesionId() {
+        java.lang.Object ref = seesionId_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          seesionId_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setSeesionId(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        seesionId_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearSeesionId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        seesionId_ = getDefaultInstance().getSeesionId();
+        onChanged();
+        return this;
+      }
+      void setSeesionId(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000001;
+        seesionId_ = value;
+        onChanged();
+      }
+      
+      // optional string storageName = 2;
+      private java.lang.Object storageName_ = "";
+      public boolean hasStorageName() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      public String getStorageName() {
+        java.lang.Object ref = storageName_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          storageName_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setStorageName(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        storageName_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearStorageName() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        storageName_ = getDefaultInstance().getStorageName();
+        onChanged();
+        return this;
+      }
+      void setStorageName(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000002;
+        storageName_ = value;
+        onChanged();
+      }
+      
+      // optional string user = 3;
+      private java.lang.Object user_ = "";
+      public boolean hasUser() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public String getUser() {
+        java.lang.Object ref = user_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          user_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setUser(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        user_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearUser() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        user_ = getDefaultInstance().getUser();
+        onChanged();
+        return this;
+      }
+      void setUser(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000004;
+        user_ = value;
+        onChanged();
+      }
+      
+      // repeated string fid = 4;
+      private com.google.protobuf.LazyStringList fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureFidIsMutable() {
+        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+          fid_ = new com.google.protobuf.LazyStringArrayList(fid_);
+          bitField0_ |= 0x00000008;
          }
       }
-      public java.util.List<com.google.protobuf.ByteString>
-          getCrcCheckCodeList() {
-        return java.util.Collections.unmodifiableList(crcCheckCode_);
+      public java.util.List<String>
+          getFidList() {
+        return java.util.Collections.unmodifiableList(fid_);
       }
-      public int getCrcCheckCodeCount() {
-        return crcCheckCode_.size();
+      public int getFidCount() {
+        return fid_.size();
       }
-      public com.google.protobuf.ByteString getCrcCheckCode(int index) {
-        return crcCheckCode_.get(index);
+      public String getFid(int index) {
+        return fid_.get(index);
       }
-      public Builder setCrcCheckCode(
-          int index, com.google.protobuf.ByteString value) {
+      public Builder setFid(
+          int index, String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  ensureCrcCheckCodeIsMutable();
-        crcCheckCode_.set(index, value);
+  ensureFidIsMutable();
+        fid_.set(index, value);
         onChanged();
         return this;
       }
-      public Builder addCrcCheckCode(com.google.protobuf.ByteString value) {
+      public Builder addFid(String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  ensureCrcCheckCodeIsMutable();
-        crcCheckCode_.add(value);
+  ensureFidIsMutable();
+        fid_.add(value);
         onChanged();
         return this;
       }
-      public Builder addAllCrcCheckCode(
-          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
-        ensureCrcCheckCodeIsMutable();
-        super.addAll(values, crcCheckCode_);
+      public Builder addAllFid(
+          java.lang.Iterable<String> values) {
+        ensureFidIsMutable();
+        super.addAll(values, fid_);
         onChanged();
         return this;
       }
-      public Builder clearCrcCheckCode() {
-        crcCheckCode_ = java.util.Collections.emptyList();;
-        bitField0_ = (bitField0_ & ~0x00000080);
+      public Builder clearFid() {
+        fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000008);
         onChanged();
         return this;
+      }
+      void addFid(com.google.protobuf.ByteString value) {
+        ensureFidIsMutable();
+        fid_.add(value);
+        onChanged();
+      }
+      
+      // @@protoc_insertion_point(builder_scope:brfs.proto.DataReadRequest)
+    }
+    
+    static {
+      defaultInstance = new DataReadRequest(true);
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:brfs.proto.DataReadRequest)
+  }
+  
+  public interface DataReadResponseOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+    
+    // optional string seesionId = 1;
+    boolean hasSeesionId();
+    String getSeesionId();
+    
+    // optional string storageName = 2;
+    boolean hasStorageName();
+    String getStorageName();
+    
+    // optional string user = 3;
+    boolean hasUser();
+    String getUser();
+    
+    // optional int32 returnCode = 4;
+    boolean hasReturnCode();
+    int getReturnCode();
+    
+    // optional string description = 5;
+    boolean hasDescription();
+    String getDescription();
+    
+    // repeated .brfs.proto.FileContent file = 6;
+    java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> 
+        getFileList();
+    com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index);
+    int getFileCount();
+    java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
+        getFileOrBuilderList();
+    com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
+        int index);
+  }
+  public static final class DataReadResponse extends
+      com.google.protobuf.GeneratedMessage
+      implements DataReadResponseOrBuilder {
+    // Use DataReadResponse.newBuilder() to construct.
+    private DataReadResponse(Builder builder) {
+      super(builder);
+    }
+    private DataReadResponse(boolean noInit) {}
+    
+    private static final DataReadResponse defaultInstance;
+    public static DataReadResponse getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public DataReadResponse getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_fieldAccessorTable;
+    }
+    
+    private int bitField0_;
+    // optional string seesionId = 1;
+    public static final int SEESIONID_FIELD_NUMBER = 1;
+    private java.lang.Object seesionId_;
+    public boolean hasSeesionId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    public String getSeesionId() {
+      java.lang.Object ref = seesionId_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          seesionId_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getSeesionIdBytes() {
+      java.lang.Object ref = seesionId_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        seesionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // optional string storageName = 2;
+    public static final int STORAGENAME_FIELD_NUMBER = 2;
+    private java.lang.Object storageName_;
+    public boolean hasStorageName() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    public String getStorageName() {
+      java.lang.Object ref = storageName_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          storageName_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getStorageNameBytes() {
+      java.lang.Object ref = storageName_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        storageName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // optional string user = 3;
+    public static final int USER_FIELD_NUMBER = 3;
+    private java.lang.Object user_;
+    public boolean hasUser() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    public String getUser() {
+      java.lang.Object ref = user_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          user_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getUserBytes() {
+      java.lang.Object ref = user_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        user_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // optional int32 returnCode = 4;
+    public static final int RETURNCODE_FIELD_NUMBER = 4;
+    private int returnCode_;
+    public boolean hasReturnCode() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    public int getReturnCode() {
+      return returnCode_;
+    }
+    
+    // optional string description = 5;
+    public static final int DESCRIPTION_FIELD_NUMBER = 5;
+    private java.lang.Object description_;
+    public boolean hasDescription() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    public String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          description_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // repeated .brfs.proto.FileContent file = 6;
+    public static final int FILE_FIELD_NUMBER = 6;
+    private java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> file_;
+    public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> getFileList() {
+      return file_;
+    }
+    public java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
+        getFileOrBuilderList() {
+      return file_;
+    }
+    public int getFileCount() {
+      return file_.size();
+    }
+    public com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index) {
+      return file_.get(index);
+    }
+    public com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
+        int index) {
+      return file_.get(index);
+    }
+    
+    private void initFields() {
+      seesionId_ = "";
+      storageName_ = "";
+      user_ = "";
+      returnCode_ = 0;
+      description_ = "";
+      file_ = java.util.Collections.emptyList();
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+      
+      memoizedIsInitialized = 1;
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBytes(1, getSeesionIdBytes());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, getStorageNameBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(3, getUserBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt32(4, returnCode_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBytes(5, getDescriptionBytes());
+      }
+      for (int i = 0; i < file_.size(); i++) {
+        output.writeMessage(6, file_.get(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, getSeesionIdBytes());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getStorageNameBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, getUserBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(4, returnCode_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(5, getDescriptionBytes());
+      }
+      for (int i = 0; i < file_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, file_.get(i));
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+    
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements com.bonree.brfs.common.proto.FileDataProtos.DataReadResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_descriptor;
+      }
+      
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_fieldAccessorTable;
+      }
+      
+      // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+      
+      private Builder(BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getFileFieldBuilder();
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+      
+      public Builder clear() {
+        super.clear();
+        seesionId_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        storageName_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        user_ = "";
+        bitField0_ = (bitField0_ & ~0x00000004);
+        returnCode_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        description_ = "";
+        bitField0_ = (bitField0_ & ~0x00000010);
+        if (fileBuilder_ == null) {
+          file_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000020);
+        } else {
+          fileBuilder_.clear();
+        }
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.getDescriptor();
+      }
+      
+      public com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse getDefaultInstanceForType() {
+        return com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.getDefaultInstance();
+      }
+      
+      public com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse build() {
+        com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+      
+      private com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return result;
+      }
+      
+      public com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse buildPartial() {
+        com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse result = new com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.seesionId_ = seesionId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.storageName_ = storageName_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.user_ = user_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.returnCode_ = returnCode_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.description_ = description_;
+        if (fileBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) == 0x00000020)) {
+            file_ = java.util.Collections.unmodifiableList(file_);
+            bitField0_ = (bitField0_ & ~0x00000020);
+          }
+          result.file_ = file_;
+        } else {
+          result.file_ = fileBuilder_.build();
+        }
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse) {
+          return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse other) {
+        if (other == com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.getDefaultInstance()) return this;
+        if (other.hasSeesionId()) {
+          setSeesionId(other.getSeesionId());
+        }
+        if (other.hasStorageName()) {
+          setStorageName(other.getStorageName());
+        }
+        if (other.hasUser()) {
+          setUser(other.getUser());
+        }
+        if (other.hasReturnCode()) {
+          setReturnCode(other.getReturnCode());
+        }
+        if (other.hasDescription()) {
+          setDescription(other.getDescription());
+        }
+        if (fileBuilder_ == null) {
+          if (!other.file_.isEmpty()) {
+            if (file_.isEmpty()) {
+              file_ = other.file_;
+              bitField0_ = (bitField0_ & ~0x00000020);
+            } else {
+              ensureFileIsMutable();
+              file_.addAll(other.file_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.file_.isEmpty()) {
+            if (fileBuilder_.isEmpty()) {
+              fileBuilder_.dispose();
+              fileBuilder_ = null;
+              file_ = other.file_;
+              bitField0_ = (bitField0_ & ~0x00000020);
+              fileBuilder_ = 
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   getFileFieldBuilder() : null;
+            } else {
+              fileBuilder_.addAllMessages(other.file_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public final boolean isInitialized() {
+        return true;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              onChanged();
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                onChanged();
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              bitField0_ |= 0x00000001;
+              seesionId_ = input.readBytes();
+              break;
+            }
+            case 18: {
+              bitField0_ |= 0x00000002;
+              storageName_ = input.readBytes();
+              break;
+            }
+            case 26: {
+              bitField0_ |= 0x00000004;
+              user_ = input.readBytes();
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              returnCode_ = input.readInt32();
+              break;
+            }
+            case 42: {
+              bitField0_ |= 0x00000010;
+              description_ = input.readBytes();
+              break;
+            }
+            case 50: {
+              com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder subBuilder = com.bonree.brfs.common.proto.FileDataProtos.FileContent.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addFile(subBuilder.buildPartial());
+              break;
+            }
+          }
+        }
+      }
+      
+      private int bitField0_;
+      
+      // optional string seesionId = 1;
+      private java.lang.Object seesionId_ = "";
+      public boolean hasSeesionId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      public String getSeesionId() {
+        java.lang.Object ref = seesionId_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          seesionId_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setSeesionId(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        seesionId_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearSeesionId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        seesionId_ = getDefaultInstance().getSeesionId();
+        onChanged();
+        return this;
+      }
+      void setSeesionId(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000001;
+        seesionId_ = value;
+        onChanged();
+      }
+      
+      // optional string storageName = 2;
+      private java.lang.Object storageName_ = "";
+      public boolean hasStorageName() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      public String getStorageName() {
+        java.lang.Object ref = storageName_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          storageName_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setStorageName(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        storageName_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearStorageName() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        storageName_ = getDefaultInstance().getStorageName();
+        onChanged();
+        return this;
+      }
+      void setStorageName(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000002;
+        storageName_ = value;
+        onChanged();
+      }
+      
+      // optional string user = 3;
+      private java.lang.Object user_ = "";
+      public boolean hasUser() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public String getUser() {
+        java.lang.Object ref = user_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          user_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setUser(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        user_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearUser() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        user_ = getDefaultInstance().getUser();
+        onChanged();
+        return this;
+      }
+      void setUser(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000004;
+        user_ = value;
+        onChanged();
+      }
+      
+      // optional int32 returnCode = 4;
+      private int returnCode_ ;
+      public boolean hasReturnCode() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      public int getReturnCode() {
+        return returnCode_;
+      }
+      public Builder setReturnCode(int value) {
+        bitField0_ |= 0x00000008;
+        returnCode_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearReturnCode() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        returnCode_ = 0;
+        onChanged();
+        return this;
+      }
+      
+      // optional string description = 5;
+      private java.lang.Object description_ = "";
+      public boolean hasDescription() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      public String getDescription() {
+        java.lang.Object ref = description_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          description_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setDescription(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+        description_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearDescription() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        description_ = getDefaultInstance().getDescription();
+        onChanged();
+        return this;
+      }
+      void setDescription(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000010;
+        description_ = value;
+        onChanged();
+      }
+      
+      // repeated .brfs.proto.FileContent file = 6;
+      private java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> file_ =
+        java.util.Collections.emptyList();
+      private void ensureFileIsMutable() {
+        if (!((bitField0_ & 0x00000020) == 0x00000020)) {
+          file_ = new java.util.ArrayList<com.bonree.brfs.common.proto.FileDataProtos.FileContent>(file_);
+          bitField0_ |= 0x00000020;
+         }
+      }
+      
+      private com.google.protobuf.RepeatedFieldBuilder<
+          com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> fileBuilder_;
+      
+      public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> getFileList() {
+        if (fileBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(file_);
+        } else {
+          return fileBuilder_.getMessageList();
+        }
+      }
+      public int getFileCount() {
+        if (fileBuilder_ == null) {
+          return file_.size();
+        } else {
+          return fileBuilder_.getCount();
+        }
+      }
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index) {
+        if (fileBuilder_ == null) {
+          return file_.get(index);
+        } else {
+          return fileBuilder_.getMessage(index);
+        }
+      }
+      public Builder setFile(
+          int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
+        if (fileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureFileIsMutable();
+          file_.set(index, value);
+          onChanged();
+        } else {
+          fileBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      public Builder setFile(
+          int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
+        if (fileBuilder_ == null) {
+          ensureFileIsMutable();
+          file_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          fileBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      public Builder addFile(com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
+        if (fileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureFileIsMutable();
+          file_.add(value);
+          onChanged();
+        } else {
+          fileBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      public Builder addFile(
+          int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
+        if (fileBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureFileIsMutable();
+          file_.add(index, value);
+          onChanged();
+        } else {
+          fileBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      public Builder addFile(
+          com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
+        if (fileBuilder_ == null) {
+          ensureFileIsMutable();
+          file_.add(builderForValue.build());
+          onChanged();
+        } else {
+          fileBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      public Builder addFile(
+          int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
+        if (fileBuilder_ == null) {
+          ensureFileIsMutable();
+          file_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          fileBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      public Builder addAllFile(
+          java.lang.Iterable<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContent> values) {
+        if (fileBuilder_ == null) {
+          ensureFileIsMutable();
+          super.addAll(values, file_);
+          onChanged();
+        } else {
+          fileBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      public Builder clearFile() {
+        if (fileBuilder_ == null) {
+          file_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000020);
+          onChanged();
+        } else {
+          fileBuilder_.clear();
+        }
+        return this;
+      }
+      public Builder removeFile(int index) {
+        if (fileBuilder_ == null) {
+          ensureFileIsMutable();
+          file_.remove(index);
+          onChanged();
+        } else {
+          fileBuilder_.remove(index);
+        }
+        return this;
+      }
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder getFileBuilder(
+          int index) {
+        return getFileFieldBuilder().getBuilder(index);
+      }
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
+          int index) {
+        if (fileBuilder_ == null) {
+          return file_.get(index);  } else {
+          return fileBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      public java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
+           getFileOrBuilderList() {
+        if (fileBuilder_ != null) {
+          return fileBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(file_);
+        }
+      }
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder addFileBuilder() {
+        return getFileFieldBuilder().addBuilder(
+            com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance());
+      }
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder addFileBuilder(
+          int index) {
+        return getFileFieldBuilder().addBuilder(
+            index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance());
+      }
+      public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder> 
+           getFileBuilderList() {
+        return getFileFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
+          getFileFieldBuilder() {
+        if (fileBuilder_ == null) {
+          fileBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder>(
+                  file_,
+                  ((bitField0_ & 0x00000020) == 0x00000020),
+                  getParentForChildren(),
+                  isClean());
+          file_ = null;
+        }
+        return fileBuilder_;
       }
       
       // @@protoc_insertion_point(builder_scope:brfs.proto.DataReadResponse)
@@ -5180,6 +4856,646 @@ public final class FileDataProtos {
     // @@protoc_insertion_point(class_scope:brfs.proto.DataDeleteResponse)
   }
   
+  public interface FileContentOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+    
+    // optional bool crcFlag = 1;
+    boolean hasCrcFlag();
+    boolean getCrcFlag();
+    
+    // optional int64 crcCheckCode = 2;
+    boolean hasCrcCheckCode();
+    long getCrcCheckCode();
+    
+    // optional string description = 3;
+    boolean hasDescription();
+    String getDescription();
+    
+    // optional string data = 4;
+    boolean hasData();
+    String getData();
+    
+    // optional int32 compress = 5;
+    boolean hasCompress();
+    int getCompress();
+  }
+  public static final class FileContent extends
+      com.google.protobuf.GeneratedMessage
+      implements FileContentOrBuilder {
+    // Use FileContent.newBuilder() to construct.
+    private FileContent(Builder builder) {
+      super(builder);
+    }
+    private FileContent(boolean noInit) {}
+    
+    private static final FileContent defaultInstance;
+    public static FileContent getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public FileContent getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_fieldAccessorTable;
+    }
+    
+    private int bitField0_;
+    // optional bool crcFlag = 1;
+    public static final int CRCFLAG_FIELD_NUMBER = 1;
+    private boolean crcFlag_;
+    public boolean hasCrcFlag() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    public boolean getCrcFlag() {
+      return crcFlag_;
+    }
+    
+    // optional int64 crcCheckCode = 2;
+    public static final int CRCCHECKCODE_FIELD_NUMBER = 2;
+    private long crcCheckCode_;
+    public boolean hasCrcCheckCode() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    public long getCrcCheckCode() {
+      return crcCheckCode_;
+    }
+    
+    // optional string description = 3;
+    public static final int DESCRIPTION_FIELD_NUMBER = 3;
+    private java.lang.Object description_;
+    public boolean hasDescription() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    public String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          description_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // optional string data = 4;
+    public static final int DATA_FIELD_NUMBER = 4;
+    private java.lang.Object data_;
+    public boolean hasData() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    public String getData() {
+      java.lang.Object ref = data_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          data_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getDataBytes() {
+      java.lang.Object ref = data_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        data_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // optional int32 compress = 5;
+    public static final int COMPRESS_FIELD_NUMBER = 5;
+    private int compress_;
+    public boolean hasCompress() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    public int getCompress() {
+      return compress_;
+    }
+    
+    private void initFields() {
+      crcFlag_ = false;
+      crcCheckCode_ = 0L;
+      description_ = "";
+      data_ = "";
+      compress_ = 0;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+      
+      memoizedIsInitialized = 1;
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBool(1, crcFlag_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, crcCheckCode_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(3, getDescriptionBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeBytes(4, getDataBytes());
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeInt32(5, compress_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(1, crcFlag_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, crcCheckCode_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, getDescriptionBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(4, getDataBytes());
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(5, compress_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+    
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.FileContent prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_descriptor;
+      }
+      
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_fieldAccessorTable;
+      }
+      
+      // Construct using com.bonree.brfs.common.proto.FileDataProtos.FileContent.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+      
+      private Builder(BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+      
+      public Builder clear() {
+        super.clear();
+        crcFlag_ = false;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        crcCheckCode_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        description_ = "";
+        bitField0_ = (bitField0_ & ~0x00000004);
+        data_ = "";
+        bitField0_ = (bitField0_ & ~0x00000008);
+        compress_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDescriptor();
+      }
+      
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent getDefaultInstanceForType() {
+        return com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance();
+      }
+      
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent build() {
+        com.bonree.brfs.common.proto.FileDataProtos.FileContent result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+      
+      private com.bonree.brfs.common.proto.FileDataProtos.FileContent buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        com.bonree.brfs.common.proto.FileDataProtos.FileContent result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return result;
+      }
+      
+      public com.bonree.brfs.common.proto.FileDataProtos.FileContent buildPartial() {
+        com.bonree.brfs.common.proto.FileDataProtos.FileContent result = new com.bonree.brfs.common.proto.FileDataProtos.FileContent(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.crcFlag_ = crcFlag_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.crcCheckCode_ = crcCheckCode_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.description_ = description_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.data_ = data_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.compress_ = compress_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.FileContent) {
+          return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.FileContent)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.FileContent other) {
+        if (other == com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance()) return this;
+        if (other.hasCrcFlag()) {
+          setCrcFlag(other.getCrcFlag());
+        }
+        if (other.hasCrcCheckCode()) {
+          setCrcCheckCode(other.getCrcCheckCode());
+        }
+        if (other.hasDescription()) {
+          setDescription(other.getDescription());
+        }
+        if (other.hasData()) {
+          setData(other.getData());
+        }
+        if (other.hasCompress()) {
+          setCompress(other.getCompress());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public final boolean isInitialized() {
+        return true;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              onChanged();
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                onChanged();
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              crcFlag_ = input.readBool();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              crcCheckCode_ = input.readInt64();
+              break;
+            }
+            case 26: {
+              bitField0_ |= 0x00000004;
+              description_ = input.readBytes();
+              break;
+            }
+            case 34: {
+              bitField0_ |= 0x00000008;
+              data_ = input.readBytes();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              compress_ = input.readInt32();
+              break;
+            }
+          }
+        }
+      }
+      
+      private int bitField0_;
+      
+      // optional bool crcFlag = 1;
+      private boolean crcFlag_ ;
+      public boolean hasCrcFlag() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      public boolean getCrcFlag() {
+        return crcFlag_;
+      }
+      public Builder setCrcFlag(boolean value) {
+        bitField0_ |= 0x00000001;
+        crcFlag_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearCrcFlag() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        crcFlag_ = false;
+        onChanged();
+        return this;
+      }
+      
+      // optional int64 crcCheckCode = 2;
+      private long crcCheckCode_ ;
+      public boolean hasCrcCheckCode() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      public long getCrcCheckCode() {
+        return crcCheckCode_;
+      }
+      public Builder setCrcCheckCode(long value) {
+        bitField0_ |= 0x00000002;
+        crcCheckCode_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearCrcCheckCode() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        crcCheckCode_ = 0L;
+        onChanged();
+        return this;
+      }
+      
+      // optional string description = 3;
+      private java.lang.Object description_ = "";
+      public boolean hasDescription() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      public String getDescription() {
+        java.lang.Object ref = description_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          description_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setDescription(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        description_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearDescription() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        description_ = getDefaultInstance().getDescription();
+        onChanged();
+        return this;
+      }
+      void setDescription(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000004;
+        description_ = value;
+        onChanged();
+      }
+      
+      // optional string data = 4;
+      private java.lang.Object data_ = "";
+      public boolean hasData() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      public String getData() {
+        java.lang.Object ref = data_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          data_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setData(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        data_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearData() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        data_ = getDefaultInstance().getData();
+        onChanged();
+        return this;
+      }
+      void setData(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000008;
+        data_ = value;
+        onChanged();
+      }
+      
+      // optional int32 compress = 5;
+      private int compress_ ;
+      public boolean hasCompress() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      public int getCompress() {
+        return compress_;
+      }
+      public Builder setCompress(int value) {
+        bitField0_ |= 0x00000010;
+        compress_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearCompress() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        compress_ = 0;
+        onChanged();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:brfs.proto.FileContent)
+    }
+    
+    static {
+      defaultInstance = new FileContent(true);
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:brfs.proto.FileContent)
+  }
+  
   public interface FidOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
     
@@ -6079,6 +6395,11 @@ public final class FileDataProtos {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_brfs_proto_DataDeleteResponse_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_brfs_proto_FileContent_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_brfs_proto_FileContent_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_Fid_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -6092,31 +6413,31 @@ public final class FileDataProtos {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\024FileDataObject.proto\022\nbrfs.proto\"}\n\020Da" +
+      "\n\024FileDataObject.proto\022\nbrfs.proto\"o\n\020Da" +
       "taWriteRequest\022\021\n\tseesionId\030\001 \001(\t\022\023\n\013sto" +
-      "rageName\030\002 \001(\t\022\014\n\004user\030\003 \001(\t\022\017\n\007crcFlag\030" +
-      "\004 \001(\010\022\014\n\004data\030\005 \003(\t\022\024\n\014crcCheckCode\030\006 \003(" +
-      "\014\"\246\001\n\021DataWriteResponse\022\021\n\tseesionId\030\001 \001" +
-      "(\t\022\023\n\013storageName\030\002 \001(\t\022\014\n\004user\030\003 \001(\t\022\017\n" +
-      "\007crcFlag\030\004 \001(\010\022\022\n\nreturnCode\030\005 \001(\005\022\023\n\013de" +
-      "scription\030\006 \001(\t\022\013\n\003fid\030\007 \003(\t\022\024\n\014crcCheck" +
-      "Code\030\010 \003(\014\"{\n\017DataReadRequest\022\021\n\tseesion" +
-      "Id\030\001 \001(\t\022\023\n\013storageName\030\002 \001(\t\022\014\n\004user\030\003 ",
-      "\001(\t\022\017\n\007crcFlag\030\004 \001(\010\022\013\n\003fid\030\005 \003(\t\022\024\n\014crc" +
-      "CheckCode\030\006 \003(\014\"\246\001\n\020DataReadResponse\022\021\n\t" +
-      "seesionId\030\001 \001(\t\022\023\n\013storageName\030\002 \001(\t\022\014\n\004" +
-      "user\030\003 \001(\t\022\022\n\nreturnCode\030\004 \001(\005\022\023\n\013descri" +
-      "ption\030\005 \001(\t\022\017\n\007crcFlag\030\006 \001(\010\022\014\n\004data\030\007 \003" +
-      "(\t\022\024\n\014crcCheckCode\030\010 \003(\014\"\336\001\n\021DataDeleteR" +
-      "equest\022\021\n\tseesionId\030\001 \001(\t\022\023\n\013storageName" +
-      "\030\002 \001(\t\022\014\n\004user\030\003 \001(\t\022\021\n\tbeginTime\030\004 \001(\004\022" +
-      "\017\n\007endTime\030\005 \001(\004\022J\n\016deleteDataType\030\006 \001(\016" +
-      "2,.brfs.proto.DataDeleteRequest.DeleteDa",
-      "taType:\004ASYN\"#\n\016DeleteDataType\022\010\n\004ASYN\020\000" +
-      "\022\007\n\003SYN\020\001\"s\n\022DataDeleteResponse\022\021\n\tseesi" +
-      "onId\030\001 \001(\t\022\023\n\013storageName\030\002 \001(\t\022\014\n\004user\030" +
-      "\003 \001(\t\022\022\n\nreturnCode\030\004 \001(\005\022\023\n\013description" +
-      "\030\005 \001(\t\"\236\001\n\003Fid\022\017\n\007version\030\001 \001(\005\022\020\n\010compr" +
+      "rageName\030\002 \001(\t\022\014\n\004user\030\003 \001(\t\022%\n\004file\030\004 \003" +
+      "(\0132\027.brfs.proto.FileContent\"\177\n\021DataWrite" +
+      "Response\022\021\n\tseesionId\030\001 \001(\t\022\023\n\013storageNa" +
+      "me\030\002 \001(\t\022\014\n\004user\030\003 \001(\t\022\022\n\nreturnCode\030\004 \001" +
+      "(\005\022\023\n\013description\030\005 \001(\t\022\013\n\003fid\030\006 \003(\t\"T\n\017" +
+      "DataReadRequest\022\021\n\tseesionId\030\001 \001(\t\022\023\n\013st" +
+      "orageName\030\002 \001(\t\022\014\n\004user\030\003 \001(\t\022\013\n\003fid\030\004 \003" +
+      "(\t\"\230\001\n\020DataReadResponse\022\021\n\tseesionId\030\001 \001",
+      "(\t\022\023\n\013storageName\030\002 \001(\t\022\014\n\004user\030\003 \001(\t\022\022\n" +
+      "\nreturnCode\030\004 \001(\005\022\023\n\013description\030\005 \001(\t\022%" +
+      "\n\004file\030\006 \003(\0132\027.brfs.proto.FileContent\"\336\001" +
+      "\n\021DataDeleteRequest\022\021\n\tseesionId\030\001 \001(\t\022\023" +
+      "\n\013storageName\030\002 \001(\t\022\014\n\004user\030\003 \001(\t\022\021\n\tbeg" +
+      "inTime\030\004 \001(\004\022\017\n\007endTime\030\005 \001(\004\022J\n\016deleteD" +
+      "ataType\030\006 \001(\0162,.brfs.proto.DataDeleteReq" +
+      "uest.DeleteDataType:\004ASYN\"#\n\016DeleteDataT" +
+      "ype\022\010\n\004ASYN\020\000\022\007\n\003SYN\020\001\"s\n\022DataDeleteResp" +
+      "onse\022\021\n\tseesionId\030\001 \001(\t\022\023\n\013storageName\030\002",
+      " \001(\t\022\014\n\004user\030\003 \001(\t\022\022\n\nreturnCode\030\004 \001(\005\022\023" +
+      "\n\013description\030\005 \001(\t\"i\n\013FileContent\022\017\n\007cr" +
+      "cFlag\030\001 \001(\010\022\024\n\014crcCheckCode\030\002 \001(\003\022\023\n\013des" +
+      "cription\030\003 \001(\t\022\014\n\004data\030\004 \001(\t\022\020\n\010compress" +
+      "\030\005 \001(\005\"\236\001\n\003Fid\022\017\n\007version\030\001 \001(\005\022\020\n\010compr" +
       "ess\030\002 \001(\005\022\027\n\017storageNameCode\030\003 \001(\003\022\014\n\004uu" +
       "id\030\004 \001(\t\022\014\n\004time\030\005 \001(\003\022\017\n\007replica\030\006 \001(\005\022" +
       "\020\n\010serverId\030\007 \001(\t\022\016\n\006offset\030\010 \001(\003\022\014\n\004siz" +
@@ -6133,7 +6454,7 @@ public final class FileDataProtos {
           internal_static_brfs_proto_DataWriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_brfs_proto_DataWriteRequest_descriptor,
-              new java.lang.String[] { "SeesionId", "StorageName", "User", "CrcFlag", "Data", "CrcCheckCode", },
+              new java.lang.String[] { "SeesionId", "StorageName", "User", "File", },
               com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.class,
               com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.Builder.class);
           internal_static_brfs_proto_DataWriteResponse_descriptor =
@@ -6141,7 +6462,7 @@ public final class FileDataProtos {
           internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_brfs_proto_DataWriteResponse_descriptor,
-              new java.lang.String[] { "SeesionId", "StorageName", "User", "CrcFlag", "ReturnCode", "Description", "Fid", "CrcCheckCode", },
+              new java.lang.String[] { "SeesionId", "StorageName", "User", "ReturnCode", "Description", "Fid", },
               com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.class,
               com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.Builder.class);
           internal_static_brfs_proto_DataReadRequest_descriptor =
@@ -6149,7 +6470,7 @@ public final class FileDataProtos {
           internal_static_brfs_proto_DataReadRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_brfs_proto_DataReadRequest_descriptor,
-              new java.lang.String[] { "SeesionId", "StorageName", "User", "CrcFlag", "Fid", "CrcCheckCode", },
+              new java.lang.String[] { "SeesionId", "StorageName", "User", "Fid", },
               com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.class,
               com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.Builder.class);
           internal_static_brfs_proto_DataReadResponse_descriptor =
@@ -6157,7 +6478,7 @@ public final class FileDataProtos {
           internal_static_brfs_proto_DataReadResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_brfs_proto_DataReadResponse_descriptor,
-              new java.lang.String[] { "SeesionId", "StorageName", "User", "ReturnCode", "Description", "CrcFlag", "Data", "CrcCheckCode", },
+              new java.lang.String[] { "SeesionId", "StorageName", "User", "ReturnCode", "Description", "File", },
               com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.class,
               com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.Builder.class);
           internal_static_brfs_proto_DataDeleteRequest_descriptor =
@@ -6176,8 +6497,16 @@ public final class FileDataProtos {
               new java.lang.String[] { "SeesionId", "StorageName", "User", "ReturnCode", "Description", },
               com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.class,
               com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.Builder.class);
-          internal_static_brfs_proto_Fid_descriptor =
+          internal_static_brfs_proto_FileContent_descriptor =
             getDescriptor().getMessageTypes().get(6);
+          internal_static_brfs_proto_FileContent_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_brfs_proto_FileContent_descriptor,
+              new java.lang.String[] { "CrcFlag", "CrcCheckCode", "Description", "Data", "Compress", },
+              com.bonree.brfs.common.proto.FileDataProtos.FileContent.class,
+              com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder.class);
+          internal_static_brfs_proto_Fid_descriptor =
+            getDescriptor().getMessageTypes().get(7);
           internal_static_brfs_proto_Fid_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_brfs_proto_Fid_descriptor,
