@@ -74,8 +74,7 @@ message Fid{
     optional int64 storageNameCode = 3; // 存储空间
     optional string uuid = 4;           // 唯一码
     optional int64 time = 5;            // 时间戳, 精确到分钟
-    optional int32 replica = 6;     	// 默认副本数为2
-    optional string serverId= 7;       	// 服务标识
-    optional int64 offset = 8;      	// 当前文件所在大文件里的偏移量
-    optional int64 size = 9;        	// 当前文件的长度
+    repeated string serverId= 6;       	// 服务标识
+    optional int64 offset = 7;      	// 当前文件所在大文件里的偏移量
+    optional int64 size = 8;        	// 当前文件的长度
 }
