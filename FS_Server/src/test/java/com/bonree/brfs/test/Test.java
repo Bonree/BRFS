@@ -31,14 +31,15 @@ public class Test {
         fid.setCompress(2);
         fid.setStorageNameCode(123);
         fid.setTime(System.currentTimeMillis() / 1000 / 60);
-        fid.setOffset(12345);
+        fid.setOffset(9121L);
         fid.setSize(2131);
         fid.setUuid(UUID.randomUUID().toString().replace("-", ""));
         fid.addServerId(1);
         fid.addServerId(25);
         fid.addServerId(351);
+        System.out.println("==> " + fid.getUuid().length());
         String buildStr = FidEncoder.build(fid.build());
-        System.out.println("=====> "+ buildStr);
+        System.out.println("=====> " + buildStr);
     }
 
     public static void file() throws Exception {
@@ -54,12 +55,13 @@ public class Test {
         file.setCrcFlag(crcFlag);
         file.setCrcCheckCode(crcCode);
 
-        byte[] header = FileEncoder.header(5, 1);
-        System.out.println("version: "+FileDecoder.version(header));
-        System.out.println("validate: "+FileDecoder.validate(header));
+        byte[] header = FileEncoder.header(5, 0);
 
         byte[] fileByte = FileEncoder.contents(file.build());
+
         System.out.println(FileDecoder.contents(fileByte));
+        System.out.println("version: " + FileDecoder.version(header));
+        System.out.println("validateType: " + FileDecoder.validate(header));
     }
 
 }

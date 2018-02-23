@@ -5,6 +5,7 @@ import java.util.List;
 import com.bonree.brfs.common.code.Base64;
 import com.bonree.brfs.common.code.FSCode;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
+import com.bonree.brfs.common.proto.ReturnCodeProtos.ReturnCodeEnum;
 
 /**
  * *****************************************************************************
@@ -26,9 +27,9 @@ public class FidEncoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static String build(Fid fid) throws Exception {
-        if (validate(fid)) {
-            System.out.println("validate failed!");
-            return "";
+        ReturnCodeEnum valicateCode = validate(fid);
+        if (!ReturnCodeEnum.SUCCESS.equals(valicateCode)) {
+            throw new Exception("Fid encoder failed! reason: " + valicateCode);
         }
         byte[] header = header(fid.getVersion(), fid.getCompress());
         byte[] storageName = storageName(fid.getStorageNameCode());
@@ -41,45 +42,45 @@ public class FidEncoder {
         byte[] fidByte = FSCode.addBytes(FSCode.start, header, storageName, uuid, time, offset, size, serverId, FSCode.tail);
         return Base64.encodeToString(fidByte, Base64.DEFAULT);
     }
-    
+
     /**
      * 概述：fid相关属性验证
      * @param fid
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    private static boolean validate(Fid fid) {
+    private static ReturnCodeEnum validate(Fid fid) {
         if (fid.getVersion() < 0 || fid.getVersion() > 7) { // version取值范围0~7
-            return true;
+            return ReturnCodeEnum.FID_VERSION_ERROR;
         }
         if (fid.getCompress() < 0 || fid.getCompress() > 3) { // compress取值范围0~3
-            return true;
+            return ReturnCodeEnum.FID_COMPRESS_ERROR;
         }
         if (fid.getStorageNameCode() <= 0 || fid.getStorageNameCode() > 65535) { // storageNameCode取值范围0~65535
-            return true;
+            return ReturnCodeEnum.FID_STORAGE_NAME_CODE_ERROR;
         }
         if (fid.getUuid() == null || fid.getUuid().length() > 32 || fid.getUuid().length() % 2 != 0) { // uuid长度为32字节
-            return true;
+            return ReturnCodeEnum.FID_UUID_ERROR;
         }
         if (fid.getTime() <= 0 || fid.getTime() > 4701945540L) { // time取值范围可到2118-12-31 23:59
-            return true;
+            return ReturnCodeEnum.FID_TIME_ERROR;
         }
         if (fid.getServerIdCount() == 0) {
-            return true;
+            return ReturnCodeEnum.FID_SERVERID_ERROR;
         } else {
             for (int sid : fid.getServerIdList()) {
                 if (sid > 16383) { // serverId取值范围是0~16383
-                    return true;
+                    return ReturnCodeEnum.FID_SERVERID_ERROR;
                 }
             }
         }
         if (fid.getOffset() <= 0 || fid.getOffset() > 4294967295L) { // offset取值范围0~4294967295
-            return true;
+            return ReturnCodeEnum.FID_OFFSET_ERROR;
         }
         if (fid.getSize() <= 0 || fid.getSize() > 4294967295L) { // size取值范围0~4294967295
-            return true;
+            return ReturnCodeEnum.FID_SIZE_ERROR;
         }
-        return false;
+        return ReturnCodeEnum.SUCCESS;
     }
 
     /**
@@ -92,7 +93,7 @@ public class FidEncoder {
     private static byte[] header(int version, int compress) {
         int v = version << 5;
         int c = compress << 3;
-        return new byte[] { (byte) (v | c ) };
+        return new byte[] { (byte) (v | c) };
     }
 
     /**

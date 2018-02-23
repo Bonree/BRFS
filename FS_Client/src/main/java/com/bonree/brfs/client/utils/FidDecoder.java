@@ -119,7 +119,7 @@ public class FidDecoder {
 
     /**
      * 概述：解码serverId
-     * @param serverIdByte
+     * @param bytes
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
