@@ -1,5 +1,7 @@
 package com.bonree.brfs.server.utils;
 
+import java.util.List;
+
 import com.bonree.brfs.common.code.Base64;
 import com.bonree.brfs.common.code.FSCode;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
@@ -28,13 +30,13 @@ public class FidEncoder {
             System.out.println("validate failed!");
             return "";
         }
-        byte[] header = header(fid.getVersion(), fid.getCompress(), fid.getReplica());
+        byte[] header = header(fid.getVersion(), fid.getCompress());
         byte[] storageName = storageName(fid.getStorageNameCode());
         byte[] uuid = uuid(fid.getUuid());
         byte[] time = time(fid.getTime());
         byte[] offset = offset(fid.getOffset());
         byte[] size = size(fid.getSize());
-        byte[] serverId = serverId(fid.getServerId());
+        byte[] serverId = serverId(fid.getServerIdList());
         // 封装fid
         byte[] fidByte = FSCode.addBytes(FSCode.start, header, storageName, uuid, time, offset, size, serverId, FSCode.tail);
         return Base64.encodeToString(fidByte, Base64.DEFAULT);
@@ -62,12 +64,10 @@ public class FidEncoder {
         if (fid.getTime() <= 0 || fid.getTime() > 4701945540L) { // time取值范围可到2118-12-31 23:59
             return true;
         }
-        if (fid.getServerId() == null) {
+        if (fid.getServerIdCount() == 0) {
             return true;
         } else {
-            String[] sidArr = fid.getServerId().split("_");
-            for (String sidStr : sidArr) {
-                int sid = Integer.valueOf(sidStr);
+            for (int sid : fid.getServerIdList()) {
                 if (sid > 16383) { // serverId取值范围是0~16383
                     return true;
                 }
@@ -86,15 +86,13 @@ public class FidEncoder {
      * 概述： 封装header
      * @param version 版本号
      * @param compress 压缩标识
-     * @param replica 副本数
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    private static byte[] header(int version, int compress, int replica) {
+    private static byte[] header(int version, int compress) {
         int v = version << 5;
         int c = compress << 3;
-        int r = replica & 0x07;
-        return new byte[] { (byte) (v | c | r) };
+        return new byte[] { (byte) (v | c ) };
     }
 
     /**
@@ -129,16 +127,14 @@ public class FidEncoder {
 
     /**
      * 概述：封装ServerId
-     * @param serverId 服务标识
+     * @param fid 服务标识集合
      * @return
      * @throws Exception 
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    private static byte[] serverId(String serverId) throws Exception {
-        String[] sidArr = serverId.split("_");
+    private static byte[] serverId(List<Integer> sidList) throws Exception {
         byte[] sidBytes = null;
-        for (String sidStr : sidArr) {
-            int sid = Integer.valueOf(sidStr);
+        for (int sid : sidList) {
             byte[] tempArr = FSCode.moreFlagEncoder(sid, 7);
             if (sidBytes == null) {
                 sidBytes = tempArr;
