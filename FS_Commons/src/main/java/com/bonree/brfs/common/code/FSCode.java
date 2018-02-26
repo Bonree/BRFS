@@ -202,7 +202,9 @@ public class FSCode {
         int index = 0;  // 获取复制到目标数组的起始点，
         int totalLength = 0;
         for (int i = 0; i < src.length; i++) {
-            totalLength += src[i].length;
+            if (src[i] != null) {
+                totalLength += src[i].length;
+            }
         }
         byte[] dest = new byte[totalLength]; // 目标数组
         for (int i = 0; i < src.length; i++) {

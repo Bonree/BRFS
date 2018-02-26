@@ -12,16 +12,32 @@ public final class ReturnCodeProtos {
       implements com.google.protobuf.ProtocolMessageEnum {
     SUCCESS(0, 2000),
     AUTH_FAILED_ERROR(1, 3001),
-    STORAGE_NAME_EXIST_ERROR(2, 4001),
-    STORAGE_NAME_NOT_EXIST_ERROR(3, 4002),
-    STORAGE_NAME_UPDATE_ERROR(4, 4003),
-    DATA_DELETE_ERROR(5, 5001),
-    DATA_WRITE_ERROR(6, 5002),
-    DATA_READ_ERROR(7, 5003),
+    FID_VERSION_ERROR(2, 3002),
+    FID_COMPRESS_ERROR(3, 3003),
+    FID_STORAGE_NAME_CODE_ERROR(4, 3004),
+    FID_UUID_ERROR(5, 3005),
+    FID_TIME_ERROR(6, 3006),
+    FID_SERVERID_ERROR(7, 3007),
+    FID_OFFSET_ERROR(8, 3008),
+    FID_SIZE_ERROR(9, 3009),
+    STORAGE_NAME_EXIST_ERROR(10, 4001),
+    STORAGE_NAME_NOT_EXIST_ERROR(11, 4002),
+    STORAGE_NAME_UPDATE_ERROR(12, 4003),
+    DATA_DELETE_ERROR(13, 5001),
+    DATA_WRITE_ERROR(14, 5002),
+    DATA_READ_ERROR(15, 5003),
     ;
     
     public static final int SUCCESS_VALUE = 2000;
     public static final int AUTH_FAILED_ERROR_VALUE = 3001;
+    public static final int FID_VERSION_ERROR_VALUE = 3002;
+    public static final int FID_COMPRESS_ERROR_VALUE = 3003;
+    public static final int FID_STORAGE_NAME_CODE_ERROR_VALUE = 3004;
+    public static final int FID_UUID_ERROR_VALUE = 3005;
+    public static final int FID_TIME_ERROR_VALUE = 3006;
+    public static final int FID_SERVERID_ERROR_VALUE = 3007;
+    public static final int FID_OFFSET_ERROR_VALUE = 3008;
+    public static final int FID_SIZE_ERROR_VALUE = 3009;
     public static final int STORAGE_NAME_EXIST_ERROR_VALUE = 4001;
     public static final int STORAGE_NAME_NOT_EXIST_ERROR_VALUE = 4002;
     public static final int STORAGE_NAME_UPDATE_ERROR_VALUE = 4003;
@@ -36,6 +52,14 @@ public final class ReturnCodeProtos {
       switch (value) {
         case 2000: return SUCCESS;
         case 3001: return AUTH_FAILED_ERROR;
+        case 3002: return FID_VERSION_ERROR;
+        case 3003: return FID_COMPRESS_ERROR;
+        case 3004: return FID_STORAGE_NAME_CODE_ERROR;
+        case 3005: return FID_UUID_ERROR;
+        case 3006: return FID_TIME_ERROR;
+        case 3007: return FID_SERVERID_ERROR;
+        case 3008: return FID_OFFSET_ERROR;
+        case 3009: return FID_SIZE_ERROR;
         case 4001: return STORAGE_NAME_EXIST_ERROR;
         case 4002: return STORAGE_NAME_NOT_EXIST_ERROR;
         case 4003: return STORAGE_NAME_UPDATE_ERROR;
@@ -72,7 +96,7 @@ public final class ReturnCodeProtos {
     }
     
     private static final ReturnCodeEnum[] VALUES = {
-      SUCCESS, AUTH_FAILED_ERROR, STORAGE_NAME_EXIST_ERROR, STORAGE_NAME_NOT_EXIST_ERROR, STORAGE_NAME_UPDATE_ERROR, DATA_DELETE_ERROR, DATA_WRITE_ERROR, DATA_READ_ERROR, 
+      SUCCESS, AUTH_FAILED_ERROR, FID_VERSION_ERROR, FID_COMPRESS_ERROR, FID_STORAGE_NAME_CODE_ERROR, FID_UUID_ERROR, FID_TIME_ERROR, FID_SERVERID_ERROR, FID_OFFSET_ERROR, FID_SIZE_ERROR, STORAGE_NAME_EXIST_ERROR, STORAGE_NAME_NOT_EXIST_ERROR, STORAGE_NAME_UPDATE_ERROR, DATA_DELETE_ERROR, DATA_WRITE_ERROR, DATA_READ_ERROR, 
     };
     
     public static ReturnCodeEnum valueOf(
@@ -104,14 +128,19 @@ public final class ReturnCodeProtos {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\020ReturnCode.proto\022\nbrfs.proto*\335\001\n\016Retur" +
+      "\n\020ReturnCode.proto\022\nbrfs.proto*\237\003\n\016Retur" +
       "nCodeEnum\022\014\n\007SUCCESS\020\320\017\022\026\n\021AUTH_FAILED_E" +
-      "RROR\020\271\027\022\035\n\030STORAGE_NAME_EXIST_ERROR\020\241\037\022!" +
-      "\n\034STORAGE_NAME_NOT_EXIST_ERROR\020\242\037\022\036\n\031STO" +
-      "RAGE_NAME_UPDATE_ERROR\020\243\037\022\026\n\021DATA_DELETE" +
-      "_ERROR\020\211\'\022\025\n\020DATA_WRITE_ERROR\020\212\'\022\024\n\017DATA" +
-      "_READ_ERROR\020\213\'B3\n\034com.bonree.brfs.common" +
-      ".protoB\020ReturnCodeProtos\210\001\000"
+      "RROR\020\271\027\022\026\n\021FID_VERSION_ERROR\020\272\027\022\027\n\022FID_C" +
+      "OMPRESS_ERROR\020\273\027\022 \n\033FID_STORAGE_NAME_COD" +
+      "E_ERROR\020\274\027\022\023\n\016FID_UUID_ERROR\020\275\027\022\023\n\016FID_T" +
+      "IME_ERROR\020\276\027\022\027\n\022FID_SERVERID_ERROR\020\277\027\022\025\n" +
+      "\020FID_OFFSET_ERROR\020\300\027\022\023\n\016FID_SIZE_ERROR\020\301" +
+      "\027\022\035\n\030STORAGE_NAME_EXIST_ERROR\020\241\037\022!\n\034STOR" +
+      "AGE_NAME_NOT_EXIST_ERROR\020\242\037\022\036\n\031STORAGE_N" +
+      "AME_UPDATE_ERROR\020\243\037\022\026\n\021DATA_DELETE_ERROR",
+      "\020\211\'\022\025\n\020DATA_WRITE_ERROR\020\212\'\022\024\n\017DATA_READ_" +
+      "ERROR\020\213\'B3\n\034com.bonree.brfs.common.proto" +
+      "B\020ReturnCodeProtos\210\001\000"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
