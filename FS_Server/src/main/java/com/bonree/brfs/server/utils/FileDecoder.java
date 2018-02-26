@@ -1,7 +1,6 @@
 package com.bonree.brfs.server.utils;
 
 import com.bonree.brfs.common.code.FSCode;
-import com.bonree.brfs.common.code.GZipUtils;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 
 /**
@@ -42,15 +41,10 @@ public class FileDecoder {
      * 概述：获取内容信息
      * @param bytes 源数据
      * @return
-     * @throws Exception 
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static FileContent contents(byte[] bytes) throws Exception {
+    public static FileContent contents(byte[] bytes) {
         FileContent.Builder file = FileContent.newBuilder();
-
-        // 1.获取压缩标识
-        int compressFlag = (bytes[0] & 0xFF) >> 6;
-
         int describeLength = (int) FSCode.moreFlagDecoder(bytes, 4);// 描述信息的长度
         int describeMoreFlagLength = FSCode.moreFlagLength(describeLength, 4) + 1;// 扩展次数加上moreFlag所在的一个字节.
         byte[] destResult = FSCode.subBytes(bytes, describeMoreFlagLength, describeLength);
@@ -61,33 +55,30 @@ public class FileDecoder {
         contestStart += contentMoreFlagLength;      // 内容的开始位置
         byte[] data = FSCode.subBytes(bytes, contestStart, contentLength);
 
-        if (compressFlag == 1) {        // gzip解压
-            destResult = GZipUtils.decompress(destResult);
-            data = GZipUtils.decompress(data);
-        } else if (compressFlag == 2) { // snappy解压
-            // destResult =
+        int compress = (bytes[0] & 0xFF) >> 6;// 获取压缩标识
+        if (compress == 1) {        // gzip解压
+            // result =
+            // data =
+        } else if (compress == 2) { // snappy解压
+            // result =
             // data =
         }
-        file.setCompress(compressFlag);
-
-        // 2.封装描述信息
+        file.setCompress(compress);
         if (destResult != null && destResult.length != 0) {
             file.setDescription(new String(destResult));
         }
-
-        // 3.封装数据内容
         if (data != null && data.length != 0) {
             file.setData(new String(data));
         }
 
-        // 4.校验码标识
-        int crcFlag = (bytes[0] & 0xFF) >> 5;
+        int crcFlag = (bytes[0] & 0xFF) >> 5;// 获取校验码标识
         if (crcFlag == 1) {
             int crcStart = contestStart + contentLength;
             long crcCode = FSCode.moreFlagDecoder(bytes, 7, crcStart);
             file.setCrcCheckCode(crcCode);
             file.setCrcFlag(true);
         }
+
         return file.build();
     }
 

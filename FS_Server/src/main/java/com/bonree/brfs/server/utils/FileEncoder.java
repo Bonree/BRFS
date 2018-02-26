@@ -1,7 +1,6 @@
 package com.bonree.brfs.server.utils;
 
 import com.bonree.brfs.common.code.FSCode;
-import com.bonree.brfs.common.code.GZipUtils;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 
 /**
@@ -68,25 +67,27 @@ public class FileEncoder {
     public static byte[] contents(FileContent file) throws Exception {
         byte[] describeByte = null;
         byte[] describeLengthByte = null;
-        int compressFlag = file.getCompress();
+        int compress = file.getCompress();
         String description = file.getDescription();
         String content = file.getData();
         // 1.压缩
-        int compress = compressFlag << 6;
+        int c = compress << 6;
 
         byte[] validateByte = null;
         // 1.检验码
-        int crcFlag = 0; // 标识校验码开关
+        int vf = 0 ; // 标识校验码开关
         if (file.getCrcFlag()) {
             validateByte = FSCode.moreFlagEncoder(file.getCrcCheckCode(), 7);
-            crcFlag = 1 << 5; // 标识校验码开关
+            vf = 1 << 5; // 标识校验码开关
         }
         // 2.描述
         if (description == null) {
-            describeLengthByte = new byte[] { (byte) compress };
+            describeLengthByte = new byte[] { (byte) c };
         } else {
             describeByte = description.getBytes("utf-8");
+            describeLengthByte = FSCode.moreFlagEncoder(describeByte.length, 4);
         }
+        describeLengthByte[0] = (byte) (c | vf | (describeLengthByte[0] & 0xFF));
         byte[] contentByte = null;
         byte[] contentLengthByte = null;
         // 3.内容
@@ -94,20 +95,12 @@ public class FileEncoder {
             contentByte = content.getBytes("utf-8");
             contentLengthByte = FSCode.moreFlagEncoder(contentByte.length, 7);
         }
-        if (compressFlag == 1) {        // gzip压缩
-            describeByte = GZipUtils.compress(describeByte);
-            contentByte = GZipUtils.compress(contentByte);
-        } else if (compressFlag == 2) { // snappy压缩
+        if (compress == 1) {        // gzip压缩
             // describeByte =
             // contentByte =
-        }
-
-        describeLengthByte = FSCode.moreFlagEncoder(describeByte.length, 4);
-        int describeLength = describeLengthByte[0] & 0xFF;
-        describeLengthByte[0] = (byte) (compress | crcFlag | describeLength);
-
-        if (contentByte != null) {
-            contentLengthByte = FSCode.moreFlagEncoder(contentByte.length, 7);
+        } else if (compress == 2) { // snappy压缩
+            // describeByte =
+            // contentByte =
         }
 
         return FSCode.addBytes(describeLengthByte, describeByte, contentLengthByte, contentByte, validateByte);

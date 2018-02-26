@@ -1,11 +1,8 @@
 package com.bonree.brfs.server.utils;
 
-import java.util.List;
-
 import com.bonree.brfs.common.code.Base64;
 import com.bonree.brfs.common.code.FSCode;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
-import com.bonree.brfs.common.proto.ReturnCodeProtos.ReturnCodeEnum;
 
 /**
  * *****************************************************************************
@@ -27,73 +24,77 @@ public class FidEncoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static String build(Fid fid) throws Exception {
-        ReturnCodeEnum valicateCode = validate(fid);
-        if (!ReturnCodeEnum.SUCCESS.equals(valicateCode)) {
-            throw new Exception("Fid encoder failed! reason: " + valicateCode);
+        if (validate(fid)) {
+            System.out.println("validate failed!");
+            return "";
         }
-        byte[] header = header(fid.getVersion(), fid.getCompress());
+        byte[] header = header(fid.getVersion(), fid.getCompress(), fid.getReplica());
         byte[] storageName = storageName(fid.getStorageNameCode());
         byte[] uuid = uuid(fid.getUuid());
         byte[] time = time(fid.getTime());
         byte[] offset = offset(fid.getOffset());
         byte[] size = size(fid.getSize());
-        byte[] serverId = serverId(fid.getServerIdList());
+        byte[] serverId = serverId(fid.getServerId());
         // 封装fid
         byte[] fidByte = FSCode.addBytes(FSCode.start, header, storageName, uuid, time, offset, size, serverId, FSCode.tail);
         return Base64.encodeToString(fidByte, Base64.DEFAULT);
     }
-
+    
     /**
      * 概述：fid相关属性验证
      * @param fid
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    private static ReturnCodeEnum validate(Fid fid) {
+    private static boolean validate(Fid fid) {
         if (fid.getVersion() < 0 || fid.getVersion() > 7) { // version取值范围0~7
-            return ReturnCodeEnum.FID_VERSION_ERROR;
+            return true;
         }
         if (fid.getCompress() < 0 || fid.getCompress() > 3) { // compress取值范围0~3
-            return ReturnCodeEnum.FID_COMPRESS_ERROR;
+            return true;
         }
         if (fid.getStorageNameCode() <= 0 || fid.getStorageNameCode() > 65535) { // storageNameCode取值范围0~65535
-            return ReturnCodeEnum.FID_STORAGE_NAME_CODE_ERROR;
+            return true;
         }
         if (fid.getUuid() == null || fid.getUuid().length() > 32 || fid.getUuid().length() % 2 != 0) { // uuid长度为32字节
-            return ReturnCodeEnum.FID_UUID_ERROR;
+            return true;
         }
         if (fid.getTime() <= 0 || fid.getTime() > 4701945540L) { // time取值范围可到2118-12-31 23:59
-            return ReturnCodeEnum.FID_TIME_ERROR;
+            return true;
         }
-        if (fid.getServerIdCount() == 0) {
-            return ReturnCodeEnum.FID_SERVERID_ERROR;
+        if (fid.getServerId() == null) {
+            return true;
         } else {
-            for (int sid : fid.getServerIdList()) {
+            String[] sidArr = fid.getServerId().split("_");
+            for (String sidStr : sidArr) {
+                int sid = Integer.valueOf(sidStr);
                 if (sid > 16383) { // serverId取值范围是0~16383
-                    return ReturnCodeEnum.FID_SERVERID_ERROR;
+                    return true;
                 }
             }
         }
         if (fid.getOffset() <= 0 || fid.getOffset() > 4294967295L) { // offset取值范围0~4294967295
-            return ReturnCodeEnum.FID_OFFSET_ERROR;
+            return true;
         }
         if (fid.getSize() <= 0 || fid.getSize() > 4294967295L) { // size取值范围0~4294967295
-            return ReturnCodeEnum.FID_SIZE_ERROR;
+            return true;
         }
-        return ReturnCodeEnum.SUCCESS;
+        return false;
     }
 
     /**
      * 概述： 封装header
      * @param version 版本号
      * @param compress 压缩标识
+     * @param replica 副本数
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    private static byte[] header(int version, int compress) {
+    private static byte[] header(int version, int compress, int replica) {
         int v = version << 5;
         int c = compress << 3;
-        return new byte[] { (byte) (v | c) };
+        int r = replica & 0x07;
+        return new byte[] { (byte) (v | c | r) };
     }
 
     /**
@@ -128,14 +129,16 @@ public class FidEncoder {
 
     /**
      * 概述：封装ServerId
-     * @param fid 服务标识集合
+     * @param serverId 服务标识
      * @return
      * @throws Exception 
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    private static byte[] serverId(List<Integer> sidList) throws Exception {
+    private static byte[] serverId(String serverId) throws Exception {
+        String[] sidArr = serverId.split("_");
         byte[] sidBytes = null;
-        for (int sid : sidList) {
+        for (String sidStr : sidArr) {
+            int sid = Integer.valueOf(sidStr);
             byte[] tempArr = FSCode.moreFlagEncoder(sid, 7);
             if (sidBytes == null) {
                 sidBytes = tempArr;

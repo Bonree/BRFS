@@ -1,11 +1,9 @@
 package com.bonree.brfs.client.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.bonree.brfs.common.code.Base64;
 import com.bonree.brfs.common.code.FSCode;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
+import com.bonree.brfs.common.proto.FileDataProtos.Fid.Builder;
 
 /**
  * *****************************************************************************
@@ -19,25 +17,19 @@ import com.bonree.brfs.common.proto.FileDataProtos.Fid;
  */
 public class FidDecoder {
 
-    /**
-     * 概述：fid信息解码
-     * @param fidStr base64格式的fid
-     * @return
-     * @throws Exception
-     * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
-     */
     public static Fid build(String fidStr) throws Exception {
-        Fid.Builder fid = Fid.newBuilder();
+        Builder fid = Fid.newBuilder();
         if (fidStr != null) {
             byte[] bytes = Base64.decode(fidStr, Base64.DEFAULT);
             fid.setVersion(version(bytes));
             fid.setCompress(compress(bytes));
+            fid.setReplica(replica(bytes));
             fid.setStorageNameCode(storageName(bytes));
             fid.setTime(time(bytes));
             fid.setUuid(uuid(bytes));
             fid.setOffset(offset(bytes));
             fid.setSize(size(bytes));
-            fid.addAllServerId(serverId(bytes));
+            fid.setServerId(serverId(bytes));
         }
         return fid.build();
     }
@@ -62,6 +54,17 @@ public class FidDecoder {
     public static int compress(byte[] bytes) {
         int h = bytes[1] & 0xff;
         return h >> 3 & 0x03;
+    }
+
+    /**
+     * 概述：解码replica
+     * @param header
+     * @return
+     * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
+     */
+    public static int replica(byte[] bytes) {
+        int h = bytes[1] & 0xff;
+        return h & 0x07;
     }
 
     /**
@@ -119,24 +122,29 @@ public class FidDecoder {
 
     /**
      * 概述：解码serverId
-     * @param bytes
+     * @param serverIdByte
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static List<Integer> serverId(byte[] bytes) {
+    public static String serverId(byte[] bytes) {
         int temp = 0;
-        List<Integer> sidList = new ArrayList<Integer>();
+        StringBuilder sidBuilder = null;
         for (int i = 33; i < bytes.length; i++) {
             int sid = bytes[i] & 0xFF;
             if (sid >> 7 == 0) {
                 temp <<= 7;
-                sidList.add(temp | (sid & 0x7F));
+                if (sidBuilder == null) {
+                    sidBuilder = new StringBuilder();
+                } else {
+                    sidBuilder.append("_");
+                }
+                sidBuilder.append(temp | (sid & 0x7F));
                 temp = 0;
             } else {
                 temp = sid & 0x7F;
             }
         }
-        return sidList;
+        return sidBuilder.toString();
     }
 
 }
