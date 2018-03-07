@@ -12,3 +12,5 @@ FS_Client/target/maven-archiver/pom.properties
 FS_Client/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst
 FS_Commons/.classpath
 FS_Commons/.classpath
+FS_Client/.settings/org.eclipse.core.resources.prefs
+*.prefs
