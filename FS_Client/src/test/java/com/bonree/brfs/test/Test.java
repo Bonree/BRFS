@@ -1,5 +1,7 @@
-package com.bonree.brfs.common;
+package com.bonree.brfs.test;
 
+import com.bonree.brfs.client.utils.FidDecoder;
+import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 
 /**
  * *****************************************************************************
@@ -14,6 +16,13 @@ package com.bonree.brfs.common;
 public class Test {
     public static void main(String[] args) throws Exception {
 
+        fid();
+    }
+
+    public static void fid() throws Exception {
+        String buildStr = "rDB7ADz/6ZRmn0HImoorYbAioRdfZIIBADkwAABTCAAAARmCX9o=";
+         Fid ffff = FidDecoder.build(buildStr);
+        System.out.println("=====" + ffff);
     }
 
 }

@@ -5523,9 +5523,10 @@ public final class FileDataProtos {
     boolean hasReplica();
     int getReplica();
     
-    // optional string serverId = 7;
-    boolean hasServerId();
-    String getServerId();
+    // repeated int32 serverId = 7;
+    java.util.List<java.lang.Integer> getServerIdList();
+    int getServerIdCount();
+    int getServerId(int index);
     
     // optional int64 offset = 8;
     boolean hasOffset();
@@ -5646,43 +5647,25 @@ public final class FileDataProtos {
       return replica_;
     }
     
-    // optional string serverId = 7;
+    // repeated int32 serverId = 7;
     public static final int SERVERID_FIELD_NUMBER = 7;
-    private java.lang.Object serverId_;
-    public boolean hasServerId() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+    private java.util.List<java.lang.Integer> serverId_;
+    public java.util.List<java.lang.Integer>
+        getServerIdList() {
+      return serverId_;
     }
-    public String getServerId() {
-      java.lang.Object ref = serverId_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          serverId_ = s;
-        }
-        return s;
-      }
+    public int getServerIdCount() {
+      return serverId_.size();
     }
-    private com.google.protobuf.ByteString getServerIdBytes() {
-      java.lang.Object ref = serverId_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        serverId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public int getServerId(int index) {
+      return serverId_.get(index);
     }
     
     // optional int64 offset = 8;
     public static final int OFFSET_FIELD_NUMBER = 8;
     private long offset_;
     public boolean hasOffset() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     public long getOffset() {
       return offset_;
@@ -5692,7 +5675,7 @@ public final class FileDataProtos {
     public static final int SIZE_FIELD_NUMBER = 9;
     private long size_;
     public boolean hasSize() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
+      return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     public long getSize() {
       return size_;
@@ -5705,7 +5688,7 @@ public final class FileDataProtos {
       uuid_ = "";
       time_ = 0L;
       replica_ = 0;
-      serverId_ = "";
+      serverId_ = java.util.Collections.emptyList();;
       offset_ = 0L;
       size_ = 0L;
     }
@@ -5739,13 +5722,13 @@ public final class FileDataProtos {
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         output.writeInt32(6, replica_);
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
-        output.writeBytes(7, getServerIdBytes());
+      for (int i = 0; i < serverId_.size(); i++) {
+        output.writeInt32(7, serverId_.get(i));
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeInt64(8, offset_);
       }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
         output.writeInt64(9, size_);
       }
       getUnknownFields().writeTo(output);
@@ -5781,15 +5764,20 @@ public final class FileDataProtos {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(6, replica_);
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(7, getServerIdBytes());
+      {
+        int dataSize = 0;
+        for (int i = 0; i < serverId_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeInt32SizeNoTag(serverId_.get(i));
+        }
+        size += dataSize;
+        size += 1 * getServerIdList().size();
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(8, offset_);
       }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(9, size_);
       }
@@ -5929,7 +5917,7 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000010);
         replica_ = 0;
         bitField0_ = (bitField0_ & ~0x00000020);
-        serverId_ = "";
+        serverId_ = java.util.Collections.emptyList();;
         bitField0_ = (bitField0_ & ~0x00000040);
         offset_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000080);
@@ -5997,16 +5985,17 @@ public final class FileDataProtos {
           to_bitField0_ |= 0x00000020;
         }
         result.replica_ = replica_;
-        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
-          to_bitField0_ |= 0x00000040;
+        if (((bitField0_ & 0x00000040) == 0x00000040)) {
+          serverId_ = java.util.Collections.unmodifiableList(serverId_);
+          bitField0_ = (bitField0_ & ~0x00000040);
         }
         result.serverId_ = serverId_;
         if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
-          to_bitField0_ |= 0x00000080;
+          to_bitField0_ |= 0x00000040;
         }
         result.offset_ = offset_;
         if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
-          to_bitField0_ |= 0x00000100;
+          to_bitField0_ |= 0x00000080;
         }
         result.size_ = size_;
         result.bitField0_ = to_bitField0_;
@@ -6043,8 +6032,15 @@ public final class FileDataProtos {
         if (other.hasReplica()) {
           setReplica(other.getReplica());
         }
-        if (other.hasServerId()) {
-          setServerId(other.getServerId());
+        if (!other.serverId_.isEmpty()) {
+          if (serverId_.isEmpty()) {
+            serverId_ = other.serverId_;
+            bitField0_ = (bitField0_ & ~0x00000040);
+          } else {
+            ensureServerIdIsMutable();
+            serverId_.addAll(other.serverId_);
+          }
+          onChanged();
         }
         if (other.hasOffset()) {
           setOffset(other.getOffset());
@@ -6113,9 +6109,18 @@ public final class FileDataProtos {
               replica_ = input.readInt32();
               break;
             }
+            case 56: {
+              ensureServerIdIsMutable();
+              serverId_.add(input.readInt32());
+              break;
+            }
             case 58: {
-              bitField0_ |= 0x00000040;
-              serverId_ = input.readBytes();
+              int length = input.readRawVarint32();
+              int limit = input.pushLimit(length);
+              while (input.getBytesUntilLimit() > 0) {
+                addServerId(input.readInt32());
+              }
+              input.popLimit(limit);
               break;
             }
             case 64: {
@@ -6275,40 +6280,49 @@ public final class FileDataProtos {
         return this;
       }
       
-      // optional string serverId = 7;
-      private java.lang.Object serverId_ = "";
-      public boolean hasServerId() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
+      // repeated int32 serverId = 7;
+      private java.util.List<java.lang.Integer> serverId_ = java.util.Collections.emptyList();;
+      private void ensureServerIdIsMutable() {
+        if (!((bitField0_ & 0x00000040) == 0x00000040)) {
+          serverId_ = new java.util.ArrayList<java.lang.Integer>(serverId_);
+          bitField0_ |= 0x00000040;
+         }
       }
-      public String getServerId() {
-        java.lang.Object ref = serverId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          serverId_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
+      public java.util.List<java.lang.Integer>
+          getServerIdList() {
+        return java.util.Collections.unmodifiableList(serverId_);
       }
-      public Builder setServerId(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000040;
-        serverId_ = value;
+      public int getServerIdCount() {
+        return serverId_.size();
+      }
+      public int getServerId(int index) {
+        return serverId_.get(index);
+      }
+      public Builder setServerId(
+          int index, int value) {
+        ensureServerIdIsMutable();
+        serverId_.set(index, value);
+        onChanged();
+        return this;
+      }
+      public Builder addServerId(int value) {
+        ensureServerIdIsMutable();
+        serverId_.add(value);
+        onChanged();
+        return this;
+      }
+      public Builder addAllServerId(
+          java.lang.Iterable<? extends java.lang.Integer> values) {
+        ensureServerIdIsMutable();
+        super.addAll(values, serverId_);
         onChanged();
         return this;
       }
       public Builder clearServerId() {
+        serverId_ = java.util.Collections.emptyList();;
         bitField0_ = (bitField0_ & ~0x00000040);
-        serverId_ = getDefaultInstance().getServerId();
         onChanged();
         return this;
-      }
-      void setServerId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000040;
-        serverId_ = value;
-        onChanged();
       }
       
       // optional int64 offset = 8;
@@ -6440,7 +6454,7 @@ public final class FileDataProtos {
       "\030\005 \001(\005\"\236\001\n\003Fid\022\017\n\007version\030\001 \001(\005\022\020\n\010compr" +
       "ess\030\002 \001(\005\022\027\n\017storageNameCode\030\003 \001(\003\022\014\n\004uu" +
       "id\030\004 \001(\t\022\014\n\004time\030\005 \001(\003\022\017\n\007replica\030\006 \001(\005\022" +
-      "\020\n\010serverId\030\007 \001(\t\022\016\n\006offset\030\010 \001(\003\022\014\n\004siz" +
+      "\020\n\010serverId\030\007 \003(\005\022\016\n\006offset\030\010 \001(\003\022\014\n\004siz" +
       "e\030\t \001(\003B1\n\034com.bonree.brfs.common.protoB" +
       "\016FileDataProtos\210\001\000"
     };
