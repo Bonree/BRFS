@@ -1,14 +1,169 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.bonree.fs</groupId>
-  <artifactId>BRFS</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <modules>
-  	<module>FS_Client</module>
-  	<module>FS_Commons</module>
-  	<module>FS_Proto</module>
-  	<module>FS_Server</module>
-  	<module>FS_ResouceSchedule</module>
-  </modules>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>2</version>
+	</parent>
+
+	<groupId>com.bonree.fs</groupId>
+	<artifactId>BRFS</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>FS_Client</module>
+		<module>FS_Commons</module>
+		<module>FS_Proto</module>
+		<module>FS_Server</module>
+		<module>FS_ResouceSchedule</module>
+	</modules>
+
+	<name>${project.artifactId}</name>
+	<description>BRFS is a fast high-performance file system stored large small file by Bonree</description>
+	<url>http://bonree.com/brfs</url>
+
+	<inceptionYear>2017</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<properties>
+		<!-- Test libs -->
+		<junit_version>4.12</junit_version>
+
+		<!-- Build args -->
+		<skip_maven_deploy>false</skip_maven_deploy>
+		<updateReleaseInfo>true</updateReleaseInfo>
+		<project.build.sourceEncoding>${file_encoding}</project.build.sourceEncoding>
+
+		<profile.name>oss</profile.name>
+		<!-- for maven compiler plugin -->
+		<java_source_version>1.8</java_source_version>
+		<java_target_version>1.8</java_target_version>
+		<file_encoding>UTF-8</file_encoding>
+		<!-- Maven plugins -->
+		<maven_jar_version>3.0.2</maven_jar_version>
+		<maven_compiler_version>3.6.0</maven_compiler_version>
+
+		<!-- dependencies jar -->
+		<guava_version>23.0</guava_version>
+		<netty_version>4.1.19.Final</netty_version>
+		<jetty_version>9.4.8.v20171121</jetty_version>
+		<logback_version>1.2.3</logback_version>
+		<curator_version>4.0.0</curator_version>
+		<zookeeper_version>3.4.6</zookeeper_version>
+		<httpclient_version>4.5.2</httpclient_version>
+		<httpasyncclient_version>4.1.2</httpasyncclient_version>
+		<sigar_version>1.6.4</sigar_version>
+		<quartz_version>2.0.2</quartz_version>
+		<fastjson_version>1.2.3</fastjson_version>
+		<protobuf_version>2.4.0a</protobuf_version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<version>${netty_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-java</artifactId>
+				<version>${protobuf_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-server</artifactId>
+				<version>${jetty_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>${logback_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.curator</groupId>
+				<artifactId>curator-recipes</artifactId>
+				<version>${curator_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.curator</groupId>
+				<artifactId>curator-framework</artifactId>
+				<version>${curator_version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.apache.zookeeper</groupId>
+						<artifactId>zookeeper</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.curator</groupId>
+				<artifactId>curator-x-discovery</artifactId>
+				<version>${curator_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.zookeeper</groupId>
+				<artifactId>zookeeper</artifactId>
+				<version>${zookeeper_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${httpclient_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpasyncclient</artifactId>
+				<version>${httpasyncclient_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.fusesource</groupId>
+				<artifactId>sigar</artifactId>
+				<version>${sigar_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.quartz-scheduler</groupId>
+				<artifactId>quartz</artifactId>
+				<version>${quartz_version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>c3p0</groupId>
+						<artifactId>c3p0</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.slf4j</groupId>
+						<artifactId>slf4j-api</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>fastjson</artifactId>
+				<version>${fastjson_version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<developers>
+		<developer>
+			<id>bonree.com/brfs</id>
+			<name>The BRFS Project Contributors</name>
+			<email></email>
+			<url>http://bonree.com/brfs</url>
+			<organization>The BRFS Project</organization>
+			<organizationUrl>http://bonree.com/brfs</organizationUrl>
+		</developer>
+	</developers>
 </project>
