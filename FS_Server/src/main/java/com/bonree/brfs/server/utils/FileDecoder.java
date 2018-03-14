@@ -69,12 +69,12 @@ public class FileDecoder {
             // data =
         }
         file.setCompress(compressFlag);
-
+        
         // 2.封装描述信息
         if (destResult != null && destResult.length != 0) {
             file.setDescription(new String(destResult));
         }
-
+        
         // 3.封装数据内容
         if (data != null && data.length != 0) {
             file.setData(new String(data));

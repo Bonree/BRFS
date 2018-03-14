@@ -72,7 +72,7 @@ public class FileEncoder {
         String description = file.getDescription();
         String content = file.getData();
         // 1.压缩
-        int compress = compressFlag << 6;
+        int compress =  compressFlag << 6;
 
         byte[] validateByte = null;
         // 1.检验码
@@ -105,7 +105,7 @@ public class FileEncoder {
         describeLengthByte = FSCode.moreFlagEncoder(describeByte.length, 4);
         int describeLength = describeLengthByte[0] & 0xFF;
         describeLengthByte[0] = (byte) (compress | crcFlag | describeLength);
-
+        
         if (contentByte != null) {
             contentLengthByte = FSCode.moreFlagEncoder(contentByte.length, 7);
         }

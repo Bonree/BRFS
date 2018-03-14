@@ -17,7 +17,7 @@ enum ReturnCodeEnum{
 	FID_TIME_ERROR = 3006;		// time取值范围可到2118-12-31 23:59
 	FID_SERVERID_ERROR = 3007;	// serverId取值范围是0~16383
 	FID_OFFSET_ERROR = 3008;	// offset取值范围0~4294967295
-	FID_SIZE_ERROR = 3009;		// size取值范围0~4294967295
+	FID_SIZE_ERROR = 3009;
 	
 	
 	STORAGE_NAME_EXIST_ERROR = 4001;	//sn已存在

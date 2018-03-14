@@ -60,7 +60,7 @@ public class GZipUtils {
      */
     public static byte[] decompress(byte[] data) throws Exception {
         if (data == null) {
-            return null;
+            
         }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ByteArrayInputStream bais = null;

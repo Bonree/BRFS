@@ -22,7 +22,7 @@ public class Test {
     public static void fid() throws Exception {
         String buildStr = "rDB7ADz/6ZRmn0HImoorYbAioRdfZIIBADkwAABTCAAAARmCX9o=";
          Fid ffff = FidDecoder.build(buildStr);
-        System.out.println(ffff);
+        System.out.println("=====" + ffff);
     }
 
 }

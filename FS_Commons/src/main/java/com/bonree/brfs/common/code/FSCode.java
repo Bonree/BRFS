@@ -1,5 +1,15 @@
 package com.bonree.brfs.common.code;
 
+/**
+ * *****************************************************************************
+ * 版权信息：博睿宏远科技发展有限公司
+ * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
+ * 
+ * @date 2018年2月5日 下午5:04:13
+ * @Author: <a href=mailto:zhangnl@bonree.com>张念礼</a>
+ * @Description: 编解码工具类
+ *****************************************************************************
+ */
 public class FSCode {
 
     private static final String hexStr = "0123456789ABCDEF";
@@ -14,10 +24,10 @@ public class FSCode {
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static byte[] LongToByte(long size, int length) {
+    public static byte[] LongToByte(long value, int length) {
         byte[] sizeByte = new byte[length];
         for (int i = 0; i < length; i++) {
-            sizeByte[i] = (byte) ((size >> (i * 8)) & 0xFF);
+            sizeByte[i] = (byte) ((value >> (i * 8)) & 0xFF);
         }
         return sizeByte;
     }
@@ -171,7 +181,7 @@ public class FSCode {
         }
         return value;
     }
-    
+
     /**
      * 概述：获取moreFlag扩展的次数
      * @param value moreFlag存储的数值
@@ -216,7 +226,7 @@ public class FSCode {
         }
         return dest;
     }
-    
+
     /**
      * 概述：截取指定长度的数组
      * @param src 源字节数组
@@ -225,10 +235,10 @@ public class FSCode {
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static byte[] subBytes(byte[] src, int pos, int count) {  
-        byte[] dest = new byte[count];  
-        System.arraycopy(src, pos, dest, 0, count);  
-        return dest;  
-    }  
+    public static byte[] subBytes(byte[] src, int pos, int count) {
+        byte[] dest = new byte[count];
+        System.arraycopy(src, pos, dest, 0, count);
+        return dest;
+    }
 
 }

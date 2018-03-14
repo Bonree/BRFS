@@ -29,7 +29,7 @@ public class FidEncoder {
     public static String build(Fid fid) throws Exception {
         ReturnCodeEnum valicateCode = validate(fid);
         if (!ReturnCodeEnum.SUCCESS.equals(valicateCode)) {
-            throw new Exception("Fid encoder failed! reason: " + valicateCode);
+            throw new Exception("Fid encoder failed! " + valicateCode);
         }
         byte[] header = header(fid.getVersion(), fid.getCompress());
         byte[] storageName = storageName(fid.getStorageNameCode());
