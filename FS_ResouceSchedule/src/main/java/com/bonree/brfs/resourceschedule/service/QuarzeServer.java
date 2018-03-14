@@ -14,7 +14,7 @@ import org.quartz.JobBuilder;
 import org.quartz.TriggerBuilder;
 import org.quartz.CronScheduleBuilder;
 
-import com.bonree.brfs.resouceschedule.utils.StringUtils;
+import com.bonree.brfs.resourceschedule.utils.StringUtils;
 import com.bonree.brfs.resourceschedule.gather.job.GatherBaseResourceInfoJob;
 
 /*****************************************************************************

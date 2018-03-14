@@ -6,8 +6,8 @@ import java.io.File;
 
 import org.junit.Test;
 
-import com.bonree.brfs.resouceschedule.commons.Commons;
-import com.bonree.brfs.resouceschedule.commons.CommonsTest;
+import com.bonree.brfs.resourceschedule.commons.Commons;
+import com.bonree.brfs.resourceschedule.commons.CommonsTest;
 
 public class GatherResourceJobTest {
 	@Test

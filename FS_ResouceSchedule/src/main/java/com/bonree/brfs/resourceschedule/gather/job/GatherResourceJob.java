@@ -7,15 +7,15 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import com.bonree.brfs.resouceschedule.commons.Commons;
-import com.bonree.brfs.resouceschedule.commons.SigarUtils;
-import com.bonree.brfs.resouceschedule.utils.Globals;
-import com.bonree.brfs.resouceschedule.vo.BaseNetInfo;
-import com.bonree.brfs.resouceschedule.vo.BasePatitionInfo;
-import com.bonree.brfs.resouceschedule.vo.BaseServerInfo;
-import com.bonree.brfs.resouceschedule.vo.NetStatInfo;
-import com.bonree.brfs.resouceschedule.vo.PatitionStatInfo;
-import com.bonree.brfs.resouceschedule.vo.ServerStatInfo;
+import com.bonree.brfs.resourceschedule.commons.Commons;
+import com.bonree.brfs.resourceschedule.commons.SigarUtils;
+import com.bonree.brfs.resourceschedule.model.BaseNetModel;
+import com.bonree.brfs.resourceschedule.model.BasePatitionModel;
+import com.bonree.brfs.resourceschedule.model.BaseServerModel;
+import com.bonree.brfs.resourceschedule.model.NetStatModel;
+import com.bonree.brfs.resourceschedule.model.PatitionStatModel;
+import com.bonree.brfs.resourceschedule.model.ServerStatModel;
+import com.bonree.brfs.resourceschedule.utils.Globals;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -29,7 +29,7 @@ public class GatherResourceJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		// TODO Auto-generated method stub
-		ServerStatInfo stat = Commons.gatherServerStatInfo(Globals.DATA_DIRECTORY);
+		ServerStatModel stat = Commons.gatherServerStatInfo(Globals.DATA_DIRECTORY);
 		Globals.SERVER_INFO.addServerStat(stat);
 	}
 }
