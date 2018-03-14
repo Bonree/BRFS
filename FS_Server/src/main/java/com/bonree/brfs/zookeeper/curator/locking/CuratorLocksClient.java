@@ -2,8 +2,9 @@ package com.bonree.brfs.zookeeper.curator.locking;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+
+import com.bonree.brfs.zookeeper.curator.CuratorZookeeperClient;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -13,16 +14,20 @@ import org.apache.curator.framework.recipes.locks.InterProcessMutex;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 
  ******************************************************************************/
-public class CuratorLocks {
+public class CuratorLocksClient {
 
     private Executor instance;
     private final InterProcessMutex lock;
     private final String lockName;
+    private final String lockPath;
+    private final CuratorZookeeperClient client;
 
-    public CuratorLocks(CuratorFramework client, String lockPath, Executor executor, String lockName) {
+    public CuratorLocksClient(CuratorZookeeperClient client, String lockPath, Executor executor, String lockName) {
         this.instance = executor;
         this.lockName = lockName;
-        lock = new InterProcessMutex(client, lockPath);
+        this.client = client;
+        this.lockPath = lockPath;
+        lock = new InterProcessMutex(client.getInnerClient(), lockPath);
     }
 
     public void doWork(long time, TimeUnit unit) throws Exception {
@@ -30,21 +35,18 @@ public class CuratorLocks {
             throw new IllegalStateException(lockName + " could not acquire the lock");
         }
         try {
-            System.out.println(lockName + " has the lock");
-            instance.execute();
+            System.out.println(client.getChildren(lockPath));
+            instance.execute(client);
         } finally {
-            System.out.println(lockName + " releasing the lock");
             lock.release(); // always release the lock in a finally block
         }
     }
-    
+
     public void doWork() throws Exception {
         lock.acquire();
         try {
-            System.out.println(lockName + " has the lock");
-            instance.execute();
+            instance.execute(client);
         } finally {
-            System.out.println(lockName + " releasing the lock");
             lock.release(); // always release the lock in a finally block
         }
     }
