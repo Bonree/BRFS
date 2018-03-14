@@ -19,7 +19,7 @@ import com.bonree.brfs.server.utils.VerifyingFileFactory;
  * 
  * @date 2018年3月13日 下午3:30:45
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
- * @Description: brfs 配置类
+ * @Description: brfs 配置类，每个服务实例，只有一份配置信息，因此为单例
  ******************************************************************************/
 public class Configuration {
 
@@ -87,6 +87,8 @@ public class Configuration {
 
     private String configFilePath = null;
 
+    private volatile static Configuration configuration = null;
+
     private Map<String, String> configMap = new HashMap<String, String>();
 
     @SuppressWarnings("serial")
@@ -101,7 +103,14 @@ public class Configuration {
     }
 
     public static Configuration getInstance() {
-        return new Configuration();
+        if (configuration == null) {
+            synchronized (Configuration.class) {
+                if (configuration == null) {
+                    configuration = new Configuration();
+                }
+            }
+        }
+        return configuration;
     }
 
     private Configuration() {
@@ -166,6 +175,14 @@ public class Configuration {
     public Configuration setProperty(Object key, Object value) {
         configMap.put(key.toString().trim(), value.toString().trim());
         return this;
+    }
+
+    public String getProperty(String key) {
+        return configMap.get(key);
+    }
+
+    public Object getProperty(Object key) {
+        return configMap.get(key);
     }
 
     public void printConfigDetail() {
