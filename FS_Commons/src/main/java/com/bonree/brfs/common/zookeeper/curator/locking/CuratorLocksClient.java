@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 
-import com.bonree.brfs.common.zookeeper.curator.CuratorZookeeperClient;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -20,9 +20,9 @@ public class CuratorLocksClient {
     private final InterProcessMutex lock;
     private final String lockName;
     private final String lockPath;
-    private final CuratorZookeeperClient client;
+    private final CuratorClient client;
 
-    public CuratorLocksClient(CuratorZookeeperClient client, String lockPath, Executor executor, String lockName) {
+    public CuratorLocksClient(CuratorClient client, String lockPath, Executor executor, String lockName) {
         this.instance = executor;
         this.lockName = lockName;
         this.client = client;

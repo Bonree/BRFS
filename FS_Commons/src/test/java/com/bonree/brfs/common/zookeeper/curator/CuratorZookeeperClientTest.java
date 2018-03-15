@@ -114,7 +114,7 @@ public class CuratorZookeeperClientTest extends TestCase {
 //    }
 
     public void testCuratorListener() throws Exception {
-        final CuratorZookeeperClient client = CuratorZookeeperClient.getClientInstance(zkUrl);
+        final CuratorClient client = CuratorClient.getClientInstance(zkUrl);
         CuratorFramework curatorClient = client.getInnerClient();
 //        curatorClient.getChildren().inBackground(new BackgroundCallback() {
 //

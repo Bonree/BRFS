@@ -12,7 +12,7 @@ public class LockTest {
     public static class MyExecutor implements Executor {
 
         @Override
-        public void execute(CuratorZookeeperClient client) {
+        public void execute(CuratorClient client) {
             if (!client.checkExists("/brfs/wz/count")) {
                 client.createPersistent("/brfs/wz/count", true, "0".getBytes());
             }
@@ -35,7 +35,7 @@ public class LockTest {
 
                 @Override
                 public void run() {
-                    CuratorZookeeperClient client = CuratorZookeeperClient.getClientInstance("192.168.101.86:2181");
+                    CuratorClient client = CuratorClient.getClientInstance("192.168.101.86:2181");
                     CuratorLocksClient lockClient = new CuratorLocksClient(client, lockPath, new MyExecutor(), "testLock");
                     try {
                         lockClient.doWork(10, TimeUnit.SECONDS);

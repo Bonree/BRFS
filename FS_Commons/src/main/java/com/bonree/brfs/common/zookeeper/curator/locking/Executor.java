@@ -1,6 +1,6 @@
 package com.bonree.brfs.common.zookeeper.curator.locking;
 
-import com.bonree.brfs.common.zookeeper.curator.CuratorZookeeperClient;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -12,5 +12,5 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorZookeeperClient;
  ******************************************************************************/
 public interface Executor {
     
-    void execute(CuratorZookeeperClient client);
+    void execute(CuratorClient client);
 }

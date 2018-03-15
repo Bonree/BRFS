@@ -1,6 +1,6 @@
 package com.bonree.brfs.server.identification.impl;
 
-import com.bonree.brfs.common.zookeeper.curator.CuratorZookeeperClient;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.Executor;
 
 public class ZookeeperIdentificationGen implements Executor {
@@ -14,7 +14,7 @@ public class ZookeeperIdentificationGen implements Executor {
     }
 
     @Override
-    public void execute(CuratorZookeeperClient client) {
+    public void execute(CuratorClient client) {
 
         if (!client.checkExists(dataNode)) {
             client.createPersistent(dataNode, true, "0".getBytes());

@@ -10,7 +10,7 @@ public class LeaderTest {
 
     public static void main(String[] args) throws InterruptedException, IOException {
         String path = "/brfs/wz/leader";
-        CuratorZookeeperClient client1 = CuratorZookeeperClient.getClientInstance("192.168.101.86:2181");
+        CuratorClient client1 = CuratorClient.getClientInstance("192.168.101.86:2181");
         
         AbstractLeaderSelectorClient leaderSelector1 = new AbstractLeaderSelectorClient("testClient1", client1.getInnerClient(), path) {
 
@@ -24,7 +24,7 @@ public class LeaderTest {
             }
         };
         
-        CuratorZookeeperClient client2 = CuratorZookeeperClient.getClientInstance("192.168.101.86:2181");
+        CuratorClient client2 = CuratorClient.getClientInstance("192.168.101.86:2181");
         AbstractLeaderSelectorClient leaderSelector2 = new AbstractLeaderSelectorClient("testClient2", client2.getInnerClient(), path) {
 
             @Override

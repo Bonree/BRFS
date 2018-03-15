@@ -24,7 +24,7 @@ import com.bonree.brfs.common.zookeeper.ZookeeperClient;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: client helper
  ******************************************************************************/
-public class CuratorZookeeperClient implements ZookeeperClient {
+public class CuratorClient implements ZookeeperClient {
 
     private final CuratorFramework client;
 
@@ -39,27 +39,27 @@ public class CuratorZookeeperClient implements ZookeeperClient {
 
     private final static boolean IS_WAIT_CONNECTION = false;
 
-    public static CuratorZookeeperClient getClientInstance(String zkUrl) {
-        return new CuratorZookeeperClient(zkUrl, RETRY_POLICY, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS, IS_WAIT_CONNECTION);
+    public static CuratorClient getClientInstance(String zkUrl) {
+        return new CuratorClient(zkUrl, RETRY_POLICY, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS, IS_WAIT_CONNECTION);
     }
 
-    public static CuratorZookeeperClient getClientInstance(String zkUrl, RetryPolicy retry) {
-        return new CuratorZookeeperClient(zkUrl, retry, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS, IS_WAIT_CONNECTION);
+    public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry) {
+        return new CuratorClient(zkUrl, retry, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS, IS_WAIT_CONNECTION);
     }
 
-    public static CuratorZookeeperClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs) {
-        return new CuratorZookeeperClient(zkUrl, retry, sessionTimeoutMs, CONNECTION_TIMEOUT_MS, IS_WAIT_CONNECTION);
+    public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs) {
+        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, CONNECTION_TIMEOUT_MS, IS_WAIT_CONNECTION);
     }
 
-    public static CuratorZookeeperClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
-        return new CuratorZookeeperClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs, IS_WAIT_CONNECTION);
+    public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
+        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs, IS_WAIT_CONNECTION);
     }
 
-    public static CuratorZookeeperClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs, boolean isWaitConnection) {
-        return new CuratorZookeeperClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs, isWaitConnection);
+    public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs, boolean isWaitConnection) {
+        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs, isWaitConnection);
     }
 
-    public CuratorZookeeperClient(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs, boolean isWaitConnection) {
+    public CuratorClient(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs, boolean isWaitConnection) {
         try {
             CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder().connectString(zkUrl).retryPolicy(retry).connectionTimeoutMs(5000).sessionTimeoutMs(sessionTimeoutMs);
 
