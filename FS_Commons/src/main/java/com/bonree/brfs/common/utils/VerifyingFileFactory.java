@@ -1,4 +1,4 @@
-package com.bonree.brfs.server.utils;
+package com.bonree.brfs.common.utils;
 
 import java.io.File;
 

@@ -11,7 +11,8 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.server.utils.VerifyingFileFactory;
+import com.bonree.brfs.common.utils.VerifyingFileFactory;
+
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司

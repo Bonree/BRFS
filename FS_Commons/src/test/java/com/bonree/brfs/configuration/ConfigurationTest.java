@@ -1,4 +1,4 @@
-package com.bonree.brfs.server.configuration;
+package com.bonree.brfs.configuration;
 
 import com.bonree.brfs.configuration.Configuration;
 import com.bonree.brfs.configuration.Configuration.ConfigException;

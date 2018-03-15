@@ -1,4 +1,4 @@
-package com.bonree.brfs.zookeeper.curator;
+package com.bonree.brfs.common.zookeeper.curator;
 
 import java.util.List;
 
@@ -13,8 +13,8 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.Watcher;
 
-import com.bonree.brfs.zookeeper.StateListener;
-import com.bonree.brfs.zookeeper.ZookeeperClient;
+import com.bonree.brfs.common.zookeeper.StateListener;
+import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司

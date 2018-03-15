@@ -1,14 +1,11 @@
-package com.bonree.brfs.zookeeper.curator;
+package com.bonree.brfs.common.zookeeper.curator;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.bonree.brfs.zookeeper.curator.locking.CuratorLocksClient;
-import com.bonree.brfs.zookeeper.curator.locking.Executor;
+import com.bonree.brfs.common.zookeeper.curator.locking.CuratorLocksClient;
+import com.bonree.brfs.common.zookeeper.curator.locking.Executor;
 
 public class LockTest {
 //    private static Logger LOG = LoggerFactory.getLogger(LockTest.class);

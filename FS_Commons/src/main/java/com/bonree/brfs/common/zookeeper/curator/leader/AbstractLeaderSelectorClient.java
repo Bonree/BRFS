@@ -1,4 +1,4 @@
-package com.bonree.brfs.zookeeper.curator.leader;
+package com.bonree.brfs.common.zookeeper.curator.leader;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -10,6 +10,7 @@ import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter
 public abstract class AbstractLeaderSelectorClient extends LeaderSelectorListenerAdapter implements Closeable {
 
     private final String clientName;
+    
     private final LeaderSelector leaderSelector;
 
     public AbstractLeaderSelectorClient(String clientName, CuratorFramework client, String path) {

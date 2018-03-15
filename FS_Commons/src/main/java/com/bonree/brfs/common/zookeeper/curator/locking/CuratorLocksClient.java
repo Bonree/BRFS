@@ -1,10 +1,10 @@
-package com.bonree.brfs.zookeeper.curator.locking;
+package com.bonree.brfs.common.zookeeper.curator.locking;
 
 import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 
-import com.bonree.brfs.zookeeper.curator.CuratorZookeeperClient;
+import com.bonree.brfs.common.zookeeper.curator.CuratorZookeeperClient;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司

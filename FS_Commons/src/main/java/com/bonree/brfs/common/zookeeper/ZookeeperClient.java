@@ -1,4 +1,4 @@
-package com.bonree.brfs.zookeeper;
+package com.bonree.brfs.common.zookeeper;
 
 import java.util.List;
 
