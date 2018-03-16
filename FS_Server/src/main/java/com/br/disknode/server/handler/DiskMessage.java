@@ -1,17 +1,11 @@
-package com.br.disknode;
+package com.br.disknode.server.handler;
 
-public class WriteItem {
+import java.util.Map;
+
+public class DiskMessage {
 	private String filePath;
+	private Map<String, String> params;
 	private byte[] data;
-	
-	public WriteItem(String filePath) {
-		this.filePath = filePath;
-	}
-	
-	public WriteItem(String filePath, byte[] data) {
-		this.filePath = filePath;
-		this.data = data;
-	}
 
 	public String getFilePath() {
 		return filePath;
@@ -21,6 +15,14 @@ public class WriteItem {
 		this.filePath = filePath;
 	}
 
+	public Map<String, String> getParams() {
+		return params;
+	}
+
+	public void setParams(Map<String, String> params) {
+		this.params = params;
+	}
+
 	public byte[] getData() {
 		return data;
 	}
@@ -28,5 +30,4 @@ public class WriteItem {
 	public void setData(byte[] data) {
 		this.data = data;
 	}
-
 }

@@ -1,8 +1,9 @@
-package com.br.disknode.server;
+package com.br.disknode.server.handler;
 
 public class HandleResult {
 	private boolean success;
 	private Throwable cause;
+	private byte[] data;
 
 	public boolean isSuccess() {
 		return success;
@@ -18,5 +19,13 @@ public class HandleResult {
 
 	public void setCause(Throwable cause) {
 		this.cause = cause;
+	}
+
+	public byte[] getData() {
+		return data;
+	}
+
+	public void setData(byte[] data) {
+		this.data = data;
 	}
 }

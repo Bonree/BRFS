@@ -1,13 +1,8 @@
 package com.br.disknode.buf;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 
 
 public class SimpleWriteBuffer implements WriteBuffer {

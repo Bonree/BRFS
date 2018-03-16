@@ -1,7 +1,11 @@
 package com.br.disknode;
 
-import java.util.List;
-
+/**
+ * WriteWorker
+ * 
+ * @author chen
+ *
+ */
 public interface WriteWorkerSelector {
-	WriteWorker select(List<WriteWorker> workers);
+	WriteWorker select(WriteWorker[] workers);
 }

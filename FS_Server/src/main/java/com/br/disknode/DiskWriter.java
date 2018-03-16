@@ -1,5 +1,6 @@
 package com.br.disknode;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -8,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.br.disknode.buf.MappedWriteBuffer;
-import com.br.disknode.buf.SimpleWriteBuffer;
 import com.br.disknode.buf.WriteBuffer;
 import com.br.disknode.utils.TimeoutWheel;
 import com.br.disknode.utils.TimeoutWheel.Timeout;
@@ -18,7 +18,7 @@ import com.br.disknode.utils.TimeoutWheel.Timeout;
  * 
  * not-threadsafe
  */
-public class DiskWriter {
+public class DiskWriter implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskWriter.class);
 	
 	private static final int BUF_SIZE = 3 * 1024 * 1024;
@@ -26,8 +26,11 @@ public class DiskWriter {
 	private int position;
 	private int writeLength;
 	
+	private String filePath;
 	private RandomAccessFile accessFile;
 	private WriteBuffer buffer;
+	
+	private WriteWorker attachedWorker;
 	
 	private static final int TIMEOUT_SECONDS = 5;
 	private static TimeoutWheel<DiskWriter> timeoutWheel = new TimeoutWheel<DiskWriter>(TIMEOUT_SECONDS);
@@ -48,17 +51,27 @@ public class DiskWriter {
 		timeoutWheel.start();
 	}
 	
-	public DiskWriter(String filePath, boolean override) throws IOException {
-		this(new File(filePath), override);
+	public DiskWriter(String filePath, boolean override, WriteWorker worker) throws IOException {
+		this(new File(filePath), override, worker);
 	}
 	
-	public DiskWriter(File file, boolean override) throws IOException {
+	public DiskWriter(File file, boolean override, WriteWorker worker) throws IOException {
 		if(file.exists() && !override) {
 			throw new IOException("file[" + file.getAbsolutePath() + "] is existed, but cannot override it!");
 		}
 		
+		this.filePath = file.getAbsolutePath();
 		accessFile = new RandomAccessFile(file, "rw");
 		buffer = new MappedWriteBuffer(accessFile, BUF_SIZE);
+		attachedWorker = worker;
+	}
+	
+	public WriteWorker worker() {
+		return attachedWorker;
+	}
+	
+	public String getFilePath() {
+		return filePath;
 	}
 	
 	public void beginWriting() {
@@ -74,10 +87,10 @@ public class DiskWriter {
 		}
 	}
 	
-	public WriteInfo endWriting() {
+	public InputResult endWriting() {
 		int startPosition = position;
 		position += writeLength;
-		return new WriteInfo(startPosition, writeLength);
+		return new InputResult(startPosition, writeLength);
 	}
 	
 	private void flushBuffer() throws IOException {
@@ -108,6 +121,7 @@ public class DiskWriter {
 		timeoutWheel.update(this);
 	}
 	
+	@Override
 	public void close() throws IOException {
 		buffer.flush();
 		accessFile.setLength(position);
