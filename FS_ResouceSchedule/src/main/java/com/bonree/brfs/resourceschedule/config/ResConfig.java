@@ -1,4 +1,4 @@
-package com.bonree.brfs.resourceschedule.utils;
+package com.bonree.brfs.resourceschedule.config;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ import com.bonree.brfs.resourceschedule.model.ServerModel;
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @Description: 
  *****************************************************************************/
-public class Globals {
+public class ResConfig {
 	/**
 	 * 服务器状态
 	 */
