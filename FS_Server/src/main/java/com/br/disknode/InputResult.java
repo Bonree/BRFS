@@ -1,10 +1,11 @@
 package com.br.disknode;
 
-public class WriteInfo {
+public class InputResult {
 	private int offset;
 	private int size;
+	private long crc;
 	
-	public WriteInfo(int offset, int size) {
+	public InputResult(int offset, int size) {
 		this.offset = offset;
 		this.size = size;
 	}
@@ -23,6 +24,14 @@ public class WriteInfo {
 
 	public void setSize(int size) {
 		this.size = size;
+	}
+	
+	public long getCrc() {
+		return crc;
+	}
+
+	public void setCrc(long crc) {
+		this.crc = crc;
 	}
 	
 	@Override

@@ -5,8 +5,17 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
-import com.br.disknode.WriteItem;
+import com.br.disknode.InputEvent;
+import com.br.disknode.utils.PooledThreadFactory;
 
 public class Test {
 
@@ -31,13 +40,16 @@ public class Test {
 //		System.out.println("d-" + b.position());
 //		System.out.println("len=" + b.array().length);
 		
-		ArrayBlockingQueue<Integer> itemQueue = new ArrayBlockingQueue<Integer>(100);
+		ExecutorService exe = new ThreadPoolExecutor(5,
+				5,
+                0L,
+                TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<Runnable>(5),
+                new PooledThreadFactory("write_worker"));
 		
-		for(int i = 0; i < 10; i++) {
-			itemQueue.put(100);
+		for(int i = 0; i < 5; i++) {
+			exe.submit(() -> System.out.println("worker_"));
 		}
-		
-		System.out.println("queue size==" + itemQueue.size());
 	}
 
 }
