@@ -39,7 +39,8 @@ public class BaseServerModel extends AbstractResourceModel{
      * 文件系统信息 key：挂载点，value：文件系统信息
      */
     private Map<String, BasePatitionModel> patitionInfoMap = new ConcurrentHashMap<String, BasePatitionModel>();
-
+    
+    private Map<String,String> snToDiskMap = new ConcurrentHashMap<String, String>();
     public BaseServerModel(int serverId, int cpuCoreCount, int memorySize) {
         this.serverId = serverId;
         this.cpuCoreCount = cpuCoreCount;

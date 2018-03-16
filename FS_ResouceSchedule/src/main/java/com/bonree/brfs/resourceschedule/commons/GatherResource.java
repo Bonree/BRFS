@@ -1,6 +1,7 @@
 package com.bonree.brfs.resourceschedule.commons;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import org.hyperic.sigar.SigarException;
@@ -11,6 +12,8 @@ import com.bonree.brfs.resourceschedule.model.BasePatitionModel;
 import com.bonree.brfs.resourceschedule.model.BaseServerModel;
 import com.bonree.brfs.resourceschedule.model.NetStatModel;
 import com.bonree.brfs.resourceschedule.model.PatitionStatModel;
+import com.bonree.brfs.resourceschedule.model.ResourceModel;
+import com.bonree.brfs.resourceschedule.model.ServerModel;
 import com.bonree.brfs.resourceschedule.model.ServerStatModel;
 import com.bonree.brfs.resourceschedule.utils.OSCheckUtils;
 import com.bonree.brfs.resourceschedule.utils.SigarUtils;
@@ -75,5 +78,10 @@ public class GatherResource {
 			e.printStackTrace();
 		}
 		return obj;
+	}
+	public static ResourceModel calcResourceModel(ServerModel server, List<BaseServerModel> clusterList){
+		ResourceModel resource = new ResourceModel();
+		return null;
+		
 	}
 }
