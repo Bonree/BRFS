@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.utils.StringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.CuratorLocksClient;
 import com.bonree.brfs.server.identification.Identification;
@@ -31,20 +32,9 @@ public class ZookeeperIdentification implements Identification {
 
     private final String lockPath;
 
-    private String trimBasePath(String basePath) {
-        String newBasePath = null;
-        byte ch = basePath.getBytes()[basePath.length() - 1];
-        if (ch == '/') {
-            newBasePath = basePath.substring(0, basePath.length() - 1);
-        } else {
-            newBasePath = basePath;
-        }
-        return newBasePath;
-    }
-
     public ZookeeperIdentification(CuratorClient client, String basePath) {
         this.client = client;
-        this.basePath = trimBasePath(basePath);
+        this.basePath = StringUtils.trimBasePath(basePath);
         this.lockPath = basePath + LOCKS_PATH_PART;
     }
 
