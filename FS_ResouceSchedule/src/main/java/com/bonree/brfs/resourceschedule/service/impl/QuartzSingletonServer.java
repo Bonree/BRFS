@@ -1,5 +1,5 @@
 
-package com.bonree.brfs.resourceschedule.service;
+package com.bonree.brfs.resourceschedule.service.impl;
 
 import java.text.ParseException;
 import java.util.Properties;
@@ -16,6 +16,7 @@ import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 
 import com.bonree.brfs.resourceschedule.config.JobConfig;
+import com.bonree.brfs.resourceschedule.service.CycleServerInterface;
 import com.bonree.brfs.resourceschedule.utils.StringUtils;
 
 /*****************************************************************************

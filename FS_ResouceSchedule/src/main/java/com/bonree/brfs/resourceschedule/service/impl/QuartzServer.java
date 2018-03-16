@@ -1,5 +1,5 @@
 
-package com.bonree.brfs.resourceschedule.service;
+package com.bonree.brfs.resourceschedule.service.impl;
 
 import java.text.ParseException;
 import java.util.Properties;
