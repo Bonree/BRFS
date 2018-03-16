@@ -1,4 +1,4 @@
-package com.bonree.brfs.resourceschedule.commons;
+package com.bonree.brfs.resourceschedule.utils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,13 +16,13 @@ import org.hyperic.sigar.NetInterfaceStat;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
+import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseNetModel;
 import com.bonree.brfs.resourceschedule.model.BasePatitionModel;
 import com.bonree.brfs.resourceschedule.model.CpuStatModel;
 import com.bonree.brfs.resourceschedule.model.MemoryStatModel;
 import com.bonree.brfs.resourceschedule.model.NetStatModel;
 import com.bonree.brfs.resourceschedule.model.PatitionStatModel;
-import com.bonree.brfs.resourceschedule.utils.StringUtils;
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -46,7 +46,7 @@ public enum SigarUtils {
      */
     public BaseNetModel gatherBaseNetInfo(String ipAddress, long maxTSpeed, long maxRSpeed) throws SigarException{
     	// 1.过滤非法的ip地址
-    	if(Commons.filterIp(ipAddress)){
+    	if(NetUtils.filterIp(ipAddress)){
     		return null;
     	}
     	BaseNetModel obj = new BaseNetModel();
@@ -58,7 +58,7 @@ public enum SigarUtils {
     		netConfig = sigar.getNetInterfaceConfig(netInfo);
     		tmpIp = netConfig.getAddress();    	
     		// 1.过滤非法的ip
-    		if(Commons.filterIp(tmpIp)){
+    		if(NetUtils.filterIp(tmpIp)){
     			continue;
     		}
     		// 2.过滤网卡不存在的
@@ -97,7 +97,7 @@ public enum SigarUtils {
     		netConfig = sigar.getNetInterfaceConfig(netInfo);
     		tmpIp = netConfig.getAddress();
     		// 1.过滤非法的IP
-    		if(Commons.filterIp(tmpIp)){
+    		if(NetUtils.filterIp(tmpIp)){
     			continue;
     		}
     		// 2.过滤网卡不存在的
@@ -128,7 +128,7 @@ public enum SigarUtils {
      */
     public NetStatModel gatherNetStatInfo(String ipAddress) throws SigarException{
     	// 1.过滤非法的ip地址
-    	if(Commons.filterIp(ipAddress)){
+    	if(NetUtils.filterIp(ipAddress)){
     		return null;
     	}
     	NetStatModel obj = new NetStatModel();
@@ -143,7 +143,7 @@ public enum SigarUtils {
     		tmpIp = netConfig.getAddress();
     		devName = netConfig.getName();
     		// 1.过滤非法的ip
-    		if(Commons.filterIp(tmpIp)){
+    		if(NetUtils.filterIp(tmpIp)){
     			continue;
     		}
     		// 2.过滤网卡不存在的
@@ -182,7 +182,7 @@ public enum SigarUtils {
     		devName = netConfig.getName();
     		
     		// 1.过滤非法的IP
-    		if(Commons.filterIp(tmpIp)){
+    		if(NetUtils.filterIp(tmpIp)){
     			continue;
     		}
     		// 2.过滤网卡不存在的
@@ -217,7 +217,7 @@ public enum SigarUtils {
      */
     public BasePatitionModel gatherBasePatitionInfo(String mountPoint, long maxWriteSpeed, long maxReadSpeed) throws SigarException{
     	// 1.过滤非法的挂载点
-    	if(Commons.filterMountPoint(mountPoint)){
+    	if(DiskUtils.filterMountPoint(mountPoint)){
     		return null;
     	}
     	BasePatitionModel obj = new BasePatitionModel();
@@ -262,7 +262,7 @@ public enum SigarUtils {
     public Map<String, BasePatitionModel> gatherBasePatitionInfos(String dir, long maxWriteSpeed, long maxReadSpeed) throws SigarException{
     	Map<String, BasePatitionModel> basePatitionMap = new ConcurrentHashMap<String, BasePatitionModel>();
     	// 1.过滤非法的挂载点
-    	if(Commons.filterMountPoint(dir)){
+    	if(DiskUtils.filterMountPoint(dir)){
     		return basePatitionMap;
     	}
     	String dirPath = new File(dir).getAbsolutePath();
@@ -313,7 +313,7 @@ public enum SigarUtils {
      */
     public PatitionStatModel gatherPatitionStatInfo(String mountPoint) throws SigarException{
     	// 1.过滤非法挂载点
-    	if(Commons.filterMountPoint(mountPoint)){
+    	if(DiskUtils.filterMountPoint(mountPoint)){
     		return null;
     	}
     	PatitionStatModel obj = new PatitionStatModel();
@@ -354,7 +354,7 @@ public enum SigarUtils {
     public Map<String, PatitionStatModel> gatherPatitionStatInfos(String dir) throws SigarException{
     	Map<String, PatitionStatModel> patitionStatMap = new ConcurrentHashMap<String, PatitionStatModel>();
     	// 1.过滤非法的挂载点
-    	if(Commons.filterMountPoint(dir)){
+    	if(DiskUtils.filterMountPoint(dir)){
     		return patitionStatMap;
     	}
     	String dirPath = new File(dir).getAbsolutePath();
@@ -404,7 +404,7 @@ public enum SigarUtils {
     public Map<String, PatitionStatModel> gatherPatitionStatInfos2(String dir) throws SigarException{
     	Map<String, PatitionStatModel> patitionStatMap = new ConcurrentHashMap<String, PatitionStatModel>();
     	// 1.过滤非法的挂载点
-    	if(Commons.filterMountPoint(dir)){
+    	if(DiskUtils.filterMountPoint(dir)){
     		return patitionStatMap;
     	}
     	String dirPath = new File(dir).getAbsolutePath();

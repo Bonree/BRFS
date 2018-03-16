@@ -1,6 +1,14 @@
 package com.bonree.brfs.resourceschedule.utils;
-
-public final class OSCheck {
+/*****************************************************************************
+ * 版权信息：北京博睿宏远数据科技股份有限公司
+ * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
+ * 
+ * @date 2018年3月16日 下午1:38:47
+ * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
+ * @Description:操作系统类型工具 
+ *****************************************************************************
+ */
+public final class OSCheckUtils {
     public enum OSType {
         Windows, MacOS, Linux, Other
     }

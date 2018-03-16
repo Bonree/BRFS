@@ -4,7 +4,7 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import com.bonree.brfs.resourceschedule.commons.Commons;
+import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.config.ResConfig;
 import com.bonree.brfs.resourceschedule.model.BaseServerModel;
 /*****************************************************************************
@@ -20,7 +20,7 @@ public class GatherBaseResourceInfoJob implements Job{
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		// TODO Auto-generated method stub
-		BaseServerModel obj = Commons.gatherBaseServerInfo(ResConfig.SERVER_ID, ResConfig.DATA_DIRECTORY);
+		BaseServerModel obj = GatherResource.gatherBaseServerInfo(ResConfig.SERVER_ID, ResConfig.DATA_DIRECTORY);
 		ResConfig.SERVER_INFO.setBaseServerInfo(obj);
 	}
 	

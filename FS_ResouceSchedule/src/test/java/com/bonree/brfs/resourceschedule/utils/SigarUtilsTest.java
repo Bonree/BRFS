@@ -1,5 +1,5 @@
 
-package com.bonree.brfs.resourceschedule.commons;
+package com.bonree.brfs.resourceschedule.utils;
 
 import static org.junit.Assert.*;
 
@@ -15,8 +15,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.bonree.brfs.resourceschedule.commons.Commons;
-import com.bonree.brfs.resourceschedule.commons.SigarUtils;
+import com.bonree.brfs.resourceschedule.commons.GatherResource;
+import com.bonree.brfs.resourceschedule.utils.SigarUtils;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -36,7 +36,7 @@ public class SigarUtilsTest {
 	@Test
 	public void testGatherBaseInfo(){
 		try {
-			if(!CommonsTest.initLibrary()){
+			if(!LibUtilsTest.initLibrary()){
 				System.out.println("test skip gatherBaseInfo");
 				return;
 			}
