@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.SERVER_COMMON_ENUM;
+import com.bonree.brfs.resourceschedule.model.enums.ServerCommonEnum;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -17,7 +17,7 @@ import com.bonree.brfs.resourceschedule.model.ServerEnum.SERVER_COMMON_ENUM;
  * Description: 
  * Version: 
  ******************************************************************************/
-public class ServerModel {
+public class ServerModel extends AbstractResourceModel{
     /**
      * 服务基本信息
      */
@@ -39,7 +39,7 @@ public class ServerModel {
     }
     public JSONObject toJSONObject(){
     	JSONObject obj = new JSONObject();
-    	obj.put(SERVER_COMMON_ENUM.SERVER_BASE_INFO.name(), this.baseServerInfo.toJSONObject());
+    	obj.put(ServerCommonEnum.SERVER_BASE_INFO.name(), this.baseServerInfo.toJSONObject());
     	JSONArray statArray = new JSONArray();
     	ServerStatModel stat = null;
     	int size = this.statInfoQueue.size();
@@ -50,7 +50,7 @@ public class ServerModel {
     		}
     		statArray.add(stat.toJSONObject());
     	}
-    	obj.put(SERVER_COMMON_ENUM.SERVER_STAT_INFO.name(), statArray);
+    	obj.put(ServerCommonEnum.SERVER_STAT_INFO.name(), statArray);
 
     	return obj;
     }

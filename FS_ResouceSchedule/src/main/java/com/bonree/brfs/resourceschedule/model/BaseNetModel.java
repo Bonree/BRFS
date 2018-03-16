@@ -1,7 +1,7 @@
 package com.bonree.brfs.resourceschedule.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.NET_ENUM;
+import com.bonree.brfs.resourceschedule.model.enums.NetEnum;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -12,7 +12,7 @@ import com.bonree.brfs.resourceschedule.model.ServerEnum.NET_ENUM;
  * Description: 
  * Version: 网卡基本信息
  ******************************************************************************/
-public class BaseNetModel {
+public class BaseNetModel extends AbstractResourceModel {
     /**
      * 网卡设备名称
      */
@@ -52,11 +52,11 @@ public class BaseNetModel {
     }
     public JSONObject toJSONObject(){
     	JSONObject obj = new JSONObject();
-    	obj.put(NET_ENUM.NET_DEVICE_NAME.name(), this.devName);
-    	obj.put(NET_ENUM.IP_ADDRESS.name(), this.ipAddress);
-    	obj.put(NET_ENUM.MAC_ADDRESS.name(), this.macAddress);
-    	obj.put(NET_ENUM.MAX_R_SPEED.name(), this.maxRSpeed);
-    	obj.put(NET_ENUM.MAX_T_SPEED.name(), this.maxTSpeed);
+    	obj.put(NetEnum.NET_DEVICE_NAME.name(), this.devName);
+    	obj.put(NetEnum.IP_ADDRESS.name(), this.ipAddress);
+    	obj.put(NetEnum.MAC_ADDRESS.name(), this.macAddress);
+    	obj.put(NetEnum.MAX_R_SPEED.name(), this.maxRSpeed);
+    	obj.put(NetEnum.MAX_T_SPEED.name(), this.maxTSpeed);
     	return obj;
     }
     public String toString(){

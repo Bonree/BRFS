@@ -4,10 +4,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.CPU_ENUM;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.MEMORY_ENUM;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.PATITION_ENUM;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.SERVER_COMMON_ENUM;
+import com.bonree.brfs.resourceschedule.model.enums.CpuEnum;
+import com.bonree.brfs.resourceschedule.model.enums.MemoryEnum;
+import com.bonree.brfs.resourceschedule.model.enums.PatitionEnum;
+import com.bonree.brfs.resourceschedule.model.enums.ServerCommonEnum;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -18,7 +18,7 @@ import com.bonree.brfs.resourceschedule.model.ServerEnum.SERVER_COMMON_ENUM;
  * Description: 
  * Version: 机器基本信息
  ******************************************************************************/
-public class BaseServerModel {
+public class BaseServerModel extends AbstractResourceModel{
     /**
      * 服务Id
      */
@@ -58,21 +58,21 @@ public class BaseServerModel {
     }
     public JSONObject toJSONObject(){
     	JSONObject obj = new JSONObject();
-    	obj.put(SERVER_COMMON_ENUM.SERVER_ID.name(), this.serverId);
-    	obj.put(CPU_ENUM.CPU_CORE_COUNT.name(), this.cpuCoreCount);
+    	obj.put(ServerCommonEnum.SERVER_ID.name(), this.serverId);
+    	obj.put(CpuEnum.CPU_CORE_COUNT.name(), this.cpuCoreCount);
     	
     	JSONObject netObj = new JSONObject();
     	for(Map.Entry<String, BaseNetModel> netEntry : this.netInfoMap.entrySet()){
     		netObj.put(netEntry.getKey(), netEntry.getValue().toJSONObject());
     	}
-    	obj.put(SERVER_COMMON_ENUM.NET_BASE_INFO.name(), netObj);
+    	obj.put(ServerCommonEnum.NET_BASE_INFO.name(), netObj);
     	
     	JSONObject diskObj = new JSONObject();
     	for(Map.Entry<String, BasePatitionModel> diskEntry : this.patitionInfoMap.entrySet()){
     		diskObj.put(diskEntry.getKey(), diskEntry.getValue().toJSONObject());
     	}
-    	obj.put(SERVER_COMMON_ENUM.PATITION_BASE_INFO.name(), diskObj);
-    	obj.put(MEMORY_ENUM.MEMORY_SIZE.name(), this.memorySize);
+    	obj.put(ServerCommonEnum.PATITION_BASE_INFO.name(), diskObj);
+    	obj.put(MemoryEnum.MEMORY_SIZE.name(), this.memorySize);
     	return obj;
     }
     public String toString(){

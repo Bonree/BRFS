@@ -1,7 +1,7 @@
 package com.bonree.brfs.resourceschedule.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.NET_ENUM;
+import com.bonree.brfs.resourceschedule.model.enums.NetEnum;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -12,7 +12,7 @@ import com.bonree.brfs.resourceschedule.model.ServerEnum.NET_ENUM;
  * Description: 
  * Version: 
  ******************************************************************************/
-public class NetStatModel {
+public class NetStatModel extends AbstractResourceModel{
     /**
      * ip地址
      */
@@ -36,9 +36,9 @@ public class NetStatModel {
     }
     public JSONObject toJSONObject(){
     	JSONObject obj = new JSONObject();
-    	obj.put(NET_ENUM.IP_ADDRESS.name(), this.ipAddress);
-    	obj.put(NET_ENUM.R_DATA_SIZE.name(), this.rDataSize);
-    	obj.put(NET_ENUM.T_DATA_SIZE.name(), this.tDataSize);
+    	obj.put(NetEnum.IP_ADDRESS.name(), this.ipAddress);
+    	obj.put(NetEnum.R_DATA_SIZE.name(), this.rDataSize);
+    	obj.put(NetEnum.T_DATA_SIZE.name(), this.tDataSize);
     	return obj;
     }
     public String toString(){

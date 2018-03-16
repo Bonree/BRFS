@@ -1,8 +1,7 @@
 package com.bonree.brfs.resourceschedule.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.CPU_ENUM;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.MEMORY_ENUM;
+import com.bonree.brfs.resourceschedule.model.enums.MemoryEnum;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -13,7 +12,7 @@ import com.bonree.brfs.resourceschedule.model.ServerEnum.MEMORY_ENUM;
  * Description: 
  * Version: 内存状态信息
  ******************************************************************************/
-public class MemoryStatModel {
+public class MemoryStatModel extends AbstractResourceModel{
     /**
      * 内存使用率
      */
@@ -31,8 +30,8 @@ public class MemoryStatModel {
 	}
 	public JSONObject toJSONObject(){
     	JSONObject obj = new JSONObject();
-    	obj.put(MEMORY_ENUM.MEMORY_RATE.name(), this.memoryRate);
-    	obj.put(MEMORY_ENUM.MEMORY_RATE.name(), this.memoryRemainRate);
+    	obj.put(MemoryEnum.MEMORY_RATE.name(), this.memoryRate);
+    	obj.put(MemoryEnum.MEMORY_RATE.name(), this.memoryRemainRate);
     	return obj;
     }
     public String toString(){

@@ -1,8 +1,7 @@
 package com.bonree.brfs.resourceschedule.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.NET_ENUM;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.PATITION_ENUM;
+import com.bonree.brfs.resourceschedule.model.enums.PatitionEnum;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -13,7 +12,7 @@ import com.bonree.brfs.resourceschedule.model.ServerEnum.PATITION_ENUM;
  * Description: 
  * Version: 文件系统基本信息
  ******************************************************************************/
-public class BasePatitionModel {
+public class BasePatitionModel extends AbstractResourceModel{
     /**
      * 文件系统挂载点
      */
@@ -63,12 +62,12 @@ public class BasePatitionModel {
     }
     public JSONObject toJSONObject(){
     	JSONObject obj = new JSONObject();
-    	obj.put(PATITION_ENUM.MOUNT_POINT.name(), this.mountedPoint);
-    	obj.put(PATITION_ENUM.PATITION_FORMAT.name(), this.patitionFormateName);
-    	obj.put(PATITION_ENUM.DISK_TYPE.name(), this.diskType);
-    	obj.put(PATITION_ENUM.PATITION_SIZE.name(), this.patitionSize);
-    	obj.put(PATITION_ENUM.MAX_WRITE_SPEED.name(), this.maxWriteSpeed);
-    	obj.put(PATITION_ENUM.MAX_READ_SPEED.name(), this.maxReadSpeed);
+    	obj.put(PatitionEnum.MOUNT_POINT.name(), this.mountedPoint);
+    	obj.put(PatitionEnum.PATITION_FORMAT.name(), this.patitionFormateName);
+    	obj.put(PatitionEnum.DISK_TYPE.name(), this.diskType);
+    	obj.put(PatitionEnum.PATITION_SIZE.name(), this.patitionSize);
+    	obj.put(PatitionEnum.MAX_WRITE_SPEED.name(), this.maxWriteSpeed);
+    	obj.put(PatitionEnum.MAX_READ_SPEED.name(), this.maxReadSpeed);
     	return obj;
     }
     public String toString(){

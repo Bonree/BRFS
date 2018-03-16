@@ -4,8 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.MEMORY_ENUM;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.SERVER_COMMON_ENUM;
+import com.bonree.brfs.resourceschedule.model.enums.ServerCommonEnum;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -16,7 +15,7 @@ import com.bonree.brfs.resourceschedule.model.ServerEnum.SERVER_COMMON_ENUM;
  * Description: 
  * Version: 
  ******************************************************************************/
-public class ServerStatModel {
+public class ServerStatModel extends AbstractResourceModel{
     /**
      * cpu状态信息
      */
@@ -38,20 +37,20 @@ public class ServerStatModel {
     }
     public JSONObject toJSONObject(){
     	JSONObject obj = new JSONObject();
-    	obj.put(SERVER_COMMON_ENUM.CPU_STAT_INFO.name(), this.cpuStatInfo.toJSONObject());
-    	obj.put(SERVER_COMMON_ENUM.MEMORY_STAT_INFO.name(), this.memoryStatInfo.toJSONObject());
+    	obj.put(ServerCommonEnum.CPU_STAT_INFO.name(), this.cpuStatInfo.toJSONObject());
+    	obj.put(ServerCommonEnum.MEMORY_STAT_INFO.name(), this.memoryStatInfo.toJSONObject());
     	
     	JSONObject netObj = new JSONObject();
     	for(Map.Entry<String, NetStatModel> netEntry : this.netStatInfoMap.entrySet()){
     		netObj.put(netEntry.getKey(), netEntry.getValue().toJSONObject());
     	}
-    	obj.put(SERVER_COMMON_ENUM.NET_STAT_INFO.name(), netObj);
+    	obj.put(ServerCommonEnum.NET_STAT_INFO.name(), netObj);
     	
     	JSONObject diskObj = new JSONObject();
     	for(Map.Entry<String, PatitionStatModel> diskEntry : this.patitionStatInfoMap.entrySet()){
     		diskObj.put(diskEntry.getKey(), diskEntry.getValue().toJSONObject());
     	}
-    	obj.put(SERVER_COMMON_ENUM.PATITION_STAT_INFO.name(), diskObj);
+    	obj.put(ServerCommonEnum.PATITION_STAT_INFO.name(), diskObj);
     	
     	return obj;
     }

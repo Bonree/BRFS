@@ -1,7 +1,7 @@
 package com.bonree.brfs.resourceschedule.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.PATITION_ENUM;
+import com.bonree.brfs.resourceschedule.model.enums.PatitionEnum;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -12,7 +12,7 @@ import com.bonree.brfs.resourceschedule.model.ServerEnum.PATITION_ENUM;
  * Description: 
  * Version: 
  ******************************************************************************/
-public class PatitionStatModel {
+public class PatitionStatModel extends AbstractResourceModel{
     /**
      * 文件系统挂载点
      */
@@ -50,11 +50,11 @@ public class PatitionStatModel {
     }
     public JSONObject toJSONObject(){
     	JSONObject obj = new JSONObject();
-    	obj.put(PATITION_ENUM.MOUNT_POINT.name(), this.mountPoint);
-    	obj.put(PATITION_ENUM.USED_SIZE.name(), this.usedSize);
-    	obj.put(PATITION_ENUM.REMAIN_SIZE.name(), this.remainSize);
-    	obj.put(PATITION_ENUM.WIRTE_DATA_SIZE.name(), this.writeDataSize);
-    	obj.put(PATITION_ENUM.READ_DATA_SIZE.name(), this.readDataSize);
+    	obj.put(PatitionEnum.MOUNT_POINT.name(), this.mountPoint);
+    	obj.put(PatitionEnum.USED_SIZE.name(), this.usedSize);
+    	obj.put(PatitionEnum.REMAIN_SIZE.name(), this.remainSize);
+    	obj.put(PatitionEnum.WIRTE_DATA_SIZE.name(), this.writeDataSize);
+    	obj.put(PatitionEnum.READ_DATA_SIZE.name(), this.readDataSize);
     	return obj;
     }
     public String toString(){

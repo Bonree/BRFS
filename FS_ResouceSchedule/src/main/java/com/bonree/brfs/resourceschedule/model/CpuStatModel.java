@@ -3,9 +3,7 @@ package com.bonree.brfs.resourceschedule.model;
 import java.util.Map;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.CPU_ENUM;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.MEMORY_ENUM;
-import com.bonree.brfs.resourceschedule.model.ServerEnum.SERVER_COMMON_ENUM;
+import com.bonree.brfs.resourceschedule.model.enums.CpuEnum;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -16,7 +14,7 @@ import com.bonree.brfs.resourceschedule.model.ServerEnum.SERVER_COMMON_ENUM;
  * Description: 
  * Version: 
  ******************************************************************************/
-public class CpuStatModel {
+public class CpuStatModel extends AbstractResourceModel{
     /**
      * cpu使用率
      */
@@ -35,8 +33,8 @@ public class CpuStatModel {
     }
     public JSONObject toJSONObject(){
     	JSONObject obj = new JSONObject();
-    	obj.put(CPU_ENUM.CPU_RATE.name(), this.cpuRate);
-    	obj.put(CPU_ENUM.CPU_REMAIN_RATE.name(), this.cpuRemainRate);
+    	obj.put(CpuEnum.CPU_RATE.name(), this.cpuRate);
+    	obj.put(CpuEnum.CPU_REMAIN_RATE.name(), this.cpuRemainRate);
     	return obj;
     }
     public String toString(){
