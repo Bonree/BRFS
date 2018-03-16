@@ -4,7 +4,7 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import com.bonree.brfs.resourceschedule.utils.Globals;
+import com.bonree.brfs.resourceschedule.config.ResConfig;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

@@ -9,13 +9,13 @@ import org.quartz.JobExecutionException;
 
 import com.bonree.brfs.resourceschedule.commons.Commons;
 import com.bonree.brfs.resourceschedule.commons.SigarUtils;
+import com.bonree.brfs.resourceschedule.config.ResConfig;
 import com.bonree.brfs.resourceschedule.model.BaseNetModel;
 import com.bonree.brfs.resourceschedule.model.BasePatitionModel;
 import com.bonree.brfs.resourceschedule.model.BaseServerModel;
 import com.bonree.brfs.resourceschedule.model.NetStatModel;
 import com.bonree.brfs.resourceschedule.model.PatitionStatModel;
 import com.bonree.brfs.resourceschedule.model.ServerStatModel;
-import com.bonree.brfs.resourceschedule.utils.Globals;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -29,7 +29,7 @@ public class GatherResourceJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		// TODO Auto-generated method stub
-		ServerStatModel stat = Commons.gatherServerStatInfo(Globals.DATA_DIRECTORY);
-		Globals.SERVER_INFO.addServerStat(stat);
+		ServerStatModel stat = Commons.gatherServerStatInfo(ResConfig.DATA_DIRECTORY);
+		ResConfig.SERVER_INFO.addServerStat(stat);
 	}
 }
