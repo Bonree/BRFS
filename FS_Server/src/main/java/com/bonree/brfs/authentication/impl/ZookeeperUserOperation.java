@@ -7,6 +7,14 @@ import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.utils.StringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
+/*******************************************************************************
+ * 版权信息：博睿宏远科技发展有限公司
+ * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
+ * 
+ * @date 2018年3月19日 上午11:25:10
+ * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
+ * @Description: 操作User，如添加，删除，更改
+ ******************************************************************************/
 public class ZookeeperUserOperation implements UserOperation {
 
     private CuratorClient client;

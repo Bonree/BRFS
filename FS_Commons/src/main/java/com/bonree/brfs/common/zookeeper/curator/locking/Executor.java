@@ -10,7 +10,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 
  ******************************************************************************/
-public interface Executor {
-    
-    void execute(CuratorClient client);
+public interface Executor<T> {
+
+    T execute(CuratorClient client);
 }
