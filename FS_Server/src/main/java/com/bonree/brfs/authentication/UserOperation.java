@@ -1,5 +1,7 @@
 package com.bonree.brfs.authentication;
 
+import java.util.List;
+
 import com.bonree.brfs.authentication.model.UserModel;
 
 /*******************************************************************************
@@ -14,10 +16,12 @@ public interface UserOperation {
 
     public void createUser(UserModel user);
 
-    public void deleteUser(UserModel user);
+    public void deleteUser(String userName);
 
     public void updateUser(UserModel user);
 
     public UserModel getUser(String userName);
+    
+    public List<UserModel> getUserList();
 
 }

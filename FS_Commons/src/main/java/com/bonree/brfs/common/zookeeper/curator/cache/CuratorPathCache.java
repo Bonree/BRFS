@@ -59,6 +59,17 @@ public class CuratorPathCache {
         }
     }
 
+    public void startPathCache(String path) {
+        PathChildrenCache cache = cacheMap.get(path);
+        try {
+            if (cache != null) {
+                cache.start();
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
     public List<AbstractPathChildrenCacheListener> getAllListener(String path) {
         final List<AbstractPathChildrenCacheListener> list;
         PathChildrenCache cache = cacheMap.get(path);

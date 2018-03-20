@@ -23,7 +23,14 @@ public class UserModel {
 
     private Set<Integer> storageList;
 
-    public UserModel() {
+    @SuppressWarnings("unused")
+    private UserModel() {
+    }
+
+    public UserModel(String userName, String passwd, byte acl) {
+        this.userName = userName;
+        this.passwd = passwd;
+        this.acl = acl;
         storageList = new HashSet<Integer>();
     }
 
@@ -66,6 +73,7 @@ public class UserModel {
     public void removeStorageName(int storageIndex) {
         storageList.remove(storageIndex);
     }
+
     public Set<Integer> getStorageList() {
         return storageList;
     }
