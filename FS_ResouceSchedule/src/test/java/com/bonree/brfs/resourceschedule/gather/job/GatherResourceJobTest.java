@@ -6,6 +6,7 @@ import java.io.File;
 
 import org.junit.Test;
 
+import com.bonree.brfs.resourceschedule.commons.Constant;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.utils.LibUtilsTest;
 
@@ -18,7 +19,7 @@ public class GatherResourceJobTest {
 				return;
 			}
 			long startTime = System.currentTimeMillis();
-			System.out.println(GatherResource.gatherBaseServerInfo(0, "E:/"));
+			System.out.println(GatherResource.gatherBaseServerInfo(Constant.cache));
 			long stopTime = System.currentTimeMillis();
 			System.out.println("gather base info time : " + (stopTime - startTime) + " ms");
 		}
@@ -35,7 +36,7 @@ public class GatherResourceJobTest {
 				return;
 			}
 			long startTime = System.currentTimeMillis();
-			System.out.println(GatherResource.gatherServerStatInfo("E:/"));
+			System.out.println(GatherResource.gatherServerStatInfo(Constant.cache));
 			long stopTime = System.currentTimeMillis();
 			System.out.println("gather stat info time : " + (stopTime - startTime) + " ms");
 		}
