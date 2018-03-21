@@ -32,7 +32,11 @@ public class ServerStatModel extends AbstractResourceModel{
      * 文件系统状态信息 key：挂载点，value：文件系统状态
      */
     private Map<String,PatitionStatModel> patitionStatInfoMap = new ConcurrentHashMap<String,PatitionStatModel>();
-
+    /**
+     * SN与文件系统的映射关系 key：SN名称 ,value：挂载点
+     */
+    private Map<String,String> snToDiskMap = new ConcurrentHashMap<String, String>();
+    
     public ServerStatModel() {
     }
     public JSONObject toJSONObject(){
@@ -53,12 +57,6 @@ public class ServerStatModel extends AbstractResourceModel{
     	obj.put(ServerCommonEnum.PATITION_STAT_INFO.name(), diskObj);
     	
     	return obj;
-    }
-    public String toString(){
-    	return toJSONObject().toString();
-    }
-    public String toJSONString(){
-    	return toJSONObject().toJSONString();
     }
 
     public CpuStatModel getCpuStatInfo() {
@@ -98,4 +96,11 @@ public class ServerStatModel extends AbstractResourceModel{
     public void putPatitionStatInfo(String mountPoint, PatitionStatModel patitionStatInfo){
         this.patitionStatInfoMap.put(mountPoint, patitionStatInfo);
     }
+	public Map<String, String> getSnToDiskMap() {
+		return snToDiskMap;
+	}
+	public void setSnToDiskMap(Map<String, String> snToDiskMap) {
+		this.snToDiskMap = snToDiskMap;
+	}
+    
 }
