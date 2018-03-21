@@ -16,6 +16,7 @@ import org.hyperic.sigar.NetInterfaceStat;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
+import com.bonree.brfs.resourceschedule.commons.Cache;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseNetModel;
 import com.bonree.brfs.resourceschedule.model.BasePatitionModel;
@@ -86,7 +87,7 @@ public enum SigarUtils {
      * @throws SigarException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public Map<String, BaseNetModel> gatherBaseNetInfos(long maxRSpeed, long maxTSpeed) throws SigarException{
+    public Map<String, BaseNetModel> gatherBaseNetInfos(Cache cache) throws SigarException{
     	Map<String, BaseNetModel> objMap = new ConcurrentHashMap<String, BaseNetModel>();
     	//Sigar sigar = new Sigar();
     	String[] netInfos = sigar.getNetInterfaceList();
@@ -112,8 +113,8 @@ public enum SigarUtils {
     		obj.setIpAddress(tmpIp);
     		obj.setDevName(netConfig.getName());
     		obj.setMacAddress(netConfig.getHwaddr());
-    		obj.setMaxRSpeed(maxRSpeed);
-    		obj.setMaxTSpeed(maxTSpeed);
+    		obj.setMaxRSpeed(cache.NET_MAX_R_SPEED);
+    		obj.setMaxTSpeed(cache.NET_MAX_T_SPEED);
     		objMap.put(tmpIp, obj);
     		
     	}
@@ -259,11 +260,12 @@ public enum SigarUtils {
     * @throws SigarException
     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
     */
-    public Map<String, BasePatitionModel> gatherBasePatitionInfos(String dir, long maxWriteSpeed, long maxReadSpeed) throws SigarException{
+    public Map<String, BasePatitionModel> gatherBasePatitionInfos(Cache cache) throws SigarException{
     	Map<String, BasePatitionModel> basePatitionMap = new ConcurrentHashMap<String, BasePatitionModel>();
+    	String dir = cache.DATA_DIRECTORY;
     	// 1.过滤非法的挂载点
     	if(DiskUtils.filterMountPoint(dir)){
-    		return basePatitionMap;
+    		throw new NullPointerException("mount point is valid !!! " + dir);
     	}
     	String dirPath = new File(dir).getAbsolutePath();
     	//Sigar sigar = new Sigar();
@@ -291,8 +293,8 @@ public enum SigarUtils {
             devType = fileSystem.getType();
     		obj.setMountedPoint(tmpMountPoint);
     		obj.setDiskType(fileSystem.getType());
-    		obj.setMaxReadSpeed(maxReadSpeed);
-    		obj.setMaxWriteSpeed(maxWriteSpeed);
+    		obj.setMaxReadSpeed(cache.DISK_MAX_READ_SPEED);
+    		obj.setMaxWriteSpeed(cache.DISK_MAX_WRITE_SPEED);
     		obj.setPatitionFormateName(fileSystem.getSysTypeName());
     		// 4.非本地磁盘及NFS的不统计分区大小
     		if(devType == 2 || devType == 3){
@@ -351,14 +353,14 @@ public enum SigarUtils {
      * @throws SigarException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public Map<String, PatitionStatModel> gatherPatitionStatInfos(String dir) throws SigarException{
+    public Map<String, PatitionStatModel> gatherPatitionStatInfos(Cache cache) throws SigarException{
     	Map<String, PatitionStatModel> patitionStatMap = new ConcurrentHashMap<String, PatitionStatModel>();
+    	String dir = cache.DATA_DIRECTORY;
     	// 1.过滤非法的挂载点
     	if(DiskUtils.filterMountPoint(dir)){
     		return patitionStatMap;
     	}
     	String dirPath = new File(dir).getAbsolutePath();
-    	System.out.println("gatherPatitionStatInfos :"+sigar.getFileSystemMap().keySet().toString());
     	//Sigar sigar = new Sigar();
     	FileSystem[] fileSystems = sigar.getFileSystemList();
     	PatitionStatModel obj = null;
@@ -401,8 +403,9 @@ public enum SigarUtils {
      * @throws SigarException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public Map<String, PatitionStatModel> gatherPatitionStatInfos2(String dir) throws SigarException{
+    public Map<String, PatitionStatModel> gatherPatitionStatInfos2(Cache cache) throws SigarException{
     	Map<String, PatitionStatModel> patitionStatMap = new ConcurrentHashMap<String, PatitionStatModel>();
+    	String dir = cache.DATA_DIRECTORY;
     	// 1.过滤非法的挂载点
     	if(DiskUtils.filterMountPoint(dir)){
     		return patitionStatMap;
