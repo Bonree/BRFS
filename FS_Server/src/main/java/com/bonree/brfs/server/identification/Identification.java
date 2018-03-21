@@ -1,5 +1,7 @@
 package com.bonree.brfs.server.identification;
 
+import java.util.List;
+
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
@@ -19,5 +21,6 @@ public interface Identification {
     public String getMultiIndentification();
 
     public String getVirtureIdentification();
-
+    
+    public List<String> loadVirtualIdentification();
 }

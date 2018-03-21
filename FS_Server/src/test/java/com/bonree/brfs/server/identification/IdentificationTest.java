@@ -8,7 +8,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.server.identification.impl.ZookeeperIdentification;
 
 public class IdentificationTest {
@@ -25,11 +24,10 @@ public class IdentificationTest {
 
                 @Override
                 public void run() {
-                    CuratorClient client = CuratorClient.getClientInstance("192.168.101.86:2181");
                     int count = 0;
                     while (count < 10) {
                         count++;
-                        Identification instance = new ZookeeperIdentification(client, "/brfs/wz/serverID");
+                        Identification instance = ZookeeperIdentification.getIdentificationServer("192.168.101.86:2181", "/brfs/wz/serverID");
                         sigleServerIdList.add(instance.getSingleIdentification());
                         multiServerIdList.add(instance.getMultiIndentification());
                         virtualServerIdList.add(instance.getVirtureIdentification());
