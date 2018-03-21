@@ -23,15 +23,14 @@ import org.slf4j.LoggerFactory;
 import com.br.disknode.server.handler.DiskMessage;
 import com.br.disknode.server.handler.HandleResult;
 import com.br.disknode.server.handler.HandleResultCallback;
-import com.br.disknode.server.handler.MessageHandler;
 
 @Sharable
-public class DiskHttpRequestHandler implements NettyHttpRequestHandler {
-	private static final Logger LOG = LoggerFactory.getLogger(DiskHttpRequestHandler.class);
+public class DiskNettyHttpRequestHandler implements NettyHttpRequestHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(DiskNettyHttpRequestHandler.class);
 	
-	private Map<HttpMethod, MessageHandler> methodToOps = new HashMap<HttpMethod, MessageHandler>();
+	private Map<HttpMethod, MessageHandler<DiskMessage>> methodToOps = new HashMap<HttpMethod, MessageHandler<DiskMessage>>();
 	
-	public void put(String method, MessageHandler handler) {
+	public void put(String method, MessageHandler<DiskMessage> handler) {
 		methodToOps.put(HttpMethod.valueOf(method), handler);
 	}
 
@@ -39,7 +38,7 @@ public class DiskHttpRequestHandler implements NettyHttpRequestHandler {
 	public void requestReceived(ChannelHandlerContext ctx, FullHttpRequest request) {
 		LOG.debug("handle request[{}:{}]", request.method(), request.uri());
 		
-		MessageHandler handler = methodToOps.get(request.method());
+		MessageHandler<DiskMessage> handler = methodToOps.get(request.method());
 		if(handler == null) {
 			ResponseSender.sendError(ctx, HttpResponseStatus.METHOD_NOT_ALLOWED);
 			return;

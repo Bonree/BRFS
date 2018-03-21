@@ -2,6 +2,7 @@ package com.br.disknode.utils;
 
 import io.netty.handler.codec.http.HttpMethod;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
@@ -28,6 +29,10 @@ public class Test {
 		System.out.println(map.get(HttpMethod.valueOf("CLOSE")));
 		
 		System.out.println("--" + URLDecoder.decode("/mem/data/brfs/t3", "UTF-8"));
+		
+		File f = new File("/root/temp/a.txt");
+		System.out.println(f.getParent());
+		System.out.println(f.getName());
 	}
 
 }

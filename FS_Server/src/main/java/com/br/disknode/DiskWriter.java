@@ -4,24 +4,28 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.zip.CRC32;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.br.disknode.buf.MappedWriteBuffer;
 import com.br.disknode.buf.WriteBuffer;
+import com.br.disknode.record.RecordElement;
+import com.br.disknode.record.RecordWriter;
 import com.br.disknode.utils.TimeoutWheel;
 import com.br.disknode.utils.TimeoutWheel.Timeout;
 
 /**
+ * 写数据到磁盘文件的具体实现类。
  * 
- * 
- * not-threadsafe
+ * ---not thread safe---
  */
 public class DiskWriter implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskWriter.class);
 	
-	private static final int BUF_SIZE = 3 * 1024 * 1024;
+	//默认的缓存大小（字节）
+	private static final int DEFAULT_BUF_SIZE = 3 * 1024 * 1024;
 	
 	private int position;
 	private int writeLength;
@@ -29,11 +33,14 @@ public class DiskWriter implements Closeable {
 	private String filePath;
 	private RandomAccessFile accessFile;
 	private WriteBuffer buffer;
+	private CRC32 crc = new CRC32();
 	
 	private WriteWorker attachedWorker;
 	
-	private static final int TIMEOUT_SECONDS = 5;
-	private static TimeoutWheel<DiskWriter> timeoutWheel = new TimeoutWheel<DiskWriter>(TIMEOUT_SECONDS);
+	private RecordWriter recordWriter;
+	
+	private static final int DEFAULT_TIMEOUT_SECONDS = 5;
+	private static TimeoutWheel<DiskWriter> timeoutWheel = new TimeoutWheel<DiskWriter>(DEFAULT_TIMEOUT_SECONDS);
 	
 	static {
 		timeoutWheel.setTimeout(new Timeout<DiskWriter>() {
@@ -61,9 +68,10 @@ public class DiskWriter implements Closeable {
 		}
 		
 		this.filePath = file.getAbsolutePath();
-		accessFile = new RandomAccessFile(file, "rw");
-		buffer = new MappedWriteBuffer(accessFile, BUF_SIZE);
-		attachedWorker = worker;
+		this.accessFile = new RandomAccessFile(file, "rw");
+		this.buffer = new MappedWriteBuffer(accessFile, DEFAULT_BUF_SIZE);
+		this.attachedWorker = worker;
+		this.recordWriter = RecordWriter.get(new File(file.getParent(), file.getName() + RecordWriter.RECORD_FILE_EXTEND));
 	}
 	
 	public WriteWorker worker() {
@@ -76,6 +84,7 @@ public class DiskWriter implements Closeable {
 	
 	public void beginWriting() {
 		writeLength = 0;
+		crc.reset();
 	}
 	
 	public void backWriting() {
@@ -88,9 +97,23 @@ public class DiskWriter implements Closeable {
 	}
 	
 	public InputResult endWriting() {
-		int startPosition = position;
-		position += writeLength;
-		return new InputResult(startPosition, writeLength);
+		RecordElement element = new RecordElement();
+		try {
+			int startPosition = position;
+			position += writeLength;
+			
+			element.setOffset(startPosition);
+			element.setSize(writeLength);
+			element.setCrc(crc.getValue());
+			
+			return new InputResult(startPosition, writeLength);
+		} finally {
+			try {
+				recordWriter.record(element);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private void flushBuffer() throws IOException {
@@ -106,6 +129,7 @@ public class DiskWriter implements Closeable {
 			size = (inBytes.length - offset);
 		}
 		
+		crc.update(inBytes, offset, size);
 		int remaining = size;
 		while(remaining > 0) {
 			int writed = buffer.write(inBytes, offset, remaining);
@@ -117,6 +141,7 @@ public class DiskWriter implements Closeable {
 				buffer.flush();
 			}
 		}
+		
 		writeLength += size;
 		timeoutWheel.update(this);
 	}

@@ -11,7 +11,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HttpHandlerChannelInitializer extends ChannelInitializer<SocketChannel> {
+public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 	private List<NettyHttpContextHandler> contextHandlers = new ArrayList<NettyHttpContextHandler>();
 
 	public void addContextHandler(NettyHttpContextHandler handler) {

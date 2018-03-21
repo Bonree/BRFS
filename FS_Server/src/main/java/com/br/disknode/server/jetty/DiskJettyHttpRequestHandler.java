@@ -19,11 +19,11 @@ import org.slf4j.LoggerFactory;
 import com.br.disknode.server.handler.DiskMessage;
 import com.br.disknode.server.handler.HandleResult;
 import com.br.disknode.server.handler.HandleResultCallback;
-import com.br.disknode.server.handler.MessageHandler;
+import com.br.disknode.server.netty.MessageHandler;
 import com.br.disknode.utils.InputUtils;
 
-public class JettyHttpRequestHandler extends AbstractHandler {
-	private static final Logger LOG = LoggerFactory.getLogger(JettyHttpRequestHandler.class);
+public class DiskJettyHttpRequestHandler extends AbstractHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(DiskJettyHttpRequestHandler.class);
 	
 	private Map<String, MessageHandler> methodToOps = new HashMap<String, MessageHandler>();
 	
@@ -47,12 +47,6 @@ public class JettyHttpRequestHandler extends AbstractHandler {
 		DiskMessage message = new DiskMessage();
 		message.setFilePath(target);
 		
-		Map<String, String> params = new HashMap<String, String>();
-		for(String paramName : request.getParameterMap().keySet()) {
-			params.put(paramName, request.getParameter(paramName));
-		}
-		message.setParams(params);
-		
 		int contentLength = request.getContentLength();
 		System.out.println("content length############" + contentLength);
 		byte[] data = new byte[Math.max(contentLength, 0)];
@@ -62,6 +56,13 @@ public class JettyHttpRequestHandler extends AbstractHandler {
 			System.out.println(new String(data));
 		}
 		message.setData(data);
+		
+		Map<String, String> params = new HashMap<String, String>();
+		for(String paramName : request.getParameterMap().keySet()) {
+			params.put(paramName, request.getParameter(paramName));
+			System.out.println(paramName + "---" + request.getParameter(paramName));
+		}
+		message.setParams(params);
 		
 		baseRequest.setHandled(true);
 		

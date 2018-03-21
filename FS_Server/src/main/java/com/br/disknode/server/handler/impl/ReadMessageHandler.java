@@ -6,9 +6,9 @@ import com.br.disknode.DiskReader;
 import com.br.disknode.server.handler.DiskMessage;
 import com.br.disknode.server.handler.HandleResult;
 import com.br.disknode.server.handler.HandleResultCallback;
-import com.br.disknode.server.handler.MessageHandler;
+import com.br.disknode.server.netty.MessageHandler;
 
-public class ReadMessageHandler implements MessageHandler {
+public class ReadMessageHandler implements MessageHandler<DiskMessage> {
 	public static final String PARAM_READ_OFFSET = "read_offset";
 	public static final String PARAM_READ_LENGTH = "read_length";
 

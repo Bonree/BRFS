@@ -7,9 +7,9 @@ import com.br.disknode.DiskWriterManager;
 import com.br.disknode.server.handler.DiskMessage;
 import com.br.disknode.server.handler.HandleResult;
 import com.br.disknode.server.handler.HandleResultCallback;
-import com.br.disknode.server.handler.MessageHandler;
+import com.br.disknode.server.netty.MessageHandler;
 
-public class DeleteMessageHandler implements MessageHandler {
+public class DeleteMessageHandler implements MessageHandler<DiskMessage> {
 	private DiskWriterManager nodeManager;
 	
 	public DeleteMessageHandler(DiskWriterManager nodeManager) {

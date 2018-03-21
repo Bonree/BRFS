@@ -16,11 +16,11 @@ public class Test {
 			port = Integer.parseInt(args[0]);
 		}
 		
-		NettyDiskNodeHttpServer s = new NettyDiskNodeHttpServer(port);
+		NettyHttpServer s = new NettyHttpServer(port);
 		
 		DiskWriterManager nodeManager = new DiskWriterManager();
 		nodeManager.start();
-		DiskHttpRequestHandler diskHttpRequestHandler = new DiskHttpRequestHandler();
+		DiskNettyHttpRequestHandler diskHttpRequestHandler = new DiskNettyHttpRequestHandler();
 		diskHttpRequestHandler.put(DiskOperation.OP_OPEN, new OpenMessageHandler(nodeManager));
 		diskHttpRequestHandler.put(DiskOperation.OP_WRITE, new WriteMessageHandler(nodeManager));
 		diskHttpRequestHandler.put(DiskOperation.OP_READ, new ReadMessageHandler());
@@ -29,6 +29,5 @@ public class Test {
 		s.addContextHandler(new NettyHttpContextHandler("/disk", diskHttpRequestHandler));
 		
 		s.start();
-		System.out.println("####################SERVER STARTED#####################");
 	}
 }

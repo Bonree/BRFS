@@ -11,7 +11,7 @@ import java.net.InetSocketAddress;
 
 import com.br.disknode.utils.LifeCycle;
 
-public class NettyDiskNodeHttpServer implements LifeCycle {
+public class NettyHttpServer implements LifeCycle {
 	private int conTimeout = 50000;//连接超时时间(毫秒)
 	private int baklog = 10000;//积压请求数
 	
@@ -19,19 +19,19 @@ public class NettyDiskNodeHttpServer implements LifeCycle {
 	private int port;
 	private ChannelFuture channelFuture;
 	
-	private HttpHandlerChannelInitializer handlerInitializer;
+	private NettyChannelInitializer handlerInitializer;
 	
 	private EventLoopGroup bossGroup = new NioEventLoopGroup(2);
 	private EventLoopGroup workerGroup = new NioEventLoopGroup(6);
 	
-	public NettyDiskNodeHttpServer(int port) {
+	public NettyHttpServer(int port) {
 		this(null, port);
 	}
 	
-	public NettyDiskNodeHttpServer(String ip, int port) {
+	public NettyHttpServer(String ip, int port) {
 		this.ip = ip;
 		this.port = port;
-		this.handlerInitializer = new HttpHandlerChannelInitializer();
+		this.handlerInitializer = new NettyChannelInitializer();
 	}
 	
 	@Override

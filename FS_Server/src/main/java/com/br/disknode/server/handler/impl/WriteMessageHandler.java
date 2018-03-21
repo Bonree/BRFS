@@ -3,17 +3,17 @@ package com.br.disknode.server.handler.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.disknode.DiskWriterManager;
 import com.br.disknode.InputEventCallback;
 import com.br.disknode.InputResult;
 import com.br.disknode.server.handler.DiskMessage;
 import com.br.disknode.server.handler.HandleResult;
 import com.br.disknode.server.handler.HandleResultCallback;
-import com.br.disknode.server.handler.MessageHandler;
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Ints;
+import com.br.disknode.server.netty.MessageHandler;
+import com.br.disknode.utils.StringUtils;
 
-public class WriteMessageHandler implements MessageHandler {
+public class WriteMessageHandler implements MessageHandler<DiskMessage> {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteMessageHandler.class);
 	
 	private DiskWriterManager nodeManager;
@@ -41,8 +41,11 @@ public class WriteMessageHandler implements MessageHandler {
 				@Override
 				public void complete(InputResult result) {
 					handleResult.setSuccess(true);
-					handleResult.setData(Bytes.concat(Ints.toByteArray(result.getOffset()),
-							Ints.toByteArray(result.getSize())));
+					
+					JSONObject json = new JSONObject();
+					json.put("offset", result.getOffset());
+					json.put("size", result.getSize());
+					handleResult.setData(StringUtils.toUtf8Bytes(json.toJSONString()));
 					
 					callback.completed(handleResult);
 				}
