@@ -12,4 +12,10 @@ import com.alibaba.fastjson.JSONObject;
  */
 public abstract class AbstractResourceModel {
 	public abstract JSONObject toJSONObject();
+	public String toString(){
+		return toJSONObject().toString();
+	}
+	public String toJSONString(){
+		return toJSONObject().toJSONString();
+	}
 }

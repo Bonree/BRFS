@@ -57,12 +57,6 @@ public class PatitionStatModel extends AbstractResourceModel{
     	obj.put(PatitionEnum.READ_DATA_SIZE.name(), this.readDataSize);
     	return obj;
     }
-    public String toString(){
-    	return toJSONObject().toString();
-    }
-    public String toJSONString(){
-    	return toJSONObject().toJSONString();
-    }
 
     public PatitionStatModel() {
     }

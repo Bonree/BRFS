@@ -34,12 +34,7 @@ public class MemoryStatModel extends AbstractResourceModel{
     	obj.put(MemoryEnum.MEMORY_RATE.name(), this.memoryRemainRate);
     	return obj;
     }
-    public String toString(){
-    	return toJSONObject().toString();
-    }
-    public String toJSONString(){
-    	return toJSONObject().toJSONString();
-    }
+
 	public double getMemoryRate() {
 		return memoryRate;
 	}

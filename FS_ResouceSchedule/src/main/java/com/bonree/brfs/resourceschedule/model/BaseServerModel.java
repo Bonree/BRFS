@@ -39,8 +39,15 @@ public class BaseServerModel extends AbstractResourceModel{
      * 文件系统信息 key：挂载点，value：文件系统信息
      */
     private Map<String, BasePatitionModel> patitionInfoMap = new ConcurrentHashMap<String, BasePatitionModel>();
-    
+    /**
+     * SN与文件系统的映射关系 key：SN名称
+     */
     private Map<String,String> snToDiskMap = new ConcurrentHashMap<String, String>();
+    /**
+     * SN及其空间大小
+     */
+    private Map<String,Long> snSizeMap = new ConcurrentHashMap<String,Long>();
+    
     public BaseServerModel(int serverId, int cpuCoreCount, int memorySize) {
         this.serverId = serverId;
         this.cpuCoreCount = cpuCoreCount;
@@ -76,13 +83,6 @@ public class BaseServerModel extends AbstractResourceModel{
     	obj.put(MemoryEnum.MEMORY_SIZE.name(), this.memorySize);
     	return obj;
     }
-    public String toString(){
-    	return toJSONObject().toString();
-    }
-    public String toJSONString(){
-    	return toJSONObject().toJSONString();
-    }
-
     public int getCpuCoreCount() {
         return cpuCoreCount;
     }
@@ -120,4 +120,20 @@ public class BaseServerModel extends AbstractResourceModel{
     public void putPatitionInfo(String mountePoint, BasePatitionModel patitionInfo){
         this.patitionInfoMap.put(mountePoint, patitionInfo);
     }
+
+	public Map<String, String> getSnToDiskMap() {
+		return snToDiskMap;
+	}
+
+	public void setSnToDiskMap(Map<String, String> snToDiskMap) {
+		this.snToDiskMap = snToDiskMap;
+	}
+
+	public Map<String, Long> getSnSizeMap() {
+		return snSizeMap;
+	}
+
+	public void setSnSizeMap(Map<String, Long> snSizMap) {
+		this.snSizeMap = snSizMap;
+	}
 }

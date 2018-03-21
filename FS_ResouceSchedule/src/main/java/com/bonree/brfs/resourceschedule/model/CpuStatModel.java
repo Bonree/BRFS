@@ -37,13 +37,7 @@ public class CpuStatModel extends AbstractResourceModel{
     	obj.put(CpuEnum.CPU_REMAIN_RATE.name(), this.cpuRemainRate);
     	return obj;
     }
-    public String toString(){
-    	return toJSONObject().toString();
-    }
-    public String toJSONString(){
-    	return toJSONObject().toJSONString();
-    }
-
+   
     public double getCpuRate() {
         return cpuRate;
     }

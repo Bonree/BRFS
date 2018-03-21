@@ -4,7 +4,7 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import com.bonree.brfs.resourceschedule.config.ResConfig;
+import com.bonree.brfs.resourceschedule.commons.Cache;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -18,7 +18,6 @@ public class CalcResourceJob implements Job {
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		
 		
 	}
 
