@@ -54,12 +54,6 @@ public class ServerModel extends AbstractResourceModel{
 
     	return obj;
     }
-    public String toString(){
-    	return toJSONObject().toString();
-    }
-    public String toJSONString(){
-    	return toJSONObject().toJSONString();
-    }
 
     public void setBaseServerInfo(BaseServerModel baseServerInfo) {
         this.baseServerInfo = baseServerInfo;

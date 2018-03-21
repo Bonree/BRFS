@@ -1,5 +1,8 @@
 package com.bonree.brfs.resourceschedule.model;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.alibaba.fastjson.JSONObject;
 import com.bonree.brfs.resourceschedule.model.enums.SceneEnum;
 import com.bonree.brfs.resourceschedule.model.enums.ServerCommonEnum;
@@ -14,27 +17,42 @@ import com.bonree.brfs.resourceschedule.model.enums.ServerCommonEnum;
  */
 public class ResourceModel extends AbstractResourceModel{
 	private int serverId;
-	private double clientWriteRequest;
-	private double clientReadRequest;
+	/**
+	 * 元数据操作指标
+	 */
 	private double clientMetaRequest;
+	/**
+	 * sn读取请求
+	 */
+	private Map<String, Double> clientSNReadMap = new ConcurrentHashMap();
+	/**
+	 * sn写入请求
+	 */
+	private Map<String, Double> clientSNWriteMap = new ConcurrentHashMap();
 	
 	@Override
 	public JSONObject toJSONObject() {
 		// TODO Auto-generated method stub
 		JSONObject obj = new JSONObject();
 		obj.put(ServerCommonEnum.SERVER_ID.name(), this.serverId);
-		obj.put(SceneEnum.CLIENT_WRITE_REQUEST.name(), this.clientWriteRequest);
-		obj.put(SceneEnum.CLIENT_READ_REQUEST.name(), this.clientReadRequest);
+		JSONObject readObj = new JSONObject();
+		if(this.clientSNReadMap != null){
+			for(Map.Entry<String, Double> entry : this.clientSNReadMap.entrySet()){
+				readObj.put(entry.getKey(), entry.getValue());
+			}
+		}
+		obj.put(SceneEnum.CLIENT_READ_REQUEST.name(), readObj);
+		JSONObject writeObj = new JSONObject();
+		if(this.clientSNWriteMap != null){
+			for(Map.Entry<String, Double> entry : this.clientSNWriteMap.entrySet()){
+				writeObj.put(entry.getKey(), entry.getValue());
+			}
+		}
+		obj.put(SceneEnum.CLIENT_WRITE_REQUEST.name(), writeObj);
 		obj.put(SceneEnum.CLIENT_META_REQUEST.name(), this.clientMetaRequest);
 		return obj;
 	}
-	public String toString(){
-		return toJSONObject().toString();
-	}
-	public String toJSONString(){
-		return toJSONObject().toJSONString();
-	}
-
+	
 	public int getServerId() {
 		return serverId;
 	}
@@ -43,28 +61,28 @@ public class ResourceModel extends AbstractResourceModel{
 		this.serverId = serverId;
 	}
 
-	public double getClientWriteRequest() {
-		return clientWriteRequest;
-	}
-
-	public void setClientWriteRequest(double clientWriteRequest) {
-		this.clientWriteRequest = clientWriteRequest;
-	}
-
-	public double getClientReadRequest() {
-		return clientReadRequest;
-	}
-
-	public void setClientReadRequest(double clientReadRequest) {
-		this.clientReadRequest = clientReadRequest;
-	}
-
 	public double getClientMetaRequest() {
 		return clientMetaRequest;
 	}
 
 	public void setClientMetaRequest(double clientMetaRequest) {
 		this.clientMetaRequest = clientMetaRequest;
+	}
+
+	public Map<String, Double> getClientSNReadMap() {
+		return clientSNReadMap;
+	}
+
+	public void setClientSNReadMap(Map<String, Double> clientSNReadMap) {
+		this.clientSNReadMap = clientSNReadMap;
+	}
+
+	public Map<String, Double> getClientSNWriteMap() {
+		return clientSNWriteMap;
+	}
+
+	public void setClientSNWriteMap(Map<String, Double> clientSNWriteMap) {
+		this.clientSNWriteMap = clientSNWriteMap;
 	}
 	
 }

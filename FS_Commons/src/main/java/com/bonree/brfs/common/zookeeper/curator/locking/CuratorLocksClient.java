@@ -12,17 +12,17 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
  * 
  * @date 2018年3月12日 下午6:39:42
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
- * @Description: 
+ * @Description: 封装的curator lock类
  ******************************************************************************/
-public class CuratorLocksClient {
+public class CuratorLocksClient<T> {
 
-    private Executor instance;
+    private Executor<T> instance;
     private final InterProcessMutex lock;
     private final String lockName;
     private final String lockPath;
     private final CuratorClient client;
 
-    public CuratorLocksClient(CuratorClient client, String lockPath, Executor executor, String lockName) {
+    public CuratorLocksClient(CuratorClient client, String lockPath, Executor<T> executor, String lockName) {
         this.instance = executor;
         this.lockName = lockName;
         this.client = client;
@@ -30,29 +30,38 @@ public class CuratorLocksClient {
         lock = new InterProcessMutex(client.getInnerClient(), lockPath);
     }
 
-    public void doWork(long time, TimeUnit unit) throws Exception {
+    /** 概述：
+     * @param time
+     * @param unit
+     * @throws Exception
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public T execute(long time, TimeUnit unit) throws Exception {
         if (!lock.acquire(time, unit)) {
             throw new IllegalStateException(lockName + " could not acquire the lock");
         }
         try {
-            System.out.println(client.getChildren(lockPath));
-            instance.execute(client);
+            return instance.execute(client);
         } finally {
-            lock.release(); // always release the lock in a finally block
+            lock.release();
         }
     }
 
-    public void doWork() throws Exception {
+    public T execute() throws Exception {
         lock.acquire();
         try {
-            instance.execute(client);
+            return instance.execute(client);
         } finally {
-            lock.release(); // always release the lock in a finally block
+            lock.release();
         }
     }
 
     public String getLockName() {
         return lockName;
+    }
+
+    public String getLockPath() {
+        return lockPath;
     }
 
 }

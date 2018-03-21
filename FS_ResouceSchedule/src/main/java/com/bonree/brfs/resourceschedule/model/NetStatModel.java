@@ -41,13 +41,7 @@ public class NetStatModel extends AbstractResourceModel{
     	obj.put(NetEnum.T_DATA_SIZE.name(), this.tDataSize);
     	return obj;
     }
-    public String toString(){
-    	return toJSONObject().toString();
-    }
-    public String toJSONString(){
-    	return toJSONObject().toJSONString();
-    }
-
+    
     public String getIpAddress() {
         return ipAddress;
     }

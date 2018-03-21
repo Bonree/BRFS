@@ -70,13 +70,7 @@ public class BasePatitionModel extends AbstractResourceModel{
     	obj.put(PatitionEnum.MAX_READ_SPEED.name(), this.maxReadSpeed);
     	return obj;
     }
-    public String toString(){
-    	return toJSONObject().toString();
-    }
-    public String toJSONString(){
-    	return toJSONObject().toJSONString();
-    }
-
+   
     public void setMountedPoint(String mountedPoint) {
         this.mountedPoint = mountedPoint;
     }

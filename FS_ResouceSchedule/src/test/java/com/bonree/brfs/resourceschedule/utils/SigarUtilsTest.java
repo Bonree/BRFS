@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.bonree.brfs.resourceschedule.commons.Constant;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.utils.SigarUtils;
 
@@ -43,16 +44,16 @@ public class SigarUtilsTest {
 			String path = ClassLoader.getSystemResource(".").getPath();
 			String tmpPath = path.substring(0, path.lastIndexOf("FS_ResouceSchedule"));
 			long startTime = System.currentTimeMillis();
-			SigarUtils.instance.gatherBasePatitionInfos(tmpPath, 1000L, 1000L);
+			SigarUtils.instance.gatherBasePatitionInfos(Constant.cache);
 			long stopTime1 = System.currentTimeMillis();
-			SigarUtils.instance.gatherBaseNetInfos(1000L, 1000L);
+			SigarUtils.instance.gatherBaseNetInfos(Constant.cache);
 			SigarUtils.instance.gatherMemSize();
 			SigarUtils.instance.gatherCpuCoreCount();
 			long stopTime2 = System.currentTimeMillis();
 			SigarUtils.instance.gatherCpuStatInfo();
 			SigarUtils.instance.gatherMemoryStatInfo();
 			SigarUtils.instance.gatherNetStatInfos();
-			SigarUtils.instance.gatherPatitionStatInfos(tmpPath);
+			SigarUtils.instance.gatherPatitionStatInfos(Constant.cache);
 			long stopTime3 = System.currentTimeMillis();
 			
 			System.out.println("gather conf Time :" + (stopTime1 - startTime) + "ms");
@@ -60,9 +61,9 @@ public class SigarUtilsTest {
 			System.out.println("gather stat Time :" + (stopTime3 - stopTime2) + "ms");
 			System.out.println("gather gath Time :" + (stopTime3 - stopTime1) + "ms");
 			long stopTime4 = System.currentTimeMillis();
-			SigarUtils.instance.gatherPatitionStatInfos2("E:/");
+			SigarUtils.instance.gatherPatitionStatInfos2(Constant.cache);
 			long stopTime5 = System.currentTimeMillis();
-			SigarUtils.instance.gatherPatitionStatInfos("E:/");
+			SigarUtils.instance.gatherPatitionStatInfos(Constant.cache);
 			long stopTime6 = System.currentTimeMillis();
 			System.out.println("gather pat2 Time :" + (stopTime5 - stopTime4) + "ms");
 			System.out.println("gather pat Time :" + (stopTime6 - stopTime5) + "ms");

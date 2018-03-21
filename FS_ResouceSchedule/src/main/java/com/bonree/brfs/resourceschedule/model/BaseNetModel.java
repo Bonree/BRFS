@@ -59,12 +59,7 @@ public class BaseNetModel extends AbstractResourceModel {
     	obj.put(NetEnum.MAX_T_SPEED.name(), this.maxTSpeed);
     	return obj;
     }
-    public String toString(){
-    	return toJSONObject().toString();
-    }
-    public String toJSONString(){
-    	return toJSONObject().toJSONString();
-    }
+    
     public String getDevName() {
         return devName;
     }

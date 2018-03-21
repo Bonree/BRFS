@@ -1,4 +1,4 @@
-package com.bonree.brfs.resourceschedule.config;
+package com.bonree.brfs.resourceschedule.commons;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,18 +14,7 @@ import com.bonree.brfs.resourceschedule.model.ServerModel;
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @Description: 
  *****************************************************************************/
-public class ResConfig {
-	/**
-	 * 服务器状态
-	 */
-	public static ServerModel SERVER_INFO;
-	/**
-	 * 服务器基础信息
-	 */
-	public static List<BaseServerModel> BASE_CLUSTER_INFO = new ArrayList<BaseServerModel>(); 
-	/**
-	 * 资源信息
-	 */
+public class Cache {
 	/**
 	 * 网卡最大发送速度 单位byte（按10000Mbit/s网卡计算）
 	 */
@@ -43,11 +32,27 @@ public class ResConfig {
 	 */
 	public static long DISK_MAX_READ_SPEED = 616448000L;
 	/**
+	 * 数据缓存
+	 */
+	/**
+	 * 服务器状态
+	 */
+	public ServerModel SERVER_INFO;
+	/**
+	 * 服务器基础信息
+	 */
+	public List<BaseServerModel> BASE_CLUSTER_INFO = new ArrayList<BaseServerModel>(); 
+	
+	/**
 	 * 服务数据目录
 	 */
-	public static String DATA_DIRECTORY = "/data/brfs/data";
+	public String DATA_DIRECTORY = "C:/";
 	/**
 	 * 服务标识
 	 */
-	public static int SERVER_ID = 0;
+	public int SERVER_ID = 0;
+	/**
+	 * sn信息队列
+	 */
+	public List<String> snList = new ArrayList<String>();
 }
