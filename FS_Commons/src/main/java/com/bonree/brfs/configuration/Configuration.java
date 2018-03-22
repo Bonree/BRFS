@@ -11,6 +11,11 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
+
 import com.bonree.brfs.common.utils.VerifyingFileFactory;
 
 
@@ -88,6 +93,21 @@ public class Configuration {
 
     private String configFilePath = null;
 
+    static {
+        // 加载 logback配置信息
+        try {
+            LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+            JoranConfigurator configurator = new JoranConfigurator();
+            configurator.setContext(lc);
+            lc.reset();
+            configurator.doConfigure(Configuration.class.getResourceAsStream("/logback.xml"));
+            StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
+        } catch (JoranException e) {
+            e.printStackTrace();
+            System.exit(0);
+        }
+    }
+    
     private volatile static Configuration configuration = null;
 
     private Map<String, String> configMap = new HashMap<String, String>();
