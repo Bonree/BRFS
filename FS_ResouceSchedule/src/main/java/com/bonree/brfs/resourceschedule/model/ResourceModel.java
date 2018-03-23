@@ -24,11 +24,15 @@ public class ResourceModel extends AbstractResourceModel{
 	/**
 	 * sn读取请求
 	 */
-	private Map<String, Double> clientSNReadMap = new ConcurrentHashMap();
+	private Map<String, Double> clientSNReadMap = new ConcurrentHashMap<String, Double>();
 	/**
 	 * sn写入请求
 	 */
-	private Map<String, Double> clientSNWriteMap = new ConcurrentHashMap();
+	private Map<String, Double> clientSNWriteMap = new ConcurrentHashMap<String, Double>();
+	/**
+	 * sn 剩余空间率，针对单个机器
+	 */
+	private Map<String, Double> snRemainRate = new ConcurrentHashMap<String, Double>();
 	
 	@Override
 	public JSONObject toJSONObject() {
@@ -51,6 +55,18 @@ public class ResourceModel extends AbstractResourceModel{
 		obj.put(SceneEnum.CLIENT_WRITE_REQUEST.name(), writeObj);
 		obj.put(SceneEnum.CLIENT_META_REQUEST.name(), this.clientMetaRequest);
 		return obj;
+	}
+	
+	public void putClientSNRead(String sn, double value){
+		this.clientSNReadMap.put(sn, value);
+	}
+	
+	public void putClientSNWrite(String sn, double value){
+		this.clientSNWriteMap.put(sn, value);
+	}
+	
+	public void putSnRemainRate(String sn, double value){
+		this.snRemainRate.put(sn, value);
 	}
 	
 	public int getServerId() {
@@ -83,6 +99,12 @@ public class ResourceModel extends AbstractResourceModel{
 
 	public void setClientSNWriteMap(Map<String, Double> clientSNWriteMap) {
 		this.clientSNWriteMap = clientSNWriteMap;
+	}
+	public Map<String, Double> getSnRemainRate() {
+		return snRemainRate;
+	}
+	public void setSnRemainRate(Map<String, Double> snRemainRate) {
+		this.snRemainRate = snRemainRate;
 	}
 	
 }
