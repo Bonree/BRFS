@@ -9,7 +9,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.rebalance.task.model.TaskSummaryModel;
 import com.bonree.brfs.server.model.StorageModel;
 
-public class ServersMonitor {
+public class TaskMonitor {
 
     private String basePath = "/brfs/wz/rebalance/serverchange";
 
