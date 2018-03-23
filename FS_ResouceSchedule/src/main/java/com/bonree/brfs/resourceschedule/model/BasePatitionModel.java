@@ -1,6 +1,7 @@
 package com.bonree.brfs.resourceschedule.model;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bonree.brfs.resourceschedule.commons.ModelCalcInterface;
 import com.bonree.brfs.resourceschedule.model.enums.PatitionEnum;
 
 /*******************************************************************************
@@ -12,7 +13,7 @@ import com.bonree.brfs.resourceschedule.model.enums.PatitionEnum;
  * Description: 
  * Version: 文件系统基本信息
  ******************************************************************************/
-public class BasePatitionModel extends AbstractResourceModel{
+public class BasePatitionModel extends AbstractResourceModel implements ModelCalcInterface<BasePatitionModel>{
     /**
      * 文件系统挂载点
      */
@@ -114,4 +115,20 @@ public class BasePatitionModel extends AbstractResourceModel{
     public void setMaxReadSpeed(long maxReadSpeed) {
         this.maxReadSpeed = maxReadSpeed;
     }
+
+	@Override
+	public BasePatitionModel calc(BasePatitionModel t1) {
+		return sum(t1);
+	}
+
+	@Override
+	public BasePatitionModel sum(BasePatitionModel t1) {
+		BasePatitionModel obj = new BasePatitionModel();
+		if(t1 == null){
+			obj.setPatitionSize(this.patitionSize);
+		}else{
+			obj.setPatitionSize(this.patitionSize + t1.getPatitionSize());
+		}
+		return obj;
+	}
 }

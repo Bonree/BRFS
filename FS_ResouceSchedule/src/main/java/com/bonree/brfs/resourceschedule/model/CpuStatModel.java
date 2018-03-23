@@ -3,6 +3,7 @@ package com.bonree.brfs.resourceschedule.model;
 import java.util.Map;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bonree.brfs.resourceschedule.commons.ModelCalcInterface;
 import com.bonree.brfs.resourceschedule.model.enums.CpuEnum;
 
 /*******************************************************************************
@@ -14,7 +15,7 @@ import com.bonree.brfs.resourceschedule.model.enums.CpuEnum;
  * Description: 
  * Version: 
  ******************************************************************************/
-public class CpuStatModel extends AbstractResourceModel{
+public class CpuStatModel extends AbstractResourceModel implements ModelCalcInterface<CpuStatModel>{
     /**
      * cpu使用率
      */
@@ -23,6 +24,10 @@ public class CpuStatModel extends AbstractResourceModel{
      * cpu未使用率
      */
     private double cpuRemainRate;
+    /**
+     * 合并次数
+     */
+    private int count = 1;
 
     public CpuStatModel(double cpuRate, double cpuRemainRate) {
         this.cpuRate = cpuRate;
@@ -53,4 +58,33 @@ public class CpuStatModel extends AbstractResourceModel{
     public void setCpuRemainRate(double cpuRemainRate) {
         this.cpuRemainRate = cpuRemainRate;
     }
+
+	@Override
+	public CpuStatModel calc(CpuStatModel t1) {
+		return sum(t1);
+	}
+
+	@Override
+	public CpuStatModel sum(CpuStatModel t1) {
+		CpuStatModel obj = new CpuStatModel();
+		if(t1 == null){
+			obj.setCpuRate(this.cpuRate);
+			obj.setCpuRemainRate(this.cpuRemainRate);
+			obj.setCount(this.count);
+		}else{
+			obj.setCpuRate(obj.getCpuRate() + t1.getCpuRate());
+			obj.setCpuRemainRate(obj.getCpuRemainRate() + t1.getCpuRemainRate());
+			obj.setCount(this.count + 1);
+		}
+		return obj;
+	}
+
+	public int getCount() {
+		return count;
+	}
+
+	public void setCount(int count) {
+		this.count = count;
+	}
+	
 }

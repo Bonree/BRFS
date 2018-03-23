@@ -44,9 +44,9 @@ public class BaseServerModel extends AbstractResourceModel{
      */
     private Map<String,String> snToDiskMap = new ConcurrentHashMap<String, String>();
     /**
-     * SN及其空间大小
+     * 总分区大小
      */
-    private Map<String,Long> snSizeMap = new ConcurrentHashMap<String,Long>();
+    private long totalPatitionSize;
     
     public BaseServerModel(int serverId, int cpuCoreCount, int memorySize) {
         this.serverId = serverId;
@@ -129,11 +129,12 @@ public class BaseServerModel extends AbstractResourceModel{
 		this.snToDiskMap = snToDiskMap;
 	}
 
-	public Map<String, Long> getSnSizeMap() {
-		return snSizeMap;
+	public long getTotalPatitionSize() {
+		return totalPatitionSize;
 	}
 
-	public void setSnSizeMap(Map<String, Long> snSizMap) {
-		this.snSizeMap = snSizMap;
+	public void setTotalPatitionSize(long totalPatitionSize) {
+		this.totalPatitionSize = totalPatitionSize;
 	}
+	
 }

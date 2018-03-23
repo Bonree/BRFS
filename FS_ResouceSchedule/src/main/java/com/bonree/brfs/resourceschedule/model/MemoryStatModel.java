@@ -1,6 +1,7 @@
 package com.bonree.brfs.resourceschedule.model;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bonree.brfs.resourceschedule.commons.ModelCalcInterface;
 import com.bonree.brfs.resourceschedule.model.enums.MemoryEnum;
 
 /*******************************************************************************
@@ -12,7 +13,7 @@ import com.bonree.brfs.resourceschedule.model.enums.MemoryEnum;
  * Description: 
  * Version: 内存状态信息
  ******************************************************************************/
-public class MemoryStatModel extends AbstractResourceModel{
+public class MemoryStatModel extends AbstractResourceModel implements ModelCalcInterface<MemoryStatModel>{
     /**
      * 内存使用率
      */
@@ -21,6 +22,10 @@ public class MemoryStatModel extends AbstractResourceModel{
      * 内存剩余使用率
      */
     private double memoryRemainRate;
+    /**
+     * 合并次数
+     */
+    private int count = 1;
 	public MemoryStatModel(double memoryRate, double memoryRemainRate) {
 		super();
 		this.memoryRate = memoryRate;
@@ -47,7 +52,29 @@ public class MemoryStatModel extends AbstractResourceModel{
 	public void setMemoryRemainRate(double memoryRemainRate) {
 		this.memoryRemainRate = memoryRemainRate;
 	}
-	
-    
-    
+	@Override
+	public MemoryStatModel calc(MemoryStatModel t1) {
+		return sum(t1);
+	}
+	@Override
+	public MemoryStatModel sum(MemoryStatModel t1) {
+		MemoryStatModel obj = new MemoryStatModel();
+		if(t1 == null){
+			obj.setMemoryRate(this.memoryRate);
+			obj.setMemoryRemainRate(this.memoryRemainRate);
+			obj.setCount(this.count);
+		}else{
+			obj.setMemoryRate(this.memoryRate + t1.getMemoryRate());
+			obj.setMemoryRemainRate(this.memoryRemainRate + t1.getMemoryRemainRate());
+			obj.setCount(this.count + t1.getCount());
+		}
+		return obj;
+	}
+	public int getCount() {
+		return count;
+	}
+	public void setCount(int count) {
+		this.count = count;
+	}
+	    
 }
