@@ -7,5 +7,8 @@ public enum NetEnum {
 	MAX_T_SPEED,
 	MAX_R_SPEED,
 	T_DATA_SIZE,
-	R_DATA_SIZE
+	R_DATA_SIZE,
+	T_SPEED,
+	R_SPEED,
+	SUM_COUNT
 }
