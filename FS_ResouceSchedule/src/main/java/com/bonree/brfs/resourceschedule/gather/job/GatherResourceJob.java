@@ -9,7 +9,7 @@ import org.quartz.JobExecutionException;
 
 import com.bonree.brfs.resourceschedule.commons.Cache;
 import com.bonree.brfs.resourceschedule.commons.Constant;
-import com.bonree.brfs.resourceschedule.commons.GatherResource;
+import com.bonree.brfs.resourceschedule.commons.impl.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseNetModel;
 import com.bonree.brfs.resourceschedule.model.BasePatitionModel;
 import com.bonree.brfs.resourceschedule.model.BaseServerModel;
@@ -30,7 +30,6 @@ public class GatherResourceJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		// TODO Auto-generated method stub
-		ServerStatModel stat = GatherResource.gatherServerStatInfo(Constant.cache);
-		Constant.cache.SERVER_INFO.addServerStat(stat);
+		GatherResource.gatherServerStatInfo(Constant.cache);
 	}
 }

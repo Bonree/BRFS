@@ -6,7 +6,7 @@ import org.quartz.JobExecutionException;
 
 import com.bonree.brfs.resourceschedule.commons.Cache;
 import com.bonree.brfs.resourceschedule.commons.Constant;
-import com.bonree.brfs.resourceschedule.commons.GatherResource;
+import com.bonree.brfs.resourceschedule.commons.impl.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseServerModel;
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -21,8 +21,7 @@ public class GatherBaseResourceInfoJob implements Job{
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		// TODO Auto-generated method stub
-		BaseServerModel obj = GatherResource.gatherBaseServerInfo(Constant.cache);
-		Constant.cache.SERVER_INFO.setBaseServerInfo(obj);
+		GatherResource.gatherBaseServerInfo(Constant.cache);
 	}
 	
 }
