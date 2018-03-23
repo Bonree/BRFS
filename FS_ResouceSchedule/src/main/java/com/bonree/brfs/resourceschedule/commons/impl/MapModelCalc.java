@@ -85,12 +85,19 @@ public class MapModelCalc<T1,T2 extends ModelCalcInterface<T2>> implements Commo
 
 	@Override
 	public T2 sumList(List<T2> collect) {
-		T2 sumObj = null;
 		if(collect == null || collect.isEmpty()){
 			return null;
 		}
+		T2 sumObj = null;
 		for(T2 tmp : collect){
-			sumObj = sumObj.sum(tmp);
+			if(tmp == null){
+				continue;
+			}
+			if(sumObj == null){
+				sumObj = tmp;
+				continue;
+			}
+			sumObj = tmp.sum(sumObj);
 		}
 		return sumObj;
 	}
