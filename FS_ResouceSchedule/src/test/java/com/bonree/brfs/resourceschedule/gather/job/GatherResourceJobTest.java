@@ -19,7 +19,7 @@ public class GatherResourceJobTest {
 				return;
 			}
 			long startTime = System.currentTimeMillis();
-			System.out.println(GatherResource.gatherBaseServerInfo(Constant.cache));
+			GatherResource.gatherBaseServerInfo(Constant.cache);
 			long stopTime = System.currentTimeMillis();
 			System.out.println("gather base info time : " + (stopTime - startTime) + " ms");
 		}
@@ -36,7 +36,7 @@ public class GatherResourceJobTest {
 				return;
 			}
 			long startTime = System.currentTimeMillis();
-			System.out.println(GatherResource.gatherServerStatInfo(Constant.cache));
+			GatherResource.gatherServerStatInfo(Constant.cache);
 			long stopTime = System.currentTimeMillis();
 			System.out.println("gather stat info time : " + (stopTime - startTime) + " ms");
 		}
