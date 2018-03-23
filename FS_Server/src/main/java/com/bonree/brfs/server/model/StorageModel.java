@@ -10,11 +10,13 @@ package com.bonree.brfs.server.model;
  ******************************************************************************/
 public class StorageModel {
 
+    private int index;
+    
     private String storageName;
 
     private long ttl;
 
-    private String replication;
+    private int replications;
 
     private String description;
 
@@ -38,12 +40,12 @@ public class StorageModel {
         this.ttl = ttl;
     }
 
-    public String getReplication() {
-        return replication;
+    public int getReplications() {
+        return replications;
     }
 
-    public void setReplication(String replication) {
-        this.replication = replication;
+    public void setReplications(int replications) {
+        this.replications = replications;
     }
 
     public String getDescription() {
@@ -68,6 +70,14 @@ public class StorageModel {
 
     public void setTriggerRecoverTime(long triggerRecoverTime) {
         this.triggerRecoverTime = triggerRecoverTime;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 
 }

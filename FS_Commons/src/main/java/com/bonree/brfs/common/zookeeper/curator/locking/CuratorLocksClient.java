@@ -1,8 +1,11 @@
 package com.bonree.brfs.common.zookeeper.curator.locking;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.curator.framework.recipes.locks.InterProcessLock;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.jboss.netty.util.internal.ConcurrentHashMap;
 
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
@@ -17,16 +20,19 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 public class CuratorLocksClient<T> {
 
     private Executor<T> instance;
-    private final InterProcessMutex lock;
+    private final InterProcessLock lock;
     private final String lockName;
     private final String lockPath;
     private final CuratorClient client;
+    
+    private final Map<String,InterProcessLock> locksMap;
 
     public CuratorLocksClient(CuratorClient client, String lockPath, Executor<T> executor, String lockName) {
         this.instance = executor;
         this.lockName = lockName;
         this.client = client;
         this.lockPath = lockPath;
+        locksMap = new ConcurrentHashMap<>();
         lock = new InterProcessMutex(client.getInnerClient(), lockPath);
     }
 
