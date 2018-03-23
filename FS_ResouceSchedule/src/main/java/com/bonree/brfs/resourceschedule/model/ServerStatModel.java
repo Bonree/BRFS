@@ -1,6 +1,8 @@
 package com.bonree.brfs.resourceschedule.model;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.alibaba.fastjson.JSONObject;
@@ -33,9 +35,9 @@ public class ServerStatModel extends AbstractResourceModel{
      */
     private Map<String,PatitionStatModel> patitionStatInfoMap = new ConcurrentHashMap<String,PatitionStatModel>();
     /**
-     * SN与文件系统的映射关系 key：SN名称 ,value：挂载点
+     * sn对应剩余的空间大小
      */
-    private Map<String,String> snToDiskMap = new ConcurrentHashMap<String, String>();
+    private Map<String,Long> snRemainSizeMap = new ConcurrentHashMap<String, Long>();
     
     public ServerStatModel() {
     }
@@ -96,11 +98,14 @@ public class ServerStatModel extends AbstractResourceModel{
     public void putPatitionStatInfo(String mountPoint, PatitionStatModel patitionStatInfo){
         this.patitionStatInfoMap.put(mountPoint, patitionStatInfo);
     }
-	public Map<String, String> getSnToDiskMap() {
-		return snToDiskMap;
+	public Map<String, Long> getSnRemainSizeMap() {
+		return snRemainSizeMap;
 	}
-	public void setSnToDiskMap(Map<String, String> snToDiskMap) {
-		this.snToDiskMap = snToDiskMap;
+	public void setSnRemainSizeMap(Map<String, Long> snRemainSizeMap) {
+		this.snRemainSizeMap = snRemainSizeMap;
 	}
-    
+	
+	
+	
+	    
 }
