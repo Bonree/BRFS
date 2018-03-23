@@ -60,6 +60,12 @@ public class NetStatModel extends AbstractResourceModel implements ModelCalcInte
     	obj.put(NetEnum.IP_ADDRESS.name(), this.ipAddress);
     	obj.put(NetEnum.R_DATA_SIZE.name(), this.rDataSize);
     	obj.put(NetEnum.T_DATA_SIZE.name(), this.tDataSize);
+    	obj.put(NetEnum.MAX_R_SPEED.name(), this.rMaxSpeed);
+    	obj.put(NetEnum.MAX_T_SPEED.name(), this.tMaxSpeed);
+    	obj.put(NetEnum.T_SPEED.name(), this.tSpeed);
+    	obj.put(NetEnum.R_SPEED.name(), this.rSpeed);
+    	obj.put(NetEnum.SUM_COUNT.name(), this.count);
+    	
     	return obj;
     }
     
@@ -95,7 +101,7 @@ public class NetStatModel extends AbstractResourceModel implements ModelCalcInte
 		obj.settDataSize(this.tDataSize);
 		if(t1 !=null){
 			obj.settSpeed(this.tDataSize - t1.gettDataSize());
-			obj.settSpeed(this.rDataSize - t1.getrDataSize());
+			obj.setrSpeed(this.rDataSize - t1.getrDataSize());
 		}else{
 			obj.settSpeed(this.tDataSize);
 			obj.setrSpeed(this.rDataSize);
@@ -111,18 +117,20 @@ public class NetStatModel extends AbstractResourceModel implements ModelCalcInte
 		obj.setIpAddress(this.ipAddress);
 		obj.setrDataSize(this.rDataSize);
 		obj.settDataSize(this.tDataSize);
+		int count = this.count;
 		if(t1 !=null){
 			obj.settSpeed(this.tSpeed + t1.gettSpeed());
-			obj.settSpeed(this.rSpeed + t1.getrSpeed());
+			obj.setrSpeed(this.rSpeed + t1.getrSpeed());
 			obj.setrMaxSpeed(this.rMaxSpeed > t1.getrMaxSpeed() ? this.rMaxSpeed : t1.getrMaxSpeed());
 			obj.settMaxSpeed(this.tMaxSpeed > t1.gettMaxSpeed()? this.tMaxSpeed : t1.gettMaxSpeed());
-			this.count = t1.getCount() + 1;
+			count += t1.getCount();
 		}else{
 			obj.settSpeed(this.tDataSize);
 			obj.setrSpeed(this.rDataSize);
 			obj.setrMaxSpeed(this.rMaxSpeed);
 			obj.settMaxSpeed(this.tMaxSpeed);
 		}
+		obj.setCount(count);
 		return obj;
 	}
 	
