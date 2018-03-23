@@ -150,14 +150,15 @@ public class PatitionStatModel extends AbstractResourceModel implements ModelCal
 		obj.setUsedSize(this.usedSize);
 		obj.setReadDataSize(this.readDataSize);
 		obj.setWriteDataSize(this.writeDataSize);
+		count = this.count;
 		if(t1 != null){
-			obj.setCount(this.count + t1.getCount());
+			obj.setCount(count + t1.getCount());
 			obj.setReadSpeed(this.readSpeed + t1.getReadSpeed());
 			obj.setWriteSpeed(this.writeSpeed + t1.getWriteSpeed());
 			obj.setReadMaxSpeed(this.readMaxSpeed > t1.getReadMaxSpeed() ? this.readMaxSpeed : t1.getReadMaxSpeed());
 			obj.setWriteMaxSpeed(this.writeMaxSpeed > t1.getWriteMaxSpeed() ? this.writeMaxSpeed : t1.getWriteMaxSpeed());
 		}else{
-			obj.setCount(this.count);
+			obj.setCount(count);
 			obj.setReadSpeed(this.readSpeed);
 			obj.setWriteSpeed(this.writeSpeed);
 			obj.setReadMaxSpeed(this.readSpeed);
