@@ -259,7 +259,7 @@ public class GatherResource {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public ResourceModel calcResource(BaseServerModel base, ServerStatModel stat) {
+	public static ResourceModel calcResource(BaseServerModel base, ServerStatModel stat) {
 		ResourceModel obj = new ResourceModel();
 		obj.setServerId(base.getServerId());
 		
