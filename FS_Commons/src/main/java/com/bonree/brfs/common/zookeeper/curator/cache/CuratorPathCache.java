@@ -1,18 +1,13 @@
 package com.bonree.brfs.common.zookeeper.curator.cache;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.curator.framework.listen.ListenerContainer;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.google.common.base.Function;
 
 public class CuratorPathCache {
 
@@ -69,24 +64,4 @@ public class CuratorPathCache {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
-
-    public List<AbstractPathChildrenCacheListener> getAllListener(String path) {
-        final List<AbstractPathChildrenCacheListener> list;
-        PathChildrenCache cache = cacheMap.get(path);
-        if (cache != null) {
-            list = new ArrayList<AbstractPathChildrenCacheListener>();
-            ListenerContainer<PathChildrenCacheListener> listeners = cache.getListenable();
-            listeners.forEach(new Function<PathChildrenCacheListener, Void>() {
-                @Override
-                public Void apply(PathChildrenCacheListener input) {
-                    list.add((AbstractPathChildrenCacheListener) input);
-                    return null;
-                }
-            });
-            return list;
-        }
-
-        return null;
-    }
-
 }
