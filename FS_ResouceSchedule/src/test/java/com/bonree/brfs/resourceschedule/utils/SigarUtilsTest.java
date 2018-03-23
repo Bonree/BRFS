@@ -16,7 +16,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.bonree.brfs.resourceschedule.commons.Constant;
-import com.bonree.brfs.resourceschedule.commons.GatherResource;
+import com.bonree.brfs.resourceschedule.commons.impl.GatherResource;
 import com.bonree.brfs.resourceschedule.utils.SigarUtils;
 
 /*******************************************************************************

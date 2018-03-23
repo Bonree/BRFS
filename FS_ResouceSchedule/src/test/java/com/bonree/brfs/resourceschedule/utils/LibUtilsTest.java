@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import org.junit.Test;
 
-import com.bonree.brfs.resourceschedule.commons.GatherResource;
+import com.bonree.brfs.resourceschedule.commons.impl.GatherResource;
 
 public class LibUtilsTest {
 	public static boolean  initLibrary() throws Exception{

@@ -10,7 +10,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import com.bonree.brfs.resourceschedule.commons.GatherResource;
+import com.bonree.brfs.resourceschedule.commons.impl.GatherResource;
 
 public class DiskUtilsTest {
 

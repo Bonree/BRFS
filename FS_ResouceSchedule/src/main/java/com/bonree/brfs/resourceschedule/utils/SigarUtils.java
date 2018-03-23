@@ -17,7 +17,7 @@ import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
 import com.bonree.brfs.resourceschedule.commons.Cache;
-import com.bonree.brfs.resourceschedule.commons.GatherResource;
+import com.bonree.brfs.resourceschedule.commons.impl.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseNetModel;
 import com.bonree.brfs.resourceschedule.model.BasePatitionModel;
 import com.bonree.brfs.resourceschedule.model.CpuStatModel;
