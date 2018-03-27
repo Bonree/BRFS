@@ -1,6 +1,7 @@
 package com.bonree.brfs.common.zookeeper.curator;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -28,7 +29,6 @@ public class CuratorClient implements ZookeeperClient {
 
     private final CuratorFramework client;
 
-
     private volatile StateListener stateListeners = StateListener.DISCONNECTED;
 
     private final static RetryPolicy RETRY_POLICY = new RetryNTimes(1, 1000);
@@ -37,29 +37,27 @@ public class CuratorClient implements ZookeeperClient {
 
     private final static int CONNECTION_TIMEOUT_MS = 15 * 1000;
 
-    private final static boolean IS_WAIT_CONNECTION = false;
-
     public static CuratorClient getClientInstance(String zkUrl) {
-        return new CuratorClient(zkUrl, RETRY_POLICY, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS, IS_WAIT_CONNECTION);
+        return new CuratorClient(zkUrl, RETRY_POLICY, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS);
     }
 
     public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry) {
-        return new CuratorClient(zkUrl, retry, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS, IS_WAIT_CONNECTION);
+        return new CuratorClient(zkUrl, retry, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS);
     }
 
     public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs) {
-        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, CONNECTION_TIMEOUT_MS, IS_WAIT_CONNECTION);
+        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, CONNECTION_TIMEOUT_MS);
     }
 
     public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
-        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs, IS_WAIT_CONNECTION);
+        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs);
     }
 
     public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs, boolean isWaitConnection) {
-        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs, isWaitConnection);
+        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs);
     }
 
-    public CuratorClient(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs, boolean isWaitConnection) {
+    public CuratorClient(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
         try {
             CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder().connectString(zkUrl).retryPolicy(retry).connectionTimeoutMs(5000).sessionTimeoutMs(sessionTimeoutMs);
 
@@ -78,12 +76,17 @@ public class CuratorClient implements ZookeeperClient {
                 }
             });
             client.start();
-            if (isWaitConnection) {
-                client.blockUntilConnected();
-            }
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
+    }
+
+    public void blockUntilConnected() throws InterruptedException {
+        client.blockUntilConnected();
+    }
+
+    public void blockUntilConnected(int maxWaitTime, TimeUnit units) throws InterruptedException {
+        client.blockUntilConnected(maxWaitTime, units);
     }
 
     public CuratorFramework getInnerClient() {
@@ -125,7 +128,7 @@ public class CuratorClient implements ZookeeperClient {
 
     @Override
     public void close() {
-       client.close();
+        client.close();
     }
 
     @Override
@@ -142,7 +145,7 @@ public class CuratorClient implements ZookeeperClient {
     }
 
     @Override
-    public void  createEphemeral(String path, boolean isRecursion) {
+    public void createEphemeral(String path, boolean isRecursion) {
         try {
             if (isRecursion) {
                 client.create().creatingParentContainersIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);

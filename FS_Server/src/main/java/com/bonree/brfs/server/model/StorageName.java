@@ -8,10 +8,10 @@ package com.bonree.brfs.server.model;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 加载zookeeper的storage到内存中
  ******************************************************************************/
-public class StorageModel {
+public class StorageName {
 
     private int index;
-    
+
     private String storageName;
 
     private long ttl;

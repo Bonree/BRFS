@@ -7,9 +7,9 @@ import java.util.List;
 import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.rebalance.task.model.TaskSummaryModel;
-import com.bonree.brfs.server.model.StorageModel;
+import com.bonree.brfs.server.model.StorageName;
 
-public class TaskMonitor {
+public class TaskGenetor {
 
     private String basePath = "/brfs/wz/rebalance/serverchange";
 
@@ -24,9 +24,8 @@ public class TaskMonitor {
         try {
             ServerChangeType sct = ServerChangeType.ADD;
             String changeServerId = "aaaaa";
-
-            List<StorageModel> snList = getStorageCache();
-            for (StorageModel snModel : snList) {
+            List<StorageName> snList = getStorageCache();
+            for (StorageName snModel : snList) {
                 if (snModel.getReplications() > 1 && snModel.isRecover()) {
                     TaskSummaryModel tsm = new TaskSummaryModel();
                     tsm.setChangeServer(changeServerId);
@@ -41,7 +40,6 @@ public class TaskMonitor {
                         client.createPersistent(snPath, false);
                     }
                     String snTaskNode = snPath + SEPARATOR + tsm.getCreateTime();
-                    
                     client.createPersistent(snTaskNode, false,jsonStr.getBytes());
                 }
 
@@ -60,9 +58,8 @@ public class TaskMonitor {
         try {
             ServerChangeType sct = ServerChangeType.REMOVE;
             String changeServerId = "aaaaa";
-
-            List<StorageModel> snList = getStorageCache();
-            for (StorageModel snModel : snList) {
+            List<StorageName> snList = getStorageCache();
+            for (StorageName snModel : snList) {
                 if (snModel.getReplications() > 1 && snModel.isRecover()) {
                     TaskSummaryModel tsm = new TaskSummaryModel();
                     tsm.setChangeServer(changeServerId);
@@ -77,7 +74,6 @@ public class TaskMonitor {
                         client.createPersistent(snPath, false);
                     }
                     String snTaskNode = snPath + SEPARATOR + tsm.getCreateTime();
-                    
                     client.createPersistent(snTaskNode, false,jsonStr.getBytes());
                 }
 
@@ -87,8 +83,8 @@ public class TaskMonitor {
         }
     }
 
-    private List<StorageModel> getStorageCache() {
-        return new ArrayList<StorageModel>();
+    private List<StorageName> getStorageCache() {
+        return new ArrayList<StorageName>();
     }
 
     private List<String> getCurrentServers() {

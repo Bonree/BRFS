@@ -5,24 +5,39 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.server.model.ServerInfoModel;
+import com.bonree.brfs.server.model.StorageName;
 
 public class MultiRecover implements DataRecover {
 
+    private Logger LOG = LoggerFactory.getLogger(MultiRecover.class);
+
+    private StorageName storageName;
+
     private static final String NAME_SEPARATOR = "_";
 
-    public MultiRecover() {
+    public MultiRecover(StorageName storageName) {
+        this.storageName = storageName;
     }
 
     @Override
     public void recover() {
-        System.out.println("开始恢复");
-        int replicas = 0;
+        LOG.info("begin recover");
+        int replicas = storageName.getReplications();
+
+        // 获取本地ServerInfo信息
         ServerInfoModel localServer = new ServerInfoModel();
         String localMultiId = localServer.getMultiIdentification();
+
         System.out.println("处理" + localMultiId);
+        LOG.info("deal the local server:" + localMultiId);
+        //以副本数来遍历
         for (int i = 1; i <= replicas; i++) {
+            
             List<String> repliFiles = getFiles();
             for (String perFile : repliFiles) {
                 String[] metaArr = perFile.split(NAME_SEPARATOR);
