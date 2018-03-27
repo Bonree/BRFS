@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.google.common.base.Preconditions;
 
 public class CuratorTreeCache {
 
@@ -29,7 +30,7 @@ public class CuratorTreeCache {
         if (treeCache == null) {
             synchronized (CuratorTreeCache.class) {
                 if (treeCache == null) {
-                    treeCache = new CuratorTreeCache(zkUrl);
+                    treeCache = new CuratorTreeCache(Preconditions.checkNotNull(zkUrl, "zkUrl is not null!"));
                 }
             }
         }
@@ -45,7 +46,7 @@ public class CuratorTreeCache {
         }
         cache.getListenable().addListener(listener);
     }
-    
+
     public void removeListener(String path, AbstractTreeCacheListener listener) {
         LOG.info("remove listener for tree:" + path);
         TreeCache cache = cacheMap.get(path);
@@ -53,7 +54,7 @@ public class CuratorTreeCache {
             cache.getListenable().removeListener(listener);
         }
     }
-    
+
     public void startPathCache(String path) {
         TreeCache cache = cacheMap.get(path);
         try {
@@ -64,5 +65,5 @@ public class CuratorTreeCache {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
-    
+
 }
