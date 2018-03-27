@@ -1,4 +1,4 @@
-package com.br.disknode.server.netty;
+package com.bonree.brfs.disknode.server.netty;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;

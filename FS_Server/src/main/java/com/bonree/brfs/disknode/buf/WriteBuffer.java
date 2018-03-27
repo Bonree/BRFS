@@ -1,4 +1,4 @@
-package com.br.disknode.buf;
+package com.bonree.brfs.disknode.buf;
 
 import java.io.IOException;
 

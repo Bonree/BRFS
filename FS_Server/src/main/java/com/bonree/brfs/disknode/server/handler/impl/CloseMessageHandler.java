@@ -1,12 +1,12 @@
-package com.br.disknode.server.handler.impl;
+package com.bonree.brfs.disknode.server.handler.impl;
 
 import java.io.IOException;
 
-import com.br.disknode.DiskWriterManager;
-import com.br.disknode.server.handler.DiskMessage;
-import com.br.disknode.server.handler.HandleResult;
-import com.br.disknode.server.handler.HandleResultCallback;
-import com.br.disknode.server.netty.MessageHandler;
+import com.bonree.brfs.disknode.DiskWriterManager;
+import com.bonree.brfs.disknode.server.handler.DiskMessage;
+import com.bonree.brfs.disknode.server.handler.HandleResult;
+import com.bonree.brfs.disknode.server.handler.HandleResultCallback;
+import com.bonree.brfs.disknode.server.netty.MessageHandler;
 
 public class CloseMessageHandler implements MessageHandler<DiskMessage> {
 	private DiskWriterManager nodeManager;

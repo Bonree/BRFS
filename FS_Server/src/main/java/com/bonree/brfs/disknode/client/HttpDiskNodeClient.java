@@ -1,4 +1,4 @@
-package com.br.disknode.client;
+package com.bonree.brfs.disknode.client;
 
 import java.io.IOException;
 import java.net.URI;
@@ -31,8 +31,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.disknode.utils.InputUtils;
-import com.br.disknode.utils.ProtoStuffUtils;
+import com.bonree.brfs.disknode.utils.InputUtils;
+import com.bonree.brfs.disknode.utils.ProtoStuffUtils;
 import com.google.common.io.Closeables;
 
 public class HttpDiskNodeClient implements DiskNodeClient {

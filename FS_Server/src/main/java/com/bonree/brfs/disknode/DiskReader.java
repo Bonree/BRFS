@@ -1,4 +1,4 @@
-package com.br.disknode;
+package com.bonree.brfs.disknode;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,7 +6,7 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
-import com.br.disknode.utils.BufferUtils;
+import com.bonree.brfs.disknode.utils.BufferUtils;
 
 public class DiskReader {
 	private RandomAccessFile accessFile;

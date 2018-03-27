@@ -1,11 +1,11 @@
-package com.br.disknode.server.jetty;
+package com.bonree.brfs.disknode.server.jetty;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 
-import com.br.disknode.utils.LifeCycle;
+import com.bonree.brfs.disknode.utils.LifeCycle;
 
 public class JettyDiskNodeHttpServer implements LifeCycle {
 	private Server server;

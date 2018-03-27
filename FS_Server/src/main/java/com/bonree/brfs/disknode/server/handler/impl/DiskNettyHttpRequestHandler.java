@@ -1,4 +1,4 @@
-package com.br.disknode.server.handler.impl;
+package com.bonree.brfs.disknode.server.handler.impl;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -20,12 +20,12 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.br.disknode.server.handler.DiskMessage;
-import com.br.disknode.server.handler.HandleResult;
-import com.br.disknode.server.handler.HandleResultCallback;
-import com.br.disknode.server.netty.MessageHandler;
-import com.br.disknode.server.netty.NettyHttpRequestHandler;
-import com.br.disknode.server.netty.ResponseSender;
+import com.bonree.brfs.disknode.server.handler.DiskMessage;
+import com.bonree.brfs.disknode.server.handler.HandleResult;
+import com.bonree.brfs.disknode.server.handler.HandleResultCallback;
+import com.bonree.brfs.disknode.server.netty.MessageHandler;
+import com.bonree.brfs.disknode.server.netty.NettyHttpRequestHandler;
+import com.bonree.brfs.disknode.server.netty.ResponseSender;
 
 @Sharable
 public class DiskNettyHttpRequestHandler implements NettyHttpRequestHandler {

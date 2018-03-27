@@ -1,4 +1,4 @@
-package com.br.disknode.server.netty;
+package com.bonree.brfs.disknode.server.netty;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;

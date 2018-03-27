@@ -1,4 +1,4 @@
-package com.br.disknode.record;
+package com.bonree.brfs.disknode.record;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -6,7 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.br.disknode.utils.ProtoStuffUtils;
+import com.bonree.brfs.disknode.utils.ProtoStuffUtils;
 
 public class RecordWriter {
 	public static final String RECORD_FILE_EXTEND = ".rd";

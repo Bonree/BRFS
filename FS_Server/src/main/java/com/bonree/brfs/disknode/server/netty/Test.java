@@ -1,13 +1,13 @@
-package com.br.disknode.server.netty;
+package com.bonree.brfs.disknode.server.netty;
 
-import com.br.disknode.DiskWriterManager;
-import com.br.disknode.server.DiskOperation;
-import com.br.disknode.server.handler.impl.CloseMessageHandler;
-import com.br.disknode.server.handler.impl.DeleteMessageHandler;
-import com.br.disknode.server.handler.impl.DiskNettyHttpRequestHandler;
-import com.br.disknode.server.handler.impl.OpenMessageHandler;
-import com.br.disknode.server.handler.impl.ReadMessageHandler;
-import com.br.disknode.server.handler.impl.WriteMessageHandler;
+import com.bonree.brfs.disknode.DiskWriterManager;
+import com.bonree.brfs.disknode.server.DiskOperation;
+import com.bonree.brfs.disknode.server.handler.impl.CloseMessageHandler;
+import com.bonree.brfs.disknode.server.handler.impl.DeleteMessageHandler;
+import com.bonree.brfs.disknode.server.handler.impl.DiskNettyHttpRequestHandler;
+import com.bonree.brfs.disknode.server.handler.impl.OpenMessageHandler;
+import com.bonree.brfs.disknode.server.handler.impl.ReadMessageHandler;
+import com.bonree.brfs.disknode.server.handler.impl.WriteMessageHandler;
 
 public class Test {
 

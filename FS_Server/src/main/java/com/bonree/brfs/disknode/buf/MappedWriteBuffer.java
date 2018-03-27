@@ -1,11 +1,11 @@
-package com.br.disknode.buf;
+package com.bonree.brfs.disknode.buf;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
-import com.br.disknode.utils.BufferUtils;
+import com.bonree.brfs.disknode.utils.BufferUtils;
 
 public class MappedWriteBuffer implements WriteBuffer {
 	private MappedByteBuffer buffer;

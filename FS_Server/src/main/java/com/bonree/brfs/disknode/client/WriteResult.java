@@ -1,4 +1,4 @@
-package com.br.disknode.client;
+package com.bonree.brfs.disknode.client;
 
 public class WriteResult {
 	private int offset;

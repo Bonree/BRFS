@@ -1,4 +1,4 @@
-package com.br.disknode;
+package com.bonree.brfs.disknode;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -8,8 +8,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.br.disknode.utils.LifeCycle;
-import com.br.disknode.utils.PooledThreadFactory;
+import com.bonree.brfs.disknode.utils.LifeCycle;
+import com.bonree.brfs.disknode.utils.PooledThreadFactory;
 import com.google.common.io.Closeables;
 
 public class DiskWriterManager implements LifeCycle {
@@ -30,17 +30,35 @@ public class DiskWriterManager implements LifeCycle {
                 new ArrayBlockingQueue<Runnable>(workerGroup.capacity()),
                 new PooledThreadFactory("write_worker"));
 		this.workerSelector = new RandomWriteWorkerSelector();
-		this.workerGroup.fill(() -> new WriteWorker());
+		this.workerGroup.fill(new WriteWorkerGroup.Initializer() {
+			
+			@Override
+			public WriteWorker init() {
+				return new WriteWorker();
+			}
+		});
 	}
 	
 	@Override
 	public void start() {
-		workerGroup.forEach((WriteWorker worker) -> threadPool.submit(worker));
+		workerGroup.forEach(new WriteWorkerGroup.Visitor() {
+			
+			@Override
+			public void visit(WriteWorker worker) {
+				threadPool.submit(worker);
+			}
+		});
 	}
 	
 	@Override
 	public void stop() {
-		workerGroup.forEach((WriteWorker worker) -> worker.quit());
+		workerGroup.forEach(new WriteWorkerGroup.Visitor() {
+			
+			@Override
+			public void visit(WriteWorker worker) {
+				worker.quit();
+			}
+		});
 		
 		threadPool.shutdownNow();
 	}

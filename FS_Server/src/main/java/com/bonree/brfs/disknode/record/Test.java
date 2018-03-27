@@ -1,4 +1,4 @@
-package com.br.disknode.record;
+package com.bonree.brfs.disknode.record;
 
 import java.io.IOException;
 import java.util.zip.CRC32;

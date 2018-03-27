@@ -1,4 +1,4 @@
-package com.br.disknode.record;
+package com.bonree.brfs.disknode.record;
 
 /**
  * 数据文件写入记录信息

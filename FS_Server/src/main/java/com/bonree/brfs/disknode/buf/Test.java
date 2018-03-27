@@ -1,21 +1,12 @@
-package com.br.disknode.buf;
+package com.bonree.brfs.disknode.buf;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
-import com.br.disknode.InputEvent;
-import com.br.disknode.utils.PooledThreadFactory;
+import com.bonree.brfs.disknode.utils.PooledThreadFactory;
 
 public class Test {
 
@@ -48,7 +39,13 @@ public class Test {
                 new PooledThreadFactory("write_worker"));
 		
 		for(int i = 0; i < 5; i++) {
-			exe.submit(() -> System.out.println("worker_"));
+			exe.submit(new Runnable() {
+				
+				@Override
+				public void run() {
+					System.out.println("--");
+				}
+			});
 		}
 	}
 

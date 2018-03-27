@@ -1,6 +1,6 @@
-package com.br.disknode.server.netty;
+package com.bonree.brfs.disknode.server.netty;
 
-import com.br.disknode.server.handler.HandleResultCallback;
+import com.bonree.brfs.disknode.server.handler.HandleResultCallback;
 
 public interface MessageHandler<T> {
 	void handle(T msg, HandleResultCallback callback);

@@ -1,4 +1,4 @@
-package com.br.disknode.utils;
+package com.bonree.brfs.disknode.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

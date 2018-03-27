@@ -1,4 +1,4 @@
-package com.br.disknode.watch;
+package com.bonree.brfs.disknode.watch;
 
 import java.util.List;
 

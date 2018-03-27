@@ -1,4 +1,4 @@
-package com.br.disknode.watch;
+package com.bonree.brfs.disknode.watch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.br.disknode.utils.PooledThreadFactory;
+import com.bonree.brfs.disknode.utils.PooledThreadFactory;
 import com.google.common.collect.ArrayListMultimap;
 
 public class WatchMarket {

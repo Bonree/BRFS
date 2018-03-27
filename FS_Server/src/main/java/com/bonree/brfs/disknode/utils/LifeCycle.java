@@ -1,4 +1,4 @@
-package com.br.disknode.utils;
+package com.bonree.brfs.disknode.utils;
 
 public interface LifeCycle {
 	void start() throws Exception;

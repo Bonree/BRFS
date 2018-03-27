@@ -1,4 +1,4 @@
-package com.br.disknode;
+package com.bonree.brfs.disknode;
 
 /**
  * WriteWorker

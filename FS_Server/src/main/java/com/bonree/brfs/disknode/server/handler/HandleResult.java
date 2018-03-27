@@ -1,4 +1,4 @@
-package com.br.disknode.server.handler;
+package com.bonree.brfs.disknode.server.handler;
 
 public class HandleResult {
 	private boolean success;

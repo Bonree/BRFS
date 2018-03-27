@@ -1,4 +1,4 @@
-package com.br.disknode.utils;
+package com.bonree.brfs.disknode.utils;
 
 import io.netty.handler.codec.http.HttpMethod;
 

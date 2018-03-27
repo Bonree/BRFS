@@ -1,11 +1,11 @@
-package com.br.disknode.record;
+package com.bonree.brfs.disknode.record;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-import com.br.disknode.utils.ProtoStuffUtils;
+import com.bonree.brfs.disknode.utils.ProtoStuffUtils;
 
 public class RecordReader {
 	private InputStream recordInput;

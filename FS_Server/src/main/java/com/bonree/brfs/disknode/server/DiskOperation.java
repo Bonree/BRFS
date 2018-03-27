@@ -1,4 +1,4 @@
-package com.br.disknode.server;
+package com.bonree.brfs.disknode.server;
 
 public class DiskOperation {
 	public static final String OP_OPEN = "PUT";

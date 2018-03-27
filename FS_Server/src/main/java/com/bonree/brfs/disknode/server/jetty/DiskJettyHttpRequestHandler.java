@@ -1,4 +1,4 @@
-package com.br.disknode.server.jetty;
+package com.bonree.brfs.disknode.server.jetty;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -16,11 +16,11 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.br.disknode.server.handler.DiskMessage;
-import com.br.disknode.server.handler.HandleResult;
-import com.br.disknode.server.handler.HandleResultCallback;
-import com.br.disknode.server.netty.MessageHandler;
-import com.br.disknode.utils.InputUtils;
+import com.bonree.brfs.disknode.server.handler.DiskMessage;
+import com.bonree.brfs.disknode.server.handler.HandleResult;
+import com.bonree.brfs.disknode.server.handler.HandleResultCallback;
+import com.bonree.brfs.disknode.server.netty.MessageHandler;
+import com.bonree.brfs.disknode.utils.InputUtils;
 
 public class DiskJettyHttpRequestHandler extends AbstractHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskJettyHttpRequestHandler.class);

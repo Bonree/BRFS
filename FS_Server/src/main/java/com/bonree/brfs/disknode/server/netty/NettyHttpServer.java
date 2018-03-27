@@ -1,4 +1,4 @@
-package com.br.disknode.server.netty;
+package com.bonree.brfs.disknode.server.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -9,7 +9,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
 
-import com.br.disknode.utils.LifeCycle;
+import com.bonree.brfs.disknode.utils.LifeCycle;
 
 public class NettyHttpServer implements LifeCycle {
 	private int conTimeout = 50000;//连接超时时间(毫秒)
