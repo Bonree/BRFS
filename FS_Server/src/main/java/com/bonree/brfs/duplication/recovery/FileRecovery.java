@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.br.disknode.client.DiskNodeClient;
+import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.utils.LifeCycle;
 

@@ -6,9 +6,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.br.disknode.client.DiskNodeClient;
-import com.br.disknode.client.HttpDiskNodeClient;
-import com.br.disknode.client.WriteResult;
+import com.bonree.brfs.disknode.client.DiskNodeClient;
+import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
+import com.bonree.brfs.disknode.client.WriteResult;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;

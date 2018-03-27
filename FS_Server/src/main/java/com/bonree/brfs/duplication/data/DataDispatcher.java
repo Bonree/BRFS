@@ -2,7 +2,7 @@ package com.bonree.brfs.duplication.data;
 
 import java.util.Set;
 
-import com.br.disknode.client.WriteResult;
+import com.bonree.brfs.disknode.client.WriteResult;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNameBuilder;
 import com.bonree.brfs.duplication.coordinator.FileNode;
