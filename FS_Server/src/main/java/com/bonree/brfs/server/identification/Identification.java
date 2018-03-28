@@ -16,11 +16,28 @@ public interface Identification {
     public final static int MULTI = 2;
     public final static int VIRTUAL = 3;
 
-    public String getSingleIdentification();
+    /** 概述：生成单副本ServerID
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public String genSingleIdentification();
 
-    public String getMultiIndentification();
+    /** 概述：生成多副本ServerID
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public String genMultiIndentification();
 
-    public String getVirtureIdentification();
-    
-    public List<String> loadVirtualIdentification();
+    /** 概述：生成虚拟ServerID
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public String genVirtureIdentification();
+
+    /** 概述：获取需要的虚拟ServerID
+     * @param count
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public List<String> getVirtualIdentification(int count);
 }

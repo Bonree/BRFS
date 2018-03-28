@@ -1,19 +1,17 @@
-package com.bonree.brfs.server.model;
+package com.bonree.brfs.rebalance;
 
-import java.util.List;
+import java.io.IOException;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
  * 
- * @date 2018年3月21日 下午2:34:06
+ * @date 2018年3月28日 上午11:07:07
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
- * @Description: 对所有的Server进行管理
+ * @Description: balance时对record进行记录
  ******************************************************************************/
-public class ServerCacheModel {
+public interface RecordWriter<T> {
 
-    private List<ServerInfoModel> preServers;
-
-    private List<ServerInfoModel> currentServers;
+    void writeRecord(T input) throws IOException;
 
 }

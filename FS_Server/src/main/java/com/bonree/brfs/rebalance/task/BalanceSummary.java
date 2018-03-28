@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalance.task.model;
+package com.bonree.brfs.rebalance.task;
 
 import java.util.List;
 
@@ -10,15 +10,7 @@ import java.util.List;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 用户进行副本平衡的model类
  ******************************************************************************/
-/*******************************************************************************
- * 版权信息：博睿宏远科技发展有限公司
- * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
- * @date 2018年3月22日 下午2:48:19
- * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
- * @Description: 
- ******************************************************************************/
-public class BalanceTaskModel {
+public class BalanceSummary {
 
     /**
      *需要恢复的serverID;
@@ -52,9 +44,10 @@ public class BalanceTaskModel {
     private List<String> inputServers;
 
     /**
-     * 恢复该servers的数据的丢失的其他servers
+     *本次平衡时存活的server
      */
-    private List<String> loseServers;
+    private List<String> aliveServer;
+
 
     /**
      *任务何时开始,精确到秒
@@ -117,12 +110,12 @@ public class BalanceTaskModel {
         this.taskStatus = taskStatus;
     }
 
-    public List<String> getLoseServers() {
-        return loseServers;
+    public List<String> getAliveServer() {
+        return aliveServer;
     }
 
-    public void setLoseServers(List<String> loseServers) {
-        this.loseServers = loseServers;
+    public void setAliveServer(List<String> aliveServer) {
+        this.aliveServer = aliveServer;
     }
 
 }

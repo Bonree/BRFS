@@ -1,8 +1,9 @@
-package com.bonree.brfs.rebalance.task.model;
+package com.bonree.brfs.rebalance.task;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import com.bonree.brfs.rebalance.task.ServerChangeType;
+import com.alibaba.fastjson.JSON;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -13,23 +14,37 @@ import com.bonree.brfs.rebalance.task.ServerChangeType;
  * @Description: 节点发生改变，包括节点丢失或者节点加入
  ******************************************************************************/
 
-public class TaskSummaryModel {
+public class ChangeSummary {
 
     private int storageIndex;
 
     private long createTime;
 
-    private ServerChangeType changeType;
+    private ChangeType changeType;
+
+    private int status;
 
     private String changeServer;
 
     private List<String> currentServers;
+    
+    private ChangeSummary() {
 
-    public ServerChangeType getChangeType() {
+    }
+
+    public ChangeSummary(int storageIndex, long createTime, ChangeType changeType, String changeServer, List<String> currentServers) {
+        this.storageIndex = storageIndex;
+        this.createTime = createTime;
+        this.changeType = changeType;
+        this.changeServer = changeServer;
+        this.currentServers = currentServers;
+    }
+
+    public ChangeType getChangeType() {
         return changeType;
     }
 
-    public void setChangeType(ServerChangeType changeType) {
+    public void setChangeType(ChangeType changeType) {
         this.changeType = changeType;
     }
 
@@ -65,4 +80,16 @@ public class TaskSummaryModel {
         this.createTime = createTime;
     }
     
+    public static void main(String[] args) {
+        List<String> servers = new ArrayList<>();
+        servers.add("bbb");
+        servers.add("ccc");
+        ChangeSummary summary = new ChangeSummary(1, 15456455l, ChangeType.ADD, "aaaaa", servers);
+        String jsonStr = JSON.toJSONString(summary);
+        System.out.println(jsonStr);
+        ChangeSummary summary1=JSON.parseObject(jsonStr,ChangeSummary.class);
+        System.out.println(summary1.getChangeType() == ChangeType.ADD);
+        
+    }
+
 }

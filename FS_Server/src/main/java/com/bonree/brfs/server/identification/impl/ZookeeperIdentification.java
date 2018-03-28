@@ -1,5 +1,6 @@
 package com.bonree.brfs.server.identification.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -110,7 +111,7 @@ public class ZookeeperIdentification implements Identification {
     }
 
     @Override
-    public synchronized String getSingleIdentification() {
+    public synchronized String genSingleIdentification() {
         String serverId = null;
         String singleNode = basePath + SEPARATOR + SINGLE_NODE;
         ZookeeperIdentificationGen genExecutor = new ZookeeperIdentificationGen(singleNode, SINGLE);
@@ -124,7 +125,7 @@ public class ZookeeperIdentification implements Identification {
     }
 
     @Override
-    public synchronized String getMultiIndentification() {
+    public synchronized String genMultiIndentification() {
         String serverId = null;
         String multiNode = basePath + SEPARATOR + MULTI_NODE;
         ZookeeperIdentificationGen genExecutor = new ZookeeperIdentificationGen(multiNode, MULTI);
@@ -138,7 +139,7 @@ public class ZookeeperIdentification implements Identification {
     }
 
     @Override
-    public synchronized String getVirtureIdentification() {
+    public synchronized String genVirtureIdentification() {
         String serverId = null;
         String virtualNode = basePath + SEPARATOR + VIRTUAL_NODE;
         ZookeeperIdentificationGen genExecutor = new ZookeeperIdentificationGen(virtualNode, VIRTUAL);
@@ -152,8 +153,29 @@ public class ZookeeperIdentification implements Identification {
     }
 
     @Override
-    public synchronized List<String> loadVirtualIdentification() {
+    public synchronized List<String> getVirtualIdentification(int count) {
+        List<String> resultVirtualIds = new ArrayList<String>(count);
+        
         List<String> virtualIds = client.getChildren(basePath + SEPARATOR + VIRTUAL_SERVER);
-        return virtualIds;
+        if (virtualIds == null) {
+            for (int i = 0; i < count; i++) {
+                String tmp = genVirtureIdentification();
+                resultVirtualIds.add(tmp);
+            }
+        } else {
+            if (virtualIds.size() < count) {
+                resultVirtualIds.addAll(virtualIds);
+                int distinct = count - virtualIds.size();
+                for (int i = 0; i < distinct; i++) {
+                    String tmp = genVirtureIdentification();
+                    resultVirtualIds.add(tmp);
+                }
+            } else {
+                for (int i = 0; i < count; i++) {
+                    resultVirtualIds.add(virtualIds.get(i));
+                }
+            }
+        }
+        return resultVirtualIds;
     }
 }

@@ -3,8 +3,13 @@ package com.bonree.brfs.rebalance.recover;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.server.model.ServerInfoModel;
+import com.bonree.brfs.rebalance.task.BalanceSummary;
+import com.bonree.brfs.server.ServerInfo;
+import com.bonree.brfs.server.StorageName;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -16,17 +21,38 @@ import com.bonree.brfs.server.model.ServerInfoModel;
  ******************************************************************************/
 public class VirtualRecover implements DataRecover {
 
-    public VirtualRecover() {
+    private final static Logger LOG = LoggerFactory.getLogger(VirtualRecover.class);
+
+    private static final String NAME_SEPARATOR = "_";
+
+    private StorageName storageName;
+
+    private BalanceSummary balanceSummary;
+
+    public VirtualRecover(StorageName storageName, BalanceSummary balanceSummary, ServerInfo selfServerInfo) {
+        this.storageName = storageName;
+        this.balanceSummary = balanceSummary;
     }
 
     @Override
     public void recover() {
-        ServerInfoModel localServer = new ServerInfoModel();
-        ServerInfoModel remoteServer = new ServerInfoModel();
         List<String> files = getFiles();
+        String remoteServerId = balanceSummary.getInputServers().get(0);
+        String fixServerId = balanceSummary.getServerId();
+        LOG.info("balance virtual serverId:" + fixServerId);
         for (String fileName : files) {
-            if (isExistFile(remoteServer, fileName)) {
-                remoteCopyFile(localServer, remoteServer, fileName);
+            int replicaPot = 0;
+            String[] metaArr = fileName.split(NAME_SEPARATOR);
+            List<String> fileServerIds = new ArrayList<>();
+            for (int j = 1; j < metaArr.length; j++) {
+                fileServerIds.add(metaArr[j]);
+            }
+
+            if (fileServerIds.contains(fixServerId)) {
+                replicaPot = fileServerIds.indexOf(fixServerId);
+                if (!isExistFile(remoteServerId, fileName)) {
+                    remoteCopyFile(remoteServerId, fileName, replicaPot);
+                }
             }
         }
     }
@@ -35,11 +61,11 @@ public class VirtualRecover implements DataRecover {
         return new ArrayList<String>();
     }
 
-    public boolean isExistFile(ServerInfoModel remoteServer, String fileName) {
+    public boolean isExistFile(String remoteServerId, String fileName) {
         return true;
     }
 
-    public void remoteCopyFile(ServerInfoModel sourceServer, ServerInfoModel remoteServer, String fileName) {
+    public void remoteCopyFile(String remoteServerId, String fileName, int replicaPot) {
 
     }
 

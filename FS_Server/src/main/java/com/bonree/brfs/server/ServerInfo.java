@@ -1,6 +1,6 @@
-package com.bonree.brfs.server.model;
+package com.bonree.brfs.server;
 
-public class ServerInfoModel {
+public class ServerInfo {
 
     private String hostName;
     private String ip;
@@ -10,7 +10,7 @@ public class ServerInfoModel {
     private int port;
     private boolean init;
 
-    public ServerInfoModel() {
+    public ServerInfo() {
 
     }
 

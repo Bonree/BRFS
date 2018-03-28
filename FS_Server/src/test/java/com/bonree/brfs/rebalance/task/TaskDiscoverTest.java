@@ -3,8 +3,7 @@ package com.bonree.brfs.rebalance.task;
 import java.util.Date;
 import java.util.Map;
 
-
-import com.bonree.brfs.server.model.StorageName;
+import com.bonree.brfs.server.StorageName;
 import com.google.common.collect.Maps;
 
 public class TaskDiscoverTest {

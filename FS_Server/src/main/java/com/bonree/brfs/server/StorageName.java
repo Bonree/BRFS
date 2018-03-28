@@ -1,4 +1,4 @@
-package com.bonree.brfs.server.model;
+package com.bonree.brfs.server;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司

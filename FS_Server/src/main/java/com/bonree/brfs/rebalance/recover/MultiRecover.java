@@ -1,16 +1,22 @@
 package com.bonree.brfs.rebalance.recover;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.server.model.ServerInfoModel;
-import com.bonree.brfs.server.model.StorageName;
+import com.bonree.brfs.rebalance.record.BalanceRecord;
+import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
+import com.bonree.brfs.rebalance.task.BalanceSummary;
+import com.bonree.brfs.server.ServerInfo;
+import com.bonree.brfs.server.StorageName;
 
 public class MultiRecover implements DataRecover {
 
@@ -18,59 +24,97 @@ public class MultiRecover implements DataRecover {
 
     private StorageName storageName;
 
+    private BalanceSummary balanceSummary;
+
+    private ServerInfo selfServerInfo;
+
+    private Map<String, BalanceSummary> snStorageSummary;
+
     private static final String NAME_SEPARATOR = "_";
 
-    public MultiRecover(StorageName storageName) {
+    public MultiRecover(StorageName storageName, BalanceSummary summary, ServerInfo serverInfo, Map<String, BalanceSummary> snStorageSummary) {
         this.storageName = storageName;
+        this.balanceSummary = summary;
+        this.selfServerInfo = serverInfo;
+        this.snStorageSummary = snStorageSummary;
     }
 
     @Override
     public void recover() {
         LOG.info("begin recover");
+
         int replicas = storageName.getReplications();
 
-        // 获取本地ServerInfo信息
-        ServerInfoModel localServer = new ServerInfoModel();
-        String localMultiId = localServer.getMultiIdentification();
+        LOG.info("deal the local server:" + selfServerInfo.getMultiIdentification());
 
-        System.out.println("处理" + localMultiId);
-        LOG.info("deal the local server:" + localMultiId);
-        //以副本数来遍历
+        // 以副本数来遍历
         for (int i = 1; i <= replicas; i++) {
-            
-            List<String> repliFiles = getFiles();
-            for (String perFile : repliFiles) {
+            dealReplicas(i);
+        }
+        System.out.println("恢复完成");
+    }
+
+    private void dealReplicas(int replica) {
+        // 需要迁移的文件,按目录的时间从小到大处理
+        List<String> repliFiles = getFiles();
+
+        dealFiles(repliFiles, replica);
+    }
+
+    private void dealFiles(List<String> files, int replica) {
+        SimpleRecordWriter simpleWriter = null;
+        try {
+            simpleWriter = new SimpleRecordWriter("");
+            for (String perFile : files) {
+                // 对文件名进行分割处理
                 String[] metaArr = perFile.split(NAME_SEPARATOR);
+                // 提取出用于hash的部分
                 String namePart = metaArr[0];
-                List<String> aliveServerIdList = new ArrayList<>();
+
+                // 提取出该文件所存储的服务
+                List<String> fileServerIds = new ArrayList<>();
                 for (int j = 1; j < metaArr.length; j++) {
-                    aliveServerIdList.add(metaArr[j]);
+                    fileServerIds.add(metaArr[j]);
                 }
+                
+                //此处需要将有virtual Serverid的文件进行转换
+                
+
                 // 这里要判断一个副本是否需要进行迁移
-                ServerInfoModel selectServerModel = null;
-                List<ServerInfoModel> recoverableServerList = null;
+                // 挑选出的可迁移的servers
+                String selectMultiId = null;
+                // 可获取的server，可能包括自身
+                List<String> recoverableServerList = null;
+                // 排除掉自身或已有的servers
                 List<String> exceptionServerIds = null;
-                List<ServerInfoModel> selectableServerList = null;
-                while (needRecover(aliveServerIdList, i)) {
-                    for (String deadServer : getDeadMultiIds()) {
-                        if (aliveServerIdList.contains(deadServer)) {
-                            int pot = aliveServerIdList.indexOf(deadServer);
-                            recoverableServerList = getRecoverRoleList(deadServer);
+                // 真正可选择的servers
+                List<String> selectableServerList = null;
+
+                while (needRecover(fileServerIds, replica)) {
+                    for (String deadServer : fileServerIds) {
+                        if (!getAliveMultiIds().contains(deadServer)) {
+                            int pot = fileServerIds.indexOf(deadServer);
+                            if (!StringUtils.equals(deadServer, balanceSummary.getServerId())) {
+                                recoverableServerList = getRecoverRoleList(deadServer);
+                            } else {
+                                recoverableServerList = balanceSummary.getInputServers();
+                            }
                             exceptionServerIds = new ArrayList<>();
-                            exceptionServerIds.addAll(aliveServerIdList);
+                            exceptionServerIds.addAll(fileServerIds);
                             exceptionServerIds.remove(deadServer);
                             selectableServerList = getSelectedList(recoverableServerList, exceptionServerIds);
                             int index = hashFileName(namePart, selectableServerList.size());
-                            selectServerModel = selectableServerList.get(index);
-                            aliveServerIdList.set(pot, selectServerModel.getMultiIdentification());
+                            selectMultiId = selectableServerList.get(index);
+                            fileServerIds.set(pot, selectMultiId);
 
                             // 判断选取的新节点是否存活
-                            if (isAlive(selectServerModel.getMultiIdentification())) {
+                            if (isAlive(selectMultiId)) {
                                 // 判断选取的新节点是否为本节点
-                                if (!localServer.getMultiIdentification().equals(selectServerModel.getMultiIdentification())) {
-                                    if (!isExistFile(selectServerModel, perFile)) {
-                                        remoteCopyFile(localServer, selectServerModel, perFile);
-
+                                if (!selfServerInfo.getMultiIdentification().equals(selectMultiId)) {
+                                    if (!isExistFile(selectMultiId, perFile)) {
+                                        remoteCopyFile(selectMultiId, perFile);
+                                        BalanceRecord record = new BalanceRecord(perFile, selfServerInfo.getMultiIdentification(), selectMultiId);
+                                        simpleWriter.writeRecord(record.toString());
                                     }
                                 }
                             }
@@ -79,27 +123,43 @@ public class MultiRecover implements DataRecover {
                 }
 
             }
+        } catch (IOException e) {
+            LOG.error("write balance record error!", e);
+        } finally {
+            if (simpleWriter != null) {
+                try {
+                    simpleWriter.close();
+                } catch (IOException e) {
+                    LOG.error("close simpleWriter error!", e);
+                }
+            }
         }
-        System.out.println("恢复完成");
+
     }
 
-    public boolean isExistFile(ServerInfoModel remoteServer, String fileName) {
+    private boolean isExistFile(String remoteServer, String fileName) {
         return true;
     }
 
-    public void remoteCopyFile(ServerInfoModel sourceServer, ServerInfoModel remoteServer, String fileName) {
+    private void remoteCopyFile(String remoteServer, String fileName) {
 
     }
 
-    public List<String> getFiles() {
+    private List<String> getFiles() {
         return new ArrayList<String>();
     }
 
+    /** 概述：判断是否需要恢复
+     * @param serverIds
+     * @param replicaPot
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     private boolean needRecover(List<String> serverIds, int replicaPot) {
         boolean flag = false;
         for (int i = 1; i <= serverIds.size(); i++) {
             if (i != replicaPot) {
-                if (getDeadMultiIds().contains(serverIds.get(i - 1))) {
+                if (!getAliveMultiIds().contains(serverIds.get(i - 1))) {
                     flag = true;
                     break;
                 }
@@ -108,18 +168,18 @@ public class MultiRecover implements DataRecover {
         return flag;
     }
 
-    private List<ServerInfoModel> getRecoverRoleList(String serverModel) {
-        return new ArrayList<ServerInfoModel>();
+    private List<String> getRecoverRoleList(String serverModel) {
+        return snStorageSummary.get(serverModel).getInputServers();
     }
 
-    private List<String> getDeadMultiIds() {
-        return new ArrayList<String>();
+    private List<String> getAliveMultiIds() {
+        return balanceSummary.getAliveServer();
     }
 
-    private List<ServerInfoModel> getSelectedList(List<ServerInfoModel> aliveServerList, List<String> excludeServers) {
-        List<ServerInfoModel> selectedList = new ArrayList<>();
-        for (ServerInfoModel tmp : aliveServerList) {
-            if (!excludeServers.contains(tmp.getMultiIdentification())) {
+    private List<String> getSelectedList(List<String> aliveServerList, List<String> excludeServers) {
+        List<String> selectedList = new ArrayList<>();
+        for (String tmp : aliveServerList) {
+            if (!excludeServers.contains(tmp)) {
                 selectedList.add(tmp);
             }
         }
@@ -127,20 +187,20 @@ public class MultiRecover implements DataRecover {
         return selectedList;
     }
 
-    public class CompareFromName implements Comparator<ServerInfoModel> {
+    private class CompareFromName implements Comparator<String> {
         @Override
-        public int compare(ServerInfoModel o1, ServerInfoModel o2) {
-            return o1.getMultiIdentification().compareTo(o2.getMultiIdentification());
+        public int compare(String o1, String o2) {
+            return o1.compareTo(o2);
         }
     }
 
-    public int hashFileName(String fileName, int size) {
+    private int hashFileName(String fileName, int size) {
         int nameSum = sumName(fileName);
         int matchSm = nameSum % size;
         return matchSm;
     }
 
-    public int sumName(String name) {
+    private int sumName(String name) {
         int sum = 0;
         for (int i = 0; i < name.length(); i++) {
             sum = sum + name.charAt(i);
@@ -149,10 +209,10 @@ public class MultiRecover implements DataRecover {
     }
 
     private boolean isAlive(String serverId) {
-        if (getDeadMultiIds().contains(serverId)) {
-            return false;
-        } else {
+        if (getAliveMultiIds().contains(serverId)) {
             return true;
+        } else {
+            return false;
         }
     }
 
