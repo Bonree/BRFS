@@ -11,10 +11,28 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.schedulers.task.SchedulerManagerInterface;
 import com.bonree.brfs.common.utils.StringUtils;
 import com.bonree.brfs.common.schedulers.model.TaskInterface;
-
+/******************************************************************************
+ * 版权信息：北京博睿宏远数据科技股份有限公司
+ * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
+ * 
+ * @date 2018年3月28日 下午4:19:33
+ * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
+ * @Description: 单例模式的调度接口
+ *****************************************************************************
+ */
 public class QuartzSchedulersManager implements SchedulerManagerInterface<String, QuartzBaseSchedulers, TaskInterface>{
 	Map<String,QuartzBaseSchedulers> taskPoolMap = new ConcurrentHashMap<String,QuartzBaseSchedulers>();
 	private static final Logger logger = LoggerFactory.getLogger("TaskManagerServer");
+	private static class SingletonInstance {
+		public static QuartzSchedulersManager instance = new QuartzSchedulersManager();
+	}
+
+	private QuartzSchedulersManager() {
+	}
+
+	public static QuartzSchedulersManager getInstance() {
+		return SingletonInstance.instance;
+	}
 	@Override
 	public boolean addTask(String taskpoolkey, TaskInterface task) {
 		if(!taskPoolMap.containsKey(taskpoolkey)){

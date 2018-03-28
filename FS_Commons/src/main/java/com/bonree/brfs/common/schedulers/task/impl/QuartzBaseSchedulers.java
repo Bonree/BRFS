@@ -25,7 +25,15 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.schedulers.model.TaskInterface;
 import com.bonree.brfs.common.schedulers.task.QuartzSchedulerInterface;
 import com.bonree.brfs.common.utils.StringUtils;
-
+/******************************************************************************
+ * 版权信息：北京博睿宏远数据科技股份有限公司
+ * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
+ * 
+ * @date 2018年3月28日 下午4:21:21
+ * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
+ * @Description: quartz基础调度实现
+ *****************************************************************************
+ */
 public class QuartzBaseSchedulers<T extends TaskInterface> implements QuartzSchedulerInterface<T>{
 	private static final Logger logger = LoggerFactory.getLogger("CycleTest");
 	private StdSchedulerFactory ssf = new StdSchedulerFactory();
