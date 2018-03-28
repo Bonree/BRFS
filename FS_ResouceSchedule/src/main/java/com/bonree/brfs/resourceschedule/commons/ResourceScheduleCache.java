@@ -19,7 +19,7 @@ import com.bonree.brfs.resourceschedule.model.ServerStatModel;
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @Description: 
  *****************************************************************************/
-public class Cache {
+public class ResourceScheduleCache {
 	/**
 	 * 网卡最大发送速度 单位byte（按10000Mbit/s网卡计算）
 	 */
@@ -48,15 +48,7 @@ public class Cache {
 	 * 服务器基础信息
 	 */
 	public List<BaseServerModel> BASE_CLUSTER_INFO = new ArrayList<BaseServerModel>();
-	/**
-	 * sn与磁盘的对应关系 key：sn根目录，value：分区挂载点
-	 */
-	public Map<String,String> snWithDisk = new ConcurrentHashMap<String,String>();
-	/**
-	 * sn剩余空间大小，Key：sn根目录，value：剩余大小
-	 */
-	public Map<String,Long> snRemainSizeMap = new ConcurrentHashMap<String,Long>();
-	
+		
 	/**
 	 * 服务数据目录
 	 */

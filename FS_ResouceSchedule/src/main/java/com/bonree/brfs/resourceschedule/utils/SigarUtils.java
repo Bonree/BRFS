@@ -16,7 +16,7 @@ import org.hyperic.sigar.NetInterfaceStat;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
-import com.bonree.brfs.resourceschedule.commons.Cache;
+import com.bonree.brfs.resourceschedule.commons.ResourceScheduleCache;
 import com.bonree.brfs.resourceschedule.commons.impl.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseNetModel;
 import com.bonree.brfs.resourceschedule.model.BasePatitionModel;
@@ -87,7 +87,7 @@ public enum SigarUtils {
      * @throws SigarException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public Map<String, BaseNetModel> gatherBaseNetInfos(Cache cache) throws SigarException{
+    public Map<String, BaseNetModel> gatherBaseNetInfos(ResourceScheduleCache cache) throws SigarException{
     	Map<String, BaseNetModel> objMap = new ConcurrentHashMap<String, BaseNetModel>();
     	//Sigar sigar = new Sigar();
     	String[] netInfos = sigar.getNetInterfaceList();
@@ -260,7 +260,7 @@ public enum SigarUtils {
     * @throws SigarException
     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
     */
-    public Map<String, BasePatitionModel> gatherBasePatitionInfos(Cache cache) throws SigarException{
+    public Map<String, BasePatitionModel> gatherBasePatitionInfos(ResourceScheduleCache cache) throws SigarException{
     	Map<String, BasePatitionModel> basePatitionMap = new ConcurrentHashMap<String, BasePatitionModel>();
     	String dir = cache.DATA_DIRECTORY;
     	// 1.过滤非法的挂载点
@@ -353,7 +353,7 @@ public enum SigarUtils {
      * @throws SigarException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public Map<String, PatitionStatModel> gatherPatitionStatInfos(Cache cache) throws SigarException{
+    public Map<String, PatitionStatModel> gatherPatitionStatInfos(ResourceScheduleCache cache) throws SigarException{
     	Map<String, PatitionStatModel> patitionStatMap = new ConcurrentHashMap<String, PatitionStatModel>();
     	String dir = cache.DATA_DIRECTORY;
     	// 1.过滤非法的挂载点
@@ -403,7 +403,7 @@ public enum SigarUtils {
      * @throws SigarException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public Map<String, PatitionStatModel> gatherPatitionStatInfos2(Cache cache) throws SigarException{
+    public Map<String, PatitionStatModel> gatherPatitionStatInfos2(ResourceScheduleCache cache) throws SigarException{
     	Map<String, PatitionStatModel> patitionStatMap = new ConcurrentHashMap<String, PatitionStatModel>();
     	String dir = cache.DATA_DIRECTORY;
     	// 1.过滤非法的挂载点
