@@ -1,5 +1,7 @@
 package com.bonree.brfs.common.utils;
 
+import java.io.UnsupportedEncodingException;
+
 public class StringUtils {
 
     private static final char SEPARATOR_DIR = '/';
@@ -40,4 +42,19 @@ public class StringUtils {
         return newBasePath;
     }
 
+    /**
+     * 安静的把字符串转化为UTF-8格式的字节数组
+     * 
+     * @param s
+     * @return
+     */
+    public static byte[] toUtf8Bytes(String s) {
+		try {
+			return s.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		return new byte[0];
+	}
 }
