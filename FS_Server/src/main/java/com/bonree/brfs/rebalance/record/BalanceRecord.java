@@ -67,7 +67,7 @@ public class BalanceRecord {
 
     @Override
     public String toString() {
-        return finishTime + FIELD_SEPARATOR + fileName + sourceMultiId + targetMuiltiId;
+        return finishTime + FIELD_SEPARATOR + fileName + FIELD_SEPARATOR + sourceMultiId + FIELD_SEPARATOR + targetMuiltiId;
     }
 
 }
