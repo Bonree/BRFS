@@ -1,6 +1,6 @@
 package com.bonree.brfs.duplication.storagename;
 
-import com.bonree.brfs.duplication.utils.LifeCycle;
+import com.bonree.brfs.common.utils.LifeCycle;
 
 public interface StorageNameManager extends LifeCycle {
 	boolean exists(String storageName);

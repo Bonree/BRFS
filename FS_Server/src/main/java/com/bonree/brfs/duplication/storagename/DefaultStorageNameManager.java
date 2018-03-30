@@ -3,16 +3,13 @@ package com.bonree.brfs.duplication.storagename;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.duplication.utils.ProtoStuffUtils;
+import com.bonree.brfs.common.utils.ProtoStuffUtils;
+import com.google.common.base.Strings;
 
 /**
  * 当前存在问题：
@@ -31,28 +28,28 @@ public class DefaultStorageNameManager implements StorageNameManager {
 	private ConcurrentHashMap<Integer, StorageNameNode> storageIdMap = new ConcurrentHashMap<Integer, StorageNameNode>();
 	
 	private CuratorFramework zkClient;
-	private PathChildrenCache cache;
 	
 	public DefaultStorageNameManager(CuratorFramework client) {
 		this.zkClient = client;
-		this.cache = new PathChildrenCache(client, ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, null), true);
-		this.cache.getListenable().addListener(new StorageNameStateListener());
 	}
 
 	@Override
 	public void start() throws Exception {
 		zkClient.createContainers(ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, null));
-		cache.start();
 	}
 
 	@Override
 	public void stop() throws Exception {
-		cache.close();
+		//Nothing to do!
 	}
 
 	@Override
 	public boolean exists(String storageName) {
 		return storageNameMap.containsKey(storageName);
+	}
+	
+	private String buildStorageNamePath(String storageName) {
+		return ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, storageName);
 	}
 
 	@Override
@@ -62,7 +59,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
 		}
 		
 		StorageNameNode node = new StorageNameNode(storageName, StorageIdBuilder.createStorageId(), replicas, ttl);
-		String storageNamePath = ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, storageName);
+		String storageNamePath = buildStorageNamePath(storageName);
 		
 		String path = null;
 		try {
@@ -106,7 +103,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
 		}
 		
 		try {
-			zkClient.delete().forPath(ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, node.getName()));
+			zkClient.delete().forPath(buildStorageNamePath(node.getName()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -122,7 +119,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
 		}
 		
 		try {
-			zkClient.delete().forPath(ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, storageName));
+			zkClient.delete().forPath(buildStorageNamePath(storageName));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -133,48 +130,36 @@ public class DefaultStorageNameManager implements StorageNameManager {
 
 	@Override
 	public StorageNameNode findStorageName(String storageName) {
-		return storageNameMap.get(storageName);
+		StorageNameNode node = storageNameMap.get(storageName);
+		
+		if(node == null) {
+			node = findStorageNameFromZookeeper(storageName);
+			
+			if(node != null) {
+				storageNameMap.put(storageName, node);
+			}
+		}
+		
+		return node;
+	}
+	
+	private void refreshCache() {
+		
+	}
+	
+	private StorageNameNode findStorageNameFromZookeeper(String storageName) {
+		try {
+			return ProtoStuffUtils.deserialize(zkClient.getData().forPath(buildStorageNamePath(storageName)), StorageNameNode.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 
 	@Override
 	public StorageNameNode findStorageName(int id) {
 		return storageIdMap.get(id);
-	}
-	
-	private synchronized void addStorageNameNode(StorageNameNode node) {
-		storageNameMap.put(node.getName(), node);
-		storageIdMap.put(node.getId(), node);
-	}
-	
-	private synchronized void deleteStorageNameNode(StorageNameNode node) {
-		storageNameMap.remove(node.getName());
-		storageIdMap.remove(node.getId());
-	}
-
-	private class StorageNameStateListener implements PathChildrenCacheListener {
-
-		@Override
-		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-			LOG.info("EVENT--{}", event);
-			ChildData data = event.getData();
-			if(data != null) {
-				StorageNameNode node = ProtoStuffUtils.deserialize(data.getData(), StorageNameNode.class);
-				switch (event.getType()) {
-				case CHILD_ADDED:
-				case CHILD_UPDATED:
-					LOG.info("ADD--{}", node);
-					addStorageNameNode(node);
-					break;
-				case CHILD_REMOVED:
-					LOG.info("REMOVE--{}", node);
-					deleteStorageNameNode(node);
-					break;
-				default:
-					break;
-				}
-			}
-		}
-		
 	}
 
 	@Override

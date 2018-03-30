@@ -1,10 +1,10 @@
 package com.bonree.brfs.duplication.storagename.handler;
 
-import com.bonree.brfs.duplication.server.handler.HandleResult;
-import com.bonree.brfs.duplication.server.handler.HandleResultCallback;
-import com.bonree.brfs.duplication.server.handler.MessageHandler;
+import com.bonree.brfs.common.http.HandleResult;
+import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.utils.StringUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.utils.StringUtils;
 
 public class DeleteStorageNameMessageHandler implements MessageHandler<StorageNameMessage> {
 	
