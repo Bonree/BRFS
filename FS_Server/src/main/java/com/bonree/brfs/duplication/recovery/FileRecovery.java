@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.duplication.coordinator.FileNode;
-import com.bonree.brfs.duplication.utils.LifeCycle;
 
 public class FileRecovery implements LifeCycle{
 	

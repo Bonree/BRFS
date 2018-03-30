@@ -5,11 +5,11 @@ import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
-import org.apache.zookeeper.data.Stat;
 
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.coordinator.FileNode;
+import com.bonree.brfs.duplication.coordinator.FileNodeFilter;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
-import com.bonree.brfs.duplication.utils.JsonUtils;
 
 public class ZkFileNodeStorer implements FileNodeStorer {
 
@@ -20,60 +20,83 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 	}
 
 	@Override
-	public void save(FileNode fileNode) throws Exception {
+	public void save(FileNode fileNode) {
 		String fileNodePath = ZKPaths.makePath(
 				ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILENODES,
+				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE,
 				fileNode.getName());
 
-		client.create().forPath(fileNodePath, JsonUtils.toJsonBytes(fileNode));
+		try {
+			client.create().creatingParentsIfNeeded().forPath(fileNodePath, JsonUtils.toJsonBytes(fileNode));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
-	public void delete(String fileName) throws Exception {
+	public void delete(String fileName) {
 		String fileNodePath = ZKPaths.makePath(
 				ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILENODES,
+				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE,
 				fileName);
 		
-		client.delete().forPath(fileNodePath);
+		try {
+			client.delete().forPath(fileNodePath);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
-	public FileNode getFileNode(String fileName) throws Exception {
+	public FileNode getFileNode(String fileName) {
 		String fileNodePath = ZKPaths.makePath(
 				ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILENODES,
+				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE,
 				fileName);
 		
-		return JsonUtils.toObject(client.getData().forPath(fileNodePath), FileNode.class);
+		try {
+			return JsonUtils.toObject(client.getData().forPath(fileNodePath), FileNode.class);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
-	public void update(String fileName, FileNode fileNode) throws Exception {
+	public void update(FileNode fileNode) {
 		String fileNodePath = ZKPaths.makePath(
 				ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILENODES,
-				fileName);
+				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE,
+				fileNode.getName());
 		
-		client.setData().forPath(fileNodePath, JsonUtils.toJsonBytes(fileNode));
+		try {
+			client.setData().forPath(fileNodePath, JsonUtils.toJsonBytes(fileNode));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
-	public List<FileNode> listFileNodes() throws Exception {
+	public List<FileNode> listFileNodes(FileNodeFilter filter) {
 		List<FileNode> fileNodes = new ArrayList<FileNode>();
 		for(String fileName : getFileNameList()) {
-			fileNodes.add(getFileNode(fileName));
+			FileNode node = getFileNode(fileName);
+			if(filter.filter(node)) {
+				fileNodes.add(getFileNode(fileName));
+			}
 		}
 		
 		return fileNodes;
 	}
 
-	private List<String> getFileNameList() throws Exception {
+	private List<String> getFileNameList() {
 		String fileNodesPath = ZKPaths.makePath(
 				ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILENODES);
+				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE);
 		
-		return client.getChildren().forPath(fileNodesPath);
+		try {
+			return client.getChildren().forPath(fileNodesPath);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

@@ -5,7 +5,7 @@ public class FileNode {
 	private String storageName;
 	private long createTime;
 	private String serviceId;
-	private int[] duplicates;
+	private DuplicateNode[] duplicateNodes;
 	
 	public FileNode() {
 		this.createTime = System.currentTimeMillis();
@@ -43,12 +43,12 @@ public class FileNode {
 		this.serviceId = serviceId;
 	}
 
-	public int[] getDuplicates() {
-		return duplicates;
+	public DuplicateNode[] getDuplicateNodes() {
+		return duplicateNodes;
 	}
 
-	public void setDuplicates(int[] duplicates) {
-		this.duplicates = duplicates;
+	public void setDuplicateNodes(DuplicateNode[] duplicates) {
+		this.duplicateNodes = duplicates;
 	}
 
 }

@@ -1,10 +1,26 @@
 package com.bonree.brfs.duplication.coordinator;
 
-import com.bonree.brfs.duplication.utils.LifeCycle;
-
-public interface FileCoordinator extends LifeCycle {
-	boolean publish(FileNode node);
-	boolean release(String fileName);
+public class FileCoordinator {
 	
-	void setFilePicker(FilePicker picker);
+	public static final String DUPLICATE_SERVICE_GROUP = "duplicate_group";
+	
+	private FileNodeStorer storer;
+	private FileNodeSinkManager sinkManager;
+	
+	public FileCoordinator(FileNodeStorer storer, FileNodeSinkManager sinkManager) {
+		this.storer = storer;
+		this.sinkManager = sinkManager;
+	}
+	
+	public void store(FileNode fileNode) throws Exception {
+		storer.save(fileNode);
+	}
+	
+	public void delete(FileNode fileNode) throws Exception {
+		storer.delete(fileNode.getName());
+	}
+	
+	public void addFileNodeSink(FileNodeSink sink) throws Exception {
+		sinkManager.registerFileNodeSink(sink);
+	}
 }
