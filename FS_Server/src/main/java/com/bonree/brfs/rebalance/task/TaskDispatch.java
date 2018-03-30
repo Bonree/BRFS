@@ -110,7 +110,7 @@ public class TaskDispatch implements Closeable {
                         }
                     }
                     // 如果该目录下有服务变更信息，则进行服务变更信息保存
-                    if (changeSummarys.size() > 0) {
+                    if (!changeSummarys.isEmpty()) {
                         // 需要对changeSummary进行已时间来排序
                         Collections.sort(changeSummarys);
                         cacheSummaryCache.put(changeSummarys.get(0).getStorageIndex(), changeSummarys);
@@ -142,7 +142,7 @@ public class TaskDispatch implements Closeable {
     }
 
     public void auditTask(List<ChangeSummary> changeSummarys) {
-        if (changeSummarys.size() > 0) {
+        if (!changeSummarys.isEmpty()) {
             ChangeSummary changeSummary = changeSummarys.get(0); // 获取第一个任务
             String serverId = changeSummary.getChangeServer();
             if (changeSummary.getChangeType() == ChangeType.ADD) { // 判断该次变更所产生的任务类型
@@ -159,7 +159,7 @@ public class TaskDispatch implements Closeable {
 
                 // ServerInfo server = getServerInfofromCache(serverId);
                 List<String> virtualServerIds = identification.listVirtualIdentification();
-                if (virtualServerIds != null && virtualServerIds.size() > 0) {// 说明目前在使用virtual SID
+                if (virtualServerIds != null && !virtualServerIds.isEmpty()) {// 说明目前在使用virtual SID
                     Collections.sort(virtualServerIds);
                     String needRecoverId = virtualServerIds.get(0);
                     // 构造任务
