@@ -40,4 +40,26 @@ public interface Identification {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public List<String> getVirtualIdentification(int count);
+    
+    /** 概述：列出使用的virtualID
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public List<String> listVirtualIdentification();
+    
+    
+    /** 概述：无效化虚拟ID
+     * @param id
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public boolean invalidVirtualIden(String id);
+    
+    
+    /** 概述：删除虚拟ID
+     * @param id
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public boolean deleteVirtualIden(String id);
 }

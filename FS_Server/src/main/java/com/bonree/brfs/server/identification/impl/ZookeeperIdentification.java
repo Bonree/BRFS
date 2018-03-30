@@ -178,4 +178,21 @@ public class ZookeeperIdentification implements Identification {
         }
         return resultVirtualIds;
     }
+
+    @Override
+    public boolean invalidVirtualIden(String id) {
+        return false;
+    }
+
+    @Override
+    public boolean deleteVirtualIden(String id) {
+        return false;
+    }
+
+    @Override
+    public List<String> listVirtualIdentification() {
+        return null;
+    }
+    
+    
 }

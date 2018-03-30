@@ -32,11 +32,8 @@ public class MultiRecover implements DataRecover {
 
     private static final String NAME_SEPARATOR = "_";
 
-    public MultiRecover(StorageName storageName, BalanceTaskSummary summary, ServerInfo serverInfo, Map<String, BalanceTaskSummary> snStorageSummary) {
-        this.storageName = storageName;
+    public MultiRecover(BalanceTaskSummary summary) {
         this.balanceSummary = summary;
-        this.selfServerInfo = serverInfo;
-        this.snStorageSummary = snStorageSummary;
     }
 
     @Override
@@ -76,9 +73,8 @@ public class MultiRecover implements DataRecover {
                 for (int j = 1; j < metaArr.length; j++) {
                     fileServerIds.add(metaArr[j]);
                 }
-                
-                //此处需要将有virtual Serverid的文件进行转换
-                
+
+                // 此处需要将有virtual Serverid的文件进行转换
 
                 // 这里要判断一个副本是否需要进行迁移
                 // 挑选出的可迁移的servers

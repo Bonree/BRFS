@@ -29,8 +29,7 @@ public class VirtualRecover implements DataRecover {
 
     private BalanceTaskSummary balanceSummary;
 
-    public VirtualRecover(StorageName storageName, BalanceTaskSummary balanceSummary, ServerInfo selfServerInfo) {
-        this.storageName = storageName;
+    public VirtualRecover(BalanceTaskSummary balanceSummary) {
         this.balanceSummary = balanceSummary;
     }
 

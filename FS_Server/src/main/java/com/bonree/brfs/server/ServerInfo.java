@@ -8,7 +8,7 @@ public class ServerInfo {
     private String multiIdentification;
     private String virtualIdentification;
     private int port;
-    private boolean init;
+    private boolean newcome;
 
     public ServerInfo() {
 
@@ -38,12 +38,12 @@ public class ServerInfo {
         this.port = port;
     }
 
-    public boolean isInit() {
-        return init;
+    public boolean isNewcome() {
+        return newcome;
     }
 
-    public void setInit(boolean init) {
-        this.init = init;
+    public void setNewcome(boolean newcome) {
+        this.newcome = newcome;
     }
 
     public String getSingleIdentification() {
