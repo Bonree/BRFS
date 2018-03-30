@@ -7,7 +7,7 @@ import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.google.common.collect.Lists;
 
-public class TaskManager {
+public class TaskMonitor {
 
     private static String zkUrl = "192.168.101.86:2181";
 
