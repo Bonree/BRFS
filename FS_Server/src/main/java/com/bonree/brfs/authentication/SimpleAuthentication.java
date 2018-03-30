@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.authentication.impl.ZookeeperUserOperation;
 import com.bonree.brfs.authentication.model.UserModel;
-import com.bonree.brfs.common.utils.StringUtils;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractPathChildrenCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
 
@@ -98,7 +98,7 @@ public class SimpleAuthentication implements UserOperation {
     }
 
     private SimpleAuthentication(String basePath, String zkUrl) {
-        String userPath = StringUtils.trimBasePath(basePath);
+        String userPath = BrStringUtils.trimBasePath(basePath);
         userCache = new ConcurrentHashMap<String, UserModel>();
         userOpt = new ZookeeperUserOperation(zkUrl, userPath);
         List<UserModel> userList = userOpt.getUserList();

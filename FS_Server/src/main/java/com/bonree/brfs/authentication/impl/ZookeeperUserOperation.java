@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.authentication.UserOperation;
 import com.bonree.brfs.authentication.model.UserModel;
-import com.bonree.brfs.common.utils.StringUtils;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 /*******************************************************************************
@@ -34,7 +34,7 @@ public class ZookeeperUserOperation implements UserOperation {
 
     public ZookeeperUserOperation(String zkUrl, String basePath) {
         this.zkUrl = zkUrl;
-        this.basePath = StringUtils.trimBasePath(basePath);
+        this.basePath = BrStringUtils.trimBasePath(basePath);
     }
 
     @Override

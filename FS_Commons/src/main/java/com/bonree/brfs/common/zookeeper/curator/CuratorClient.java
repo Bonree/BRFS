@@ -72,6 +72,8 @@ public class CuratorClient implements ZookeeperClient {
                         stateListeners = StateListener.CONNECTED;
                     } else if (newState == ConnectionState.RECONNECTED) {
                         stateListeners = StateListener.RECONNECTED;
+                    } else if (newState == ConnectionState.SUSPENDED) {
+                        stateListeners = StateListener.SUSPENDED;
                     }
                 }
             });

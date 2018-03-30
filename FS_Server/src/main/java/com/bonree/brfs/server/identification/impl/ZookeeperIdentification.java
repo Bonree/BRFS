@@ -6,7 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.utils.StringUtils;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.CuratorLocksClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.Executor;
@@ -81,7 +81,7 @@ public class ZookeeperIdentification implements Identification {
 
     private ZookeeperIdentification(String zkUrl, String basePath) {
         client = CuratorClient.getClientInstance(zkUrl);
-        this.basePath = StringUtils.trimBasePath(basePath);
+        this.basePath = BrStringUtils.trimBasePath(basePath);
         this.lockPath = basePath + SEPARATOR + LOCKS_PATH_PART;
         checkPathAndCreate(lockPath);
         checkPathAndCreate(basePath + SEPARATOR + VIRTUAL_SERVER);

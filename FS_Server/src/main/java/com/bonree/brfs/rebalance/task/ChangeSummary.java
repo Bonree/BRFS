@@ -1,9 +1,7 @@
 package com.bonree.brfs.rebalance.task;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.alibaba.fastjson.JSON;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -14,7 +12,7 @@ import com.alibaba.fastjson.JSON;
  * @Description: 节点发生改变，包括节点丢失或者节点加入
  ******************************************************************************/
 
-public class ChangeSummary {
+public class ChangeSummary implements Comparable<ChangeSummary> {
 
     private int storageIndex;
 
@@ -27,7 +25,8 @@ public class ChangeSummary {
     private String changeServer;
 
     private List<String> currentServers;
-    
+
+    @SuppressWarnings("unused")
     private ChangeSummary() {
 
     }
@@ -79,17 +78,64 @@ public class ChangeSummary {
     public void setCreateTime(long createTime) {
         this.createTime = createTime;
     }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        ChangeSummary cs = (ChangeSummary) obj;
+        return createTime == cs.createTime;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public int compareTo(ChangeSummary o) {
+        if (this == o) {
+            return 0;
+        }
+        long diff = createTime - o.createTime;
+        return (diff < 0) ? -1 : ((diff > 0) ? 1 : 0);
+    }
     
+    
+
+    @Override
+    public String toString() {
+        return "ChangeSummary [createTime=" + createTime + "]";
+    }
+
     public static void main(String[] args) {
-        List<String> servers = new ArrayList<>();
-        servers.add("bbb");
-        servers.add("ccc");
-        ChangeSummary summary = new ChangeSummary(1, 15456455l, ChangeType.ADD, "aaaaa", servers);
-        String jsonStr = JSON.toJSONString(summary);
-        System.out.println(jsonStr);
-        ChangeSummary summary1=JSON.parseObject(jsonStr,ChangeSummary.class);
-        System.out.println(summary1.getChangeType() == ChangeType.ADD);
-        
+//        long createTime1 = 123456798l;
+//        long createTime2 = 123456789l;
+//        ChangeSummary cs1 = new ChangeSummary();
+//        cs1.setStorageIndex(1);
+//        cs1.setCreateTime(createTime1);
+//        
+//        ChangeSummary cs2 = new ChangeSummary();
+//        
+//        cs2.setStorageIndex(2);
+//        cs2.setCreateTime(createTime2);
+//        List<ChangeSummary> css = new ArrayList<ChangeSummary>();
+//        css.add(cs2);
+//        css.add(cs1);
+//        Collections.sort(css);
+//        System.out.println(css);
     }
 
 }

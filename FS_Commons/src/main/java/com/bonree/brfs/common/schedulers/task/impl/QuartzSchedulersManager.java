@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.schedulers.task.SchedulerManagerInterface;
-import com.bonree.brfs.common.utils.StringUtils;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.schedulers.model.TaskInterface;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -149,7 +149,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 		}
 		QuartzBaseSchedulers pool = new QuartzBaseSchedulers();
 		String instanceName = taskpoolKey;
-		if(prop != null&& StringUtils.isEmpty(prop.get("org.quartz.scheduler.instanceName").toString())){
+		if(prop != null&& BrStringUtils.isEmpty(prop.get("org.quartz.scheduler.instanceName").toString())){
 			instanceName = prop.get("org.quartz.scheduler.instanceName").toString();
 		}
 		pool.setInstanceName(instanceName);

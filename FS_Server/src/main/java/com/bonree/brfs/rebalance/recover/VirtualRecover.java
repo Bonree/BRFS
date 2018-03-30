@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.rebalance.task.BalanceSummary;
+import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.server.ServerInfo;
 import com.bonree.brfs.server.StorageName;
 
@@ -27,9 +27,9 @@ public class VirtualRecover implements DataRecover {
 
     private StorageName storageName;
 
-    private BalanceSummary balanceSummary;
+    private BalanceTaskSummary balanceSummary;
 
-    public VirtualRecover(StorageName storageName, BalanceSummary balanceSummary, ServerInfo selfServerInfo) {
+    public VirtualRecover(StorageName storageName, BalanceTaskSummary balanceSummary, ServerInfo selfServerInfo) {
         this.storageName = storageName;
         this.balanceSummary = balanceSummary;
     }

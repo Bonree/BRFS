@@ -10,7 +10,7 @@ import java.util.List;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 用户进行副本平衡的model类
  ******************************************************************************/
-public class BalanceSummary {
+public class BalanceTaskSummary {
 
     /**
      *需要恢复的serverID;

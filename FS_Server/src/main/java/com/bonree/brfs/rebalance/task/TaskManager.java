@@ -22,7 +22,7 @@ public class TaskManager {
     }
 
     public static void publishTask() {
-        BalanceSummary task = new BalanceSummary();
+        BalanceTaskSummary task = new BalanceTaskSummary();
         task.setServerId("server1");
         task.setStorageIndex(1);
         task.setOutputServers(Lists.asList("server2", new String[] { "server3", "server4" }));

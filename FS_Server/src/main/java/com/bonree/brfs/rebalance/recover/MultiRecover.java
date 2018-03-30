@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.record.BalanceRecord;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
-import com.bonree.brfs.rebalance.task.BalanceSummary;
+import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.server.ServerInfo;
 import com.bonree.brfs.server.StorageName;
 
@@ -24,15 +24,15 @@ public class MultiRecover implements DataRecover {
 
     private StorageName storageName;
 
-    private BalanceSummary balanceSummary;
+    private BalanceTaskSummary balanceSummary;
 
     private ServerInfo selfServerInfo;
 
-    private Map<String, BalanceSummary> snStorageSummary;
+    private Map<String, BalanceTaskSummary> snStorageSummary;
 
     private static final String NAME_SEPARATOR = "_";
 
-    public MultiRecover(StorageName storageName, BalanceSummary summary, ServerInfo serverInfo, Map<String, BalanceSummary> snStorageSummary) {
+    public MultiRecover(StorageName storageName, BalanceTaskSummary summary, ServerInfo serverInfo, Map<String, BalanceTaskSummary> snStorageSummary) {
         this.storageName = storageName;
         this.balanceSummary = summary;
         this.selfServerInfo = serverInfo;

@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.schedulers.model.TaskInterface;
 import com.bonree.brfs.common.schedulers.task.QuartzSchedulerInterface;
-import com.bonree.brfs.common.utils.StringUtils;
+import com.bonree.brfs.common.utils.BrStringUtils;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -88,7 +88,7 @@ public class QuartzBaseSchedulers<T extends TaskInterface> implements QuartzSche
 					.withSchedule(cronScheduleBuilder)
 					.build();
 		}else if(taskType ==1){
-			String[] cycles = StringUtils.getSplit(cycleContent, ",");
+			String[] cycles = BrStringUtils.getSplit(cycleContent, ",");
 			if(cycles == null || cycles.length == 0){
 				throw new NullPointerException("simple trigger cycle time is empty !!! content : "+cycleContent);
 			}
@@ -235,16 +235,16 @@ public class QuartzBaseSchedulers<T extends TaskInterface> implements QuartzSche
 
 	@Override
 	public boolean checkTask(T task) {
-		if(StringUtils.isEmpty(task.getClassInstanceName())){
+		if(BrStringUtils.isEmpty(task.getClassInstanceName())){
 			return false;
 		}
-		if(StringUtils.isEmpty(task.getTaskName())){
+		if(BrStringUtils.isEmpty(task.getTaskName())){
 			return false;
 		}
-		if(StringUtils.isEmpty(task.getTaskGroupName())){
+		if(BrStringUtils.isEmpty(task.getTaskGroupName())){
 			return false;
 		}
-		if(StringUtils.isEmpty(task.getCycleContent())){
+		if(BrStringUtils.isEmpty(task.getCycleContent())){
 			return false;
 		}
 		

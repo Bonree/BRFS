@@ -3,7 +3,7 @@ package com.bonree.brfs.common.utils;
 import java.io.UnsupportedEncodingException;
 import java.util.StringTokenizer;
 
-public class StringUtils {
+public class BrStringUtils {
 
     private static final char SEPARATOR_DIR = '/';
 
