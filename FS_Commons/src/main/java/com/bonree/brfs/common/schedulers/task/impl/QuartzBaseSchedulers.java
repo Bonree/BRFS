@@ -1,4 +1,3 @@
-
 package com.bonree.brfs.common.schedulers.task.impl;
 
 import java.util.List;
