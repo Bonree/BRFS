@@ -3,6 +3,8 @@ package com.bonree.brfs.common.schedulers.task;
 import java.util.List;
 import java.util.Properties;
 
+import org.quartz.SchedulerException;
+
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -122,4 +124,20 @@ public interface BaseSchedulerInterface <T1,T2> {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public boolean checkTask(T2 task);	
+	/**
+	 * 概述：获取任务状态
+	 * @param task
+	 * @return
+	 * @throws SchedulerException
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public int getTaskStat(T2 task) throws Exception;
+	/**
+	 * 概述：判断任务是否执行
+	 * @param task
+	 * @return
+	 * @throws SchedulerException
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public boolean isExecuting(T2 task) throws Exception;
 }
