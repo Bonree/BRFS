@@ -11,7 +11,7 @@ import io.netty.handler.codec.http.HttpVersion;
 
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
-import com.bonree.brfs.common.utils.StringUtils;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.google.common.primitives.Bytes;
 
 public class DefaultNettyHandleResultCallback implements HandleResultCallback {
@@ -25,7 +25,7 @@ public class DefaultNettyHandleResultCallback implements HandleResultCallback {
 	public void completed(HandleResult result) {
 		HttpResponseStatus status = result.isSuccess() ? HttpResponseStatus.OK : HttpResponseStatus.INTERNAL_SERVER_ERROR;
 		
-		byte[] errorBytes = result.getCause() != null ? StringUtils.toUtf8Bytes(result.getCause().toString()) : null;
+		byte[] errorBytes = result.getCause() != null ? BrStringUtils.toUtf8Bytes(result.getCause().toString()) : null;
 		byte[] dataBytes = result.getData() != null ? result.getData() : new byte[0];
 		
 		ByteBuf content = Unpooled.wrappedBuffer(Bytes.concat(errorBytes, dataBytes));
