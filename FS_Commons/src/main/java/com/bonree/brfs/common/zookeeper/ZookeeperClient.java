@@ -15,21 +15,21 @@ import org.apache.zookeeper.Watcher;
  ******************************************************************************/
 public interface ZookeeperClient {
 
-    void createPersistent(String path, boolean isRecursion);
+    String createPersistent(String path, boolean isRecursion);
 
-    void createPersistent(String path, boolean isRecursion, byte[] data);
+    String createPersistent(String path, boolean isRecursion, byte[] data);
 
-    void createPersistentSequential(String path, boolean isRecursion);
+    String createPersistentSequential(String path, boolean isRecursion);
 
-    void createPersistentSequential(String path, boolean isRecursion, byte[] data);
+    String createPersistentSequential(String path, boolean isRecursion, byte[] data);
 
-    void createEphemeral(String path, boolean isRecursion);
+    String createEphemeral(String path, boolean isRecursion);
 
-    void createEphemeral(String path, boolean isRecursion, byte[] data);
+    String createEphemeral(String path, boolean isRecursion, byte[] data);
 
-    void createEphemeralSequential(String path, boolean isRecursion);
+    String createEphemeralSequential(String path, boolean isRecursion);
 
-    void createEphemeralSequential(String path, boolean isRecursion, byte[] data);
+    String createEphemeralSequential(String path, boolean isRecursion, byte[] data);
 
     void setData(String path, byte[] data);
     
