@@ -114,4 +114,37 @@ public class BrStringUtils {
         }
         return result;
     }
+    /**
+     * 概述：判断字符串为有效的数字
+     * @param cs
+     * @return
+     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     */
+    public static boolean isMathNumeric(final String cs){
+    	if (isEmpty(cs)) {
+            return false;
+        }
+        int n = 0;
+        final int sz = cs.length();
+        boolean firstIsZero = false;
+        for (int i = 0; i < sz; i++) {
+            char chars = cs.charAt(i);
+            if (chars == '.') {
+                n++;
+            }
+            if(i == 0 && '0' == chars){
+            	firstIsZero = true; 
+            }
+            if(i == 1 && '.' != chars && firstIsZero){
+            	return false;
+            }
+            if (n >= 2) {
+                return false;
+            }
+            if (Character.isDigit(chars) == false && chars != '.') {
+                return false;
+            }
+        }
+        return true;
+    }
 }

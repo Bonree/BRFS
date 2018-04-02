@@ -22,7 +22,7 @@ import com.bonree.brfs.common.schedulers.model.TaskInterface;
  */
 public class QuartzSchedulersManager implements SchedulerManagerInterface<String, QuartzBaseSchedulers, TaskInterface>{
 	Map<String,QuartzBaseSchedulers> taskPoolMap = new ConcurrentHashMap<String,QuartzBaseSchedulers>();
-	private static final Logger logger = LoggerFactory.getLogger("TaskManagerServer");
+	private static final Logger LOG = LoggerFactory.getLogger("TaskManagerServer");
 	private static class SingletonInstance {
 		public static QuartzSchedulersManager instance = new QuartzSchedulersManager();
 	}
@@ -158,7 +158,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 			this.taskPoolMap.put(taskpoolKey, pool);
 		}
 		catch (Exception e) {
-			logger.error("Exception : {}",e);
+			LOG.error("Exception : {}",e);
 			
 			return false;
 		}
