@@ -3,13 +3,15 @@ package com.bonree.brfs.common.schedulers.task.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.schedulers.manager.tmp.ServerInfo;
 import com.bonree.brfs.common.schedulers.model.TaskContent;
 import com.bonree.brfs.common.schedulers.task.MetaTaskManagerInterface;
 import com.bonree.brfs.common.schedulers.task.TaskType;
+import com.bonree.brfs.common.schedulers.task.impl.ReleaseTaskOperation;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
@@ -39,8 +41,9 @@ public class ReleaseTest {
 	public static String zkUrl = "192.168.101.86:2181";
 	public static String serverPath = "/zcg/servers";
 	public static String taskRootPath = "/zcg/task";
-	public static void main(String[] args) throws Exception {
-		List<ServerInfo> sss = createServerInfo(4);
+	@Test
+	public void test() throws Exception{
+		List<Service> sss = createServerInfo(4);
 		updateServerInfo(zkUrl, sss, serverPath);
 		LOG.info("release task ......................................................................");
 		ZookeeperClient zkClient = CuratorClient.getClientInstance(zkUrl);
@@ -70,7 +73,6 @@ public class ReleaseTest {
 //		release.changeTaskContentNodeStat("40000000007", "USER_DELETE", 0);
 //		LOG.info("stat after : {}", release.queryTaskState("40000000007", "USER_DELETE"));
 //		
-		
 	}
 	public static TaskContent createTaskContent(int index){
 		TaskContent task = new TaskContent();
@@ -79,16 +81,16 @@ public class ReleaseTest {
 		task.setTaskState(index);
 		return task;
 	}
-	public static void updateServerInfo(String zkUrl, List<ServerInfo> servers, String serverPath){
+	public static void updateServerInfo(String zkUrl, List<Service> servers, String serverPath){
 		ZookeeperClient zkClient = CuratorClient.getClientInstance(zkUrl);
 		byte[] data = null;
 		String sPath = null;
-		for(ServerInfo server : servers){
+		for(Service server : servers){
 			data = JsonUtils.toJsonBytes(server);
 			if(data == null || data.length == 0){
 				continue;
 			}
-			sPath = serverPath + "/"+server.getSingleIdentification();
+			sPath = serverPath + "/"+server.getServiceId();
 			LOG.info("server --- {}", sPath);
 			if(zkClient.checkExists(sPath)){
 				continue;
@@ -98,17 +100,12 @@ public class ReleaseTest {
 		}
 		zkClient.close();
 	}
-	public static List<ServerInfo> createServerInfo(int count){
-		List<ServerInfo> servers = new ArrayList<ServerInfo>();
-		ServerInfo tmp = null;
+	public static List<Service> createServerInfo(int count){
+		List<Service> servers = new ArrayList<Service>();
+		Service tmp = null;
 		for(int i = 0; i< count ; i++){
-			tmp = new ServerInfo();
-			tmp.setHostName(i+"");
-			tmp.setIp(""+i);
-			tmp.setMultiIdentification(""+i);
-			tmp.setSingleIdentification(""+i);
-			tmp.setNewcome(i%3 == 0);
-			tmp.setVirtualIdentification("" + i);
+			tmp = new Service();
+			tmp.setServiceId(i+"");
 			servers.add(tmp);
 		}
 		return servers;
