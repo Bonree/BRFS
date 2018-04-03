@@ -67,7 +67,7 @@ public class ReleaseTaskOperation implements MetaTaskManagerInterface{
 		}
 		List<String> childNodes = client.getChildren(path);
 		if(childNodes == null || childNodes.isEmpty()){
-			throw new NullPointerException(taskType + " tasklist is empty");
+			return childNodes;
 		}
 		//升序排列任务
 		Collections.sort(childNodes, new Comparator<String>() {				
