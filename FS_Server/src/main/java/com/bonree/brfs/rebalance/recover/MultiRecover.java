@@ -11,10 +11,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.record.BalanceRecord;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
+import com.bonree.brfs.rebalance.task.TaskAdmin;
 import com.bonree.brfs.server.ServerInfo;
 import com.bonree.brfs.server.StorageName;
 
@@ -28,18 +30,23 @@ public class MultiRecover implements DataRecover {
 
     private ServerInfo selfServerInfo;
 
+    private TaskAdmin executor;
+
     private Map<String, BalanceTaskSummary> snStorageSummary;
 
     private static final String NAME_SEPARATOR = "_";
 
-    public MultiRecover(BalanceTaskSummary summary) {
+    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskAdmin executor) {
         this.balanceSummary = summary;
+        this.selfServerInfo = selfServerInfo;
+        this.executor = executor;
     }
 
     @Override
     public void recover() {
         LOG.info("begin recover");
-
+        String node = Constants.PATH_TASKS + Constants.SEPARATOR + balanceSummary.getStorageIndex() + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + selfServerInfo.getMultiIdentification();
+        executor.setTaskStatus(node, DataRecover.RUNNING_STAGE);
         int replicas = storageName.getReplications();
 
         LOG.info("deal the local server:" + selfServerInfo.getMultiIdentification());
@@ -48,13 +55,14 @@ public class MultiRecover implements DataRecover {
         for (int i = 1; i <= replicas; i++) {
             dealReplicas(i);
         }
+        executor.setTaskStatus(node, DataRecover.FINISH_STAGE);
         System.out.println("恢复完成");
     }
 
+    
     private void dealReplicas(int replica) {
         // 需要迁移的文件,按目录的时间从小到大处理
         List<String> repliFiles = getFiles();
-
         dealFiles(repliFiles, replica);
     }
 

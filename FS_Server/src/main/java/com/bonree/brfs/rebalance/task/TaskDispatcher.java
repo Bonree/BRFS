@@ -92,6 +92,7 @@ public class TaskDispatcher implements Closeable {
      * 监听Server变更，以便生成任务
      */
     class ServerChangeListener extends AbstractTreeCacheListener {
+
         public ServerChangeListener(String listenName) {
             super(listenName);
         }
@@ -109,7 +110,7 @@ public class TaskDispatcher implements Closeable {
                         if (isLoad.get()) {
                             // 此处加载缓存
                             LOG.info("load all");
-                            loadCache(client, event);
+                            TaskDispatcher.this.loadCache(client, event);
                             isLoad.set(false);
                         }
                         ChangeDetail detail = new ChangeDetail(client, event);
@@ -122,66 +123,66 @@ public class TaskDispatcher implements Closeable {
             }
         }
 
-        private boolean isRemovedNode(TreeCacheEvent event) {
-            if (event.getType() == Type.NODE_REMOVED) {
-                return true;
-            }
-            return false;
+    }
+
+    private boolean isRemovedNode(TreeCacheEvent event) {
+        if (event.getType() == Type.NODE_REMOVED) {
+            return true;
         }
+        return false;
+    }
 
-        @SuppressWarnings("unused")
-        private boolean isUpdatedNode(TreeCacheEvent event) {
-            if (event.getType() == Type.NODE_UPDATED) {
-                return true;
-            }
-            return false;
+    @SuppressWarnings("unused")
+    private boolean isUpdatedNode(TreeCacheEvent event) {
+        if (event.getType() == Type.NODE_UPDATED) {
+            return true;
         }
+        return false;
+    }
 
-        @SuppressWarnings("unused")
-        private boolean isAddedNode(TreeCacheEvent event) {
-            if (event.getType() == Type.NODE_ADDED) {
-                return true;
-            }
-            return false;
+    @SuppressWarnings("unused")
+    private boolean isAddedNode(TreeCacheEvent event) {
+        if (event.getType() == Type.NODE_ADDED) {
+            return true;
         }
+        return false;
+    }
 
-        /** 概述：
-         * @param client
-         * @param event
-         * @throws Exception
-         * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-         */
-        public void loadCache(CuratorFramework client, TreeCacheEvent event) throws Exception {
-            String nodePath = event.getData().getPath();
-            int lastSepatatorIndex = nodePath.lastIndexOf('/');
-            String parentPath = StringUtils.substring(nodePath, 0, lastSepatatorIndex);
+    /** 概述：
+     * @param client
+     * @param event
+     * @throws Exception
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public void loadCache(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        String nodePath = event.getData().getPath();
+        int lastSepatatorIndex = nodePath.lastIndexOf('/');
+        String parentPath = StringUtils.substring(nodePath, 0, lastSepatatorIndex);
 
-            String greatPatentPath = StringUtils.substring(parentPath, 0, parentPath.lastIndexOf('/'));
-            List<String> snPaths = client.getChildren().forPath(greatPatentPath); // 此处获得子节点名称
-            if (snPaths != null) {
-                for (String snNode : snPaths) {
-                    String snPath = greatPatentPath + Constants.SEPARATOR + snNode;
-                    List<String> childPaths = client.getChildren().forPath(snPath);
+        String greatPatentPath = StringUtils.substring(parentPath, 0, parentPath.lastIndexOf('/'));
+        List<String> snPaths = client.getChildren().forPath(greatPatentPath); // 此处获得子节点名称
+        if (snPaths != null) {
+            for (String snNode : snPaths) {
+                String snPath = greatPatentPath + Constants.SEPARATOR + snNode;
+                List<String> childPaths = client.getChildren().forPath(snPath);
 
-                    List<ChangeSummary> changeSummaries = new ArrayList<ChangeSummary>();
-                    if (childPaths != null) {
-                        for (String childNode : childPaths) {
-                            String childPath = snPath + Constants.SEPARATOR + childNode;
-                            byte[] data = client.getData().forPath(childPath);
-                            ChangeSummary cs = JSON.parseObject(data, ChangeSummary.class);
-                            changeSummaries.add(cs);
-                        }
+                List<ChangeSummary> changeSummaries = new ArrayList<ChangeSummary>();
+                if (childPaths != null) {
+                    for (String childNode : childPaths) {
+                        String childPath = snPath + Constants.SEPARATOR + childNode;
+                        byte[] data = client.getData().forPath(childPath);
+                        ChangeSummary cs = JSON.parseObject(data, ChangeSummary.class);
+                        changeSummaries.add(cs);
                     }
-                    // 如果该目录下有服务变更信息，则进行服务变更信息保存
-                    if (!changeSummaries.isEmpty()) {
-                        // 需要对changeSummary进行已时间来排序
-                        Collections.sort(changeSummaries);
-                        cacheSummaryCache.put(changeSummaries.get(0).getStorageIndex(), changeSummaries);
-                    }
+                }
+                // 如果该目录下有服务变更信息，则进行服务变更信息保存
+                if (!changeSummaries.isEmpty()) {
+                    // 需要对changeSummary进行已时间来排序
+                    Collections.sort(changeSummaries);
+                    cacheSummaryCache.put(changeSummaries.get(0).getStorageIndex(), changeSummaries);
                 }
             }
         }
-
     }
 
     /*

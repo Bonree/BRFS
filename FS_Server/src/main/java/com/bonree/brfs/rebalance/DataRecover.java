@@ -9,5 +9,10 @@ package com.bonree.brfs.rebalance;
  * @Description: 平衡数据的接口，目前有虚拟ServerID恢复和多副本的serverID恢复
  ******************************************************************************/
 public interface DataRecover {
+
+    String CREATE_STAGE = "created";
+    String RUNNING_STAGE = "running";
+    String FINISH_STAGE = "finished";
+
     void recover();
 }
