@@ -1,8 +1,10 @@
 package com.bonree.brfs.server.identification.impl;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,10 @@ public class ZookeeperIdentification implements Identification {
     private final String basePath;
 
     private CuratorClient client;
+
+    private final static String NORMAL_DATA = "normal";
+
+    private final static String INVALID_DATA = "invalid";
 
     private final static String SINGLE_NODE = "single";
 
@@ -58,7 +64,7 @@ public class ZookeeperIdentification implements Identification {
             if (type == Identification.VIRTUAL) {
                 String virtualServerId = getServersId(client);
                 String virtualServerNode = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + virtualServerId;
-                client.createPersistent(virtualServerNode, false);
+                client.createPersistent(virtualServerNode, false, NORMAL_DATA.getBytes()); // 初始化的时候需要指定该节点为正常
                 return virtualServerId;
             } else {
                 return getServersId(client);
@@ -139,7 +145,7 @@ public class ZookeeperIdentification implements Identification {
     }
 
     @Override
-    public synchronized String genVirtureIdentification() {
+    public synchronized String genVirtualIdentification() {
         String serverId = null;
         String virtualNode = basePath + SEPARATOR + VIRTUAL_NODE;
         ZookeeperIdentificationGen genExecutor = new ZookeeperIdentificationGen(virtualNode, VIRTUAL);
@@ -155,11 +161,12 @@ public class ZookeeperIdentification implements Identification {
     @Override
     public synchronized List<String> getVirtualIdentification(int count) {
         List<String> resultVirtualIds = new ArrayList<String>(count);
-        
         List<String> virtualIds = client.getChildren(basePath + SEPARATOR + VIRTUAL_SERVER);
+        // 排除无效的虚拟ID
+        virtualIds = filterVirtualInvalidId(virtualIds);
         if (virtualIds == null) {
             for (int i = 0; i < count; i++) {
-                String tmp = genVirtureIdentification();
+                String tmp = genVirtualIdentification();
                 resultVirtualIds.add(tmp);
             }
         } else {
@@ -167,7 +174,7 @@ public class ZookeeperIdentification implements Identification {
                 resultVirtualIds.addAll(virtualIds);
                 int distinct = count - virtualIds.size();
                 for (int i = 0; i < distinct; i++) {
-                    String tmp = genVirtureIdentification();
+                    String tmp = genVirtualIdentification();
                     resultVirtualIds.add(tmp);
                 }
             } else {
@@ -181,18 +188,47 @@ public class ZookeeperIdentification implements Identification {
 
     @Override
     public boolean invalidVirtualIden(String id) {
+        String node = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + id;
+        try {
+            client.setData(node, INVALID_DATA.getBytes());
+            return true;
+        } catch (Exception e) {
+            LOG.error("set node :" + node + "  error!", e);
+        }
         return false;
     }
 
     @Override
     public boolean deleteVirtualIden(String id) {
+        String node = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + id;
+        try {
+            client.guaranteedDelete(node, false);
+            return true;
+        } catch (Exception e) {
+            LOG.error("delete the node: " + node + "  error!", e);
+        }
         return false;
     }
 
     @Override
     public List<String> listVirtualIdentification() {
-        return null;
+        List<String> virtualIds = client.getChildren(basePath + SEPARATOR + VIRTUAL_SERVER);
+        // 过滤掉正在恢复的虚拟ID。
+        return filterVirtualInvalidId(virtualIds);
     }
-    
-    
+
+    private List<String> filterVirtualInvalidId(List<String> virtualIds) {
+        if (virtualIds != null && !virtualIds.isEmpty()) {
+            Iterator<String> it = virtualIds.iterator();
+            while (it.hasNext()) {
+                String node = it.next();
+                byte[] data = client.getData(basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + node);
+                if (StringUtils.equals(new String(data), INVALID_DATA)) {
+                    it.remove();
+                }
+            }
+        }
+        return virtualIds;
+    }
+
 }
