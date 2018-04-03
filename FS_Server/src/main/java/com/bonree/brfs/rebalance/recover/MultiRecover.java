@@ -30,23 +30,23 @@ public class MultiRecover implements DataRecover {
 
     private ServerInfo selfServerInfo;
 
-    private TaskAdmin executor;
+    private TaskAdmin taskAdmin;
 
     private Map<String, BalanceTaskSummary> snStorageSummary;
 
     private static final String NAME_SEPARATOR = "_";
 
-    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskAdmin executor) {
+    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskAdmin taskAdmin) {
         this.balanceSummary = summary;
         this.selfServerInfo = selfServerInfo;
-        this.executor = executor;
+        this.taskAdmin = taskAdmin;
     }
 
     @Override
     public void recover() {
         LOG.info("begin recover");
         String node = Constants.PATH_TASKS + Constants.SEPARATOR + balanceSummary.getStorageIndex() + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + selfServerInfo.getMultiIdentification();
-        executor.setTaskStatus(node, DataRecover.RUNNING_STAGE);
+        taskAdmin.setTaskStatus(node, DataRecover.RUNNING_STAGE);
         int replicas = storageName.getReplications();
 
         LOG.info("deal the local server:" + selfServerInfo.getMultiIdentification());
@@ -55,11 +55,10 @@ public class MultiRecover implements DataRecover {
         for (int i = 1; i <= replicas; i++) {
             dealReplicas(i);
         }
-        executor.setTaskStatus(node, DataRecover.FINISH_STAGE);
+        taskAdmin.setTaskStatus(node, DataRecover.FINISH_STAGE);
         System.out.println("恢复完成");
     }
 
-    
     private void dealReplicas(int replica) {
         // 需要迁移的文件,按目录的时间从小到大处理
         List<String> repliFiles = getFiles();
