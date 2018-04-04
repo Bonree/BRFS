@@ -29,10 +29,10 @@ public class AsyncTaskResultGather<V> implements FutureCallback<AsyncTaskResult<
 
 	@Override
 	public void onSuccess(AsyncTaskResult<V> result) {
-		int index = taskCount.decrementAndGet();
+		int index = taskCount.getAndIncrement();
 		taskResults[index] = result;
 		
-		if(index == 0) {
+		if((index + 1) == taskResults.length) {
 			callback.completed(taskResults);
 		}
 	}

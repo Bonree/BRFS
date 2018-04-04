@@ -1,21 +1,19 @@
-package com.bonree.brfs.disknode.server.handler.impl;
+package com.bonree.brfs.disknode.server.handler;
 
 import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSONObject;
+import com.bonree.brfs.common.http.HandleResult;
+import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.disknode.DiskWriterManager;
 import com.bonree.brfs.disknode.InputEventCallback;
 import com.bonree.brfs.disknode.InputResult;
 import com.bonree.brfs.disknode.client.WriteResult;
-import com.bonree.brfs.disknode.server.handler.DiskMessage;
-import com.bonree.brfs.disknode.server.handler.HandleResult;
-import com.bonree.brfs.disknode.server.handler.HandleResultCallback;
-import com.bonree.brfs.disknode.server.netty.MessageHandler;
-import com.bonree.brfs.disknode.utils.ProtoStuffUtils;
-import com.bonree.brfs.disknode.utils.StringUtils;
+import com.bonree.brfs.disknode.server.DiskMessage;
 
 public class WriteMessageHandler implements MessageHandler<DiskMessage> {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteMessageHandler.class);
@@ -35,7 +33,7 @@ public class WriteMessageHandler implements MessageHandler<DiskMessage> {
 			nodeManager.writeAsync(msg.getFilePath(), msg.getData(), new InputEventCallback() {
 				
 				@Override
-				public void completeError(Throwable t) {
+				public void error(Throwable t) {
 					handleResult.setSuccess(false);
 					handleResult.setCause(t);
 					

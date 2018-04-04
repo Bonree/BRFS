@@ -10,7 +10,6 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Netty的Handler初始化类
@@ -19,6 +18,8 @@ import java.util.function.Consumer;
  *
  */
 public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
+	private static final int DEFAULT_MAX_HTTP_CONTENT_LENGTH = 50 * 1024 * 1024;
+	
 	private List<NettyHttpContextHandler> contextHandlers = new ArrayList<NettyHttpContextHandler>();
 
 	public void addContextHandler(NettyHttpContextHandler handler) {
@@ -27,19 +28,13 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 
 	@Override
 	protected void initChannel(SocketChannel ch) throws Exception {
-		final ChannelPipeline pipeline = ch.pipeline();
+		ChannelPipeline pipeline = ch.pipeline();
         // server端发送的是httpResponse，所以要使用HttpResponseEncoder进行编码
 		pipeline.addLast(new HttpResponseEncoder());
         // server端接收到的是httpRequest，所以要使用HttpRequestDecoder进行解码
 		pipeline.addLast(new HttpRequestDecoder());
-		pipeline.addLast(new HttpObjectAggregator(65536));
+		pipeline.addLast(new HttpObjectAggregator(DEFAULT_MAX_HTTP_CONTENT_LENGTH));
 		pipeline.addLast(new ChunkedWriteHandler());
-		contextHandlers.forEach(new Consumer<NettyHttpContextHandler>() {
-
-			@Override
-			public void accept(NettyHttpContextHandler handler) {
-				pipeline.addLast(handler);
-			}
-		});
+		contextHandlers.forEach((NettyHttpContextHandler handler) -> pipeline.addLast(handler));
     }
 }

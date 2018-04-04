@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
@@ -19,20 +17,14 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.conn.ConnectionKeepAliveStrategy;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HttpContext;
 
-import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.disknode.utils.InputUtils;
-import com.bonree.brfs.disknode.utils.ProtoStuffUtils;
+import com.bonree.brfs.common.utils.InputUtils;
+import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.google.common.io.Closeables;
 
 public class HttpDiskNodeClient implements DiskNodeClient {
@@ -231,6 +223,12 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	public int getValidLength(String path) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public void close() throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
