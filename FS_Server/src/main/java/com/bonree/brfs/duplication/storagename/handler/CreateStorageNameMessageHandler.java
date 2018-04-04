@@ -6,7 +6,7 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
-import com.bonree.brfs.common.utils.StringUtils;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 
@@ -25,7 +25,7 @@ public class CreateStorageNameMessageHandler implements MessageHandler<StorageNa
 		HandleResult result = new HandleResult();
 		if(node == null) {
 			result.setSuccess(false);
-			result.setData(StringUtils.toUtf8Bytes("errorCode:222"));
+			result.setData(BrStringUtils.toUtf8Bytes("errorCode:222"));
 		} else {
 			result.setSuccess(true);
 			byte[] nodeBytes = null;

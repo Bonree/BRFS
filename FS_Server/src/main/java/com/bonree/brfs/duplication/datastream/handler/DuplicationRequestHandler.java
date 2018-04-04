@@ -19,11 +19,12 @@ import com.bonree.brfs.common.http.netty.ResponseSender;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 
 @Sharable
-public class DuplicationRequestHandler implements NettyHttpRequestHandler {
+public class DuplicationRequestHandler implements NettyHttpRequestHandler<DataMessage> {
 	private static final Logger LOG = LoggerFactory.getLogger(DuplicationRequestHandler.class);
 	
 	private Map<HttpMethod, MessageHandler<DataMessage>> methodToOps = new HashMap<HttpMethod, MessageHandler<DataMessage>>();
 	
+	@Override
 	public void addMessageHandler(String method, MessageHandler<DataMessage> handler) {
 		methodToOps.put(HttpMethod.valueOf(method), handler);
 	}
@@ -38,6 +39,7 @@ public class DuplicationRequestHandler implements NettyHttpRequestHandler {
 			return;
 		}
 		
+		LOG.info("get content length--" + request.content().readableBytes());
 		byte[] data = new byte[request.content().readableBytes()];
 		request.content().readBytes(data);
 		

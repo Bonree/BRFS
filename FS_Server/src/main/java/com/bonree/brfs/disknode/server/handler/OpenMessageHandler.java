@@ -1,15 +1,15 @@
-package com.bonree.brfs.disknode.server.handler.impl;
+package com.bonree.brfs.disknode.server.handler;
 
 import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.http.HandleResult;
+import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.disknode.DiskWriterManager;
-import com.bonree.brfs.disknode.server.handler.DiskMessage;
-import com.bonree.brfs.disknode.server.handler.HandleResult;
-import com.bonree.brfs.disknode.server.handler.HandleResultCallback;
-import com.bonree.brfs.disknode.server.netty.MessageHandler;
+import com.bonree.brfs.disknode.server.DiskMessage;
 
 public class OpenMessageHandler implements MessageHandler<DiskMessage> {
 	private static final Logger LOG = LoggerFactory.getLogger(OpenMessageHandler.class);

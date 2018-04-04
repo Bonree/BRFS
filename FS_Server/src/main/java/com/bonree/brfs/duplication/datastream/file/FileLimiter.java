@@ -1,21 +1,28 @@
 package com.bonree.brfs.duplication.datastream.file;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.bonree.brfs.duplication.coordinator.FileNode;
 
-public class FileInfo {
+public class FileLimiter {
 	//默认的文件大小上限
 	public static final int DEFAULT_FILE_CAPACITY = 64 * 1024 * 1024;
 	
 	private FileNode fileNode;
-	private int size;
+	private AtomicInteger contentLength;
 	private final int capacity;
 	
-	public FileInfo() {
+	public FileLimiter() {
 		this(DEFAULT_FILE_CAPACITY);
 	}
 	
-	public FileInfo(int capacity) {
+	public FileLimiter(int capacity) {
 		this.capacity = capacity;
+		this.contentLength = new AtomicInteger(0);
+	}
+	
+	public int size() {
+		return contentLength.get();
 	}
 	
 	public int capacity() {
@@ -30,15 +37,16 @@ public class FileInfo {
 		this.fileNode = fileNode;
 	}
 
-	public int size() {
-		return size;
-	}
-	
-	public void increment(int length) {
-		size += length;
-	}
-	
-	public int remaining() {
-		return capacity - size;
+	public boolean obtain(int size) {
+		while(true) {
+			int current = contentLength.get();
+			if(current + size > capacity) {
+				return false;
+			}
+			
+			if(contentLength.compareAndSet(current, current + size)) {
+				return true;
+			}
+		}
 	}
 }

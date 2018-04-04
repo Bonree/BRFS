@@ -1,13 +1,12 @@
-package com.bonree.brfs.disknode.server.handler.impl;
+package com.bonree.brfs.disknode.server.handler;
 
 import java.io.File;
-import java.io.IOException;
 
+import com.bonree.brfs.common.http.HandleResult;
+import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.disknode.DiskWriterManager;
-import com.bonree.brfs.disknode.server.handler.DiskMessage;
-import com.bonree.brfs.disknode.server.handler.HandleResult;
-import com.bonree.brfs.disknode.server.handler.HandleResultCallback;
-import com.bonree.brfs.disknode.server.netty.MessageHandler;
+import com.bonree.brfs.disknode.server.DiskMessage;
 
 public class DeleteMessageHandler implements MessageHandler<DiskMessage> {
 	private DiskWriterManager nodeManager;
@@ -27,8 +26,6 @@ public class DeleteMessageHandler implements MessageHandler<DiskMessage> {
 			targetFile.delete();
 			
 			result.setSuccess(true);
-		} catch (IOException e) {
-			e.printStackTrace();
 		} finally {
 			callback.completed(result);
 		}

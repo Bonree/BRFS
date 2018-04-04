@@ -1,4 +1,4 @@
-package com.bonree.brfs.disknode.server.handler;
+package com.bonree.brfs.disknode.server;
 
 import java.util.Map;
 

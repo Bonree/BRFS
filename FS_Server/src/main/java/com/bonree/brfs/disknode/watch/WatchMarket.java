@@ -7,7 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.bonree.brfs.disknode.utils.PooledThreadFactory;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.google.common.collect.ArrayListMultimap;
 
 public class WatchMarket {

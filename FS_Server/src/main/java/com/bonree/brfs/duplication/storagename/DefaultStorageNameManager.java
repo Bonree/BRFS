@@ -1,20 +1,34 @@
 package com.bonree.brfs.duplication.storagename;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
-import com.google.common.base.Strings;
+import com.google.common.base.Optional;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 /**
- * 当前存在问题：
- * 1、通知机制的延迟导致数据不是立即可查
- * 2、快速的添加删除操作会导致通知机制触发不了
+ * StorageName信息管理类
+ * 提供对StorageName的增删改查操作
+ * 
+ * *************************************************
+ *    此类部分信息是通过zookeeper的通知机制实现的，实时性上
+ *    可能存在不足
+ * *************************************************
  * 
  * @author chen
  *
@@ -24,31 +38,55 @@ public class DefaultStorageNameManager implements StorageNameManager {
 	
 	private static final String DEFAULT_STORAGE_NAME_ROOT = "storageNames";
 	
-	private ConcurrentHashMap<String, StorageNameNode> storageNameMap = new ConcurrentHashMap<String, StorageNameNode>();
-	private ConcurrentHashMap<Integer, StorageNameNode> storageIdMap = new ConcurrentHashMap<Integer, StorageNameNode>();
+	private static final int DEFAULT_MAX_CACHE_SIZE = 100;
+	private LoadingCache<String, Optional<StorageNameNode>> storageNameCache;
+	private Map<Integer, StorageNameNode> storageIdMap = new HashMap<Integer, StorageNameNode>();
 	
 	private CuratorFramework zkClient;
+	private PathChildrenCache childrenCache;
 	
 	public DefaultStorageNameManager(CuratorFramework client) {
 		this.zkClient = client;
+		this.storageNameCache = CacheBuilder.newBuilder()
+				                            .maximumSize(DEFAULT_MAX_CACHE_SIZE)
+				                            .build(new StorageNameNodeLoader());
+		this.childrenCache = new PathChildrenCache(client, ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, null), false);
 	}
 
 	@Override
 	public void start() throws Exception {
 		zkClient.createContainers(ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, null));
+		childrenCache.getListenable().addListener(new StorageNameStateListener());
+		childrenCache.start();
 	}
 
 	@Override
 	public void stop() throws Exception {
-		//Nothing to do!
+		childrenCache.close();
+	}
+	
+	private StorageNameNode getCachedNode(String storageName) {
+		try {
+			Optional<StorageNameNode> optional = storageNameCache.get(storageName);
+			if(optional.isPresent()) {
+				return optional.get();
+			}
+			
+			//如果没有值需要把空值无效化，这样下次查询可以重新获取，而不是用缓存的空值
+			storageNameCache.invalidate(storageName);
+			return null;
+		} catch (ExecutionException e) {
+		}
+		
+		return null;
 	}
 
 	@Override
 	public boolean exists(String storageName) {
-		return storageNameMap.containsKey(storageName);
+		return getCachedNode(storageName) != null;
 	}
 	
-	private String buildStorageNamePath(String storageName) {
+	private static String buildStorageNamePath(String storageName) {
 		return ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, storageName);
 	}
 
@@ -130,36 +168,23 @@ public class DefaultStorageNameManager implements StorageNameManager {
 
 	@Override
 	public StorageNameNode findStorageName(String storageName) {
-		StorageNameNode node = storageNameMap.get(storageName);
-		
-		if(node == null) {
-			node = findStorageNameFromZookeeper(storageName);
-			
-			if(node != null) {
-				storageNameMap.put(storageName, node);
-			}
-		}
-		
-		return node;
-	}
-	
-	private void refreshCache() {
-		
-	}
-	
-	private StorageNameNode findStorageNameFromZookeeper(String storageName) {
-		try {
-			return ProtoStuffUtils.deserialize(zkClient.getData().forPath(buildStorageNamePath(storageName)), StorageNameNode.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return null;
+		return getCachedNode(storageName);
 	}
 
 	@Override
 	public StorageNameNode findStorageName(int id) {
 		return storageIdMap.get(id);
+	}
+	
+	private void refreshStorageIdMap() {
+		storageIdMap.clear();
+		List<ChildData> childList = childrenCache.getCurrentData();
+		for(ChildData child : childList) {
+			StorageNameNode node = findStorageName(ZKPaths.getNodeFromPath(child.getPath()));
+			if(node != null) {
+				storageIdMap.put(node.getId(), node);
+			}
+		}
 	}
 
 	@Override
@@ -172,12 +197,53 @@ public class DefaultStorageNameManager implements StorageNameManager {
 		node.setTtl(ttl);
 		
 		try {
-			zkClient.setData().forPath(ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, storageName), ProtoStuffUtils.serialize(node));
+			zkClient.setData().forPath(buildStorageNamePath(storageName), ProtoStuffUtils.serialize(node));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 		
 		return true;
+	}
+	
+	private class StorageNameNodeLoader extends CacheLoader<String, Optional<StorageNameNode>> {
+
+		@Override
+		public Optional<StorageNameNode> load(String storageName) throws Exception {
+			StorageNameNode node = null;
+			try {
+				node = ProtoStuffUtils.deserialize(zkClient.getData().forPath(buildStorageNamePath(storageName)), StorageNameNode.class);
+			} catch (Exception e) {
+			}
+			
+			return Optional.fromNullable(node);
+		}
+		
+	}
+	
+	private class StorageNameStateListener implements PathChildrenCacheListener {
+
+		@Override
+		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+			ChildData data = event.getData();
+			String storageName = ZKPaths.getNodeFromPath(data.getPath());
+			LOG.info("event[{}] for storagename[{}]", event.getType(), storageName);
+			switch (event.getType()) {
+			case CHILD_ADDED:
+				storageNameCache.get(storageName);
+				break;
+			case CHILD_UPDATED:
+				storageNameCache.refresh(storageName);
+				break;
+			case CHILD_REMOVED:
+				storageNameCache.invalidate(storageName);
+				break;
+			default:
+				break;
+			}
+			
+			refreshStorageIdMap();
+		}
+		
 	}
 }

@@ -1,8 +1,21 @@
-package com.bonree.brfs.duplication.datastream.tasks;
+package com.bonree.brfs.duplication.datastream;
 
 public class ResultItem {
 	private int sequence;
 	private String fid;
+	
+	public ResultItem() {
+		this(0);
+	}
+	
+	public ResultItem(int seq) {
+		this(seq, null);
+	}
+	
+	public ResultItem(int seq, String fid) {
+		this.sequence = seq;
+		this.fid = fid;
+	}
 
 	public int getSequence() {
 		return sequence;

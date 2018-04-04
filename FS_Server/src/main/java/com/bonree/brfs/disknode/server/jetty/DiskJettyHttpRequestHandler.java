@@ -16,18 +16,18 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.disknode.server.handler.DiskMessage;
-import com.bonree.brfs.disknode.server.handler.HandleResult;
-import com.bonree.brfs.disknode.server.handler.HandleResultCallback;
-import com.bonree.brfs.disknode.server.netty.MessageHandler;
-import com.bonree.brfs.disknode.utils.InputUtils;
+import com.bonree.brfs.common.http.HandleResult;
+import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.utils.InputUtils;
+import com.bonree.brfs.disknode.server.DiskMessage;
 
 public class DiskJettyHttpRequestHandler extends AbstractHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskJettyHttpRequestHandler.class);
 	
-	private Map<String, MessageHandler> methodToOps = new HashMap<String, MessageHandler>();
+	private Map<String, MessageHandler<DiskMessage>> methodToOps = new HashMap<String, MessageHandler<DiskMessage>>();
 	
-	public void put(String method, MessageHandler handler) {
+	public void put(String method, MessageHandler<DiskMessage> handler) {
 		methodToOps.put(method, handler);
 	}
 
@@ -37,7 +37,7 @@ public class DiskJettyHttpRequestHandler extends AbstractHandler {
 			throws IOException, ServletException {
 		LOG.debug("handle request[{}:{}]", request.getMethod(), target);
 		
-		MessageHandler handler = methodToOps.get(request.getMethod());
+		MessageHandler<DiskMessage> handler = methodToOps.get(request.getMethod());
 		if(handler == null) {
 			baseRequest.setHandled(true);
 			responseError(response, HttpStatus.Code.METHOD_NOT_ALLOWED);
