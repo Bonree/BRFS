@@ -27,16 +27,16 @@ import com.bonree.brfs.server.ServerInfo;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 任务执行节点
  ******************************************************************************/
-public class TaskAdmin implements Closeable {
+public class TaskOperation implements Closeable {
 
-    private final static Logger LOG = LoggerFactory.getLogger(TaskAdmin.class);
+    private final static Logger LOG = LoggerFactory.getLogger(TaskOperation.class);
 
     private ServerInfo selfServer;
     private CuratorClient client;
     private CuratorTreeCache treeCache;
     private String tasksPath;
 
-    public TaskAdmin() {
+    public TaskOperation() {
         client = CuratorClient.getClientInstance(Constants.zkUrl);
         tasksPath = Constants.PATH_TASKS;
     }
@@ -59,12 +59,14 @@ public class TaskAdmin implements Closeable {
 
         @Override
         public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-            if (event.getData() != null && event.getData().getData() != null) {
-                byte[] data = event.getData().getData();
-                BalanceTaskSummary taskSummary = JSON.parseObject(data, BalanceTaskSummary.class);
-                String basePath = event.getData().getPath();
-                launchDelayTaskExecutor(taskSummary, basePath);
-            }
+
+            System.out.println(event);
+            // if (event.getData() != null && event.getData().getData() != null) {
+            // byte[] data = event.getData().getData();
+            // BalanceTaskSummary taskSummary = JSON.parseObject(data, BalanceTaskSummary.class);
+            // String basePath = event.getData().getPath();
+            // launchDelayTaskExecutor(taskSummary, basePath);
+            // }
         }
 
     }
@@ -88,8 +90,18 @@ public class TaskAdmin implements Closeable {
             if (!client.checkExists(node)) {
                 client.createPersistent(path, false, DataRecover.CREATE_STAGE.getBytes());
             }
-            // 调用成岗的任务执行模块
+            // 调用成岗的任务创建模块
+            launchTask(delayTime, recover);
         }
+    }
+
+    /** 概述：生成一个具有延时的任务
+     * @param delay
+     * @param recover
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    private void launchTask(long delay, DataRecover recover) {
+        // TODO 这边需要和成岗进行沟通
     }
 
     /** 概述：设置任务状态为运行中
@@ -110,6 +122,13 @@ public class TaskAdmin implements Closeable {
     @Override
     public void close() throws IOException {
 
+    }
+
+    public static void main(String[] args) throws InterruptedException, IOException {
+        TaskOperation opt = new TaskOperation();
+        opt.start();
+        Thread.sleep(Long.MAX_VALUE);
+        opt.close();
     }
 
 }
