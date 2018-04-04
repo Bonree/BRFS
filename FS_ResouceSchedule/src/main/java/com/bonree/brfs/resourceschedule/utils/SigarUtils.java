@@ -2,6 +2,8 @@ package com.bonree.brfs.resourceschedule.utils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,14 +18,8 @@ import org.hyperic.sigar.NetInterfaceStat;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
-import com.bonree.brfs.resourceschedule.commons.ResourceScheduleCache;
-import com.bonree.brfs.resourceschedule.commons.impl.GatherResource;
-import com.bonree.brfs.resourceschedule.model.BaseNetModel;
-import com.bonree.brfs.resourceschedule.model.BasePatitionModel;
-import com.bonree.brfs.resourceschedule.model.CpuStatModel;
-import com.bonree.brfs.resourceschedule.model.MemoryStatModel;
-import com.bonree.brfs.resourceschedule.model.NetStatModel;
-import com.bonree.brfs.resourceschedule.model.PatitionStatModel;
+import com.bonree.brfs.common.utils.BrStringUtils;
+
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -36,417 +32,6 @@ import com.bonree.brfs.resourceschedule.model.PatitionStatModel;
 public enum SigarUtils {
 	instance;
     private Sigar sigar = new Sigar();
-    /**
-     * 概述：采集指定ip地址的网卡信息
-     * @param ipAddress 网卡ip地址
-     * @param maxTSpeed 预设网卡最大发送速度
-     * @param maxRSpeed 预设网卡最大接收速度
-     * @return
-     * @throws SigarException
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public BaseNetModel gatherBaseNetInfo(String ipAddress, long maxTSpeed, long maxRSpeed) throws SigarException{
-    	// 1.过滤非法的ip地址
-    	if(NetUtils.filterIp(ipAddress)){
-    		return null;
-    	}
-    	BaseNetModel obj = new BaseNetModel();
-    	//Sigar sigar = new Sigar();
-    	String[] netInfos = sigar.getNetInterfaceList();
-    	NetInterfaceConfig netConfig = null;
-    	String tmpIp = null;
-    	for(String netInfo : netInfos){
-    		netConfig = sigar.getNetInterfaceConfig(netInfo);
-    		tmpIp = netConfig.getAddress();    	
-    		// 1.过滤非法的ip
-    		if(NetUtils.filterIp(tmpIp)){
-    			continue;
-    		}
-    		// 2.过滤网卡不存在的
-    		if(((netConfig.getFlags() & 1L) <= 0L)){
-    			continue;
-    		}
-    		// 3.过滤不符合ip的网卡
-    		if(!tmpIp.equals(ipAddress)){
-    			continue;
-    		}
-    		obj.setIpAddress(tmpIp);
-    		obj.setDevName(netConfig.getName());
-    		obj.setMacAddress(netConfig.getHwaddr());
-    		obj.setMaxRSpeed(maxRSpeed);
-    		obj.setMaxTSpeed(maxTSpeed);
-    		break;
-    	}
-    	return obj;
-    }
-    /**
-     * 概述：采集所有网卡信息
-     * @param maxRSpeed 预设网卡最大接收速度
-     * @param maxTSpeed 预设网卡最大发送速度
-     * @return Map<String,BaseNetInfo>   key：ip地址，value：网卡基本信息
-     * @throws SigarException
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public Map<String, BaseNetModel> gatherBaseNetInfos(ResourceScheduleCache cache) throws SigarException{
-    	Map<String, BaseNetModel> objMap = new ConcurrentHashMap<String, BaseNetModel>();
-    	//Sigar sigar = new Sigar();
-    	String[] netInfos = sigar.getNetInterfaceList();
-    	NetInterfaceConfig netConfig = null;
-    	String tmpIp = null;
-    	BaseNetModel obj = null;
-    	for(String netInfo : netInfos){
-    		netConfig = sigar.getNetInterfaceConfig(netInfo);
-    		tmpIp = netConfig.getAddress();
-    		// 1.过滤非法的IP
-    		if(NetUtils.filterIp(tmpIp)){
-    			continue;
-    		}
-    		// 2.过滤网卡不存在的
-    		if(((netConfig.getFlags() & 1L) <= 0L)){
-    			continue;
-    		}
-    		// 3.存在的ip将不再采集
-    		if(objMap.containsKey(tmpIp)){
-    			continue;
-    		}
-    		obj = new BaseNetModel();
-    		obj.setIpAddress(tmpIp);
-    		obj.setDevName(netConfig.getName());
-    		obj.setMacAddress(netConfig.getHwaddr());
-    		obj.setMaxRSpeed(cache.NET_MAX_R_SPEED);
-    		obj.setMaxTSpeed(cache.NET_MAX_T_SPEED);
-    		objMap.put(tmpIp, obj);
-    		
-    	}
-    	return objMap;
-    }
-    /**
-     * 概述：采集网卡状态信息
-     * @param ipAddress 
-     * @return
-     * @throws SigarException
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public NetStatModel gatherNetStatInfo(String ipAddress) throws SigarException{
-    	// 1.过滤非法的ip地址
-    	if(NetUtils.filterIp(ipAddress)){
-    		return null;
-    	}
-    	NetStatModel obj = new NetStatModel();
-    	//Sigar sigar = new Sigar();
-    	String[] netInfos = sigar.getNetInterfaceList();
-    	NetInterfaceConfig netConfig = null;
-    	NetInterfaceStat  netStat = null;
-    	String tmpIp = null;
-    	String devName = null;
-    	for(String netInfo : netInfos){
-    		netConfig = sigar.getNetInterfaceConfig(netInfo);
-    		tmpIp = netConfig.getAddress();
-    		devName = netConfig.getName();
-    		// 1.过滤非法的ip
-    		if(NetUtils.filterIp(tmpIp)){
-    			continue;
-    		}
-    		// 2.过滤网卡不存在的
-    		if(((netConfig.getFlags() & 1L) <= 0L)){
-    			continue;
-    		}
-    		// 3.过滤不符合ip的网卡
-    		if(!tmpIp.equals(ipAddress)){
-    			continue;
-    		}
-    		obj.setIpAddress(tmpIp);
-    		obj.setrDataSize(netStat.getRxBytes());
-    		obj.settDataSize(netStat.getTxBytes());
-    		break;
-    	}
-    	return obj;
-    }
-    /**
-     * 概述：采集网卡状态信息
-     * @return
-     * @throws SigarException
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public Map<String, NetStatModel> gatherNetStatInfos() throws SigarException{
-    	Map<String, NetStatModel> objMap = new ConcurrentHashMap<String, NetStatModel>();
-    	//Sigar sigar = new Sigar();
-    	String[] netInfos = sigar.getNetInterfaceList();
-    	NetInterfaceConfig netConfig = null;
-    	NetInterfaceStat  netStat = null;
-    	NetStatModel obj = null;
-    	String tmpIp = null;
-    	String devName = null;
-    	for(String netInfo : netInfos){
-    		netConfig = sigar.getNetInterfaceConfig(netInfo);
-    		tmpIp = netConfig.getAddress();
-    		devName = netConfig.getName();
-    		
-    		// 1.过滤非法的IP
-    		if(NetUtils.filterIp(tmpIp)){
-    			continue;
-    		}
-    		// 2.过滤网卡不存在的
-    		if(((netConfig.getFlags() & 1L) <= 0L)){
-    			continue;
-    		}
-    		// 3.存在的ip将不再采集
-    		if(objMap.containsKey(tmpIp)){
-    			continue;
-    		}
-    		if(StringUtils.isEmpty(devName)){
-    			continue;
-    		}
-    		netStat = sigar.getNetInterfaceStat(devName);
-    		obj = new NetStatModel();
-    		obj.setIpAddress(tmpIp);
-    		obj.setrDataSize(netStat.getRxBytes());
-    		obj.settDataSize(netStat.getTxBytes());
-    		objMap.put(tmpIp, obj);
-    		
-    	}
-    	return objMap;
-    }
-    /**
-     * 概述：获取指定分区的基本信息
-     * @param mountPoint 磁盘分区挂载点
-     * @param maxWriteSpeed 预设磁盘最大写入速度
-     * @param maxReadSpeed 预设磁盘最大读取速度
-     * @return
-     * @throws SigarException
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public BasePatitionModel gatherBasePatitionInfo(String mountPoint, long maxWriteSpeed, long maxReadSpeed) throws SigarException{
-    	// 1.过滤非法的挂载点
-    	if(DiskUtils.filterMountPoint(mountPoint)){
-    		return null;
-    	}
-    	BasePatitionModel obj = new BasePatitionModel();
-    	//Sigar sigar = new Sigar();
-    	FileSystem[] fileSystems = sigar.getFileSystemList();
-    	String tmpMountPoint = null;
-    	FileSystemUsage usage = null;
-    	int devType = 0;
-    	for(FileSystem fileSystem : fileSystems){
-    		tmpMountPoint = fileSystem.getDirName();
-    		// 1.过滤挂载点为空的分区
-    		if(StringUtils.isEmpty(tmpMountPoint)){
-    			continue;
-    		}
-    		if(!mountPoint.equals(tmpMountPoint)){
-    			continue;
-    		}
-    		devType = fileSystem.getType();
-    		obj.setMountedPoint(tmpMountPoint);
-    		obj.setDiskType(fileSystem.getType());
-    		obj.setMaxReadSpeed(maxReadSpeed);
-    		obj.setMaxWriteSpeed(maxWriteSpeed);
-    		obj.setPatitionFormateName(fileSystem.getSysTypeName());
-    		// 3.非本地磁盘及NFS的不统计分区大小
-    		if(devType == 2 || devType == 3){
-    			usage = sigar.getFileSystemUsage(tmpMountPoint);
-    			obj.setPatitionSize(usage.getTotal());
-    		}
-    		break;
-    	}
-    	return obj;
-    }
-   /**
-    * 概述：
-    * @param dir
-    * @param maxWriteSpeed
-    * @param maxReadSpeed
-    * @return
-    * @throws SigarException
-    * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-    */
-    public Map<String, BasePatitionModel> gatherBasePatitionInfos(ResourceScheduleCache cache) throws SigarException{
-    	Map<String, BasePatitionModel> basePatitionMap = new ConcurrentHashMap<String, BasePatitionModel>();
-    	String dir = cache.DATA_DIRECTORY;
-    	// 1.过滤非法的挂载点
-    	if(DiskUtils.filterMountPoint(dir)){
-    		throw new NullPointerException("mount point is valid !!! " + dir);
-    	}
-    	String dirPath = new File(dir).getAbsolutePath();
-    	//Sigar sigar = new Sigar();
-    	FileSystem[] fileSystems = sigar.getFileSystemList();
-    	BasePatitionModel obj = null;
-    	String tmpMountPoint = null;
-    	FileSystemUsage usage = null;
-    	int devType = 0;
-    	for(FileSystem fileSystem : fileSystems){
-    		tmpMountPoint = fileSystem.getDirName();
-    		// 1.过滤挂载点为空的分区
-    		if(StringUtils.isEmpty(tmpMountPoint)){
-    			continue;
-    		}
-    		// 2.过滤与目录无关的分区
-            if(!tmpMountPoint.contains(dirPath) && !dirPath.contains(tmpMountPoint)){
-                continue;
-            }
-            // 3.过滤已经存在的分区
-            if(basePatitionMap.containsKey(tmpMountPoint)){
-            	continue;
-            }
-            
-            obj = new BasePatitionModel();
-            devType = fileSystem.getType();
-    		obj.setMountedPoint(tmpMountPoint);
-    		obj.setDiskType(fileSystem.getType());
-    		obj.setMaxReadSpeed(cache.DISK_MAX_READ_SPEED);
-    		obj.setMaxWriteSpeed(cache.DISK_MAX_WRITE_SPEED);
-    		obj.setPatitionFormateName(fileSystem.getSysTypeName());
-    		// 4.非本地磁盘及NFS的不统计分区大小
-    		if(devType == 2 || devType == 3){
-    			usage = sigar.getFileSystemUsage(tmpMountPoint);
-    			obj.setPatitionSize(usage.getTotal());
-    		}
-    		basePatitionMap.put(tmpMountPoint, obj);
-    	}
-    	return basePatitionMap;
-    }
-   
-    /**
-     * 概述：采集挂载点分区使用状态
-     * @param mountPoint
-     * @return
-     * @throws SigarException
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public PatitionStatModel gatherPatitionStatInfo(String mountPoint) throws SigarException{
-    	// 1.过滤非法挂载点
-    	if(DiskUtils.filterMountPoint(mountPoint)){
-    		return null;
-    	}
-    	PatitionStatModel obj = new PatitionStatModel();
-    	//Sigar sigar = new Sigar();
-    	FileSystem[] fileSystems = sigar.getFileSystemList();
-    	String tmpMountPoint = null;
-    	FileSystemUsage usage = null;
-    	int devType = 0;
-    	for(FileSystem fileSystem : fileSystems){
-    		tmpMountPoint = fileSystem.getDirName();
-    		// 1.过滤挂载点为空的分区
-    		if(StringUtils.isEmpty(tmpMountPoint)){
-    			continue;
-    		}
-    		if(!mountPoint.equals(tmpMountPoint)){
-    			continue;
-    		}
-    		obj.setMountPoint(tmpMountPoint);
-    		// 3.非本地磁盘及NFS的不统计分区大小
-    		if(devType == 2 || devType == 3){
-    			usage = sigar.getFileSystemUsage(tmpMountPoint);
-    			obj.setReadDataSize(usage.getDiskReadBytes());
-    			obj.setWriteDataSize(usage.getDiskWriteBytes());
-    			obj.setRemainSize(usage.getAvail());
-    			obj.setUsedSize(usage.getUsed());
-    		}
-    		break;
-    	}
-    	return obj;
-    }
-    /**
-     * 概述：采集data目录下的分区状态信息
-     * @param dir
-     * @return
-     * @throws SigarException
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public Map<String, PatitionStatModel> gatherPatitionStatInfos(ResourceScheduleCache cache) throws SigarException{
-    	Map<String, PatitionStatModel> patitionStatMap = new ConcurrentHashMap<String, PatitionStatModel>();
-    	String dir = cache.DATA_DIRECTORY;
-    	// 1.过滤非法的挂载点
-    	if(DiskUtils.filterMountPoint(dir)){
-    		return patitionStatMap;
-    	}
-    	String dirPath = new File(dir).getAbsolutePath();
-    	//Sigar sigar = new Sigar();
-    	FileSystem[] fileSystems = sigar.getFileSystemList();
-    	PatitionStatModel obj = null;
-    	String tmpMountPoint = null;
-    	FileSystemUsage usage = null;
-    	int devType = 0;
-    	for(FileSystem fileSystem : fileSystems){
-    		tmpMountPoint = fileSystem.getDirName();
-    		devType = fileSystem.getType();
-    		// 1.过滤挂载点为空的分区
-    		if(StringUtils.isEmpty(tmpMountPoint)){
-    			continue;
-    		}
-    		// 2.过滤与目录无关的分区
-            if(!tmpMountPoint.contains(dirPath) && !dirPath.contains(tmpMountPoint)){
-                continue;
-            }
-            // 3.过滤已经存在的分区
-            if(patitionStatMap.containsKey(tmpMountPoint)){
-            	continue;
-            }
-            obj = new PatitionStatModel();
-            obj.setMountPoint(tmpMountPoint);
-    		// 4.非本地磁盘及NFS的不统计分区大小
-    		if(devType == 2 || devType == 3){
-    			usage = sigar.getFileSystemUsage(tmpMountPoint);
-    			obj.setReadDataSize(usage.getDiskReadBytes());
-    			obj.setWriteDataSize(usage.getDiskWriteBytes());
-    			obj.setRemainSize(usage.getAvail());
-    			obj.setUsedSize(usage.getUsed());
-    		}
-    		patitionStatMap.put(tmpMountPoint, obj);
-    	}
-    	return patitionStatMap;
-    }
-    /**
-     * 概述：采集data目录下的分区状态信息
-     * @param dir
-     * @return
-     * @throws SigarException
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public Map<String, PatitionStatModel> gatherPatitionStatInfos2(ResourceScheduleCache cache) throws SigarException{
-    	Map<String, PatitionStatModel> patitionStatMap = new ConcurrentHashMap<String, PatitionStatModel>();
-    	String dir = cache.DATA_DIRECTORY;
-    	// 1.过滤非法的挂载点
-    	if(DiskUtils.filterMountPoint(dir)){
-    		return patitionStatMap;
-    	}
-    	String dirPath = new File(dir).getAbsolutePath();
-    	Map<String,FileSystem> fileSystemMap = sigar.getFileSystemMap();
-    	Set<String> mountPoints = fileSystemMap.keySet();
-    	List<String> avaliablePoints = new ArrayList<String>();
-    	PatitionStatModel obj = null;
-    	FileSystemUsage usage = null;
-    	int devType = 0;
-    	for(String tmpPoint : mountPoints){
-    		// 1.过滤挂载点为空的分区
-    		if(StringUtils.isEmpty(tmpPoint)){
-    			continue;
-    		}
-    		// 2.过滤与目录无关的分区
-            if(!tmpPoint.contains(dirPath) && !dirPath.contains(tmpPoint)){
-                continue;
-            }
-            // 3.过滤已经存在的分区
-            if(patitionStatMap.containsKey(tmpPoint)){
-            	continue;
-            }
-            devType = fileSystemMap.get(tmpPoint).getType();
-            obj = new PatitionStatModel();
-            obj.setMountPoint(tmpPoint);
-    		// 4.非本地磁盘及NFS的不统计分区大小
-    		if(devType == 2 || devType == 3){
-    			usage = sigar.getFileSystemUsage(tmpPoint);
-    			obj.setReadDataSize(usage.getDiskReadBytes());
-    			obj.setWriteDataSize(usage.getDiskWriteBytes());
-    			obj.setRemainSize(usage.getAvail());
-    			obj.setUsedSize(usage.getUsed());
-    		}
-    		patitionStatMap.put(tmpPoint, obj);
-    	}
-    	
-    	return patitionStatMap;
-    }
-    
     /**
      * 概述：获取cpu核心数
      * @return 
@@ -463,19 +48,18 @@ public enum SigarUtils {
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public long gatherMemSize() throws SigarException {
-    	//Sigar sigar = new Sigar();
         Mem mem = sigar.getMem();
         return mem.getTotal();
     }
+    
     /**
-     * 概述：采集cpu状态
+     * 概述：采集cpus使用率
      * 比较特殊的是CPU总使用率的计算(util),目前的算法是: util = 1 - idle - iowait - steal
      * @return
      * @throws SigarException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public CpuStatModel gatherCpuStatInfo() throws SigarException {
-    	//Sigar sigar = new Sigar();
+    public double gatherCpuRate() throws SigarException {
         Cpu cpu = sigar.getCpu();
         long userTime = cpu.getUser();
         long sysTime = cpu.getSys();
@@ -489,28 +73,143 @@ public enum SigarUtils {
         double idleRate = (double) idleTime/cpuTotalTime;
         double iowaitRate = (double) iowaitTime /cpuTotalTime;
         double stlRate = (double) stlTime/cpuTotalTime;
-        CpuStatModel obj = new CpuStatModel();
-        obj.setCpuRate(1 - (idleRate+iowaitRate+stlRate));
-        obj.setCpuRemainRate(idleRate+iowaitRate+stlRate);
-        return obj;
+        return (1 - (idleRate+iowaitRate+stlRate));
     }
+    
     /**
-     * 概述：采集内存状态信息
+     * 概述：采集内存使用率
      * util = (total - free - buff - cache) / total
      * @return
      * @throws SigarException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public MemoryStatModel gatherMemoryStatInfo() throws SigarException {
+    public double gatherMemoryRate() throws SigarException {
         Mem mem = sigar.getMem();
         long  actUse = mem.getActualUsed();
         long total = mem.getTotal();
-        MemoryStatModel obj = new MemoryStatModel();
         double usageRate = (double) actUse / total;
-        double remainRate = 1 - usageRate;
-        obj.setMemoryRate(usageRate);
-        obj.setMemoryRemainRate(remainRate);
-        return obj;
-
+        return usageRate;
+    }
+    
+    /**
+     * 概述：获取配置ip的信息
+     * @param ipSet
+     * @return 设备名称
+     * @throws SigarException
+     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     */
+    public Set<String> gatherBaseNetDevSet(Collection<String> ipSet) throws SigarException{
+    	Set<String> DevSet = new HashSet<String>();
+    	if(ipSet == null || ipSet.isEmpty()){
+    		return DevSet;
+    	}
+    	String[] netInfos = sigar.getNetInterfaceList();
+    	NetInterfaceConfig netConfig = null;
+    	String tmpIp = null;
+    	for(String netInfo : netInfos){
+    		netConfig = sigar.getNetInterfaceConfig(netInfo);
+    		tmpIp = netConfig.getAddress();    	
+    		// 1.过滤非法的ip
+    		if(NetUtils.filterIp(tmpIp)){
+    			continue;
+    		}
+    		// 2.过滤网卡不存在的
+    		if(((netConfig.getFlags() & 1L) <= 0L)){
+    			continue;
+    		}
+    		if(ipSet.contains(tmpIp)){
+    			ipSet.add(netInfo);
+    		}
+    		break;
+    	}
+    	return DevSet;
+    }
+    
+    /**
+     * 概述：采集网卡状态信息
+     * @return key 0-发送字节数，1-接收字节数
+     * @throws SigarException
+     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     */
+    public Map<Integer,Map<String, Long>> gatherNetStatInfos(Collection<String> ipDevSet) throws SigarException{
+    	Map<Integer,Map<String, Long>> objMap = new ConcurrentHashMap<Integer,Map<String, Long>>();
+    	if(ipDevSet == null || ipDevSet.isEmpty()){
+    		return objMap;
+    	}
+    	NetInterfaceConfig netConfig = null;
+    	NetInterfaceStat  netStat = null;
+    	String tmpIp = null;
+    	String devName = null;
+    	for(String netInfo : ipDevSet){
+    		netConfig = sigar.getNetInterfaceConfig(netInfo);
+    		tmpIp = netConfig.getAddress();
+    		devName = netConfig.getName();
+    		// 1.过滤网卡不存在的
+    		if(((netConfig.getFlags() & 1L) <= 0L)){
+    			continue;
+    		}
+    		
+    		netStat = sigar.getNetInterfaceStat(netInfo);
+    		 addDataToMap(objMap,0,tmpIp,netStat.getTxBytes());
+             addDataToMap(objMap,1,tmpIp,netStat.getRxBytes());
+    	}
+    	return objMap;
+    }
+    
+    /**
+     * 概述：采集分区信息
+     * @param rootPath
+     * @return key：0-分区大小，1-分区可用大小，2-硬盘读取kb数, 3-硬盘写入kb数
+     * @throws SigarException
+     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     */
+    public Map<Integer,Map<String,Long>> gatherPartitionInfo(String rootPath) throws SigarException {
+        Map<Integer,Map<String,Long>> objMap = new ConcurrentHashMap<Integer, Map<String, Long>>();
+        if(BrStringUtils.isEmpty(rootPath)){
+            return objMap;
+        }
+        File file = new File(rootPath);
+        if(!file.exists()||file.isFile()){
+            return objMap;
+        }
+        FileSystem[] fileSystems = sigar.getFileSystemList();
+        String mountedPoint = null;
+        FileSystemUsage usage = null;
+        int type = -1;
+        for(FileSystem fileSystem : fileSystems){
+            mountedPoint = fileSystem.getDirName();
+            type = fileSystem.getType();
+            if(BrStringUtils.isEmpty(mountedPoint)){
+                continue;
+            }
+            //目录无关的分区
+            if(!mountedPoint.contains(file.getAbsolutePath()) && !file.getAbsolutePath().contains(mountedPoint)){
+                continue;
+            }
+            if(type == 2||type == 3){
+            	usage = sigar.getFileSystemUsage(fileSystem.getDirName());
+            	addDataToMap(objMap,0,mountedPoint,usage.getTotal());
+            	addDataToMap(objMap,1,mountedPoint,usage.getAvail());
+            	addDataToMap(objMap,2,mountedPoint,usage.getDiskReadBytes());
+            	addDataToMap(objMap,3,mountedPoint,usage.getDiskWriteBytes());
+            }
+        }
+        return objMap;
+    }
+    /**
+     * 概述：汇总信息
+     * @param objMap
+     * @param type
+     * @param key
+     * @param value
+     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     */
+    private void addDataToMap(Map<Integer,Map<String,Long>> objMap, int type, String key, Long value){
+        Map<String,Long> cMap = null;
+        if(!objMap.containsKey(type)){
+        	objMap.put(type,new ConcurrentHashMap<String, Long>());
+        }
+        cMap = objMap.get(type);
+        cMap.put(key, value);
     }
 }

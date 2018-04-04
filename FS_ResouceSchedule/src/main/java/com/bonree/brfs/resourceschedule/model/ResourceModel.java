@@ -3,108 +3,69 @@ package com.bonree.brfs.resourceschedule.model;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.resourceschedule.model.enums.SceneEnum;
-import com.bonree.brfs.resourceschedule.model.enums.ServerCommonEnum;
-/****************************************************************************
- * 版权信息：北京博睿宏远数据科技股份有限公司
- * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
- * 
- * @date 2018年3月16日 下午2:08:40
- * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @Description: 可用server模型
- *****************************************************************************
- */
-public class ResourceModel extends AbstractResourceModel{
-	private int serverId;
-	/**
-	 * 元数据操作指标
-	 */
-	private double clientMetaRequest;
-	/**
-	 * sn读取请求
-	 */
-	private Map<String, Double> clientSNReadMap = new ConcurrentHashMap<String, Double>();
-	/**
-	 * sn写入请求
-	 */
-	private Map<String, Double> clientSNWriteMap = new ConcurrentHashMap<String, Double>();
-	/**
-	 * sn 剩余空间率，针对单个机器
-	 */
-	private Map<String, Double> snRemainRate = new ConcurrentHashMap<String, Double>();
-	
-	@Override
-	public JSONObject toJSONObject() {
-		// TODO Auto-generated method stub
-		JSONObject obj = new JSONObject();
-		obj.put(ServerCommonEnum.SERVER_ID.name(), this.serverId);
-		JSONObject readObj = new JSONObject();
-		if(this.clientSNReadMap != null){
-			for(Map.Entry<String, Double> entry : this.clientSNReadMap.entrySet()){
-				readObj.put(entry.getKey(), entry.getValue());
-			}
-		}
-		obj.put(SceneEnum.CLIENT_READ_REQUEST.name(), readObj);
-		JSONObject writeObj = new JSONObject();
-		if(this.clientSNWriteMap != null){
-			for(Map.Entry<String, Double> entry : this.clientSNWriteMap.entrySet()){
-				writeObj.put(entry.getKey(), entry.getValue());
-			}
-		}
-		obj.put(SceneEnum.CLIENT_WRITE_REQUEST.name(), writeObj);
-		obj.put(SceneEnum.CLIENT_META_REQUEST.name(), this.clientMetaRequest);
-		return obj;
-	}
-	
-	public void putClientSNRead(String sn, double value){
-		this.clientSNReadMap.put(sn, value);
-	}
-	
-	public void putClientSNWrite(String sn, double value){
-		this.clientSNWriteMap.put(sn, value);
-	}
-	
-	public void putSnRemainRate(String sn, double value){
-		this.snRemainRate.put(sn, value);
-	}
-	
-	public int getServerId() {
+public class ResourceModel {
+	private String serverId;
+	private double diskRemainRate;
+	private double cpuValue;
+	private double memoryValue;
+	private Map<String,Double> diskWriteValue = new ConcurrentHashMap<String, Double>();
+	private Map<String,Double> diskReadValue = new ConcurrentHashMap<String, Double>();
+	private Map<String,Double> diskRemainValue = new ConcurrentHashMap<String, Double>();
+	private Map<String,Double> netRxValue = new ConcurrentHashMap<String, Double>();
+	private Map<String,Double> netTxValue = new ConcurrentHashMap<String, Double>();
+	public String getServerId() {
 		return serverId;
 	}
-
-	public void setServerId(int serverId) {
+	public void setServerId(String serverId) {
 		this.serverId = serverId;
 	}
-
-	public double getClientMetaRequest() {
-		return clientMetaRequest;
+	public double getDiskRemainRate() {
+		return diskRemainRate;
 	}
-
-	public void setClientMetaRequest(double clientMetaRequest) {
-		this.clientMetaRequest = clientMetaRequest;
+	public void setDiskRemainRate(double diskRemainRate) {
+		this.diskRemainRate = diskRemainRate;
 	}
-
-	public Map<String, Double> getClientSNReadMap() {
-		return clientSNReadMap;
+	public double getCpuValue() {
+		return cpuValue;
 	}
-
-	public void setClientSNReadMap(Map<String, Double> clientSNReadMap) {
-		this.clientSNReadMap = clientSNReadMap;
+	public void setCpuValue(double cpuValue) {
+		this.cpuValue = cpuValue;
 	}
-
-	public Map<String, Double> getClientSNWriteMap() {
-		return clientSNWriteMap;
+	public double getMemoryValue() {
+		return memoryValue;
 	}
-
-	public void setClientSNWriteMap(Map<String, Double> clientSNWriteMap) {
-		this.clientSNWriteMap = clientSNWriteMap;
+	public void setMemoryValue(double memoryValue) {
+		this.memoryValue = memoryValue;
 	}
-	public Map<String, Double> getSnRemainRate() {
-		return snRemainRate;
+	public Map<String, Double> getDiskWriteValue() {
+		return diskWriteValue;
 	}
-	public void setSnRemainRate(Map<String, Double> snRemainRate) {
-		this.snRemainRate = snRemainRate;
+	public void setDiskWriteValue(Map<String, Double> diskWriteValue) {
+		this.diskWriteValue = diskWriteValue;
+	}
+	public Map<String, Double> getDiskReadValue() {
+		return diskReadValue;
+	}
+	public void setDiskReadValue(Map<String, Double> diskReadValue) {
+		this.diskReadValue = diskReadValue;
+	}
+	public Map<String, Double> getDiskRemainValue() {
+		return diskRemainValue;
+	}
+	public void setDiskRemainValue(Map<String, Double> diskRemainValue) {
+		this.diskRemainValue = diskRemainValue;
+	}
+	public Map<String, Double> getNetRxValue() {
+		return netRxValue;
+	}
+	public void setNetRxValue(Map<String, Double> netRxValue) {
+		this.netRxValue = netRxValue;
+	}
+	public Map<String, Double> getNetTxValue() {
+		return netTxValue;
+	}
+	public void setNetTxValue(Map<String, Double> netTxValue) {
+		this.netTxValue = netTxValue;
 	}
 	
 }

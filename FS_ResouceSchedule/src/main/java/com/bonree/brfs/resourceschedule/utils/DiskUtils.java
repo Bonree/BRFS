@@ -2,6 +2,8 @@ package com.bonree.brfs.resourceschedule.utils;
 
 import java.io.File;
 import java.util.Set;
+
+import com.bonree.brfs.common.utils.BrStringUtils;
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -20,7 +22,7 @@ public class DiskUtils {
      */
     public static Boolean filterMountPoint(String mountPoint){
     	// 1.挂载点为空返回NULL
-    	if(StringUtils.isEmpty(mountPoint)){
+    	if(BrStringUtils.isEmpty(mountPoint)){
     		return true;
     	}
     	File mountFile = new File(mountPoint);
@@ -42,7 +44,7 @@ public class DiskUtils {
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public static String selectPartOfDisk(String dirpath, final Set<String> mounts){
-    	if(StringUtils.isEmpty(dirpath)){
+    	if(BrStringUtils.isEmpty(dirpath)){
     		return null;
     	}
     	if(mounts == null){
