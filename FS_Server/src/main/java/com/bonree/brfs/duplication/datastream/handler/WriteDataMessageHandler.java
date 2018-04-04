@@ -3,10 +3,11 @@ package com.bonree.brfs.duplication.datastream.handler;
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.MessageHandler;
-import com.bonree.brfs.common.utils.StringUtils;
-import com.bonree.brfs.duplication.datastream.DuplicateWriter;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.datastream.DataHandleCallback;
-import com.bonree.brfs.duplication.datastream.tasks.DataWriteResult;
+import com.bonree.brfs.duplication.datastream.DataWriteResult;
+import com.bonree.brfs.duplication.datastream.DuplicateWriter;
+import com.bonree.brfs.duplication.datastream.ResultItem;
 
 public class WriteDataMessageHandler implements MessageHandler<DataMessage> {
 	
@@ -41,7 +42,9 @@ public class WriteDataMessageHandler implements MessageHandler<DataMessage> {
 		public void completed(DataWriteResult writeResult) {
 			HandleResult result = new HandleResult();
 			result.setSuccess(true);
-			result.setData(StringUtils.toUtf8Bytes(writeResult.getFid()));
+			
+			ResultItem[] resultItems = writeResult.getItems();
+			result.setData(JsonUtils.toJsonBytes(resultItems));
 			
 			callback.completed(result);
 		}

@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-import com.bonree.brfs.disknode.utils.ProtoStuffUtils;
+import com.bonree.brfs.common.utils.ProtoStuffUtils;
 
 public class RecordReader {
 	private InputStream recordInput;

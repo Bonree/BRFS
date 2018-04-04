@@ -14,13 +14,13 @@ import com.google.common.base.Splitter;
 public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 	private String contextPath;
 	private List<String> uriSegments;
-	private NettyHttpRequestHandler requestHandler;
+	private NettyHttpRequestHandler<?> requestHandler;
 	
 	public NettyHttpContextHandler(String uriRoot) {
 		this(uriRoot, null);
 	}
 
-	public NettyHttpContextHandler(String uriRoot, NettyHttpRequestHandler handler) {
+	public NettyHttpContextHandler(String uriRoot, NettyHttpRequestHandler<?> handler) {
 		this.contextPath = uriRoot;
 		this.uriSegments = Splitter.on('/').trimResults().omitEmptyStrings().splitToList(uriRoot);
 		this.requestHandler = handler;
@@ -30,7 +30,7 @@ public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHtt
 		return contextPath;
 	}
 	
-	public void setNettyHttpRequestHandler(NettyHttpRequestHandler handler) {
+	public void setNettyHttpRequestHandler(NettyHttpRequestHandler<?> handler) {
 		this.requestHandler = handler;
 	}
 

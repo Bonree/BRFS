@@ -32,7 +32,7 @@ public interface Identification {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public String genVirtureIdentification();
+    public String genVirtualIdentification();
 
     /** 概述：获取需要的虚拟ServerID
      * @param count

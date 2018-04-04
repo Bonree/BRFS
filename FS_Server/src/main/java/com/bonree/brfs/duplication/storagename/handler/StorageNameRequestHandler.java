@@ -18,11 +18,12 @@ import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.http.netty.ResponseSender;
 import com.google.common.base.Splitter;
 
-public class StorageNameRequestHandler implements NettyHttpRequestHandler {
+public class StorageNameRequestHandler implements NettyHttpRequestHandler<StorageNameMessage> {
 	private static final Logger LOG = LoggerFactory.getLogger(StorageNameRequestHandler.class);
 	
 	private Map<String, MessageHandler<StorageNameMessage>> handlers = new HashMap<String, MessageHandler<StorageNameMessage>>();
 	
+	@Override
 	public void addMessageHandler(String method, MessageHandler<StorageNameMessage> handler) {
 		handlers.put(method, handler);
 	}

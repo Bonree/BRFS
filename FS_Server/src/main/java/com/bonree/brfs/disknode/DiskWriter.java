@@ -9,12 +9,12 @@ import java.util.zip.CRC32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.timer.WheelTimer;
+import com.bonree.brfs.common.timer.WheelTimer.Timeout;
 import com.bonree.brfs.disknode.buf.MappedWriteBuffer;
 import com.bonree.brfs.disknode.buf.WriteBuffer;
 import com.bonree.brfs.disknode.record.RecordElement;
 import com.bonree.brfs.disknode.record.RecordWriter;
-import com.bonree.brfs.disknode.utils.TimeoutWheel;
-import com.bonree.brfs.disknode.utils.TimeoutWheel.Timeout;
 
 /**
  * 写数据到磁盘文件的具体实现类。
@@ -40,7 +40,7 @@ public class DiskWriter implements Closeable {
 	private RecordWriter recordWriter;
 	
 	private static final int DEFAULT_TIMEOUT_SECONDS = 5;
-	private static TimeoutWheel<DiskWriter> timeoutWheel = new TimeoutWheel<DiskWriter>(DEFAULT_TIMEOUT_SECONDS);
+	private static WheelTimer<DiskWriter> timeoutWheel = new WheelTimer<DiskWriter>(DEFAULT_TIMEOUT_SECONDS);
 	
 	static {
 		timeoutWheel.setTimeout(new Timeout<DiskWriter>() {

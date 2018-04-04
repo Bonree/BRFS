@@ -58,6 +58,25 @@ public class BrStringUtils {
 		
 		return new byte[0];
 	}
+	
+    /**
+	 * 从UTF-8格式的字节数组构造字符串
+	 * 
+	 * @param bytes
+	 * @return
+	 */
+	public static String fromUtf8Bytes(byte[] bytes) {
+		if(bytes != null) {
+			try {
+				return new String(bytes, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return null;
+	}
+
     /**
      * 判断字符串是否为空
      *

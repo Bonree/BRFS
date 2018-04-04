@@ -3,7 +3,7 @@ package com.bonree.brfs.duplication.storagename.handler;
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.MessageHandler;
-import com.bonree.brfs.common.utils.StringUtils;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 
 public class DeleteStorageNameMessageHandler implements MessageHandler<StorageNameMessage> {
@@ -21,7 +21,7 @@ public class DeleteStorageNameMessageHandler implements MessageHandler<StorageNa
 		HandleResult result = new HandleResult();
 		result.setSuccess(deleted);
 		if(!deleted) {
-			result.setData(StringUtils.toUtf8Bytes("errorCode:224"));
+			result.setData(BrStringUtils.toUtf8Bytes("errorCode:224"));
 		}
 		
 		callback.completed(result);

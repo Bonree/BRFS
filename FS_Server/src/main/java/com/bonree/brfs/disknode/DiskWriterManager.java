@@ -3,62 +3,53 @@ package com.bonree.brfs.disknode;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.bonree.brfs.disknode.utils.LifeCycle;
-import com.bonree.brfs.disknode.utils.PooledThreadFactory;
-import com.google.common.io.Closeables;
+import com.bonree.brfs.common.utils.CloseUtils;
+import com.bonree.brfs.common.utils.LifeCycle;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 
 public class DiskWriterManager implements LifeCycle {
 	private ExecutorService threadPool;
 	
 	//默认的写Worker线程数量
 	private static final int DEFAULT_WORKER_NUMBER = 5;
-	private WriteWorkerGroup workerGroup = new WriteWorkerGroup(DEFAULT_WORKER_NUMBER);
+	private WriteWorkerGroup workerGroup;
 	private WriteWorkerSelector workerSelector;
 	
 	private Map<String, DiskWriter> runningWriters = new HashMap<String, DiskWriter>();
 	
 	public DiskWriterManager() {
-		this.threadPool = new ThreadPoolExecutor(workerGroup.capacity(),
-				workerGroup.capacity(),
+		this(DEFAULT_WORKER_NUMBER);
+	}
+	
+	public DiskWriterManager(int workerNum) {
+		this(workerNum, new RandomWriteWorkerSelector());
+	}
+	
+	public DiskWriterManager(int workerNum, WriteWorkerSelector selector) {
+		this.workerGroup = new WriteWorkerGroup(workerNum);
+		this.threadPool = new ThreadPoolExecutor(workerNum,
+				workerNum,
                 0L,
                 TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<Runnable>(workerGroup.capacity()),
+                new LinkedBlockingQueue<Runnable>(),
                 new PooledThreadFactory("write_worker"));
-		this.workerSelector = new RandomWriteWorkerSelector();
-		this.workerGroup.fill(new WriteWorkerGroup.Initializer() {
-			
-			@Override
-			public WriteWorker init() {
-				return new WriteWorker();
-			}
-		});
+		this.workerSelector = selector;
+		this.workerGroup.fill(() -> new WriteWorker());
 	}
 	
 	@Override
 	public void start() {
-		workerGroup.forEach(new WriteWorkerGroup.Visitor() {
-			
-			@Override
-			public void visit(WriteWorker worker) {
-				threadPool.submit(worker);
-			}
-		});
+		workerGroup.forEach((WriteWorker worker) -> threadPool.submit(worker));
 	}
 	
 	@Override
 	public void stop() {
-		workerGroup.forEach(new WriteWorkerGroup.Visitor() {
-			
-			@Override
-			public void visit(WriteWorker worker) {
-				worker.quit();
-			}
-		});
+		workerGroup.forEach((WriteWorker worker) -> worker.quit());
 		
 		threadPool.shutdownNow();
 	}
@@ -73,11 +64,12 @@ public class DiskWriterManager implements LifeCycle {
 		}
 	}
 	
-	public void writeAsync(String path, byte[] bytes, InputEventCallback callback) throws IOException, InterruptedException {
+	public void writeAsync(String path, byte[] bytes, InputEventCallback callback) {
 		DiskWriter writer = runningWriters.get(path);
 		
 		if(writer == null) {
-			throw new IOException("no available DiskWriter!");
+			callback.error(new IOException("no available DiskWriter!"));
+			return;
 		}
 		
 		InputEvent item = new InputEvent(writer, bytes);
@@ -85,8 +77,8 @@ public class DiskWriterManager implements LifeCycle {
 		writer.worker().put(item);
 	}
 	
-	public void close(String path) throws IOException {
+	public void close(String path) {
 		DiskWriter writer = runningWriters.remove(path);
-		Closeables.close(writer, false);
+		CloseUtils.closeQuietly(writer);
 	}
 }
