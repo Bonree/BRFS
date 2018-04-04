@@ -16,7 +16,7 @@ import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.record.BalanceRecord;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
-import com.bonree.brfs.rebalance.task.TaskAdmin;
+import com.bonree.brfs.rebalance.task.TaskOperation;
 import com.bonree.brfs.server.ServerInfo;
 import com.bonree.brfs.server.StorageName;
 
@@ -30,13 +30,13 @@ public class MultiRecover implements DataRecover {
 
     private ServerInfo selfServerInfo;
 
-    private TaskAdmin taskAdmin;
+    private TaskOperation taskAdmin;
 
     private Map<String, BalanceTaskSummary> snStorageSummary;
 
     private static final String NAME_SEPARATOR = "_";
 
-    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskAdmin taskAdmin) {
+    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskOperation taskAdmin) {
         this.balanceSummary = summary;
         this.selfServerInfo = selfServerInfo;
         this.taskAdmin = taskAdmin;

@@ -37,6 +37,8 @@ public class CuratorClient implements ZookeeperClient {
 
     private final static int CONNECTION_TIMEOUT_MS = 15 * 1000;
 
+    private final static String DEFAULT_VALUE = "";
+
     public static CuratorClient getClientInstance(String zkUrl) {
         return new CuratorClient(zkUrl, RETRY_POLICY, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS);
     }
@@ -135,28 +137,12 @@ public class CuratorClient implements ZookeeperClient {
 
     @Override
     public String createPersistent(String path, boolean isRecursion) {
-        try {
-            if (isRecursion) {
-                return client.create().creatingParentsIfNeeded().forPath(path);
-            } else {
-                return client.create().forPath(path);
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
+        return createPersistent(path, isRecursion, DEFAULT_VALUE.getBytes());
     }
 
     @Override
     public String createEphemeral(String path, boolean isRecursion) {
-        try {
-            if (isRecursion) {
-                return client.create().creatingParentContainersIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
-            } else {
-                return client.create().withMode(CreateMode.EPHEMERAL).forPath(path);
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
+        return createEphemeral(path, isRecursion, DEFAULT_VALUE.getBytes());
     }
 
     @Override
@@ -186,15 +172,7 @@ public class CuratorClient implements ZookeeperClient {
 
     @Override
     public String createPersistentSequential(String path, boolean isRecursion) {
-        try {
-            if (isRecursion) {
-                return client.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT_SEQUENTIAL).forPath(path);
-            } else {
-                return client.create().forPath(path);
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
+        return createPersistentSequential(path, isRecursion, DEFAULT_VALUE.getBytes());
 
     }
 
@@ -227,15 +205,7 @@ public class CuratorClient implements ZookeeperClient {
 
     @Override
     public String createEphemeralSequential(String path, boolean isRecursion) {
-        try {
-            if (isRecursion) {
-                return client.create().creatingParentContainersIfNeeded().withProtection().withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path);
-            } else {
-                return client.create().withProtection().withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path);
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
+        return createEphemeralSequential(path, isRecursion, DEFAULT_VALUE.getBytes());
 
     }
 

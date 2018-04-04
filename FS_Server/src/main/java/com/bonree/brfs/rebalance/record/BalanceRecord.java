@@ -26,11 +26,11 @@ public class BalanceRecord {
 
     private String targetMuiltiId;
 
-    public BalanceRecord(String fileName, String sourceMultiId, String targetMuiltiId) {
+    public BalanceRecord(final String fileName, final String sourceMultiId, final String targetMuiltiId) {
         finishTime = FastDateFormat.getInstance(PATTERN).format(new Date());
-        fileName = this.fileName;
-        sourceMultiId = this.sourceMultiId;
-        targetMuiltiId = this.targetMuiltiId;
+        this.fileName = fileName;
+        this.sourceMultiId = sourceMultiId;
+        this.targetMuiltiId = targetMuiltiId;
     }
 
     public String getFinishTime() {

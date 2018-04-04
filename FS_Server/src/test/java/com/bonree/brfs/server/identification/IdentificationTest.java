@@ -30,7 +30,6 @@ public class IdentificationTest {
                         Identification instance = ZookeeperIdentification.getIdentificationServer("192.168.101.86:2181", "/brfs/wz/serverID");
                         sigleServerIdList.add(instance.genSingleIdentification());
                         multiServerIdList.add(instance.genMultiIndentification());
-                        virtualServerIdList.add(instance.genVirtureIdentification());
                     }
 
                 }
