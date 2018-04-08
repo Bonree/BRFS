@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import com.bonree.brfs.resourceschedule.commons.impl.GatherResource;
+import com.bonree.brfs.resourceschedule.commons.GatherResource;
 
 public class NetUtilsTest {
 

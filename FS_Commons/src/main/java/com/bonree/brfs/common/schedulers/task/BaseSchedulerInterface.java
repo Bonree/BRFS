@@ -140,4 +140,18 @@ public interface BaseSchedulerInterface <T1,T2> {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public boolean isExecuting(T2 task) throws Exception;
+	/**
+	 * 概述：获取任务线程池数
+	 * @return
+	 * @throws Exception
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public int getPoolThreadCount() throws Exception;
+	/**
+	 * 概述：获取提交任务数
+	 * @return
+	 * @throws Exception
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public int getTaskThreadCount() throws Exception;
 }

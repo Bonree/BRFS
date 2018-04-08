@@ -2,6 +2,8 @@ package com.bonree.brfs.resourceschedule.utils;
 
 import java.io.File;
 
+import com.bonree.brfs.common.utils.BrStringUtils;
+
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -19,7 +21,7 @@ public class LibUtils {
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public static void  loadLibraryPath(String libPath) throws Exception{
-        if(StringUtils.isEmpty(libPath)){
+        if(BrStringUtils.isEmpty(libPath)){
         	throw new NullPointerException("[config error] sigar lib path is empty !!!");
         }
         File file = new File(libPath);

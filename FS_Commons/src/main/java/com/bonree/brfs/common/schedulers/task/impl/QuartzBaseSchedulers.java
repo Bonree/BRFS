@@ -1,5 +1,6 @@
 package com.bonree.brfs.common.schedulers.task.impl;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -22,6 +23,7 @@ import org.quartz.Trigger.TriggerState;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,7 @@ public class QuartzBaseSchedulers<T extends TaskInterface> implements QuartzSche
 	private StdSchedulerFactory ssf = new StdSchedulerFactory();
 	private String instanceName = "server";
 	private boolean pausePoolFlag = false;
+	private int poolSize = 0;
 
 	@Override
 	public void initProperties(Properties props) throws Exception {
@@ -59,6 +62,7 @@ public class QuartzBaseSchedulers<T extends TaskInterface> implements QuartzSche
 		ssf.initialize(tmpprops);
 		Scheduler ssh = ssf.getScheduler();
 		this.instanceName = ssh.getSchedulerName();
+		this.poolSize = Integer.valueOf(tmpprops.getProperty("org.quartz.threadPool.threadCount"));
 	}
 
 	@Override
@@ -362,6 +366,24 @@ public class QuartzBaseSchedulers<T extends TaskInterface> implements QuartzSche
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public int getPoolThreadCount() throws Exception {
+		// TODO Auto-generated method stub
+		return this.poolSize;
+	}
+
+	@Override
+	public int getTaskThreadCount() throws Exception {
+		Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
+		int count = 0;
+		for (String groupName : scheduler.getJobGroupNames()) {
+			for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.groupEquals(groupName))) {
+				count ++;
+			}
+		}
+		return count;
 	}
 
 }

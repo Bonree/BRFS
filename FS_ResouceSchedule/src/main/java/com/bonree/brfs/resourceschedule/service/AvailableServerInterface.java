@@ -3,7 +3,6 @@ package com.bonree.brfs.resourceschedule.service;
 import java.util.List;
 
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.brfs.resourceschedule.model.enums.SceneEnum;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -22,7 +21,7 @@ public interface AvailableServerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public ResourceModel selectAvailableServer(SceneEnum scene) throws Exception;
+	public String selectAvailableServer(int scene) throws Exception;
 	/**
 	 * 概述：获取可用server
 	 * @param scene 场景枚举
@@ -31,7 +30,7 @@ public interface AvailableServerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public ResourceModel selectAvailableServer(SceneEnum scene,List<ResourceModel> exceptionServerList) throws Exception;
+	public String selectAvailableServer(int scene,List<String> exceptionServerList) throws Exception;
 	/**
 	 * 概述：获取可用server集合
 	 * @param scene 场景枚举
@@ -39,7 +38,7 @@ public interface AvailableServerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public List<ResourceModel> selectAvailableServers(SceneEnum scene) throws Exception;
+	public List<String> selectAvailableServers(int scene) throws Exception;
 	/**
 	 * 概述：获取可用server集合
 	 * @param scene 场景枚举
@@ -48,5 +47,5 @@ public interface AvailableServerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public List<ResourceModel> selectAvailableServers(SceneEnum scene, List<ResourceModel> exceptionServerList) throws Exception;
+	public List<String> selectAvailableServers(int scene, List<String> exceptionServerList) throws Exception;
 }

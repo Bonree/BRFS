@@ -7,7 +7,8 @@ import java.util.UUID;
 
 import org.junit.Test;
 
-import com.bonree.brfs.resourceschedule.commons.impl.GatherResource;
+import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.resourceschedule.commons.GatherResource;
 
 public class LibUtilsTest {
 	public static boolean  initLibrary() throws Exception{
@@ -28,7 +29,7 @@ public class LibUtilsTest {
 		String configPath = null;
 		// 1.检查输入null是否抛出异常
 		try {
-			if(StringUtils.isEmpty(configPath)){
+			if(BrStringUtils.isEmpty(configPath)){
 				LibUtils.loadLibraryPath(configPath);
 				fail("lib path is null but no Exception");
 			} else{

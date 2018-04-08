@@ -1,4 +1,7 @@
 package com.bonree.brfs.resourceschedule.utils;
+
+import com.bonree.brfs.common.utils.BrStringUtils;
+
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -17,21 +20,21 @@ public class NetUtils {
      */
     public static Boolean filterIp(String ip){
     	// 1.过滤为空的ip
-        if(StringUtils.isEmpty(ip)){
+        if(BrStringUtils.isEmpty(ip)){
             return true;
         }
         // 2.过滤长度超过的ip地址
         if(ip.length() > 15){
         	return true;
         }
-        String[] ipEles = StringUtils.getSplit(ip, ".");
+        String[] ipEles = BrStringUtils.getSplit(ip, ".");
         // 3.过滤格式不对的ip地址
         if(ipEles.length != 4){
         	return true;
         }
         // 4.过滤内容不对的ip地址
         for(String ipEle : ipEles){
-        	if(!StringUtils.isMathNumeric(ipEle)){
+        	if(!BrStringUtils.isMathNumeric(ipEle)){
         		return true;
         	}
         	long value = Long.valueOf(ipEle);
