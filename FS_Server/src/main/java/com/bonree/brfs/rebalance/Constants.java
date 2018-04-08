@@ -12,12 +12,14 @@ public class Constants {
 
     public final static String LEADER_NODE = "leadermonitor";
 
-    public final static String TASK_NODE = "tasks";
+    public final static String TASKS_NODE = "tasks";
+
+    public final static String TASK_NODE = "task";
 
     public final static String PATH_CHANGES = BASE_PATH + SEPARATOR + CHANGE_NODE;
 
     public final static String PATH_LEADER = BASE_PATH + SEPARATOR + LEADER_NODE;
 
-    public final static String PATH_TASKS = BASE_PATH + SEPARATOR + TASK_NODE;
+    public final static String PATH_TASKS = BASE_PATH + SEPARATOR + TASKS_NODE;
 
 }

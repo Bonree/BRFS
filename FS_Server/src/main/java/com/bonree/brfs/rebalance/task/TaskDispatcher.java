@@ -337,7 +337,7 @@ public class TaskDispatcher implements Closeable {
         treeCache.addListener(changeMonitorPath, new ServerChangeListener("server_change"));
         treeCache.startPathCache(changeMonitorPath);
 
-        String taskMonitorPath = basePath + Constants.SEPARATOR + Constants.TASK_NODE;
+        String taskMonitorPath = basePath + Constants.SEPARATOR + Constants.TASKS_NODE;
         LOG.info("taskMonitorPath:" + taskMonitorPath);
         treeCache.addListener(taskMonitorPath, new TaskDispachListener("task_dispatch"));
         treeCache.startPathCache(taskMonitorPath);
@@ -348,7 +348,7 @@ public class TaskDispatcher implements Closeable {
         String serverId = taskSummary.getServerId();
 
         String jsonStr = JSON.toJSONString(taskSummary);
-        String taskNode = Constants.PATH_TASKS + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + serverId;
+        String taskNode = Constants.PATH_TASKS + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + Constants.TASK_NODE;
         if (!curatorClient.checkExists(taskNode)) {
             curatorClient.createPersistent(taskNode, true, jsonStr.getBytes());
         }

@@ -4,8 +4,10 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,9 +50,6 @@ public class TaskOperation implements Closeable {
         treeCache.startPathCache(tasksPath);
     }
 
-    /*
-     * 监听器实现
-     */
     class TaskExecutorListener extends AbstractTreeCacheListener {
 
         public TaskExecutorListener(String listenName) {
@@ -59,16 +58,26 @@ public class TaskOperation implements Closeable {
 
         @Override
         public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+            System.out.println("event info:" + event);
+            LOG.info("event info:" + event);
+            // 此处只捕捉NODE_ADDED时间
+            if (event.getType() == Type.NODE_ADDED) {
+                // 是否为任务类型节点
+                String path = event.getData().getPath();
+                System.out.println(path);
+                String taskStr = StringUtils.substring(path, path.lastIndexOf('/') + 1, path.length());
+                if (StringUtils.equals(taskStr, Constants.TASK_NODE)) {
+                    // 标识为一个任务节点
+                    if (event.getData() != null && event.getData().getData() != null) {
+                        byte[] data = event.getData().getData();
+                        BalanceTaskSummary taskSummary = JSON.parseObject(data, BalanceTaskSummary.class);
+                        String basePath = event.getData().getPath();
+                        launchDelayTaskExecutor(taskSummary, basePath);
+                    }
+                }
+            }
 
-            System.out.println(event);
-            // if (event.getData() != null && event.getData().getData() != null) {
-            // byte[] data = event.getData().getData();
-            // BalanceTaskSummary taskSummary = JSON.parseObject(data, BalanceTaskSummary.class);
-            // String basePath = event.getData().getPath();
-            // launchDelayTaskExecutor(taskSummary, basePath);
-            // }
         }
-
     }
 
     public void launchDelayTaskExecutor(BalanceTaskSummary taskSummary, String path) {
