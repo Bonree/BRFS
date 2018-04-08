@@ -250,4 +250,42 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 		}
 	}
 
+	@Override
+	public int getRunningTaskCount(String taskpoolKey) {
+		if (!taskPoolMap.containsKey(taskpoolKey)) {
+			return -1;
+		}
+		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		if (pool == null) {
+			return -2;
+		}
+		try {
+			return pool.getTaskThreadCount();
+		}
+		catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return -3;
+		}
+	}
+
+	@Override
+	public int getTaskPoolThreadCount(String taskpoolKey) {
+		if (!taskPoolMap.containsKey(taskpoolKey)) {
+			return -1;
+		}
+		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		if (pool == null) {
+			return -2;
+		}
+		try {
+			return pool.getPoolThreadCount();
+		}
+		catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return -3;
+		}
+	}
+
 }

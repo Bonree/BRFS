@@ -95,4 +95,18 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	int getTaskPoolStat(T1 taskpoolKey);
+	/**
+	 * 概述：获取执行任务个数
+	 * @param taskpoolKey
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	int getRunningTaskCount(T1 taskpoolKey);
+	/**
+	 * 概述：获取任务线程池个数
+	 * @param taskpoolKey
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	int getTaskPoolThreadCount(T1 taskpoolKey);
 }
