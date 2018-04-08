@@ -33,9 +33,9 @@ public class SimpleAuthentication implements UserOperation {
 
     public final static String LOCK_PATH = "/brfs/wz/locks/auth";
 
-    private final Map<String, UserModel> userCache;
+    private static SimpleAuthentication auth = null;
 
-    private volatile static SimpleAuthentication auth = null;
+    private final Map<String, UserModel> userCache;
 
     private UserOperation userOpt;
 
