@@ -19,6 +19,7 @@ import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.recover.MultiRecover;
 import com.bonree.brfs.rebalance.recover.VirtualRecover;
+import com.bonree.brfs.rebalance.task.TaskDispatcher.TaskDispachListener;
 import com.bonree.brfs.server.ServerInfo;
 
 /*******************************************************************************
@@ -48,6 +49,7 @@ public class TaskOperation implements Closeable {
         treeCache = CuratorTreeCache.getTreeCacheInstance(Constants.zkUrl);
         treeCache.addListener(tasksPath, new TaskExecutorListener("task_executor"));
         treeCache.startPathCache(tasksPath);
+        
     }
 
     class TaskExecutorListener extends AbstractTreeCacheListener {

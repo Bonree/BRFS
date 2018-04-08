@@ -30,23 +30,23 @@ public class MultiRecover implements DataRecover {
 
     private ServerInfo selfServerInfo;
 
-    private TaskOperation taskAdmin;
+    private TaskOperation taskOpt;
 
     private Map<String, BalanceTaskSummary> snStorageSummary;
 
     private static final String NAME_SEPARATOR = "_";
 
-    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskOperation taskAdmin) {
+    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskOperation taskOpt) {
         this.balanceSummary = summary;
         this.selfServerInfo = selfServerInfo;
-        this.taskAdmin = taskAdmin;
+        this.taskOpt = taskOpt;
     }
 
     @Override
     public void recover() {
         LOG.info("begin recover");
         String node = Constants.PATH_TASKS + Constants.SEPARATOR + balanceSummary.getStorageIndex() + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + selfServerInfo.getMultiIdentification();
-        taskAdmin.setTaskStatus(node, DataRecover.RUNNING_STAGE);
+        taskOpt.setTaskStatus(node, DataRecover.RUNNING_STAGE);
         int replicas = storageName.getReplications();
 
         LOG.info("deal the local server:" + selfServerInfo.getMultiIdentification());
@@ -55,7 +55,7 @@ public class MultiRecover implements DataRecover {
         for (int i = 1; i <= replicas; i++) {
             dealReplicas(i);
         }
-        taskAdmin.setTaskStatus(node, DataRecover.FINISH_STAGE);
+        taskOpt.setTaskStatus(node, DataRecover.FINISH_STAGE);
         System.out.println("恢复完成");
     }
 
@@ -70,61 +70,7 @@ public class MultiRecover implements DataRecover {
         try {
             simpleWriter = new SimpleRecordWriter("");
             for (String perFile : files) {
-                // 对文件名进行分割处理
-                String[] metaArr = perFile.split(NAME_SEPARATOR);
-                // 提取出用于hash的部分
-                String namePart = metaArr[0];
-
-                // 提取出该文件所存储的服务
-                List<String> fileServerIds = new ArrayList<>();
-                for (int j = 1; j < metaArr.length; j++) {
-                    fileServerIds.add(metaArr[j]);
-                }
-
-                // 此处需要将有virtual Serverid的文件进行转换
-
-                // 这里要判断一个副本是否需要进行迁移
-                // 挑选出的可迁移的servers
-                String selectMultiId = null;
-                // 可获取的server，可能包括自身
-                List<String> recoverableServerList = null;
-                // 排除掉自身或已有的servers
-                List<String> exceptionServerIds = null;
-                // 真正可选择的servers
-                List<String> selectableServerList = null;
-
-                while (needRecover(fileServerIds, replica)) {
-                    for (String deadServer : fileServerIds) {
-                        if (!getAliveMultiIds().contains(deadServer)) {
-                            int pot = fileServerIds.indexOf(deadServer);
-                            if (!StringUtils.equals(deadServer, balanceSummary.getServerId())) {
-                                recoverableServerList = getRecoverRoleList(deadServer);
-                            } else {
-                                recoverableServerList = balanceSummary.getInputServers();
-                            }
-                            exceptionServerIds = new ArrayList<>();
-                            exceptionServerIds.addAll(fileServerIds);
-                            exceptionServerIds.remove(deadServer);
-                            selectableServerList = getSelectedList(recoverableServerList, exceptionServerIds);
-                            int index = hashFileName(namePart, selectableServerList.size());
-                            selectMultiId = selectableServerList.get(index);
-                            fileServerIds.set(pot, selectMultiId);
-
-                            // 判断选取的新节点是否存活
-                            if (isAlive(selectMultiId)) {
-                                // 判断选取的新节点是否为本节点
-                                if (!selfServerInfo.getMultiIdentification().equals(selectMultiId)) {
-                                    if (!isExistFile(selectMultiId, perFile)) {
-                                        remoteCopyFile(selectMultiId, perFile);
-                                        BalanceRecord record = new BalanceRecord(perFile, selfServerInfo.getMultiIdentification(), selectMultiId);
-                                        simpleWriter.writeRecord(record.toString());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
+                dealFile(perFile, replica, simpleWriter);
             }
         } catch (IOException e) {
             LOG.error("write balance record error!", e);
@@ -138,6 +84,63 @@ public class MultiRecover implements DataRecover {
             }
         }
 
+    }
+
+    private void dealFile(String perFile, int replica, SimpleRecordWriter simpleWriter) throws IOException {
+        // 对文件名进行分割处理
+        String[] metaArr = perFile.split(NAME_SEPARATOR);
+        // 提取出用于hash的部分
+        String namePart = metaArr[0];
+
+        // 提取出该文件所存储的服务
+        List<String> fileServerIds = new ArrayList<>();
+        for (int j = 1; j < metaArr.length; j++) {
+            fileServerIds.add(metaArr[j]);
+        }
+
+        // 此处需要将有virtual Serverid的文件进行转换
+
+        // 这里要判断一个副本是否需要进行迁移
+        // 挑选出的可迁移的servers
+        String selectMultiId = null;
+        // 可获取的server，可能包括自身
+        List<String> recoverableServerList = null;
+        // 排除掉自身或已有的servers
+        List<String> exceptionServerIds = null;
+        // 真正可选择的servers
+        List<String> selectableServerList = null;
+
+        while (needRecover(fileServerIds, replica)) {
+            for (String deadServer : fileServerIds) {
+                if (!getAliveMultiIds().contains(deadServer)) {
+                    int pot = fileServerIds.indexOf(deadServer);
+                    if (!StringUtils.equals(deadServer, balanceSummary.getServerId())) {
+                        recoverableServerList = getRecoverRoleList(deadServer);
+                    } else {
+                        recoverableServerList = balanceSummary.getInputServers();
+                    }
+                    exceptionServerIds = new ArrayList<>();
+                    exceptionServerIds.addAll(fileServerIds);
+                    exceptionServerIds.remove(deadServer);
+                    selectableServerList = getSelectedList(recoverableServerList, exceptionServerIds);
+                    int index = hashFileName(namePart, selectableServerList.size());
+                    selectMultiId = selectableServerList.get(index);
+                    fileServerIds.set(pot, selectMultiId);
+
+                    // 判断选取的新节点是否存活
+                    if (isAlive(selectMultiId)) {
+                        // 判断选取的新节点是否为本节点
+                        if (!selfServerInfo.getMultiIdentification().equals(selectMultiId)) {
+                            if (!isExistFile(selectMultiId, perFile)) {
+                                remoteCopyFile(selectMultiId, perFile);
+                                BalanceRecord record = new BalanceRecord(perFile, selfServerInfo.getMultiIdentification(), selectMultiId);
+                                simpleWriter.writeRecord(record.toString());
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private boolean isExistFile(String remoteServer, String fileName) {

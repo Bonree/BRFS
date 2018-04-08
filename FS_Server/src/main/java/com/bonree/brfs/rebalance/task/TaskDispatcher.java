@@ -53,8 +53,6 @@ public class TaskDispatcher implements Closeable {
 
     private TaskMonitor monitor;
 
-    private final String zkUrl;
-
     private final String basePath;
 
     private final BalanceTaskGenerator taskGenerator;
@@ -132,7 +130,6 @@ public class TaskDispatcher implements Closeable {
         return false;
     }
 
-    @SuppressWarnings("unused")
     private boolean isUpdatedNode(TreeCacheEvent event) {
         if (event.getType() == Type.NODE_UPDATED) {
             return true;
@@ -199,16 +196,47 @@ public class TaskDispatcher implements Closeable {
             if (leaderLath.hasLeadership()) {
                 LOG.info("leaderLath:" + leaderLath.hasLeadership());
                 LOG.info("task Dispatch event detail:" + event.getType());
-
+                if (isUpdatedNode(event)) {
+                    if (event.getData() != null && event.getData().getData() != null) {
+                        // 此处会检测任务是否完成
+                        String eventPath = event.getData().getPath();
+                        String parentPath = StringUtils.substring(eventPath, 0, eventPath.lastIndexOf('/'));
+                        BalanceTaskSummary bts = JSON.parseObject(client.getData().forPath(parentPath), BalanceTaskSummary.class);
+                        List<String> serverIds = client.getChildren().forPath(parentPath);
+                        boolean finishFlag = true;
+                        if (serverIds != null && serverIds.isEmpty()) {
+                            for (String serverId : serverIds) {
+                                String nodePath = parentPath + Constants.SEPARATOR + serverId;
+                                TaskDetail td = JSON.parseObject(client.getData().forPath(nodePath), TaskDetail.class);
+                                if (td.getStatus() != TaskStatus.TERMINATE) {
+                                    finishFlag = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (finishFlag) {// 所有的服务都则发布迁移规则，并清理任务
+                            String roleNode = Constants.ROLES_NODE + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROLE_NODE;
+                            client.create().creatingParentsIfNeeded().forPath(roleNode, client.getData().forPath(parentPath));
+                            // 清理变更
+                            List<ChangeSummary> changeSummaries = cacheSummaryCache.get(bts.getStorageIndex());
+                            ChangeSummary cs = changeSummaries.get(0);
+                            String changePath = Constants.PATH_CHANGES + Constants.SEPARATOR + cs.getStorageIndex() + Constants.SEPARATOR + cs.getCreateTime();
+                            client.delete().forPath(changePath);
+                            changeSummaries.remove(0);
+                            // 删除任务
+                            client.delete().deletingChildrenIfNeeded().forPath(parentPath);
+                            // 重新审计
+                            auditTask(changeSummaries);
+                        }
+                    }
+                }
             }
         }
 
     }
 
     public TaskDispatcher(String zkUrl, String basePath, ZookeeperIdentification identification) {
-        this.zkUrl = zkUrl;
         this.basePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(basePath, "basePath is not null!"));
-        ;
         this.identification = identification;
         taskGenerator = new SimpleTaskGenerator();
 
@@ -301,15 +329,9 @@ public class TaskDispatcher implements Closeable {
                     if (StringUtils.equals(serverId, tempServerId)) {
                         if (tmp.getChangeType() == ChangeType.ADD) {
                             BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(changeSummary);
-                            if (monitor.getTaskProgress() < 0.6) { // TODO 0.6暂时填充
+                            if (monitor.getTaskProgress(taskSummary) < 0.6) { // TODO 0.6暂时填充
                                 cancelTask(taskSummary); // TODO 此处需要同步,为了一致性，不能是简单的修改任务状态
-
-                                // cleanChangeSummaryFromCache(changeSummaries, changeSummary);
-                                // cleanChangeSummaryFromCache(changeSummaries, tmp);
-                                // cleanChangeSummaryFromZk(changeSummary);
-                                // cleanChangeSummaryFromZk(tmp);
-                                // auditTask(changeSummaries);
-
+                                auditTask(changeSummaries);
                             }
                         }
                     }
@@ -345,9 +367,8 @@ public class TaskDispatcher implements Closeable {
 
     public boolean dispatchTask(BalanceTaskSummary taskSummary) {
         int storageIndex = taskSummary.getStorageIndex();
-        String serverId = taskSummary.getServerId();
-
         String jsonStr = JSON.toJSONString(taskSummary);
+        // 创建任务
         String taskNode = Constants.PATH_TASKS + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + Constants.TASK_NODE;
         if (!curatorClient.checkExists(taskNode)) {
             curatorClient.createPersistent(taskNode, true, jsonStr.getBytes());

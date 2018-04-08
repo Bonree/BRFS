@@ -10,7 +10,8 @@ package com.bonree.brfs.rebalance.task;
  ******************************************************************************/
 public class TaskMonitor {
 
-    public long getTaskProgress() {
+    public double getTaskProgress(BalanceTaskSummary cts) {
+        
         return 0;
     }
 }
