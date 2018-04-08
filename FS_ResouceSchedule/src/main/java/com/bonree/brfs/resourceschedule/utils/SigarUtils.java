@@ -118,7 +118,7 @@ public enum SigarUtils {
     			continue;
     		}
     		if(ipSet.contains(tmpIp)){
-    			ipSet.add(netInfo);
+    			DevSet.add(netInfo);
     		}
     		break;
     	}

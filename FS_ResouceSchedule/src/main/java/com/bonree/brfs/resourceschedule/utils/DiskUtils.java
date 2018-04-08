@@ -1,6 +1,7 @@
 package com.bonree.brfs.resourceschedule.utils;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
@@ -43,7 +44,7 @@ public class DiskUtils {
      * @return
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static String selectPartOfDisk(String dirpath, final Set<String> mounts){
+    public static String selectPartOfDisk(String dirpath, Collection<String> mounts){
     	if(BrStringUtils.isEmpty(dirpath)){
     		return null;
     	}

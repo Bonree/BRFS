@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.hyperic.sigar.NetStat;
 import org.hyperic.sigar.SigarException;
 
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
@@ -154,6 +155,11 @@ public class GatherResource {
 			obj = tmp.sum(obj);
 		}
 		obj.calc(snList, inverTime);
+		
+		Map<String,String> snToDiskMap = matchSnToPatition(snList,obj.getPartitionTotalSizeMap().keySet());
+		if(snToDiskMap !=null && !snToDiskMap.isEmpty()){
+			obj.setStorageNameOnPartitionMap(snToDiskMap);
+		}
 		return obj;
 	}
 	/**
@@ -202,7 +208,7 @@ public class GatherResource {
 		return obj;
 	}
 	/***
-	 * 概述：
+	 * 概述：计算resource
 	 * @param local
 	 * @param cluster
 	 * @param stat
@@ -213,11 +219,14 @@ public class GatherResource {
 		ResourceModel obj = new ResourceModel();
 		Map<String,Double> cacheMap = null;
 		long cacheNum = 0l;
-		double cpuRate = stat.getCpuRate() * stat.getCpuCoreCount() / cluster.getCpuCoreCount();
-		double memoryRate = stat.getMemoryRate() * stat.getMemorySize() / cluster.getMemoryTotalSize();
-		double diskRemainRate = stat.getRemainDiskSize()/stat.getTotalDiskSize();
-		obj.setCpuValue(cpuRate);
-		obj.setMemoryValue(memoryRate);
+		double cpuValue = (1 - stat.getCpuRate()) * stat.getCpuCoreCount() / cluster.getCpuCoreCount();
+		double memoryValue = (1 - stat.getMemoryRate()) * stat.getMemorySize() / cluster.getMemoryTotalSize();
+		double diskRemainRate = (double)stat.getRemainDiskSize()/stat.getTotalDiskSize();
+		obj.setCpuRate(stat.getCpuRate());
+		obj.setMemoryRate(stat.getMemoryRate());
+		obj.setDiskSize(stat.getTotalDiskSize());
+		obj.setCpuValue(cpuValue);
+		obj.setMemoryValue(memoryValue);
 		obj.setDiskRemainRate(diskRemainRate);
 		// 磁盘剩余
 		cacheNum = cluster.getDiskTotalSize();
@@ -239,7 +248,35 @@ public class GatherResource {
 		cacheNum = cluster.getNetTxMaxSpeed();
 		cacheMap = CalcUtils.divDataDoubleMap(stat.getNetTSpeedMap(), cacheNum);
 		obj.setNetTxValue(cacheMap);
+		obj.setStorageNameOnPartitionMap(stat.getStorageNameOnPartitionMap());
 		return obj;
 	}
+	
+	 /**
+     * 概述：匹配sn与分区
+     * @param snList sn目录信息
+     * @param mountPoints 挂载点目录信息
+     * @return
+     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     */
+    private static Map<String,String> matchSnToPatition(Collection<String> snList, Collection<String> mountPoints){
+    	Map<String, String> objMap = new ConcurrentHashMap<String,String>();
+    	if(snList == null || mountPoints == null){
+    		return objMap;
+    	}
+    	// 获取每个sn对应的空间大小
+		String mountPoint = null;
+		// 匹配sn与挂载点
+		for(String sn : snList){
+			mountPoint = DiskUtils.selectPartOfDisk(sn, mountPoints);
+			if(BrStringUtils.isEmpty(mountPoint)){
+				continue;
+			}
+			if(!objMap.containsKey(sn)){
+				objMap.put(sn, mountPoint);
+			}
+		}
+		return objMap;
+    }
 	
 }
