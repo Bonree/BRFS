@@ -94,7 +94,7 @@ public class CalcUtils{
 				continue;
 			}
 			if(!map.containsKey(key)){
-				map.put(key, (double)(value/count));
+				map.put(key, (double)value/count);
 			}
 		}
 		return map;
