@@ -379,7 +379,7 @@ public class QuartzBaseSchedulers<T extends TaskInterface> implements QuartzSche
 		Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 		int count = 0;
 		for (String groupName : scheduler.getJobGroupNames()) {
-			for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.groupEquals(groupName))) {
+			for (JobKey jobKey : scheduler.getJobKeys((GroupMatcher<JobKey>)GroupMatcher.groupEquals(groupName))) {
 				count ++;
 			}
 		}
