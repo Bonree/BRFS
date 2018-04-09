@@ -10,7 +10,7 @@ public class ConfigurationTest {
 
         configuration.printConfigDetail();
 
-        configuration.parse("D:/gitwork/BRFS/config/server.properties");
+        configuration.parse("./config/server.properties");
 
         configuration.printConfigDetail();
 

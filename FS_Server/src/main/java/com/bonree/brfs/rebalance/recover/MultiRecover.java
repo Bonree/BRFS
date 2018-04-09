@@ -20,6 +20,14 @@ import com.bonree.brfs.rebalance.task.TaskOperation;
 import com.bonree.brfs.server.ServerInfo;
 import com.bonree.brfs.server.StorageName;
 
+/*******************************************************************************
+ * 版权信息：博睿宏远科技发展有限公司
+ * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
+ * 
+ * @date 2018年4月9日 下午2:18:16
+ * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
+ * @Description: 副本恢复
+ ******************************************************************************/
 public class MultiRecover implements DataRecover {
 
     private Logger LOG = LoggerFactory.getLogger(MultiRecover.class);

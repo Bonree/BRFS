@@ -4,41 +4,41 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
-public class CuratorPathCache {
+public class CuratorNodeCache {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CuratorPathCache.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CuratorNodeCache.class);
 
-    private static volatile CuratorPathCache pathCache = null;
+    private static volatile CuratorNodeCache nodeCache = null;
 
-    private Map<String, PathChildrenCache> cacheMap = null;
+    private Map<String, NodeCache> cacheMap = null;
 
     private CuratorClient client = null;
 
-    CuratorPathCache(CuratorClient client) {
+    CuratorNodeCache(final CuratorClient client) {
         this.client = client;
-        cacheMap = new ConcurrentHashMap<String, PathChildrenCache>();
+        cacheMap = new ConcurrentHashMap<String, NodeCache>();
     }
 
 
-    public void addListener(String path, AbstractPathChildrenCacheListener listener) {
+    public void addListener(String path, AbstractNodeCacheListener listener) {
         LOG.info("add listener for path:" + path);
-        PathChildrenCache cache = cacheMap.get(path);
+        NodeCache cache = cacheMap.get(path);
         if (cache == null) {
-            cache = new PathChildrenCache(client.getInnerClient(), path, true);
+            cache = new NodeCache(client.getInnerClient(), path);
             cacheMap.put(path, cache);
         }
         cache.getListenable().addListener(listener);
     }
 
-    public void removeListener(String path, AbstractPathChildrenCacheListener listener) {
+    public void removeListener(String path, AbstractNodeCacheListener listener) {
         LOG.info("remove listener for path:" + path);
-        PathChildrenCache cache = cacheMap.get(path);
+        NodeCache cache = cacheMap.get(path);
         if (cache != null) {
             cache.getListenable().removeListener(listener);
         }
@@ -46,7 +46,7 @@ public class CuratorPathCache {
 
     public void cancelListener(String path) throws IOException {
         LOG.info("cancel listener for path:" + path);
-        PathChildrenCache cache = cacheMap.get(path);
+        NodeCache cache = cacheMap.get(path);
         if (cache != null) {
             cache.close();
             cacheMap.remove(path);
@@ -54,7 +54,7 @@ public class CuratorPathCache {
     }
 
     public void startPathCache(String path) {
-        PathChildrenCache cache = cacheMap.get(path);
+        NodeCache cache = cacheMap.get(path);
         try {
             if (cache != null) {
                 cache.start();
@@ -63,4 +63,5 @@ public class CuratorPathCache {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
+
 }

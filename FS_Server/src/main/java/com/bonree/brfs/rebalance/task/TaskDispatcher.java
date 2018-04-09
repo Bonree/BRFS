@@ -24,6 +24,7 @@ import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.Constants;
@@ -258,7 +259,7 @@ public class TaskDispatcher implements Closeable {
         String leaderPath = this.basePath + Constants.SEPARATOR + Constants.LEADER_NODE;
         LOG.info("leader path:" + leaderPath);
         leaderLath = new LeaderLatch(curatorClient.getInnerClient(), leaderPath);
-        treeCache = CuratorTreeCache.getTreeCacheInstance(zkUrl);
+        treeCache = CuratorCacheFactory.getTreeCache();
     }
 
     public void dealChangeSDetail() throws InterruptedException {
@@ -410,6 +411,7 @@ public class TaskDispatcher implements Closeable {
     }
 
     public static void main(String[] args) throws Exception {
+        CuratorCacheFactory.init(Constants.zkUrl);
         ZookeeperIdentification identification = null;  // TODO
         TaskDispatcher td = new TaskDispatcher(Constants.zkUrl, Constants.BASE_PATH, identification);
         td.start();

@@ -14,12 +14,12 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.recover.MultiRecover;
 import com.bonree.brfs.rebalance.recover.VirtualRecover;
-import com.bonree.brfs.rebalance.task.TaskDispatcher.TaskDispachListener;
 import com.bonree.brfs.server.ServerInfo;
 
 /*******************************************************************************
@@ -46,7 +46,7 @@ public class TaskOperation implements Closeable {
 
     public void start() throws InterruptedException {
         client.blockUntilConnected();
-        treeCache = CuratorTreeCache.getTreeCacheInstance(Constants.zkUrl);
+        treeCache = CuratorCacheFactory.getTreeCache();
         treeCache.addListener(tasksPath, new TaskExecutorListener("task_executor"));
         treeCache.startPathCache(tasksPath);
         

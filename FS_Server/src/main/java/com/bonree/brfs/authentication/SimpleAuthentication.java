@@ -15,6 +15,7 @@ import com.bonree.brfs.authentication.impl.ZookeeperUserOperation;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractPathChildrenCacheListener;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
 
 /*******************************************************************************
@@ -107,7 +108,7 @@ public class SimpleAuthentication implements UserOperation {
         }
 
         // 对节点进行监听
-        pathCache = CuratorPathCache.getPathCacheInstance(zkUrl);
+        pathCache = CuratorCacheFactory.getPathCache();
         userListener = new UserCacheListener("userManager");
         pathCache.addListener(userPath, userListener);
         pathCache.startPathCache(userPath);

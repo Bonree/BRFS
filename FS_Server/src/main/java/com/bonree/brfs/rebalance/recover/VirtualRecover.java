@@ -46,7 +46,6 @@ public class VirtualRecover implements DataRecover {
             for (int j = 1; j < metaArr.length; j++) {
                 fileServerIds.add(metaArr[j]);
             }
-
             if (fileServerIds.contains(fixServerId)) {
                 replicaPot = fileServerIds.indexOf(fixServerId);
                 if (!isExistFile(remoteServerId, fileName)) {

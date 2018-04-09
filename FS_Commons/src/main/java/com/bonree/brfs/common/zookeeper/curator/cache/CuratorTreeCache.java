@@ -8,33 +8,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.google.common.base.Preconditions;
 
 public class CuratorTreeCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(CuratorTreeCache.class);
 
-    private static volatile CuratorTreeCache treeCache = null;
-
     private Map<String, TreeCache> cacheMap = null;
 
     private CuratorClient client = null;
 
-    private CuratorTreeCache(String zkUrl) {
-        client = CuratorClient.getClientInstance(zkUrl);
+    CuratorTreeCache(CuratorClient client) {
+        this.client = client;
         cacheMap = new ConcurrentHashMap<String, TreeCache>();
-    }
-
-    public static CuratorTreeCache getTreeCacheInstance(String zkUrl) {
-        LOG.info("create CuratorPathCache...");
-        if (treeCache == null) {
-            synchronized (CuratorTreeCache.class) {
-                if (treeCache == null) {
-                    treeCache = new CuratorTreeCache(Preconditions.checkNotNull(zkUrl, "zkUrl is not null!"));
-                }
-            }
-        }
-        return treeCache;
     }
 
     public void addListener(String path, AbstractTreeCacheListener listener) {
@@ -52,6 +37,15 @@ public class CuratorTreeCache {
         TreeCache cache = cacheMap.get(path);
         if (cache != null) {
             cache.getListenable().removeListener(listener);
+        }
+    }
+
+    public void cancelListener(String path) {
+        LOG.info("remove listeners for tree:" + path);
+        TreeCache cache = cacheMap.get(path);
+        if (cache != null) {
+            cache.close();
+            cacheMap.remove(path);
         }
     }
 
