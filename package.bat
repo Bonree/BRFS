@@ -1,7 +1,7 @@
 @echo off
 
 @rem 设置文件目录
-set dirs=brfs\bin,brfs\jar,brfs\config
+set dirs=brfs\bin,brfs\jar,brfs\config,brfs\logs
 @rem 设置当前路径
 set baseDir=%~dp0
 set version=%date:~0,4%%date:~5,2%%date:~8,2%
