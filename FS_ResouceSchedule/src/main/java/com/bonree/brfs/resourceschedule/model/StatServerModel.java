@@ -1,5 +1,6 @@
 package com.bonree.brfs.resourceschedule.model;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -72,13 +73,22 @@ public class StatServerModel{
 	 * 网卡发送字节数
 	 */
 	private Map<String,Long> netRSpeedMap = new ConcurrentHashMap<String,Long>();
+	/**
+	 * 网卡发送字节数
+	 */
+	private long netTSpeed;
+	
+	/**
+	 * 网卡发送字节数
+	 */
+	private long netRSpeed;
 	
 	/**
 	 * storagename与分区的映射关系
 	 */
 	private Map<String,String> storageNameOnPartitionMap = new ConcurrentHashMap<String,String>();
 	
-	public void calc(Collection<String> snSet, long time) {
+	public void calc(Collection<String> snSet,String dataPath, long time) {
 		long count = time < 0 ? 1 : time;
 		
 		/**
@@ -92,12 +102,13 @@ public class StatServerModel{
 		/**
 		 * 转换sn与partition的关系
 		 */
-		this.storageNameOnPartitionMap = matchSnToPatition(snSet, this.partitionTotalSizeMap.keySet());
+		this.storageNameOnPartitionMap = matchSnToPatition(snSet, this.partitionTotalSizeMap.keySet(), dataPath);
 		
 		if(this.calcCount == 0 || this.calcCount ==1){
 			return;
 		}
 		// 内存使用率
+		
 		this.memoryRate = this.memoryRate / this.calcCount / count;
 		// cpu使用率
 		this.cpuRate = this.cpuRate / this.calcCount/ count;
@@ -108,22 +119,24 @@ public class StatServerModel{
 		this.partitionWriteSpeedMap = CalcUtils.divDataMap(this.partitionWriteSpeedMap, count);
 		
 		// 网卡发送速度
-		this.netTSpeedMap = CalcUtils.divDataMap(this.netTSpeedMap, count);
+		this.netTSpeed = this.netTSpeed / count;
 		// 网卡接收速度
-		this.netRSpeedMap = CalcUtils.divDataMap(this.netRSpeedMap, count);
+		this.netRSpeed = this.netRSpeed /count;
 		//重置计数器
 		this.calcCount = 1;
 		
 	}
-	private Map<String,String> matchSnToPatition(Collection<String> snList, Set<String> mountPoints){
+	private Map<String,String> matchSnToPatition(Collection<String> snList, Set<String> mountPoints, String dataPath){
     	Map<String, String> objMap = new ConcurrentHashMap<String,String>();
-    	if(snList == null || mountPoints == null){
+    	if(snList == null || mountPoints == null || BrStringUtils.isEmpty(dataPath)){
     		return objMap;
     	}
     	// 获取每个sn对应的空间大小
 		String mountPoint = null;
 		// 匹配sn与挂载点
+		String path = null;
 		for(String sn : snList){
+			path = dataPath + "/"+sn;
 			mountPoint = DiskUtils.selectPartOfDisk(sn, mountPoints);
 			if(BrStringUtils.isEmpty(mountPoint)){
 				continue;
@@ -159,9 +172,11 @@ public class StatServerModel{
 		// 分区写入速度
 		obj.setPartitionWriteSpeedMap(CalcUtils.sumDataMap(this.partitionWriteSpeedMap, t1.getPartitionWriteSpeedMap()));
 		// 网卡发送速度
-		obj.setNetTSpeedMap(CalcUtils.sumDataMap(this.netTSpeedMap, t1.getNetTSpeedMap()));
+//		obj.setNetTSpeedMap(CalcUtils.sumDataMap(this.netTSpeedMap, t1.getNetTSpeedMap()));
+		obj.setNetTSpeed(this.netTSpeed + t1.getNetTSpeed());
 		// 网卡接收速度
-		obj.setNetRSpeedMap(CalcUtils.sumDataMap(this.netRSpeedMap, t1.getNetRSpeedMap()));
+//		obj.setNetRSpeedMap(CalcUtils.sumDataMap(this.netRSpeedMap, t1.getNetRSpeedMap()));
+		obj.setNetRSpeed(this.netRSpeed + t1.getNetRSpeed());
 		obj.setCalcCount(count);
 		return obj;
 	}
@@ -273,6 +288,18 @@ public class StatServerModel{
 	}
 	public void setTotalDiskSize(long totalDiskSize) {
 		this.totalDiskSize = totalDiskSize;
+	}
+	public long getNetTSpeed() {
+		return netTSpeed;
+	}
+	public void setNetTSpeed(long netTSpeed) {
+		this.netTSpeed = netTSpeed;
+	}
+	public long getNetRSpeed() {
+		return netRSpeed;
+	}
+	public void setNetRSpeed(long netRSpeed) {
+		this.netRSpeed = netRSpeed;
 	}
 	
 }

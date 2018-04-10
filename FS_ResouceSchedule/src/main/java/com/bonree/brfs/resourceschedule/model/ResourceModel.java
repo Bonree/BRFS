@@ -27,20 +27,21 @@ public class ResourceModel {
 	 */
 	private double memoryRate;
 	/**
-	 * 
+	 * cpu剩余值
 	 */
 	private double cpuValue;
 	/**
-	 * 
+	 * 内存剩余值
 	 */
 	private double memoryValue;
 	/**
+	 * 硬盘写剩余值
 	 */
+	private double netRxValue;
+	private double netTxValue;
 	private Map<String,Double> diskWriteValue = new ConcurrentHashMap<String, Double>();
 	private Map<String,Double> diskReadValue = new ConcurrentHashMap<String, Double>();
 	private Map<String,Double> diskRemainValue = new ConcurrentHashMap<String, Double>();
-	private Map<String,Double> netRxValue = new ConcurrentHashMap<String, Double>();
-	private Map<String,Double> netTxValue = new ConcurrentHashMap<String, Double>();
 	/**
 	 * storagename与分区的映射关系
 	 */
@@ -87,18 +88,7 @@ public class ResourceModel {
 	public void setDiskRemainValue(Map<String, Double> diskRemainValue) {
 		this.diskRemainValue = diskRemainValue;
 	}
-	public Map<String, Double> getNetRxValue() {
-		return netRxValue;
-	}
-	public void setNetRxValue(Map<String, Double> netRxValue) {
-		this.netRxValue = netRxValue;
-	}
-	public Map<String, Double> getNetTxValue() {
-		return netTxValue;
-	}
-	public void setNetTxValue(Map<String, Double> netTxValue) {
-		this.netTxValue = netTxValue;
-	}
+	
 	public double getCpuRate() {
 		return cpuRate;
 	}
@@ -165,19 +155,7 @@ public class ResourceModel {
 		return this.diskRemainValue.get(mount);
 		
 	}
-	public double getNetTxValue(String ip){
-		if(BrStringUtils.isEmpty(ip)){
-			return 0.0;
-		}
-		return this.netTxValue.get(ip);
-	}
-	public double getNetRxValue(String ip){
-		if(BrStringUtils.isEmpty(ip)){
-			return 0.0;
-		}
-		return this.netRxValue.get(ip);
-	}
-
+	
 	public String getMountedPoint(String storage){
 		if(BrStringUtils.isEmpty(storage)){
 			return null;
@@ -186,5 +164,17 @@ public class ResourceModel {
 			return null;
 		}
 		return this.storageNameOnPartitionMap.get(storage);
+	}
+	public double getNetRxValue() {
+		return netRxValue;
+	}
+	public void setNetRxValue(double netRxValue) {
+		this.netRxValue = netRxValue;
+	}
+	public double getNetTxValue() {
+		return netTxValue;
+	}
+	public void setNetTxValue(double netTxValue) {
+		this.netTxValue = netTxValue;
 	}
 }

@@ -1,5 +1,6 @@
 package com.bonree.brfs.resourceschedule.model;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -60,6 +61,15 @@ public class StateMetaServerModel {
 	 * 网卡接收字节数
 	 */
 	private Map<String,Long> netRByteMap = new ConcurrentHashMap<String,Long>();
+	/**
+	 * 网卡发送字节数
+	 */
+	private long netTByte;
+	
+	/**
+	 * 网卡接收字节数
+	 */
+	private long netRByte;
 	
 	public StatServerModel converObject(StateMetaServerModel t1) {
 		StatServerModel obj = new StatServerModel();
@@ -77,9 +87,11 @@ public class StateMetaServerModel {
 		
 		// 3.汇总数据
 		// 内存使用率
-		obj.setMemoryRate((this.memoryRate + t1.getMemoryRate())/count);
+		double mRate = (this.memoryRate + t1.getMemoryRate())/count;
+		obj.setMemoryRate(mRate);
 		// cpu使用率
-		obj.setCpuRate((this.cpuRate + t1.cpuRate)/count);
+		double cRate =(this.cpuRate + t1.cpuRate)/count;
+		obj.setCpuRate(cRate);
 		
 		// 4.转换数据
 		// 分区读取速度
@@ -89,11 +101,13 @@ public class StateMetaServerModel {
 		Map<String,Long> diskWriteSpeedMap = CalcUtils.diffDataMap(this.partitionWriteByteMap, t1.getPartitionWriteByteMap());
 		obj.setPartitionWriteSpeedMap(diskWriteSpeedMap);
 		// 网卡发送速度
-		Map<String,Long> netTxSpeedMap = CalcUtils.diffDataMap(this.netTByteMap, t1.getNetTByteMap());
-		obj.setNetTSpeedMap(netTxSpeedMap);
+//		Map<String,Long> netTxSpeedMap = CalcUtils.diffDataMap(this.netTByteMap, t1.getNetTByteMap());
+//		obj.setNetTSpeedMap(netTxSpeedMap);
+		obj.setNetTSpeed(this.netTByte - t1.getNetTByte());
 		// 网卡接收速度
-		Map<String,Long> netRxSpeedMap = CalcUtils.diffDataMap(this.netRByteMap, t1.getNetRByteMap());
-		obj.setNetRSpeedMap(netRxSpeedMap);
+//		Map<String,Long> netRxSpeedMap = CalcUtils.diffDataMap(this.netRByteMap, t1.getNetRByteMap());
+//		obj.setNetRSpeedMap(netRxSpeedMap);
+		obj.setNetRSpeed(this.netRByte - t1.getNetRByte());
 		obj.setCalcCount(count);
 		return obj;
 	}
@@ -185,5 +199,21 @@ public class StateMetaServerModel {
 
 	public void setCalcCount(int calcCount) {
 		this.calcCount = calcCount;
+	}
+
+	public long getNetTByte() {
+		return netTByte;
+	}
+
+	public void setNetTByte(long netTByte) {
+		this.netTByte = netTByte;
+	}
+
+	public long getNetRByte() {
+		return netRByte;
+	}
+
+	public void setNetRByte(long netRByte) {
+		this.netRByte = netRByte;
 	}
 }
