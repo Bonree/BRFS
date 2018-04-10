@@ -54,6 +54,7 @@ public class QuartzBaseSchedulers<T extends TaskInterface> implements QuartzSche
 			tmpprops = new Properties();
 			tmpprops.put(StdSchedulerFactory.PROP_THREAD_POOL_CLASS, "org.quartz.simpl.SimpleThreadPool");
 			tmpprops.put("org.quartz.threadPool.threadCount", "3");
+			tmpprops.put("quartz.jobStore.misfireThreshold", "1");
 		}
 		else {
 			tmpprops = props;
@@ -100,15 +101,30 @@ public class QuartzBaseSchedulers<T extends TaskInterface> implements QuartzSche
 			if (cycles == null || cycles.length == 0) {
 				throw new NullPointerException("simple trigger cycle time is empty !!! content : " + cycleContent);
 			}
-			if (cycles.length != 2) {
+			if (cycles.length != 5) {
 				throw new NullPointerException("simple trigger cycle time is error !!! content : " + cycleContent);
 			}
 			long interval = Long.valueOf(cycles[0]);
 			int repeateCount = Integer.valueOf(cycles[1]);
-			SimpleScheduleBuilder sSched = SimpleScheduleBuilder.simpleSchedule().withIntervalInMilliseconds(
-				interval).withRepeatCount(repeateCount);
-			trigger = TriggerBuilder.newTrigger().withIdentity(taskName, taskGroup).withSchedule(
-				sSched).build();
+			long delayTime = Long.valueOf(cycles[2]);
+			boolean rightNow = Boolean.valueOf(cycles[3]);
+			boolean cycleFlag = Boolean.valueOf(cycles[4]);
+			SimpleScheduleBuilder builder = SimpleScheduleBuilder.simpleSchedule();
+			builder.withIntervalInMilliseconds(interval);
+			if(cycleFlag){
+				builder.repeatForever();
+			}else{
+				builder.withRepeatCount(repeateCount);
+			}
+			TriggerBuilder trigBuilder = TriggerBuilder.newTrigger().withIdentity(taskName, taskGroup).withSchedule(builder);
+			if(!rightNow && delayTime >0){
+				long current = System.currentTimeMillis()+ delayTime;
+				Date date = new Date(current);
+				trigBuilder.startAt(date);
+			}else{
+				trigBuilder.startNow();
+			}
+			trigger = trigBuilder.build();
 		}
 		if (trigger == null || jobDetail == null) {
 			return false;

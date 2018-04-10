@@ -46,6 +46,6 @@ copy release\*.* brfs\
 echo %version% > brfs\ver_%version%.txt
 
 @rem 打zip包
-for %%i in (%modules%) do  7z.exe a -tzip sdk\zip\%%i.zip %baseDir%\sdk\jar\%%i\* %baseDir%\sdk\readme.txt %baseDir%\sdk\release-notes.txt
+for %%i in (%modules%) do  7z.exe a -tzip brfs\zip\%%i.zip %baseDir%\brfs\jar\%%i\* %baseDir%\brfs\readme.txt %baseDir%\brfs\release-notes.txt
 
 pause

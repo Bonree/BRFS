@@ -21,6 +21,9 @@ public class QuartzSimpleInfo implements TaskInterface {
 	private long interval = 60000;
 	private int repeateCount = 3;
 	private int taskKind = 1;
+	private long delayTime = 0;
+	private boolean runNowFlag = false;
+	private boolean cycleFlag = false;
 	public void putContent(String key, String value){
 		this.taskContent.put(key, value);
 	}
@@ -46,7 +49,11 @@ public class QuartzSimpleInfo implements TaskInterface {
 	public String getCycleContent() {
 		// TODO Auto-generated method stub
 		StringBuilder str = new StringBuilder();
-		str.append(this.interval).append(",").append(this.repeateCount);
+		str.append(this.interval)
+		.append(",").append(this.repeateCount)
+		.append(",").append(this.delayTime)
+		.append(",").append(this.runNowFlag)
+		.append(",").append(this.cycleFlag);
 		return str.toString();
 	}
 
@@ -82,6 +89,33 @@ public class QuartzSimpleInfo implements TaskInterface {
 	}
 	public void setRepeateCount(int repeateCount) {
 		this.repeateCount = repeateCount;
+	}
+	public long getDelayTime() {
+		return delayTime;
+	}
+	public void setDelayTime(long delayTime) {
+		this.delayTime = delayTime;
+	}
+	public boolean isRunNowFlag() {
+		return runNowFlag;
+	}
+	public void setRunNowFlag(boolean runNowFlag) {
+		this.runNowFlag = runNowFlag;
+	}
+	public boolean isCycleFlag() {
+		return cycleFlag;
+	}
+	public void setCycleFlag(boolean cycleFlag) {
+		this.cycleFlag = cycleFlag;
+	}
+	public long getInterval() {
+		return interval;
+	}
+	public int getRepeateCount() {
+		return repeateCount;
+	}
+	public void setTaskKind(int taskKind) {
+		this.taskKind = taskKind;
 	}
 	
 

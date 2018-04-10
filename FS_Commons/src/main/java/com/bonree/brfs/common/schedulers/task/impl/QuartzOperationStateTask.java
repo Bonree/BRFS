@@ -2,11 +2,13 @@ package com.bonree.brfs.common.schedulers.task.impl;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.schedulers.task.QuartzOperationStateInterface;
 
 public abstract class QuartzOperationStateTask implements QuartzOperationStateInterface {
-
+	private static final Logger LOG = LoggerFactory.getLogger(QuartzOperationStateTask.class);
 	@Override
 	public void execute(JobExecutionContext context) {
 		try{
@@ -14,6 +16,7 @@ public abstract class QuartzOperationStateTask implements QuartzOperationStateIn
 		}catch(Exception e){
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
+			LOG.info("{}",e);
 		}
 		
 	}
