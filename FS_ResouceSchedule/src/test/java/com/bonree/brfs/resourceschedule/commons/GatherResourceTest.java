@@ -29,9 +29,7 @@ public class GatherResourceTest {
 	public void testGatherResource() {
 		try {
 			LibUtilsTest.initLibrary();
-			BaseMetaServerModel base = GatherResource.gatherBase("Well", "E:/", Arrays.asList(new String[]{
-					"192.168.4.177"
-			}));
+			BaseMetaServerModel base = GatherResource.gatherBase("Well", "E:/");
 			String baseJson = JsonUtils.toJsonString(base);
 			System.out.println(baseJson);
 			StateMetaServerModel tmp = GatherResource.gatherResource("E:/", Arrays.asList(new String[]{
@@ -54,13 +52,11 @@ public class GatherResourceTest {
 				fail("list is empty");
 			}
 			StatServerModel sCurrent = GatherResource.calcStatServerModel(sList, Arrays.asList(new String[]{
-					"E:\\zhuchenggang",
-			}), 1000l);
+					"E:\\tmp",
+			}), 1000l, "E:\\");
 			String ssJson = JsonUtils.toJsonString(sCurrent);
 			System.out.println(ssJson);
-//			System.out.println("sCurrent remain size "+ sCurrent.getRemainDiskSize() + " - " + sCurrent.getRemainDiskSize());
 			ResourceModel resource = GatherResource.calcResourceValue(base, sCurrent);
-//			System.out.println("resource remain size"+ resource.getDiskRemainRate() + " taotal " + resource.getDiskSize());
 			String rsJson = JsonUtils.toJsonString(resource);
 			System.out.println(rsJson);
 			
