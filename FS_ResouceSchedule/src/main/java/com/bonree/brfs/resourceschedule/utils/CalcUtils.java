@@ -1,5 +1,6 @@
 package com.bonree.brfs.resourceschedule.utils;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -87,6 +88,7 @@ public class CalcUtils{
 		}
 		String key = null;
 		long value = 0l;
+		double result = 0.0;
 		for(Map.Entry<String, Long> entry : map1.entrySet()){
 			key = entry.getKey();
 			value = entry.getValue();
@@ -94,7 +96,29 @@ public class CalcUtils{
 				continue;
 			}
 			if(!map.containsKey(key)){
-				map.put(key, (double)value/count);
+				result = (double)value/count;
+				map.put(key, result);
+			}
+		}
+		return map;
+	}
+	public static Map<String, Double> divDiffDataDoubleMap(Map<String,Long> map1, long count){
+		Map<String,Double> map = new ConcurrentHashMap<String,Double>();
+		if(map1 == null || map1.isEmpty() ||count == 0){
+			return map;
+		}
+		String key = null;
+		long value = 0l;
+		double result = 0.0;
+		for(Map.Entry<String, Long> entry : map1.entrySet()){
+			key = entry.getKey();
+			value = entry.getValue();
+			if(BrStringUtils.isEmpty(key)){
+				continue;
+			}
+			if(!map.containsKey(key)){
+				result = (double)(count - value)/count;
+				map.put(key, result);
 			}
 		}
 		return map;
