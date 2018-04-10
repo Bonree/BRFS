@@ -3,6 +3,10 @@ package com.bonree.brfs.resourceschedule.service.impl;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -13,6 +17,7 @@ import com.bonree.brfs.resourceschedule.model.ResourcePair;
 import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
 
 public class RandomAvailable implements AvailableServerInterface {
+	private static final Logger LOG = LoggerFactory.getLogger("RandomAvailable");
 	/**
 	 * 存储资源信息
 	 */
@@ -34,12 +39,14 @@ public class RandomAvailable implements AvailableServerInterface {
 	public String selectAvailableServer(int scene, String storageName) throws Exception {
 		
 		if(this.resource.isEmpty()){
+			LOG.error("resource is empty");
 			return null;
 		}
 		
 		List<ResourcePair<String, Double>> values = new ArrayList<ResourcePair<String, Double>>();
 		if(0 == scene){
 			int index = Math.abs(new Random().nextInt())%this.resource.size();
+			LOG.info("resource index : {}", index);
 			return this.resource.get(index).getServerId();
 		}
 		if(BrStringUtils.isEmpty(storageName)){
@@ -60,8 +67,10 @@ public class RandomAvailable implements AvailableServerInterface {
 			tmp = new ResourcePair<String, Double>();
 			tmp.setKey(server);
 			tmp.setValue(sum);
+			values.add(tmp);
 		}
 		if(values.isEmpty()){
+			LOG.error("values is empty");
 			return null;
 		}
 		int index = getWeightRandom(values);
@@ -92,6 +101,7 @@ public class RandomAvailable implements AvailableServerInterface {
 		List<ResourcePair<String, Double>> values = new ArrayList<ResourcePair<String, Double>>();
 		if(0 == scene){
 			int index = Math.abs(new Random().nextInt())%tmp.size();
+			return tmp.get(index).getServerId();
 		}
 		if(BrStringUtils.isEmpty(storageName)){
 			return null;
@@ -117,6 +127,7 @@ public class RandomAvailable implements AvailableServerInterface {
 			values.add(tmpResource);
 		}
 		if(values.isEmpty()){
+			LOG.error("values is empty");
 			return null;
 		}
 		int index = getWeightRandom(values);
@@ -133,9 +144,6 @@ public class RandomAvailable implements AvailableServerInterface {
 			return null;
 		}
 		List<ResourcePair<String, Double>> values = new ArrayList<ResourcePair<String, Double>>();
-		if(0 == scene){
-			int index = Math.abs(new Random().nextInt())%tmp.size();
-		}
 		if(BrStringUtils.isEmpty(storageName)){
 			return null;
 		}
@@ -148,6 +156,8 @@ public class RandomAvailable implements AvailableServerInterface {
 				sum = ele.getDiskRemainRate() + ele.getDiskWriteValue(storageName);
 			}else if(2 == scene){
 				sum = ele.getDiskReadValue(storageName);
+			}else if(0 == scene){
+				sum = ele.getNetTxValue() +ele.getNetRxValue();
 			}else{
 				continue;
 			}
@@ -238,19 +248,23 @@ public class RandomAvailable implements AvailableServerInterface {
 			total += tmp.getValue();
 		}
 		Random random = new Random();
+		if(total == 0){
+			return 0;
+		}
 		int randomNum = Math.abs(random.nextInt()%total);
 		int current = 0;
+		int index = 0;
 		for(ResourcePair<String, Integer> ele : dents){
 			current += ele.getValue();
 			if(randomNum > current){
-				current ++;
+				index ++;
 				continue;
 			}
 			if(randomNum <=current){
 				break;
 			}
 		}
-		return current;
+		return index;
 	}
 	private List<ResourcePair<String, Integer>> converDoublesToIntegers(List<ResourcePair<String, Double>> servers){
 		List<ResourcePair<String,Integer>> dents = new ArrayList<ResourcePair<String,Integer>>();
