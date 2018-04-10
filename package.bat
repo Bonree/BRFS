@@ -1,7 +1,7 @@
 @echo off
 
 @rem 设置文件目录
-set dirs=brfs\bin,brfs\jar,brfs\config,brfs\logs
+set dirs=brfs\bin,brfs\jar,brfs\config,brfs\logs,brfs\lib
 @rem 设置当前路径
 set baseDir=%~dp0
 set version=%date:~0,4%%date:~5,2%%date:~8,2%
@@ -37,10 +37,11 @@ call mvn clean package -Dmaven.test.skip=true
 for %%i in (%modules%) do if exist %%i\src\main\resources\ver_*.txt del /s /q %%i\src\main\resources\ver_*.txt
 
 @rem 复制程序jar,配置文件,启动脚本,版本文件
-for %%i in (%modules%) do copy %%i\target\%%i.jar sdk\jar\%%i\
+for %%i in (%modules%) do copy %%i\target\%%i.jar brfs\jar\%%i\
 
 copy config\*.* brfs\config\
 copy bin\*.* brfs\bin\
+copy lib\*.* brfs\lib\
 copy release\*.* brfs\
 echo %version% > brfs\ver_%version%.txt
 
