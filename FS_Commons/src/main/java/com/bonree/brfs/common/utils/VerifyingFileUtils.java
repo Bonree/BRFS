@@ -4,13 +4,13 @@ import java.io.File;
 
 import org.slf4j.Logger;
 
-public class VerifyingFileFactory {
+public class VerifyingFileUtils {
 
     private final boolean warnForRelativePath;
     private final boolean failForNonExistingPath;
     private final Logger log;
 
-    public VerifyingFileFactory(Builder builder) {
+    public VerifyingFileUtils(Builder builder) {
         warnForRelativePath = builder.warnForRelativePathOption;
         failForNonExistingPath = builder.failForNonExistingPathOption;
         log = builder.log;
@@ -63,8 +63,8 @@ public class VerifyingFileFactory {
             return this;
         }
 
-        public VerifyingFileFactory build() {
-            return new VerifyingFileFactory(this);
+        public VerifyingFileUtils build() {
+            return new VerifyingFileUtils(this);
         }
     }
 

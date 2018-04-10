@@ -1,6 +1,7 @@
 package com.bonree.brfs.common.utils;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.StringTokenizer;
 
 public class BrStringUtils {
@@ -50,32 +51,32 @@ public class BrStringUtils {
      * @return
      */
     public static byte[] toUtf8Bytes(String s) {
-		try {
-			return s.getBytes("UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		
-		return new byte[0];
-	}
-	
+        try {
+            return s.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        return new byte[0];
+    }
+
     /**
-	 * 从UTF-8格式的字节数组构造字符串
-	 * 
-	 * @param bytes
-	 * @return
-	 */
-	public static String fromUtf8Bytes(byte[] bytes) {
-		if(bytes != null) {
-			try {
-				return new String(bytes, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		return null;
-	}
+     * 从UTF-8格式的字节数组构造字符串
+     * 
+     * @param bytes
+     * @return
+     */
+    public static String fromUtf8Bytes(byte[] bytes) {
+        if (bytes != null) {
+            try {
+                return new String(bytes, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
 
     /**
      * 判断字符串是否为空
@@ -90,19 +91,19 @@ public class BrStringUtils {
      */
     public static final Boolean isEmpty(String args) {
         Boolean bool = false;
-        //空对象
+        // 空对象
         if (null == args) {
             bool = true;
         }
-        //空字符串
+        // 空字符串
         else if ("".equals(args.trim())) {
             bool = true;
         }
-        //全角
+        // 全角
         else if ("　".equals(args)) {
             bool = true;
         }
-        //null字符串
+        // null字符串
         else if ("null".equals(args)) {
             bool = true;
         } else if ("[]".equals(args)) {
@@ -110,7 +111,7 @@ public class BrStringUtils {
         }
         return bool;
     }
-    
+
     /**
      * 概述：分割字符串
      *
@@ -133,14 +134,15 @@ public class BrStringUtils {
         }
         return result;
     }
+
     /**
      * 概述：判断字符串为有效的数字
      * @param cs
      * @return
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static boolean isMathNumeric(final String cs){
-    	if (isEmpty(cs)) {
+    public static boolean isMathNumeric(final String cs) {
+        if (isEmpty(cs)) {
             return false;
         }
         int n = 0;
@@ -151,11 +153,11 @@ public class BrStringUtils {
             if (chars == '.') {
                 n++;
             }
-            if(i == 0 && '0' == chars){
-            	firstIsZero = true; 
+            if (i == 0 && '0' == chars) {
+                firstIsZero = true;
             }
-            if(i == 1 && '.' != chars && firstIsZero){
-            	return false;
+            if (i == 1 && '.' != chars && firstIsZero) {
+                return false;
             }
             if (n >= 2) {
                 return false;
@@ -166,4 +168,38 @@ public class BrStringUtils {
         }
         return true;
     }
+
+    /** 概述：字符串转数字
+     * @param numStr
+     * @param cls
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public static <T extends Number> T parseNumber(String numStr, Class<T> cls) {
+        T instance = null;
+        try {
+            instance = cls.getConstructor(String.class).newInstance(numStr);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+        if (instance == null) {
+            throw new NumberFormatException("parse number numStr fail!!");
+        }
+        return instance;
+    }
+
+    public static boolean parseBoolean(String str) {
+        return Boolean.parseBoolean(str);
+    }
+
 }

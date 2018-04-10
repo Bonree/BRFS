@@ -8,16 +8,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.util.StatusPrinter;
-
-import com.bonree.brfs.common.utils.VerifyingFileFactory;
-
+import com.bonree.brfs.common.utils.VerifyingFileUtils;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -93,21 +88,6 @@ public class Configuration {
 
     private String configFilePath = null;
 
-    static {
-        // 加载 logback配置信息
-        try {
-            LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-            JoranConfigurator configurator = new JoranConfigurator();
-            configurator.setContext(lc);
-            lc.reset();
-            configurator.doConfigure(Configuration.class.getResourceAsStream("/logback.xml"));
-            StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
-        } catch (JoranException e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
-    }
-    
     private volatile static Configuration configuration = null;
 
     private Map<String, String> configMap = new HashMap<String, String>();
@@ -160,7 +140,7 @@ public class Configuration {
         LOG.info("Reading configuration from: " + path);
 
         try {
-            File configFile = (new VerifyingFileFactory.Builder(LOG).warnForRelativePath().failForNonExistingPath().build()).create(path);
+            File configFile = (new VerifyingFileUtils.Builder(LOG).warnForRelativePath().failForNonExistingPath().build()).create(path);
             Properties cfg = new Properties();
             FileInputStream in = new FileInputStream(configFile);
             try {
@@ -200,6 +180,14 @@ public class Configuration {
 
     public String getProperty(String key) {
         return configMap.get(key);
+    }
+
+    public String getProperty(String key, String defStr) {
+        if (StringUtils.isEmpty(configMap.get(key))) {
+            return defStr;
+        } else {
+            return configMap.get(key);
+        }
     }
 
     public Object getProperty(Object key) {

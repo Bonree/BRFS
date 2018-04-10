@@ -39,6 +39,16 @@ public class CuratorClient implements ZookeeperClient {
 
     private final static String DEFAULT_VALUE = "";
 
+    public static CuratorClient wrapClient(CuratorFramework client) {
+        try {
+            client.start();
+        } catch (IllegalStateException e) {
+            // maybe start beyond once!
+        }
+        CuratorClient curatorClient = new CuratorClient(client);
+        return curatorClient;
+    }
+
     public static CuratorClient getClientInstance(String zkUrl) {
         return new CuratorClient(zkUrl, RETRY_POLICY, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS);
     }
@@ -57,6 +67,10 @@ public class CuratorClient implements ZookeeperClient {
 
     public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs, boolean isWaitConnection) {
         return new CuratorClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs);
+    }
+
+    public CuratorClient(CuratorFramework client) {
+        this.client = client;
     }
 
     public CuratorClient(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
@@ -152,7 +166,7 @@ public class CuratorClient implements ZookeeperClient {
                 return true;
             }
         } catch (Exception e) {
-
+            
         }
         return false;
     }
