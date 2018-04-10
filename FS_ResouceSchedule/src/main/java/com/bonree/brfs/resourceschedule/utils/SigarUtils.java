@@ -1,6 +1,7 @@
 package com.bonree.brfs.resourceschedule.utils;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.resourceschedule.model.ResourcePair;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -140,6 +142,7 @@ public enum SigarUtils {
     	NetInterfaceStat  netStat = null;
     	String tmpIp = null;
     	String devName = null;
+    	String[] netInfos = sigar.getNetInterfaceList();
     	for(String netInfo : ipDevSet){
     		netConfig = sigar.getNetInterfaceConfig(netInfo);
     		tmpIp = netConfig.getAddress();
@@ -154,6 +157,35 @@ public enum SigarUtils {
              addDataToMap(objMap,1,tmpIp,netStat.getRxBytes());
     	}
     	return objMap;
+    }
+    public ResourcePair<Long, Long> gatherNetStatInfos(String ip) throws SigarException{
+    	ResourcePair<Long, Long> nets = new ResourcePair<Long, Long>();
+    	if(BrStringUtils.isEmpty(ip)){
+    		return nets;
+    	}
+    	NetInterfaceConfig netConfig = null;
+    	NetInterfaceStat  netStat = null;
+    	String tmpIp = null;
+    	String[] netInfos = sigar.getNetInterfaceList();
+    	for(String netInfo : netInfos){
+    		netConfig = sigar.getNetInterfaceConfig(netInfo);
+    		tmpIp = netConfig.getAddress();    	
+    		// 1.过滤非法的ip
+    		if(NetUtils.filterIp(tmpIp)){
+    			continue;
+    		}
+    		// 2.过滤网卡不存在的
+    		if(((netConfig.getFlags() & 1L) <= 0L)){
+    			continue;
+    		}
+    		if(ip.equals(tmpIp)){
+    			netStat = sigar.getNetInterfaceStat(netInfo);
+    			nets.setKey(netStat.getRxBytes());
+    			nets.setValue(netStat.getTxBytes());
+    			break;
+    		}
+    	}
+    	return nets;
     }
     
     /**
