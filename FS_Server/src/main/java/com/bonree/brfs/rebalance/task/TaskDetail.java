@@ -1,9 +1,10 @@
 package com.bonree.brfs.rebalance.task;
 
+import com.bonree.brfs.rebalance.DataRecover;
 
 public class TaskDetail {
     private String selfServerId;
-    private String status;
+    private DataRecover.ExecutionStatus status;
     private int totalDirectories;
     private int curentCount;
     private double process;
@@ -18,11 +19,13 @@ public class TaskDetail {
 
     
 
-    public String getStatus() {
+    
+
+    public DataRecover.ExecutionStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(DataRecover.ExecutionStatus status) {
         this.status = status;
     }
 

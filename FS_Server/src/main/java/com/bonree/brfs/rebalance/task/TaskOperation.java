@@ -94,12 +94,12 @@ public class TaskOperation implements Closeable {
                 recover = new MultiRecover(taskSummary, selfServer, this, node, client);
                 delayTime = taskSummary.getRuntime();
             } else if (taskSummary.getTaskType() == 2) { // 虚拟迁移任务
-                recover = new VirtualRecover(taskSummary);
+                recover = new VirtualRecover(taskSummary, this, node, client);
                 delayTime = taskSummary.getRuntime();
             }
 
             if (!client.checkExists(node)) {
-                client.createPersistent(path, false, DataRecover.CREATE_STAGE.getBytes());
+                client.createPersistent(path, false, DataRecover.ExecutionStatus.INIT.name().getBytes());
             }
             // 调用成岗的任务创建模块
             launchTask(delayTime, recover);
@@ -120,10 +120,10 @@ public class TaskOperation implements Closeable {
      * @param status
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public void setTaskStatus(String node, String status) {
+    public void setTaskStatus(String node, DataRecover.ExecutionStatus status) {
         if (client.checkExists(node)) {
             try {
-                client.setData(node, status.getBytes());
+                client.setData(node, status.name().getBytes());
             } catch (Exception e) {
                 LOG.error("change Task status error!", e);
             }

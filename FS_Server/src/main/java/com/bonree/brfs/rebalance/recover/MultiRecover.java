@@ -93,7 +93,7 @@ public class MultiRecover implements DataRecover {
         nodeCache.startPathCache(listenerNode);
 
         String node = Constants.PATH_TASKS + Constants.SEPARATOR + balanceSummary.getStorageIndex() + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + selfServerInfo.getMultiIdentification();
-        taskOpt.setTaskStatus(node, DataRecover.RUNNING_STAGE);
+        taskOpt.setTaskStatus(node, DataRecover.ExecutionStatus.RECOVER);
         int replicas = storageName.getReplications();
 
         LOG.info("deal the local server:" + selfServerInfo.getMultiIdentification());
@@ -102,8 +102,8 @@ public class MultiRecover implements DataRecover {
         for (int i = 1; i <= replicas; i++) {
             dealReplicas(i);
         }
-        
-        taskOpt.setTaskStatus(node, DataRecover.FINISH_STAGE);
+
+        taskOpt.setTaskStatus(node, DataRecover.ExecutionStatus.FINISH);
         try {
             nodeCache.cancelListener(listenerNode);
         } catch (IOException e) {

@@ -210,7 +210,7 @@ public class TaskDispatcher implements Closeable {
                             for (String serverId : serverIds) {
                                 String nodePath = parentPath + Constants.SEPARATOR + serverId;
                                 TaskDetail td = JSON.parseObject(client.getData().forPath(nodePath), TaskDetail.class);
-                                if (td.getStatus() != DataRecover.FINISH_STAGE) {
+                                if (td.getStatus() != DataRecover.ExecutionStatus.FINISH) {
                                     finishFlag = false;
                                     break;
                                 }

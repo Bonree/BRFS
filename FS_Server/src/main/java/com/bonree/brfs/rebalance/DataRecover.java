@@ -10,9 +10,9 @@ package com.bonree.brfs.rebalance;
  ******************************************************************************/
 public interface DataRecover {
 
-    String CREATE_STAGE = "created";
-    String RUNNING_STAGE = "running";
-    String FINISH_STAGE = "finished";
+    public enum ExecutionStatus {
+        INIT,RECOVER, FINISH
+    }
 
     void recover();
 }
