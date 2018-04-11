@@ -16,7 +16,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
         // 因为是构建虚拟SID恢复，则inputServer只需要有一个Server
         taskSummary.setInputServers(Lists.asList(changeSummary.getChangeServer(), null));
         // 设置任务状态
-        taskSummary.setTaskStatus(1);
+        taskSummary.setTaskStatus(TaskStatus.INIT);
         // 设置任务类型
         taskSummary.setTaskType(1);
         // 设置SN的index
@@ -33,7 +33,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
         taskSummary.setStorageIndex(changeSummary.getStorageIndex());
         taskSummary.setOutputServers(changeSummary.getCurrentServers());
         taskSummary.setInputServers(changeSummary.getCurrentServers());
-        taskSummary.setTaskStatus(1);
+        taskSummary.setTaskStatus(TaskStatus.INIT);
         taskSummary.setTaskType(2);
         taskSummary.setRuntime(60 * 30);
         return taskSummary;

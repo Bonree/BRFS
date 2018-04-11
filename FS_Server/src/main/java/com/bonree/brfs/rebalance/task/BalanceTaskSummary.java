@@ -31,7 +31,7 @@ public class BalanceTaskSummary {
      *任务的状态，分为正常和异常；
      *正常任务，可以正常执行，异常任务不可以执行
      */
-    private int taskStatus;
+    private TaskStatus taskStatus;
 
     /**
      *参与提供恢复数据的servers
@@ -102,11 +102,12 @@ public class BalanceTaskSummary {
         this.runtime = runtime;
     }
 
-    public int getTaskStatus() {
+    
+    public TaskStatus getTaskStatus() {
         return taskStatus;
     }
 
-    public void setTaskStatus(int taskStatus) {
+    public void setTaskStatus(TaskStatus taskStatus) {
         this.taskStatus = taskStatus;
     }
 

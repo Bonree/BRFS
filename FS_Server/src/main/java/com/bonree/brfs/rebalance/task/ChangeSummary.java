@@ -20,7 +20,6 @@ public class ChangeSummary implements Comparable<ChangeSummary> {
 
     private ChangeType changeType;
 
-    private int status;
 
     private String changeServer;
 
@@ -79,13 +78,6 @@ public class ChangeSummary implements Comparable<ChangeSummary> {
         this.createTime = createTime;
     }
 
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
 
     @Override
     public boolean equals(Object obj) {

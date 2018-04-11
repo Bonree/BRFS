@@ -3,7 +3,7 @@ package com.bonree.brfs.rebalance.task;
 
 public class TaskDetail {
     private String selfServerId;
-    private TaskStatus status;
+    private String status;
     private int totalDirectories;
     private int curentCount;
     private double process;
@@ -16,11 +16,13 @@ public class TaskDetail {
         this.selfServerId = selfServerId;
     }
 
-    public TaskStatus getStatus() {
+    
+
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

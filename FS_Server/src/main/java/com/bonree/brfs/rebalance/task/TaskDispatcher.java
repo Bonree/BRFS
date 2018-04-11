@@ -28,6 +28,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.Constants;
+import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.server.ServerInfo;
 import com.bonree.brfs.server.identification.impl.ZookeeperServerIdGen;
 import com.google.common.base.Preconditions;
@@ -209,7 +210,7 @@ public class TaskDispatcher implements Closeable {
                             for (String serverId : serverIds) {
                                 String nodePath = parentPath + Constants.SEPARATOR + serverId;
                                 TaskDetail td = JSON.parseObject(client.getData().forPath(nodePath), TaskDetail.class);
-                                if (td.getStatus() != TaskStatus.TERMINATE) {
+                                if (td.getStatus() != DataRecover.FINISH_STAGE) {
                                     finishFlag = false;
                                     break;
                                 }
@@ -381,7 +382,7 @@ public class TaskDispatcher implements Closeable {
         int storageIndex = taskSummary.getStorageIndex();
         String serverId = taskSummary.getServerId();
         // 设置任务状态
-        taskSummary.setTaskStatus(2);
+        taskSummary.setTaskStatus(TaskStatus.CANCEL);
         String taskNode = Constants.PATH_TASKS + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + serverId;
         String jsonStr = JSON.toJSONString(taskSummary);
         if (!curatorClient.checkExists(taskNode)) {

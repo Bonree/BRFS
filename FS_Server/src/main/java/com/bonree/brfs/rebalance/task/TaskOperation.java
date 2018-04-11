@@ -49,7 +49,7 @@ public class TaskOperation implements Closeable {
         treeCache = CuratorCacheFactory.getTreeCache();
         treeCache.addListener(tasksPath, new TaskExecutorListener("task_executor"));
         treeCache.startPathCache(tasksPath);
-        
+
     }
 
     class TaskExecutorListener extends AbstractTreeCacheListener {
@@ -91,7 +91,7 @@ public class TaskOperation implements Closeable {
             String node = path + Constants.SEPARATOR + selfServer.getMultiIdentification();
 
             if (taskSummary.getTaskType() == 1) { // 正常迁移任务
-                recover = new MultiRecover(taskSummary, selfServer, this);
+                recover = new MultiRecover(taskSummary, selfServer, this, node, client);
                 delayTime = taskSummary.getRuntime();
             } else if (taskSummary.getTaskType() == 2) { // 虚拟迁移任务
                 recover = new VirtualRecover(taskSummary);

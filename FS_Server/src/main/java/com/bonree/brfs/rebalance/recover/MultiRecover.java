@@ -6,17 +6,24 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.record.BalanceRecord;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskOperation;
+import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.server.ServerInfo;
 import com.bonree.brfs.server.StorageName;
 
@@ -40,19 +47,51 @@ public class MultiRecover implements DataRecover {
 
     private TaskOperation taskOpt;
 
+    private final String listenerNode;
+
     private Map<String, BalanceTaskSummary> snStorageSummary;
 
     private static final String NAME_SEPARATOR = "_";
 
-    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskOperation taskOpt) {
+    private CuratorNodeCache nodeCache;
+
+    private final CuratorClient client;
+
+    private AtomicReference<TaskStatus> status = new AtomicReference<TaskStatus>(TaskStatus.INIT);
+
+    private class RecoverListener extends AbstractNodeCacheListener {
+
+        public RecoverListener(String listenName) {
+            super(listenName);
+        }
+
+        @Override
+        public void nodeChanged() throws Exception {
+            byte[] data = client.getData(listenerNode);
+            BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
+            TaskStatus stats = bts.getTaskStatus();
+            // 更新缓存
+            status.set(stats);
+        }
+
+    }
+
+    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskOperation taskOpt, String listenerNode, CuratorClient client) {
         this.balanceSummary = summary;
         this.selfServerInfo = selfServerInfo;
         this.taskOpt = taskOpt;
+        this.listenerNode = listenerNode;
+        this.client = client;
     }
 
     @Override
     public void recover() {
         LOG.info("begin recover");
+        // 开启监控
+        nodeCache = CuratorCacheFactory.getNodeCache();
+        nodeCache.addListener(listenerNode, new RecoverListener("recover"));
+        nodeCache.startPathCache(listenerNode);
+
         String node = Constants.PATH_TASKS + Constants.SEPARATOR + balanceSummary.getStorageIndex() + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + selfServerInfo.getMultiIdentification();
         taskOpt.setTaskStatus(node, DataRecover.RUNNING_STAGE);
         int replicas = storageName.getReplications();
@@ -63,7 +102,13 @@ public class MultiRecover implements DataRecover {
         for (int i = 1; i <= replicas; i++) {
             dealReplicas(i);
         }
+        
         taskOpt.setTaskStatus(node, DataRecover.FINISH_STAGE);
+        try {
+            nodeCache.cancelListener(listenerNode);
+        } catch (IOException e) {
+            LOG.error("cancel listener failed!!", e);
+        }
         System.out.println("恢复完成");
     }
 
