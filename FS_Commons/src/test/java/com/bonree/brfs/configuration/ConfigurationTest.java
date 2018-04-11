@@ -14,7 +14,7 @@ public class ConfigurationTest {
 
         configuration.printConfigDetail();
         
-        System.out.println(ServerConfig.parse(configuration));
+        System.out.println(ServerConfig.parse(configuration,"."));
         System.out.println(StorageConfig.parse(configuration));
 
     }

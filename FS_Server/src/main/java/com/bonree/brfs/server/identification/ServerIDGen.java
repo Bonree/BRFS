@@ -10,7 +10,7 @@ import java.util.List;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 服务标识接口
  ******************************************************************************/
-public interface Identification {
+public interface ServerIDGen {
 
     public final static int SINGLE = 1;
     public final static int MULTI = 2;

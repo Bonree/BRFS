@@ -29,7 +29,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.server.ServerInfo;
-import com.bonree.brfs.server.identification.impl.ZookeeperIdentification;
+import com.bonree.brfs.server.identification.impl.ZookeeperServerIdGen;
 import com.google.common.base.Preconditions;
 
 /*******************************************************************************
@@ -50,7 +50,7 @@ public class TaskDispatcher implements Closeable {
 
     private CuratorTreeCache treeCache;
 
-    private ZookeeperIdentification identification;
+    private ZookeeperServerIdGen identification;
 
     private TaskMonitor monitor;
 
@@ -236,7 +236,7 @@ public class TaskDispatcher implements Closeable {
 
     }
 
-    public TaskDispatcher(String zkUrl, String basePath, ZookeeperIdentification identification) {
+    public TaskDispatcher(String zkUrl, String basePath, ZookeeperServerIdGen identification) {
         this.basePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(basePath, "basePath is not null!"));
         this.identification = identification;
         taskGenerator = new SimpleTaskGenerator();
@@ -412,7 +412,7 @@ public class TaskDispatcher implements Closeable {
 
     public static void main(String[] args) throws Exception {
         CuratorCacheFactory.init(Constants.zkUrl);
-        ZookeeperIdentification identification = null;  // TODO
+        ZookeeperServerIdGen identification = null;  // TODO
         TaskDispatcher td = new TaskDispatcher(Constants.zkUrl, Constants.BASE_PATH, identification);
         td.start();
         Thread.sleep(Long.MAX_VALUE);

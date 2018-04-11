@@ -12,6 +12,7 @@ import com.bonree.brfs.common.utils.BrStringUtils;
  ******************************************************************************/
 public class ServerConfig {
 
+    private final String homePath;
     private final String clusterName;
     private final String zkNodes;
     private final String host;
@@ -20,7 +21,8 @@ public class ServerConfig {
     private final String dataPath;
     private final String logPath;
 
-    public ServerConfig(String clusterName, String zkNodes, String host, int port, long zkSessionTime, String dataPath, String logPath) {
+    public ServerConfig(String homePath, String clusterName, String zkNodes, String host, int port, long zkSessionTime, String dataPath, String logPath) {
+        this.homePath = homePath;
         this.clusterName = clusterName;
         this.zkNodes = zkNodes;
         this.host = host;
@@ -30,7 +32,7 @@ public class ServerConfig {
         this.logPath = logPath;
     }
 
-    public static ServerConfig parse(Configuration config) {
+    public static ServerConfig parse(Configuration config, String homePath) {
         String clusterName = config.getProperty(Configuration.CLUSTER_NAME, Configuration.CLUSTER_NAME_VALUE);
         String zkNodes = config.getProperty(Configuration.ZOOKEEPER_NODES, Configuration.ZOOKEEPER_NODES_VALUE);
         String host = config.getProperty(Configuration.NETWORK_HOST, Configuration.NETWORK_HOST_VALUE);
@@ -40,7 +42,7 @@ public class ServerConfig {
         String logPath = config.getProperty(Configuration.PATH_LOGS, Configuration.PATH_LOGS_VALUE);
         int port = BrStringUtils.parseNumber(portStr, Integer.class);
         long zkSessionTime = BrStringUtils.parseNumber(zkSessionTimeStr, Long.class);
-        return new ServerConfig(clusterName, zkNodes, host, port, zkSessionTime, dataPath, logPath);
+        return new ServerConfig(homePath, clusterName, zkNodes, host, port, zkSessionTime, dataPath, logPath);
     }
 
     public String getClusterName() {
@@ -71,9 +73,13 @@ public class ServerConfig {
         return logPath;
     }
 
+    public String getHomePath() {
+        return homePath;
+    }
+
     @Override
     public String toString() {
-        return "ServerConfig [clusterName=" + clusterName + ", zkNodes=" + zkNodes + ", host=" + host + ", port=" + port + ", zkSessionTime=" + zkSessionTime + ", dataPath=" + dataPath + ", logPath=" + logPath + "]";
+        return "ServerConfig [homePath=" + homePath + ", clusterName=" + clusterName + ", zkNodes=" + zkNodes + ", host=" + host + ", port=" + port + ", zkSessionTime=" + zkSessionTime + ", dataPath=" + dataPath + ", logPath=" + logPath + "]";
     }
 
 }

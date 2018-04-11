@@ -12,7 +12,7 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.CuratorLocksClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.Executor;
-import com.bonree.brfs.server.identification.Identification;
+import com.bonree.brfs.server.identification.ServerIDGen;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -23,9 +23,9 @@ import com.bonree.brfs.server.identification.Identification;
  * @Description: 使用zookeeper实现获取单副本服务标识，多副本服务标识，虚拟服务标识
  * 为了安全性，此处的方法，不需要太高的效率，故使用synchronized字段,该实例为单例模式
  ******************************************************************************/
-public class ZookeeperIdentification implements Identification {
+public class ZookeeperServerIdGen implements ServerIDGen {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperIdentification.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperServerIdGen.class);
 
     private final String basePath;
 
@@ -61,7 +61,7 @@ public class ZookeeperIdentification implements Identification {
 
         @Override
         public String execute(CuratorClient client) {
-            if (type == Identification.VIRTUAL) {
+            if (type == ServerIDGen.VIRTUAL) {
                 String virtualServerId = getServersId(client);
                 String virtualServerNode = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + virtualServerId;
                 client.createPersistent(virtualServerNode, false, NORMAL_DATA.getBytes()); // 初始化的时候需要指定该节点为正常
@@ -85,7 +85,7 @@ public class ZookeeperIdentification implements Identification {
 
     }
 
-    private ZookeeperIdentification(String zkUrl, String basePath) {
+    private ZookeeperServerIdGen(String zkUrl, String basePath) {
         client = CuratorClient.getClientInstance(zkUrl);
         this.basePath = BrStringUtils.trimBasePath(basePath);
         this.lockPath = basePath + SEPARATOR + LOCKS_PATH_PART;
@@ -93,7 +93,7 @@ public class ZookeeperIdentification implements Identification {
         checkPathAndCreate(basePath + SEPARATOR + VIRTUAL_SERVER);
     }
 
-    public static volatile ZookeeperIdentification identificationServer = null;
+    public static volatile ZookeeperServerIdGen identificationServer = null;
 
     public String getBasePath() {
         return basePath;
@@ -105,11 +105,11 @@ public class ZookeeperIdentification implements Identification {
         }
     }
 
-    public static Identification getIdentificationServer(final String zkUrl, final String basePath) {
+    public static ServerIDGen getIdentificationServer(final String zkUrl, final String basePath) {
         if (identificationServer == null) {
-            synchronized (ZookeeperIdentification.class) {
+            synchronized (ZookeeperServerIdGen.class) {
                 if (identificationServer == null) {
-                    identificationServer = new ZookeeperIdentification(zkUrl, basePath);
+                    identificationServer = new ZookeeperServerIdGen(zkUrl, basePath);
                 }
             }
         }

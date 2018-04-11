@@ -24,7 +24,7 @@ public class ServerChangeTaskGenetor {
 
     private String changesPath;
 
-    private CuratorClient client; // TODO 可以替换成zkURL，每次变更时，在生成新的client。
+    private CuratorClient client; // TODO 可以替换成zkURL
 
     public ServerChangeTaskGenetor(final CuratorClient client, final String leaderPath, final String changesNode) throws Exception {
         this.leaderPath = leaderPath;
@@ -40,7 +40,9 @@ public class ServerChangeTaskGenetor {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void addServers(ServerInfo changeServer) {
-        genChangeSummary(changeServer, ChangeType.ADD);
+        if (leaderLath.hasLeadership()) {
+            genChangeSummary(changeServer, ChangeType.ADD);
+        }
     }
 
     /** 概述：只需要添加每次变更的信息即可
@@ -48,7 +50,9 @@ public class ServerChangeTaskGenetor {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void removeServers(ServerInfo changeServer) {
-        genChangeSummary(changeServer, ChangeType.REMOVE);
+        if (leaderLath.hasLeadership()) {
+            genChangeSummary(changeServer, ChangeType.REMOVE);
+        }
     }
 
     private void genChangeSummary(ServerInfo changeServer, ChangeType type) {
