@@ -21,38 +21,20 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
-public class ReleaseTaskOperation implements MetaTaskManagerInterface{
-	private static final Logger LOG = LoggerFactory.getLogger(ReleaseTaskOperation.class);
+public class DefaultReleaseTask implements MetaTaskManagerInterface{
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultReleaseTask.class);
 	private String zkUrl = null;
 	private String taskRootPath = null;
-	private String availbleServerPath = null;
 	private ZookeeperClient  client = null;
 	private static class releaseInstance{
-		public static ReleaseTaskOperation instance = new ReleaseTaskOperation();
+		public static DefaultReleaseTask instance = new DefaultReleaseTask();
 	}
-	private ReleaseTaskOperation(){
+	private DefaultReleaseTask(){
 		
 	}
-	public static ReleaseTaskOperation getInstance(){
+	public static DefaultReleaseTask getInstance(){
 		return releaseInstance.instance;
 	}
-	public ReleaseTaskOperation setPropreties(String zkUrl, String taskRootPath, String avalibleServerPath){
-		this.zkUrl = zkUrl;
-		this.taskRootPath = taskRootPath;
-		this.availbleServerPath = avalibleServerPath;
-		if(BrStringUtils.isEmpty(this.zkUrl)){
-			throw new NullPointerException("zookeeper address is empty");
-		}
-		if(BrStringUtils.isEmpty(this.taskRootPath)){
-			throw new NullPointerException("task root path is empty");
-		}
-		if(BrStringUtils.isEmpty(this.availbleServerPath)){
-			throw new NullPointerException("availbleServerPath is empty");
-		}
-		client = CuratorClient.getClientInstance(this.zkUrl);
-		return this;
-	}
-	
 	private List<String> getOrderTaskInfos(String taskType){
 		if(StringUtils.isEmpty(taskType)){
 			throw new NullPointerException("taskType is empty");
@@ -100,14 +82,6 @@ public class ReleaseTaskOperation implements MetaTaskManagerInterface{
 			return null;
 		}
 		String pathNode = client.createPersistentSequential(taskPath , true, data);
-		// 获取最新的节点
-		List<String> availServers = getAvaliServer();
-		StringBuilder serverPath = null;
-		for(String server : availServers){
-			serverPath = new StringBuilder();
-			serverPath.append(pathNode).append("/").append(server);
-			client.createPersistent(serverPath.toString(), false);
-		}
 		String[] nodes = BrStringUtils.getSplit(pathNode, "/");
 		if(nodes != null && nodes.length != 0){
 			return nodes[nodes.length -1];
@@ -144,31 +118,6 @@ public class ReleaseTaskOperation implements MetaTaskManagerInterface{
 		return tmp.getTaskState();
 	}
 	
-	private List<String> getAvaliServer(){
-		List<String> serverList = new ArrayList<String>();
-		List<String> servers = client.getChildren(this.availbleServerPath);
-		StringBuilder pathBuilder = null;
-		String path = null;
-		Service single = null;
-		byte[] content = null;
-		for(String server : servers){
-			pathBuilder = new StringBuilder();
-			pathBuilder.append(this.availbleServerPath).append("/")
-			.append(server);
-			path = pathBuilder.toString();
-			if(!client.checkExists(path)){
-				continue;
-			}
-			content = client.getData(path);
-			if(content == null || content.length == 0){
-				continue;
-			}
-			single = JsonUtils.toObject(content, Service.class);
-			serverList.add(single.getServiceId());
-		}
-		return serverList;
-	}
-	@Override
 	public boolean releaseServerTaskContentNode(String serverId, String taskName, String taskType, byte[] data) throws Exception {
 		// TODO Auto-generated method stub
 		if(BrStringUtils.isEmpty(serverId)){
@@ -325,5 +274,29 @@ public class ReleaseTaskOperation implements MetaTaskManagerInterface{
 		}
 		TaskContent taskInfo = JsonUtils.toObject(data, TaskContent.class);
 		return taskInfo.getCreateTime();
+	}
+	@Override
+	public boolean isInit() {
+		// TODO Auto-generated method stub
+		if(this.client == null){
+			return false;
+		}
+		if(BrStringUtils.isEmpty(this.zkUrl)){
+			return false;
+		}
+		return true;
+	}
+	@Override
+	public void setPropreties(String zkUrl, String taskPath, String... args) {
+		this.zkUrl = zkUrl;
+		this.taskRootPath = taskRootPath;
+		if(BrStringUtils.isEmpty(this.zkUrl)){
+			throw new NullPointerException("zookeeper address is empty");
+		}
+		if(BrStringUtils.isEmpty(this.taskRootPath)){
+			throw new NullPointerException("task root path is empty");
+		}
+		client = CuratorClient.getClientInstance(this.zkUrl);
+		
 	}
 }

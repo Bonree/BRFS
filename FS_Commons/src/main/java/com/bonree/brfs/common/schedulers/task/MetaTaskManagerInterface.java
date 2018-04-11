@@ -1,5 +1,7 @@
 package com.bonree.brfs.common.schedulers.task;
 
+import java.util.Collection;
+
 import com.bonree.brfs.common.schedulers.model.TaskContent;
 import com.bonree.brfs.common.schedulers.model.TaskServerNodeContent;
 
@@ -87,4 +89,18 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	int deleteTasks(long deleteTime, String taskType);
+	/**
+	 * 概述：判断是否初始化
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	boolean isInit();
+	/**
+	 * 概述：初始化接口
+	 * @param zkUrl
+	 * @param taskPath
+	 * @param args
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	void setPropreties(String zkUrl, String taskPath, String... args);
 }
