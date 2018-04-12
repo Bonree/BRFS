@@ -5,13 +5,18 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 
 public class AuthenticationTest {
-    
-    
 
     public static void main(String[] args) throws InterruptedException {
-        String zkUrl="192.168.101.86:2181";
+        String zkUrl = "192.168.101.86:2181";
         CuratorCacheFactory.init(zkUrl);
-        testOpt();
+        deleteNode(zkUrl);
+//        testOpt();
+    }
+
+    public static void deleteNode(String zkUrl) {
+        CuratorClient curatorClient = CuratorClient.getClientInstance(zkUrl);
+        curatorClient.delete("/brfs/test1", true);
+        curatorClient.close();
     }
 
     public static void testEfficiency() {

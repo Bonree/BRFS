@@ -1,11 +1,10 @@
 package com.bonree.brfs.common;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.configuration.ServerConfig;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -25,6 +24,8 @@ public class ZookeeperPaths {
 
     public final static String SERVER_ID_SEQUENCES = "server_id_sequences";
 
+    public final static String SERVER_IDS = "server_ids";
+
     public final static String SERVERS = "servers";
 
     public final static String LOCKS = "locks";
@@ -36,6 +37,11 @@ public class ZookeeperPaths {
     public final static String ROUTE_ROLE = "route_role";
 
     public final static String USER = "user";
+
+    private final String clusterName;
+    private final String zkNodes;
+
+    private String baseServerIdSeqPath;
 
     private String baseServerIdPath;
 
@@ -50,6 +56,19 @@ public class ZookeeperPaths {
     private String baseRoutePath;
 
     private String baseUserPath;
+
+    public ZookeeperPaths(final String clusterName, final String zkNodes) {
+        this.clusterName = clusterName;
+        this.zkNodes = zkNodes;
+    }
+
+    public String getBaseServerIdSeqPath() {
+        return baseServerIdSeqPath;
+    }
+
+    public void setBaseServerIdSeqPath(String baseServerIdSeqPath) {
+        this.baseServerIdSeqPath = baseServerIdSeqPath;
+    }
 
     public String getBaseServerIdPath() {
         return baseServerIdPath;
@@ -107,11 +126,12 @@ public class ZookeeperPaths {
         this.baseUserPath = baseUserPath;
     }
 
-    public void createZkPath(ServerConfig config) {
+    public void createZkPath() {
         CuratorClient client = null;
         try {
-            client = CuratorClient.getClientInstance(config.getZkNodes());
+            client = CuratorClient.getClientInstance(zkNodes);
             createPathIfNotExist(client, baseLocksPath);
+            createPathIfNotExist(client, baseServerIdSeqPath);
             createPathIfNotExist(client, baseServerIdPath);
             createPathIfNotExist(client, baseServersPath);
             createPathIfNotExist(client, baseRebalancePath);
@@ -133,21 +153,23 @@ public class ZookeeperPaths {
         }
     }
 
-    public static ZookeeperPaths create(ServerConfig config) {
-        String clusterName = config.getClusterName();
-        if (StringUtils.isEmpty(clusterName)) {
-            throw new IllegalStateException("clusterName is not empty!");
-        }
-        ZookeeperPaths zkPaths = new ZookeeperPaths();
-        zkPaths.setBaseServerIdPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + SERVER_ID_SEQUENCES);
-        zkPaths.setBaseLocksPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + LOCKS);
-        zkPaths.setBaseServersPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + SERVERS);
-        zkPaths.setBaseStorageNamePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + STORAGE_NAMES);
-        zkPaths.setBaseRebalancePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + REBALANCE);
-        zkPaths.setBaseRoutePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + ROUTE_ROLE);
-        zkPaths.setBaseUserPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + USER);
-        
-        zkPaths.createZkPath(config);
+    private void createPath() {
+        setBaseServerIdPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + SERVER_IDS);
+        setBaseServerIdSeqPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + SERVER_ID_SEQUENCES);
+        setBaseLocksPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + LOCKS);
+        setBaseServersPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + SERVERS);
+        setBaseStorageNamePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + STORAGE_NAMES);
+        setBaseRebalancePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + REBALANCE);
+        setBaseRoutePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + ROUTE_ROLE);
+        setBaseUserPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + USER);
+    }
+
+    public static ZookeeperPaths create(final String clusterName, final String zkHosts) {
+        BrStringUtils.checkNotEmpty(clusterName, clusterName + " is empty!!!");
+        BrStringUtils.checkNotEmpty(zkHosts, zkHosts + " is empty!!!");
+        ZookeeperPaths zkPaths = new ZookeeperPaths(clusterName, zkHosts);
+        zkPaths.createPath();
+        zkPaths.createZkPath();
         return zkPaths;
     }
 

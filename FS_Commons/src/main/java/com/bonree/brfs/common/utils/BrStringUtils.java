@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class BrStringUtils {
 
     private static final char SEPARATOR_DIR = '/';
@@ -198,8 +200,24 @@ public class BrStringUtils {
         return instance;
     }
 
+    /** 概述：解析字符为布尔类型
+     * @param str
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public static boolean parseBoolean(String str) {
         return Boolean.parseBoolean(str);
+    }
+
+    /** 概述：检查字符不为空
+     * @param str
+     * @param desc
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public static void checkNotEmpty(String str, String desc) {
+        if (StringUtils.isEmpty(str)) {
+            throw new IllegalStateException(desc);
+        }
     }
 
 }

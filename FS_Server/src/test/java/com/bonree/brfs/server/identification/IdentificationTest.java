@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.bonree.brfs.server.identification.impl.ZookeeperServerIdGen;
+import com.bonree.brfs.server.identification.impl.ZookeeperServerIdOpt;
 
 public class IdentificationTest {
 
@@ -27,9 +27,9 @@ public class IdentificationTest {
                     int count = 0;
                     while (count < 10) {
                         count++;
-                        ServerIDGen instance = ZookeeperServerIdGen.getIdentificationServer("192.168.101.86:2181", "/brfs/wz/serverID");
-                        sigleServerIdList.add(instance.genSingleIdentification());
-                        multiServerIdList.add(instance.genMultiIndentification());
+                        ServerIDOpt instance = ZookeeperServerIdOpt.getIdentificationServer("192.168.101.86:2181", "/brfs/wz/serverID");
+                        sigleServerIdList.add(instance.genFirstIdentification());
+                        multiServerIdList.add(instance.genSecondIndentification());
                     }
 
                 }

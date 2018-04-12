@@ -49,33 +49,33 @@ public class CuratorClient implements ZookeeperClient {
         return curatorClient;
     }
 
-    public static CuratorClient getClientInstance(String zkUrl) {
-        return new CuratorClient(zkUrl, RETRY_POLICY, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS);
+    public static CuratorClient getClientInstance(String zkHosts) {
+        return new CuratorClient(zkHosts, RETRY_POLICY, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS);
     }
 
-    public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry) {
-        return new CuratorClient(zkUrl, retry, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS);
+    public static CuratorClient getClientInstance(String zkHosts, RetryPolicy retry) {
+        return new CuratorClient(zkHosts, retry, SESSION_TIMEOUT_MS, CONNECTION_TIMEOUT_MS);
     }
 
-    public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs) {
-        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, CONNECTION_TIMEOUT_MS);
+    public static CuratorClient getClientInstance(String zkHosts, RetryPolicy retry, int sessionTimeoutMs) {
+        return new CuratorClient(zkHosts, retry, sessionTimeoutMs, CONNECTION_TIMEOUT_MS);
     }
 
-    public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
-        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs);
+    public static CuratorClient getClientInstance(String zkHosts, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
+        return new CuratorClient(zkHosts, retry, sessionTimeoutMs, connectionTimeoutMs);
     }
 
-    public static CuratorClient getClientInstance(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs, boolean isWaitConnection) {
-        return new CuratorClient(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs);
+    public static CuratorClient getClientInstance(String zkHosts, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs, boolean isWaitConnection) {
+        return new CuratorClient(zkHosts, retry, sessionTimeoutMs, connectionTimeoutMs);
     }
 
     public CuratorClient(CuratorFramework client) {
         this.client = client;
     }
 
-    public CuratorClient(String zkUrl, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
+    public CuratorClient(String zkHosts, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
         try {
-            CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder().connectString(zkUrl).retryPolicy(retry).connectionTimeoutMs(5000).sessionTimeoutMs(sessionTimeoutMs);
+            CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder().connectString(zkHosts).retryPolicy(retry).connectionTimeoutMs(5000).sessionTimeoutMs(sessionTimeoutMs);
 
             client = builder.build();
             client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
@@ -146,7 +146,9 @@ public class CuratorClient implements ZookeeperClient {
 
     @Override
     public void close() {
-        client.close();
+        if(client!=null) {
+            client.close();
+        }
     }
 
     @Override
@@ -166,7 +168,7 @@ public class CuratorClient implements ZookeeperClient {
                 return true;
             }
         } catch (Exception e) {
-            
+
         }
         return false;
     }

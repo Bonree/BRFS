@@ -2,13 +2,9 @@ package com.bonree.brfs.server.identification;
 
 import java.util.List;
 
-import org.codehaus.jackson.map.DeserializerFactory.Config;
-
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.server.identification.impl.ZookeeperServerIdGen;
-import com.bonree.brfs.server.utils.FileUtils;
-import com.google.common.collect.Lists;
+import com.bonree.brfs.server.identification.impl.ZookeeperServerIdOpt;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -22,27 +18,34 @@ public class ServerIDManager {
 
     private ServerConfig serverConfig;
 
-    private ServerIDGen identification;
+    private ServerIDOpt serverIDOpt;
 
-    private final static String SINGLE_FILE = "/id/single_id";
-    
-    private final static String MULTI_FILE = "/id/multi_id";
+    private FirstLevelServerID firstLevelServerID;
 
-    public ServerIDManager(ServerConfig config, ZookeeperPaths basePaths) {
+    private VirtualServerID virtualServerID;
+
+    private final static String SINGLE_FILE = "/id/server_id";
+
+    public ServerIDManager(ServerConfig config, ZookeeperPaths zkBasePaths) {
         this.serverConfig = config;
-        this.identification = ZookeeperServerIdGen.getIdentificationServer(this.serverConfig.getZkNodes(), basePaths.getBaseServerIdPath());
+        this.serverIDOpt = ZookeeperServerIdOpt.getIdentificationServer(this.serverConfig.getZkHosts(), zkBasePaths.getBaseServerIdSeqPath());
+       
+        firstLevelServerID = new FirstLevelServerID(config.getZkHosts(), zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE, serverIDOpt);
+        firstLevelServerID.initOrLoadServerID();
+
+        virtualServerID = new VirtualServerID(serverIDOpt);
+
     }
 
-
-    public String getMultiServerId() {
-        String serverId = null;
-        String multiFile = serverConfig.getHomePath() + SINGLE_FILE;
-        if (!FileUtils.isExist(multiFile)) {
-
-        } else {
-
-        }
-        return null;
+    public String getFirstServerID() {
+        return firstLevelServerID.getServerID();
     }
 
+    public String getSecondServerID(int storageIndex) {
+        return firstLevelServerID.getSecondLevelServerID().getServerID(storageIndex);
+    }
+
+    public List<String> getVirtualServerID(int storageIndex, int count) {
+        return virtualServerID.getServerId(storageIndex, count);
+    }
 }

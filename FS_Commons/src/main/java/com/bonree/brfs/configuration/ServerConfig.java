@@ -14,17 +14,17 @@ public class ServerConfig {
 
     private final String homePath;
     private final String clusterName;
-    private final String zkNodes;
+    private final String zkHosts;
     private final String host;
     private final int port;
     private final long zkSessionTime;
     private final String dataPath;
     private final String logPath;
 
-    public ServerConfig(String homePath, String clusterName, String zkNodes, String host, int port, long zkSessionTime, String dataPath, String logPath) {
+    public ServerConfig(String homePath, String clusterName, String zkHosts, String host, int port, long zkSessionTime, String dataPath, String logPath) {
         this.homePath = homePath;
         this.clusterName = clusterName;
-        this.zkNodes = zkNodes;
+        this.zkHosts = zkHosts;
         this.host = host;
         this.port = port;
         this.zkSessionTime = zkSessionTime;
@@ -34,7 +34,7 @@ public class ServerConfig {
 
     public static ServerConfig parse(Configuration config, String homePath) {
         String clusterName = config.getProperty(Configuration.CLUSTER_NAME, Configuration.CLUSTER_NAME_VALUE);
-        String zkNodes = config.getProperty(Configuration.ZOOKEEPER_NODES, Configuration.ZOOKEEPER_NODES_VALUE);
+        String zkHosts = config.getProperty(Configuration.ZOOKEEPER_NODES, Configuration.ZOOKEEPER_NODES_VALUE);
         String host = config.getProperty(Configuration.NETWORK_HOST, Configuration.NETWORK_HOST_VALUE);
         String portStr = config.getProperty(Configuration.NETWORK_PORT, Configuration.NETWORK_PORT_VALUE);
         String zkSessionTimeStr = config.getProperty(Configuration.ZOOKEEPER_SESSION_TIMEOUT, Configuration.ZOOKEEPER_SESSION_TIMEOUT_VALUE);
@@ -42,7 +42,7 @@ public class ServerConfig {
         String logPath = config.getProperty(Configuration.PATH_LOGS, Configuration.PATH_LOGS_VALUE);
         int port = BrStringUtils.parseNumber(portStr, Integer.class);
         long zkSessionTime = BrStringUtils.parseNumber(zkSessionTimeStr, Long.class);
-        return new ServerConfig(homePath, clusterName, zkNodes, host, port, zkSessionTime, dataPath, logPath);
+        return new ServerConfig(homePath, clusterName, zkHosts, host, port, zkSessionTime, dataPath, logPath);
     }
 
     public String getClusterName() {
@@ -57,8 +57,8 @@ public class ServerConfig {
         return port;
     }
 
-    public String getZkNodes() {
-        return zkNodes;
+    public String getZkHosts() {
+        return zkHosts;
     }
 
     public long getZkSessionTime() {
@@ -79,7 +79,7 @@ public class ServerConfig {
 
     @Override
     public String toString() {
-        return "ServerConfig [homePath=" + homePath + ", clusterName=" + clusterName + ", zkNodes=" + zkNodes + ", host=" + host + ", port=" + port + ", zkSessionTime=" + zkSessionTime + ", dataPath=" + dataPath + ", logPath=" + logPath + "]";
+        return "ServerConfig [homePath=" + homePath + ", clusterName=" + clusterName + ", zkNodes=" + zkHosts + ", host=" + host + ", port=" + port + ", zkSessionTime=" + zkSessionTime + ", dataPath=" + dataPath + ", logPath=" + logPath + "]";
     }
 
 }

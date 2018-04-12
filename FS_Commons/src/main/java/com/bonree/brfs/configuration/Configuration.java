@@ -86,7 +86,7 @@ public class Configuration {
 
     public static String ZOOKEEPER_SESSION_TIMEOUT_VALUE = "5000";
 
-    private String configFilePath = null;
+    private String configFileName = null;
 
     private volatile static Configuration configuration = null;
 
@@ -133,19 +133,19 @@ public class Configuration {
     }
 
     public String getConfigFilePath() {
-        return configFilePath;
+        return configFileName;
     }
 
-    public void parse(String path) throws ConfigException {
-        LOG.info("Reading configuration from: " + path);
+    public void parse(String fileName) throws ConfigException {
+        LOG.info("Reading configuration from: " + fileName);
 
         try {
-            File configFile = (new VerifyingFileUtils.Builder(LOG).warnForRelativePath().failForNonExistingPath().build()).create(path);
+            File configFile = (new VerifyingFileUtils.Builder(LOG).warnForRelativePath().failForNonExistingPath().build()).create(fileName);
             Properties cfg = new Properties();
             FileInputStream in = new FileInputStream(configFile);
             try {
                 cfg.load(in);
-                configFilePath = path;
+                configFileName = fileName;
             } finally {
                 in.close();
             }
@@ -153,9 +153,9 @@ public class Configuration {
             parseProperties(cfg);
 
         } catch (IOException e) {
-            throw new ConfigException("Error processing " + path, e);
+            throw new ConfigException("Error processing " + fileName, e);
         } catch (IllegalArgumentException e) {
-            throw new ConfigException("Error processing " + path, e);
+            throw new ConfigException("Error processing " + fileName, e);
         }
     }
 

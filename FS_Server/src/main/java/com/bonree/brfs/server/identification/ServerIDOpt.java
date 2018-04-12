@@ -10,56 +10,54 @@ import java.util.List;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 服务标识接口
  ******************************************************************************/
-public interface ServerIDGen {
+public interface ServerIDOpt {
 
-    public final static int SINGLE = 1;
-    public final static int MULTI = 2;
-    public final static int VIRTUAL = 3;
+    public final static int FIRST_ID = 1;
+    public final static int SECOND_ID = 2;
+    public final static int VIRTUAL_ID = 3;
 
     /** 概述：生成单副本ServerID
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public String genSingleIdentification();
+    public String genFirstIdentification();
 
     /** 概述：生成多副本ServerID
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public String genMultiIndentification();
+    public String genSecondIndentification();
 
     /** 概述：生成虚拟ServerID
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public String genVirtualIdentification();
+    public String genVirtualIdentification(int storageIndex);
 
     /** 概述：获取需要的虚拟ServerID
      * @param count
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> getVirtualIdentification(int count);
-    
+    public List<String> getVirtualIdentification(int storageIndex, int count);
+
     /** 概述：列出使用的virtualID
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> listVirtualIdentification();
-    
-    
+    public List<String> listVirtualIdentification(int storageIndex);
+
     /** 概述：无效化虚拟ID
      * @param id
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean invalidVirtualIden(String id);
-    
-    
+    public boolean invalidVirtualIden(int storageIndex, String id);
+
     /** 概述：删除虚拟ID
      * @param id
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean deleteVirtualIden(String id);
+    public boolean deleteVirtualIden(int storageIndex, String id);
 }
