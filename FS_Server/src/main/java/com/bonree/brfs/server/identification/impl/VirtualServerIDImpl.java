@@ -24,7 +24,7 @@ import com.bonree.brfs.server.identification.VirtualServerIDGen;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: virtual serverID 管理，此处可能需要进行缓存
  ******************************************************************************/
-public class VirtualServerIDImpl implements VirtualServerID,VirtualServerIDGen{
+public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen {
 
     private static final Logger LOG = LoggerFactory.getLogger(VirtualServerIDImpl.class);
 
@@ -107,7 +107,7 @@ public class VirtualServerIDImpl implements VirtualServerID,VirtualServerIDGen{
             String storageSIDPath = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex;
             List<String> virtualIds = client.getChildren(storageSIDPath);
             // 排除无效的虚拟ID
-            virtualIds = filterVirtualInvalidId(client, storageIndex, virtualIds);
+            virtualIds = filterVirtualId(client, storageIndex, virtualIds, INVALID_DATA);
             if (virtualIds == null) {
                 for (int i = 0; i < count; i++) {
                     String tmp = genVirtualID(storageIndex);
@@ -179,7 +179,7 @@ public class VirtualServerIDImpl implements VirtualServerID,VirtualServerIDGen{
             client = CuratorClient.getClientInstance(zkHosts);
             List<String> virtualIds = client.getChildren(storageSIDPath);
             // 过滤掉正在恢复的虚拟ID。
-            return filterVirtualInvalidId(client, storageIndex, virtualIds);
+            return filterVirtualId(client, storageIndex, virtualIds, INVALID_DATA);
         } finally {
             if (client != null) {
                 client.close();
@@ -189,8 +189,18 @@ public class VirtualServerIDImpl implements VirtualServerID,VirtualServerIDGen{
 
     @Override
     public List<String> listValidVirtualID(int storageIndex) {
+        String storageSIDPath = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex;
+        CuratorClient client = null;
+        try {
+            client = CuratorClient.getClientInstance(zkHosts);
+            List<String> virtualIds = client.getChildren(storageSIDPath);
+            return filterVirtualId(client, storageIndex, virtualIds, NORMAL_DATA);
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
 
-        return null;
     }
 
     @Override
@@ -207,13 +217,13 @@ public class VirtualServerIDImpl implements VirtualServerID,VirtualServerIDGen{
         }
     }
 
-    private List<String> filterVirtualInvalidId(CuratorClient client, int storageIndex, List<String> virtualIds) {
+    private List<String> filterVirtualId(CuratorClient client, int storageIndex, List<String> virtualIds, String type) {
         if (virtualIds != null && !virtualIds.isEmpty()) {
             Iterator<String> it = virtualIds.iterator();
             while (it.hasNext()) {
                 String node = it.next();
                 byte[] data = client.getData(basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex + SEPARATOR + node);
-                if (StringUtils.equals(new String(data), INVALID_DATA)) {
+                if (StringUtils.equals(new String(data), type)) {
                     it.remove();
                 }
             }

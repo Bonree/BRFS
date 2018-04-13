@@ -74,11 +74,11 @@ public class SecondLevelServerID {
      */
     public String getServerID(int storageIndex) {
         CuratorClient client = null;
-        try {
-            Preconditions.checkNotNull(secondMap, "Second Level Server ID is not init!!!");
-            String serverID = secondMap.get(storageIndex);
-            // TODO 多线程调用可能会出现线程安全的问题
-            if (StringUtils.isEmpty(serverID)) { // 需要对新的SN的进行初始化
+        Preconditions.checkNotNull(secondMap, "Second Level Server ID is not init!!!");
+        String serverID = secondMap.get(storageIndex);
+        // TODO 多线程调用可能会出现线程安全的问题
+        if (StringUtils.isEmpty(serverID)) { // 需要对新的SN的进行初始化
+            try {
                 client = CuratorClient.getClientInstance(zkHosts);
                 String node = selfFirstPath + '/' + storageIndex;
                 lock.lock();
@@ -89,14 +89,14 @@ public class SecondLevelServerID {
                     serverID = new String(client.getData(node));
                 }
                 secondMap.put(storageIndex, serverID);
-            }
-            return serverID;
-        } finally {
-            lock.unlock();
-            if (client != null) {
-                client.close();
+            } finally {
+                lock.unlock();
+                if (client != null) {
+                    client.close();
+                }
             }
         }
+        return serverID;
     }
 
 }

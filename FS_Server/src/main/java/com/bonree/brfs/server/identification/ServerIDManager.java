@@ -50,7 +50,16 @@ public class ServerIDManager {
         return virtualServerID.deleteVirtualIden(storageIndex, id);
     }
 
-    public List<String> listVirtualID(int storageIndex) {
+    public List<String> listNormalVirtualID(int storageIndex) {
         return virtualServerID.listNormalVirtualID(storageIndex);
     }
+
+    public List<String> listAllVirtualID(int storageIndex) {
+        return virtualServerID.listAllVirtualID(storageIndex);
+    }
+
+    public List<String> listValidVirtualID(int storageIndex) {
+        return virtualServerID.listValidVirtualID(storageIndex);
+    }
+
 }
