@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.schedulers.task.SchedulerManagerInterface;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.schedulers.model.TaskInterface;
+import com.bonree.brfs.common.schedulers.model.SumbitTaskInterface;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -20,7 +20,7 @@ import com.bonree.brfs.common.schedulers.model.TaskInterface;
  * @Description: 单例模式的调度接口
  *****************************************************************************
  */
-public class QuartzSchedulersManager implements SchedulerManagerInterface<String, QuartzBaseSchedulers, TaskInterface>{
+public class QuartzSchedulersManager implements SchedulerManagerInterface<String, QuartzBaseSchedulers, SumbitTaskInterface>{
 	Map<String,QuartzBaseSchedulers> taskPoolMap = new ConcurrentHashMap<String,QuartzBaseSchedulers>();
 	private static final Logger LOG = LoggerFactory.getLogger("TaskManagerServer");
 	private static class SingletonInstance {
@@ -34,7 +34,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 		return SingletonInstance.instance;
 	}
 	@Override
-	public boolean addTask(String taskpoolkey, TaskInterface task) {
+	public boolean addTask(String taskpoolkey, SumbitTaskInterface task) {
 		if(!taskPoolMap.containsKey(taskpoolkey)){
 			return false;
 		}
@@ -53,7 +53,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 	}
 
 	@Override
-	public boolean pauseTask(String taskpoolkey, TaskInterface task) {
+	public boolean pauseTask(String taskpoolkey, SumbitTaskInterface task) {
 		// TODO Auto-generated method stub
 		if(!taskPoolMap.containsKey(taskpoolkey)){
 			return false;
@@ -74,7 +74,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 	}
 
 	@Override
-	public boolean resumeTask(String taskpoolKey, TaskInterface task) {
+	public boolean resumeTask(String taskpoolKey, SumbitTaskInterface task) {
 		// TODO Auto-generated method stub
 		if(!taskPoolMap.containsKey(taskpoolKey)){
 			return false;
@@ -95,7 +95,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 	}
 
 	@Override
-	public boolean deleteTask(String taskpoolKey, TaskInterface task) {
+	public boolean deleteTask(String taskpoolKey, SumbitTaskInterface task) {
 		// TODO Auto-generated method stub
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
 			return false;
@@ -116,7 +116,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 	}
 
 	@Override
-	public boolean getTaskStat(String taskpoolKey, TaskInterface task) {
+	public boolean getTaskStat(String taskpoolKey, SumbitTaskInterface task) {
 		// TODO Auto-generated method stub
 		return false;
 	}

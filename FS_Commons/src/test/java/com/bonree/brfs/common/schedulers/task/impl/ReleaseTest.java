@@ -7,10 +7,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.schedulers.model.TaskContent;
+import com.bonree.brfs.common.schedulers.model.TaskModel;
+import com.bonree.brfs.common.schedulers.model.TaskServerNodeModel;
 import com.bonree.brfs.common.schedulers.task.MetaTaskManagerInterface;
 import com.bonree.brfs.common.schedulers.task.TaskType;
-import com.bonree.brfs.common.schedulers.task.impl.ReleaseTaskOperation;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
@@ -48,13 +48,15 @@ public class ReleaseTest {
 		LOG.info("release task ......................................................................");
 		ZookeeperClient zkClient = CuratorClient.getClientInstance(zkUrl);
 		LOG.info("USERDELETE's child {}",zkClient.getChildren("/zcg/task/USER_DELETE"));
-		MetaTaskManagerInterface release = ReleaseTaskOperation.getInstance().setPropreties(zkUrl, taskRootPath, serverPath);
-		TaskContent tt = createTaskContent(4);
-		byte[] data = JsonUtils.toJsonBytes(tt);
+		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
+		release.setPropreties(zkUrl, taskRootPath);
+		
+		TaskModel tt = createTaskContent(4);
 		// 1.发布任务
-//		release.releaseTaskContentNode(data, "USER_DELETE");
+//		release.releaseTaskContentNode(4, "USER_DELETE");
+		release.updateTaskContentNode(tt, "USER_DELETE", null);
 		// 删除单个任务
-//		release.deleteTask("40000000004", "USER_DELETE");
+		release.deleteTask("40000000004", TaskType.SYSTEM_DELETE.name());
 		// 2.删除任务
 		LOG.info("delete time {}, delete index {}", System.currentTimeMillis() - 60*1000, release.deleteTasks(System.currentTimeMillis() - 60*60*1000, "USER_DELETE"));
 		// 3.获取最近成功的任务
@@ -64,18 +66,19 @@ public class ReleaseTest {
 		LOG.info("query stat : {}", release.queryTaskState("40000000007", "USER_DELETE"));
 		LOG.info("query stat : {}", release.queryTaskState("40000000008", "USER_DELETE"));
 		// 获取当前任务最大序号节点
-//		LOG.info("current :{}", release.getCurrentTaskIndex("USER_DELETE"));
+		LOG.info("current :{}", release.getCurrentTaskIndex("USER_DELETE"));
 		//添加server
-//		LOG.info("{}'s childe{}","40000000007",zkClient.getChildren("/zcg/task/USER_DELETE/40000000007"));
-//		release.releaseServerTaskContentNode("5", "40000000007", "USER_DELETE", null);
-//		LOG.info("{}",zkClient.getChildren("/zcg/task/USER_DELETE/40000000007"));
+		LOG.info("{}'s childe{}","40000000007",zkClient.getChildren("/zcg/task/USER_DELETE/40000000007"));
+		TaskServerNodeModel serverTask = new TaskServerNodeModel();
+		release.updateServerTaskContentNode("6", "40000000007", "USER_DELETE", serverTask);
+		LOG.info("{}",zkClient.getChildren("/zcg/task/USER_DELETE/40000000007"));
 		// 修改状态
-//		release.changeTaskContentNodeStat("40000000007", "USER_DELETE", 0);
-//		LOG.info("stat after : {}", release.queryTaskState("40000000007", "USER_DELETE"));
+		release.changeTaskContentNodeState("40000000007", "USER_DELETE", 0);
+		LOG.info("stat after : {}", release.queryTaskState("40000000007", "USER_DELETE"));
 //		
 	}
-	public static TaskContent createTaskContent(int index){
-		TaskContent task = new TaskContent();
+	public static TaskModel createTaskContent(int index){
+		TaskModel task = new TaskModel();
 		task.setCreateTime(System.currentTimeMillis());
 		task.setTaskType(1);
 		task.setTaskState(index);

@@ -27,7 +27,7 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.schedulers.model.TaskInterface;
+import com.bonree.brfs.common.schedulers.model.SumbitTaskInterface;
 import com.bonree.brfs.common.schedulers.task.QuartzSchedulerInterface;
 import com.bonree.brfs.common.utils.BrStringUtils;
 
@@ -40,7 +40,7 @@ import com.bonree.brfs.common.utils.BrStringUtils;
  * @Description: quartz基础调度实现
  *****************************************************************************
  */
-public class QuartzBaseSchedulers<T extends TaskInterface> implements QuartzSchedulerInterface<T> {
+public class QuartzBaseSchedulers<T extends SumbitTaskInterface> implements QuartzSchedulerInterface<T> {
 	private static final Logger logger = LoggerFactory.getLogger("CycleTest");
 	private StdSchedulerFactory ssf = new StdSchedulerFactory();
 	private String instanceName = "server";

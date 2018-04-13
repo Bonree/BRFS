@@ -2,8 +2,9 @@ package com.bonree.brfs.common.schedulers.task;
 
 import java.util.Collection;
 
-import com.bonree.brfs.common.schedulers.model.TaskContent;
-import com.bonree.brfs.common.schedulers.model.TaskServerNodeContent;
+import com.bonree.brfs.common.schedulers.model.TaskModel;
+import com.bonree.brfs.common.schedulers.model.TaskServerNodeModel;
+import com.bonree.brfs.common.utils.Pair;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -16,17 +17,16 @@ import com.bonree.brfs.common.schedulers.model.TaskServerNodeContent;
  */
 public interface MetaTaskManagerInterface {
 	/**
-	 * 概述：发布任务到zk
-	 * @param taskContent
-	 * @param zkUrl
-	 * @param path
+	 * 概述：修改发布任务数据
+	 * @param data
+	 * @param taskType
+	 * @param taskName
 	 * @return
-	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	String releaseTaskContentNode(byte[] data, String taskType) throws Exception;
+	String updateTaskContentNode(TaskModel data, String taskType, String taskName);
 	/**
-	 * 概述：发布服务节点任务
+	 * 概述：修改服务节点任务
 	 * @param serverId
 	 * @param taskName
 	 * @param taskType
@@ -34,7 +34,24 @@ public interface MetaTaskManagerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	boolean releaseServerTaskContentNode(String serverId, String taskName, String taskType, byte[] data) throws Exception;
+	boolean updateServerTaskContentNode(String serverId, String taskName, String taskType, TaskServerNodeModel data);
+	/**
+	 * 概述：获取节点任务信息
+	 * @param taskType
+	 * @param taskName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	TaskModel getTaskContentNodeInfo(String taskType, String taskName);
+	/**
+	 * 概述：获取服务任务信息
+	 * @param taskType
+	 * @param taskName
+	 * @param serverId
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	TaskServerNodeModel getTaskServerContentNodeInfo(String taskType, String taskName, String serverId);
 	/**
 	 * 概述：修改任务节点状态
 	 * @param taskName
@@ -43,7 +60,17 @@ public interface MetaTaskManagerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	boolean changeTaskContentNodeStat(String taskName,String taskType, int taskState) throws Exception;
+	boolean changeTaskContentNodeState(String taskName,String taskType, int taskState);
+	/**
+	 * 概述：修改服务任务节点状态
+	 * @param taskName
+	 * @param taskType
+	 * @param serverId
+	 * @param taskState
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	boolean changeTaskServerNodeContentState(String taskName, String taskType,String serverId, int taskState);
 	/**
 	 * 概述：获取任务最新序号
 	 * @param zkUrl
@@ -51,7 +78,7 @@ public interface MetaTaskManagerInterface {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	String getCurrentTaskIndex(String taskType) throws Exception;
+	String getCurrentTaskIndex(String taskType);
 	/**
 	 * 概述：获取任务状态
 	 * @param zkUrl
@@ -61,7 +88,7 @@ public interface MetaTaskManagerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	int queryTaskState(String taskname, String taskType)throws Exception;
+	int queryTaskState(String taskname, String taskType);
 	
 	/**
 	 * 概述：获取指定类型 指定服务 最后一次成功执行的记录
@@ -71,7 +98,7 @@ public interface MetaTaskManagerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	String getLastSuccessTaskIndex(String taskType, String serverId) throws Exception;
+	String getLastSuccessTaskIndex(String taskType, String serverId);
 	
 	/***
 	 * 概述：删除指定类型的任务
@@ -103,4 +130,13 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	void setPropreties(String zkUrl, String taskPath, String... args);
+	/**
+	 * 概述：维护任务数据状态，包括删除及任务状态校验
+	 * @param taskType
+	 * @param ttl
+	 * @param aliveServers
+	 * @return pair key 删除任务个数， value 修正的任务个数
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	Pair<Integer,Integer> reviseTaskStat(String taskType, long ttl, Collection<String> aliveServers);
 }
