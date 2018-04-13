@@ -7,10 +7,10 @@ import java.util.Map;
  * 
  * @date 2018年3月28日 下午3:58:04
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @Description: 任务信息
+ * @Description: 提交任务接口
  *****************************************************************************
  */
-public interface TaskInterface {
+public interface SumbitTaskInterface {
 	/**
 	 * 概述：任务名称
 	 * @return

@@ -1,13 +1,13 @@
-package com.bonree.brfs.resourceschedule.model;
+package com.bonree.brfs.common.utils;
 
-public class ResourcePair<T1, T2> {
+public class Pair<T1, T2> {
 	private T1 key;
 	private T2 value;
-	public ResourcePair(T1 key, T2 value){
+	public Pair(T1 key, T2 value){
 		this.key = key;
 		this.value = value;
 	}
-	public ResourcePair(){
+	public Pair(){
 		
 	}
 	public T1 getKey() {
