@@ -3,7 +3,7 @@ package com.bonree.brfs.common.schedulers.model.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.bonree.brfs.common.schedulers.model.TaskInterface;
+import com.bonree.brfs.common.schedulers.model.SumbitTaskInterface;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -13,7 +13,7 @@ import com.bonree.brfs.common.schedulers.model.TaskInterface;
  * @Description: Quartz Cron任务信息
  *****************************************************************************
  */
-public class QuartzCronInfo implements TaskInterface {
+public class QuartzCronInfo implements SumbitTaskInterface {
 	private String taskName;
 	private String taskGroupName;
 	private String classInstanceName;
