@@ -30,7 +30,7 @@ import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.server.ServerInfo;
-import com.bonree.brfs.server.identification.impl.VirtualServerIDOptImpl;
+import com.bonree.brfs.server.identification.impl.VirtualServerIDImpl;
 import com.google.common.base.Preconditions;
 
 /*******************************************************************************
@@ -51,7 +51,7 @@ public class TaskDispatcher implements Closeable {
 
     private CuratorTreeCache treeCache;
 
-    private VirtualServerIDOptImpl identification;
+    private VirtualServerIDImpl virtualIDImpl;
 
     private TaskMonitor monitor;
 
@@ -237,9 +237,9 @@ public class TaskDispatcher implements Closeable {
 
     }
 
-    public TaskDispatcher(String zkUrl, String basePath, VirtualServerIDOptImpl identification) {
+    public TaskDispatcher(String zkUrl, String basePath, VirtualServerIDImpl virtualIDImpl) {
         this.basePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(basePath, "basePath is not null!"));
-        this.identification = identification;
+        this.virtualIDImpl = virtualIDImpl;
         taskGenerator = new SimpleTaskGenerator();
 
         curatorClient = CuratorClient.getClientInstance(Preconditions.checkNotNull(zkUrl, "zkUrk is not null!"));
@@ -303,7 +303,7 @@ public class TaskDispatcher implements Closeable {
                  * 若是旧的回归，因为是第一个任务变更，那只能说明旧服务的数据已经迁移完成，
                  * 此时也只是需要判断是否需要进行虚拟ServerID迁移
                  */
-                List<String> virtualServerIds = identification.listNormalVirtualID(changeSummary.getStorageIndex());
+                List<String> virtualServerIds = virtualIDImpl.listNormalVirtualID(changeSummary.getStorageIndex());
                 if (virtualServerIds != null && !virtualServerIds.isEmpty()) {// 说明目前已经有了virtual SID，需要进行虚拟SID迁移
                     Collections.sort(virtualServerIds);
                     String needRecoverId = virtualServerIds.get(0);
@@ -314,7 +314,7 @@ public class TaskDispatcher implements Closeable {
 
                     boolean flag = false;
                     do {
-                        flag = identification.invalidVirtualIden(taskSummary.getStorageIndex(), needRecoverId);
+                        flag = virtualIDImpl.invalidVirtualIden(taskSummary.getStorageIndex(), needRecoverId);
                     } while (!flag);
                 }
 
@@ -413,7 +413,7 @@ public class TaskDispatcher implements Closeable {
 
     public static void main(String[] args) throws Exception {
         CuratorCacheFactory.init(Constants.zkUrl);
-        VirtualServerIDOptImpl identification = null;  // TODO
+        VirtualServerIDImpl identification = null;  // TODO
         TaskDispatcher td = new TaskDispatcher(Constants.zkUrl, Constants.BASE_PATH, identification);
         td.start();
         Thread.sleep(Long.MAX_VALUE);

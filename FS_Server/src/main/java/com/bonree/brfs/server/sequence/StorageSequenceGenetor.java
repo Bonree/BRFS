@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.CuratorLocksClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.Executor;
-import com.bonree.brfs.server.identification.impl.VirtualServerIDOptImpl;
 import com.google.common.base.Preconditions;
 
 
@@ -62,7 +61,7 @@ public class StorageSequenceGenetor {
 
     public static StorageSequenceGenetor getInstance(final String zkUrl, final String basePath) {
         if (storageSequenceGenetor == null) {
-            synchronized (VirtualServerIDOptImpl.class) {
+            synchronized (StorageSequenceGenetor.class) {
                 if (storageSequenceGenetor == null) {
                     storageSequenceGenetor = new StorageSequenceGenetor(zkUrl, basePath);
                 }
