@@ -2,8 +2,8 @@ package com.bonree.brfs.resourceschedule.service.impl;
 
 import java.util.Map;
 
-import com.bonree.brfs.common.schedulers.model.TaskContent;
-import com.bonree.brfs.common.schedulers.model.TaskInterface;
+import com.bonree.brfs.common.schedulers.model.TaskModel;
+import com.bonree.brfs.common.schedulers.model.SumbitTaskInterface;
 import com.bonree.brfs.common.schedulers.task.SchedulerManagerInterface;
 import com.bonree.brfs.common.schedulers.task.TaskType;
 import com.bonree.brfs.common.schedulers.task.impl.QuartzBaseSchedulers;
@@ -49,7 +49,7 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 		this.taskLevelMap = taskLevel;
 	}
 	@Override
-	public TaskRunPattern taskRunnPattern(TaskContent task) throws Exception {
+	public TaskRunPattern taskRunnPattern(TaskModel task) throws Exception {
 		TaskRunPattern runPattern = new TaskRunPattern();
 		int type = task.getTaskType();
 		if(TaskType.SYSTEM_DELETE.code() == type || TaskType.USER_DELETE.code() == type){

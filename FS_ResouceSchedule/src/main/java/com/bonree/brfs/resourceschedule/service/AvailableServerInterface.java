@@ -4,9 +4,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.brfs.resourceschedule.model.ResourcePair;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -42,7 +42,7 @@ public interface AvailableServerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public List<ResourcePair<String, Integer>> selectAvailableServers(int scene, String storageName) throws Exception;
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName) throws Exception;
 	/**
 	 * 概述：获取可用server集合
 	 * @param scene 场景枚举
@@ -51,7 +51,7 @@ public interface AvailableServerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public List<ResourcePair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList) throws Exception;
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList) throws Exception;
 	/**
 	 * 概述：更新资源数据
 	 * @param resources key： serverId, resourceModel

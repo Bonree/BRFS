@@ -3,7 +3,7 @@ package com.bonree.brfs.resourceschedule.service;
 import java.util.Collection;
 import java.util.Map;
 
-import com.bonree.brfs.common.schedulers.model.TaskContent;
+import com.bonree.brfs.common.schedulers.model.TaskModel;
 import com.bonree.brfs.common.schedulers.task.SchedulerManagerInterface;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
@@ -35,7 +35,7 @@ public interface RunnableTaskInterface {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public TaskRunPattern taskRunnPattern(TaskContent task) throws Exception;
+	public TaskRunPattern taskRunnPattern(TaskModel task) throws Exception;
 	
 	/**
 	 * 概述：更新资源数据
