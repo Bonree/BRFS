@@ -2,35 +2,47 @@ package com.bonree.brfs.server.identification;
 
 import java.util.List;
 
-/*******************************************************************************
- * 版权信息：博睿宏远科技发展有限公司
- * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
- * @date 2018年4月12日 上午11:37:08
- * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
- * @Description: 获取virtual server ID，virtual server ID在迁移时，也是根据SN来
- * 进行迁移的，所以每个SN的迁移进度不一样。故需要分开维护
- ******************************************************************************/
-public class VirtualServerID {
+public interface VirtualServerID {
+    
 
-    // TODO 这个虚拟Server ID目前没有用缓存。可能会影响效率。可以考虑使用cache进行监控
-    private ServerIDOpt serverIdOpt;
+    /** 概述：获取需要的虚拟ServerID
+     * @param count
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public List<String> getVirtualID(int storageIndex, int count);
 
-    public VirtualServerID(ServerIDOpt serverIdOpt) {
-        this.serverIdOpt = serverIdOpt;
-    }
+    /** 概述：列出使用的virtualID
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public List<String> listNormalVirtualID(int storageIndex);
 
-    public List<String> getServerId(int storageIndex, int count) {
-        List<String> virtualServerIds = serverIdOpt.getVirtualIdentification(storageIndex, count);
-        return virtualServerIds;
-    }
+    /** 概述：列出无效的VirtualID
+     * @param storageIndex
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public List<String> listValidVirtualID(int storageIndex);
 
-    public boolean invalidVirtualID(int storageIndex, String id) {
-        return serverIdOpt.invalidVirtualIden(storageIndex, id);
-    }
+    /** 概述：列出所有的virtual server ID
+     * @param storageIndex
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public List<String> listAllVirtualID(int storageIndex);
 
-    public boolean deleteVirtualID(int storageIndex, String id) {
-        return serverIdOpt.deleteVirtualIden(storageIndex, id);
-    }
+    /** 概述：无效化虚拟ID
+     * @param id
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public boolean invalidVirtualIden(int storageIndex, String id);
 
+    /** 概述：删除虚拟ID
+     * @param id
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public boolean deleteVirtualIden(int storageIndex, String id);
 }

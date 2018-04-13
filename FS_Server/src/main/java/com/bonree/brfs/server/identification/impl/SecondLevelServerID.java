@@ -1,4 +1,4 @@
-package com.bonree.brfs.server.identification;
+package com.bonree.brfs.server.identification.impl;
 
 import java.util.List;
 import java.util.Map;
@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.server.identification.LevelServerIDGen;
 import com.google.common.base.Preconditions;
 
 /*******************************************************************************
@@ -22,7 +23,7 @@ import com.google.common.base.Preconditions;
  * 所以每个SN都会有自己的二级ServerID。
  ******************************************************************************/
 public class SecondLevelServerID {
-    private ServerIDOpt serverIDOpt;
+    private LevelServerIDGen secondServerIDOpt;
 
     private String zkHosts;
 
@@ -32,10 +33,10 @@ public class SecondLevelServerID {
 
     private static Lock lock = new ReentrantLock();
 
-    public SecondLevelServerID(String zkHosts, String selfFirstPath, ServerIDOpt serverIDOpt) {
+    public SecondLevelServerID(String zkHosts, String selfFirstPath, String seqPath) {
         this.zkHosts = zkHosts;
         this.selfFirstPath = selfFirstPath;
-        this.serverIDOpt = serverIDOpt;
+        this.secondServerIDOpt = new SecondServerIDGenImpl(zkHosts, seqPath);
         secondMap = new ConcurrentHashMap<>();
     }
 
@@ -49,7 +50,7 @@ public class SecondLevelServerID {
                 String node = selfFirstPath + '/' + si;
                 String serverID = new String(client.getData(node));
                 if (isExpire(si, serverID)) { // 判断secondServerID是否过期，过期需要重新生成
-                    serverID = serverIDOpt.genSecondIndentification();
+                    serverID = secondServerIDOpt.genLevelID();
                     client.setData(node, serverID.getBytes()); // 覆盖以前的second server ID
                 }
                 secondMap.put(BrStringUtils.parseNumber(si, Integer.class), serverID);
@@ -82,7 +83,7 @@ public class SecondLevelServerID {
                 String node = selfFirstPath + '/' + storageIndex;
                 lock.lock();
                 if (!client.checkExists(node)) {
-                    serverID = serverIDOpt.genSecondIndentification();
+                    serverID = secondServerIDOpt.genLevelID();
                     client.createPersistent(node, true, serverID.getBytes());
                 } else {
                     serverID = new String(client.getData(node));

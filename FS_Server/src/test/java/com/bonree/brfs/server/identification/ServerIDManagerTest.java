@@ -23,8 +23,13 @@ public class ServerIDManagerTest {
             ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
             String firstServerID = idManager.getFirstServerID();
             System.out.println(firstServerID);
-            List<String> virtualServerIDs = idManager.getVirtualServerID(2, 2);
+            List<String> virtualServerIDs = idManager.listVirtualID(1);
             System.out.println(virtualServerIDs);
+//            idManager.deleteVirtualID(1, "30");
+            virtualServerIDs = idManager.listVirtualID(1);
+            virtualServerIDs=idManager.getVirtualServerID(1, 2);
+            System.out.println(virtualServerIDs);
+            
         } catch (ConfigException e) {
             e.printStackTrace();
             System.exit(1);

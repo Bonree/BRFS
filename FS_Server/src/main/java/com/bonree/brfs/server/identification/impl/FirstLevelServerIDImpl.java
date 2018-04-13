@@ -1,15 +1,17 @@
-package com.bonree.brfs.server.identification;
+package com.bonree.brfs.server.identification.impl;
 
 import java.util.List;
 
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.server.identification.LevelServerIDGen;
+import com.bonree.brfs.server.identification.LevelServerID;
 import com.bonree.brfs.server.utils.FileUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-public class FirstLevelServerID {
+public class FirstLevelServerIDImpl implements LevelServerID{
 
-    private ServerIDOpt serverIDOpt;
+    private LevelServerIDGen firstServerIDGen;
 
     private String firstServerID;
 
@@ -23,11 +25,15 @@ public class FirstLevelServerID {
 
     private boolean newServer = true;
 
-    public FirstLevelServerID(String zkHosts, String firstZKPath, String firstServerIDFile, ServerIDOpt serverIDOpt) {
+    public FirstLevelServerIDImpl(String zkHosts, String firstZKPath, String firstServerIDFile, String seqPath) {
         this.zkHosts = zkHosts;
         this.firstZKPath = firstZKPath;
         this.firstServerIDFile = firstServerIDFile;
-        this.serverIDOpt = serverIDOpt;
+        firstServerIDGen = new FirstServerIDGenImpl(zkHosts, seqPath);
+        initOrLoadServerID();
+
+        secondServerID = new SecondLevelServerID(zkHosts, firstZKPath + '/' + firstServerID, seqPath);
+        secondServerID.loadServerID();
     }
 
     /** 概述：加载一级ServerID
@@ -43,13 +49,13 @@ public class FirstLevelServerID {
             client = CuratorClient.getClientInstance(zkHosts);
             if (!FileUtils.isExist(firstServerIDFile)) {
                 FileUtils.createFile(firstServerIDFile, true);
-                firstServerID = serverIDOpt.genFirstIdentification();
+                firstServerID = firstServerIDGen.genLevelID();
                 List<String> contents = Lists.newArrayList(firstServerID);
                 FileUtils.writeFileFromList(firstServerIDFile, contents);
             } else {
                 List<String> contents = FileUtils.readFileByLine(firstServerIDFile);
                 if (contents.isEmpty()) {
-                    firstServerID = serverIDOpt.genFirstIdentification();
+                    firstServerID = firstServerIDGen.genLevelID();
                     contents = Lists.newArrayList(firstServerID);
                     FileUtils.writeFileFromList(firstServerIDFile, contents);
                 } else {
@@ -68,14 +74,13 @@ public class FirstLevelServerID {
                 client.close();
             }
         }
-        secondServerID = new SecondLevelServerID(zkHosts, firstZKPath + '/' + firstServerID, serverIDOpt);
-        secondServerID.loadServerID();
     }
 
     /** 概述：从缓存中返回本服务的一级ServerID
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
+    @Override
     public String getServerID() {
         if (firstServerID != null) {
             return firstServerID;
