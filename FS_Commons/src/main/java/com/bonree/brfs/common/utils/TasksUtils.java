@@ -173,6 +173,7 @@ public class TasksUtils {
 			}
 			RetryPolicy retryPolicy = new RetryNTimes(3, 1000);
 			client = CuratorFrameworkFactory.newClient(zkUrl, retryPolicy);
+			//TODO:这里需要 服务发现机制完整
 			ServiceManager sManager = new DefaultServiceManager(client);
 			List<Service> serverList = sManager.getServiceListByGroup(groupName);
 			for(Service server : serverList){

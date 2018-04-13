@@ -17,7 +17,8 @@ import com.bonree.brfs.common.utils.Pair;
  */
 public interface MetaTaskManagerInterface {
 	/**
-	 * 概述：修改发布任务数据
+	 * 概述：修改或发布任务数据 
+	 * 当taskName为空时 则为发布任务
 	 * @param data
 	 * @param taskType
 	 * @param taskName
@@ -26,7 +27,7 @@ public interface MetaTaskManagerInterface {
 	 */
 	String updateTaskContentNode(TaskModel data, String taskType, String taskName);
 	/**
-	 * 概述：修改服务节点任务
+	 * 概述：修改或发布服务节点任务
 	 * @param serverId
 	 * @param taskName
 	 * @param taskType

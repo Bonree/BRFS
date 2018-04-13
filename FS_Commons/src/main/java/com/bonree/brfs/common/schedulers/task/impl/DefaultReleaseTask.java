@@ -253,13 +253,9 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				int stat = queryTaskState(taskName, taskType);
 				// 不成功的跳过
 				if (stat != TaskStat.FINISH.code()) {
-					lastLostIndex = i;
 					continue;
 				}
 				return taskInfos.get(i);
-			}
-			if (lastLostIndex != -1) {
-				return taskInfos.get(lastLostIndex);
 			}
 		}
 		catch (Exception e) {
@@ -440,6 +436,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				taskName = taskQueue.get(i);
 				taskContent = getTaskContentNodeInfo(taskType, taskName);
 				if(taskContent == null){
+					LOG.warn("{} {} is null", taskType, taskName);
 					continue;
 				}
 				// 不为RUNNING的任务不进行检查
@@ -447,7 +444,16 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 					continue;
 				}
 				// 获取任务下的子节点
+				taskPath = new StringBuilder();
+				taskPath.append(taskRootPath).append("/").append(taskType).append("/").append(taskName);
+				tmpPath = taskPath.toString();
 				cServers = client.getChildren(tmpPath);
+				if(cServers == null || cServers.isEmpty()){
+					count ++;
+					taskContent.setTaskState(TaskStat.EXCEPTION.code());
+					updateTaskContentNode(taskContent, taskType, taskName);
+					continue;
+				}
 				boolean isException = false;
 				for(String cServer : cServers){
 					// 存活的server不进行操作
@@ -462,6 +468,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 						continue;
 					}
 					taskServer.setTaskState(TaskStat.EXCEPTION.code());
+					LOG.info("changer stat {} {} {}", taskType,taskName,cServer);
 					updateServerTaskContentNode(cServer, taskName, taskType, taskServer);
 				}
 				if(isException){
