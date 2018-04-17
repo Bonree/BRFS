@@ -205,7 +205,7 @@ public class TasksUtils {
 		TaskModel  task = new TaskModel();
 		task.setTaskType(message.getTaskType());
 		task.setCreateTime(System.currentTimeMillis());
-		task.setTaskState(TaskStat.INIT.code());
+		task.setTaskState(TaskState.INIT.code());
 		List<AtomTaskModel> storageAtoms = new ArrayList<AtomTaskModel>();
 		AtomTaskModel atom = null;
 		

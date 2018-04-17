@@ -18,7 +18,7 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.schedulers.task.TaskStat;
+import com.bonree.brfs.schedulers.task.TaskState;
 import com.bonree.brfs.schedulers.task.TaskType;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -252,7 +252,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				}
 				int stat = queryTaskState(taskName, taskType);
 				// 不成功的跳过
-				if (stat != TaskStat.FINISH.code()) {
+				if (stat != TaskState.FINISH.code()) {
 					continue;
 				}
 				return taskInfos.get(i);
@@ -440,7 +440,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 					continue;
 				}
 				// 不为RUNNING的任务不进行检查
-				if(TaskStat.RUN.code() != taskContent.getTaskState()){
+				if(TaskState.RUN.code() != taskContent.getTaskState()){
 					continue;
 				}
 				// 获取任务下的子节点
@@ -450,7 +450,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				cServers = client.getChildren(tmpPath);
 				if(cServers == null || cServers.isEmpty()){
 					count ++;
-					taskContent.setTaskState(TaskStat.EXCEPTION.code());
+					taskContent.setTaskState(TaskState.EXCEPTION.code());
 					updateTaskContentNode(taskContent, taskType, taskName);
 					continue;
 				}
@@ -467,12 +467,15 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 						LOG.warn("taskType :{}, taskName :{}, serverId :{} is not exists", taskType, taskName, cServer);
 						continue;
 					}
-					taskServer.setTaskState(TaskStat.EXCEPTION.code());
+					if(TaskState.FINISH.code() == taskServer.getTaskState()){
+						continue;
+					}
+					taskServer.setTaskState(TaskState.EXCEPTION.code());
 					updateServerTaskContentNode(cServer, taskName, taskType, taskServer);
 				}
 				if(isException){
 					count ++;
-					taskContent.setTaskState(TaskStat.EXCEPTION.code());
+					taskContent.setTaskState(TaskState.EXCEPTION.code());
 					updateTaskContentNode(taskContent, taskType, taskName);
 				}
 			}
