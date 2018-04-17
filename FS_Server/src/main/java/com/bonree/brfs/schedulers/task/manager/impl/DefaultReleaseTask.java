@@ -603,15 +603,13 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return taskServerNode;
 			}
 			StringBuilder taskPath = new StringBuilder();
-			taskPath.append(taskRootPath).append("/").append(taskType).append("/").append(taskName);
+			taskPath.append(taskRootPath).append("/").append(taskType).append("/").append(taskName).append("/").append(serverId);
 			String path = taskPath.toString();
 			byte[] data = client.getData(path);
 			if (data == null || data.length == 0) {
 				return taskServerNode;
 			}
 			taskServerNode = JsonUtils.toObject(data, TaskServerNodeModel.class);
-			data = JsonUtils.toJsonBytes(taskServerNode);
-			client.setData(path, data);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
