@@ -91,7 +91,8 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			}
 			String taskPath = pathBuilder.toString();
 			if (!BrStringUtils.isEmpty(taskName) && client.checkExists(taskPath)) {
-				return null;
+				client.setData(taskPath, datas);
+				return taskName;
 			}
 			pathNode = client.createPersistentSequential(taskPath, true, datas);
 			String[] nodes = BrStringUtils.getSplit(pathNode, "/");
@@ -467,7 +468,6 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 						continue;
 					}
 					taskServer.setTaskState(TaskStat.EXCEPTION.code());
-					LOG.info("changer stat {} {} {}", taskType,taskName,cServer);
 					updateServerTaskContentNode(cServer, taskName, taskType, taskServer);
 				}
 				if(isException){
@@ -501,29 +501,12 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			if (deleteTime <= 0) {
 				throw new NullPointerException("ttl is too large");
 			}
-			// 3.获取有效的序列号及最早的任务创建时间
-			Pair<Integer,Long> values = getAvailableFirstTime(taskQueue, taskType);
-			long firstTime = values.getValue();
-			int index = values.getKey();
 			int size = taskQueue.size();
-			// 判断是否该执行删除任务
-			// 1.删除的序号大于集合的长度，不进行删除
-			if(index >= size){
-				return size;
-			}
-			// 2.没有有效的时间，不删除任务
-			if(firstTime == 0){
-				return index+1;
-			}
-			// 3.删除时间早于最早的创建时间，不删除任务
-			if (deleteTime < firstTime) {
-				return 0;
-			}
 			//循环删除数据
 			int count = 0;
 			long cTime = 0l;
 			String taskName = null;
-			for (int i = index; i < size ; i++) {
+			for (int i = 0; i < size ; i++) {
 				taskName = taskQueue.get(i);
 				if (BrStringUtils.isEmpty(taskName)) {
 					continue;
@@ -531,6 +514,13 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				cTime = getTaskCreateTime(taskName, taskType);
 				if (cTime > deleteTime) {
 					break;
+				}
+				if(cTime == -3){
+					LOG.warn("taskType:{}, taskName :{} is not exists ! skip it", taskType, taskName);
+					continue;
+				}
+				if(cTime == 0){
+					LOG.warn("taskType:{}, taskName :{} create time is 0 ! will delete", taskType, taskName);
 				}
 				if(cTime == -4){
 					LOG.warn("delete taskType: {}, taskName: {}, content: taskcontent is null", taskType, taskName);
@@ -540,7 +530,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				}
 			}
 			LOG.info("delete time out task complete from");
-			return count + index;
+			return count;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -560,6 +550,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		long tmp;
 		for(String taskName : taskQueue){
 			tmp = getTaskCreateTime(taskName, taskType);
+			LOG.info("select taskName :{} createTime :{}", taskName, tmp);
 			if(tmp > 0){
 				createTime = tmp;
 				break;
