@@ -1,20 +1,20 @@
 package com.bonree.brfs.schedulers.task;
 
-public enum TaskStat {
-	UNKONW(0),
+public enum TaskState {
+	UNKNOW(0),
 	INIT(1),
 	RUN(2),
 	FINISH(3),
 	EXCEPTION(4),
 	PAUSE(5);
 	private int stat;
-	TaskStat(int stat){
+	TaskState(int stat){
 		this.stat = stat;
 	}
 	public int code(){
 		return this.stat;
 	}
-	public static TaskStat valueOf(int stat){
+	public static TaskState valueOf(int stat){
 		if(stat == 1){
 			return INIT;
 		} else if(stat == 2){
@@ -26,7 +26,7 @@ public enum TaskStat {
 		} else if(stat == 5){
 			return PAUSE;
 		} else {
-			return UNKONW;
+			return UNKNOW;
 		}
 	}
 }
