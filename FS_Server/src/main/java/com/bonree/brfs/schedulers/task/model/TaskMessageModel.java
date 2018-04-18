@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bonree.brfs.common.utils.DateFormatUtils;
-import com.bonree.brfs.schedulers.task.TaskStat;
+import com.bonree.brfs.schedulers.task.TaskState;
 
 public class TaskMessageModel {
 	/**
