@@ -367,13 +367,13 @@ public class TaskDispatcher implements Closeable {
                         flag = virtualIDImpl.invalidVirtualIden(taskSummary.getStorageIndex(), needRecoverId);
                     } while (!flag);
                 } else {
-                    
+
                     System.out.println("not need to recover!!!");
                     System.out.println(changeSummaries);
                     ChangeSummary deleteSummary = changeSummaries.remove(0);
                     delChangeSummaryNode(deleteSummary);
-                    
-                    //重新审计 
+
+                    // 重新审计
                     auditTask(changeSummaries);
                 }
 
@@ -404,6 +404,7 @@ public class TaskDispatcher implements Closeable {
                 System.out.println("no data!!!");
                 ChangeSummary deleteSummary = changeSummaries.remove(0);
                 delChangeSummaryNode(deleteSummary);
+                auditTask(changeSummaries);
             }
         }
 
