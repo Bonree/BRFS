@@ -133,11 +133,10 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     @Override
     public void serviceAdded(Service service) {
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("add");
         if (leaderLath.hasLeadership()) {
             String firstID = service.getServiceId();
             if (firstID.equals(idManager.getFirstServerID())) {
@@ -156,11 +155,10 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     @Override
     public void serviceRemoved(Service service) {
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("remove");
         if (leaderLath.hasLeadership()) {
             String firstID = service.getServiceId();
             if (firstID.equals(idManager.getFirstServerID())) {
