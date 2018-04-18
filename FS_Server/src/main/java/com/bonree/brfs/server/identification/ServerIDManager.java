@@ -112,7 +112,7 @@ public class ServerIDManager {
     }
 
     public List<String> getVirtualServerID(int storageIndex, int count) {
-        return virtualServerID.getVirtualID(storageIndex, count);
+        return virtualServerID.getVirtualID(storageIndex, count, getFirstServerID());
     }
 
     public boolean invalidVirtualID(int storageIndex, String id) {

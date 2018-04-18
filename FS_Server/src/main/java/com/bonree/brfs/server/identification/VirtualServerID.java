@@ -3,14 +3,15 @@ package com.bonree.brfs.server.identification;
 import java.util.List;
 
 public interface VirtualServerID {
-    
 
-    /** 概述：获取需要的虚拟ServerID
-     * @param count
+    /** 概述：获取virtual serverID
+     * @param storageIndex sn索引
+     * @param count 获取virtual server id 个数
+     * @param selfFirstID 自身的1级serverid，会进行注册，表明自身使用过该虚拟serverid
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> getVirtualID(int storageIndex, int count);
+    public List<String> getVirtualID(int storageIndex, int count, String selfFirstID);
 
     /** 概述：列出使用的virtualID
      * @return
