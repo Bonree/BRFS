@@ -133,7 +133,7 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     @Override
     public void serviceAdded(Service service) {
         try {
-            Thread.sleep(1000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -155,7 +155,7 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     @Override
     public void serviceRemoved(Service service) {
         try {
-            Thread.sleep(1000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
