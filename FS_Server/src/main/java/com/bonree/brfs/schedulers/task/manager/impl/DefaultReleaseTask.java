@@ -441,11 +441,8 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				}
 				// 不为RUN与Exception的任务不进行检查
 				int stat = taskContent.getTaskState();
-				if(TaskState.RUN.code() != stat){
-					continue;
-				}
 				boolean exceptionFlag = TaskState.EXCEPTION.code() == stat;
-				if(exceptionFlag){
+				if(!(TaskState.RUN.code() == stat || exceptionFlag)){
 					continue;
 				}
 				// 获取任务下的子节点
@@ -466,15 +463,17 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 						continue;
 					}
 					//不存活的server，节点标记为Exception
-					isException =true;
 					taskServer = getTaskServerContentNodeInfo(taskType, taskName, cServer);
 					if(taskServer == null){
 						LOG.warn("taskType :{}, taskName :{}, serverId :{} is not exists", taskType, taskName, cServer);
-						continue;
+						taskServer = new TaskServerNodeModel();
+						taskServer.setTaskState(TaskState.UNKNOW.code());
 					}
+					
 					if(TaskState.FINISH.code() == taskServer.getTaskState()){
 						continue;
 					}
+					isException =true;
 					taskServer.setTaskState(TaskState.EXCEPTION.code());
 					updateServerTaskContentNode(cServer, taskName, taskType, taskServer);
 				}
