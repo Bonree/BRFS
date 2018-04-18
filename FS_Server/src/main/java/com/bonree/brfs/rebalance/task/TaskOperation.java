@@ -39,16 +39,16 @@ public class TaskOperation implements Closeable {
     private CuratorTreeCache treeCache;
     private String tasksPath;
 
-    public TaskOperation() {
+    public TaskOperation(String basePath) {
         client = CuratorClient.getClientInstance(Constants.zkUrl);
-        tasksPath = Constants.PATH_TASKS;
+        tasksPath = basePath + Constants.SEPARATOR + Constants.TASKS_NODE;
     }
 
     public void start() throws InterruptedException {
         client.blockUntilConnected();
         treeCache = CuratorCacheFactory.getTreeCache();
         treeCache.addListener(tasksPath, new TaskExecutorListener("task_executor"));
-        treeCache.startPathCache(tasksPath);
+        treeCache.startCache(tasksPath);
 
     }
 
@@ -91,7 +91,7 @@ public class TaskOperation implements Closeable {
             String node = path + Constants.SEPARATOR + selfServer.getMultiIdentification();
 
             if (taskSummary.getTaskType() == 1) { // 正常迁移任务
-                recover = new MultiRecover(taskSummary, selfServer, this, node, client);
+                recover = new MultiRecover(taskSummary, selfServer, this, node, client,tasksPath);
                 delayTime = taskSummary.getRuntime();
             } else if (taskSummary.getTaskType() == 2) { // 虚拟迁移任务
                 recover = new VirtualRecover(taskSummary, this, node, client);
@@ -136,10 +136,6 @@ public class TaskOperation implements Closeable {
     }
 
     public static void main(String[] args) throws InterruptedException, IOException {
-        TaskOperation opt = new TaskOperation();
-        opt.start();
-        Thread.sleep(Long.MAX_VALUE);
-        opt.close();
     }
 
 }

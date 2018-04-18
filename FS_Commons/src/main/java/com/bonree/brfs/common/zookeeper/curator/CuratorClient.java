@@ -33,9 +33,9 @@ public class CuratorClient implements ZookeeperClient {
 
     private final static RetryPolicy RETRY_POLICY = new RetryNTimes(1, 1000);
 
-    private final static int SESSION_TIMEOUT_MS = 60 * 1000;
+    private final static int SESSION_TIMEOUT_MS = 5 * 1000;
 
-    private final static int CONNECTION_TIMEOUT_MS = 15 * 1000;
+    private final static int CONNECTION_TIMEOUT_MS = 5 * 1000;
 
     private final static String DEFAULT_VALUE = "";
 
@@ -65,8 +65,8 @@ public class CuratorClient implements ZookeeperClient {
         return new CuratorClient(zkHosts, retry, sessionTimeoutMs, connectionTimeoutMs);
     }
 
-    public static CuratorClient getClientInstance(String zkHosts, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs, boolean isWaitConnection) {
-        return new CuratorClient(zkHosts, retry, sessionTimeoutMs, connectionTimeoutMs);
+    public static CuratorClient getClientInstance(String zkHosts, int sessionTimeoutMs, int connectionTimeoutMs) {
+        return new CuratorClient(zkHosts, RETRY_POLICY, sessionTimeoutMs, connectionTimeoutMs);
     }
 
     public CuratorClient(CuratorFramework client) {
@@ -75,8 +75,8 @@ public class CuratorClient implements ZookeeperClient {
 
     public CuratorClient(String zkHosts, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
         try {
-            CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder().connectString(zkHosts).retryPolicy(retry).connectionTimeoutMs(5000).sessionTimeoutMs(sessionTimeoutMs);
-
+            CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder().connectString(zkHosts).retryPolicy(retry).connectionTimeoutMs(connectionTimeoutMs).sessionTimeoutMs(sessionTimeoutMs);
+           
             client = builder.build();
             client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
 
@@ -146,7 +146,7 @@ public class CuratorClient implements ZookeeperClient {
 
     @Override
     public void close() {
-        if(client!=null) {
+        if (client != null) {
             client.close();
         }
     }

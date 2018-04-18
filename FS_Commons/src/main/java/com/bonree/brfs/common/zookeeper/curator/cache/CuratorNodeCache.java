@@ -14,8 +14,6 @@ public class CuratorNodeCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(CuratorNodeCache.class);
 
-    private static volatile CuratorNodeCache nodeCache = null;
-
     private Map<String, NodeCache> cacheMap = null;
 
     private CuratorClient client = null;
@@ -53,7 +51,7 @@ public class CuratorNodeCache {
         }
     }
 
-    public void startPathCache(String path) {
+    public void startCache(String path) {
         NodeCache cache = cacheMap.get(path);
         try {
             if (cache != null) {

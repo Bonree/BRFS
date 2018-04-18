@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,6 +16,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
+import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.jboss.netty.util.internal.ConcurrentHashMap;
@@ -47,6 +50,8 @@ public class TaskDispatcher implements Closeable {
 
     private CuratorClient curatorClient;
 
+    private CuratorClient leaderClient;
+
     private LeaderLatch leaderLath;
 
     private CuratorTreeCache treeCache;
@@ -57,9 +62,15 @@ public class TaskDispatcher implements Closeable {
 
     private final String basePath;
 
+    private final String changesPath;
+
+    private final String tasksPath;
+
     private final BalanceTaskGenerator taskGenerator;
 
     private final AtomicBoolean isLoad = new AtomicBoolean(true);
+
+    private ExecutorService singleServer = Executors.newSingleThreadExecutor();
 
     // 此处为任务缓存，只有身为leader的server才会进行数据缓存
     private Map<Integer, List<ChangeSummary>> cacheSummaryCache = new ConcurrentHashMap<Integer, List<ChangeSummary>>();
@@ -103,13 +114,14 @@ public class TaskDispatcher implements Closeable {
             LOG.info("server change event detail:" + event.getType());
             if (leaderLath.hasLeadership()) {
                 // 检查event是否有数据
-                if (!isRemovedNode(event)) { // 不是remove的时间，则需要处理
-                    if (event.getData() != null && event.getData().getData() != null) {
+                if (!isRemovedNode(event)) { // 不是remove的事件，则需要处理
+                    if (event.getData() != null && !isEmptyByte(event.getData().getData())) {
 
                         // 需要进行检查，在切换leader的时候，变更记录需要加载进来。
                         if (isLoad.get()) {
                             // 此处加载缓存
                             LOG.info("load all");
+                            System.out.println("load all");
                             TaskDispatcher.this.loadCache(client, event);
                             isLoad.set(false);
                         }
@@ -123,6 +135,13 @@ public class TaskDispatcher implements Closeable {
             }
         }
 
+    }
+
+    private boolean isEmptyByte(byte[] bytes) {
+        if (bytes == null || bytes.length == 0) {
+            return true;
+        }
+        return false;
     }
 
     private boolean isRemovedNode(TreeCacheEvent event) {
@@ -222,7 +241,7 @@ public class TaskDispatcher implements Closeable {
                             // 清理变更
                             List<ChangeSummary> changeSummaries = cacheSummaryCache.get(bts.getStorageIndex());
                             ChangeSummary cs = changeSummaries.get(0);
-                            String changePath = Constants.PATH_CHANGES + Constants.SEPARATOR + cs.getStorageIndex() + Constants.SEPARATOR + cs.getCreateTime();
+                            String changePath = TaskDispatcher.this.changesPath + Constants.SEPARATOR + cs.getStorageIndex() + Constants.SEPARATOR + cs.getChangeID();
                             client.delete().forPath(changePath);
                             changeSummaries.remove(0);
                             // 删除任务
@@ -237,13 +256,15 @@ public class TaskDispatcher implements Closeable {
 
     }
 
-    public TaskDispatcher(String zkUrl, String basePath, VirtualServerIDImpl virtualIDImpl) {
+    public TaskDispatcher(final CuratorClient leaderClient, final String zkHosts, String basePath, VirtualServerIDImpl virtualIDImpl) {
         this.basePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(basePath, "basePath is not null!"));
+        this.changesPath = basePath + Constants.SEPARATOR + Constants.CHANGES_NODE;
+        this.tasksPath = basePath + Constants.SEPARATOR + Constants.TASKS_NODE;
         this.virtualIDImpl = virtualIDImpl;
         taskGenerator = new SimpleTaskGenerator();
-
-        curatorClient = CuratorClient.getClientInstance(Preconditions.checkNotNull(zkUrl, "zkUrk is not null!"));
-        curatorClient.getInnerClient().getConnectionStateListenable().addListener(new ConnectionStateListener() {
+        this.leaderClient = leaderClient;
+        this.curatorClient = CuratorClient.getClientInstance(zkHosts);
+        leaderClient.getInnerClient().getConnectionStateListenable().addListener(new ConnectionStateListener() {
             @Override
             public void stateChanged(CuratorFramework client, ConnectionState newState) {
                 // 为了保险期间，只要出现网络波动，则需要重新加载缓存
@@ -259,8 +280,32 @@ public class TaskDispatcher implements Closeable {
 
         String leaderPath = this.basePath + Constants.SEPARATOR + Constants.LEADER_NODE;
         LOG.info("leader path:" + leaderPath);
-        leaderLath = new LeaderLatch(curatorClient.getInnerClient(), leaderPath);
+        leaderLath = new LeaderLatch(this.leaderClient.getInnerClient(), leaderPath);
+        leaderLath.addListener(new LeaderLatchListener() {
+
+            @Override
+            public void notLeader() {
+
+            }
+
+            @Override
+            public void isLeader() {
+                System.out.println("I'am taskDispatch leader!!!!");
+            }
+        });
         treeCache = CuratorCacheFactory.getTreeCache();
+        singleServer.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    dealChangeSDetail();
+                } catch (InterruptedException e) {
+                    System.out.println("consumer queue error!!");
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     public void dealChangeSDetail() throws InterruptedException {
@@ -268,6 +313,7 @@ public class TaskDispatcher implements Closeable {
         while (true) {
             cd = detailQueue.take();
             List<ChangeSummary> changeSummaries = addOneCache(cd.getClient(), cd.getEvent());
+            System.out.println("consume:" + changeSummaries);
             auditTask(changeSummaries);
         }
 
@@ -276,6 +322,7 @@ public class TaskDispatcher implements Closeable {
     public List<ChangeSummary> addOneCache(CuratorFramework client, TreeCacheEvent event) {
         List<ChangeSummary> changeSummaries = null;
         if (event.getData().getData() != null) {
+            System.out.println("parse:" + new String(event.getData().getData()));
             ChangeSummary changeSummary = JSON.parseObject(event.getData().getData(), ChangeSummary.class);
             int storageIndex = changeSummary.getStorageIndex();
             changeSummaries = cacheSummaryCache.get(storageIndex);
@@ -285,7 +332,9 @@ public class TaskDispatcher implements Closeable {
                 cacheSummaryCache.put(storageIndex, changeSummaries);
             }
             if (!changeSummaries.contains(changeSummary)) {
+                System.out.println("add cache:" + changeSummary);
                 changeSummaries.add(changeSummary);
+                System.out.println("cacheSummaryCache:" + cacheSummaryCache);
             }
             LOG.info("changeSummaries:" + changeSummaries);
         }
@@ -297,6 +346,7 @@ public class TaskDispatcher implements Closeable {
         if (changeSummaries != null && !changeSummaries.isEmpty()) {
             ChangeSummary changeSummary = changeSummaries.get(0); // 获取第一个任务
             String serverId = changeSummary.getChangeServer();
+            System.out.println("audit:" + changeSummaries);
             if (changeSummary.getChangeType() == ChangeType.ADD) { // 判断该次变更所产生的任务类型
                 /*
                  * 第一个任务为添加服务，若是新来的，判断需要进行虚拟ServerID迁移，
@@ -316,6 +366,15 @@ public class TaskDispatcher implements Closeable {
                     do {
                         flag = virtualIDImpl.invalidVirtualIden(taskSummary.getStorageIndex(), needRecoverId);
                     } while (!flag);
+                } else {
+                    
+                    System.out.println("not need to recover!!!");
+                    System.out.println(changeSummaries);
+                    ChangeSummary deleteSummary = changeSummaries.remove(0);
+                    delChangeSummaryNode(deleteSummary);
+                    
+                    //重新审计 
+                    auditTask(changeSummaries);
                 }
 
             } else if (changeSummary.getChangeType() == ChangeType.REMOVE) {
@@ -325,25 +384,35 @@ public class TaskDispatcher implements Closeable {
                  * 2.该SN正在进行virtual serverID恢复，此时分为两种，1.移除的机器为正在进行virtual ID映射的机器，2.移除的机器为其他参与者的机器
                  * 3.该SN正在进行副本丢失迁移，此时会根据副本数来决定迁移是否继续。
                  */
-                for (int i = 1; i < changeSummaries.size(); i++) {
-                    ChangeSummary tmp = changeSummaries.get(i);
-                    String tempServerId = tmp.getChangeServer();
-                    if (StringUtils.equals(serverId, tempServerId)) {
-                        if (tmp.getChangeType() == ChangeType.ADD) {
-                            BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(changeSummary);
-                            if (monitor.getTaskProgress(taskSummary) < 0.6) { // TODO 0.6暂时填充
-                                cancelTask(taskSummary); // TODO 此处需要同步,为了一致性，不能是简单的修改任务状态
-                                auditTask(changeSummaries);
-                            }
-                        }
-                    }
-
-                }
-                BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(changeSummary);
-                dispatchTask(taskSummary);
+                // for (int i = 1; i < changeSummaries.size(); i++) {
+                // ChangeSummary tmp = changeSummaries.get(i);
+                // String tempServerId = tmp.getChangeServer();
+                // if (StringUtils.equals(serverId, tempServerId)) {
+                // if (tmp.getChangeType() == ChangeType.ADD) {
+                // BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(changeSummary);
+                // if (monitor.getTaskProgress(taskSummary) < 0.6) { // TODO 0.6暂时填充
+                // cancelTask(taskSummary); // TODO 此处需要同步,为了一致性，不能是简单的修改任务状态
+                // auditTask(changeSummaries);
+                // }
+                // }
+                // }
+                //
+                // }
+                // BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(changeSummary);
+                // dispatchTask(taskSummary);
+                System.out.println(changeSummaries);
+                System.out.println("no data!!!");
+                ChangeSummary deleteSummary = changeSummaries.remove(0);
+                delChangeSummaryNode(deleteSummary);
             }
         }
 
+    }
+
+    void delChangeSummaryNode(ChangeSummary summary) {
+        System.out.println("delete:" + summary);
+        String path = changesPath + Constants.SEPARATOR + summary.getStorageIndex() + Constants.SEPARATOR + summary.getChangeID();
+        curatorClient.guaranteedDelete(path, false);
     }
 
     public ServerInfo getServerInfofromCache(String serverId) {
@@ -356,22 +425,22 @@ public class TaskDispatcher implements Closeable {
         LOG.info("begin leaderLath server!");
         leaderLath.start();
 
-        String changeMonitorPath = basePath + Constants.SEPARATOR + Constants.CHANGE_NODE;
+        String changeMonitorPath = basePath + Constants.SEPARATOR + Constants.CHANGES_NODE;
         LOG.info("changeMonitorPath:" + changeMonitorPath);
         treeCache.addListener(changeMonitorPath, new ServerChangeListener("server_change"));
-        treeCache.startPathCache(changeMonitorPath);
+        treeCache.startCache(changeMonitorPath);
 
         String taskMonitorPath = basePath + Constants.SEPARATOR + Constants.TASKS_NODE;
         LOG.info("taskMonitorPath:" + taskMonitorPath);
         treeCache.addListener(taskMonitorPath, new TaskDispachListener("task_dispatch"));
-        treeCache.startPathCache(taskMonitorPath);
+        treeCache.startCache(taskMonitorPath);
     }
 
     public boolean dispatchTask(BalanceTaskSummary taskSummary) {
         int storageIndex = taskSummary.getStorageIndex();
         String jsonStr = JSON.toJSONString(taskSummary);
         // 创建任务
-        String taskNode = Constants.PATH_TASKS + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + Constants.TASK_NODE;
+        String taskNode = tasksPath + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + Constants.TASK_NODE;
         if (!curatorClient.checkExists(taskNode)) {
             curatorClient.createPersistent(taskNode, true, jsonStr.getBytes());
         }
@@ -383,7 +452,7 @@ public class TaskDispatcher implements Closeable {
         String serverId = taskSummary.getServerId();
         // 设置任务状态
         taskSummary.setTaskStatus(TaskStatus.CANCEL);
-        String taskNode = Constants.PATH_TASKS + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + serverId;
+        String taskNode = tasksPath + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + serverId;
         String jsonStr = JSON.toJSONString(taskSummary);
         if (!curatorClient.checkExists(taskNode)) {
             curatorClient.createPersistent(taskNode, true, jsonStr.getBytes());
@@ -412,12 +481,6 @@ public class TaskDispatcher implements Closeable {
     }
 
     public static void main(String[] args) throws Exception {
-        CuratorCacheFactory.init(Constants.zkUrl);
-        VirtualServerIDImpl identification = null;  // TODO
-        TaskDispatcher td = new TaskDispatcher(Constants.zkUrl, Constants.BASE_PATH, identification);
-        td.start();
-        Thread.sleep(Long.MAX_VALUE);
-        td.close();
 
     }
 

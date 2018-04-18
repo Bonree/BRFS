@@ -17,7 +17,6 @@ import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskOperation;
 import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.server.ServerInfo;
 import com.bonree.brfs.server.StorageName;
 
 /*******************************************************************************
@@ -75,7 +74,7 @@ public class VirtualRecover implements DataRecover {
     public void recover() {
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(listenerNode, new RecoverListener("recover"));
-        nodeCache.startPathCache(listenerNode);
+        nodeCache.startCache(listenerNode);
         String selfNode = null; // TODO 拼接本身NODE
         taskOpt.setTaskStatus(selfNode, DataRecover.ExecutionStatus.RECOVER);
         List<String> files = getFiles();

@@ -49,7 +49,7 @@ public class CuratorTreeCache {
         }
     }
 
-    public void startPathCache(String path) {
+    public void startCache(String path) {
         TreeCache cache = cacheMap.get(path);
         try {
             if (cache != null) {

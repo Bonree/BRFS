@@ -66,9 +66,9 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
         }
     }
 
-    public VirtualServerIDImpl(String zkHosts, String basePath) {
+    public VirtualServerIDImpl(String zkHosts, String baseServerIDSeq) {
         this.zkHosts = zkHosts;
-        this.basePath = BrStringUtils.trimBasePath(basePath);
+        this.basePath = BrStringUtils.trimBasePath(baseServerIDSeq);
         this.lockPath = basePath + SEPARATOR + LOCKS_PATH_PART;
     }
 
@@ -188,7 +188,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
     }
 
     @Override
-    public List<String> listValidVirtualID(int storageIndex) {
+    public List<String> listInvalidVirtualID(int storageIndex) {
         String storageSIDPath = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex;
         CuratorClient client = null;
         try {

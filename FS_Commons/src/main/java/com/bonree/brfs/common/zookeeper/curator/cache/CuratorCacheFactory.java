@@ -26,9 +26,9 @@ public class CuratorCacheFactory {
 
     private static CuratorClient client = null;
 
-    public synchronized static void init(String zkUrl) {
+    public synchronized static void init(String zkHosts) {
         if (client == null) {
-            client = CuratorClient.getClientInstance(zkUrl);
+            client = CuratorClient.getClientInstance(zkHosts);
         }
     }
 

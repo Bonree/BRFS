@@ -14,8 +14,6 @@ public class CuratorPathCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(CuratorPathCache.class);
 
-    private static volatile CuratorPathCache pathCache = null;
-
     private Map<String, PathChildrenCache> cacheMap = null;
 
     private CuratorClient client = null;
@@ -53,7 +51,7 @@ public class CuratorPathCache {
         }
     }
 
-    public void startPathCache(String path) {
+    public void startCache(String path) {
         PathChildrenCache cache = cacheMap.get(path);
         try {
             if (cache != null) {

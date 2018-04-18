@@ -49,6 +49,8 @@ public class MultiRecover implements DataRecover {
 
     private final String listenerNode;
 
+    private String tasksPath;
+
     private Map<String, BalanceTaskSummary> snStorageSummary;
 
     private static final String NAME_SEPARATOR = "_";
@@ -76,7 +78,8 @@ public class MultiRecover implements DataRecover {
 
     }
 
-    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskOperation taskOpt, String listenerNode, CuratorClient client) {
+    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskOperation taskOpt, String listenerNode, CuratorClient client, String tasksPath) {
+        this.tasksPath = tasksPath;
         this.balanceSummary = summary;
         this.selfServerInfo = selfServerInfo;
         this.taskOpt = taskOpt;
@@ -90,9 +93,9 @@ public class MultiRecover implements DataRecover {
         // 开启监控
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(listenerNode, new RecoverListener("recover"));
-        nodeCache.startPathCache(listenerNode);
+        nodeCache.startCache(listenerNode);
 
-        String node = Constants.PATH_TASKS + Constants.SEPARATOR + balanceSummary.getStorageIndex() + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + selfServerInfo.getMultiIdentification();
+        String node = tasksPath + Constants.SEPARATOR + balanceSummary.getStorageIndex() + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + selfServerInfo.getMultiIdentification();
         taskOpt.setTaskStatus(node, DataRecover.ExecutionStatus.RECOVER);
         int replicas = storageName.getReplications();
 

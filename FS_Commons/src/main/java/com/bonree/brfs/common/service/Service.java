@@ -16,6 +16,8 @@ public class Service {
 	//服务进程的开放端口
 	private int port;
 	
+	
+	
 	public Service() {
 	}
 	

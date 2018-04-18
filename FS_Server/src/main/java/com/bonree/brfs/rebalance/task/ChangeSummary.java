@@ -1,7 +1,7 @@
 package com.bonree.brfs.rebalance.task;
 
+import java.util.ArrayList;
 import java.util.List;
-
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -13,13 +13,11 @@ import java.util.List;
  ******************************************************************************/
 
 public class ChangeSummary implements Comparable<ChangeSummary> {
+    private String changeID;
 
     private int storageIndex;
 
-    private long createTime;
-
     private ChangeType changeType;
-
 
     private String changeServer;
 
@@ -30,9 +28,9 @@ public class ChangeSummary implements Comparable<ChangeSummary> {
 
     }
 
-    public ChangeSummary(int storageIndex, long createTime, ChangeType changeType, String changeServer, List<String> currentServers) {
+    public ChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer, List<String> currentServers) {
         this.storageIndex = storageIndex;
-        this.createTime = createTime;
+        this.changeID = createTime;
         this.changeType = changeType;
         this.changeServer = changeServer;
         this.currentServers = currentServers;
@@ -70,14 +68,13 @@ public class ChangeSummary implements Comparable<ChangeSummary> {
         this.storageIndex = storageIndex;
     }
 
-    public long getCreateTime() {
-        return createTime;
+    public String getChangeID() {
+        return changeID;
     }
 
-    public void setCreateTime(long createTime) {
-        this.createTime = createTime;
+    public void setChangeID(String changeID) {
+        this.changeID = changeID;
     }
-
 
     @Override
     public boolean equals(Object obj) {
@@ -88,7 +85,7 @@ public class ChangeSummary implements Comparable<ChangeSummary> {
             return false;
         }
         ChangeSummary cs = (ChangeSummary) obj;
-        return createTime == cs.createTime;
+        return changeID.equals(cs.changeID);
     }
 
     @Override
@@ -101,33 +98,23 @@ public class ChangeSummary implements Comparable<ChangeSummary> {
         if (this == o) {
             return 0;
         }
-        long diff = createTime - o.createTime;
+        long diff = changeID.compareTo(o.changeID);
         return (diff < 0) ? -1 : ((diff > 0) ? 1 : 0);
     }
-    
-    
 
     @Override
     public String toString() {
-        return "ChangeSummary [createTime=" + createTime + "]";
+        return "ChangeSummary [changeID=" + changeID + "]";
     }
 
     public static void main(String[] args) {
-//        long createTime1 = 123456798l;
-//        long createTime2 = 123456789l;
-//        ChangeSummary cs1 = new ChangeSummary();
-//        cs1.setStorageIndex(1);
-//        cs1.setCreateTime(createTime1);
-//        
-//        ChangeSummary cs2 = new ChangeSummary();
-//        
-//        cs2.setStorageIndex(2);
-//        cs2.setCreateTime(createTime2);
-//        List<ChangeSummary> css = new ArrayList<ChangeSummary>();
-//        css.add(cs2);
-//        css.add(cs1);
-//        Collections.sort(css);
-//        System.out.println(css);
+        List<String> list = new ArrayList<>();
+        list.add("1111");
+        System.out.println(list);
+        System.out.println(list.remove(0));
+        list.add("222");
+        System.out.println(list);
+
     }
 
 }

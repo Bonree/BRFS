@@ -23,7 +23,7 @@ public interface VirtualServerID {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> listValidVirtualID(int storageIndex);
+    public List<String> listInvalidVirtualID(int storageIndex);
 
     /** 概述：列出所有的virtual server ID
      * @param storageIndex
