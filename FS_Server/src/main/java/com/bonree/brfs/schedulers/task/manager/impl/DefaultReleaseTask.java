@@ -439,8 +439,10 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 					LOG.warn("{} {} is null", taskType, taskName);
 					continue;
 				}
-				// 不为RUNNING的任务不进行检查
-				if(TaskState.RUN.code() != taskContent.getTaskState()){
+				// 不为RUN与Exception的任务不进行检查
+				int stat = taskContent.getTaskState();
+				boolean exceptionFlag = TaskState.EXCEPTION.code() == stat;
+				if(!(TaskState.RUN.code() == stat || exceptionFlag)){
 					continue;
 				}
 				// 获取任务下的子节点
@@ -448,7 +450,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				taskPath.append(taskRootPath).append("/").append(taskType).append("/").append(taskName);
 				tmpPath = taskPath.toString();
 				cServers = client.getChildren(tmpPath);
-				if(cServers == null || cServers.isEmpty()){
+				if((cServers == null || cServers.isEmpty()) && !exceptionFlag){
 					count ++;
 					taskContent.setTaskState(TaskState.EXCEPTION.code());
 					updateTaskContentNode(taskContent, taskType, taskName);
@@ -461,19 +463,21 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 						continue;
 					}
 					//不存活的server，节点标记为Exception
-					isException =true;
 					taskServer = getTaskServerContentNodeInfo(taskType, taskName, cServer);
 					if(taskServer == null){
 						LOG.warn("taskType :{}, taskName :{}, serverId :{} is not exists", taskType, taskName, cServer);
-						continue;
+						taskServer = new TaskServerNodeModel();
+						taskServer.setTaskState(TaskState.UNKNOW.code());
 					}
+					
 					if(TaskState.FINISH.code() == taskServer.getTaskState()){
 						continue;
 					}
+					isException =true;
 					taskServer.setTaskState(TaskState.EXCEPTION.code());
 					updateServerTaskContentNode(cServer, taskName, taskType, taskServer);
 				}
-				if(isException){
+				if(isException && !exceptionFlag){
 					count ++;
 					taskContent.setTaskState(TaskState.EXCEPTION.code());
 					updateTaskContentNode(taskContent, taskType, taskName);
