@@ -17,11 +17,11 @@ import org.hyperic.sigar.SigarException;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.brfs.resourceschedule.model.ResourcePair;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
 import com.bonree.brfs.resourceschedule.model.StateMetaServerModel;
 import com.bonree.brfs.resourceschedule.utils.CalcUtils;
@@ -104,7 +104,7 @@ public class GatherResource {
 			obj.setMemoryRate(memoryRate);
 			long memorySize = SigarUtils.instance.gatherMemSize();
 			obj.setMemorySize(memorySize);
-			ResourcePair<Long, Long> netData = SigarUtils.instance.gatherNetStatInfos(ip);
+			Pair<Long, Long> netData = SigarUtils.instance.gatherNetStatInfos(ip);
 			if(netData != null){
 				obj.setNetRByte(netData.getKey());
 				obj.setNetTByte(netData.getValue());
