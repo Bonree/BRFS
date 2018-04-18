@@ -99,7 +99,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
     }
 
     @Override
-    public synchronized List<String> getVirtualID(int storageIndex, int count) {
+    public synchronized List<String> getVirtualID(int storageIndex, int count, String selfFirstID) {
         CuratorClient client = null;
         List<String> resultVirtualIds = new ArrayList<String>(count);
         try {
@@ -126,6 +126,9 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
                         resultVirtualIds.add(virtualIds.get(i));
                     }
                 }
+            }
+            for (String virtualID : resultVirtualIds) {
+                registerFirstID(storageSIDPath, virtualID, selfFirstID, client);
             }
         } finally {
             if (client != null) {
@@ -229,6 +232,13 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
             }
         }
         return virtualIds;
+    }
+
+    private void registerFirstID(String storagePath, String virtualID, String firstID, CuratorClient client) {
+        String node = storagePath + SEPARATOR + virtualID + SEPARATOR + firstID;
+        if (!client.checkExists(node)) {
+            client.createPersistent(node, true);
+        }
     }
 
 }
