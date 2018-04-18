@@ -16,7 +16,7 @@ import com.bonree.brfs.schedulers.exception.ParamsErrorException;
  * @Description: quartz调度服务
  *****************************************************************************
  */
-public interface QuartzSchedulerInterface<T>{
+public interface BaseSchedulerInterface<T>{
 	/**
 	 * 概述：初始化服务配置
 	 * @param props
@@ -121,6 +121,12 @@ public interface QuartzSchedulerInterface<T>{
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public boolean isExecuting(T task) throws ParamsErrorException;
+	/**
+	 * 概述：线程池是否已经暂停
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public boolean isPaused();
 	/**
 	 * 概述：获取任务线程池数
 	 * @return

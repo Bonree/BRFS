@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
-import com.bonree.brfs.schedulers.task.manager.QuartzSchedulerInterface;
+import com.bonree.brfs.schedulers.task.manager.BaseSchedulerInterface;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 
 import io.netty.channel.pool.ChannelHealthChecker;
@@ -45,7 +45,7 @@ import io.netty.channel.pool.ChannelHealthChecker;
  * @Description: quartz基础调度实现
  *****************************************************************************
  */
-public class QuartzBaseSchedulers<T extends SumbitTaskInterface> implements QuartzSchedulerInterface<T> {
+public class DefaultBaseSchedulers<T extends SumbitTaskInterface> implements BaseSchedulerInterface<T> {
 	private static final Logger LOG = LoggerFactory.getLogger("CycleTest");
 	private StdSchedulerFactory ssf = new StdSchedulerFactory();
 	private String instanceName = "server";
@@ -213,6 +213,9 @@ public class QuartzBaseSchedulers<T extends SumbitTaskInterface> implements Quar
 	public boolean isShuttdown() {
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
+			if(scheduler == null){
+				return true;
+			}
 			return scheduler.isShutdown();
 		}
 		catch (SchedulerException e) {
@@ -318,7 +321,7 @@ public class QuartzBaseSchedulers<T extends SumbitTaskInterface> implements Quar
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			if (!scheduler.isShutdown()) {
-				if (!this.pausePoolFlag) {
+				if (this.pausePoolFlag) {
 					return false;
 				}
 				// 1.停止触发器
@@ -384,8 +387,8 @@ public class QuartzBaseSchedulers<T extends SumbitTaskInterface> implements Quar
 	public String getInstanceName(){
 		return this.instanceName;
 	}
-
-	public boolean isPausePoolFlag() {
+	@Override
+	public boolean isPaused() {
 		return pausePoolFlag;
 	}
 
@@ -488,5 +491,4 @@ public class QuartzBaseSchedulers<T extends SumbitTaskInterface> implements Quar
 		}
 		return -1;
 	}
-
 }
