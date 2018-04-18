@@ -24,23 +24,23 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
  * @Description: 单例模式的调度接口
  *****************************************************************************
  */
-public class QuartzSchedulersManager implements SchedulerManagerInterface<String, QuartzBaseSchedulers, SumbitTaskInterface>{
-	Map<String,QuartzBaseSchedulers> taskPoolMap = new ConcurrentHashMap<String,QuartzBaseSchedulers>();
+public class DefaultSchedulersManager implements SchedulerManagerInterface<String, DefaultBaseSchedulers, SumbitTaskInterface>{
+	Map<String,DefaultBaseSchedulers> taskPoolMap = new ConcurrentHashMap<String,DefaultBaseSchedulers>();
 	private static final Logger LOG = LoggerFactory.getLogger("TaskManagerServer");
 	private static class SingletonInstance {
-		public static QuartzSchedulersManager instance = new QuartzSchedulersManager();
+		public static DefaultSchedulersManager instance = new DefaultSchedulersManager();
 	}
 
-	private QuartzSchedulersManager() {
+	private DefaultSchedulersManager() {
 	}
 
-	public static QuartzSchedulersManager getInstance() {
+	public static DefaultSchedulersManager getInstance() {
 		return SingletonInstance.instance;
 	}
 	@Override
 	public boolean addTask(String taskpoolkey, SumbitTaskInterface task) throws ParamsErrorException {
 		checkParams(taskpoolkey, task);
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
 		if(pool == null){
 			return false;
 		}
@@ -57,7 +57,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 	@Override
 	public boolean pauseTask(String taskpoolkey, SumbitTaskInterface task)  throws ParamsErrorException {
 		checkParams(taskpoolkey, task);
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
 		if(pool == null){
 			return false;
 		}
@@ -75,7 +75,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 	@Override
 	public boolean resumeTask(String taskpoolkey, SumbitTaskInterface task)  throws ParamsErrorException {
 		checkParams(taskpoolkey, task);
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
 		if(pool == null){
 			return false;
 		}
@@ -93,7 +93,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 	@Override
 	public boolean deleteTask(String taskpoolkey, SumbitTaskInterface task) throws ParamsErrorException  {
 		checkParams(taskpoolkey, task);
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
 		if (pool == null) {
 			return false;
 		}
@@ -115,7 +115,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
 			throw new ParamsErrorException("task pool key is not exists !!!");
 		}
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			return false;
 		}
@@ -138,10 +138,11 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 		if (taskPoolMap.containsKey(taskpoolKey)) {
 			throw new ParamsErrorException("task pool key is exists !!!");
 		}
-		QuartzBaseSchedulers pool = new QuartzBaseSchedulers();
+		DefaultBaseSchedulers pool = new DefaultBaseSchedulers();
 		String instanceName = taskpoolKey;
-		if(prop != null&& BrStringUtils.isEmpty(prop.get("org.quartz.scheduler.instanceName").toString())){
-			instanceName = prop.get("org.quartz.scheduler.instanceName").toString();
+		String name = prop.getProperty("org.quartz.scheduler.instanceName");
+		if(prop != null&& !BrStringUtils.isEmpty(name)){
+			instanceName = name;
 		}
 		pool.setInstanceName(instanceName);
 		try {
@@ -163,7 +164,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
 			throw new ParamsErrorException("task pool key is not exists !!!");
 		}
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			return false;
 		}
@@ -189,7 +190,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
 			throw new ParamsErrorException("task pool key is not exists !!!");
 		}
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			return false;
 		}
@@ -212,7 +213,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
 			throw new ParamsErrorException("task pool key is not exists !!!");
 		}
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			return false;
 		}
@@ -235,7 +236,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 			LOG.warn("{} is not exists");
 			return -1;
 		}
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			LOG.warn("{}' thread pool is null");
 			return -2;
@@ -260,7 +261,7 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 			LOG.warn("{} is not exists");
 			return -1;
 		}
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			LOG.warn("{}' thread pool is null");
 			return -2;
@@ -311,13 +312,13 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 			return set;
 		}
 		String key = null;
-		QuartzBaseSchedulers tmp = null;
-		for(Map.Entry<String, QuartzBaseSchedulers> entry : this.taskPoolMap.entrySet()){
+		DefaultBaseSchedulers tmp = null;
+		for(Map.Entry<String, DefaultBaseSchedulers> entry : this.taskPoolMap.entrySet()){
 			key = entry.getKey();
 			tmp = entry.getValue();
 			if(type == 0 && tmp.isStart()){
 				set.add(key);
-			}else if(type == 1 && tmp.isPausePoolFlag()){
+			}else if(type == 1 && tmp.isPaused()){
 				set.add(key);
 			}else if(type == 2 && tmp.isShuttdown()){
 				set.add(key);
@@ -346,18 +347,28 @@ public class QuartzSchedulersManager implements SchedulerManagerInterface<String
 		if(!taskPoolMap.containsKey(taskpoolKey)){
 			throw new ParamsErrorException("task pool key : "+ taskpoolKey+" is not exists !!!");
 		}
-		QuartzBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			throw new ParamsErrorException("task pool key : "+ taskpoolKey+" is not exists !!!");
 		}
 		if(type == 0){
 			return pool.isStart();
 		}else if(type == 1){
-			return pool.isPausePoolFlag();
+			return pool.isPaused();
 		}else if(type == 2){
 			return pool.isShuttdown();
 		}
 		return false;
 		
+	}
+
+	@Override
+	public int getTaskStat(String taskpoolKey, SumbitTaskInterface task) throws ParamsErrorException {
+		checkParams(taskpoolKey, task);
+		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		if (pool == null) {
+			return -2;
+		}
+		return pool.getTaskStat(task);
 	}
 }

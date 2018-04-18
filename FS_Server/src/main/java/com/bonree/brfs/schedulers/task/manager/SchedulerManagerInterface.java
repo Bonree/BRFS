@@ -143,5 +143,14 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	boolean isPaused(T1 taskpoolKey)throws ParamsErrorException;;
+	/**
+	 * 概述：查看任务状态 任务的状态 -2：不存在对应的线程池，-1：不存在，0：正常，1：暂停，2：完成，3：错误，4：阻塞--正在执行
+	 * @param taskpoolKey
+	 * @param task
+	 * @return
+	 * @throws ParamsErrorException
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	int getTaskStat(T1 taskpoolKey, T3 task)throws ParamsErrorException;
 	
 }
