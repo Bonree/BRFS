@@ -1,3 +1,4 @@
+
 package com.bonree.brfs.schedulers.task.manager.impl;
 
 import java.text.ParseException;
@@ -45,7 +46,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	private int poolSize = 0;
 
 	@Override
-	public void initProperties(Properties props){
+	public void initProperties(Properties props) {
 		Properties tmpprops = null;
 		if (props == null) {
 			tmpprops = new Properties();
@@ -62,9 +63,11 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			Scheduler ssh = ssf.getScheduler();
 			this.instanceName = ssh.getSchedulerName();
 			this.poolSize = Integer.valueOf(tmpprops.getProperty("org.quartz.threadPool.threadCount"));
-		} catch (NumberFormatException e) {
+		}
+		catch (NumberFormatException e) {
 			e.printStackTrace();
-		} catch (SchedulerException e) {
+		}
+		catch (SchedulerException e) {
 			e.printStackTrace();
 		}
 	}
@@ -74,10 +77,19 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		// 1.检查任务的有效性
 		checkTask(task);
 		// 2.线程池处于暂停时，不提交任务
-		if(this.pausePoolFlag){
+		if (this.pausePoolFlag) {
 			return false;
 		}
 		try {
+			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
+			// 当线程池不处于运行时，将不添加任务
+			if (!isNormal()) {
+				return false;
+			}
+			// 当线程池满了也不会添加任务
+			if(this.poolSize <= getTaskThreadCount()){
+				return false;
+			}
 			// 1.设置job的名称及执行的class
 			Class<? extends Job> clazz = (Class<? extends Job>) Class.forName(task.getClassInstanceName());
 			String taskName = task.getTaskName();
@@ -118,17 +130,20 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 				boolean cycleFlag = Boolean.valueOf(cycles[4]);
 				SimpleScheduleBuilder builder = SimpleScheduleBuilder.simpleSchedule();
 				builder.withIntervalInMilliseconds(interval);
-				if(cycleFlag){
+				if (cycleFlag) {
 					builder.repeatForever();
-				}else{
+				}
+				else {
 					builder.withRepeatCount(repeateCount);
 				}
-				TriggerBuilder trigBuilder = TriggerBuilder.newTrigger().withIdentity(taskName, taskGroup).withSchedule(builder);
-				if(!rightNow && delayTime >0){
-					long current = System.currentTimeMillis()+ delayTime;
+				TriggerBuilder trigBuilder = TriggerBuilder.newTrigger().withIdentity(taskName, taskGroup).withSchedule(
+					builder);
+				if (!rightNow && delayTime > 0) {
+					long current = System.currentTimeMillis() + delayTime;
 					Date date = new Date(current);
 					trigBuilder.startAt(date);
-				}else{
+				}
+				else {
 					trigBuilder.startNow();
 				}
 				trigger = trigBuilder.build();
@@ -136,7 +151,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			if (trigger == null || jobDetail == null) {
 				return false;
 			}
-			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
+
 			scheduler.scheduleJob(jobDetail, trigger);
 			return true;
 		}
@@ -154,8 +169,9 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		}
 		return false;
 	}
+
 	@Override
-	public void start() throws RuntimeException{
+	public void start() throws RuntimeException {
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			if (!scheduler.isStarted()) {
@@ -165,7 +181,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw new RuntimeException(this.instanceName +" start fail !!!");
+			throw new RuntimeException(this.instanceName + " start fail !!!");
 		}
 	}
 
@@ -184,7 +200,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException(this.instanceName +" close fail !!!");
+			throw new RuntimeException(this.instanceName + " close fail !!!");
 		}
 
 	}
@@ -193,6 +209,14 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	public boolean isStart() {
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
+			// 当调用scheduler.shutdown()时，相应的调度对象被销毁，故在判断isShutdown时，应先判断对象是否销毁了
+			if (scheduler == null) {
+				return false;
+			}
+			// 判断线程池被关闭了。
+			if (scheduler.isShutdown()) {
+				return false;
+			}
 			return scheduler.isStarted();
 		}
 		catch (Exception e) {
@@ -205,7 +229,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	public boolean isShuttdown() {
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
-			if(scheduler == null){
+			if (scheduler == null) {
 				return true;
 			}
 			return scheduler.isShutdown();
@@ -220,6 +244,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	public boolean killTask(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
 		try {
+			// 不在正常运行时，不进行删除任务操作
+			if (!isNormal()) {
+				return false;
+			}
 			TriggerKey triggerKey = TriggerKey.triggerKey(task.getTaskName(), task.getTaskGroupName());
 			JobKey jobKey = new JobKey(task.getTaskName(), task.getTaskGroupName());
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
@@ -255,6 +283,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	public boolean pauseTask(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
 		try {
+			// 不在正常运行时，不进行任何操作
+			if (!isNormal()) {
+				return false;
+			}
 			TriggerKey triggerKey = TriggerKey.triggerKey(task.getTaskName(), task.getTaskGroupName());
 			JobKey jobKey = new JobKey(task.getTaskName(), task.getTaskGroupName());
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
@@ -288,6 +320,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	public boolean resumeTask(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
 		try {
+			// 不在正常运行时，不进行任何操作
+			if (!isNormal()) {
+				return false;
+			}
 			TriggerKey triggerKey = TriggerKey.triggerKey(task.getTaskName(), task.getTaskGroupName());
 			JobKey jobKey = new JobKey(task.getTaskName(), task.getTaskGroupName());
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
@@ -309,8 +345,12 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	}
 
 	@Override
-	public boolean pauseAllTask(){
+	public boolean pauseAllTask() {
 		try {
+			// 不在正常运行时，不进行任何操作
+			if (!isNormal()) {
+				return false;
+			}
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			if (!scheduler.isShutdown()) {
 				if (this.pausePoolFlag) {
@@ -338,8 +378,12 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	}
 
 	@Override
-	public boolean resumeAllTask(){
+	public boolean resumeAllTask() {
 		try {
+			// 不在正常运行时，不进行任何操作
+			if (!isNormal()) {
+				return false;
+			}
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			if (!scheduler.isShutdown()) {
 				Set<String> pauseGroup = scheduler.getPausedTriggerGroups();
@@ -358,7 +402,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 
 	@Override
 	public void checkTask(SumbitTaskInterface task) throws ParamsErrorException {
-		if(task == null){
+		if (task == null) {
 			throw new ParamsErrorException("task is empty");
 		}
 		if (BrStringUtils.isEmpty(task.getClassInstanceName())) {
@@ -376,9 +420,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	}
 
 	@Override
-	public String getInstanceName(){
+	public String getInstanceName() {
 		return this.instanceName;
 	}
+
 	@Override
 	public boolean isPaused() {
 		return pausePoolFlag;
@@ -427,11 +472,11 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			else {
 				return -2;
 			}
-		} catch (SchedulerException e) {
+		}
+		catch (SchedulerException e) {
 			e.printStackTrace();
 			throw new ParamsErrorException(e.getLocalizedMessage());
 		}
-		
 
 	}
 
@@ -462,23 +507,54 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	}
 
 	@Override
-	public int getPoolThreadCount(){
+	public int getPoolThreadCount() {
 		// TODO Auto-generated method stub
 		return this.poolSize;
 	}
 
 	@Override
-	public int getTaskThreadCount(){
+	public int getTaskThreadCount() {
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			int count = 0;
 			for (String groupName : scheduler.getJobGroupNames()) {
-				count += scheduler.getJobKeys((GroupMatcher<JobKey>)GroupMatcher.groupEquals(groupName)).size();
+				count += scheduler.getJobKeys((GroupMatcher<JobKey>) GroupMatcher.groupEquals(groupName)).size();
 			}
 			return count;
-		}catch (SchedulerException e) {
+		}
+		catch (SchedulerException e) {
 			e.printStackTrace();
 		}
 		return -1;
+	}
+
+	/**
+	 * 概述：判断调度是否已经正常运行
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private boolean isNormal() {
+		Scheduler scheduler;
+		try {
+			scheduler = this.ssf.getScheduler(this.instanceName);
+			// 当调用scheduler.shutdown()时，相应的调度对象被销毁，故在判断isShutdown时，应先判断对象是否销毁了
+			if (scheduler == null) {
+				return false;
+			}
+			// 判断线程池被关闭了。
+			if (scheduler.isShutdown()) {
+				return false;
+			}
+			// 判断线程池未启动
+			if (!scheduler.isStarted()) {
+				return false;
+			}
+			return true;
+		}
+		catch (SchedulerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
 	}
 }
