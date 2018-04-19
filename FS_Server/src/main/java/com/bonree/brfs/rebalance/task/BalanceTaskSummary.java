@@ -2,6 +2,8 @@ package com.bonree.brfs.rebalance.task;
 
 import java.util.List;
 
+import com.bonree.brfs.rebalance.DataRecover.RecoverType;
+
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
@@ -25,7 +27,7 @@ public class BalanceTaskSummary {
     /**
      * 任务类型，目前有多副本恢复和虚拟ID恢复
      */
-    private int taskType;
+    private RecoverType taskType;
 
     /**
      *任务的状态，分为正常和异常；
@@ -48,7 +50,6 @@ public class BalanceTaskSummary {
      */
     private List<String> aliveServer;
 
-
     /**
      *任务何时开始,精确到秒
      */
@@ -70,11 +71,11 @@ public class BalanceTaskSummary {
         this.storageIndex = storageIndex;
     }
 
-    public int getTaskType() {
+    public RecoverType getTaskType() {
         return taskType;
     }
 
-    public void setTaskType(int taskType) {
+    public void setTaskType(RecoverType taskType) {
         this.taskType = taskType;
     }
 
@@ -102,7 +103,6 @@ public class BalanceTaskSummary {
         this.runtime = runtime;
     }
 
-    
     public TaskStatus getTaskStatus() {
         return taskStatus;
     }
@@ -117,6 +117,11 @@ public class BalanceTaskSummary {
 
     public void setAliveServer(List<String> aliveServer) {
         this.aliveServer = aliveServer;
+    }
+
+    @Override
+    public String toString() {
+        return "BalanceTaskSummary [serverId=" + serverId + ", storageIndex=" + storageIndex + ", taskType=" + taskType + ", taskStatus=" + taskStatus + ", outputServers=" + outputServers + ", inputServers=" + inputServers + ", aliveServer=" + aliveServer + ", runtime=" + runtime + "]";
     }
 
 }

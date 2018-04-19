@@ -46,4 +46,11 @@ public interface VirtualServerID {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public boolean deleteVirtualIden(int storageIndex, String id);
+    
+    
+    /** 概述：获取virtual servers path
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public String getVirtualServersPath();
 }

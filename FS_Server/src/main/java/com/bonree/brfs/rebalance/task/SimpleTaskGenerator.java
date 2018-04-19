@@ -1,28 +1,41 @@
 package com.bonree.brfs.rebalance.task;
 
+import java.util.List;
+
 import org.apache.curator.shaded.com.google.common.collect.Lists;
 
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
+import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 
+/*******************************************************************************
+ * 版权信息：博睿宏远科技发展有限公司
+ * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
+ * 
+ * @date 2018年4月18日 下午4:43:40
+ * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
+ * @Description: 通过change 生成 task
+ ******************************************************************************/
 public class SimpleTaskGenerator implements BalanceTaskGenerator {
 
     @Override
-    public BalanceTaskSummary genVirtualTask(String virtualId, ChangeSummary changeSummary) {
+    public BalanceTaskSummary genVirtualTask(int storageIndex, String virtualId, String selectID, List<String> participators) {
+
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
         // 参与者Server，提供数据
-        taskSummary.setOutputServers(changeSummary.getCurrentServers());
+        taskSummary.setOutputServers(participators);
         // 源ServerId
         taskSummary.setServerId(virtualId);
         // 因为是构建虚拟SID恢复，则inputServer只需要有一个Server
-        taskSummary.setInputServers(Lists.asList(changeSummary.getChangeServer(), null));
+        taskSummary.setInputServers(Lists.newArrayList(selectID));
         // 设置任务状态
         taskSummary.setTaskStatus(TaskStatus.INIT);
         // 设置任务类型
-        taskSummary.setTaskType(1);
+        taskSummary.setTaskType(RecoverType.VIRTUAL);
         // 设置SN的index
-        taskSummary.setStorageIndex(changeSummary.getStorageIndex());
+        taskSummary.setStorageIndex(storageIndex);
         // 设置任务延迟触发时间
-        taskSummary.setRuntime(60 * 1); // 1分钟后开始迁移
+        taskSummary.setRuntime(10 * 1); // 1分钟后开始迁移
+        
         return taskSummary;
     }
 
@@ -34,7 +47,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
         taskSummary.setOutputServers(changeSummary.getCurrentServers());
         taskSummary.setInputServers(changeSummary.getCurrentServers());
         taskSummary.setTaskStatus(TaskStatus.INIT);
-        taskSummary.setTaskType(2);
+        taskSummary.setTaskType(RecoverType.NORMAL);
         taskSummary.setRuntime(60 * 30);
         return taskSummary;
     }

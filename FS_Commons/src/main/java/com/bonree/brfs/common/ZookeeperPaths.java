@@ -34,9 +34,9 @@ public class ZookeeperPaths {
 
     public final static String REBALANCE = "rebalance";
 
-    public final static String ROUTE_ROLE = "route_role";
+    public final static String ROUTES = "routes";
 
-    public final static String USER = "user";
+    public final static String USERS = "users";
 
     private final String clusterName;
     private final String zkNodes;
@@ -160,8 +160,8 @@ public class ZookeeperPaths {
         setBaseServersPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + SERVERS);
         setBaseStorageNamePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + STORAGE_NAMES);
         setBaseRebalancePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + REBALANCE);
-        setBaseRoutePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + ROUTE_ROLE);
-        setBaseUserPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + USER);
+        setBaseRoutePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + ROUTES);
+        setBaseUserPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + USERS);
     }
 
     public static ZookeeperPaths create(final String clusterName, final String zkHosts) {

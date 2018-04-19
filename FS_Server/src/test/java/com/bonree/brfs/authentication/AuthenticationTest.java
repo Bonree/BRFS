@@ -15,7 +15,7 @@ public class AuthenticationTest {
 
     public static void deleteNode(String zkUrl) {
         CuratorClient curatorClient = CuratorClient.getClientInstance(zkUrl);
-        curatorClient.delete("/wz_test11", true);
+        curatorClient.delete("/brfs/wz_test1", true);
         curatorClient.close();
     }
 

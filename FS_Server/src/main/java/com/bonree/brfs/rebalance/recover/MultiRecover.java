@@ -22,10 +22,10 @@ import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.record.BalanceRecord;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
-import com.bonree.brfs.rebalance.task.TaskOperation;
+import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.server.ServerInfo;
 import com.bonree.brfs.server.StorageName;
+import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -43,13 +43,9 @@ public class MultiRecover implements DataRecover {
 
     private BalanceTaskSummary balanceSummary;
 
-    private ServerInfo selfServerInfo;
-
-    private TaskOperation taskOpt;
+    private ServerIDManager idManager;
 
     private final String listenerNode;
-
-    private String tasksPath;
 
     private Map<String, BalanceTaskSummary> snStorageSummary;
 
@@ -78,11 +74,9 @@ public class MultiRecover implements DataRecover {
 
     }
 
-    public MultiRecover(BalanceTaskSummary summary, ServerInfo selfServerInfo, TaskOperation taskOpt, String listenerNode, CuratorClient client, String tasksPath) {
-        this.tasksPath = tasksPath;
+    public MultiRecover(BalanceTaskSummary summary, ServerIDManager idManager, String listenerNode, CuratorClient client) {
         this.balanceSummary = summary;
-        this.selfServerInfo = selfServerInfo;
-        this.taskOpt = taskOpt;
+        this.idManager = idManager;
         this.listenerNode = listenerNode;
         this.client = client;
     }
@@ -90,23 +84,25 @@ public class MultiRecover implements DataRecover {
     @Override
     public void recover() {
         LOG.info("begin recover");
+        TaskDetail detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
         // 开启监控
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(listenerNode, new RecoverListener("recover"));
         nodeCache.startCache(listenerNode);
 
-        String node = tasksPath + Constants.SEPARATOR + balanceSummary.getStorageIndex() + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + selfServerInfo.getMultiIdentification();
-        taskOpt.setTaskStatus(node, DataRecover.ExecutionStatus.RECOVER);
+        String node = listenerNode + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + idManager.getSecondServerID(balanceSummary.getStorageIndex());
+        detail.setStatus(ExecutionStatus.RECOVER);
+        updateDetail(node, detail);
         int replicas = storageName.getReplications();
 
-        LOG.info("deal the local server:" + selfServerInfo.getMultiIdentification());
+        LOG.info("deal the local server:" + idManager.getSecondServerID(balanceSummary.getStorageIndex()));
 
         // 以副本数来遍历
         for (int i = 1; i <= replicas; i++) {
             dealReplicas(i);
         }
-
-        taskOpt.setTaskStatus(node, DataRecover.ExecutionStatus.FINISH);
+        detail.setStatus(ExecutionStatus.FINISH);
+        updateDetail(node, detail);
         try {
             nodeCache.cancelListener(listenerNode);
         } catch (IOException e) {
@@ -186,10 +182,10 @@ public class MultiRecover implements DataRecover {
                     // 判断选取的新节点是否存活
                     if (isAlive(selectMultiId)) {
                         // 判断选取的新节点是否为本节点
-                        if (!selfServerInfo.getMultiIdentification().equals(selectMultiId)) {
+                        if (!idManager.getSecondServerID(balanceSummary.getStorageIndex()).equals(selectMultiId)) {
                             if (!isExistFile(selectMultiId, perFile)) {
                                 remoteCopyFile(selectMultiId, perFile);
-                                BalanceRecord record = new BalanceRecord(perFile, selfServerInfo.getMultiIdentification(), selectMultiId);
+                                BalanceRecord record = new BalanceRecord(perFile, idManager.getSecondServerID(balanceSummary.getStorageIndex()), selectMultiId);
                                 simpleWriter.writeRecord(record.toString());
                             }
                         }
@@ -275,6 +271,31 @@ public class MultiRecover implements DataRecover {
             return true;
         } else {
             return false;
+        }
+    }
+
+    /** 概述：更新任务信息
+     * @param node
+     * @param status
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public void updateDetail(String node, TaskDetail detail) {
+        if (client.checkExists(node)) {
+            try {
+                client.setData(node, JSON.toJSONString(detail).getBytes());
+            } catch (Exception e) {
+                LOG.error("change Task status error!", e);
+            }
+        }
+    }
+
+    /** 概述：注册节点
+     * @param node
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public void registerNode(String node, TaskDetail detail) {
+        if (!client.checkExists(node)) {
+            client.createPersistent(node, false, JSON.toJSONString(detail).getBytes());
         }
     }
 
