@@ -125,6 +125,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 				}
 				long interval = Long.valueOf(cycles[0]);
 				int repeateCount = Integer.valueOf(cycles[1]);
+				if(repeateCount == 0){
+					return false;
+				}
+				repeateCount = repeateCount -1;
 				long delayTime = Long.valueOf(cycles[2]);
 				boolean rightNow = Boolean.valueOf(cycles[3]);
 				boolean cycleFlag = Boolean.valueOf(cycles[4]);
