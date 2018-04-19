@@ -8,6 +8,6 @@ package com.bonree.brfs.common.http;
  *
  * @param <T>
  */
-public interface MessageHandler<T> {
-	void handle(T msg, HandleResultCallback callback);
+public interface MessageHandler {
+	void handle(HttpMessage msg, HandleResultCallback callback);
 }

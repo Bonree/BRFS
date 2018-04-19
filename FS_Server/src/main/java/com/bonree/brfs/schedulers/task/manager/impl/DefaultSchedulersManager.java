@@ -1,6 +1,5 @@
 package com.bonree.brfs.schedulers.task.manager.impl;
 
-import java.beans.PropertyEditorSupport;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
+import com.bonree.brfs.schedulers.task.manager.BaseSchedulerInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 /******************************************************************************
@@ -24,7 +24,7 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
  * @Description: 单例模式的调度接口
  *****************************************************************************
  */
-public class DefaultSchedulersManager implements SchedulerManagerInterface<String, DefaultBaseSchedulers, SumbitTaskInterface>{
+public class DefaultSchedulersManager implements SchedulerManagerInterface<String, BaseSchedulerInterface, SumbitTaskInterface>{
 	Map<String,DefaultBaseSchedulers> taskPoolMap = new ConcurrentHashMap<String,DefaultBaseSchedulers>();
 	private static final Logger LOG = LoggerFactory.getLogger("TaskManagerServer");
 	private static class SingletonInstance {
@@ -33,7 +33,6 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 
 	private DefaultSchedulersManager() {
 	}
-
 	public static DefaultSchedulersManager getInstance() {
 		return SingletonInstance.instance;
 	}

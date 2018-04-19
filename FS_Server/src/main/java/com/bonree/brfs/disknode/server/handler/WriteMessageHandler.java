@@ -1,36 +1,46 @@
 package com.bonree.brfs.disknode.server.handler;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
+import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.DiskWriterManager;
 import com.bonree.brfs.disknode.InputEventCallback;
 import com.bonree.brfs.disknode.InputResult;
 import com.bonree.brfs.disknode.client.WriteResult;
-import com.bonree.brfs.disknode.server.DiskMessage;
 
-public class WriteMessageHandler implements MessageHandler<DiskMessage> {
+public class WriteMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteMessageHandler.class);
 	
+	private DiskContext diskContext;
 	private DiskWriterManager nodeManager;
 	
-	public WriteMessageHandler(DiskWriterManager nodeManager) {
+	public WriteMessageHandler(DiskContext diskContext, DiskWriterManager nodeManager) {
+		this.diskContext = diskContext;
 		this.nodeManager = nodeManager;
 	}
 
 	@Override
-	public void handle(DiskMessage msg, HandleResultCallback callback) {
+	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		HandleResult handleResult = new HandleResult();
 		
 		try {
-			LOG.debug("WRITE [{}], data length[{}]", msg.getFilePath(), msg.getData().length);
-			nodeManager.writeAsync(msg.getFilePath(), msg.getData(), new InputEventCallback() {
+			String realPath = diskContext.getAbsoluteFilePath(msg.getPath());
+			LOG.debug("WRITE [{}], data length[{}]", realPath, msg.getContent().length);
+			
+			if(msg.getContent().length == 0) {
+				throw new IllegalArgumentException("Writing data is Empty!!");
+			}
+			
+			WriteData item = ProtoStuffUtils.deserialize(msg.getContent(), WriteData.class);
+			
+			nodeManager.writeAsync(realPath, item, new InputEventCallback() {
 				
 				@Override
 				public void error(Throwable t) {
@@ -48,8 +58,9 @@ public class WriteMessageHandler implements MessageHandler<DiskMessage> {
 					writeResult.setOffset(result.getOffset());
 					writeResult.setSize(result.getSize());
 					try {
-						handleResult.setData(ProtoStuffUtils.serialize(writeResult));
-					} catch (IOException e) {
+//						handleResult.setData(ProtoStuffUtils.serialize(writeResult));
+						handleResult.setData(JsonUtils.toJsonBytes(writeResult));
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 					

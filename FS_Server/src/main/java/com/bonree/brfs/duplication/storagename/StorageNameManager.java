@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.storagename;
 
+import java.util.List;
+
 import com.bonree.brfs.common.utils.LifeCycle;
 
 public interface StorageNameManager extends LifeCycle {
@@ -10,4 +12,5 @@ public interface StorageNameManager extends LifeCycle {
 	boolean removeStorageName(String storageName);
 	StorageNameNode findStorageName(String storageName);
 	StorageNameNode findStorageName(int id);
+	List<StorageNameNode> getStorageNameNodeList();
 }

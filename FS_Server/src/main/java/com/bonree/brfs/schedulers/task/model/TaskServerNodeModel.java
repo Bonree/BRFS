@@ -1,7 +1,5 @@
 package com.bonree.brfs.schedulers.task.model;
 
-import java.util.ArrayList;
-import java.util.List;
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.

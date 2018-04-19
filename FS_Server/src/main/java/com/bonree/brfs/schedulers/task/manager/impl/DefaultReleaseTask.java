@@ -1,18 +1,15 @@
 
 package com.bonree.brfs.schedulers.task.manager.impl;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.util.Comparators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
@@ -389,7 +386,6 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	public Pair<Integer,Integer> reviseTaskStat(String taskType, long ttl, Collection<String> aliveServers){
 		Pair<Integer, Integer> counts = new Pair<Integer, Integer>(0, 0);
 		try {
-			long currentTime = System.currentTimeMillis();
 			if(BrStringUtils.isEmpty(taskType)){
 				throw new NullPointerException("taskType is empty");
 			}

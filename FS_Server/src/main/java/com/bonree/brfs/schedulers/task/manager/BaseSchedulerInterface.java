@@ -1,11 +1,9 @@
 package com.bonree.brfs.schedulers.task.manager;
 
-import java.util.List;
 import java.util.Properties;
 
-import org.quartz.SchedulerException;
-
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
+import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -16,7 +14,7 @@ import com.bonree.brfs.schedulers.exception.ParamsErrorException;
  * @Description: quartz调度服务
  *****************************************************************************
  */
-public interface BaseSchedulerInterface<T>{
+public interface BaseSchedulerInterface{
 	/**
 	 * 概述：初始化服务配置
 	 * @param props
@@ -29,7 +27,7 @@ public interface BaseSchedulerInterface<T>{
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public boolean addTask(T task) throws ParamsErrorException;
+	public boolean addTask(SumbitTaskInterface task) throws ParamsErrorException;
 	/**
 	 * 概述：启动周期服务
 	 * @return
@@ -60,7 +58,7 @@ public interface BaseSchedulerInterface<T>{
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public boolean killTask(T task) throws ParamsErrorException;
+	public boolean killTask(SumbitTaskInterface task) throws ParamsErrorException;
 	/**
 	 * 概述：暂停任务
 	 * @param task
@@ -68,7 +66,7 @@ public interface BaseSchedulerInterface<T>{
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public boolean pauseTask(T task) throws ParamsErrorException;
+	public boolean pauseTask(SumbitTaskInterface task) throws ParamsErrorException;
 	/**
 	 * 概述：暂停所有任务
 	 * @return
@@ -83,7 +81,7 @@ public interface BaseSchedulerInterface<T>{
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public boolean resumeTask(T task) throws ParamsErrorException;
+	public boolean resumeTask(SumbitTaskInterface task) throws ParamsErrorException;
 	/**
 	 * 概述：重启所有任务
 	 * @return
@@ -104,7 +102,7 @@ public interface BaseSchedulerInterface<T>{
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void checkTask(T task) throws ParamsErrorException;	
+	public void checkTask(SumbitTaskInterface task) throws ParamsErrorException;	
 	/**
 	 * 概述：获取任务状态
 	 * @param task
@@ -112,7 +110,7 @@ public interface BaseSchedulerInterface<T>{
 	 * @throws SchedulerException
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public int getTaskStat(T task) throws ParamsErrorException;
+	public int getTaskStat(SumbitTaskInterface task) throws ParamsErrorException;
 	/**
 	 * 概述：判断任务是否执行
 	 * @param task
@@ -120,7 +118,7 @@ public interface BaseSchedulerInterface<T>{
 	 * @throws SchedulerException
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public boolean isExecuting(T task) throws ParamsErrorException;
+	public boolean isExecuting(SumbitTaskInterface task) throws ParamsErrorException;
 	/**
 	 * 概述：线程池是否已经暂停
 	 * @return

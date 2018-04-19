@@ -4,14 +4,19 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-
-public class SimpleWriteBuffer implements WriteBuffer {
+/**
+ * 基于普通输入流进行写入的缓存器
+ * 
+ * @author chen
+ *
+ */
+public class StreamWriteBuffer implements WriteBuffer {
 	private RandomAccessFile file;
 	
 	private ByteArrayOutputStream buf;
-	private int capacity;
+	private final int capacity;
 	
-	public SimpleWriteBuffer(RandomAccessFile file, int capacity) {
+	public StreamWriteBuffer(RandomAccessFile file, int capacity) {
 		this.file = file;
 		this.capacity = capacity;
 		buf = new ByteArrayOutputStream(capacity);

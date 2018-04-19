@@ -2,7 +2,6 @@ package com.bonree.brfs.common.http.jetty;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 
 import com.bonree.brfs.common.utils.LifeCycle;
@@ -13,15 +12,15 @@ import com.bonree.brfs.common.utils.LifeCycle;
  * @author chen
  *
  */
-public class JettyDiskNodeHttpServer implements LifeCycle {
+public class JettyHttpServer implements LifeCycle {
 	private Server server;
 	private ContextHandlerCollection hanlderList = new ContextHandlerCollection();
 	
-	public JettyDiskNodeHttpServer(int port) {
+	public JettyHttpServer(int port) {
 		this(null, port);
 	}
 	
-	public JettyDiskNodeHttpServer(String host, int port) {
+	public JettyHttpServer(String host, int port) {
 		this.server = new Server();
 		ServerConnector connector = new ServerConnector(server);
 		connector.setHost(host);
@@ -42,7 +41,7 @@ public class JettyDiskNodeHttpServer implements LifeCycle {
 		server.stop();
 	}
 	
-	public void addContextHandler(ContextHandler contextHandler) {
-		hanlderList.addHandler(contextHandler);
+	public void addContextHandler(JettyHttpContextHandler contextHandler) {
+		hanlderList.addHandler(contextHandler.getContextHandler());
 	}
 }

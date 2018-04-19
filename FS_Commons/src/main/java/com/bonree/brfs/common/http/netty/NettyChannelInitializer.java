@@ -18,7 +18,7 @@ import java.util.List;
  *
  */
 public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
-	private static final int DEFAULT_MAX_HTTP_CONTENT_LENGTH = 50 * 1024 * 1024;
+	private static final int DEFAULT_MAX_HTTP_CONTENT_LENGTH = 65 * 1024 * 1024;
 	
 	private List<NettyHttpContextHandler> contextHandlers = new ArrayList<NettyHttpContextHandler>();
 

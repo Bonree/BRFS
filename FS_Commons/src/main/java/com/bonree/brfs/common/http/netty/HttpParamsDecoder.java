@@ -58,15 +58,23 @@ public class HttpParamsDecoder {
 	private static Map<String, String> decodeFromBody(FullHttpRequest request) {
 		Map<String, String> params = new HashMap<String, String>();
 		
-		HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), request, CharsetUtil.UTF_8);
-        List<InterfaceHttpData> postList = decoder.getBodyHttpDatas();
-        for (InterfaceHttpData data : postList) {
-            if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-                MemoryAttribute attribute = (MemoryAttribute) data;
-                params.put(attribute.getName(), attribute.getValue());
-            }
-        }
-        
+		HttpPostRequestDecoder decoder = null;
+		try {
+			decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), request, CharsetUtil.UTF_8);
+			List<InterfaceHttpData> postList = decoder.getBodyHttpDatas();
+	        for (InterfaceHttpData data : postList) {
+	            if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
+	                MemoryAttribute attribute = (MemoryAttribute) data;
+	                params.put(attribute.getName(), attribute.getValue());
+	            }
+	        }
+		} finally {
+			if(decoder != null) {
+				//必须释放，不然会导致内存泄漏
+				decoder.destroy();
+			}
+		}
+		
         return params;
 	}
 }

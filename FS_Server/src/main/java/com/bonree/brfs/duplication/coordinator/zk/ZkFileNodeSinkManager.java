@@ -3,7 +3,6 @@ package com.bonree.brfs.duplication.coordinator.zk;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -27,9 +26,11 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
+import com.bonree.brfs.common.utils.ThreadPoolUtil;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FileNodeFilter;
+import com.bonree.brfs.duplication.coordinator.FileNodeServiceSelector;
 import com.bonree.brfs.duplication.coordinator.FileNodeSink;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkManager;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
@@ -47,13 +48,18 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 	private PathChildrenCache sinkWatcher;
 
 	private AtomicBoolean isLeader = new AtomicBoolean(false);
+	
+	private FileNodeServiceSelector serviceSelector;
 
 	public ZkFileNodeSinkManager(CuratorFramework client,
-			ServiceManager serviceManager, FileNodeStorer storer) {
+			ServiceManager serviceManager,
+			FileNodeStorer storer,
+			FileNodeServiceSelector selector) {
 		this.client = client;
 		this.serviceManager = serviceManager;
 		this.fileStorer = storer;
 		this.serviceStateListener = new DuplicateServiceStateListener();
+		this.serviceSelector = selector;
 		this.selector = new LeaderSelector(client, ZKPaths.makePath(
 				ZkFileCoordinatorPaths.COORDINATOR_ROOT, ZkFileCoordinatorPaths.COORDINATOR_LEADER),
 				new SinkManagerLeaderListener());
@@ -117,20 +123,47 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 		@Override
 		public void serviceAdded(Service service) {
 			LOG.info("Service added#######{}", service.getServiceId());
-			ScheduledFuture<?> task = tasks.get(service.getServiceId());
-			if(task != null) {
-				task.cancel(false);
+			ScheduledFuture<?> task = null;
+			synchronized (tasks) {
+				task = tasks.get(service.getServiceId());
+			}
+			if(task != null && task.cancel(false)) {
+				//文件瓜分任务取消成功，文件将全部发送到原服务节点
+				ThreadPoolUtil.commonPool().execute(new Runnable() {
+					
+					@Override
+					public void run() {
+						try {
+							for (FileNode node : fileStorer.listFileNodes(new ServiceFileNodeFilter(service.getServiceId()))) {
+								designateFileNodeToService(node, service);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+					}
+				});
 			}
 		}
 
 		@Override
 		public void serviceRemoved(Service service) {
 			LOG.info("Service removed#######{}", service.getServiceId());
-			ScheduledFuture<?> task = exec.schedule(new FileNodeDistributor(
-					service), SERVICE_INVALID_SECONDS, TimeUnit.SECONDS);
-			tasks.put(service.getServiceId(), task);
+			synchronized (tasks) {
+				ScheduledFuture<?> task = exec.schedule(new FileNodeDistributor(
+						service), SERVICE_INVALID_SECONDS, TimeUnit.SECONDS);
+				tasks.put(service.getServiceId(), task);
+			}
 		}
 
+	}
+	
+	private void designateFileNodeToService(FileNode node, Service service) throws Exception {
+		node.setServiceId(service.getServiceId());
+		fileStorer.update(node);
+
+		// 在Sink中放入分配的文件名
+		client.create().forPath(buildSinkFileNodePath(node), JsonUtils.toJsonBytes(node));
 	}
 
 	/**
@@ -141,7 +174,6 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 	 *
 	 */
 	private class FileNodeDistributor implements Runnable {
-		private Random random = new Random();
 		private Service downService;
 
 		public FileNodeDistributor(Service service) {
@@ -168,20 +200,12 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 			List<Service> availableServices = serviceManager.getServiceListByGroup(downService.getServiceGroup());
 			try {
 				for (FileNode node : fileStorer.listFileNodes(new ServiceFileNodeFilter(downService.getServiceId()))) {
-					designateFileNodeToService(node, availableServices.get(random.nextInt(availableServices.size())));
+					designateFileNodeToService(node, serviceSelector.selectWith(node, availableServices));
 				}
 			} catch (Exception e) {
 				//TODO handle the Exception correctly
 				LOG.error("Unhandle Exception", e);
 			}
-		}
-
-		private void designateFileNodeToService(FileNode node, Service service) throws Exception {
-			node.setServiceId(service.getServiceId());
-			fileStorer.update(node);
-
-			// 在Sink中放入分配的文件名
-			client.create().forPath(buildSinkFileNodePath(node), JsonUtils.toJsonBytes(node));
 		}
 
 	}

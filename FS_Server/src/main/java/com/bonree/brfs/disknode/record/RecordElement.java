@@ -7,14 +7,14 @@ package com.bonree.brfs.disknode.record;
  *
  */
 public class RecordElement {
-	
+	private int sequence;
 	//写入数据在文件中的偏移量
 	private int offset;
 	//写入数据的字节大小
 	private int size;
 	//写入数据的CRC码
 	private long crc;
-	
+
 	public RecordElement() {
 		this(0, 0);
 	}
@@ -27,6 +27,14 @@ public class RecordElement {
 		this.offset = offset;
 		this.size = size;
 		this.crc = crc;
+	}
+	
+	public int getSequence() {
+		return sequence;
+	}
+
+	public void setSequence(int sequence) {
+		this.sequence = sequence;
 	}
 
 	public int getOffset() {
@@ -62,5 +70,17 @@ public class RecordElement {
 		       .append("]");
 		
 		return builder.toString();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj == null || !(obj instanceof RecordElement)) {
+			return false;
+		}
+		
+		RecordElement other = (RecordElement) obj;
+		return offset == other.offset
+				&& size == other.size
+				&& crc == other.crc;
 	}
 }

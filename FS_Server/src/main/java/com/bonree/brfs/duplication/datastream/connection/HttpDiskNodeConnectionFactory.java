@@ -6,7 +6,9 @@ public class HttpDiskNodeConnectionFactory implements DiskNodeConnectionFactory 
 
 	@Override
 	public DiskNodeConnection createConnection(Service service) {
-		return new HttpDiskNodeConnection(service);
+		DiskNodeConnection connection = new HttpDiskNodeConnection(service);
+		connection.connect();
+		return connection;
 	}
 
 }

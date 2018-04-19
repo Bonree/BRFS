@@ -11,9 +11,11 @@ import com.bonree.brfs.common.asynctask.AsyncExecutor;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroup;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroupCallback;
 import com.bonree.brfs.common.asynctask.AsyncTaskResult;
+import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.duplication.FidBuilder;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileNode;
+import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.FileLimiter;
@@ -22,6 +24,7 @@ import com.bonree.brfs.duplication.datastream.handler.DataItem;
 import com.bonree.brfs.duplication.datastream.tasks.DataWriteTask;
 import com.bonree.brfs.duplication.datastream.tasks.WriteTaskResult;
 import com.bonree.brfs.duplication.recovery.FileRecovery;
+import com.bonree.brfs.duplication.recovery.FileRecoveryListener;
 
 public class DuplicateWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(DuplicateWriter.class);
@@ -31,12 +34,15 @@ public class DuplicateWriter {
 	
 	private DiskNodeConnectionPool connectionPool;
 	private FileLounge fileLounge;
+	
 	private FileRecovery fileRecovery;
 	
 	public DuplicateWriter(FileLounge fileLounge, FileRecovery fileRecovery, DiskNodeConnectionPool connectionPool) {
 		this.fileLounge = fileLounge;
 		this.fileRecovery = fileRecovery;
 		this.connectionPool = connectionPool;
+		
+		this.fileLounge.setFileCloseListener(new FileNodeCloseListener());
 	}
 	
 	public void write(int storageId, DataItem[] items, DataHandleCallback<DataWriteResult> callback) {
@@ -48,44 +54,36 @@ public class DuplicateWriter {
 			}
 			
 			try {
-				FileLimiter file = fileLounge.getFileInfo(storageId, item.getBytes().length);
+				FileLimiter file = fileLounge.getFileLimiter(storageId, item.getBytes().length);
 				
-				emitData(item, file.getFileNode(), resultGather);
+				emitData(item, file, resultGather);
 			} catch (Exception e) {
 				resultGather.putResultItem(new ResultItem(item.getSequence()));
 			}
 		}
 	}
 	
-	private void emitData(DataItem item, FileNode fileNode, EmitResultGather resultGather) {
-		DuplicateNode[] duplicates = fileNode.getDuplicateNodes();
-		
-		DiskNodeConnection[] connections = new DiskNodeConnection[duplicates.length];
-		for(int i = 0; i < connections.length; i++) {
-			connections[i] = connectionPool.getConnection(duplicates[i]);
-		}
+	private void emitData(DataItem item, FileLimiter file, EmitResultGather resultGather) {
+		DiskNodeConnection[] connections = connectionPool.getConnections(file.getFileNode().getDuplicateNodes());
 		
 		AsyncTaskGroup<WriteTaskResult> taskGroup = new AsyncTaskGroup<WriteTaskResult>();
 		for(DiskNodeConnection connection : connections) {
-			taskGroup.addTask(new DataWriteTask(connection.getService().getServiceId(), connection, fileNode, item));
+			if(connection != null) {
+				taskGroup.addTask(new DataWriteTask(connection.getService().getServiceId(), connection, file.getFileNode(), file.sequence(), item));
+			}
 		}
 		
-		if(taskGroup.size() == 0) {
-			resultGather.putResultItem(new ResultItem(item.getSequence()));
-			return;
-		}
-		
-		executor.submit(taskGroup, new DataWriteResultCallback(item, fileNode, resultGather));
+		executor.submit(taskGroup, new DataWriteResultCallback(item, file, resultGather));
 	}
 	
 	private class DataWriteResultCallback implements AsyncTaskGroupCallback<WriteTaskResult> {
 		private DataItem item;
-		private FileNode fileNode;
+		private FileLimiter file;
 		private EmitResultGather resultGather;
 		
-		public DataWriteResultCallback(DataItem item, FileNode fileNode, EmitResultGather resultGather) {
+		public DataWriteResultCallback(DataItem item, FileLimiter file, EmitResultGather resultGather) {
 			this.item = item;
-			this.fileNode = fileNode;
+			this.file = file;
 			this.resultGather = resultGather;
 		}
 
@@ -94,19 +92,25 @@ public class DuplicateWriter {
 			List<WriteTaskResult> taskResultList = getValidResultList(results);
 			
 			if(taskResultList.isEmpty()) {
-				LOG.error("None correct result is return from DiskNode! FILE[" + fileNode.getName() + "]");
+				LOG.error("None correct result is return from DiskNode! FILE[" + file.getFileNode().getName() + "]");
 				
+				file.release(item.getBytes().length);
 				resultGather.putResultItem(new ResultItem(item.getSequence()));
 				return;
 			}
 			
-			checkTaskResult(taskResultList);
+			for(WriteTaskResult result : taskResultList) {
+				if(file.size() != (result.getOffset() + result.getSize())) {
+					//TODO error: need to recover the file
+				}
+			}
 			
 			WriteTaskResult taskResult = taskResultList.get(0);
 			
 			ResultItem resultItem = new ResultItem(item.getSequence());
-			resultItem.setFid(FidBuilder.getFid(fileNode, taskResult.getOffset(), taskResult.getSize()));//TODO build FID and notify
+			resultItem.setFid(FidBuilder.getFid(file.getFileNode(), taskResult.getOffset(), taskResult.getSize()));//TODO build FID and notify
 			resultGather.putResultItem(resultItem);
+			file.release(0);
 		}
 		
 		private List<WriteTaskResult> getValidResultList(AsyncTaskResult<WriteTaskResult>[] results) {
@@ -118,14 +122,6 @@ public class DuplicateWriter {
 			}
 			
 			return taskResultList;
-		}
-		
-		private void checkTaskResult(List<WriteTaskResult> results) {
-			for(int i = 1; i < results.size(); i++) {
-				if(!results.get(i - 1).equals(results.get(i))) {
-					LOG.error("Results from DiskNode is not consistent, one is {}, another is {}", results.get(i -1), results.get(i));
-				}
-			}
 		}
 	}
 	
@@ -150,5 +146,45 @@ public class DuplicateWriter {
 				callback.completed(writeResult);
 			}
 		}
+	}
+	
+	/**
+	 * 文件关闭监听接口
+	 * 
+	 * 当收到文件关闭的通知后，需要通知DiskNode服务对其进行关闭
+	 * 
+	 * @author chen
+	 *
+	 */
+	private class FileNodeCloseListener implements FileLounge.FileCloseListener {
+
+		@Override
+		public boolean close(FileLimiter file) {
+			fileRecovery.recover(file.getFileNode(), new FileRecoveryListener() {
+				
+				@Override
+				public void complete(FileNode file) {
+					DiskNodeConnection[] connections = connectionPool.getConnections(file.getDuplicateNodes());
+					for(DiskNodeConnection connection : connections) {
+						if(connection != null) {
+							DiskNodeClient client = connection.getClient();
+							if(client != null) {
+								client.closeFile(FilePathBuilder.buildPath(file));
+							}
+						}
+					}
+				}
+
+				@Override
+				public void error(Throwable cause) {
+					// TODO save the file node to handle it later
+					cause.printStackTrace();
+				}
+				
+			});
+			
+			return true;
+		}
+		
 	}
 }

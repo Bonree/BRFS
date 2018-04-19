@@ -57,7 +57,7 @@ public class QuartzCronInfo implements SumbitTaskInterface {
 	@Override
 	public int getTaskKind() {
 		// TODO Auto-generated method stub
-		return 0;
+		return this.taskKind;
 	}
 
 	public void setTaskName(String taskName) {

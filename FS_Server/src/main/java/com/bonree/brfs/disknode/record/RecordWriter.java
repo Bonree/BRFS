@@ -1,14 +1,16 @@
 package com.bonree.brfs.disknode.record;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 
-public class RecordWriter {
+public class RecordWriter implements Closeable {
 	public static final String RECORD_FILE_EXTEND = ".rd";
 	
 	private OutputStream recordOutput;
@@ -18,10 +20,10 @@ public class RecordWriter {
 	}
 
 	public static RecordWriter get(String filePath) {
-		return get(new File(filePath));
+		return from(new File(filePath));
 	}
 
-	public static RecordWriter get(File file) {
+	public static RecordWriter from(File file) {
 		RecordWriter writer = null;
 		try {
 			OutputStream output = new FileOutputStream(file);
@@ -35,18 +37,10 @@ public class RecordWriter {
 
 	public void record(RecordElement record) throws IOException {
 		ProtoStuffUtils.writeTo(recordOutput, record);
-		recordOutput.flush();
 	}
 	
+	@Override
 	public void close() {
-		try {
-			recordOutput.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void destory() {
-		
+		CloseUtils.closeQuietly(recordOutput);
 	}
 }

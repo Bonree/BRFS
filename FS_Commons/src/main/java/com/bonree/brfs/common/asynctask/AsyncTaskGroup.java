@@ -17,6 +17,10 @@ public class AsyncTaskGroup<V> {
 		return taskList.size();
 	}
 	
+	public boolean isEmpty() {
+		return taskList.isEmpty();
+	}
+	
 	public void addTask(AsyncTask<V> task) {
 		taskList.add(task);
 	}

@@ -7,11 +7,17 @@ import java.nio.channels.FileChannel.MapMode;
 
 import com.bonree.brfs.disknode.utils.BufferUtils;
 
+/**
+ * 基于文件内存映射的写入缓存器
+ * 
+ * @author chen
+ *
+ */
 public class MappedWriteBuffer implements WriteBuffer {
 	private MappedByteBuffer buffer;
 	
 	private RandomAccessFile file;
-	private int capacity;
+	private final int capacity;
 	
 	private long filePosition;
 	
@@ -26,6 +32,7 @@ public class MappedWriteBuffer implements WriteBuffer {
 		if(buffer != null) {
 			BufferUtils.release(buffer);
 		}
+		
 		buffer = file.getChannel().map(MapMode.READ_WRITE, filePosition, capacity);
 	}
 

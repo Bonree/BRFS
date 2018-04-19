@@ -1,10 +1,7 @@
 package com.bonree.brfs.schedulers.task.manager;
 
-import java.util.Collection;
 import java.util.Map;
 
-import com.bonree.brfs.resourceschedule.model.LimitServerResource;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskModel;

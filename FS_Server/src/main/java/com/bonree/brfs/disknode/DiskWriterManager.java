@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
+import com.bonree.brfs.disknode.server.handler.WriteData;
 
 public class DiskWriterManager implements LifeCycle {
 	private ExecutorService threadPool;
@@ -64,7 +65,7 @@ public class DiskWriterManager implements LifeCycle {
 		}
 	}
 	
-	public void writeAsync(String path, byte[] bytes, InputEventCallback callback) {
+	public void writeAsync(String path, WriteData item, InputEventCallback callback) {
 		DiskWriter writer = runningWriters.get(path);
 		
 		if(writer == null) {
@@ -72,9 +73,13 @@ public class DiskWriterManager implements LifeCycle {
 			return;
 		}
 		
-		InputEvent item = new InputEvent(writer, bytes);
-		item.setInputEventCallback(callback);
-		writer.worker().put(item);
+		InputEvent event = new InputEvent(writer, item);
+		event.setInputEventCallback(callback);
+		writer.worker().put(event);
+	}
+	
+	public boolean isWriting(String path) {
+		return runningWriters.containsKey(path);
 	}
 	
 	public void close(String path) {

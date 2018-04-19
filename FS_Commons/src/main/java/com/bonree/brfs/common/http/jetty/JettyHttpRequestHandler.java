@@ -1,4 +1,4 @@
-package com.bonree.brfs.disknode.server.jetty;
+package com.bonree.brfs.common.http.jetty;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -18,16 +18,16 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.InputUtils;
-import com.bonree.brfs.disknode.server.DiskMessage;
 
-public class DiskJettyHttpRequestHandler extends AbstractHandler {
-	private static final Logger LOG = LoggerFactory.getLogger(DiskJettyHttpRequestHandler.class);
+public class JettyHttpRequestHandler extends AbstractHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(JettyHttpRequestHandler.class);
 	
-	private Map<String, MessageHandler<DiskMessage>> methodToOps = new HashMap<String, MessageHandler<DiskMessage>>();
+	private Map<String, MessageHandler> methodToOps = new HashMap<String, MessageHandler>();
 	
-	public void put(String method, MessageHandler<DiskMessage> handler) {
+	public void put(String method, MessageHandler handler) {
 		methodToOps.put(method, handler);
 	}
 
@@ -37,15 +37,15 @@ public class DiskJettyHttpRequestHandler extends AbstractHandler {
 			throws IOException, ServletException {
 		LOG.debug("handle request[{}:{}]", request.getMethod(), target);
 		
-		MessageHandler<DiskMessage> handler = methodToOps.get(request.getMethod());
+		MessageHandler handler = methodToOps.get(request.getMethod());
 		if(handler == null) {
 			baseRequest.setHandled(true);
 			responseError(response, HttpStatus.Code.METHOD_NOT_ALLOWED);
 			return;
 		}
 		
-		DiskMessage message = new DiskMessage();
-		message.setFilePath(target);
+		HttpMessage message = new HttpMessage();
+		message.setPath(target);
 		
 		int contentLength = request.getContentLength();
 		System.out.println("content length############" + contentLength);
@@ -55,7 +55,7 @@ public class DiskJettyHttpRequestHandler extends AbstractHandler {
 			
 			System.out.println(new String(data));
 		}
-		message.setData(data);
+		message.setContent(data);
 		
 		Map<String, String> params = new HashMap<String, String>();
 		for(String paramName : request.getParameterMap().keySet()) {

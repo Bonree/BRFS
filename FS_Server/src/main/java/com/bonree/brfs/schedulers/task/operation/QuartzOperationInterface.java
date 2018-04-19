@@ -1,7 +1,6 @@
 package com.bonree.brfs.schedulers.task.operation;
 
 import org.quartz.InterruptableJob;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

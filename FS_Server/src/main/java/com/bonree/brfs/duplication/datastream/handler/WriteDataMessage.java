@@ -1,6 +1,6 @@
 package com.bonree.brfs.duplication.datastream.handler;
 
-public class DataMessage {
+public class WriteDataMessage {
 	private int storageNameId;
 	private DataItem[] items;
 

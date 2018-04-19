@@ -6,9 +6,15 @@ public class FileNode {
 	private long createTime;
 	private String serviceId;
 	private DuplicateNode[] duplicateNodes;
+	private int writeSequence;
+	private int size;
 	
 	public FileNode() {
-		this.createTime = System.currentTimeMillis();
+		this(System.currentTimeMillis());
+	}
+	
+	public FileNode(long createTime) {
+		this.createTime = createTime;
 	}
 
 	public String getName() {
@@ -49,6 +55,22 @@ public class FileNode {
 
 	public void setDuplicateNodes(DuplicateNode[] duplicates) {
 		this.duplicateNodes = duplicates;
+	}
+
+	public int getWriteSequence() {
+		return writeSequence;
+	}
+
+	public void setWriteSequence(int writeSequence) {
+		this.writeSequence = writeSequence;
+	}
+
+	public int getSize() {
+		return size;
+	}
+
+	public void setSize(int size) {
+		this.size = size;
 	}
 
 }

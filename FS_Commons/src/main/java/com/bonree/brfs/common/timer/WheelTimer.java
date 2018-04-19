@@ -21,7 +21,7 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
  *
  */
 public class WheelTimer<T> {
-	private static final ExecutorService threadPool = Executors.newFixedThreadPool(3, new PooledThreadFactory("timeoutwheel"));
+	private static final ExecutorService threadPool = Executors.newFixedThreadPool(3, new PooledThreadFactory("wheel_timer"));
 	private final ArrayList<Set<T>> slots;
 	private int size;
 	private int currentIndex;

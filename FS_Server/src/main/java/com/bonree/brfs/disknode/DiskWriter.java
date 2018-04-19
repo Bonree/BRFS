@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.timer.WheelTimer;
 import com.bonree.brfs.common.timer.WheelTimer.Timeout;
-import com.bonree.brfs.disknode.buf.MappedWriteBuffer;
+import com.bonree.brfs.disknode.buf.StreamWriteBuffer;
 import com.bonree.brfs.disknode.buf.WriteBuffer;
 import com.bonree.brfs.disknode.record.RecordElement;
 import com.bonree.brfs.disknode.record.RecordWriter;
@@ -19,7 +19,9 @@ import com.bonree.brfs.disknode.record.RecordWriter;
 /**
  * 写数据到磁盘文件的具体实现类。
  * 
- * ---not thread safe---
+ * @NotThreadSafe
+ * 
+ * @author chen
  */
 public class DiskWriter implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskWriter.class);
@@ -27,6 +29,7 @@ public class DiskWriter implements Closeable {
 	//默认的缓存大小（字节）
 	private static final int DEFAULT_BUF_SIZE = 3 * 1024 * 1024;
 	
+	private final int limit;
 	private int position;
 	private int writeLength;
 	
@@ -34,6 +37,7 @@ public class DiskWriter implements Closeable {
 	private RandomAccessFile accessFile;
 	private WriteBuffer buffer;
 	private CRC32 crc = new CRC32();
+	private int sequence;
 	
 	private WriteWorker attachedWorker;
 	
@@ -62,16 +66,25 @@ public class DiskWriter implements Closeable {
 		this(new File(filePath), override, worker);
 	}
 	
+	public DiskWriter(String filePath, boolean override, WriteWorker worker, int limit) throws IOException {
+		this(new File(filePath), override, worker, limit);
+	}
+	
 	public DiskWriter(File file, boolean override, WriteWorker worker) throws IOException {
+		this(file, override, worker, Integer.MAX_VALUE);
+	}
+	
+	public DiskWriter(File file, boolean override, WriteWorker worker, int limit) throws IOException {
 		if(file.exists() && !override) {
 			throw new IOException("file[" + file.getAbsolutePath() + "] is existed, but cannot override it!");
 		}
 		
 		this.filePath = file.getAbsolutePath();
+		this.limit = limit;
 		this.accessFile = new RandomAccessFile(file, "rw");
-		this.buffer = new MappedWriteBuffer(accessFile, DEFAULT_BUF_SIZE);
+		this.buffer = new StreamWriteBuffer(accessFile, DEFAULT_BUF_SIZE);
 		this.attachedWorker = worker;
-		this.recordWriter = RecordWriter.get(new File(file.getParent(), file.getName() + RecordWriter.RECORD_FILE_EXTEND));
+		this.recordWriter = RecordWriter.from(new File(file.getParent(), file.getName() + RecordWriter.RECORD_FILE_EXTEND));
 	}
 	
 	public WriteWorker worker() {
@@ -82,7 +95,8 @@ public class DiskWriter implements Closeable {
 		return filePath;
 	}
 	
-	public void beginWriting() {
+	public void beginWriting(int seq) {
+		sequence = seq;
 		writeLength = 0;
 		crc.reset();
 	}
@@ -102,6 +116,7 @@ public class DiskWriter implements Closeable {
 			int startPosition = position;
 			position += writeLength;
 			
+			element.setSequence(sequence);
 			element.setOffset(startPosition);
 			element.setSize(writeLength);
 			element.setCrc(crc.getValue());
@@ -127,6 +142,10 @@ public class DiskWriter implements Closeable {
 	public void write(byte[] inBytes, int offset, int size) throws IOException {
 		if(size > (inBytes.length - offset)) {
 			size = (inBytes.length - offset);
+		}
+		
+		if(size > limit - position) {
+			throw new IOException("Data length is too large, file remaining[" + (limit - position) + "], but length is[" + size + "]");
 		}
 		
 		crc.update(inBytes, offset, size);

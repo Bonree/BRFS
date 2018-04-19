@@ -1,7 +1,6 @@
 package com.bonree.brfs.schedulers.task.manager;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Properties;
 
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
