@@ -1,5 +1,6 @@
 package com.bonree.brfs.common.asynctask;
 
+import java.lang.reflect.Array;
 import java.util.concurrent.Executors;
 
 import com.bonree.brfs.common.utils.ThreadPoolUtil;
@@ -32,6 +33,19 @@ public class AsyncExecutor {
 	 * @param callback
 	 */
 	public <V> void submit(AsyncTaskGroup<V> group, AsyncTaskGroupCallback<V> callback) {
+		if(group.isEmpty()) {
+			ThreadPoolUtil.commonPool().submit(new Runnable() {
+				
+				@SuppressWarnings("unchecked")
+				@Override
+				public void run() {
+					callback.completed((AsyncTaskResult<V>[]) Array.newInstance(AsyncTaskResult.class, 0));
+				}
+			});
+			
+			return;
+		}
+		
 		AsyncTaskResultGather<V> gather = new AsyncTaskResultGather<V>(group.size(), callback);
 		for(AsyncTask<V> task : group.getTaskList()) {
 			ListenableFuture<AsyncTaskResult<V>> future = threadPool.submit(task);

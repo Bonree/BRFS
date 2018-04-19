@@ -193,7 +193,7 @@ public class DefaultServiceManager implements ServiceManager {
 		}
 
 		@Override
-		public void cacheChanged() {
+		public synchronized  void cacheChanged() {
 			List<Service> tmp = getServiceListByGroup(group);
 			
 			for(Service last : lastCache) {
