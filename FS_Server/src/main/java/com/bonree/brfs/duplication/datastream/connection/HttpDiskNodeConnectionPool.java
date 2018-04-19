@@ -66,6 +66,17 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 		
 		return connection;
 	}
+	
+	@Override
+	public DiskNodeConnection[] getConnections(DuplicateNode[] duplicateNodes) {
+		DiskNodeConnection[] connections = new DiskNodeConnection[duplicateNodes.length];
+		
+		for(int i = 0; i < connections.length; i++) {
+			connections[i] = getConnection(duplicateNodes[i]);
+		}
+		
+		return connections;
+	}
 
 	private class ConnectionStateChecker implements Runnable {
 

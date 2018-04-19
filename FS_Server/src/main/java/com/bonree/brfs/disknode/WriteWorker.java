@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.ThreadPoolUtil;
+import com.bonree.brfs.disknode.server.handler.WriteData;
 
 /**
  * 负责写数据到文件的Worker类，一个worker对应一个线程。
@@ -38,21 +39,22 @@ public class WriteWorker implements Runnable {
 	public void run() {
 		while(!isQuit) {
 			try {
-				InputEvent item = itemQueue.take();
+				InputEvent inputEvent = itemQueue.take();
 				
-				LOG.debug("TAKE INPUT EVENT[{}]", item.getWriter().getFilePath());
-				DiskWriter writer = item.getWriter();
+				LOG.debug("TAKE INPUT EVENT[{}]", inputEvent.getWriter().getFilePath());
+				DiskWriter writer = inputEvent.getWriter();
 				
 				try {
-					writer.beginWriting();
-					writer.write(item.getData());
+					WriteData item = inputEvent.getItem();
+					writer.beginWriting(item.getSequence());
+					writer.write(item.getBytes());
 					
 					InputResult inputResult = writer.endWriting();
-					ThreadPoolUtil.commonPool().execute(() -> item.getInputEventCallback().complete(inputResult));
+					ThreadPoolUtil.commonPool().execute(() -> inputEvent.getInputEventCallback().complete(inputResult));
 				} catch (IOException e) {
 					LOG.error("back writing", e);
 					writer.backWriting();
-					ThreadPoolUtil.commonPool().execute(() -> item.getInputEventCallback().error(e));
+					ThreadPoolUtil.commonPool().execute(() -> inputEvent.getInputEventCallback().error(e));
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();

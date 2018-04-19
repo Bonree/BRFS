@@ -6,4 +6,5 @@ import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 
 public interface DiskNodeConnectionPool extends Closeable{
 	DiskNodeConnection getConnection(DuplicateNode duplicateNode);
+	DiskNodeConnection[] getConnections(DuplicateNode[] duplicateNodes);
 }

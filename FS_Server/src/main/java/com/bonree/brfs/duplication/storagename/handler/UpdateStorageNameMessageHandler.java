@@ -2,11 +2,10 @@ package com.bonree.brfs.duplication.storagename.handler;
 
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
-import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 
-public class UpdateStorageNameMessageHandler implements MessageHandler<StorageNameMessage> {
+public class UpdateStorageNameMessageHandler extends StorageNameMessageHandler {
 	
 	private StorageNameManager storageNameManager;
 	
@@ -15,7 +14,7 @@ public class UpdateStorageNameMessageHandler implements MessageHandler<StorageNa
 	}
 
 	@Override
-	public void handle(StorageNameMessage msg, HandleResultCallback callback) {
+	public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
 		boolean success = storageNameManager.updateStorageName(msg.getName(), msg.getTtl());
 		
 		HandleResult result = new HandleResult();

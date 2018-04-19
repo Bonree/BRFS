@@ -2,14 +2,16 @@ package com.bonree.brfs.duplication.datastream.handler;
 
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.duplication.datastream.DataHandleCallback;
 import com.bonree.brfs.duplication.datastream.DataWriteResult;
 import com.bonree.brfs.duplication.datastream.DuplicateWriter;
 import com.bonree.brfs.duplication.datastream.ResultItem;
 
-public class WriteDataMessageHandler implements MessageHandler<DataMessage> {
+public class WriteDataMessageHandler implements MessageHandler {
 	
 	private DuplicateWriter duplicateWriter;
 	
@@ -18,8 +20,9 @@ public class WriteDataMessageHandler implements MessageHandler<DataMessage> {
 	}
 
 	@Override
-	public void handle(DataMessage msg, HandleResultCallback callback) {
-		DataItem[] items = msg.getItems();
+	public void handle(HttpMessage msg, HandleResultCallback callback) {
+		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
+		DataItem[] items = writeMsg.getItems();
 		if(items == null || items.length == 0) {
 			HandleResult result = new HandleResult();
 			result.setSuccess(true);
@@ -27,7 +30,7 @@ public class WriteDataMessageHandler implements MessageHandler<DataMessage> {
 			return;
 		}
 		
-		duplicateWriter.write(msg.getStorageNameId(), items, new DataWriteCallback(callback));
+		duplicateWriter.write(writeMsg.getStorageNameId(), items, new DataWriteCallback(callback));
 	}
 
 	private class DataWriteCallback implements DataHandleCallback<DataWriteResult> {

@@ -4,13 +4,12 @@ import java.io.IOException;
 
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
-import com.bonree.brfs.common.http.MessageHandler;
-import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 
-public class OpenStorageNameMessageHandler implements MessageHandler<StorageNameMessage> {
+public class OpenStorageNameMessageHandler extends StorageNameMessageHandler {
 	
 	private StorageNameManager storageNameManager;
 	
@@ -19,7 +18,7 @@ public class OpenStorageNameMessageHandler implements MessageHandler<StorageName
 	}
 
 	@Override
-	public void handle(StorageNameMessage msg, HandleResultCallback callback) {
+	public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
 		StorageNameNode node = storageNameManager.findStorageName(msg.getName());
 		
 		HandleResult result = new HandleResult();

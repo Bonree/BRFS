@@ -41,7 +41,7 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 				fileName);
 		
 		try {
-			client.delete().forPath(fileNodePath);
+			client.delete().quietly().forPath(fileNodePath);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

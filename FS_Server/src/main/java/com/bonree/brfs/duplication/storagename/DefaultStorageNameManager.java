@@ -1,8 +1,8 @@
 package com.bonree.brfs.duplication.storagename;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -40,7 +40,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
 	
 	private static final int DEFAULT_MAX_CACHE_SIZE = 100;
 	private LoadingCache<String, Optional<StorageNameNode>> storageNameCache;
-	private Map<Integer, StorageNameNode> storageIdMap = new HashMap<Integer, StorageNameNode>();
+	private ConcurrentHashMap<Integer, StorageNameNode> storageIdMap = new ConcurrentHashMap<Integer, StorageNameNode>();
 	
 	private CuratorFramework zkClient;
 	private PathChildrenCache childrenCache;
@@ -245,5 +245,10 @@ public class DefaultStorageNameManager implements StorageNameManager {
 			refreshStorageIdMap();
 		}
 		
+	}
+
+	@Override
+	public List<StorageNameNode> getStorageNameNodeList() {
+		return new ArrayList<StorageNameNode>(storageIdMap.values());
 	}
 }

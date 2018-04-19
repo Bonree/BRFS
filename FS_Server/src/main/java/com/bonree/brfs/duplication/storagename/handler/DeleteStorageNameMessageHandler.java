@@ -2,11 +2,10 @@ package com.bonree.brfs.duplication.storagename.handler;
 
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
-import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 
-public class DeleteStorageNameMessageHandler implements MessageHandler<StorageNameMessage> {
+public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
 	
 	private StorageNameManager storageNameManager;
 	
@@ -15,7 +14,7 @@ public class DeleteStorageNameMessageHandler implements MessageHandler<StorageNa
 	}
 
 	@Override
-	public void handle(StorageNameMessage msg, HandleResultCallback callback) {
+	public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
 		boolean deleted = storageNameManager.removeStorageName(msg.getName());
 		
 		HandleResult result = new HandleResult();

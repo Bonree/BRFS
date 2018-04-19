@@ -4,16 +4,23 @@ import java.io.IOException;
 
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.DiskReader;
-import com.bonree.brfs.disknode.server.DiskMessage;
 
-public class ReadMessageHandler implements MessageHandler<DiskMessage> {
-	public static final String PARAM_READ_OFFSET = "read_offset";
-	public static final String PARAM_READ_LENGTH = "read_length";
+public class ReadMessageHandler implements MessageHandler {
+	public static final String PARAM_READ_OFFSET = "offset";
+	public static final String PARAM_READ_LENGTH = "length";
+	
+	private DiskContext diskContext;
+	
+	public ReadMessageHandler(DiskContext context) {
+		this.diskContext = context;
+	}
 
 	@Override
-	public void handle(DiskMessage msg, HandleResultCallback callback) {
+	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		HandleResult result = new HandleResult();
 		
 		try {
@@ -22,7 +29,7 @@ public class ReadMessageHandler implements MessageHandler<DiskMessage> {
 			int offset = offsetParam == null ? 0 : Integer.parseInt(offsetParam);
 			int length = lengthParam == null ? Integer.MAX_VALUE : Integer.parseInt(lengthParam);
 			
-			DiskReader reader = new DiskReader(msg.getFilePath());
+			DiskReader reader = new DiskReader(diskContext.getAbsoluteFilePath(msg.getPath()));
 			byte[] data = reader.read(offset, length);
 			result.setSuccess(true);
 			result.setData(data);

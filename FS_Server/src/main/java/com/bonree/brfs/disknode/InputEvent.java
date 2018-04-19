@@ -1,13 +1,15 @@
 package com.bonree.brfs.disknode;
 
+import com.bonree.brfs.disknode.server.handler.WriteData;
+
 public class InputEvent {
 	private DiskWriter writer;
-	private byte[] data;
+	private WriteData item;
 	private InputEventCallback callback;
 	
-	public InputEvent(DiskWriter writer, byte[] data) {
+	public InputEvent(DiskWriter writer, WriteData item) {
 		this.writer = writer;
-		this.data = data;
+		this.item = item;
 	}
 	
 	public DiskWriter getWriter() {
@@ -17,14 +19,6 @@ public class InputEvent {
 	public void setWriter(DiskWriter writer) {
 		this.writer = writer;
 	}
-
-	public byte[] getData() {
-		return data;
-	}
-
-	public void setData(byte[] data) {
-		this.data = data;
-	}
 	
 	public InputEventCallback getInputEventCallback() {
 		return callback;
@@ -32,5 +26,13 @@ public class InputEvent {
 
 	public void setInputEventCallback(InputEventCallback callback) {
 		this.callback = callback;
+	}
+
+	public WriteData getItem() {
+		return item;
+	}
+
+	public void setItem(WriteData item) {
+		this.item = item;
 	}
 }
