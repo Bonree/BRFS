@@ -2,13 +2,11 @@ package com.bonree.brfs.schedulers.task.manager.impl;
 
 import java.text.ParseException;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.quartz.CronScheduleBuilder;
-import org.quartz.CronTrigger;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
@@ -18,7 +16,6 @@ import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleScheduleBuilder;
-import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
 import org.quartz.Trigger.TriggerState;
 import org.quartz.TriggerBuilder;
@@ -26,15 +23,11 @@ import org.quartz.TriggerKey;
 import org.quartz.UnableToInterruptJobException;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.task.manager.BaseSchedulerInterface;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
-
-import io.netty.channel.pool.ChannelHealthChecker;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -45,8 +38,7 @@ import io.netty.channel.pool.ChannelHealthChecker;
  * @Description: quartz基础调度实现
  *****************************************************************************
  */
-public class DefaultBaseSchedulers<T extends SumbitTaskInterface> implements BaseSchedulerInterface<T> {
-	private static final Logger LOG = LoggerFactory.getLogger("CycleTest");
+public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	private StdSchedulerFactory ssf = new StdSchedulerFactory();
 	private String instanceName = "server";
 	private boolean pausePoolFlag = false;
@@ -78,7 +70,7 @@ public class DefaultBaseSchedulers<T extends SumbitTaskInterface> implements Bas
 	}
 
 	@Override
-	public boolean addTask(T task) throws ParamsErrorException {
+	public boolean addTask(SumbitTaskInterface task) throws ParamsErrorException {
 		// 1.检查任务的有效性
 		checkTask(task);
 		// 2.线程池处于暂停时，不提交任务
@@ -225,7 +217,7 @@ public class DefaultBaseSchedulers<T extends SumbitTaskInterface> implements Bas
 	}
 
 	@Override
-	public boolean killTask(T task) throws ParamsErrorException {
+	public boolean killTask(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
 		try {
 			TriggerKey triggerKey = TriggerKey.triggerKey(task.getTaskName(), task.getTaskGroupName());
@@ -260,7 +252,7 @@ public class DefaultBaseSchedulers<T extends SumbitTaskInterface> implements Bas
 	}
 
 	@Override
-	public boolean pauseTask(T task) throws ParamsErrorException {
+	public boolean pauseTask(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
 		try {
 			TriggerKey triggerKey = TriggerKey.triggerKey(task.getTaskName(), task.getTaskGroupName());
@@ -293,7 +285,7 @@ public class DefaultBaseSchedulers<T extends SumbitTaskInterface> implements Bas
 	}
 
 	@Override
-	public boolean resumeTask(T task) throws ParamsErrorException {
+	public boolean resumeTask(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
 		try {
 			TriggerKey triggerKey = TriggerKey.triggerKey(task.getTaskName(), task.getTaskGroupName());
@@ -365,7 +357,7 @@ public class DefaultBaseSchedulers<T extends SumbitTaskInterface> implements Bas
 	}
 
 	@Override
-	public void checkTask(T task) throws ParamsErrorException {
+	public void checkTask(SumbitTaskInterface task) throws ParamsErrorException {
 		if(task == null){
 			throw new ParamsErrorException("task is empty");
 		}
@@ -408,7 +400,7 @@ public class DefaultBaseSchedulers<T extends SumbitTaskInterface> implements Bas
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	@Override
-	public int getTaskStat(T task) throws ParamsErrorException {
+	public int getTaskStat(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
 		try {
 			TriggerKey triggerKey = TriggerKey.triggerKey(task.getTaskName(), task.getTaskGroupName());
@@ -450,7 +442,7 @@ public class DefaultBaseSchedulers<T extends SumbitTaskInterface> implements Bas
 	 * @throws SchedulerException
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public boolean isExecuting(T task) throws ParamsErrorException {
+	public boolean isExecuting(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
 		try {
 			JobKey jobKey = new JobKey(task.getTaskName(), task.getTaskGroupName());
@@ -481,9 +473,7 @@ public class DefaultBaseSchedulers<T extends SumbitTaskInterface> implements Bas
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			int count = 0;
 			for (String groupName : scheduler.getJobGroupNames()) {
-				for (JobKey jobKey : scheduler.getJobKeys((GroupMatcher<JobKey>)GroupMatcher.groupEquals(groupName))) {
-					count ++;
-				}
+				count += scheduler.getJobKeys((GroupMatcher<JobKey>)GroupMatcher.groupEquals(groupName)).size();
 			}
 			return count;
 		}catch (SchedulerException e) {
