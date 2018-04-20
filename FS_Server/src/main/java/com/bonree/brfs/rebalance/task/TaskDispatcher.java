@@ -24,8 +24,12 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.Constants;
+import com.bonree.brfs.rebalance.task.listener.ServerChangeListener;
+import com.bonree.brfs.rebalance.task.listener.TaskStatusListener;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -48,13 +52,15 @@ public class TaskDispatcher {
 
     private ServerIDManager idManager;
 
-    private TaskMonitor monitor;
+//    private TaskMonitor monitor;
 
     private final String baseRebalancePath;
 
     private final String changesPath;
 
     private final String tasksPath;
+
+    private final CuratorTreeCache treeCache;
 
     private final String baseRoutesPath;
 
@@ -157,7 +163,20 @@ public class TaskDispatcher {
         }
     }
 
-    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager) throws Exception {
+    public void start() throws Exception {
+
+        LOG.info("begin leaderLath server!");
+        leaderLath.start();
+
+        LOG.info("changeMonitorPath:" + changesPath);
+        treeCache.addListener(changesPath, new ServerChangeListener("server_change", this));
+        
+        LOG.info("tasksPath:" + tasksPath);
+        treeCache.addListener(tasksPath, new TaskStatusListener("task_status", this));
+
+    }
+
+    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager){
         this.baseRebalancePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
         this.baseRoutesPath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!"));
         this.changesPath = baseRebalancePath + Constants.SEPARATOR + Constants.CHANGES_NODE;
@@ -194,8 +213,8 @@ public class TaskDispatcher {
                 System.out.println("I'am taskDispatch leader!!!!");
             }
         });
-        LOG.info("begin leaderLath server!");
-        leaderLath.start();
+        treeCache = CuratorCacheFactory.getTreeCache();
+
         singleServer.execute(new Runnable() {
 
             @Override

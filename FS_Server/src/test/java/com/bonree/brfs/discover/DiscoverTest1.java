@@ -10,11 +10,8 @@ import com.bonree.brfs.configuration.Configuration;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
-import com.bonree.brfs.rebalance.task.TaskDispatcher;
-import com.bonree.brfs.rebalance.task.TaskOperation;
 import com.bonree.brfs.configuration.Configuration.ConfigException;
 import com.bonree.brfs.server.identification.ServerIDManager;
-import com.bonree.brfs.server.identification.impl.VirtualServerIDImpl;
 
 public class DiscoverTest1 {
 
@@ -38,7 +35,7 @@ public class DiscoverTest1 {
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseServersPath().substring(1, zookeeperPaths.getBaseServersPath().length())));
             sm.start();
 
-            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), zookeeperPaths.getBaseRebalancePath(), zookeeperPaths.getBaseRoutePath(), idManager);
+            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), zookeeperPaths, idManager);
             rebalanceServer.start();
             
 

@@ -26,7 +26,6 @@ public class TaskExecutorListener extends AbstractTreeCacheListener {
 
     @Override
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-        System.out.println("触发TaskExecutorListener:"+event);
         LOG.info("event info:" + event);
         // 此处只捕捉NODE_ADDED时间
         if (event.getType() == Type.NODE_ADDED) {

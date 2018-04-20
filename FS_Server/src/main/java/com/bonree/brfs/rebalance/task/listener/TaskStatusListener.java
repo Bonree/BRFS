@@ -38,7 +38,6 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
 
     @Override
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-        System.out.println("触发TaskStatusListener:" + event);
         if (dispatch.getLeaderLatch().hasLeadership()) {
             LOG.info("leaderLath:" + dispatch.getLeaderLatch().hasLeadership());
             LOG.info("task Dispatch event detail:" + event.getType());

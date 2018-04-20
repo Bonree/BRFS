@@ -23,13 +23,13 @@ public class CuratorNodeCache {
         cacheMap = new ConcurrentHashMap<String, NodeCache>();
     }
 
-
     public void addListener(String path, AbstractNodeCacheListener listener) {
         LOG.info("add listener for path:" + path);
         NodeCache cache = cacheMap.get(path);
         if (cache == null) {
             cache = new NodeCache(client.getInnerClient(), path);
             cacheMap.put(path, cache);
+            startCache(path);
         }
         cache.getListenable().addListener(listener);
     }
@@ -51,7 +51,7 @@ public class CuratorNodeCache {
         }
     }
 
-    public void startCache(String path) {
+    private void startCache(String path) {
         NodeCache cache = cacheMap.get(path);
         try {
             if (cache != null) {

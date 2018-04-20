@@ -74,7 +74,6 @@ public class VirtualRecover implements DataRecover {
         // 恢复需要对节点进行监听
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(taskNode, new RecoverListener("recover"));
-        nodeCache.startCache(taskNode);
     }
 
     @Override

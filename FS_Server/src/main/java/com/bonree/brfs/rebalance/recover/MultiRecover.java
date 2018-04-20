@@ -88,7 +88,6 @@ public class MultiRecover implements DataRecover {
         // 开启监控
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(listenerNode, new RecoverListener("recover"));
-        nodeCache.startCache(listenerNode);
 
         String node = listenerNode + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + idManager.getSecondServerID(balanceSummary.getStorageIndex());
         detail.setStatus(ExecutionStatus.RECOVER);

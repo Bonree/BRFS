@@ -35,10 +35,19 @@ public class TaskOperation implements Closeable {
 
     private CuratorClient client;
     private ServerIDManager idManager;
+    private CuratorTreeCache treeCache;
+    private String tasksPath;
 
     public TaskOperation(final CuratorClient client, final String baseBalancePath, ServerIDManager idManager) {
         this.client = client;
         this.idManager = idManager;
+        this.tasksPath = baseBalancePath + Constants.SEPARATOR + Constants.TASKS_NODE;
+        treeCache = CuratorCacheFactory.getTreeCache();
+    }
+
+    public void start() {
+        LOG.info("add tree cache:" + tasksPath);
+        treeCache.addListener(tasksPath, new TaskExecutorListener("task_executor", this));
     }
 
     public void launchDelayTaskExecutor(BalanceTaskSummary taskSummary, String taskPath) {
@@ -76,6 +85,7 @@ public class TaskOperation implements Closeable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        
         new Thread() {
             @Override
             public void run() {
@@ -104,7 +114,6 @@ public class TaskOperation implements Closeable {
         TaskOperation opt = new TaskOperation(client, zookeeperPaths.getBaseRebalancePath(), idManager);
         CuratorTreeCache cache = CuratorCacheFactory.getTreeCache();
         cache.addListener(zookeeperPaths.getBaseRebalancePath() + Constants.SEPARATOR + Constants.TASKS_NODE, new TaskExecutorListener("aaa", opt));
-        cache.startCache(zookeeperPaths.getBaseRebalancePath() + Constants.SEPARATOR + Constants.TASKS_NODE);
         Thread.sleep(Long.MAX_VALUE);
     }
 
