@@ -30,6 +30,7 @@ public class CuratorPathCache {
         if (cache == null) {
             cache = new PathChildrenCache(client.getInnerClient(), path, true);
             cacheMap.put(path, cache);
+            startCache(path);
         }
         cache.getListenable().addListener(listener);
     }
@@ -51,7 +52,7 @@ public class CuratorPathCache {
         }
     }
 
-    public void startCache(String path) {
+    private void startCache(String path) {
         PathChildrenCache cache = cacheMap.get(path);
         try {
             if (cache != null) {

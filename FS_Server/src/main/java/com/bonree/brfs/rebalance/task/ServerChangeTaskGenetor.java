@@ -49,8 +49,10 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
     private CuratorClient leaderClient;
 
-    public ServerChangeTaskGenetor(final CuratorClient leaderClient, final CuratorClient client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath) throws Exception {
+    private int delayDeal;
+    public ServerChangeTaskGenetor(final CuratorClient leaderClient, final CuratorClient client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath,final int delayDeal) throws Exception {
         this.serverManager = serverManager;
+        this.delayDeal = delayDeal;
         this.leaderPath = baseRebalancePath + Constants.SEPARATOR + Constants.CHANGE_LEADER;
         this.changesPath = baseRebalancePath + Constants.SEPARATOR + CHANGES_NODE;
         this.client = client;
@@ -133,7 +135,7 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     @Override
     public void serviceAdded(Service service) {
         try {
-            Thread.sleep(3000);
+            Thread.sleep(delayDeal);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -155,7 +157,7 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     @Override
     public void serviceRemoved(Service service) {
         try {
-            Thread.sleep(3000);
+            Thread.sleep(delayDeal);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

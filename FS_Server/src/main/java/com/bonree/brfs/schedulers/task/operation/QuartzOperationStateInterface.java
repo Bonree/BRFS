@@ -2,7 +2,6 @@ package com.bonree.brfs.schedulers.task.operation;
 
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.InterruptableJob;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.PersistJobDataAfterExecution;
 /*****************************************************************************

@@ -28,6 +28,7 @@ public class CuratorTreeCache {
         if (cache == null) {
             cache = new TreeCache(client.getInnerClient(), path);
             cacheMap.put(path, cache);
+            startCache(path);
         }
         cache.getListenable().addListener(listener);
     }
@@ -49,7 +50,7 @@ public class CuratorTreeCache {
         }
     }
 
-    public void startCache(String path) {
+    private void startCache(String path) {
         TreeCache cache = cacheMap.get(path);
         try {
             if (cache != null) {

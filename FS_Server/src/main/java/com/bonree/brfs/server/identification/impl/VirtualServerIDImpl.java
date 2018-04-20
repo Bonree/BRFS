@@ -40,7 +40,9 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
 
     private final static String LOCKS_PATH_PART = "locks";
 
-    private final static String VIRTUAL_SERVER = "virtual_servers";
+    private final static String VIRTUAL_SERVERS = "virtual_servers";
+
+    private final String virtualServersPath;
 
     private IncreServerID<String> increServerID = new SimpleIncreServerID();
 
@@ -60,7 +62,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
         @Override
         public String execute(CuratorClient client) {
             String virtualServerId = VIRTUAL_ID + VirtualServerIDImpl.this.increServerID.increServerID(client, dataNode);
-            String virtualServerNode = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex + SEPARATOR + virtualServerId;
+            String virtualServerNode = VirtualServerIDImpl.this.virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + virtualServerId;
             client.createPersistent(virtualServerNode, true, NORMAL_DATA.getBytes()); // 初始化的时候需要指定该节点为正常
             return virtualServerId;
         }
@@ -70,6 +72,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
         this.zkHosts = zkHosts;
         this.basePath = BrStringUtils.trimBasePath(baseServerIDSeq);
         this.lockPath = basePath + SEPARATOR + LOCKS_PATH_PART;
+        this.virtualServersPath = basePath + SEPARATOR + VIRTUAL_SERVERS;
     }
 
     public String getBasePath() {
@@ -104,7 +107,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
         List<String> resultVirtualIds = new ArrayList<String>(count);
         try {
             client = CuratorClient.getClientInstance(zkHosts);
-            String storageSIDPath = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex;
+            String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
             List<String> virtualIds = client.getChildren(storageSIDPath);
             // 排除无效的虚拟ID
             virtualIds = filterVirtualId(client, storageIndex, virtualIds, INVALID_DATA);
@@ -140,7 +143,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
 
     @Override
     public boolean invalidVirtualIden(int storageIndex, String id) {
-        String node = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex + SEPARATOR + id;
+        String node = virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + id;
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkHosts);
@@ -158,7 +161,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
 
     @Override
     public boolean deleteVirtualIden(int storageIndex, String id) {
-        String node = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex + SEPARATOR + id;
+        String node = virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + id;
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkHosts);
@@ -176,7 +179,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
 
     @Override
     public List<String> listNormalVirtualID(int storageIndex) {
-        String storageSIDPath = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex;
+        String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkHosts);
@@ -192,7 +195,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
 
     @Override
     public List<String> listInvalidVirtualID(int storageIndex) {
-        String storageSIDPath = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex;
+        String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkHosts);
@@ -208,7 +211,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
 
     @Override
     public List<String> listAllVirtualID(int storageIndex) {
-        String storageSIDPath = basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex;
+        String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkHosts);
@@ -225,7 +228,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
             Iterator<String> it = virtualIds.iterator();
             while (it.hasNext()) {
                 String node = it.next();
-                byte[] data = client.getData(basePath + SEPARATOR + VIRTUAL_SERVER + SEPARATOR + storageIndex + SEPARATOR + node);
+                byte[] data = client.getData(virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + node);
                 if (StringUtils.equals(new String(data), type)) {
                     it.remove();
                 }
@@ -239,6 +242,11 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
         if (!client.checkExists(node)) {
             client.createPersistent(node, true);
         }
+    }
+
+    @Override
+    public String getVirtualServersPath() {
+        return virtualServersPath;
     }
 
 }

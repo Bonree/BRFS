@@ -4,23 +4,22 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
+import com.bonree.brfs.configuration.Configuration;
+import com.bonree.brfs.configuration.Configuration.ConfigException;
+import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.rebalance.recover.MultiRecover;
+import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.recover.VirtualRecover;
-import com.bonree.brfs.server.ServerInfo;
+import com.bonree.brfs.rebalance.task.listener.TaskExecutorListener;
+import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -34,73 +33,40 @@ public class TaskOperation implements Closeable {
 
     private final static Logger LOG = LoggerFactory.getLogger(TaskOperation.class);
 
-    private ServerInfo selfServer;
     private CuratorClient client;
+    private ServerIDManager idManager;
     private CuratorTreeCache treeCache;
     private String tasksPath;
 
-    public TaskOperation(String basePath) {
-        client = CuratorClient.getClientInstance(Constants.zkUrl);
-        tasksPath = basePath + Constants.SEPARATOR + Constants.TASKS_NODE;
-    }
-
-    public void start() throws InterruptedException {
-        client.blockUntilConnected();
+    public TaskOperation(final CuratorClient client, final String baseBalancePath, ServerIDManager idManager) {
+        this.client = client;
+        this.idManager = idManager;
+        this.tasksPath = baseBalancePath + Constants.SEPARATOR + Constants.TASKS_NODE;
         treeCache = CuratorCacheFactory.getTreeCache();
-        treeCache.addListener(tasksPath, new TaskExecutorListener("task_executor"));
-        treeCache.startCache(tasksPath);
-
     }
 
-    class TaskExecutorListener extends AbstractTreeCacheListener {
-
-        public TaskExecutorListener(String listenName) {
-            super(listenName);
-        }
-
-        @Override
-        public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-            System.out.println("event info:" + event);
-            LOG.info("event info:" + event);
-            // 此处只捕捉NODE_ADDED时间
-            if (event.getType() == Type.NODE_ADDED) {
-                // 是否为任务类型节点
-                String path = event.getData().getPath();
-                System.out.println(path);
-                String taskStr = StringUtils.substring(path, path.lastIndexOf('/') + 1, path.length());
-                if (StringUtils.equals(taskStr, Constants.TASK_NODE)) {
-                    // 标识为一个任务节点
-                    if (event.getData() != null && event.getData().getData() != null) {
-                        byte[] data = event.getData().getData();
-                        BalanceTaskSummary taskSummary = JSON.parseObject(data, BalanceTaskSummary.class);
-                        String basePath = event.getData().getPath();
-                        launchDelayTaskExecutor(taskSummary, basePath);
-                    }
-                }
-            }
-
-        }
+    public void start() {
+        LOG.info("add tree cache:" + tasksPath);
+        treeCache.addListener(tasksPath, new TaskExecutorListener("task_executor", this));
     }
 
-    public void launchDelayTaskExecutor(BalanceTaskSummary taskSummary, String path) {
+    public void launchDelayTaskExecutor(BalanceTaskSummary taskSummary, String taskPath) {
         DataRecover recover = null;
-        long delayTime = 60l;
+        long delayTime = 30l;
         List<String> multiIds = taskSummary.getOutputServers();
-        if (multiIds.contains(selfServer.getMultiIdentification())) {
+        System.out.println("output :" + multiIds);
+        System.out.println(idManager.getSecondServerID(taskSummary.getStorageIndex()));
+        System.out.println("task type:" + taskSummary.getTaskType());
+        if (multiIds.contains(idManager.getSecondServerID(taskSummary.getStorageIndex()))) {
             // 注册自身的selfMultiId,并设置为created阶段
-            String node = path + Constants.SEPARATOR + selfServer.getMultiIdentification();
-
-            if (taskSummary.getTaskType() == 1) { // 正常迁移任务
-                recover = new MultiRecover(taskSummary, selfServer, this, node, client,tasksPath);
-                delayTime = taskSummary.getRuntime();
-            } else if (taskSummary.getTaskType() == 2) { // 虚拟迁移任务
-                recover = new VirtualRecover(taskSummary, this, node, client);
+            if (taskSummary.getTaskType() == RecoverType.NORMAL) { // 正常迁移任务
+                // recover = new MultiRecover(taskSummary, idManager, node, client);
+                // delayTime = taskSummary.getRuntime();
+            } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
+                recover = new VirtualRecover(taskSummary, taskPath, client, idManager);
                 delayTime = taskSummary.getRuntime();
             }
 
-            if (!client.checkExists(node)) {
-                client.createPersistent(path, false, DataRecover.ExecutionStatus.INIT.name().getBytes());
-            }
             // 调用成岗的任务创建模块
             launchTask(delayTime, recover);
         }
@@ -111,23 +77,21 @@ public class TaskOperation implements Closeable {
      * @param recover
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    private void launchTask(long delay, DataRecover recover) {
+    private void launchTask(long delay, final DataRecover recover) {
         // TODO 这边需要和成岗进行沟通
-    }
-
-    /** 概述：设置任务状态为运行中
-     * @param node
-     * @param status
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
-    public void setTaskStatus(String node, DataRecover.ExecutionStatus status) {
-        if (client.checkExists(node)) {
-            try {
-                client.setData(node, status.name().getBytes());
-            } catch (Exception e) {
-                LOG.error("change Task status error!", e);
-            }
+        System.out.println("10 分钟后启动！！！");
+        try {
+            Thread.sleep(delay * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        //TODO 
+        new Thread() {
+            @Override
+            public void run() {
+                recover.recover();
+            }
+        }.start();
     }
 
     @Override
@@ -135,7 +99,22 @@ public class TaskOperation implements Closeable {
 
     }
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static final String CONFIG_NAME1 = "E:/BRFS1/config/server.properties";
+    public static final String HOME1 = "E:/BRFS1";
+
+    public static void main(String[] args) throws InterruptedException, IOException, ConfigException {
+        Configuration conf = Configuration.getInstance();
+        conf.parse(CONFIG_NAME1);
+        conf.printConfigDetail();
+        ServerConfig serverConfig = ServerConfig.parse(conf, HOME1);
+        CuratorCacheFactory.init(serverConfig.getZkHosts());
+        ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
+        ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
+        CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 500, 500);
+        TaskOperation opt = new TaskOperation(client, zookeeperPaths.getBaseRebalancePath(), idManager);
+        CuratorTreeCache cache = CuratorCacheFactory.getTreeCache();
+        cache.addListener(zookeeperPaths.getBaseRebalancePath() + Constants.SEPARATOR + Constants.TASKS_NODE, new TaskExecutorListener("aaa", opt));
+        Thread.sleep(Long.MAX_VALUE);
     }
 
 }

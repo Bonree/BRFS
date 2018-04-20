@@ -34,12 +34,17 @@ public class ZookeeperPaths {
 
     public final static String REBALANCE = "rebalance";
 
-    public final static String ROUTE_ROLE = "route_role";
+    public final static String ROUTES = "routes";
 
-    public final static String USER = "user";
+    public final static String USERS = "users";
+
+    public final static String TASKS = "tasks";
+
+    public final static String RESOURCES = "resources";
 
     private final String clusterName;
-    private final String zkNodes;
+
+    private final String zkHosts;
 
     private String baseServerIdSeqPath;
 
@@ -57,9 +62,13 @@ public class ZookeeperPaths {
 
     private String baseUserPath;
 
-    public ZookeeperPaths(final String clusterName, final String zkNodes) {
+    private String baseTaskPath;
+
+    private String baseResourcePath;
+
+    public ZookeeperPaths(final String clusterName, final String zkHosts) {
         this.clusterName = clusterName;
-        this.zkNodes = zkNodes;
+        this.zkHosts = zkHosts;
     }
 
     public String getBaseServerIdSeqPath() {
@@ -126,10 +135,30 @@ public class ZookeeperPaths {
         this.baseUserPath = baseUserPath;
     }
 
+    public String getBaseTaskPath() {
+        return baseTaskPath;
+    }
+
+    public void setBaseTaskPath(String baseTaskPath) {
+        this.baseTaskPath = baseTaskPath;
+    }
+
+    public String getBaseResourcePath() {
+        return baseResourcePath;
+    }
+
+    public void setBaseResourcePath(String baseResourcePath) {
+        this.baseResourcePath = baseResourcePath;
+    }
+
+    public String getClusterName() {
+        return clusterName;
+    }
+
     public void createZkPath() {
         CuratorClient client = null;
         try {
-            client = CuratorClient.getClientInstance(zkNodes);
+            client = CuratorClient.getClientInstance(zkHosts);
             createPathIfNotExist(client, baseLocksPath);
             createPathIfNotExist(client, baseServerIdSeqPath);
             createPathIfNotExist(client, baseServerIdPath);
@@ -138,6 +167,8 @@ public class ZookeeperPaths {
             createPathIfNotExist(client, baseRoutePath);
             createPathIfNotExist(client, baseStorageNamePath);
             createPathIfNotExist(client, baseUserPath);
+            createPathIfNotExist(client, baseTaskPath);
+            createPathIfNotExist(client, baseResourcePath);
         } finally {
             client.close();
         }
@@ -154,14 +185,17 @@ public class ZookeeperPaths {
     }
 
     private void createPath() {
-        setBaseServerIdPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + SERVER_IDS);
-        setBaseServerIdSeqPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + SERVER_ID_SEQUENCES);
-        setBaseLocksPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + LOCKS);
-        setBaseServersPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + SERVERS);
-        setBaseStorageNamePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + STORAGE_NAMES);
-        setBaseRebalancePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + REBALANCE);
-        setBaseRoutePath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + ROUTE_ROLE);
-        setBaseUserPath(SEPARATOR + ROOT + SEPARATOR + clusterName + SEPARATOR + USER);
+        String baseClusterName = SEPARATOR + ROOT + SEPARATOR + clusterName;
+        setBaseServerIdPath(baseClusterName + SEPARATOR + SERVER_IDS);
+        setBaseServerIdSeqPath(baseClusterName + SEPARATOR + SERVER_ID_SEQUENCES);
+        setBaseLocksPath(baseClusterName + SEPARATOR + LOCKS);
+        setBaseServersPath(baseClusterName + SEPARATOR + SERVERS);
+        setBaseStorageNamePath(baseClusterName + SEPARATOR + STORAGE_NAMES);
+        setBaseRebalancePath(baseClusterName + SEPARATOR + REBALANCE);
+        setBaseRoutePath(baseClusterName + SEPARATOR + ROUTES);
+        setBaseUserPath(baseClusterName + SEPARATOR + USERS);
+        setBaseTaskPath(baseClusterName + SEPARATOR + TASKS);
+        setBaseResourcePath(baseClusterName + SEPARATOR + RESOURCES);
     }
 
     public static ZookeeperPaths create(final String clusterName, final String zkHosts) {

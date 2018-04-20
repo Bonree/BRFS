@@ -11,7 +11,11 @@ package com.bonree.brfs.rebalance;
 public interface DataRecover {
 
     public enum ExecutionStatus {
-        INIT,RECOVER, FINISH
+        INIT, RECOVER, FINISH
+    }
+
+    public enum RecoverType {
+        VIRTUAL, NORMAL
     }
 
     void recover();

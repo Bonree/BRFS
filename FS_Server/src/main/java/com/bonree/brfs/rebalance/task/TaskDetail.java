@@ -1,6 +1,7 @@
 package com.bonree.brfs.rebalance.task;
 
 import com.bonree.brfs.rebalance.DataRecover;
+import com.bonree.brfs.rebalance.DataRecover.ExecutionStatus;
 
 public class TaskDetail {
     private String selfServerId;
@@ -9,6 +10,18 @@ public class TaskDetail {
     private int curentCount;
     private double process;
 
+    @SuppressWarnings("unused")
+    private TaskDetail() {
+    }
+
+    public TaskDetail(String selfServerId, ExecutionStatus status, int totalDirectories, int curentCount, double process) {
+        this.selfServerId = selfServerId;
+        this.status = status;
+        this.totalDirectories = totalDirectories;
+        this.curentCount = curentCount;
+        this.process = process;
+    }
+
     public String getSelfServerId() {
         return selfServerId;
     }
@@ -16,10 +29,6 @@ public class TaskDetail {
     public void setSelfServerId(String selfServerId) {
         this.selfServerId = selfServerId;
     }
-
-    
-
-    
 
     public DataRecover.ExecutionStatus getStatus() {
         return status;
@@ -52,6 +61,12 @@ public class TaskDetail {
     public void setProcess(double process) {
         this.process = process;
     }
+
+    @Override
+    public String toString() {
+        return "TaskDetail [selfServerId=" + selfServerId + ", status=" + status + ", totalDirectories=" + totalDirectories + ", curentCount=" + curentCount + ", process=" + process + "]";
+    }
+    
     
 
 }

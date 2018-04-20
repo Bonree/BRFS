@@ -76,7 +76,6 @@ public class ServerIDManager {
         loadSecondServerIDCache(config.getZkHosts(), zkBasePaths.getBaseServerIdPath());
         secondIDCache = CuratorCacheFactory.getTreeCache();
         secondIDCache.addListener(zkBasePaths.getBaseServerIdPath(), new SecondIDCacheListener("second_server_id_cache"));
-        secondIDCache.startCache(zkBasePaths.getBaseServerIdPath());
     }
 
     private void loadSecondServerIDCache(String zkHosts, String serverIDsPath) {
@@ -151,6 +150,10 @@ public class ServerIDManager {
             }
         }
         return secondID;
+    }
+
+    public String getVirtualServersPath() {
+        return virtualServerID.getVirtualServersPath();
     }
 
     public static void main(String[] args) {
