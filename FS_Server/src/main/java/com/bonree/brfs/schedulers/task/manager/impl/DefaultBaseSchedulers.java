@@ -24,6 +24,8 @@ import org.quartz.TriggerKey;
 import org.quartz.UnableToInterruptJobException;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
@@ -40,6 +42,7 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
  *****************************************************************************
  */
 public class DefaultBaseSchedulers implements BaseSchedulerInterface {
+	private static final Logger LOG = LoggerFactory.getLogger("BaseScheduler");
 	private StdSchedulerFactory ssf = new StdSchedulerFactory();
 	private String instanceName = "server";
 	private boolean pausePoolFlag = false;
@@ -47,7 +50,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 
 	@Override
 	public void initProperties(Properties props) {
-		Properties tmpprops = null;
+		Properties tmpprops = new Properties();
 		if (props == null) {
 			tmpprops = new Properties();
 			tmpprops.put(StdSchedulerFactory.PROP_THREAD_POOL_CLASS, "org.quartz.simpl.SimpleThreadPool");
@@ -55,7 +58,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			tmpprops.put("quartz.jobStore.misfireThreshold", "1");
 		}
 		else {
-			tmpprops = props;
+			tmpprops.putAll(props);
 		}
 		tmpprops.put("org.quartz.scheduler.instanceName", instanceName);
 		try {
@@ -78,16 +81,19 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		checkTask(task);
 		// 2.线程池处于暂停时，不提交任务
 		if (this.pausePoolFlag) {
+			LOG.warn("Thread pool is paused !!!");
 			return false;
 		}
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			// 当线程池不处于运行时，将不添加任务
 			if (!isNormal()) {
+				LOG.warn("Thread pool is not normal");
 				return false;
 			}
 			// 当线程池满了也不会添加任务
 			if(this.poolSize <= getTaskThreadCount()){
+				LOG.warn("thread pool is full !!!");
 				return false;
 			}
 			// 1.设置job的名称及执行的class
@@ -153,9 +159,9 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 				trigger = trigBuilder.build();
 			}
 			if (trigger == null || jobDetail == null) {
+				LOG.warn(" create task message is null");
 				return false;
 			}
-
 			scheduler.scheduleJob(jobDetail, trigger);
 			return true;
 		}
