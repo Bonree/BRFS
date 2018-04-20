@@ -16,7 +16,7 @@ public class Service {
 	//服务进程的开放端口
 	private int port;
 	
-	
+	private String payload;
 	
 	public Service() {
 	}
@@ -58,6 +58,14 @@ public class Service {
 
 	public void setPort(int port) {
 		this.port = port;
+	}
+	
+	public String getPayload() {
+		return payload;
+	}
+
+	public void setPayload(String payload) {
+		this.payload = payload;
 	}
 
 	@Override

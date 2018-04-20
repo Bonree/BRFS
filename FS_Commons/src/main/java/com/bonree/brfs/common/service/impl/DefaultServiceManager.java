@@ -39,14 +39,14 @@ public class DefaultServiceManager implements ServiceManager {
 	
 	//服务管理在ZK上的根节点
 	private static final String SERVICE_BASE_PATH = "/discovery";
-	private ServiceDiscovery<Service> serviceDiscovery;
-	private Map<String, ServiceCache<Service>> serviceCaches = new HashMap<String, ServiceCache<Service>>();
+	private ServiceDiscovery<String> serviceDiscovery;
+	private Map<String, ServiceCache<String>> serviceCaches = new HashMap<String, ServiceCache<String>>();
 	private HashMultimap<String, ServiceStateListener> stateListeners;
 	
 	public DefaultServiceManager(CuratorFramework client) {
 		this.threadPools = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, new PooledThreadFactory(DEFAULT_SERVICE_MANAGER_THREADPOOL_NAME));
 		this.stateListeners = HashMultimap.create();
-		this.serviceDiscovery = ServiceDiscoveryBuilder.builder(Service.class)
+		this.serviceDiscovery = ServiceDiscoveryBuilder.builder(String.class)
 				.client(client)
 				.basePath(SERVICE_BASE_PATH)
 				.build();
@@ -60,33 +60,35 @@ public class DefaultServiceManager implements ServiceManager {
 	@Override
 	public void stop() {
 		CloseableUtils.closeQuietly(serviceDiscovery);
-		for(ServiceCache<Service> cache : serviceCaches.values()) {
+		for(ServiceCache<String> cache : serviceCaches.values()) {
 			CloseableUtils.closeQuietly(cache);
 		}
 	}
 	
-	private static ServiceInstance<Service> buildFrom(Service service) throws Exception {
-		return ServiceInstance.<Service>builder()
+	private static ServiceInstance<String> buildFrom(Service service) throws Exception {
+		return ServiceInstance.<String>builder()
 				.address(service.getHost())
 				.id(service.getServiceId())
 				.name(service.getServiceGroup())
 				.port(service.getPort())
+				.payload(service.getPayload())
 				.build();
 	}
 	
-	private static Service buildFrom(ServiceInstance<Service> instance) {
+	private static Service buildFrom(ServiceInstance<String> instance) {
 		Service service = new Service();
 		service.setServiceId(instance.getId());
 		service.setServiceGroup(instance.getName());
 		service.setHost(instance.getAddress());
 		service.setPort(instance.getPort());
+		service.setPayload(instance.getPayload());
 		
 		return service;
 	}
 
 	@Override
 	public void registerService(Service service) throws Exception {
-		ServiceInstance<Service> instance = buildFrom(service);
+		ServiceInstance<String> instance = buildFrom(service);
 		
 		serviceDiscovery.registerService(instance);
 	}
@@ -100,7 +102,7 @@ public class DefaultServiceManager implements ServiceManager {
 	public synchronized void addServiceStateListener(String serviceGroup, ServiceStateListener listener) throws Exception {
 		stateListeners.put(serviceGroup, listener);
 		
-		ServiceCache<Service> serviceCache = serviceCaches.get(serviceGroup);
+		ServiceCache<String> serviceCache = serviceCaches.get(serviceGroup);
 		if(serviceCache == null) {
 			serviceCache = serviceDiscovery.serviceCacheBuilder().name(serviceGroup).executorService(threadPools).build();
 			serviceCaches.put(serviceGroup, serviceCache);
@@ -141,9 +143,9 @@ public class DefaultServiceManager implements ServiceManager {
 	@Override
 	public List<Service> getServiceListByGroup(String serviceGroup) {
 		ArrayList<Service> serviceList = new ArrayList<Service>();
-		ServiceCache<Service> serviceCache = serviceCaches.get(serviceGroup);
+		ServiceCache<String> serviceCache = serviceCaches.get(serviceGroup);
 		if(serviceCache != null) {
-			for(ServiceInstance<Service> instance : serviceCache.getInstances()) {
+			for(ServiceInstance<String> instance : serviceCache.getInstances()) {
 				serviceList.add(buildFrom(instance));
 			}
 		}
