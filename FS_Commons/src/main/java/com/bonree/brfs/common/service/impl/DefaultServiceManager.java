@@ -97,6 +97,17 @@ public class DefaultServiceManager implements ServiceManager {
 	public void unregisterService(Service service) throws Exception {
 		serviceDiscovery.unregisterService(serviceDiscovery.queryForInstance(service.getServiceGroup(), service.getServiceId()));
 	}
+	
+	@Override
+	public void updateService(String group, String serviceId, String payload) throws Exception {
+		Service service = getServiceById(group, serviceId);
+		if(service == null) {
+			throw new Exception("No service{group=" + group + ", id=" + serviceId + "} is found!");
+		}
+		
+		service.setPayload(payload);
+		serviceDiscovery.updateService(buildFrom(service));
+	}
 
 	@Override
 	public synchronized void addServiceStateListener(String serviceGroup, ServiceStateListener listener) throws Exception {

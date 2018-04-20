@@ -28,6 +28,14 @@ public interface ServiceManager extends LifeCycle {
 	void unregisterService(Service service) throws Exception;
 	
 	/**
+	 * 更新服务payload信息
+	 * 
+	 * @param service
+	 * @throws Exception
+	 */
+	void updateService(String group, String serviceId, String payload) throws Exception;
+	
+	/**
 	 * 添加服务状态监听接口
 	 * 
 	 * @param group 监听的服务组名
