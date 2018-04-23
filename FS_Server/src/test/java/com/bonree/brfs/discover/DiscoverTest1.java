@@ -29,7 +29,7 @@ public class DiscoverTest1 {
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
             ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
             idManager.getSecondServerID(1); // TODO 模拟存储数据
-            idManager.getVirtualServerID(1, 1).get(0);
+            idManager.getVirtualServerID(1, 2);
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseServersPath().substring(1, zookeeperPaths.getBaseServersPath().length())));

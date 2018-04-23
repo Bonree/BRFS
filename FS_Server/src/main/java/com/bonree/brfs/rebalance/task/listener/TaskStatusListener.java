@@ -91,6 +91,7 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
                         if (bts.getTaskType() == RecoverType.VIRTUAL) {
                             dispatch.getServerIDManager().deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
                         }
+                        dispatch.setStorageFlag(bts.getStorageIndex(), false);
                         // 重新审计
                         dispatch.auditTask(changeSummaries);
                     }

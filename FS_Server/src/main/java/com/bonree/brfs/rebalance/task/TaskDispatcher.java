@@ -75,6 +75,8 @@ public class TaskDispatcher {
     // 此处为任务缓存，只有身为leader的server才会进行数据缓存
     private Map<Integer, List<ChangeSummary>> cacheSummaryCache = new ConcurrentHashMap<Integer, List<ChangeSummary>>();
 
+    private Map<Integer, Boolean> dealFlag = new ConcurrentHashMap<Integer, Boolean>();
+
     // 为了能够有序的处理变更，需要将变更添加到队列中
     private BlockingQueue<ChangeDetail> detailQueue = new ArrayBlockingQueue<>(256);
 
@@ -271,11 +273,20 @@ public class TaskDispatcher {
         }
         boolean addFlag = false;
         System.out.println("audit:" + changeSummaries);
+
+        // 为true 不做判断
+        if (dealFlag.get(changeSummaries.get(0).getStorageIndex()) != null && dealFlag.get(changeSummaries.get(0).getStorageIndex())) {
+            return;
+        }
+
         if (changeSummaries != null && !changeSummaries.isEmpty()) {
             // 先检查虚拟serverID
             for (ChangeSummary changeSummary : changeSummaries) {
                 if (changeSummary.getChangeType().equals(ChangeType.ADD)) { // 找到第一个ADD
                     addFlag = true;
+
+                    setStorageFlag(changeSummary.getStorageIndex(), true);
+
                     String changeID = changeSummary.getChangeID();
                     int storageIndex = changeSummary.getStorageIndex();
                     List<String> currentFirstIDs = changeSummary.getCurrentServers();
@@ -313,6 +324,8 @@ public class TaskDispatcher {
                                     } while (!flag);
                                     // 虚拟serverID置为无效
                                     // 虚拟serverID迁移完成，会清理缓存和zk上的任务
+                                    
+                                    break;
                                 }
                             }
                         } else {
@@ -349,6 +362,10 @@ public class TaskDispatcher {
                         }
                     }
 
+                }
+                // 处理一个任务即可
+                if (addFlag) {
+                    break;
                 }
             }
             if (!addFlag) {
@@ -460,6 +477,10 @@ public class TaskDispatcher {
 
     public ServerIDManager getServerIDManager() {
         return idManager;
+    }
+
+    public void setStorageFlag(int storageIndex, boolean flag) {
+        dealFlag.put(storageIndex, flag);
     }
 
     public static void main(String[] args) throws Exception {
