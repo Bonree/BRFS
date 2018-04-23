@@ -40,10 +40,8 @@ public class CuratorClient implements ZookeeperClient {
     private final static String DEFAULT_VALUE = "";
 
     public static CuratorClient wrapClient(CuratorFramework client) {
-        try {
+        if(!client.isStarted()) {
             client.start();
-        } catch (IllegalStateException e) {
-            // maybe start beyond once!
         }
         CuratorClient curatorClient = new CuratorClient(client);
         return curatorClient;
