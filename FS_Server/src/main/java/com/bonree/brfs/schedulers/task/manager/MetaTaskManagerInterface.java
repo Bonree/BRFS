@@ -140,4 +140,19 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	Pair<Integer,Integer> reviseTaskStat(String taskType, long ttl, Collection<String> aliveServers);
+	/**
+	 * 概述：获取下一个任务的名称
+	 * @param taskType
+	 * @param taskName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	String getNextTaskName(String taskType, String taskName);
+	/**
+	 * 概述：获取队列第一个任务名称
+	 * @param taskType
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	String getFirstTaskName(String taskType);
 }

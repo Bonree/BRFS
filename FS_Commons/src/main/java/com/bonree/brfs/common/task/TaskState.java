@@ -1,4 +1,4 @@
-package com.bonree.brfs.schedulers.task;
+package com.bonree.brfs.common.task;
 
 public enum TaskState {
 	UNKNOW(0),

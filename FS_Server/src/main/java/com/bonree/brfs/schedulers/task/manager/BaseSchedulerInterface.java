@@ -29,13 +29,21 @@ public interface BaseSchedulerInterface{
 	 */
 	public boolean addTask(SumbitTaskInterface task) throws ParamsErrorException;
 	/**
-	 * 概述：启动周期服务
+	 * 概述：启动服务
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void start() throws Exception;
+	public void start() throws RuntimeException, NullPointerException;
+	
 	/**
-	 * 概述：关闭周期服务
+	 * 概述：重启服务
+	 * @return
+	 * @throws  
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public void reStart() throws RuntimeException, NullPointerException;
+	/**
+	 * 概述：关闭服务
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -47,18 +55,18 @@ public interface BaseSchedulerInterface{
 	 */
 	public boolean isStart();
 	/**
-	 * 概述：服务已经关闭
+	 * 概述：判断服务是否已经销毁
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public boolean isShuttdown();
+	public boolean isDestory();
 	/**
 	 * 概述：杀死指定的job
 	 * @param jobConfig
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public boolean killTask(SumbitTaskInterface task) throws ParamsErrorException;
+	public boolean deleteTask(SumbitTaskInterface task) throws ParamsErrorException;
 	/**
 	 * 概述：暂停任务
 	 * @param task
@@ -126,17 +134,29 @@ public interface BaseSchedulerInterface{
 	 */
 	public boolean isPaused();
 	/**
+	 * 概述：暂停线程池
+	 * 
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public void PausePool();
+	/**
+	 * 概述：恢复线程池
+	 * 
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public void resumePool();
+	/**
 	 * 概述：获取任务线程池数
 	 * @return
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public int getPoolThreadCount();
+	public int getPoolSize();
 	/**
 	 * 概述：获取提交任务数
 	 * @return
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public int getTaskThreadCount();
+	public int getSumbitTaskCount();
 }

@@ -2,8 +2,8 @@ package com.bonree.brfs.schedulers.task.manager.impl;
 
 import java.util.Map;
 
+import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
-import com.bonree.brfs.schedulers.task.TaskType;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
@@ -65,11 +65,11 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 		if(taskManager == null){
 			return false;
 		}
-		int taskCount = taskManager.getRunningTaskCount((String) Integer.valueOf(taskType).toString());
+		int taskCount = taskManager.getSumbitedTaskCount((String) Integer.valueOf(taskType).toString());
 		if(taskCount < 0){
 			return false;
 		}
-		int poolSize =  taskManager.getTaskPoolThreadCount((String) Integer.valueOf(taskType).toString());
+		int poolSize =  taskManager.getTaskPoolSize((String) Integer.valueOf(taskType).toString());
 		if(poolSize <=0 ||poolSize <= taskCount){
 			return false;
 		}
