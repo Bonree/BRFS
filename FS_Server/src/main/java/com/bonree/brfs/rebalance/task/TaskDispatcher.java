@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -52,7 +54,7 @@ public class TaskDispatcher {
 
     private ServerIDManager idManager;
 
-//    private TaskMonitor monitor;
+    // private TaskMonitor monitor;
 
     private final String baseRebalancePath;
 
@@ -74,7 +76,7 @@ public class TaskDispatcher {
     private Map<Integer, List<ChangeSummary>> cacheSummaryCache = new ConcurrentHashMap<Integer, List<ChangeSummary>>();
 
     // 为了能够有序的处理变更，需要将变更添加到队列中
-    private ArrayBlockingQueue<ChangeDetail> detailQueue = new ArrayBlockingQueue<>(256);
+    private BlockingQueue<ChangeDetail> detailQueue = new ArrayBlockingQueue<>(256);
 
     public static class ChangeDetail {
 
@@ -144,7 +146,7 @@ public class TaskDispatcher {
                 String snPath = greatPatentPath + Constants.SEPARATOR + snNode;
                 List<String> childPaths = client.getChildren().forPath(snPath);
 
-                List<ChangeSummary> changeSummaries = new ArrayList<ChangeSummary>();
+                List<ChangeSummary> changeSummaries = new CopyOnWriteArrayList<>();
                 if (childPaths != null) {
                     for (String childNode : childPaths) {
                         String childPath = snPath + Constants.SEPARATOR + childNode;
@@ -170,13 +172,13 @@ public class TaskDispatcher {
 
         LOG.info("changeMonitorPath:" + changesPath);
         treeCache.addListener(changesPath, new ServerChangeListener("server_change", this));
-        
+
         LOG.info("tasksPath:" + tasksPath);
         treeCache.addListener(tasksPath, new TaskStatusListener("task_status", this));
 
     }
 
-    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager){
+    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager) {
         this.baseRebalancePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
         this.baseRoutesPath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!"));
         this.changesPath = baseRebalancePath + Constants.SEPARATOR + Constants.CHANGES_NODE;
@@ -249,7 +251,7 @@ public class TaskDispatcher {
             changeSummaries = cacheSummaryCache.get(storageIndex);
 
             if (changeSummaries == null) {
-                changeSummaries = new ArrayList<ChangeSummary>();
+                changeSummaries = new CopyOnWriteArrayList<>();
                 cacheSummaryCache.put(storageIndex, changeSummaries);
             }
             if (!changeSummaries.contains(changeSummary)) {
@@ -264,67 +266,93 @@ public class TaskDispatcher {
     }
 
     public void auditTask(List<ChangeSummary> changeSummaries) {
+        if (changeSummaries == null || changeSummaries.isEmpty()) {
+            return;
+        }
+        boolean addFlag = false;
+        System.out.println("audit:" + changeSummaries);
         if (changeSummaries != null && !changeSummaries.isEmpty()) {
-            ChangeSummary changeSummary = changeSummaries.get(0); // 获取第一个任务
-            int storageIndex = changeSummary.getStorageIndex();
-            List<String> currentFirstIDs = changeSummary.getCurrentServers();
-            // String serverId = changeSummary.getChangeServer();
-            System.out.println("audit:" + changeSummaries);
-            if (changeSummary.getChangeType() == ChangeType.ADD) { // 判断该次变更所产生的任务类型
-                /*
-                 * 第一个任务为添加服务，若是新来的，判断需要进行虚拟ServerID迁移，
-                 * 若是旧的回归，因为是第一个任务变更，那只能说明旧服务的数据已经迁移完成，
-                 * 此时也只是需要判断是否需要进行虚拟ServerID迁移
-                 */
-                List<String> virtualServerIds = idManager.listNormalVirtualID(changeSummary.getStorageIndex());
-                String virtualServersPath = idManager.getVirtualServersPath();
-                if (virtualServerIds != null && !virtualServerIds.isEmpty()) {// 说明目前已经有了virtual SID，需要进行虚拟SID迁移
-                    Collections.sort(virtualServerIds); // 对virtual进行排序，以顺序进行恢复
-                    for (String virtualID : virtualServerIds) {
-                        // String needRecoverId = virtualServerIds.get(0);
-                        // 获取使用该serverID的参与者的firstID。
-                        List<String> participators = curatorClient.getChildren(virtualServersPath + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + virtualID);
-                        // 如果当前存活的firstID包括该 virtualID的参与者，那么
-                        List<String> selectIds = selectAvailableIDs(currentFirstIDs, participators);
-                        if (selectIds != null && !selectIds.isEmpty()) {
-                            // 需要寻找一个可以恢复的虚拟serverID
-                            String selectID = selectIds.get(0); // 此处可能会评估空间来进行选择，目前默认选择第一个
-                            // 构建任务需要使用2级serverid
-                            String selectSecondID = idManager.getOtherSecondID(selectID, storageIndex);
-                            List<String> secondParticipators = Lists.newArrayList();
-                            for (String participator : participators) {
-                                if (participator.equals(idManager.getFirstServerID())) { // 自身1级ID
-                                    secondParticipators.add(idManager.getSecondServerID(storageIndex));
-                                } else {
-                                    secondParticipators.add(idManager.getOtherSecondID(participator, storageIndex));
+            // 先检查虚拟serverID
+            for (ChangeSummary changeSummary : changeSummaries) {
+                if (changeSummary.getChangeType().equals(ChangeType.ADD)) { // 找到第一个ADD
+                    addFlag = true;
+                    String changeID = changeSummary.getChangeID();
+                    int storageIndex = changeSummary.getStorageIndex();
+                    List<String> currentFirstIDs = changeSummary.getCurrentServers();
+                    if (changeSummaries.size() == 1) { // 首次触发虚拟server ID迁移
+                        List<String> virtualServerIds = idManager.listNormalVirtualID(changeSummary.getStorageIndex());
+                        String virtualServersPath = idManager.getVirtualServersPath();
+                        if (virtualServerIds != null && !virtualServerIds.isEmpty()) {
+                            Collections.sort(virtualServerIds);
+                            for (String virtualID : virtualServerIds) {
+                                // 获取使用该serverID的参与者的firstID。
+                                List<String> participators = curatorClient.getChildren(virtualServersPath + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + virtualID);
+                                // 如果当前存活的firstID包括该 virtualID的参与者，那么
+                                List<String> selectIds = selectAvailableIDs(currentFirstIDs, participators);
+                                if (selectIds != null && !selectIds.isEmpty()) {
+                                    // 需要寻找一个可以恢复的虚拟serverID
+                                    String selectID = selectIds.get(0); // 此处可能会评估空间来进行选择，目前默认选择第一个
+                                    // 构建任务需要使用2级serverid
+                                    String selectSecondID = idManager.getOtherSecondID(selectID, storageIndex);
+                                    List<String> secondParticipators = Lists.newArrayList();
+                                    for (String participator : participators) {
+                                        if (participator.equals(idManager.getFirstServerID())) { // 自身1级ID
+                                            secondParticipators.add(idManager.getSecondServerID(storageIndex));
+                                        } else {
+                                            secondParticipators.add(idManager.getOtherSecondID(participator, storageIndex));
+                                        }
+                                    }
+                                    // 构造任务
+                                    BalanceTaskSummary taskSummary = taskGenerator.genVirtualTask(changeID, storageIndex, virtualID, selectSecondID, secondParticipators);
+                                    // 只在任务节点上创建任务，taskOperator会监听，去执行任务
+                                    dispatchTask(taskSummary);
+
+                                    boolean flag = false;
+                                    do {
+                                        flag = idManager.invalidVirtualID(taskSummary.getStorageIndex(), virtualID);
+                                    } while (!flag);
+                                    // 虚拟serverID置为无效
+                                    // 虚拟serverID迁移完成，会清理缓存和zk上的任务
                                 }
                             }
-                            // 构造任务
-                            BalanceTaskSummary taskSummary = taskGenerator.genVirtualTask(storageIndex, virtualID, selectSecondID, secondParticipators);
-                            // 只在任务节点上创建任务，taskOperator会监听，去执行任务
-                            dispatchTask(taskSummary);
+                        } else {
+                            // 没有使用virtual id ，则不需要进行数据迁移
+                            System.out.println("not need to virtual recover!!!");
+                            System.out.println(changeSummaries);
 
-                            boolean flag = false;
-                            do {
-                                flag = idManager.invalidVirtualID(taskSummary.getStorageIndex(), virtualID);
-                            } while (!flag);
-                            // 虚拟serverID置为无效
-                            // 虚拟serverID迁移完成，会清理缓存和zk上的任务
+                            changeSummaries.remove(changeSummary);
+                            delChangeSummaryNode(changeSummary);
+
+                            // 重新审计
+                            auditTask(changeSummaries);
                         }
-
+                    }
+                    /*
+                     * 如果changeSummaries大于1，则说明在没完成第一个任务的时候，还发生了其他的变更，
+                     * 此时需要分情况考虑：
+                     * 若是目标者server出现问题：则需要放弃本次迁移。
+                     * 1.是否删除当前任务呢？不能删除，必须找到替代的add server，总之add server优先，其次是remove
+                     * 2.是否需要删除相应的remove变更呢？应该不能删除，因为该server被利用过一段时间，可能会有数据
+                     * 3.若下个变更是add变更，则可以继续进行虚拟server迁移
+                     * 4.若是remove变更，则该sn肯定会继续使用虚拟serverID，remove变更不可能继续执行
+                     * 若是参与者Server出现问题，则需要停止任务恢复
+                     * 参与者出现问题：
+                     * 1.参与者不足的情况，该sn出现异常，之后的变更都不能处理
+                     * 2.参与者充足的情况，需要重新选择参与者进行执行，remove任务依旧放在最后
+                     */
+                    else if (changeSummaries.size() > 1) {
+                        for (int i = 1; i < changeSummaries.size(); i++) {
+                            // 正在迁移的任务，可能会遇到目标server或者参与者server移除的情况
+                            if (changeSummaries.get(i).getChangeType() == ChangeType.REMOVE) {
+                                // 正在执行的任务，看是否属于其中的任务
+                            }
+                        }
                     }
 
-                } else {
-                    // 没有使用virtual id ，则不需要进行数据迁移
-                    System.out.println("not need to virtual recover!!!");
-                    System.out.println(changeSummaries);
-                    ChangeSummary deleteSummary = changeSummaries.remove(0);
-                    delChangeSummaryNode(deleteSummary);
-                    // 重新审计
-                    auditTask(changeSummaries);
                 }
-
-            } else if (changeSummary.getChangeType() == ChangeType.REMOVE) {
+            }
+            if (!addFlag) {
+                // String serverId = changeSummary.getChangeServer();
                 /*
                  * 根据当时的的情况来判定，决策者如何决定，分为三种
                  * 1.该SN正常，未做任何操作
@@ -414,7 +442,7 @@ public class TaskDispatcher {
         return isLoad;
     }
 
-    public ArrayBlockingQueue<ChangeDetail> getDetailQueue() {
+    public BlockingQueue<ChangeDetail> getDetailQueue() {
         return detailQueue;
     }
 

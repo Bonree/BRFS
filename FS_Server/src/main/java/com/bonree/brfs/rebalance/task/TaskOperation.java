@@ -78,17 +78,17 @@ public class TaskOperation implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     private void launchTask(long delay, final DataRecover recover) {
-        // TODO 这边需要和成岗进行沟通
-        System.out.println("10 分钟后启动！！！");
-        try {
-            Thread.sleep(delay * 1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        //TODO 
+        // TODO
         new Thread() {
             @Override
             public void run() {
+                // TODO 这边需要和成岗进行沟通
+                System.out.println("10s后启动！！！");
+                try {
+                    Thread.sleep(delay * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 recover.recover();
             }
         }.start();

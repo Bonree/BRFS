@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
 import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
@@ -39,6 +40,7 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
     @Override
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         if (dispatch.getLeaderLatch().hasLeadership()) {
+            CuratorClient curatorClient = CuratorClient.wrapClient(client);
             LOG.info("leaderLath:" + dispatch.getLeaderLatch().hasLeadership());
             LOG.info("task Dispatch event detail:" + event.getType());
             System.out.println("task Dispatch event detail:" + event);
@@ -50,15 +52,15 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
                     // 此处会检测任务是否完成
                     String eventPath = event.getData().getPath();
                     String parentPath = StringUtils.substring(eventPath, 0, eventPath.lastIndexOf('/'));
-                    BalanceTaskSummary bts = JSON.parseObject(client.getData().forPath(parentPath), BalanceTaskSummary.class);
-                    List<String> serverIds = client.getChildren().forPath(parentPath);
+                    BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(parentPath), BalanceTaskSummary.class);
+                    List<String> serverIds = curatorClient.getChildren(parentPath);
                     System.out.println("parentPath:" + parentPath);
                     System.out.println("serverIds:" + serverIds);
                     boolean finishFlag = true;
                     if (serverIds != null && !serverIds.isEmpty()) {
                         for (String serverId : serverIds) {
                             String nodePath = parentPath + Constants.SEPARATOR + serverId;
-                            TaskDetail td = JSON.parseObject(client.getData().forPath(nodePath), TaskDetail.class);
+                            TaskDetail td = JSON.parseObject(curatorClient.getData(nodePath), TaskDetail.class);
                             if (td.getStatus() != DataRecover.ExecutionStatus.FINISH) {
                                 finishFlag = false;
                                 break;
@@ -68,19 +70,26 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
                     }
                     if (finishFlag) {// 所有的服务都则发布迁移规则，并清理任务
                         String roleNode = dispatch.getRoutePath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
-                        client.create().creatingParentsIfNeeded().forPath(roleNode, client.getData().forPath(parentPath));
+                        curatorClient.createPersistentSequential(roleNode, true, curatorClient.getData(parentPath));
                         // 清理变更
                         List<ChangeSummary> changeSummaries = dispatch.getSummaryCache().get(bts.getStorageIndex());
-                        ChangeSummary cs = changeSummaries.get(0);
-                        String changePath = dispatch.getChangesPath() + Constants.SEPARATOR + cs.getStorageIndex() + Constants.SEPARATOR + cs.getChangeID();
+
+                        System.out.println("status delete:" + bts.getChangeID());
+                        String changePath = dispatch.getChangesPath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
                         System.out.println("delete : " + changePath);
-                        client.delete().forPath(changePath);
-                        changeSummaries.remove(0);
+                        curatorClient.delete(changePath, false);
+                        
+                        for(ChangeSummary cs:changeSummaries) {
+                            if(cs.getChangeID().equals(bts.getChangeID())){
+                                changeSummaries.remove(cs);
+                            }
+                        }
+
                         // 删除任务
                         System.out.println("delete :" + parentPath);
-                        client.delete().deletingChildrenIfNeeded().forPath(parentPath);
+                        curatorClient.delete(parentPath, true);
                         if (bts.getTaskType() == RecoverType.VIRTUAL) {
-                            dispatch.getServerIDManager().deleteVirtualID(cs.getStorageIndex(), bts.getServerId());
+                            dispatch.getServerIDManager().deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
                         }
                         // 重新审计
                         dispatch.auditTask(changeSummaries);

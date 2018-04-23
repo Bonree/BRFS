@@ -13,7 +13,7 @@ public interface BalanceTaskGenerator {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    BalanceTaskSummary genVirtualTask(int storageIndex, String virtualId, String selectID, List<String> participators);
+    BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String virtualId, String selectID, List<String> participators);
 
     /** 概述：生成普通的SID迁移任务
      * @param changeSummary
