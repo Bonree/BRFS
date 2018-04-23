@@ -47,25 +47,26 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	private String instanceName = "server";
 	private boolean pausePoolFlag = false;
 	private int poolSize = 0;
+	private Properties prop= null;
 
 	@Override
 	public void initProperties(Properties props) {
-		Properties tmpprops = new Properties();
-		if (props == null) {
-			tmpprops = new Properties();
-			tmpprops.put(StdSchedulerFactory.PROP_THREAD_POOL_CLASS, "org.quartz.simpl.SimpleThreadPool");
-			tmpprops.put("org.quartz.threadPool.threadCount", "3");
-			tmpprops.put("quartz.jobStore.misfireThreshold", "1");
+		if(props != null && prop !=null){
+			prop.putAll(props);
+		}else if (props == null && prop == null) {
+			prop = new Properties();
+			prop.put(StdSchedulerFactory.PROP_THREAD_POOL_CLASS, "org.quartz.simpl.SimpleThreadPool");
+			prop.put("org.quartz.threadPool.threadCount", "3");
+			prop.put("quartz.jobStore.misfireThreshold", "1");
+		} else if(prop == null){
+			prop = new Properties();
+			prop.putAll(props);
 		}
-		else {
-			tmpprops.putAll(props);
-		}
-		tmpprops.put("org.quartz.scheduler.instanceName", instanceName);
 		try {
-			ssf.initialize(tmpprops);
+			ssf.initialize(prop);
 			Scheduler ssh = ssf.getScheduler();
 			this.instanceName = ssh.getSchedulerName();
-			this.poolSize = Integer.valueOf(tmpprops.getProperty("org.quartz.threadPool.threadCount"));
+			this.poolSize = Integer.valueOf(prop.getProperty("org.quartz.threadPool.threadCount"));
 		}
 		catch (NumberFormatException e) {
 			e.printStackTrace();
@@ -92,7 +93,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 				return false;
 			}
 			// 当线程池满了也不会添加任务
-			if(this.poolSize <= getTaskThreadCount()){
+			if(this.poolSize <= getSumbitTaskCount()){
 				LOG.warn("thread pool is full !!!");
 				return false;
 			}
@@ -182,6 +183,9 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 
 	@Override
 	public void start() throws RuntimeException {
+		if(prop == null){
+			throw new NullPointerException("configuration is  null ");
+		}
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			if (!scheduler.isStarted()) {
@@ -202,10 +206,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			if (scheduler.isShutdown()) {
 				return;
 			}
-			if (!isWaitTaskComplete) {
-				scheduler.pauseAll();
-				scheduler.clear();
-			}
+//			if (!isWaitTaskComplete) {
+//				scheduler.pauseAll();
+//				scheduler.clear();
+//			}
 			scheduler.shutdown(isWaitTaskComplete);
 		}
 		catch (Exception e) {
@@ -236,7 +240,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	}
 
 	@Override
-	public boolean isShuttdown() {
+	public boolean isDestory() {
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			if (scheduler == null) {
@@ -251,7 +255,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	}
 
 	@Override
-	public boolean killTask(SumbitTaskInterface task) throws ParamsErrorException {
+	public boolean deleteTask(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
 		try {
 			// 不在正常运行时，不进行删除任务操作
@@ -363,9 +367,6 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			}
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			if (!scheduler.isShutdown()) {
-				if (this.pausePoolFlag) {
-					return false;
-				}
 				// 1.停止触发器
 				scheduler.pauseAll();
 				JobKey currentJob = null;
@@ -374,7 +375,6 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 					currentJob = jobExecut.getJobDetail().getKey();
 					scheduler.interrupt(currentJob);
 				}
-				this.pausePoolFlag = true;
 			}
 			return true;
 		}
@@ -396,10 +396,6 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			}
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			if (!scheduler.isShutdown()) {
-				Set<String> pauseGroup = scheduler.getPausedTriggerGroups();
-				if (pauseGroup == null || pauseGroup.isEmpty()) {
-					return false;
-				}
 				scheduler.resumeAll();
 			}
 			return true;
@@ -437,14 +433,6 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	@Override
 	public boolean isPaused() {
 		return pausePoolFlag;
-	}
-
-	public void setPausePoolFlag(boolean pausePoolFlag) {
-		this.pausePoolFlag = pausePoolFlag;
-	}
-
-	public void setInstanceName(String instanceName) {
-		this.instanceName = instanceName;
 	}
 
 	/**
@@ -499,31 +487,16 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	 */
 	public boolean isExecuting(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
-		try {
-			JobKey jobKey = new JobKey(task.getTaskName(), task.getTaskGroupName());
-			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
-			JobKey currentJob = null;
-			for (JobExecutionContext jobExecut : scheduler.getCurrentlyExecutingJobs()) {
-				currentJob = jobExecut.getJobDetail().getKey();
-				if (currentJob.equals(jobKey)) {
-					return true;
-				}
-			}
-		}
-		catch (SchedulerException e) {
-			e.printStackTrace();
-		}
-		return false;
+		return getTaskStat(task) == 4;
 	}
 
 	@Override
-	public int getPoolThreadCount() {
-		// TODO Auto-generated method stub
+	public int getPoolSize() {
 		return this.poolSize;
 	}
 
 	@Override
-	public int getTaskThreadCount() {
+	public int getSumbitTaskCount() {
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
 			int count = 0;
@@ -566,5 +539,29 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	@Override
+	public void PausePool() {
+		this.pausePoolFlag = true;
+	}
+
+	@Override
+	public void resumePool() {
+		this.pausePoolFlag = false;
+	}
+
+	@Override
+	public void reStart() throws RuntimeException, NullPointerException {
+		// 配置文件为空抛异常
+		if(prop == null){
+			throw new NullPointerException("configuration is  null ");
+		}
+		// 程序未销毁抛异常
+		if(!isDestory()){
+			throw new RuntimeException(" server is not destory !!");
+		}
+		initProperties(null);
+		start();
 	}
 }

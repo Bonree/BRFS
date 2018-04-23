@@ -10,13 +10,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.task.TaskState;
+import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.schedulers.task.TaskState;
-import com.bonree.brfs.schedulers.task.TaskType;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
@@ -618,5 +618,36 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			e.printStackTrace();
 		}
 		return taskServerNode;
+	}
+
+	@Override
+	public String getNextTaskName(String taskType, String taskName) {
+		if(BrStringUtils.isEmpty(taskType) || BrStringUtils.isEmpty(taskName)){
+			return null;
+		}
+		List<String> orderTaskName = getOrderTaskInfos(taskType);
+		if(orderTaskName == null || orderTaskName.isEmpty()){
+			return null;
+		}
+		int index = orderTaskName.indexOf(taskName);
+		if(index <0){
+			return null;
+		}
+		if(index == orderTaskName.size()-1){
+			return null;
+		}
+		return orderTaskName.get(index + 1);
+	}
+
+	@Override
+	public String getFirstTaskName(String taskType) {
+		if(BrStringUtils.isEmpty(taskType)){
+			return null;
+		}
+		List<String> orderTaskName = getOrderTaskInfos(taskType);
+		if(orderTaskName == null || orderTaskName.isEmpty()){
+			return null;
+		}
+		return orderTaskName.get(0);
 	}
 }

@@ -15,6 +15,7 @@ import org.quartz.JobDataMap;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
+import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.DateFormatUtils;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;

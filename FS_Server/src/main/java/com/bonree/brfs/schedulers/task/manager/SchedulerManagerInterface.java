@@ -15,7 +15,7 @@ import com.bonree.brfs.schedulers.exception.ParamsErrorException;
  */
 public interface SchedulerManagerInterface <T1,T2,T3>{
 	/**
-	 * 概述：添加任务
+	 * 概述：将任务添加到指定的线程池
 	 * @param taskpoolkey 对应的任务
 	 * @param task 任务信息
 	 * @return
@@ -23,7 +23,7 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	 */
 	boolean addTask(T1 taskpoolkey, T3 task) throws ParamsErrorException;
 	/**
-	 * 概述：暂停任务
+	 * 概述：暂停线程池中的任务
 	 * @param taskpoolkey 对应的任务
 	 * @param task 任务信息
 	 * @return
@@ -31,7 +31,7 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	 */
 	boolean pauseTask(T1 taskpoolkey,T3 task) throws ParamsErrorException;
 	/**
-	 * 概述：恢复任务
+	 * 概述：恢复线程池中的任务
 	 * @param taskpoolkey 对应的任务
 	 * @param task 任务信息
 	 * @return
@@ -39,7 +39,7 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	 */
 	boolean resumeTask(T1 taskpoolKey,T3 task) throws ParamsErrorException;
 	/**
-	 * 概述：删除任务
+	 * 概述：删除线程池中的任务
 	 * @param taskpoolkey 对应的任务
 	 * @param task 任务信息
 	 * @return
@@ -47,13 +47,13 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	 */
 	boolean deleteTask(T1 taskpoolKey,T3 task) throws ParamsErrorException;
 	/**
-	 * 概述：关闭任务线程池
+	 * 概述：销毁任务线程池
 	 * @param taskpoolkey 对应的任务
 	 * @param isWaitTaskCompleted 等待任务完成
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	boolean closeTaskPool(T1 taskpoolKey, boolean isWaitTaskCompleted) throws ParamsErrorException;
+	boolean destoryTaskPool(T1 taskpoolKey, boolean isWaitTaskCompleted) throws ParamsErrorException;
 	/**
 	 * 概述：创建任务线程池
 	 * @param taskpoolKey 对应的任务
@@ -70,33 +70,56 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	 */
 	boolean startTaskPool(T1 taskpoolKey) throws ParamsErrorException;
 	/**
-	 * 概述：暂停任务线程池所有任务
+	 * 概述：重启任务线程池
+	 * @param taskpoolKey
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	boolean reStartTaskPool(T1 taskpoolKey) throws ParamsErrorException;
+	/**
+	 * 概述：暂停任务线程池，线程池将不在添加新任务，已添加的任务继续保持原有状态
 	 * @param taskpoolKey 对应的任务
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	boolean pauseTaskPool(T1 taskpoolKey) throws ParamsErrorException;
 	/**
-	 * 概述：重新运行线程池被暂停的
+	 * 概述：暂停线程池的所有的任务
+	 * @param taskpoolKey
+	 * @return
+	 * @throws ParamsErrorException
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	boolean pauseAllTask(T1 taskpoolKey)throws ParamsErrorException;
+	/**
+	 * 概述：恢复线程池所有的任务
+	 * @param taskpoolKey
+	 * @return
+	 * @throws ParamsErrorException
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	boolean resumeAllTask(T1 taskpoolKey) throws ParamsErrorException;
+	/**
+	 * 概述：恢复暂停的线程池
 	 * @param taskpoolKey
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	boolean resumeTaskPool(T1 taskpoolKey) throws ParamsErrorException;
 	/**
-	 * 概述：获取执行任务个数
+	 * 概述：获取已提交的任务数
 	 * @param taskpoolKey
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	int getRunningTaskCount(T1 taskpoolKey) throws ParamsErrorException;
+	int getSumbitedTaskCount(T1 taskpoolKey) throws ParamsErrorException;
 	/**
-	 * 概述：获取任务线程池个数
+	 * 概述：获取任务线程池大小
 	 * @param taskpoolKey
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	int getTaskPoolThreadCount(T1 taskpoolKey) throws ParamsErrorException;
+	int getTaskPoolSize(T1 taskpoolKey) throws ParamsErrorException;
 	/**
 	 * 概述：获取所有线程池的key
 	 * @return

@@ -25,12 +25,11 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
  *****************************************************************************
  */
 public class DefaultSchedulersManager implements SchedulerManagerInterface<String, BaseSchedulerInterface, SumbitTaskInterface>{
-	Map<String,DefaultBaseSchedulers> taskPoolMap = new ConcurrentHashMap<String,DefaultBaseSchedulers>();
+	Map<String,BaseSchedulerInterface> taskPoolMap = new ConcurrentHashMap<String,BaseSchedulerInterface>();
 	private static final Logger LOG = LoggerFactory.getLogger("TaskManagerServer");
 	private static class SingletonInstance {
 		public static DefaultSchedulersManager instance = new DefaultSchedulersManager();
 	}
-
 	private DefaultSchedulersManager() {
 	}
 	public static DefaultSchedulersManager getInstance() {
@@ -39,7 +38,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 	@Override
 	public boolean addTask(String taskpoolkey, SumbitTaskInterface task) throws ParamsErrorException {
 		checkParams(taskpoolkey, task);
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolkey);
 		if(pool == null){
 			return false;
 		}
@@ -47,7 +46,6 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return pool.addTask(task);
 		}
 		catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -56,7 +54,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 	@Override
 	public boolean pauseTask(String taskpoolkey, SumbitTaskInterface task)  throws ParamsErrorException {
 		checkParams(taskpoolkey, task);
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolkey);
 		if(pool == null){
 			return false;
 		}
@@ -64,7 +62,6 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.pauseTask(task);
 		}
 		catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -74,7 +71,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 	@Override
 	public boolean resumeTask(String taskpoolkey, SumbitTaskInterface task)  throws ParamsErrorException {
 		checkParams(taskpoolkey, task);
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolkey);
 		if(pool == null){
 			return false;
 		}
@@ -82,7 +79,6 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.resumeTask(task);
 		}
 		catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -92,41 +88,17 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 	@Override
 	public boolean deleteTask(String taskpoolkey, SumbitTaskInterface task) throws ParamsErrorException  {
 		checkParams(taskpoolkey, task);
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolkey);
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolkey);
 		if (pool == null) {
 			return false;
 		}
 		try {
-			pool.killTask(task);
-		}
-		catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
-		return true;
-	}
-	@Override
-	public boolean closeTaskPool(String taskpoolKey, boolean isWaitTaskCompleted) throws ParamsErrorException {
-		if(BrStringUtils.isEmpty(taskpoolKey)){
-			throw new ParamsErrorException("task pool key is empty !!!");
-		}
-		if (!taskPoolMap.containsKey(taskpoolKey)) {
-			throw new ParamsErrorException("task pool key is not exists !!!");
-		}
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
-		if (pool == null) {
-			return false;
-		}
-		try {
-			pool.close(isWaitTaskCompleted);
+			pool.deleteTask(task);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
-		// 关闭线程池后，将线程池销毁 
-		taskPoolMap.remove(taskpoolKey);
 		return true;
 	}
 
@@ -138,13 +110,11 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		if (taskPoolMap.containsKey(taskpoolKey)) {
 			throw new ParamsErrorException("task pool key is exists !!!");
 		}
-		DefaultBaseSchedulers pool = new DefaultBaseSchedulers();
-		String instanceName = taskpoolKey;
+		BaseSchedulerInterface pool = new DefaultBaseSchedulers();
 		String name = prop.getProperty("org.quartz.scheduler.instanceName");
-		if(prop != null&& !BrStringUtils.isEmpty(name)){
-			instanceName = name;
+		if(BrStringUtils.isEmpty(name)){
+			prop.setProperty("org.quartz.scheduler.instanceName", taskpoolKey);
 		}
-		pool.setInstanceName(instanceName);
 		try {
 			pool.initProperties(prop);
 			this.taskPoolMap.put(taskpoolKey, pool);
@@ -164,7 +134,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
 			throw new ParamsErrorException("task pool key is not exists !!!");
 		}
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			return false;
 		}
@@ -175,7 +145,30 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.start();
 		}
 		catch (Exception e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	@Override
+	public boolean reStartTaskPool(String taskpoolKey) throws ParamsErrorException  {
+		if(BrStringUtils.isEmpty(taskpoolKey)){
+			throw new ParamsErrorException("task pool key is empty !!!");
+		}
+		if (!taskPoolMap.containsKey(taskpoolKey)) {
+			throw new ParamsErrorException("task pool key is not exists !!!");
+		}
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
+		if (pool == null) {
+			return false;
+		}
+		try {
+			if(!pool.isDestory()){
+				return false;
+			}
+			pool.reStart();
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
@@ -190,15 +183,14 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
 			throw new ParamsErrorException("task pool key is not exists !!!");
 		}
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			return false;
 		}
 		try {
-			pool.pauseAllTask();
+			pool.PausePool();
 		}
 		catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -213,66 +205,18 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
 			throw new ParamsErrorException("task pool key is not exists !!!");
 		}
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			return false;
 		}
 		try {
-			pool.resumeAllTask();
+			pool.resumePool();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 		return true;
-	}
-	@Override
-	public int getRunningTaskCount(String taskpoolKey) {
-		if(BrStringUtils.isEmpty(taskpoolKey)){
-			LOG.warn("taskpoolKey is empty");
-			return 0;
-		}
-		if (!taskPoolMap.containsKey(taskpoolKey)) {
-			LOG.warn("{} is not exists");
-			return -1;
-		}
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
-		if (pool == null) {
-			LOG.warn("{}' thread pool is null");
-			return -2;
-		}
-		try {
-			return pool.getTaskThreadCount();
-		}
-		catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return -3;
-		}
-	}
-
-	@Override
-	public int getTaskPoolThreadCount(String taskpoolKey) {
-		if(BrStringUtils.isEmpty(taskpoolKey)){
-			LOG.warn("taskpoolKey is empty");
-			return 0;
-		}
-		if (!taskPoolMap.containsKey(taskpoolKey)) {
-			LOG.warn("{} is not exists");
-			return -1;
-		}
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
-		if (pool == null) {
-			LOG.warn("{}' thread pool is null");
-			return -2;
-		}
-		try {
-			return pool.getPoolThreadCount();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return -3;
-		}
 	}
 	
 	private void checkParams(String taskpoolKey, SumbitTaskInterface task) throws ParamsErrorException{
@@ -312,15 +256,15 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return set;
 		}
 		String key = null;
-		DefaultBaseSchedulers tmp = null;
-		for(Map.Entry<String, DefaultBaseSchedulers> entry : this.taskPoolMap.entrySet()){
+		BaseSchedulerInterface tmp = null;
+		for(Map.Entry<String, BaseSchedulerInterface> entry : this.taskPoolMap.entrySet()){
 			key = entry.getKey();
 			tmp = entry.getValue();
 			if(type == 0 && tmp.isStart()){
 				set.add(key);
 			}else if(type == 1 && tmp.isPaused()){
 				set.add(key);
-			}else if(type == 2 && tmp.isShuttdown()){
+			}else if(type == 2 && tmp.isDestory()){
 				set.add(key);
 			}
 		}
@@ -347,7 +291,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		if(!taskPoolMap.containsKey(taskpoolKey)){
 			throw new ParamsErrorException("task pool key : "+ taskpoolKey+" is not exists !!!");
 		}
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			throw new ParamsErrorException("task pool key : "+ taskpoolKey+" is not exists !!!");
 		}
@@ -356,7 +300,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		}else if(type == 1){
 			return pool.isPaused();
 		}else if(type == 2){
-			return pool.isShuttdown();
+			return pool.isDestory();
 		}
 		return false;
 		
@@ -365,10 +309,118 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 	@Override
 	public int getTaskStat(String taskpoolKey, SumbitTaskInterface task) throws ParamsErrorException {
 		checkParams(taskpoolKey, task);
-		DefaultBaseSchedulers pool = taskPoolMap.get(taskpoolKey);
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			return -2;
 		}
 		return pool.getTaskStat(task);
+	}
+	@Override
+	public boolean destoryTaskPool(String taskpoolKey, boolean isWaitTaskCompleted) throws ParamsErrorException {
+		if(BrStringUtils.isEmpty(taskpoolKey)){
+			throw new ParamsErrorException("task pool key is empty !!!");
+		}
+		if (!taskPoolMap.containsKey(taskpoolKey)) {
+			throw new ParamsErrorException("task pool key is not exists !!!");
+		}
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
+		if (pool == null) {
+			return true;
+		}
+		try {
+			pool.close(isWaitTaskCompleted);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	@Override
+	public boolean pauseAllTask(String taskpoolKey) throws ParamsErrorException {
+		if(BrStringUtils.isEmpty(taskpoolKey)){
+			throw new ParamsErrorException("task pool key is empty !!!");
+		}
+		if (!taskPoolMap.containsKey(taskpoolKey)) {
+			throw new ParamsErrorException("task pool key is not exists !!!");
+		}
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
+		if (pool == null) {
+			return false;
+		}
+		try {
+			pool.pauseAllTask();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	@Override
+	public boolean resumeAllTask(String taskpoolKey) throws ParamsErrorException {
+		if(BrStringUtils.isEmpty(taskpoolKey)){
+			throw new ParamsErrorException("task pool key is empty !!!");
+		}
+		if (!taskPoolMap.containsKey(taskpoolKey)) {
+			throw new ParamsErrorException("task pool key is not exists !!!");
+		}
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
+		if (pool == null) {
+			return false;
+		}
+		try {
+			pool.resumeAllTask();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	@Override
+	public int getSumbitedTaskCount(String taskpoolKey) throws ParamsErrorException {
+		if(BrStringUtils.isEmpty(taskpoolKey)){
+			LOG.warn("taskpoolKey is empty");
+			return 0;
+		}
+		if (!taskPoolMap.containsKey(taskpoolKey)) {
+			LOG.warn("{} is not exists");
+			return -1;
+		}
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
+		if (pool == null) {
+			LOG.warn("{}' thread pool is null");
+			return -2;
+		}
+		try {
+			return pool.getSumbitTaskCount();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return -3;
+		}
+	}
+	@Override
+	public int getTaskPoolSize(String taskpoolKey) throws ParamsErrorException {
+		if(BrStringUtils.isEmpty(taskpoolKey)){
+			LOG.warn("taskpoolKey is empty");
+			return 0;
+		}
+		if (!taskPoolMap.containsKey(taskpoolKey)) {
+			LOG.warn("{} is not exists");
+			return -1;
+		}
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
+		if (pool == null) {
+			LOG.warn("{}' thread pool is null");
+			return -2;
+		}
+		try {
+			return pool.getPoolSize();
+		}catch (Exception e) {
+			e.printStackTrace();
+			return -3;
+		}
 	}
 }
