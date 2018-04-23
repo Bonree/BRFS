@@ -3,6 +3,8 @@ package com.bonree.brfs.rebalance.recover;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.shaded.com.google.common.collect.Lists;
@@ -19,6 +21,7 @@ import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
+import com.bonree.brfs.server.StorageName;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*******************************************************************************
@@ -45,7 +48,11 @@ public class VirtualRecover implements DataRecover {
 
     private final CuratorClient client;
 
+    private boolean overFlag = false;
+
     private AtomicReference<TaskStatus> status = new AtomicReference<TaskStatus>(TaskStatus.INIT);
+
+    private final BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
     private class RecoverListener extends AbstractNodeCacheListener {
 
@@ -74,18 +81,21 @@ public class VirtualRecover implements DataRecover {
         // 恢复需要对节点进行监听
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(taskNode, new RecoverListener("recover"));
+
     }
 
     @Override
     public void recover() {
+        new Thread(consumerQueue()).start();
+
         TaskDetail detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 1);
         // 注册节点
         String selfNode = taskNode + Constants.SEPARATOR + idManager.getFirstServerID();
         System.out.println("create:" + selfNode + "-------------" + detail);
         registerNode(selfNode, detail);
-        
+
         try {
-            Thread.sleep(20000);
+            Thread.sleep(6000);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -95,8 +105,9 @@ public class VirtualRecover implements DataRecover {
         updateDetail(selfNode, detail);
 
         List<String> files = getFiles();
-
-        String remoteServerId = balanceSummary.getInputServers().get(0);
+        String storageName = getStorageNameCache(balanceSummary.getStorageIndex()).getStorageName();
+        String remoteSecondId = balanceSummary.getInputServers().get(0);
+        String remoteFirstID = idManager.getOtherFirstID(remoteSecondId, balanceSummary.getStorageIndex());
         String virtualID = balanceSummary.getServerId();
 
         LOG.info("balance virtual serverId:" + virtualID);
@@ -109,13 +120,19 @@ public class VirtualRecover implements DataRecover {
             }
             if (fileServerIds.contains(virtualID)) {
                 replicaPot = fileServerIds.indexOf(virtualID);
-                if (!isExistFile(remoteServerId, fileName)) {
-                    remoteCopyFile(remoteServerId, fileName, replicaPot);
+                FileRecoverMeta fileMeta = new FileRecoverMeta(fileName, storageName, "", replicaPot, remoteFirstID);
+                try {
+                    fileRecoverQueue.put(fileMeta);
+                } catch (InterruptedException e) {
+                    LOG.error("put file: " + fileMeta, e);
                 }
+                // if (!isExistFile(remoteServerId, fileName)) {
+                // remoteCopyFile(remoteServerId, fileName, replicaPot);
+                // }
             }
         }
         try {
-            Thread.sleep(20000);
+            Thread.sleep(6000);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
@@ -129,6 +146,8 @@ public class VirtualRecover implements DataRecover {
             LOG.error("cancel listener failed!!", e);
         }
         System.out.println("virtual server id:" + virtualID + " transference over!!!");
+
+        overFlag = true;
     }
 
     public List<String> getFiles() {
@@ -137,6 +156,30 @@ public class VirtualRecover implements DataRecover {
 
     public boolean isExistFile(String remoteServerId, String fileName) {
         return false;
+    }
+
+    private Runnable consumerQueue() {
+        return new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    FileRecoverMeta fileRecover = null;
+                    
+                    while (fileRecover != null || !overFlag) {
+                        fileRecover = fileRecoverQueue.take();
+                    }
+                    
+                    System.out.println("transfer :" + fileRecover);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+    }
+
+    public StorageName getStorageNameCache(int storageIndex) {
+        return new StorageName();
     }
 
     public void remoteCopyFile(String remoteServerId, String fileName, int replicaPot) {

@@ -18,9 +18,11 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 public class SimpleTaskGenerator implements BalanceTaskGenerator {
 
     @Override
-    public BalanceTaskSummary genVirtualTask(int storageIndex, String virtualId, String selectID, List<String> participators) {
+    public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String virtualId, String selectID, List<String> participators) {
 
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
+        // changeID
+        taskSummary.setChangeID(changeID);
         // 参与者Server，提供数据
         taskSummary.setOutputServers(participators);
         // 源ServerId
@@ -35,7 +37,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
         taskSummary.setStorageIndex(storageIndex);
         // 设置任务延迟触发时间
         taskSummary.setRuntime(10 * 1); // 1分钟后开始迁移
-        
+
         return taskSummary;
     }
 

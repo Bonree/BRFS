@@ -1,5 +1,6 @@
 package com.bonree.brfs.rebalance.task.listener;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -73,16 +74,24 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
                         curatorClient.createPersistentSequential(roleNode, true, curatorClient.getData(parentPath));
                         // 清理变更
                         List<ChangeSummary> changeSummaries = dispatch.getSummaryCache().get(bts.getStorageIndex());
-                        ChangeSummary cs = changeSummaries.get(0);
-                        String changePath = dispatch.getChangesPath() + Constants.SEPARATOR + cs.getStorageIndex() + Constants.SEPARATOR + cs.getChangeID();
+
+                        System.out.println("status delete:" + bts.getChangeID());
+                        String changePath = dispatch.getChangesPath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
                         System.out.println("delete : " + changePath);
                         curatorClient.delete(changePath, false);
-                        changeSummaries.remove(0);
+
+                        Iterator<ChangeSummary> it = changeSummaries.iterator();
+                        while (it.hasNext()) {
+                            if (it.next().getChangeID().equals(bts.getChangeID())) {
+                                it.remove();
+                            }
+                        }
+
                         // 删除任务
                         System.out.println("delete :" + parentPath);
                         curatorClient.delete(parentPath, true);
                         if (bts.getTaskType() == RecoverType.VIRTUAL) {
-                            dispatch.getServerIDManager().deleteVirtualID(cs.getStorageIndex(), bts.getServerId());
+                            dispatch.getServerIDManager().deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
                         }
                         // 重新审计
                         dispatch.auditTask(changeSummaries);

@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
@@ -39,14 +41,13 @@ public class MultiRecover implements DataRecover {
 
     private Logger LOG = LoggerFactory.getLogger(MultiRecover.class);
 
-    private StorageName storageName;
-
     private BalanceTaskSummary balanceSummary;
 
     private ServerIDManager idManager;
 
-    private final String listenerNode;
+    private final String taskNode;
 
+    // 该SN历史迁移路由信息
     private Map<String, BalanceTaskSummary> snStorageSummary;
 
     private static final String NAME_SEPARATOR = "_";
@@ -54,6 +55,10 @@ public class MultiRecover implements DataRecover {
     private CuratorNodeCache nodeCache;
 
     private final CuratorClient client;
+
+    private boolean overFlag = false;
+
+    private BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
     private AtomicReference<TaskStatus> status = new AtomicReference<TaskStatus>(TaskStatus.INIT);
 
@@ -65,7 +70,7 @@ public class MultiRecover implements DataRecover {
 
         @Override
         public void nodeChanged() throws Exception {
-            byte[] data = client.getData(listenerNode);
+            byte[] data = client.getData(taskNode);
             BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
             TaskStatus stats = bts.getTaskStatus();
             // 更新缓存
@@ -74,25 +79,31 @@ public class MultiRecover implements DataRecover {
 
     }
 
-    public MultiRecover(BalanceTaskSummary summary, ServerIDManager idManager, String listenerNode, CuratorClient client) {
+    public MultiRecover(BalanceTaskSummary summary, ServerIDManager idManager, String taskNode, CuratorClient client) {
         this.balanceSummary = summary;
         this.idManager = idManager;
-        this.listenerNode = listenerNode;
+        this.taskNode = taskNode;
         this.client = client;
+        // 开启监控
+        nodeCache = CuratorCacheFactory.getNodeCache();
+        nodeCache.addListener(taskNode, new RecoverListener("recover"));
     }
 
     @Override
     public void recover() {
         LOG.info("begin recover");
+        //启动消费队列
+        new Thread(consumerQueue()).start();
+        
         TaskDetail detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
-        // 开启监控
-        nodeCache = CuratorCacheFactory.getNodeCache();
-        nodeCache.addListener(listenerNode, new RecoverListener("recover"));
 
-        String node = listenerNode + Constants.SEPARATOR + balanceSummary.getServerId() + Constants.SEPARATOR + idManager.getSecondServerID(balanceSummary.getStorageIndex());
+        String selfNode = taskNode + Constants.SEPARATOR + idManager.getFirstServerID();
+
         detail.setStatus(ExecutionStatus.RECOVER);
-        updateDetail(node, detail);
-        int replicas = storageName.getReplications();
+        updateDetail(selfNode, detail);
+
+        // 获取该sn的副本数
+        int replicas = getStorageName(balanceSummary.getStorageIndex()).getReplications();
 
         LOG.info("deal the local server:" + idManager.getSecondServerID(balanceSummary.getStorageIndex()));
 
@@ -101,13 +112,14 @@ public class MultiRecover implements DataRecover {
             dealReplicas(i);
         }
         detail.setStatus(ExecutionStatus.FINISH);
-        updateDetail(node, detail);
+        updateDetail(selfNode, detail);
         try {
-            nodeCache.cancelListener(listenerNode);
+            nodeCache.cancelListener(taskNode);
         } catch (IOException e) {
             LOG.error("cancel listener failed!!", e);
         }
         System.out.println("恢复完成");
+        overFlag = true;
     }
 
     private void dealReplicas(int replica) {
@@ -194,6 +206,26 @@ public class MultiRecover implements DataRecover {
         }
     }
 
+    private Runnable consumerQueue() {
+        return new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    FileRecoverMeta fileRecover = null;
+
+                    while (fileRecover != null || !overFlag) {
+                        fileRecover = fileRecoverQueue.take();
+                    }
+
+                    System.out.println("transfer :" + fileRecover);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+    }
+
     private boolean isExistFile(String remoteServer, String fileName) {
         return true;
     }
@@ -271,6 +303,10 @@ public class MultiRecover implements DataRecover {
         } else {
             return false;
         }
+    }
+
+    public StorageName getStorageName(int storageIndex) {
+        return new StorageName();
     }
 
     /** 概述：更新任务信息

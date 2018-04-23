@@ -66,7 +66,7 @@ public class ZookeeperPaths {
 
     private String baseResourcePath;
 
-    public ZookeeperPaths(final String clusterName, final String zkHosts) {
+    private ZookeeperPaths(final String clusterName, final String zkHosts) {
         this.clusterName = clusterName;
         this.zkHosts = zkHosts;
     }

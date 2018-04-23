@@ -165,7 +165,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkHosts);
-            client.guaranteedDelete(node, false);
+            client.guaranteedDelete(node, true);
             return true;
         } catch (Exception e) {
             LOG.error("delete the node: " + node + "  error!", e);
