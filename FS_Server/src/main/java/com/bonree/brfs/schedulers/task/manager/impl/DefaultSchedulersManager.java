@@ -122,10 +122,11 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.close(isWaitTaskCompleted);
 		}
 		catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
+		// 关闭线程池后，将线程池销毁 
+		taskPoolMap.remove(taskpoolKey);
 		return true;
 	}
 
