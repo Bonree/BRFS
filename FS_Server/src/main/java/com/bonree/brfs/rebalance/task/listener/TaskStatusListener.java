@@ -1,6 +1,5 @@
 package com.bonree.brfs.rebalance.task.listener;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -79,11 +78,10 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
                         String changePath = dispatch.getChangesPath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
                         System.out.println("delete : " + changePath);
                         curatorClient.delete(changePath, false);
-
-                        Iterator<ChangeSummary> it = changeSummaries.iterator();
-                        while (it.hasNext()) {
-                            if (it.next().getChangeID().equals(bts.getChangeID())) {
-                                it.remove();
+                        
+                        for(ChangeSummary cs:changeSummaries) {
+                            if(cs.getChangeID().equals(bts.getChangeID())){
+                                changeSummaries.remove(cs);
                             }
                         }
 

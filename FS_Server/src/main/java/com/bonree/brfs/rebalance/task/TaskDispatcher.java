@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -145,7 +146,7 @@ public class TaskDispatcher {
                 String snPath = greatPatentPath + Constants.SEPARATOR + snNode;
                 List<String> childPaths = client.getChildren().forPath(snPath);
 
-                List<ChangeSummary> changeSummaries = new ArrayList<ChangeSummary>();
+                List<ChangeSummary> changeSummaries = new CopyOnWriteArrayList<>();
                 if (childPaths != null) {
                     for (String childNode : childPaths) {
                         String childPath = snPath + Constants.SEPARATOR + childNode;
@@ -250,7 +251,7 @@ public class TaskDispatcher {
             changeSummaries = cacheSummaryCache.get(storageIndex);
 
             if (changeSummaries == null) {
-                changeSummaries = new ArrayList<ChangeSummary>();
+                changeSummaries = new CopyOnWriteArrayList<>();
                 cacheSummaryCache.put(storageIndex, changeSummaries);
             }
             if (!changeSummaries.contains(changeSummary)) {
@@ -265,6 +266,9 @@ public class TaskDispatcher {
     }
 
     public void auditTask(List<ChangeSummary> changeSummaries) {
+        if (changeSummaries == null || changeSummaries.isEmpty()) {
+            return;
+        }
         boolean addFlag = false;
         System.out.println("audit:" + changeSummaries);
         if (changeSummaries != null && !changeSummaries.isEmpty()) {
