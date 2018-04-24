@@ -57,7 +57,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			prop = new Properties();
 			prop.put(StdSchedulerFactory.PROP_THREAD_POOL_CLASS, "org.quartz.simpl.SimpleThreadPool");
 			prop.put("org.quartz.threadPool.threadCount", "3");
-			prop.put("quartz.jobStore.misfireThreshold", "1");
+			prop.put("quartz.jobStore.misfireThreshold", "1000");
 		} else if(prop == null){
 			prop = new Properties();
 			prop.putAll(props);
@@ -211,6 +211,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 //				scheduler.clear();
 //			}
 			scheduler.shutdown(isWaitTaskComplete);
+			this.pausePoolFlag = false;
 		}
 		catch (Exception e) {
 			e.printStackTrace();

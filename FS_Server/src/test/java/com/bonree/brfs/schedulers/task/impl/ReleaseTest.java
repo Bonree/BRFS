@@ -8,13 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.task.TaskState;
+import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.schedulers.task.TaskState;
-import com.bonree.brfs.schedulers.task.TaskType;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -36,7 +36,7 @@ public class ReleaseTest {
 		release.setPropreties(zkUrl, taskRootPath);
 		// 创建任务信息
 		String taskType = TaskType.SYSTEM_DELETE.name();
-		int stat =  TaskState.RUN.code();
+		int stat =  TaskState.EXCEPTION.code();
 		
 		// 1.发布任务
 		Pair<String, List<String>> current = createTask(release, taskType, stat);
@@ -46,12 +46,14 @@ public class ReleaseTest {
 		if(tmp != null){
 			LOG.info("after {}, {}", taskName, tmp.getCreateTime());
 		}
-		release.updateServerTaskContentNode("9999", taskName, TaskType.SYSTEM_DELETE.name(), new TaskServerNodeModel());
+		TaskServerNodeModel a = new TaskServerNodeModel();
+		a.setTaskState(TaskState.UNKNOW.code());
+		release.updateServerTaskContentNode("9999", taskName, TaskType.SYSTEM_DELETE.name(), a);
 		
 		// 3.查找指定服务最后一次执行成功的
-		LOG.info("success server {} , taskName : {}","0", release.getLastSuccessTaskIndex(TaskType.SYSTEM_DELETE.name(), "0"));
+//		LOG.info("success server {} , taskName : {}","0", release.getLastSuccessTaskIndex(TaskType.SYSTEM_DELETE.name(), "0"));
 		// 4.查询指定任务的状态
-		LOG.info("query stat : {}", release.queryTaskState(taskName, TaskType.SYSTEM_DELETE.name()));
+//		LOG.info("query stat : {}", release.queryTaskState(taskName, TaskType.SYSTEM_DELETE.name()));
 		// 5.获取当前任务最大序号节点
 		LOG.info("current :{}", release.getCurrentTaskIndex(TaskType.SYSTEM_DELETE.name()));
 		LOG.info("==============================");

@@ -329,6 +329,28 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		}
 		try {
 			pool.close(isWaitTaskCompleted);
+			this.taskPoolMap.remove(taskpoolKey);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	@Override
+	public boolean closeTaskPool(String taskpoolKey, boolean isWaitTaskCompleted) throws ParamsErrorException {
+		if(BrStringUtils.isEmpty(taskpoolKey)){
+			throw new ParamsErrorException("task pool key is empty !!!");
+		}
+		if (!taskPoolMap.containsKey(taskpoolKey)) {
+			throw new ParamsErrorException("task pool key is not exists !!!");
+		}
+		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
+		if (pool == null) {
+			return true;
+		}
+		try {
+			pool.close(isWaitTaskCompleted);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -386,19 +408,19 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		}
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
 			LOG.warn("{} is not exists");
-			return -1;
+			return 0;
 		}
 		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			LOG.warn("{}' thread pool is null");
-			return -2;
+			return 0;
 		}
 		try {
 			return pool.getSumbitTaskCount();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			return -3;
+			return 0;
 		}
 	}
 	@Override
@@ -409,18 +431,18 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		}
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
 			LOG.warn("{} is not exists");
-			return -1;
+			return 0;
 		}
 		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
 		if (pool == null) {
 			LOG.warn("{}' thread pool is null");
-			return -2;
+			return 0;
 		}
 		try {
 			return pool.getPoolSize();
 		}catch (Exception e) {
 			e.printStackTrace();
-			return -3;
+			return 0;
 		}
 	}
 }

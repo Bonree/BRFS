@@ -47,13 +47,22 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	 */
 	boolean deleteTask(T1 taskpoolKey,T3 task) throws ParamsErrorException;
 	/**
-	 * 概述：销毁任务线程池
+	 * 概述：销毁任务线程池，相应的key将被移除
 	 * @param taskpoolkey 对应的任务
 	 * @param isWaitTaskCompleted 等待任务完成
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	boolean destoryTaskPool(T1 taskpoolKey, boolean isWaitTaskCompleted) throws ParamsErrorException;
+	/**
+	 * 概述：关闭指定的线程池
+	 * @param taskpoolKey
+	 * @param isWaitTaskCompleted
+	 * @return
+	 * @throws ParamsErrorException
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	boolean closeTaskPool(T1 taskpoolKey, boolean isWaitTaskCompleted) throws ParamsErrorException;
 	/**
 	 * 概述：创建任务线程池
 	 * @param taskpoolKey 对应的任务
