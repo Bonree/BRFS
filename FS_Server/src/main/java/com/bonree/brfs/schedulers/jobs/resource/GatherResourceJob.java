@@ -88,14 +88,74 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	// TODO:此方法中需要添加报警日志
 	private void updateResource(String dataDir, long inverTime) throws Exception {
 
-		StorageNameManager snManager = null;
-		ServiceManager sManager = null;
+		StatServerModel sum = calcStateServer(inverTime,dataDir);
+		if(sum == null){
+			return;
+		}
+		// 2.计算集群基础基础信息
+		BaseMetaServerModel base = getClusterBases();
+		if (base == null) {
+			LOG.warn("base server info is null !!!");
+			return;
+		}
+		// 7.计算Resource值
+		ResourceModel resource = GatherResource.calcResourceValue(base, sum);
+		if (resource == null) {
+			LOG.warn("calc resource value is null !!!");
+			return;
+		}
+		// 6.获取本机信息
+		ServerModel server = getServerModel();
+		if(server == null){
+			LOG.warn("server model is null !!");
+		}
+		server.setResource(resource);
+		setServerModel(server);
+		LOG.info("update zookeeper complete");
+	}
+	public ServerModel getlocalServerModel(){
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		String groupName = mcf.getGroupName();
+		String serverId = mcf.getServerId();
+		ServiceManager sm = mcf.getSm();
+		Service service = sm.getServiceById(groupName, serverId);
+		String payload = service.getPayload();
+		if(BrStringUtils.isEmpty(payload)){
+			return null;
+		}
+		ServerModel serverModel = JsonUtils.toObject(payload, ServerModel.class);
+		return serverModel;
+	}
+	/**
+	 * 概述：获取基本信息
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private BaseMetaServerModel getClusterBases() {
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		String groupName = mcf.getGroupName();
+		ServiceManager sManager = mcf.getSm();
+		// 1.获取集群基础信息
+		List<Service> serverList = sManager.getServiceListByGroup(groupName);
+		// 2.计算集群基础基础信息
+		BaseMetaServerModel base = calcBaseCluster(serverList);
+		return base;
+	}
 
+	/**
+	 * 概述：计算队列的状态信息
+	 * @param inverTime
+	 * @param dataDir
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private StatServerModel calcStateServer(long inverTime, String dataDir) {
+		StatServerModel sum = null;
 		// 0.计算原始状态信息
 		List<StatServerModel> lists = GatherResource.calcState(queue);
 		if (lists == null || lists.isEmpty()) {
 			LOG.warn("server state list is null !!");
-			return;
+			return sum;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String groupName = mcf.getGroupName();
@@ -103,48 +163,16 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 
 		// 1-1初始化storagename管理器
 		// TODO:俞朋 的 获取storageName
-		snManager = mcf.getSnm();
+		StorageNameManager snManager = mcf.getSnm();
 		// 1-2.初始化service管理器
-		sManager = mcf.getSm();
+		ServiceManager sManager = mcf.getSm();
 
 		// 2.获取storage信息
 		List<StorageNameNode> storageNames = snManager.getStorageNameNodeList();
 		List<String> storagenameList = getStorageNames(storageNames);
 		// 3.计算状态值
-		StatServerModel sum = GatherResource.calcStatServerModel(lists, storagenameList, inverTime, dataDir);
-		if (sum == null) {
-			LOG.warn("calc server state is null !!!");
-			return;
-		}
-		// 4.获取集群基础信息
-		List<Service> serverList = sManager.getServiceListByGroup(groupName);
-		// 5.计算集群基础基础信息
-		BaseMetaServerModel base = calcCluster(serverList);
-		if (base == null) {
-			LOG.warn("base server info is null !!!");
-			return;
-		}
-		// 6.获取本机信息
-		Service server = sManager.getServiceById(groupName, serverId);
-		LOG.info("service :{}", JsonUtils.toJsonString(server));
-		String content = server.getPayload();
-		ServerModel sinfo = checkAndCreateServerModel(content, serverId, dataDir);
-		LOG.info("service server :{}",JsonUtils.toJsonString(sinfo));
-		// 7.计算Resource值
-		ResourceModel resource = GatherResource.calcResourceValue(base, sum);
-		if (resource == null) {
-			LOG.warn("calc resource value is null !!!");
-			return;
-		}
-		LOG.info("resource : {}", resource);
-		sinfo.setResource(resource);
-		String result = JsonUtils.toJsonString(sinfo);
-		if (BrStringUtils.isEmpty(result)) {
-			LOG.warn("resource convern json result is null !!!");
-			return;
-		}
-		sManager.updateService(groupName, serverId, result);
-		LOG.info("update zookeeper complete");
+		sum = GatherResource.calcStatServerModel(lists, storagenameList, inverTime, dataDir);
+		return sum;
 	}
 
 	/**
@@ -201,7 +229,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private BaseMetaServerModel calcCluster(List<Service> serverList) {
+	private BaseMetaServerModel calcBaseCluster(List<Service> serverList) {
 		if (serverList == null || serverList.isEmpty()) {
 			return null;
 		}
@@ -213,10 +241,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		for (Service server : serverList) {
 			content = server.getPayload();
 			// 2-1.过滤掉为空的
-			if (BrStringUtils.isEmpty(content)) {
-				continue;
-			}
-			sinfo = JsonUtils.toObject(content, ServerModel.class);
+			sinfo = getServerModel(server);
 			// 2-2 过滤为null的
 			if (sinfo == null) {
 				continue;
@@ -232,5 +257,36 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			return null;
 		}
 		return GatherResource.collectBaseMetaServer(bases);
+	}
+	
+	public static void  setServerModel(ServerModel server) throws Exception{
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		String groupName = mcf.getGroupName();
+		String serverId = mcf.getServerId();
+		ServiceManager sm = mcf.getSm();
+		String payLoad = JsonUtils.toJsonString(server);
+		sm.updateService(groupName, serverId, payLoad);
+	}
+	public static ServerModel getServerModel(){
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		String groupName = mcf.getGroupName();
+		String serverId = mcf.getServerId();
+		return getServerModel(groupName, serverId);
+	}
+	public static ServerModel getServerModel(String groupName, String serverId){
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		ServiceManager sm = mcf.getSm();
+		Service service = sm.getServiceById(groupName, serverId);
+		return getServerModel(service);
+	}
+	public static ServerModel getServerModel(Service service){
+		if(service == null){
+			return null;
+		}
+		String payLoad = service.getPayload();
+		if(BrStringUtils.isEmpty(payLoad)){
+			return null;
+		}
+		return JsonUtils.toObject(payLoad, ServerModel.class);
 	}
 }

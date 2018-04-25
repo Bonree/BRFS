@@ -271,7 +271,7 @@ public class GatherResource {
 		long cacheNum = 0l;
 		double cpuValue = (1 - stat.getCpuRate()) * stat.getCpuCoreCount() / cluster.getCpuCoreCount();
 		double memoryValue = (1 - stat.getMemoryRate()) * stat.getMemorySize() / cluster.getMemoryTotalSize();
-		double diskRemainRate = (double)stat.getRemainDiskSize()/stat.getTotalDiskSize();
+		double diskRemainRate = stat.getTotalDiskSize() == 0 ? 0.0 : (double)stat.getRemainDiskSize()/stat.getTotalDiskSize();
 		obj.setCpuRate(stat.getCpuRate());
 		obj.setMemoryRate(stat.getMemoryRate());
 		obj.setDiskSize(stat.getTotalDiskSize());

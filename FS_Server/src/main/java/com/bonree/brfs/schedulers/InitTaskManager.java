@@ -118,9 +118,9 @@ public class InitTaskManager {
 		// 创建任务线程池
 		if (managerConfig.isTaskFrameWorkSwitch()) {
 			// 1.创建任务管理服务
-//			createMetaTaskManager(manager, zkPath, managerConfig, serverConfig);
+			createMetaTaskManager(manager, zkPath, managerConfig, serverConfig);
 			// 2.启动任务线程池
-//			createAndStartThreadPool(manager, switchMap, sizeMap);
+			createAndStartThreadPool(manager, switchMap, sizeMap);
 			// 3.创建执行任务线程池
 		}
 
@@ -164,42 +164,6 @@ public class InitTaskManager {
 		String str = JsonUtils.toJsonString(smodel);
 		LOG.info("base {}", str);
 		sm.updateService(serverConfig.getClusterName(), serverId, str);
-		
-		//test code
-		
-//		Queue<StateMetaServerModel> queue = new ConcurrentLinkedQueue<StateMetaServerModel>();
-//		StateMetaServerModel stat1 = GatherResource.gatherResource("E:/", "192.168.3.162");
-//		queue.add(stat1);
-//		Thread.sleep(1000);
-//		stat1 = GatherResource.gatherResource("E:/", "192.168.3.162");
-//		queue.add(stat1);
-//		List<StatServerModel> statList = GatherResource.calcState(queue);
-//		StatServerModel sum = GatherResource.calcStatServerModel(statList, new ArrayList<String>(), 1000, "E:/");
-//		ResourceModel resource = GatherResource.calcResourceValue(base, sum);
-//		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-//		Service s = sm.getServiceById(mcf.getGroupName(), mcf.getServerId());
-//		LOG.info("");
-//		String strcontet = s.getPayload();
-//		if(BrStringUtils.isEmpty(strcontet)){
-//			System.out.println("content "+ strcontet);
-//			return;
-//		}
-//		ServerModel ss = JsonUtils.toObject(strcontet, ServerModel.class);
-//		if(ss == null){
-//			System.out.println("serverModel is null");
-//			return;
-//		}
-//		ss.setResource(resource);
-//		String result = JsonUtils.toJsonString(ss);
-//		if(BrStringUtils.isEmpty(result)){
-//			System.out.println("result is null");
-//		}
-//		sm.updateService(mcf.getGroupName(), mcf.getServerId(), result);
-//		
-//		s = sm.getServiceById(mcf.getGroupName(), mcf.getServerId());
-//		ss = JsonUtils.toObject(s.getPayload(), ServerModel.class);
-//		
-		
 		
 		// 3.创建资源采集线程池
 		Properties  prop = createSimplePrope(2, 1000);

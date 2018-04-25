@@ -89,7 +89,7 @@ public class AsynJob extends QuartzOperationStateTask {
 		}
 		// 6.更新可用接口信息
 		avaliable.update(datas);
-		LOG.info("update Interface server resource !!!");
+		LOG.info("update Interface server resource  complete!!!");
 	}
 	/**
 	 * 概述：获取resourceValue
@@ -139,7 +139,7 @@ public class AsynJob extends QuartzOperationStateTask {
 			if (BrStringUtils.isEmpty(content)) {
 				continue;
 			}
-			sinfo = JsonUtils.toObject(content, ServerModel.class);
+			sinfo = getServerModel(server);
 			// 2-2 过滤为null的
 			if (sinfo == null) {
 				continue;
@@ -156,5 +156,34 @@ public class AsynJob extends QuartzOperationStateTask {
 		}
 		return resources;
 	}
-
+	public static void  setServerModel(ServerModel server) throws Exception{
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		String groupName = mcf.getGroupName();
+		String serverId = mcf.getServerId();
+		ServiceManager sm = mcf.getSm();
+		String payLoad = JsonUtils.toJsonString(server);
+		sm.updateService(groupName, serverId, payLoad);
+	}
+	public static ServerModel getServerModel(){
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		String groupName = mcf.getGroupName();
+		String serverId = mcf.getServerId();
+		return getServerModel(groupName, serverId);
+	}
+	public static ServerModel getServerModel(String groupName, String serverId){
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		ServiceManager sm = mcf.getSm();
+		Service service = sm.getServiceById(groupName, serverId);
+		return getServerModel(service);
+	}
+	public static ServerModel getServerModel(Service service){
+		if(service == null){
+			return null;
+		}
+		String payLoad = service.getPayload();
+		if(BrStringUtils.isEmpty(payLoad)){
+			return null;
+		}
+		return JsonUtils.toObject(payLoad, ServerModel.class);
+	}
 }

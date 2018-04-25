@@ -9,36 +9,36 @@ public class ResourceModel {
 	/**
 	 * 
 	 */
-	private String serverId;
+	private String serverId = "";
 	/**
 	 * 硬盘大小
 	 */
-	private long diskSize;
+	private long diskSize = 0;
 	/**
 	 * 本机硬盘剩余率
 	 */
-	private double diskRemainRate;
+	private double diskRemainRate = 0.0;
 	/**
 	 * cpu使用率，本机
 	 */
-	private double cpuRate;
+	private double cpuRate = 0.0;
 	/**
 	 * 内存使用率 本机
 	 */
-	private double memoryRate;
+	private double memoryRate = 0.0;
 	/**
 	 * cpu剩余值
 	 */
-	private double cpuValue;
+	private double cpuValue = 0.0;
 	/**
 	 * 内存剩余值
 	 */
-	private double memoryValue;
+	private double memoryValue = 0.0;
 	/**
 	 * 硬盘写剩余值
 	 */
-	private double netRxValue;
-	private double netTxValue;
+	private double netRxValue = 0.0;
+	private double netTxValue = 0.0;
 	private Map<String,Double> diskWriteValue = new ConcurrentHashMap<String, Double>();
 	private Map<String,Double> diskReadValue = new ConcurrentHashMap<String, Double>();
 	private Map<String,Double> diskRemainValue = new ConcurrentHashMap<String, Double>();

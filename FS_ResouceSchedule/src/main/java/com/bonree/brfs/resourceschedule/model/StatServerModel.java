@@ -19,30 +19,30 @@ public class StatServerModel{
 	/**
 	 * cpu内核数
 	 */
-	private int cpuCoreCount;
+	private int cpuCoreCount = 0;
 	
 	/**
 	 * 内存大小
 	 */
-	private long memorySize;
+	private long memorySize = 0;
 	
 	/**
 	 * cpu使用率
 	 */
-	private double cpuRate;
+	private double cpuRate = 0.0;
 	
 	/**
 	 * 内存使用率
 	 */
-	private double memoryRate;
+	private double memoryRate = 0.0;
 	/**
 	 * 硬盘大小
 	 */
-	private long totalDiskSize;
+	private long totalDiskSize = 0;
 	/**
 	 * 硬盘剩余空间
 	 */
-	private long remainDiskSize;
+	private long remainDiskSize = 0;
 	
 	/**
 	 * 分区大小kb
@@ -76,7 +76,7 @@ public class StatServerModel{
 	/**
 	 * 网卡发送字节数
 	 */
-	private long netTSpeed;
+	private long netTSpeed = 0;
 	
 	/**
 	 * 网卡发送字节数

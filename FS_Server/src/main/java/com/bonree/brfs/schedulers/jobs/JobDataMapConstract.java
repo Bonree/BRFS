@@ -11,7 +11,7 @@ public class JobDataMapConstract {
 	/**
 	 * zookeeper地址
 	 */
-	public static final String ZOOKEEPER_ADDRESS = "ZOOKEEPER_ADDRESS";
+//	public static final String ZOOKEEPER_ADDRESS = "ZOOKEEPER_ADDRESS";
 	/**
 	 * serverid
 	 */
@@ -50,11 +50,8 @@ public class JobDataMapConstract {
 	//TODO: 存在临时参数，需要确认serverId在启动时哪里获取到
 	public static Map<String,String> createGatherResourceDataMap(ServerConfig server, ResourceTaskConfig resource, String serverId){
 		Map<String, String>  dataMap = new HashMap<>();
-		dataMap.put(ZOOKEEPER_ADDRESS, server.getZkHosts());
 		//TODO: 存在临时参数，需要确认serverId在启动时哪里获取到
-		dataMap.put(SERVER_ID, serverId);
 		dataMap.put(DATA_PATH, server.getDataPath());
-		dataMap.put(CLUSTER_NAME, server.getClusterName());
 		dataMap.put(IP, server.getHost());
 		dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
 		dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");
@@ -62,12 +59,9 @@ public class JobDataMapConstract {
 	}
 	public static Map<String,String> createAsynResourceDataMap(ServerConfig server, ResourceTaskConfig resource){
 		Map<String, String>  dataMap = new HashMap<>();
-		dataMap.put(ZOOKEEPER_ADDRESS, server.getZkHosts());
-		dataMap.put(CLUSTER_NAME, server.getClusterName());
 		dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
 		dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");
 		dataMap.put(AVAIABLE_SERVER_CLASS, RandomAvailable.class.getCanonicalName());
-		
 		return dataMap;
 	}
 }

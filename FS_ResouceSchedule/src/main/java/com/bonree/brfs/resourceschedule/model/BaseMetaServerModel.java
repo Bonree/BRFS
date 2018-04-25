@@ -10,17 +10,17 @@ public class BaseMetaServerModel {
 	/**
 	 * cpu核心数
 	 */
-	private int cpuCoreCount;
+	private int cpuCoreCount = 0;
 	
 	/**
 	 * 内存大小kb
 	 */
-	private long memoryTotalSize;
+	private long memoryTotalSize = 0;
 	
 	/**
 	 * 总的硬盘空间大小kb
 	 */
-	private long diskTotalSize;
+	private long diskTotalSize = 0;
 	/**
 	 * 网卡最大接收速度 单位byte（按10000Mbit/s网卡计算）
 	 */
