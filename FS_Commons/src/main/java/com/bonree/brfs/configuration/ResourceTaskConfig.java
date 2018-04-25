@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.common.utils.BrStringUtils;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -74,7 +75,10 @@ public class ResourceTaskConfig {
 	 * 资源采集开关标识
 	 */
 	public final static String RESOURCE_FRAMEWORK_SWITCH = "resource.framework.switch";
-	
+	/**
+	 * 资源采集依赖的第三包位置
+	 */
+	public final static String RESOURCE_LIB_PATH = "resource.lib.path";
 	/**
 	 * 资源采集点之间的时间间隔，单位ms
 	 */
@@ -100,6 +104,7 @@ public class ResourceTaskConfig {
 	private int calcResourceValueCount = 2;
 	private boolean taskFrameWorkSwitch = true;
 	private boolean resourceFrameWorkSwitch = true;
+	private String libPath;
 	private ResourceTaskConfig(){
 		
 	}
@@ -169,6 +174,11 @@ public class ResourceTaskConfig {
 		boolean resourceFrameWorkSwitch = Boolean.valueOf(resourceFrameWork);
 		conf.setResourceFrameWorkSwitch(resourceFrameWorkSwitch);
 		
+		String libPath = config.getProperty(RESOURCE_LIB_PATH);
+		if(BrStringUtils.isEmpty(libPath)){
+			throw new NullPointerException(RESOURCE_LIB_PATH +" is empty");
+		}
+		conf.setLibPath(libPath);
 		return conf;
 	}
 	public Map<String, Boolean> getTaskPoolSwitchMap() {
@@ -218,6 +228,12 @@ public class ResourceTaskConfig {
 	}
 	public void setResourceFrameWorkSwitch(boolean resourceFrameWorkSwitch) {
 		this.resourceFrameWorkSwitch = resourceFrameWorkSwitch;
+	}
+	public String getLibPath() {
+		return libPath;
+	}
+	public void setLibPath(String libPath) {
+		this.libPath = libPath;
 	}
 	 
 }

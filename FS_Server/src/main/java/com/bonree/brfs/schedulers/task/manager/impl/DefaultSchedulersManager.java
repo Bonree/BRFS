@@ -108,7 +108,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			throw new ParamsErrorException("task pool key is empty !!!");
 		}
 		if (taskPoolMap.containsKey(taskpoolKey)) {
-			throw new ParamsErrorException("task pool key is exists !!!");
+			throw new ParamsErrorException(taskpoolKey + " task pool key is exists !!!");
 		}
 		BaseSchedulerInterface pool = new DefaultBaseSchedulers();
 		String name = prop.getProperty("org.quartz.scheduler.instanceName");

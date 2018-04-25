@@ -207,7 +207,6 @@ public class GatherResource {
 		obj.calc(snList,  dataPath, inverTime);
 		
 		Map<String,String> snToDiskMap = matchSnToPatition(snList,obj.getPartitionTotalSizeMap().keySet(),dataPath);
-		System.out.println("calcStat : "+snToDiskMap +"--  "+snList +"---"+obj.getPartitionTotalSizeMap().keySet());
 		if(snToDiskMap !=null && !snToDiskMap.isEmpty()){
 			obj.setStorageNameOnPartitionMap(snToDiskMap);
 		}

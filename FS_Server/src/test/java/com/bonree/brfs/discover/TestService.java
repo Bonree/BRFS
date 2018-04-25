@@ -29,6 +29,8 @@ public class TestService {
 		s.setHost("local");
 		
 		sm.registerService(s);
+		Service tmp = sm.getServiceById(s.getServiceGroup(), s.getServiceId());
+		System.out.println(tmp);
 		
 		sm.addServiceStateListener("group", new ServiceStateListener() {
 			
@@ -42,6 +44,7 @@ public class TestService {
 				System.out.println("add--" + service.getServiceId());
 			}
 		});
+		System.out.println(sm.getServiceById(s.getServiceGroup(), s.getServiceId()));
 	}
 
 }
