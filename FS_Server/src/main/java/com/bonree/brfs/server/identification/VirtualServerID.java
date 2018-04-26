@@ -53,4 +53,12 @@ public interface VirtualServerID {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public String getVirtualServersPath();
+    
+    /** 概述：为虚拟ID注册一个1级ID，标识该机器参与过virtual恢复,下次不能选择该server
+     * @param storageIndex
+     * @param firstID
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public boolean registerFirstID(int storageIndex,String virtualID,String firstID);
 }

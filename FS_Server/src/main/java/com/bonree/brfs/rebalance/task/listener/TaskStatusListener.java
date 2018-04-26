@@ -14,10 +14,13 @@ import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
 import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
+import com.bonree.brfs.rebalance.route.NormalRoute;
+import com.bonree.brfs.rebalance.route.VirtualRoute;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.ChangeSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskDispatcher;
+import com.bonree.brfs.rebalance.task.TaskVersion;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -68,28 +71,44 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
                             System.out.println(td + "----------" + finishFlag);
                         }
                     }
-                    if (finishFlag) {// 所有的服务都则发布迁移规则，并清理任务
-                        String roleNode = dispatch.getRoutePath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
-                        curatorClient.createPersistentSequential(roleNode, true, curatorClient.getData(parentPath));
-                        // 清理变更
-                        List<ChangeSummary> changeSummaries = dispatch.getSummaryCache().get(bts.getStorageIndex());
 
+                    // 所有的服务都则发布迁移规则，并清理任务
+                    if (finishFlag) {
+                        if (bts.getTaskType() == RecoverType.VIRTUAL) {
+                            String virtualRouteNode = dispatch.getVirualRoutePath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
+                            VirtualRoute route = new VirtualRoute(bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
+                            curatorClient.createPersistentSequential(virtualRouteNode, true, JSON.toJSONBytes(route));
+
+                            String firstID = dispatch.getServerIDManager().getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
+
+                            List<String> normalVirtualIDs = dispatch.getServerIDManager().listNormalVirtualID(bts.getStorageIndex());
+                            if (normalVirtualIDs != null && !normalVirtualIDs.isEmpty()) {
+                                for (String virtualID : normalVirtualIDs) {
+                                    dispatch.getServerIDManager().registerFirstID(bts.getStorageIndex(), virtualID, firstID);
+                                }
+                            }
+                            
+                            // 删除virtual server ID
+                            System.out.println("delete :" + parentPath);
+                            curatorClient.delete(parentPath, true);
+                            dispatch.getServerIDManager().deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
+
+                        } else if (bts.getTaskType() == RecoverType.NORMAL) {
+                            String normalRouteNode = dispatch.getNormalRoutePath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
+                            NormalRoute route = new NormalRoute(1, bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
+                            curatorClient.createPersistentSequential(normalRouteNode, true, JSON.toJSONBytes(route));
+                        }
+
+                        List<ChangeSummary> changeSummaries = dispatch.getSummaryCache().get(bts.getStorageIndex());
+                        // 清理变更
                         System.out.println("status delete:" + bts.getChangeID());
                         String changePath = dispatch.getChangesPath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
                         System.out.println("delete : " + changePath);
                         curatorClient.delete(changePath, false);
-                        
-                        for(ChangeSummary cs:changeSummaries) {
-                            if(cs.getChangeID().equals(bts.getChangeID())){
+                        for (ChangeSummary cs : changeSummaries) {
+                            if (cs.getChangeID().equals(bts.getChangeID())) {
                                 changeSummaries.remove(cs);
                             }
-                        }
-
-                        // 删除任务
-                        System.out.println("delete :" + parentPath);
-                        curatorClient.delete(parentPath, true);
-                        if (bts.getTaskType() == RecoverType.VIRTUAL) {
-                            dispatch.getServerIDManager().deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
                         }
                         dispatch.setStorageFlag(bts.getStorageIndex(), false);
                         // 重新审计

@@ -12,6 +12,7 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.CuratorLocksClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.Executor;
+import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.server.identification.IncreServerID;
 import com.bonree.brfs.server.identification.VirtualServerID;
 import com.bonree.brfs.server.identification.VirtualServerIDGen;
@@ -131,7 +132,10 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
                 }
             }
             for (String virtualID : resultVirtualIds) {
-                registerFirstID(storageSIDPath, virtualID, selfFirstID, client);
+                String node = storageSIDPath + SEPARATOR + virtualID + SEPARATOR + selfFirstID;
+                if (!client.checkExists(node)) {
+                    client.createPersistent(node, true);
+                }
             }
         } finally {
             if (client != null) {
@@ -237,16 +241,27 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
         return virtualIds;
     }
 
-    private void registerFirstID(String storagePath, String virtualID, String firstID, CuratorClient client) {
-        String node = storagePath + SEPARATOR + virtualID + SEPARATOR + firstID;
-        if (!client.checkExists(node)) {
-            client.createPersistent(node, true);
-        }
-    }
-
     @Override
     public String getVirtualServersPath() {
         return virtualServersPath;
+    }
+
+    @Override
+    public boolean registerFirstID(int storageIndex, String virtualID, String firstID) {
+        CuratorClient client = null;
+        try {
+            String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex + Constants.SEPARATOR + virtualID;
+            client = CuratorClient.getClientInstance(zkHosts);
+            if (!client.checkExists(storageSIDPath)) {
+                return false;
+            }
+            client.createPersistent(storageSIDPath + Constants.SEPARATOR + firstID, false);
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+        return true;
     }
 
 }

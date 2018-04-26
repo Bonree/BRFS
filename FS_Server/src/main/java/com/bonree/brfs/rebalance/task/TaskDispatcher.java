@@ -10,6 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -24,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
@@ -62,9 +65,12 @@ public class TaskDispatcher {
 
     private final String tasksPath;
 
+    private final ServiceManager serviceManager;
+
     private final CuratorTreeCache treeCache;
 
-    private final String baseRoutesPath;
+    private final String virtualRoutePath;
+    private final String normalRoutePath;
 
     private final BalanceTaskGenerator taskGenerator;
 
@@ -180,12 +186,14 @@ public class TaskDispatcher {
 
     }
 
-    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager) {
+    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager) {
         this.baseRebalancePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
-        this.baseRoutesPath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!"));
+        this.virtualRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE;
+        this.normalRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.NORMAL_ROUTE;
         this.changesPath = baseRebalancePath + Constants.SEPARATOR + Constants.CHANGES_NODE;
         this.tasksPath = baseRebalancePath + Constants.SEPARATOR + Constants.TASKS_NODE;
         this.idManager = idManager;
+        this.serviceManager = serviceManager;
         taskGenerator = new SimpleTaskGenerator();
         this.curatorClient = curatorClient;
         curatorClient.getInnerClient().getConnectionStateListenable().addListener(new ConnectionStateListener() {
@@ -202,7 +210,7 @@ public class TaskDispatcher {
             }
         });
 
-        String leaderPath = this.baseRebalancePath + Constants.SEPARATOR + Constants.LEADER_NODE;
+        String leaderPath = this.baseRebalancePath + Constants.SEPARATOR + Constants.DISPATCH_LEADER;
         LOG.info("leader path:" + leaderPath);
         leaderLath = new LeaderLatch(this.curatorClient.getInnerClient(), leaderPath);
         leaderLath.addListener(new LeaderLatchListener() {
@@ -286,9 +294,11 @@ public class TaskDispatcher {
                     addFlag = true;
 
                     setStorageFlag(changeSummary.getStorageIndex(), true);
-
                     String changeID = changeSummary.getChangeID();
                     int storageIndex = changeSummary.getStorageIndex();
+
+                    // String serverID = changeSummary.getChangeServer();
+
                     List<String> currentFirstIDs = changeSummary.getCurrentServers();
                     if (changeSummaries.size() == 1) { // 首次触发虚拟server ID迁移
                         List<String> virtualServerIds = idManager.listNormalVirtualID(changeSummary.getStorageIndex());
@@ -301,30 +311,37 @@ public class TaskDispatcher {
                                 // 如果当前存活的firstID包括该 virtualID的参与者，那么
                                 List<String> selectIds = selectAvailableIDs(currentFirstIDs, participators);
                                 if (selectIds != null && !selectIds.isEmpty()) {
-                                    // 需要寻找一个可以恢复的虚拟serverID
-                                    String selectID = selectIds.get(0); // 此处可能会评估空间来进行选择，目前默认选择第一个
+                                    // 需要寻找一个可以恢复的虚拟serverID，此处选择新来的或者没参与过的
+
+                                    String selectID = selectIds.get(0); // TODO选择一个可用的server来进行迁移，如果新来的在可迁移里，则选择新来的，若新来的不在可迁移里，可能为挂掉重启。此时选择？
+
                                     // 构建任务需要使用2级serverid
                                     String selectSecondID = idManager.getOtherSecondID(selectID, storageIndex);
-                                    List<String> secondParticipators = Lists.newArrayList();
+
+                                    String secondParticipator = null;
+                                    List<String> aliveServices = serviceManager.getServiceListByGroup("discover").stream().map(Service::getServiceId).collect(Collectors.toList());
+
                                     for (String participator : participators) {
-                                        if (participator.equals(idManager.getFirstServerID())) { // 自身1级ID
-                                            secondParticipators.add(idManager.getSecondServerID(storageIndex));
-                                        } else {
-                                            secondParticipators.add(idManager.getOtherSecondID(participator, storageIndex));
+                                        if (aliveServices.contains(participator)) {
+                                            if (participator.equals(idManager.getFirstServerID())) {
+                                                secondParticipator = idManager.getSecondServerID(storageIndex);
+                                            } else {
+                                                secondParticipator = idManager.getOtherSecondID(participator, storageIndex);
+                                            }
+                                            break;
                                         }
                                     }
                                     // 构造任务
-                                    BalanceTaskSummary taskSummary = taskGenerator.genVirtualTask(changeID, storageIndex, virtualID, selectSecondID, secondParticipators);
+                                    BalanceTaskSummary taskSummary = taskGenerator.genVirtualTask(changeID, storageIndex, virtualID, selectSecondID, secondParticipator);
                                     // 只在任务节点上创建任务，taskOperator会监听，去执行任务
                                     dispatchTask(taskSummary);
-
                                     boolean flag = false;
                                     do {
                                         flag = idManager.invalidVirtualID(taskSummary.getStorageIndex(), virtualID);
                                     } while (!flag);
                                     // 虚拟serverID置为无效
                                     // 虚拟serverID迁移完成，会清理缓存和zk上的任务
-                                    
+
                                     break;
                                 }
                             }
@@ -463,8 +480,12 @@ public class TaskDispatcher {
         return detailQueue;
     }
 
-    public String getRoutePath() {
-        return baseRoutesPath;
+    public String getVirualRoutePath() {
+        return virtualRoutePath;
+    }
+
+    public String getNormalRoutePath() {
+        return normalRoutePath;
     }
 
     public String getChangesPath() {

@@ -156,6 +156,10 @@ public class ServerIDManager {
         return virtualServerID.getVirtualServersPath();
     }
 
+    public boolean registerFirstID(int storageIndex, String virtualID, String firstID) {
+        return virtualServerID.registerFirstID(storageIndex, virtualID, firstID);
+    }
+
     public static void main(String[] args) {
         String path = "/brfs/test1/server_ids/10/1";
         String aa = path.substring(0, path.lastIndexOf('/'));

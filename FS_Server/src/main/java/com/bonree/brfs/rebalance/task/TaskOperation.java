@@ -64,7 +64,7 @@ public class TaskOperation implements Closeable {
                 // delayTime = taskSummary.getRuntime();
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
                 recover = new VirtualRecover(taskSummary, taskPath, client, idManager);
-                delayTime = taskSummary.getRuntime();
+                delayTime = taskSummary.getDelayTime();
             }
 
             // 调用成岗的任务创建模块

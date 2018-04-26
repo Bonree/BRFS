@@ -13,7 +13,7 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
  * @Description: 用户进行副本平衡的model类
  ******************************************************************************/
 public class BalanceTaskSummary {
-    
+
     /**
      *和每个change进行关联
      */
@@ -56,9 +56,9 @@ public class BalanceTaskSummary {
     private List<String> aliveServer;
 
     /**
-     *任务何时开始,精确到秒
+     *任务延迟执行时间,单位：秒
      */
-    private long runtime;
+    private long delayTime;
 
     public String getServerId() {
         return serverId;
@@ -100,12 +100,12 @@ public class BalanceTaskSummary {
         this.inputServers = inputServers;
     }
 
-    public long getRuntime() {
-        return runtime;
+    public long getDelayTime() {
+        return delayTime;
     }
 
-    public void setRuntime(long runtime) {
-        this.runtime = runtime;
+    public void setDelayTime(long delayTime) {
+        this.delayTime = delayTime;
     }
 
     public TaskStatus getTaskStatus() {
@@ -134,7 +134,7 @@ public class BalanceTaskSummary {
 
     @Override
     public String toString() {
-        return "BalanceTaskSummary [changeID=" + changeID + ", serverId=" + serverId + ", storageIndex=" + storageIndex + ", taskType=" + taskType + ", taskStatus=" + taskStatus + ", outputServers=" + outputServers + ", inputServers=" + inputServers + ", aliveServer=" + aliveServer + ", runtime=" + runtime + "]";
+        return "BalanceTaskSummary [changeID=" + changeID + ", serverId=" + serverId + ", storageIndex=" + storageIndex + ", taskType=" + taskType + ", taskStatus=" + taskStatus + ", outputServers=" + outputServers + ", inputServers=" + inputServers + ", aliveServer=" + aliveServer + ", runtime=" + delayTime + "]";
     }
 
 }

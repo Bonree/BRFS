@@ -18,13 +18,13 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 public class SimpleTaskGenerator implements BalanceTaskGenerator {
 
     @Override
-    public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String virtualId, String selectID, List<String> participators) {
+    public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String virtualId, String selectID, String participator) {
 
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
         // changeID
         taskSummary.setChangeID(changeID);
         // 参与者Server，提供数据
-        taskSummary.setOutputServers(participators);
+        taskSummary.setOutputServers(Lists.newArrayList(participator));
         // 源ServerId
         taskSummary.setServerId(virtualId);
         // 因为是构建虚拟SID恢复，则inputServer只需要有一个Server
@@ -36,10 +36,12 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
         // 设置SN的index
         taskSummary.setStorageIndex(storageIndex);
         // 设置任务延迟触发时间
-        taskSummary.setRuntime(10 * 1); // 1分钟后开始迁移
+        taskSummary.setDelayTime(10 * 1); // 1分钟后开始迁移
 
         return taskSummary;
     }
+    
+    
 
     @Override
     public BalanceTaskSummary genBalanceTask(ChangeSummary changeSummary) { // TODO 此处需要挑选机器
@@ -50,7 +52,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
         taskSummary.setInputServers(changeSummary.getCurrentServers());
         taskSummary.setTaskStatus(TaskStatus.INIT);
         taskSummary.setTaskType(RecoverType.NORMAL);
-        taskSummary.setRuntime(60 * 30);
+        taskSummary.setDelayTime(60 * 30);
         return taskSummary;
     }
 
