@@ -101,6 +101,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
 		
 		String path = null;
 		try {
+			node.setCreateTime(System.currentTimeMillis());
 			path = zkClient.create().forPath(storageNamePath, ProtoStuffUtils.serialize(node));
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -6,6 +6,7 @@ public class StorageNameNode {
 	private int id;
 	private int replicateCount;
 	private int ttl;
+	private long createTime;
 	
 	public StorageNameNode() {
 	}
@@ -35,6 +36,14 @@ public class StorageNameNode {
 
 	public void setTtl(int ttl) {
 		this.ttl = ttl;
+	}
+	
+	public long getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(long createTime) {
+		this.createTime = createTime;
 	}
 
 	@Override
