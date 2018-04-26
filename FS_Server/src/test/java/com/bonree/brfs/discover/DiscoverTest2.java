@@ -1,6 +1,5 @@
 package com.bonree.brfs.discover;
 
-
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -32,13 +31,13 @@ public class DiscoverTest2 {
 
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
-            
+
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseServersPath().substring(1, zookeeperPaths.getBaseServersPath().length())));
             sm.start();
 
-            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), zookeeperPaths, idManager);
+            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), zookeeperPaths, idManager, sm);
             rebalanceServer.start();
-            
+
             Service selfService = new Service();
             selfService.setHost(serverConfig.getHost());
             selfService.setPort(serverConfig.getPort());
@@ -46,7 +45,7 @@ public class DiscoverTest2 {
             selfService.setServiceId(idManager.getFirstServerID());
             sm.registerService(selfService);
             System.out.println(selfService);
-            sm.addServiceStateListener("discover", new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(),3000));
+            sm.addServiceStateListener("discover", new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000));
             System.out.println("launch Server 2");
         } catch (ConfigException e) {
             e.printStackTrace();

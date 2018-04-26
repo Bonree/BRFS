@@ -25,18 +25,18 @@ public class DiscoverTest1 {
             conf.parse(CONFIG_NAME1);
             conf.printConfigDetail();
             ServerConfig serverConfig = ServerConfig.parse(conf, HOME1);
-//            CuratorCacheFactory.init(serverConfig.getZkHosts());
+            CuratorCacheFactory.init(serverConfig.getZkHosts());
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
-//            ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
-//            idManager.getSecondServerID(1); // TODO 模拟存储数据
-//            idManager.getVirtualServerID(1, 2);
-//            CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
+            ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
+            idManager.getSecondServerID(1); // TODO 模拟存储数据
+            idManager.getVirtualServerID(1, 2);
+            CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace("atest"));
             sm.start();
 
-//            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), zookeeperPaths, idManager);
-//            rebalanceServer.start();
+            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), zookeeperPaths, idManager,sm);
+            rebalanceServer.start();
             
 
             Service selfService = new Service();
