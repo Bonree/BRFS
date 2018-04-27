@@ -20,6 +20,10 @@ public class ResourceTaskConfig {
 	 * 整体任务控制开关标识
 	 */
 	public final static String TASK_FRAMEWORK_SWITCH = "task.framework.switch";
+	/**
+	 * 任务过期时间
+	 */
+	public final static String TASK_EXPIRED_TIME = "task.expired.time";
 	
 	/**
 	 * 任务服务创建任务检查的时间间隔单位ms
@@ -101,6 +105,7 @@ public class ResourceTaskConfig {
 	private long createTaskIntervalTime = 60000;
 	private long executeTaskIntervalTime = 60000;
 	private long gatherResourceInveralTime = 60000;
+	private long taskExpiredTime = 7*24*60*60*1000;
 	private int calcResourceValueCount = 2;
 	private boolean taskFrameWorkSwitch = true;
 	private boolean resourceFrameWorkSwitch = true;
@@ -179,6 +184,9 @@ public class ResourceTaskConfig {
 			throw new NullPointerException(RESOURCE_LIB_PATH +" is empty");
 		}
 		conf.setLibPath(libPath);
+		String expiredTime = config.getProperty(TASK_EXPIRED_TIME, "680400000");
+		long expiredTaskTime = Long.valueOf(expiredTime);
+		conf.setTaskExpiredTime(expiredTaskTime);
 		return conf;
 	}
 	public Map<String, Boolean> getTaskPoolSwitchMap() {
@@ -234,6 +242,12 @@ public class ResourceTaskConfig {
 	}
 	public void setLibPath(String libPath) {
 		this.libPath = libPath;
+	}
+	public long getTaskExpiredTime() {
+		return taskExpiredTime;
+	}
+	public void setTaskExpiredTime(long taskExpiredTime) {
+		this.taskExpiredTime = taskExpiredTime;
 	}
 	 
 }

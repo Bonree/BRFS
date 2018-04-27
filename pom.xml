@@ -66,10 +66,16 @@
 		<protobuf_version>2.4.0a</protobuf_version>
 		<protostuff_version>1.6.0</protostuff_version>
 		<commons_lang_version>3.4</commons_lang_version>
+		<joda_time>2.9.9</joda_time>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+				<version>${joda_time}</version>
+			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
