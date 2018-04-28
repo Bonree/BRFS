@@ -180,8 +180,10 @@ public class TaskDispatcher {
         if (sns != null && !sns.isEmpty()) {
             for (String sn : sns) {
                 String taskNode = tasksPath + Constants.SEPARATOR + sn + Constants.SEPARATOR + Constants.TASK_NODE;
-                BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(taskNode), BalanceTaskSummary.class);
-                runTask.put(Integer.valueOf(sn), bts);
+                if (curatorClient.checkExists(taskNode)) {
+                    BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(taskNode), BalanceTaskSummary.class);
+                    runTask.put(Integer.valueOf(sn), bts);
+                }
             }
         }
     }
