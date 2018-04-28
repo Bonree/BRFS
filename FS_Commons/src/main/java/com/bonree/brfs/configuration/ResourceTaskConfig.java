@@ -93,6 +93,17 @@ public class ResourceTaskConfig {
 	public final static String CALC_RESOURCE_VALUE_COUNT = "calc.resource.value.count";
 	
 	/**
+	 * 资源限制配置
+	 */
+	public final static String LIMIT_RESOURCE_VALUE_CPU = "limit.resource.value.cpurate";
+	public final static String LIMIT_RESOURCE_VALUE_MEMORY = "limit.resource.value.memoryrate";
+	public final static String LIMIT_RESOURCE_VALUE_DISK_REMAIN = "limit.resource.value.disakremainrate";
+	public final static String LIMIT_RESOURCE_VALUE_DISK_READ = "limit.resource.value.diskreadspeedrate";
+	public final static String LIMIT_RESOURCE_VALUE_DISK_WRITE = "limit.resource.value.diskwritespeedrate";
+	public final static String LIMIT_RESOURCE_VALUE_NET_TX = "limit.resource.value.nettspeedrate";
+	public final static String LIMIT_RESOURCE_VALUE_NET_RX = "limit.resource.value.netrspeedrate";
+	
+	/**
 	 * 任务开关
 	 */
 	Map<String, Boolean> taskPoolSwitchMap = new ConcurrentHashMap<String, Boolean>();
@@ -110,6 +121,15 @@ public class ResourceTaskConfig {
 	private boolean taskFrameWorkSwitch = true;
 	private boolean resourceFrameWorkSwitch = true;
 	private String libPath;
+	private double limitCpuRate = 0.9;
+	private double limitMemoryRate = 0.9;
+	private double limitDiskRemaintRate = 0.01;
+	private double limitDiskReadRate = 0.9;
+	private double limitDiskWriteRate = 0.9;
+	private double limitNetTxRate = 0.9;
+	private double limitNetRxRate = 0.9;
+	
+	
 	private ResourceTaskConfig(){
 		
 	}
@@ -187,6 +207,36 @@ public class ResourceTaskConfig {
 		String expiredTime = config.getProperty(TASK_EXPIRED_TIME, "680400000");
 		long expiredTaskTime = Long.valueOf(expiredTime);
 		conf.setTaskExpiredTime(expiredTaskTime);
+		
+		String limtCpuRateStr = config.getProperty(LIMIT_RESOURCE_VALUE_CPU,"0.9");
+		double limtCpuRate = Double.valueOf(limtCpuRateStr);
+		conf.setLimitCpuRate(limtCpuRate);
+		
+		String limtMemoryRateStr = config.getProperty(LIMIT_RESOURCE_VALUE_MEMORY,"0.9");
+		double limtMemoryRate = Double.valueOf(limtMemoryRateStr);
+		conf.setLimitMemoryRate(limtMemoryRate);
+		
+		String limtDiskRemainStr = config.getProperty(LIMIT_RESOURCE_VALUE_DISK_REMAIN,"0.01");
+		double limtDiskRemain = Double.valueOf(limtDiskRemainStr);
+		conf.setLimitDiskRemaintRate(limtDiskRemain);
+		
+		String limtDiskWriteStr = config.getProperty(LIMIT_RESOURCE_VALUE_DISK_WRITE,"0.9");
+		double limtDiskWrite = Double.valueOf(limtDiskWriteStr);
+		conf.setLimitDiskWriteRate(limtDiskWrite);
+
+		String limtDiskReadStr = config.getProperty(LIMIT_RESOURCE_VALUE_DISK_READ,"0.9");
+		double limtDiskRead = Double.valueOf(limtDiskReadStr);
+		conf.setLimitDiskReadRate(limtDiskRead);
+		
+		String limitNetTxStr = config.getProperty(LIMIT_RESOURCE_VALUE_NET_TX,"0.9");
+		double limitNetTx = Double.valueOf(limitNetTxStr);
+		conf.setLimitNetTxRate(limitNetTx);
+		
+		String limitNetRxStr = config.getProperty(LIMIT_RESOURCE_VALUE_NET_RX,"0.9");
+		double limitNetRx = Double.valueOf(limitNetRxStr);
+		conf.setLimitNetRxRate(limitNetRx);
+		
+		
 		return conf;
 	}
 	public Map<String, Boolean> getTaskPoolSwitchMap() {
@@ -248,6 +298,48 @@ public class ResourceTaskConfig {
 	}
 	public void setTaskExpiredTime(long taskExpiredTime) {
 		this.taskExpiredTime = taskExpiredTime;
+	}
+	public double getLimitCpuRate() {
+		return limitCpuRate;
+	}
+	public void setLimitCpuRate(double limitCpuRate) {
+		this.limitCpuRate = limitCpuRate;
+	}
+	public double getLimitMemoryRate() {
+		return limitMemoryRate;
+	}
+	public void setLimitMemoryRate(double limitMemoryRate) {
+		this.limitMemoryRate = limitMemoryRate;
+	}
+	public double getLimitDiskRemaintRate() {
+		return limitDiskRemaintRate;
+	}
+	public void setLimitDiskRemaintRate(double limitDiskRemaintRate) {
+		this.limitDiskRemaintRate = limitDiskRemaintRate;
+	}
+	public double getLimitDiskReadRate() {
+		return limitDiskReadRate;
+	}
+	public void setLimitDiskReadRate(double limitDiskReadRate) {
+		this.limitDiskReadRate = limitDiskReadRate;
+	}
+	public double getLimitDiskWriteRate() {
+		return limitDiskWriteRate;
+	}
+	public void setLimitDiskWriteRate(double limitDiskWriteRate) {
+		this.limitDiskWriteRate = limitDiskWriteRate;
+	}
+	public double getLimitNetTxRate() {
+		return limitNetTxRate;
+	}
+	public void setLimitNetTxRate(double limitNetTxRate) {
+		this.limitNetTxRate = limitNetTxRate;
+	}
+	public double getLimitNetRxRate() {
+		return limitNetRxRate;
+	}
+	public void setLimitNetRxRate(double limitNetRxRate) {
+		this.limitNetRxRate = limitNetRxRate;
 	}
 	 
 }

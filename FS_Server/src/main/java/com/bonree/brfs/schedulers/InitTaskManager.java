@@ -43,8 +43,10 @@ import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
 import com.bonree.brfs.schedulers.jobs.task.CreateSystemTaskJob;
 import com.bonree.brfs.schedulers.jobs.task.ManagerMetaTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
+import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
+import com.bonree.brfs.schedulers.task.manager.impl.DefaultRunnableTask;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultSchedulersManager;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
@@ -140,6 +142,10 @@ public class InitTaskManager {
 		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
 		release.setPropreties(serverConfig.getZkHosts(), zkPath.getBaseTaskPath());
 		mcf.setTm(release);
+		// 工厂类添加任务可执行接口
+		RunnableTaskInterface run = DefaultRunnableTask.getInstance();
+//		run.setLimitParameter(limits);
+		mcf.setRt(run);
 		
 		Map<String, Boolean> switchMap = managerConfig.getTaskPoolSwitchMap();
 		Map<String, Integer> sizeMap = managerConfig.getTaskPoolSizeMap();

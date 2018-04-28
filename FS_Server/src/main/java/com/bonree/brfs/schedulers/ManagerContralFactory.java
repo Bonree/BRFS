@@ -8,6 +8,7 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
+import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 
 public class ManagerContralFactory {
@@ -31,7 +32,12 @@ public class ManagerContralFactory {
 	 * 任务执行服务
 	 */
 	private SchedulerManagerInterface stm;
+	private RunnableTaskInterface rt;
+	/**
+	 * 开启任务列表
+	 */
 	private List<TaskType> taskOn = new ArrayList<TaskType>();
+	
 	String serverId;
 	String groupName;
 	private ManagerContralFactory(){
@@ -95,5 +101,11 @@ public class ManagerContralFactory {
 	}
 	public void setTaskOn(List<TaskType> taskOn) {
 		this.taskOn = taskOn;
+	}
+	public RunnableTaskInterface getRt() {
+		return rt;
+	}
+	public void setRt(RunnableTaskInterface rt) {
+		this.rt = rt;
 	}
 }
