@@ -1,11 +1,15 @@
 package com.bonree.brfs.schedulers.jobs;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
+import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 
 public class JobDataMapConstract {
 	/**
@@ -79,6 +83,39 @@ public class JobDataMapConstract {
 	public static Map<String,String> createMetaDataMap(ResourceTaskConfig resource){
 		Map<String, String>  dataMap = new HashMap<>();
 		dataMap.put(TASK_EXPIRED_TIME, resource.getTaskExpiredTime() + "");
+		return dataMap;
+	}
+	/**
+	 * 概述：重启时，检查
+	 * @param switchList
+	 * @param release
+	 * @param isReboot
+	 * @param serverId
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static Map<String, String> createRebootTaskOpertionDataMap(List<TaskType> switchList, MetaTaskManagerInterface release, String serverId) {
+		Map<String, String> dataMap = new HashMap<>();
+		if (switchList == null || switchList.isEmpty()) {
+			return dataMap;
+		}
+		if (release == null) {
+			return dataMap;
+		}
+		String typeName = null;
+		;
+		String taskName = null;
+		for (TaskType taskType : switchList) {
+			typeName = taskType.name();
+			taskName = release.getLastSuccessTaskIndex(typeName, serverId);
+			if (BrStringUtils.isEmpty(taskName)) {
+				taskName = release.getFirstTaskName(typeName);
+			}
+			if (BrStringUtils.isEmpty(taskName)) {
+				continue;
+			}
+			dataMap.put(typeName, taskName);
+		}
 		return dataMap;
 	}
 }
