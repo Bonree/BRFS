@@ -2,6 +2,9 @@ package com.bonree.brfs.schedulers.task.manager.impl;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
@@ -11,6 +14,7 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 
 public class DefaultRunnableTask implements RunnableTaskInterface {
+	private static final Logger LOG = LoggerFactory.getLogger("DefaultRunnableTask");
 	private long updateTime = 0;
 	private StatServerModel stat = null;
 	private TaskExecutablePattern  limit= null;
@@ -74,10 +78,12 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 			return true;
 		}
 		if(stat == null){
-			throw new NullPointerException("Runnable's state is empty");
+			LOG.warn("Runnable's state is empty");
+			return true;
 		}
 		if(limit == null){
-			throw new NullPointerException("Runnable's limit state is empty");
+			LOG.warn("Runnable's limit state is empty");
+			return true;
 		}
 		if(TaskType.SYSTEM_CHECK.code() == taskType){
 			if(stat.getMemoryRate() < limit.getMemoryRate()){
