@@ -46,7 +46,8 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		pathBuilder.append(this.taskRootPath).append("/").append(taskType);
 		String path = pathBuilder.toString();
 		if (!client.checkExists(path)) {
-			throw new NullPointerException(taskType + " is not exists");
+//			throw new NullPointerException(taskType + " is not exists");
+			return null;
 		}
 		List<String> childNodes = client.getChildren(path);
 		if (childNodes == null || childNodes.isEmpty()) {
@@ -106,6 +107,9 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	public String getCurrentTaskIndex(String taskType){
 		try {
 			List<String> taskInfos = getOrderTaskInfos(taskType);
+			if(taskInfos == null || taskInfos.isEmpty()){
+				return null;
+			}
 			return taskInfos.get(taskInfos.size() - 1);
 		}
 		catch (Exception e) {
@@ -231,6 +235,9 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	public String getLastSuccessTaskIndex(String taskType, String serverId){
 		try {
 			List<String> taskInfos = getOrderTaskInfos(taskType);
+			if(taskInfos == null || taskInfos.isEmpty()){
+				return null;
+			}
 			int maxIndex = taskInfos.size() - 1;
 			StringBuilder path = null;
 			StringBuilder pPath = null;
@@ -293,6 +300,9 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			}
 			// TODO Auto-generated method stub
 			List<String> nodes = getOrderTaskInfos(taskType);
+			if(nodes == null || nodes.isEmpty()){
+				return 0;
+			}
 			int size = nodes.size();
 			if (size == 0) {
 				return 0;

@@ -72,10 +72,11 @@ public class AsynJob extends QuartzOperationStateTask {
 			data.put(INVERAL_TIME, gatherInveral * (calcCount-1) +"");
 		}
 		long inveralTime = data.getLong(INVERAL_TIME);
-		
+				
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		// 3.获取可用服务接口
 		AvailableServerInterface avaliable = mcf.getAsm();
+//		LOG.info("current: {} , lasttime : {}, inveralTime : {}", currentTime,avaliable.getLastUpdateTime(),inveralTime);
 		// 4.间隔时间不足的跳出
 		if((currentTime - avaliable.getLastUpdateTime()) < inveralTime){
 			LOG.info("skip update server resource !!! time not enough");

@@ -13,6 +13,10 @@ public class JobDataMapConstract {
 	 */
 //	public static final String ZOOKEEPER_ADDRESS = "ZOOKEEPER_ADDRESS";
 	/**
+	 * 任务过期时间
+	 */
+	public static final String TASK_EXPIRED_TIME = "TASK_EXPIRED_TIME";
+	/**
 	 * serverid
 	 */
 	public static final String SERVER_ID = "SERVER_ID";
@@ -57,11 +61,24 @@ public class JobDataMapConstract {
 		dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");
 		return dataMap;
 	}
+	/**
+	 * 概述：
+	 * @param server
+	 * @param resource
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public static Map<String,String> createAsynResourceDataMap(ServerConfig server, ResourceTaskConfig resource){
 		Map<String, String>  dataMap = new HashMap<>();
 		dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
 		dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");
 		dataMap.put(AVAIABLE_SERVER_CLASS, RandomAvailable.class.getCanonicalName());
+		return dataMap;
+	}
+	
+	public static Map<String,String> createMetaDataMap(ResourceTaskConfig resource){
+		Map<String, String>  dataMap = new HashMap<>();
+		dataMap.put(TASK_EXPIRED_TIME, resource.getTaskExpiredTime() + "");
 		return dataMap;
 	}
 }

@@ -2,6 +2,7 @@
 package com.bonree.brfs.schedulers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -39,7 +40,11 @@ import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.resource.AsynJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
+import com.bonree.brfs.schedulers.jobs.task.CreateSystemTaskJob;
+import com.bonree.brfs.schedulers.jobs.task.ManagerMetaTaskJob;
+import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
+import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultSchedulersManager;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
@@ -56,7 +61,7 @@ public class InitTaskManager {
 		private ZookeeperPaths zkPaths;
 		private ResourceTaskConfig config;
 
-		public TaskLeader(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config) {
+		public TaskLeader(SchedulerManagerInterface manager, ResourceTaskConfig config) {
 			this.manager = manager;
 			this.zkPaths = zkPaths;
 			this.config = config;
@@ -76,14 +81,23 @@ public class InitTaskManager {
 				LOG.error("create task manager server fail !!!!");
 				return ;
 			}
+			this.manager.startTaskPool(META_TASK_MANAGER);
 			LOG.info("get leader success and create task manager server success !!!");
+			sumbitTask();
+			LOG.info("sumbit meta manager task success !!!!");
 			// 提交任务线程
 			Thread.sleep(Long.MAX_VALUE);
 			manager.destoryTaskPool(META_TASK_MANAGER, false);
 			LOG.info("loss the leader !!!");
 		}
 		
-		private void sumbitTask(){
+		private void sumbitTask() throws ParamsErrorException{
+			Map<String,String> createDataMap = new HashMap<String,String>();
+			SumbitTaskInterface createJob = createCycleTaskInfo("CREATE_SYSTEM_TASK", config.getCreateTaskIntervalTime(),-1, createDataMap, CreateSystemTaskJob.class);
+			Map<String,String> metaDataMap = JobDataMapConstract.createMetaDataMap(config);
+			SumbitTaskInterface metaJob = createCycleTaskInfo("META_MANAGER_TASK", config.getCreateTaskIntervalTime(), -1, metaDataMap, ManagerMetaTaskJob.class);
+			this.manager.addTask(META_TASK_MANAGER, createJob);
+			this.manager.addTask(META_TASK_MANAGER, metaJob);
 			
 		}
 
@@ -97,18 +111,35 @@ public class InitTaskManager {
 	 * @throws ParamsErrorException 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void initManager(Configuration configuration, String homePath) throws Exception {
+	//TODO:临时参数serverId，groupName
+	public static void initManager(Configuration configuration, ServiceManager sm, StorageNameManager snm, String homePath, String serverId,String groupName) throws Exception {
 		ResourceTaskConfig managerConfig = ResourceTaskConfig.parse(configuration);
 		ServerConfig serverConfig = ServerConfig.parse(configuration, homePath);
 		ZookeeperPaths zkPath = ZookeeperPaths.create(serverConfig.getClusterName(),serverConfig.getZkHosts());
 		
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		//TODO:临时代码 工厂类添加serverId与groupName
+		mcf.setServerId(serverId);
+		mcf.setGroupName(groupName);
 		
+		// 工厂类添加服务管理
+		mcf.setSm(sm);
+		
+		// 工厂类添加storageName管理服务
+		mcf.setSnm(snm);
+		
+		// 1.工厂类添加调度管理
 		SchedulerManagerInterface manager = DefaultSchedulersManager.getInstance();
 		mcf.setStm(manager);
 		
+		// 2.工厂类添加可用服务
 		AvailableServerInterface as = RandomAvailable.getInstance();
 		mcf.setAsm(as);
+		
+		// 工厂类添加发布接口
+		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
+		release.setPropreties(serverConfig.getZkHosts(), zkPath.getBaseTaskPath());
+		mcf.setTm(release);
 		
 		Map<String, Boolean> switchMap = managerConfig.getTaskPoolSwitchMap();
 		Map<String, Integer> sizeMap = managerConfig.getTaskPoolSizeMap();
@@ -120,28 +151,16 @@ public class InitTaskManager {
 			// 1.创建任务管理服务
 			createMetaTaskManager(manager, zkPath, managerConfig, serverConfig);
 			// 2.启动任务线程池
-			createAndStartThreadPool(manager, switchMap, sizeMap);
+			List<TaskType> tasks = createAndStartThreadPool(manager, switchMap, sizeMap);
+			if(tasks == null || tasks.isEmpty()){
+				throw new NullPointerException("switch task on  but task type list is empty !!!");
+			}
+			mcf.setTaskOn(tasks);
 			// 3.创建执行任务线程池
 		}
 
 		// 创建资源调度服务
 		createResourceManager(manager, zkPath, managerConfig, serverConfig);
-		
-	}
-	/**
-	 * 概述：创建管理工厂
-	 * @param sm
-	 * @param snm
-	 * @param serverId
-	 * @param groupname
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static void createManagerContralFactory(ServiceManager sm, StorageNameManager snm,String serverId, String groupname){
-		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		mcf.setSm(sm);
-		mcf.setSnm(snm);
-		mcf.setServerId(serverId);
-		mcf.setGroupName(groupname);
 	}
 	/**
 	 * 概述：创建资源管理
@@ -171,11 +190,11 @@ public class InitTaskManager {
 		manager.startTaskPool(RESOURCE_MANAGER);
 		// 4.创建采集任务信息
 		Map<String, String> gatherMap = JobDataMapConstract.createGatherResourceDataMap(serverConfig, config, serverId);
-		SumbitTaskInterface gatherInterface = createResource(GatherResourceJob.class.getSimpleName(), config.getGatherResourceInveralTime(), gatherMap, GatherResourceJob.class);
+		SumbitTaskInterface gatherInterface = createCycleTaskInfo(GatherResourceJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, gatherMap, GatherResourceJob.class);
 		manager.addTask(RESOURCE_MANAGER, gatherInterface);
 		// 2.创建同步信息
 		Map<String,String> syncMap = JobDataMapConstract.createAsynResourceDataMap(serverConfig, config);
-		SumbitTaskInterface syncInterface = createResource(AsynJob.class.getSimpleName(), config.getGatherResourceInveralTime(), syncMap, AsynJob.class);
+		SumbitTaskInterface syncInterface = createCycleTaskInfo(AsynJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, syncMap, AsynJob.class);
 		manager.addTask(RESOURCE_MANAGER, syncInterface);
 	}
 	/**
@@ -202,7 +221,7 @@ public class InitTaskManager {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static QuartzSimpleInfo createResource(String name, long intervalTime, Map<String, String> jobMap, Class<?> clazz) {
+	public static QuartzSimpleInfo createCycleTaskInfo(String name, long intervalTime,long delayTime, Map<String, String> jobMap, Class<?> clazz) {
 		if(BrStringUtils.isEmpty(name)|| intervalTime <=0){
 			return null;
 		}
@@ -212,8 +231,12 @@ public class InitTaskManager {
 		simple.setClassInstanceName(clazz.getCanonicalName());
 		simple.setCycleFlag(true);
 		simple.setInterval(intervalTime);
-		simple.setRunNowFlag(false);
-		simple.setDelayTime(5000);
+		if(delayTime <0){
+			simple.setRunNowFlag(true);
+		}else{
+			simple.setRunNowFlag(false);
+			simple.setDelayTime(delayTime);
+		}
 		if(jobMap != null && !jobMap.isEmpty()){
 			simple.setTaskContent(jobMap);
 		}
@@ -228,7 +251,7 @@ public class InitTaskManager {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	private static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config, ServerConfig serverConfig){
-		TaskLeader leader = new TaskLeader(manager, zkPaths, config);
+		TaskLeader leader = new TaskLeader(manager, config);
 		CuratorLeaderSelectorClient leaderSelector = CuratorLeaderSelectorClient.getLeaderSelectorInstance(serverConfig.getZkHosts());
 	    leaderSelector.addSelector(zkPaths.getBaseLocksPath() + "/MetaTaskLeaderLock", leader);
 	}
@@ -240,11 +263,12 @@ public class InitTaskManager {
 	 * @throws ParamsErrorException 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static void createAndStartThreadPool(SchedulerManagerInterface manager, Map<String, Boolean> switchMap, Map<String, Integer> sizeMap) throws ParamsErrorException{
+	private static List<TaskType> createAndStartThreadPool(SchedulerManagerInterface manager, Map<String, Boolean> switchMap, Map<String, Integer> sizeMap) throws ParamsErrorException{
 		Properties prop = null;
 		String poolName = null;
 		int count = 0;
 		int size = 0;
+		List<TaskType> tasks = new ArrayList<TaskType>();
 		for (TaskType taskType : TaskType.values()) {
 			poolName = taskType.name();
 			if (!switchMap.containsKey(poolName)) {
@@ -265,9 +289,11 @@ public class InitTaskManager {
 				//TODO:打印成功信息
 				manager.startTaskPool(poolName);
 			}
+			tasks.add(taskType);
 			count++;
 		}
 		LOG.info("pool :{} count: {} started !!!", manager.getAllPoolKey(), count);
+		return tasks;
 	}
 
 	private static Properties createSimplePrope(int poolSize, long misfireTime) {

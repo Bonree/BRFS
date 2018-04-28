@@ -1,6 +1,10 @@
 package com.bonree.brfs.schedulers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -27,6 +31,7 @@ public class ManagerContralFactory {
 	 * 任务执行服务
 	 */
 	private SchedulerManagerInterface stm;
+	private List<TaskType> taskOn = new ArrayList<TaskType>();
 	String serverId;
 	String groupName;
 	private ManagerContralFactory(){
@@ -84,5 +89,11 @@ public class ManagerContralFactory {
 	}
 	public void setGroupName(String groupName) {
 		this.groupName = groupName;
+	}
+	public List<TaskType> getTaskOn() {
+		return taskOn;
+	}
+	public void setTaskOn(List<TaskType> taskOn) {
+		this.taskOn = taskOn;
 	}
 }
