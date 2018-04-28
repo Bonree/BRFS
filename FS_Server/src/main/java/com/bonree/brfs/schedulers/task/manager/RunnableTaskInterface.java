@@ -23,7 +23,7 @@ public interface RunnableTaskInterface {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public <T1,T2,T3> boolean taskRunnable(int taskType, SchedulerManagerInterface <T1,T2,T3> taskManager) throws Exception;
+	public boolean taskRunnable(int taskType, int poolSize, int threadCount) throws Exception;
 	/**
 	 * 概述：任务执行模式
 	 * @param <T1>

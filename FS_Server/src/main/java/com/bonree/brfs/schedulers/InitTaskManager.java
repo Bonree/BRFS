@@ -50,6 +50,7 @@ import com.bonree.brfs.schedulers.task.manager.impl.DefaultRunnableTask;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultSchedulersManager;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
+import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 
 public class InitTaskManager {
 	private static final Logger LOG = LoggerFactory.getLogger("InitTaskManager");
@@ -144,7 +145,8 @@ public class InitTaskManager {
 		mcf.setTm(release);
 		// 工厂类添加任务可执行接口
 		RunnableTaskInterface run = DefaultRunnableTask.getInstance();
-//		run.setLimitParameter(limits);
+		TaskExecutablePattern limit = createLimits(managerConfig);
+		run.setLimitParameter(limit);
 		mcf.setRt(run);
 		
 		Map<String, Boolean> switchMap = managerConfig.getTaskPoolSwitchMap();
@@ -164,9 +166,22 @@ public class InitTaskManager {
 			mcf.setTaskOn(tasks);
 			// 3.创建执行任务线程池
 		}
-
-		// 创建资源调度服务
-		createResourceManager(manager, zkPath, managerConfig, serverConfig);
+		
+		if(managerConfig.isResourceFrameWorkSwitch()){
+			// 创建资源调度服务
+			createResourceManager(manager, zkPath, managerConfig, serverConfig);
+		}
+	}
+	private static TaskExecutablePattern createLimits(ResourceTaskConfig conf){
+		TaskExecutablePattern limit = new TaskExecutablePattern();
+		limit.setCpuRate(conf.getLimitCpuRate());
+		limit.setMemoryRate(conf.getLimitMemoryRate());
+		limit.setDiskRemainRate(conf.getLimitDiskRemaintRate());
+		limit.setDiskReadRate(conf.getLimitDiskReadRate());
+		limit.setDiskWriteRate(conf.getLimitDiskWriteRate());
+		limit.setNetRxRate(conf.getLimitNetRxRate());
+		limit.setNetTxRate(conf.getLimitNetTxRate());
+		return limit;
 	}
 	/**
 	 * 概述：创建资源管理

@@ -134,6 +134,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			LOG.warn("calc resource value is null !!!");
 			return;
 		}
+		resource.setServerId(mcf.getServerId());
 		// 6.获取本机信息
 		ServerModel server = getServerModel();
 		if(server == null){

@@ -407,7 +407,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return 0;
 		}
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
-			LOG.warn("{} is not exists");
+			LOG.warn("{} is not exists", taskpoolKey);
 			return 0;
 		}
 		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
@@ -430,7 +430,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return 0;
 		}
 		if (!taskPoolMap.containsKey(taskpoolKey)) {
-			LOG.warn("{} is not exists");
+			LOG.warn("{} is not exists", taskpoolKey);
 			return 0;
 		}
 		BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);

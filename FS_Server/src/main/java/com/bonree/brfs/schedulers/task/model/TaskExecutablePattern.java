@@ -4,10 +4,10 @@ public class TaskExecutablePattern {
 	private double memoryRate;
 	private double cpuRate;
 	private double diskRemainRate;
-	private double diskRemainWriteRate;
-	private double diskRemainReadRate;
-	private double netRemainRxRate;
-	private double netRemainTxRate;
+	private double diskWriteRate;
+	private double diskReadRate;
+	private double netRxRate;
+	private double netTxRate;
 	public double getMemoryRate() {
 		return memoryRate;
 	}
@@ -26,29 +26,28 @@ public class TaskExecutablePattern {
 	public void setDiskRemainRate(double diskRemainRate) {
 		this.diskRemainRate = diskRemainRate;
 	}
-	public double getDiskRemainWriteRate() {
-		return diskRemainWriteRate;
+	public double getDiskWriteRate() {
+		return diskWriteRate;
 	}
-	public void setDiskRemainWriteRate(double diskRemainWriteRate) {
-		this.diskRemainWriteRate = diskRemainWriteRate;
+	public void setDiskWriteRate(double diskWriteRate) {
+		this.diskWriteRate = diskWriteRate;
 	}
-	public double getDiskRemainReadRate() {
-		return diskRemainReadRate;
+	public double getDiskReadRate() {
+		return diskReadRate;
 	}
-	public void setDiskRemainReadRate(double diskRemainReadRate) {
-		this.diskRemainReadRate = diskRemainReadRate;
+	public void setDiskReadRate(double diskReadRate) {
+		this.diskReadRate = diskReadRate;
 	}
-	public double getNetRemainRxRate() {
-		return netRemainRxRate;
+	public double getNetRxRate() {
+		return netRxRate;
 	}
-	public void setNetRemainRxRate(double netRemainRxRate) {
-		this.netRemainRxRate = netRemainRxRate;
+	public void setNetRxRate(double netRxRate) {
+		this.netRxRate = netRxRate;
 	}
-	public double getNetRemainTxRate() {
-		return netRemainTxRate;
+	public double getNetTxRate() {
+		return netTxRate;
 	}
-	public void setNetRemainTxRate(double netRemainTxRate) {
-		this.netRemainTxRate = netRemainTxRate;
-	}
-	
+	public void setNetTxRate(double netTxRate) {
+		this.netTxRate = netTxRate;
+	}	
 }

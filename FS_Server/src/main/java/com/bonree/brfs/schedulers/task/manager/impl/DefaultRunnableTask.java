@@ -61,20 +61,23 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 	}
 
 	@Override
-	public <String, QuartzBaseSchedulers, TaskInterface> boolean taskRunnable(int taskType, SchedulerManagerInterface<String, QuartzBaseSchedulers, TaskInterface> taskManager) throws Exception {
-		if(taskManager == null){
-			return false;
-		}
-		int taskCount = taskManager.getSumbitedTaskCount((String) Integer.valueOf(taskType).toString());
+	public boolean taskRunnable(int taskType, int poolSize, int threadCount) throws Exception {
+		
+		int taskCount = threadCount;
 		if(taskCount < 0){
 			return false;
 		}
-		int poolSize =  taskManager.getTaskPoolSize((String) Integer.valueOf(taskType).toString());
 		if(poolSize <=0 ||poolSize <= taskCount){
 			return false;
 		}
 		if(TaskType.SYSTEM_DELETE.code() == taskType || TaskType.USER_DELETE.code() == taskType){
 			return true;
+		}
+		if(stat == null){
+			throw new NullPointerException("Runnable's state is empty");
+		}
+		if(limit == null){
+			throw new NullPointerException("Runnable's limit state is empty");
 		}
 		if(TaskType.SYSTEM_CHECK.code() == taskType){
 			if(stat.getMemoryRate() < limit.getMemoryRate()){
@@ -84,6 +87,7 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 			}
 		}
 		if(TaskType.SYSTEM_MERGER.code() == taskType){
+			
 			if(stat.getMemoryRate() < limit.getMemoryRate()){
 				return true;
 			}else{
