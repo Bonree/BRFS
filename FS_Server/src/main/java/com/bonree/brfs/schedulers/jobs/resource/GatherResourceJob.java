@@ -36,11 +36,13 @@ import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
 import com.bonree.brfs.resourceschedule.service.impl.AvailableServerFactory;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 
 public class GatherResourceJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("GATHER");
 	private static Queue<StateMetaServerModel> queue = new ConcurrentLinkedQueue<StateMetaServerModel>();
+	private static StateMetaServerModel prexState = null;
 
 	@Override
 	public void caughtException(JobExecutionContext context) {
@@ -67,6 +69,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if (metaSource != null) {
 			queue.add(metaSource);
 			LOG.info("gather stat info !!! {}", queue.size());
+			
 		}
 		int queueSize = queue.size();
 		if (queueSize >= count) {
@@ -74,7 +77,31 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 
 		}
 	}
-
+	/***
+	 * 概述：更新资源
+	 * @param metaSource
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public void updateResourceOfTask(final StateMetaServerModel metaSource){
+		if(metaSource == null){
+			return;
+		}
+		// 更新任务可执行接口资源信息
+		if (prexState == null) {
+			prexState = metaSource;
+		}else {
+			StatServerModel stat = metaSource.converObject(prexState);
+			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+			RunnableTaskInterface run = mcf.getRt();
+			if(run == null){
+				LOG.warn("RunnableTaskInterface is null");
+			}
+			run.update(stat);
+			prexState = metaSource;
+			LOG.info("update RunnableTaskInterface state !!!");
+			LOG.info("state : {}",JsonUtils.toJsonString(stat));
+		}
+	}
 	/***
 	 * 概述：更新资源
 	 * @param zkUrl
@@ -92,6 +119,9 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if(sum == null){
 			return;
 		}
+		// 更新任务可执行接口资源信息
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		mcf.getRt().update(sum);
 		// 2.计算集群基础基础信息
 		BaseMetaServerModel base = getClusterBases();
 		if (base == null) {
@@ -104,6 +134,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			LOG.warn("calc resource value is null !!!");
 			return;
 		}
+		resource.setServerId(mcf.getServerId());
 		// 6.获取本机信息
 		ServerModel server = getServerModel();
 		if(server == null){
