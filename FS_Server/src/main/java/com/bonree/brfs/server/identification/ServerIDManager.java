@@ -102,46 +102,106 @@ public class ServerIDManager {
         }
     }
 
+    /** 概述：获取本服务的1级serverID
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public String getFirstServerID() {
         return firstLevelServerID.getServerID();
     }
 
+    /** 概述：获取本服务的某个SN的2级serverID
+     * @param storageIndex
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public String getSecondServerID(int storageIndex) {
         return firstLevelServerID.getSecondLevelServerID().getServerID(storageIndex);
     }
 
+    /** 概述：获取某个SN的virtual server ID
+     * @param storageIndex
+     * @param count
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public List<String> getVirtualServerID(int storageIndex, int count) {
         return virtualServerID.getVirtualID(storageIndex, count, getFirstServerID());
     }
 
+    /** 概述：将一个virtual server ID置为无效
+     * @param storageIndex
+     * @param id
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public boolean invalidVirtualID(int storageIndex, String id) {
         return virtualServerID.invalidVirtualIden(storageIndex, id);
     }
-    
-    public boolean normalVirtualID(int storageIndex,String id) {
+
+    /** 概述：将一个virtual server ID恢复正常
+     * @param storageIndex
+     * @param id
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public boolean normalVirtualID(int storageIndex, String id) {
         return virtualServerID.normalVirtualIden(storageIndex, id);
     }
 
+    /** 概述：删除一个virtual server ID
+     * @param storageIndex
+     * @param id
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public boolean deleteVirtualID(int storageIndex, String id) {
         return virtualServerID.deleteVirtualIden(storageIndex, id);
     }
 
+    /** 概述：列出某个SN所有正常的virtual server ID
+     * @param storageIndex
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public List<String> listNormalVirtualID(int storageIndex) {
         return virtualServerID.listNormalVirtualID(storageIndex);
     }
 
+    /** 概述：列出某个sn所有的virtual server ID
+     * @param storageIndex
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public List<String> listAllVirtualID(int storageIndex) {
         return virtualServerID.listAllVirtualID(storageIndex);
     }
 
+    /** 概述：列出某个SN所有的无效的virtual server ID
+     * @param storageIndex
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public List<String> listInvalidVirtualID(int storageIndex) {
         return virtualServerID.listInvalidVirtualID(storageIndex);
     }
 
+    /** 概述：获取其他服务的1级serverID
+     * @param secondID
+     * @param snIndex
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public String getOtherFirstID(String secondID, int snIndex) {
         return otherServerIDCache.get(snIndex + SEPARATOR + secondID);
     }
 
+    /** 概述：获取其他服务的2级serverID
+     * @param firstID
+     * @param snIndex
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public String getOtherSecondID(String firstID, int snIndex) {
         String secondID = null;
         for (Entry<String, String> entry : otherServerIDCache.entrySet()) {
@@ -156,10 +216,21 @@ public class ServerIDManager {
         return secondID;
     }
 
+    /** 概述：获取virtual server路径
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public String getVirtualServersPath() {
         return virtualServerID.getVirtualServersPath();
     }
 
+    /** 概述：将某个服务注册到virtual server中
+     * @param storageIndex
+     * @param virtualID
+     * @param firstID
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public boolean registerFirstID(int storageIndex, String virtualID, String firstID) {
         return virtualServerID.registerFirstID(storageIndex, virtualID, firstID);
     }
