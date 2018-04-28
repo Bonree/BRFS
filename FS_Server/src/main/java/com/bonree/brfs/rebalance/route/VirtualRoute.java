@@ -4,6 +4,7 @@ import com.bonree.brfs.rebalance.task.TaskVersion;
 
 public class VirtualRoute {
 
+    private String changeID;
     private int storageIndex;
     private String virtualID;
     private String newSecondID;
@@ -13,7 +14,8 @@ public class VirtualRoute {
     private VirtualRoute() {
     }
 
-    public VirtualRoute(int storageIndex, String virtualID, String newSecondID, TaskVersion version) {
+    public VirtualRoute(String changeID, int storageIndex, String virtualID, String newSecondID, TaskVersion version) {
+        this.changeID = changeID;
         this.storageIndex = storageIndex;
         this.virtualID = virtualID;
         this.newSecondID = newSecondID;
@@ -50,6 +52,14 @@ public class VirtualRoute {
 
     public void setVersion(TaskVersion version) {
         this.version = version;
+    }
+
+    public String getChangeID() {
+        return changeID;
+    }
+
+    public void setChangeID(String changeID) {
+        this.changeID = changeID;
     }
 
 }

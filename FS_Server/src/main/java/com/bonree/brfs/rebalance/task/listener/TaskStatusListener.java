@@ -50,11 +50,22 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
             if (event.getData() != null && event.getData().getData() != null) {
                 System.out.println("content:" + new String(event.getData().getData()));
             }
+
             if (dispatch.isUpdatedNode(event)) {
                 if (event.getData() != null && event.getData().getData() != null) {
                     // 此处会检测任务是否完成
                     String eventPath = event.getData().getPath();
+                    if (eventPath.substring(eventPath.lastIndexOf('/') + 1, eventPath.length()).equals(Constants.TASK_NODE)) {
+                        return;
+                    }
+
                     String parentPath = StringUtils.substring(eventPath, 0, eventPath.lastIndexOf('/'));
+
+                    // 节点已经删除
+                    if (!curatorClient.checkExists(parentPath)) {
+                        return;
+                    }
+
                     BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(parentPath), BalanceTaskSummary.class);
                     List<String> serverIds = curatorClient.getChildren(parentPath);
                     System.out.println("parentPath:" + parentPath);
@@ -76,7 +87,7 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
                     if (finishFlag) {
                         if (bts.getTaskType() == RecoverType.VIRTUAL) {
                             String virtualRouteNode = dispatch.getVirualRoutePath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
-                            VirtualRoute route = new VirtualRoute(bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
+                            VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
                             curatorClient.createPersistentSequential(virtualRouteNode, true, JSON.toJSONBytes(route));
 
                             String firstID = dispatch.getServerIDManager().getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
@@ -87,7 +98,7 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
                                     dispatch.getServerIDManager().registerFirstID(bts.getStorageIndex(), virtualID, firstID);
                                 }
                             }
-                            
+
                             // 删除virtual server ID
                             System.out.println("delete :" + parentPath);
                             curatorClient.delete(parentPath, true);
@@ -95,7 +106,7 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
 
                         } else if (bts.getTaskType() == RecoverType.NORMAL) {
                             String normalRouteNode = dispatch.getNormalRoutePath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
-                            NormalRoute route = new NormalRoute(1, bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
+                            NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
                             curatorClient.createPersistentSequential(normalRouteNode, true, JSON.toJSONBytes(route));
                         }
 
@@ -110,7 +121,7 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
                                 changeSummaries.remove(cs);
                             }
                         }
-                        dispatch.setStorageFlag(bts.getStorageIndex(), false);
+                        dispatch.removeRunTask(bts.getStorageIndex());
                         // 重新审计
                         dispatch.auditTask(changeSummaries);
                     }

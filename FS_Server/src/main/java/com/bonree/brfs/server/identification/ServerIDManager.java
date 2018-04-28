@@ -117,6 +117,10 @@ public class ServerIDManager {
     public boolean invalidVirtualID(int storageIndex, String id) {
         return virtualServerID.invalidVirtualIden(storageIndex, id);
     }
+    
+    public boolean normalVirtualID(int storageIndex,String id) {
+        return virtualServerID.normalVirtualIden(storageIndex, id);
+    }
 
     public boolean deleteVirtualID(int storageIndex, String id) {
         return virtualServerID.deleteVirtualIden(storageIndex, id);
