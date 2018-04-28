@@ -264,4 +264,22 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
         return true;
     }
 
+    @Override
+    public boolean normalVirtualIden(int storageIndex, String id) {
+        String node = virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + id;
+        CuratorClient client = null;
+        try {
+            client = CuratorClient.getClientInstance(zkHosts);
+            client.setData(node, NORMAL_DATA.getBytes());
+            return true;
+        } catch (Exception e) {
+            LOG.error("set node :" + node + "  error!", e);
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+        return false;
+    }
+
 }

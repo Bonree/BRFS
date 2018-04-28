@@ -39,6 +39,14 @@ public interface VirtualServerID {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public boolean invalidVirtualIden(int storageIndex, String id);
+    
+    /** 概述：
+     * @param storageIndex
+     * @param id
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public boolean normalVirtualIden(int storageIndex, String id);
 
     /** 概述：删除虚拟ID
      * @param id

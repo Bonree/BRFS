@@ -79,7 +79,7 @@ public class TaskOperation implements Closeable {
      */
     private void launchTask(long delay, final DataRecover recover) {
         // TODO
-        new Thread() {
+        new Thread("tttttttttttttttttttttttt") {
             @Override
             public void run() {
                 // TODO 这边需要和成岗进行沟通

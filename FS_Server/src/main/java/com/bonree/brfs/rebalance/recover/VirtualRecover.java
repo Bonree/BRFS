@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.shaded.com.google.common.collect.Lists;
@@ -62,12 +63,13 @@ public class VirtualRecover implements DataRecover {
 
         @Override
         public void nodeChanged() throws Exception {
+            System.out.println("node change!!!");
             byte[] data = client.getData(taskNode);
             BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
             TaskStatus stats = bts.getTaskStatus();
-
             // 更新缓存
             status.set(stats);
+            System.out.println("stats:" + stats);
         }
 
     }
@@ -86,19 +88,15 @@ public class VirtualRecover implements DataRecover {
 
     @Override
     public void recover() {
-        new Thread(consumerQueue()).start();
 
-        TaskDetail detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 1);
+        boolean interrupt = false;
+//        new Thread(consumerQueue()).start();
+
+        TaskDetail detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 3000, 0, 0);
         // 注册节点
         String selfNode = taskNode + Constants.SEPARATOR + idManager.getFirstServerID();
         System.out.println("create:" + selfNode + "-------------" + detail);
         registerNode(selfNode, detail);
-
-        try {
-            Thread.sleep(6000);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
 
         detail.setStatus(ExecutionStatus.RECOVER);
         System.out.println("update:" + selfNode + "-------------" + detail);
@@ -131,23 +129,43 @@ public class VirtualRecover implements DataRecover {
                 // }
             }
         }
-        try {
-            Thread.sleep(6000);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
-        detail.setStatus(ExecutionStatus.FINISH);
-        System.out.println("update:" + selfNode + "-------------" + detail);
-        updateDetail(selfNode, detail);
 
+        for (int i = 0; i < 3000; i++) {
+            if (TaskStatus.CANCEL.equals(status.get())) {
+                interrupt = true;
+                break;
+            }
+            System.out.println("file:" + i);
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            detail.setCurentCount(i + 1);
+            detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
+            updateDetail(selfNode, detail);
+            System.out.println("update:" + selfNode + "-------------" + detail);
+        }
+
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (!interrupt) {
+            detail.setStatus(ExecutionStatus.FINISH);
+            System.out.println("update:" + selfNode + "-------------" + detail);
+            updateDetail(selfNode, detail);
+            System.out.println("virtual server id:" + virtualID + " transference over!!!");
+
+            overFlag = true;
+        }
         try {
             nodeCache.cancelListener(taskNode);
         } catch (IOException e) {
             LOG.error("cancel listener failed!!", e);
         }
-        System.out.println("virtual server id:" + virtualID + " transference over!!!");
-
-        overFlag = true;
+        System.out.println("over!!!!!!!!!!!!!!!!!!!!!");
     }
 
     public List<String> getFiles() {
@@ -165,11 +183,11 @@ public class VirtualRecover implements DataRecover {
             public void run() {
                 try {
                     FileRecoverMeta fileRecover = null;
-                    
+
                     while (fileRecover != null || !overFlag) {
-                        fileRecover = fileRecoverQueue.take();
+                        fileRecover = fileRecoverQueue.poll(100, TimeUnit.MILLISECONDS);
                     }
-                    
+
                     System.out.println("transfer :" + fileRecover);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -209,6 +227,13 @@ public class VirtualRecover implements DataRecover {
         if (!client.checkExists(node)) {
             client.createPersistent(node, false, JSON.toJSONString(detail).getBytes());
         }
+    }
+
+    public static void main(String[] args) {
+        CuratorCacheFactory.init("192.168.101.86:2181");
+        BalanceTaskSummary ts=JSON.parseObject("{\"changeID\":\"15248232460eacd758-ea86-49d3-994a-10a8639b6c45\",\"delayTime\":10,\"inputServers\":[\"21\"],\"outputServers\":[\"20\"],\"serverId\":\"30\",\"storageIndex\":1,\"taskStatus\":\"CANCEL\",\"taskType\":\"VIRTUAL\"}",BalanceTaskSummary.class);
+        VirtualRecover v =new VirtualRecover(ts, "/brfs/wz_test1/rebalance/tasks/1/task", null, null);
+        v.recover();
     }
 
 }

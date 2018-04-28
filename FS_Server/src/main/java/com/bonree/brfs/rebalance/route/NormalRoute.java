@@ -13,6 +13,7 @@ import com.bonree.brfs.rebalance.task.TaskVersion;
  * @Description: 2级serverID的迁移记录
  ******************************************************************************/
 public class NormalRoute {
+    private String changeID;
     private int storageIndex;
     private String secondID;
     private List<String> newSecondIDs;
@@ -22,7 +23,8 @@ public class NormalRoute {
     private NormalRoute() {
     }
 
-    public NormalRoute(int storageIndex, String secondID, List<String> newSecondIDs, TaskVersion version) {
+    public NormalRoute(String changeID, int storageIndex, String secondID, List<String> newSecondIDs, TaskVersion version) {
+        this.changeID = changeID;
         this.storageIndex = storageIndex;
         this.secondID = secondID;
         this.newSecondIDs = newSecondIDs;
@@ -61,4 +63,12 @@ public class NormalRoute {
         this.version = version;
     }
 
+    public String getChangeID() {
+        return changeID;
+    }
+
+    public void setChangeID(String changeID) {
+        this.changeID = changeID;
+    }
+    
 }
