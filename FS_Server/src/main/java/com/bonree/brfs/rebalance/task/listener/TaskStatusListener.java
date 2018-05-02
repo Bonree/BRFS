@@ -122,8 +122,6 @@ public class TaskStatusListener extends AbstractTreeCacheListener {
                             }
                         }
                         dispatch.removeRunTask(bts.getStorageIndex());
-                        // 重新审计
-                        dispatch.auditTask(changeSummaries);
                     }
                 }
             }

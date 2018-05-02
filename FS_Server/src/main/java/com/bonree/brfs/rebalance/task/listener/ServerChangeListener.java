@@ -39,12 +39,12 @@ public class ServerChangeListener extends AbstractTreeCacheListener {
                 if (event.getData() != null && !dispatcher.isEmptyByte(event.getData().getData())) {
 
                     // 需要进行检查，在切换leader的时候，变更记录需要加载进来。
-                    if (dispatcher.isLoad().get()) {
+                    if (!dispatcher.isLoad().get()) {
                         // 此处加载缓存
                         LOG.info("load all");
                         System.out.println("load all");
                         dispatcher.loadCache(client, event);
-                        dispatcher.isLoad().set(false);
+                        dispatcher.isLoad().set(true);
                     }
                     ChangeDetail detail = new ChangeDetail(client, event);
                     // 将变更细节添加到队列即可

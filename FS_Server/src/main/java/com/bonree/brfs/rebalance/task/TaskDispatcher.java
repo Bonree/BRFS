@@ -5,11 +5,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -75,9 +78,11 @@ public class TaskDispatcher {
 
     private final BalanceTaskGenerator taskGenerator;
 
-    private final AtomicBoolean isLoad = new AtomicBoolean(true);
+    private final AtomicBoolean isLoad = new AtomicBoolean(false);
 
     private ExecutorService singleServer = Executors.newSingleThreadExecutor();
+
+    private ScheduledExecutorService scheduleExecutor = Executors.newScheduledThreadPool(1);
 
     // 此处为任务缓存，只有身为leader的server才会进行数据缓存
     private Map<Integer, List<ChangeSummary>> cacheSummaryCache = new ConcurrentHashMap<Integer, List<ChangeSummary>>();
@@ -199,6 +204,32 @@ public class TaskDispatcher {
         LOG.info("tasksPath:" + tasksPath);
         treeCache.addListener(tasksPath, new TaskStatusListener("task_status", this));
 
+        singleServer.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    dealChangeSDetail();
+                } catch (InterruptedException e) {
+                    System.out.println("consumer queue error!!");
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        scheduleExecutor.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                if (leaderLath.hasLeadership()) {
+                    if (isLoad.get()) {
+                        for (Entry<Integer, List<ChangeSummary>> entry : cacheSummaryCache.entrySet()) {
+                            auditTask(entry.getValue());
+                        }
+                    }
+                }
+            }
+        }, 1000, 1000, TimeUnit.MILLISECONDS);
+
     }
 
     public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager) {
@@ -216,11 +247,11 @@ public class TaskDispatcher {
             public void stateChanged(CuratorFramework client, ConnectionState newState) {
                 // 为了保险期间，只要出现网络波动，则需要重新加载缓存
                 if (newState == ConnectionState.LOST) {
-                    isLoad.set(true);
+                    isLoad.set(false);
                 } else if (newState == ConnectionState.SUSPENDED) {
-                    isLoad.set(true);
+                    isLoad.set(false);
                 } else if (newState == ConnectionState.RECONNECTED) {
-                    isLoad.set(true);
+                    isLoad.set(false);
                 }
             }
         });
@@ -242,18 +273,6 @@ public class TaskDispatcher {
         });
         treeCache = CuratorCacheFactory.getTreeCache();
 
-        singleServer.execute(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    dealChangeSDetail();
-                } catch (InterruptedException e) {
-                    System.out.println("consumer queue error!!");
-                    e.printStackTrace();
-                }
-            }
-        });
     }
 
     public void dealChangeSDetail() throws InterruptedException {
@@ -262,7 +281,6 @@ public class TaskDispatcher {
             cd = detailQueue.take();
             List<ChangeSummary> changeSummaries = addOneCache(cd.getClient(), cd.getEvent());
             System.out.println("consume:" + changeSummaries);
-            auditTask(changeSummaries);
         }
 
     }
@@ -337,7 +355,6 @@ public class TaskDispatcher {
                 System.out.println("no data!!!");
                 ChangeSummary deleteSummary = changeSummaries.remove(0);
                 delChangeSummaryNode(deleteSummary);
-                auditTask(changeSummaries);
             }
         }
 
@@ -440,8 +457,6 @@ public class TaskDispatcher {
                             changeSummaries.remove(changeSummary);
                             delChangeSummaryNode(changeSummary);
 
-                            // 重新审计
-                            auditTask(changeSummaries);
                         }
                     }
                 } else {
@@ -452,8 +467,6 @@ public class TaskDispatcher {
                     changeSummaries.remove(changeSummary);
                     delChangeSummaryNode(changeSummary);
 
-                    // 重新审计
-                    auditTask(changeSummaries);
                 }
 
             }
@@ -584,6 +597,7 @@ public class TaskDispatcher {
 
                 }
             }
+
         }
     }
 
