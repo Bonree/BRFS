@@ -9,6 +9,14 @@ import com.bonree.brfs.server.utils.FileUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+/*******************************************************************************
+ * 版权信息：博睿宏远科技发展有限公司
+ * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
+ * 
+ * @date 2018年4月28日 下午3:19:46
+ * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
+ * @Description: 1级serverID实例
+ ******************************************************************************/
 public class FirstLevelServerIDImpl implements LevelServerID{
 
     private LevelServerIDGen firstServerIDGen;

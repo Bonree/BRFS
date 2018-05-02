@@ -497,13 +497,17 @@ public class TaskDispatcher {
             String changeID = runningTaskSummary.getChangeID();
             // 找到正在执行的变更
             ChangeSummary runChangeSummary = changeSummaries.stream().filter(x -> x.getChangeID().equals(changeID)).findFirst().get();
+            System.out.println("run change summary:" + runChangeSummary);
 
             for (ChangeSummary cs : changeSummaries) {
-                if (!cs.getChangeID().equals(runChangeSummary.getChangeID())) { // changeID不同，changeServer相同
+                if (!cs.getChangeID().equals(runChangeSummary.getChangeID())) { // 与正在执行的变更不同
                     if (runChangeSummary.getChangeType().equals(ChangeType.ADD)) { // 正在执行虚拟迁移任务
                         // 正在执行的任务为虚拟serverID迁移
                         if (cs.getChangeType().equals(ChangeType.REMOVE)) { // 虚拟迁移时，出现问题
-                            if (cs.getChangeServer().equals(runChangeSummary.getChangeServer())) {
+                            System.out.println("remove sid:" + cs.getChangeServer());
+                            System.out.println("run task sid:" + runningTaskSummary.getInputServers().get(0));
+                            if (cs.getChangeServer().equals(runningTaskSummary.getInputServers().get(0))) { // TODO 起1，起2，传完挂1，起1(获取serverid),起3，挂2
+
                                 // 服务启动后，虚拟server没迁移完成，服务挂掉
                                 // 等待相应的时间后，该次迁移作废
                                 try {
@@ -514,13 +518,13 @@ public class TaskDispatcher {
                                 }
 
                                 List<String> aliveServices = serviceManager.getServiceListByGroup("discover").stream().map(Service::getServiceId).collect(Collectors.toList());
-                                String otherFirstID = idManager.getOtherFirstID(runChangeSummary.getChangeServer(), runChangeSummary.getStorageIndex());
+                                String otherFirstID = idManager.getOtherFirstID(runningTaskSummary.getInputServers().get(0), runningTaskSummary.getStorageIndex());
 
                                 if (!aliveServices.contains(otherFirstID)) { // TODO 等候10s，检查该server是否回来
                                     updateTaskStatus(currentTask, TaskStatus.CANCEL);
 
                                     try {
-                                        Thread.sleep(10000);
+                                        Thread.sleep(3000);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
