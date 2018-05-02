@@ -42,6 +42,7 @@ import com.bonree.brfs.schedulers.jobs.resource.AsynJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
 import com.bonree.brfs.schedulers.jobs.task.CreateSystemTaskJob;
 import com.bonree.brfs.schedulers.jobs.task.ManagerMetaTaskJob;
+import com.bonree.brfs.schedulers.jobs.task.OperationTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
@@ -115,7 +116,7 @@ public class InitTaskManager {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	//TODO:临时参数serverId，groupName
-	public static void initManager(Configuration configuration, ServiceManager sm, StorageNameManager snm, String homePath, String serverId,String groupName) throws Exception {
+	public static void initManager(Configuration configuration, ServiceManager sm, StorageNameManager snm, String homePath, String serverId,String groupName,boolean isReboot) throws Exception {
 		ResourceTaskConfig managerConfig = ResourceTaskConfig.parse(configuration);
 		ServerConfig serverConfig = ServerConfig.parse(configuration, homePath);
 		ZookeeperPaths zkPath = ZookeeperPaths.create(serverConfig.getClusterName(),serverConfig.getZkHosts());
@@ -165,6 +166,7 @@ public class InitTaskManager {
 			}
 			mcf.setTaskOn(tasks);
 			// 3.创建执行任务线程池
+			createOperationPool(managerConfig, tasks, isReboot);
 		}
 		
 		if(managerConfig.isResourceFrameWorkSwitch()){
@@ -172,6 +174,43 @@ public class InitTaskManager {
 			createResourceManager(manager, zkPath, managerConfig, serverConfig);
 		}
 	}
+	/**
+	 * 概述：创建任务执行线程池
+	 * @param confg
+	 * @param switchList
+	 * @param isReboot
+	 * @throws Exception
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private static void createOperationPool(ResourceTaskConfig confg, List<TaskType> switchList, boolean isReboot) throws Exception{
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		SchedulerManagerInterface manager = mcf.getStm();
+		MetaTaskManagerInterface release = mcf.getTm();
+		String serverId = mcf.getServerId();
+		
+		Properties prop = createSimplePrope(1, 1000);
+		boolean createFlag = manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
+		if(!createFlag){
+			LOG.error("start task operation error !!!");
+			throw new NullPointerException("start task operation error !!!");
+		}
+		manager.startTaskPool(TASK_OPERATION_MANAGER);
+		Map<String,String> dataMap = new HashMap<>();
+		if(isReboot){
+			dataMap = JobDataMapConstract.createRebootTaskOpertionDataMap(switchList, release, serverId);
+		}
+		SumbitTaskInterface task = createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), -1, dataMap, OperationTaskJob.class);
+		boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
+		if(sumbitFlag){
+			LOG.info("operation task sumbit complete !!!");
+		}
+	}
+	/***
+	 * 概述：创建限制资源对象
+	 * @param conf
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	private static TaskExecutablePattern createLimits(ResourceTaskConfig conf){
 		TaskExecutablePattern limit = new TaskExecutablePattern();
 		limit.setCpuRate(conf.getLimitCpuRate());
