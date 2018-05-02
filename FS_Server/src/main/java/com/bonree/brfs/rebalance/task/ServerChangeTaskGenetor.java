@@ -50,7 +50,8 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     private CuratorClient leaderClient;
 
     private int delayDeal;
-    public ServerChangeTaskGenetor(final CuratorClient leaderClient, final CuratorClient client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath,final int delayDeal) throws Exception {
+
+    public ServerChangeTaskGenetor(final CuratorClient leaderClient, final CuratorClient client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath, final int delayDeal) throws Exception {
         this.serverManager = serverManager;
         this.delayDeal = delayDeal;
         this.leaderPath = baseRebalancePath + Constants.SEPARATOR + Constants.CHANGE_LEADER;

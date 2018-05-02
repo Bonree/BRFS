@@ -389,7 +389,7 @@ public class TaskDispatcher {
                 addFlag = true;
                 String changeID = changeSummary.getChangeID();
                 int storageIndex = changeSummary.getStorageIndex();
-                List<String> currentFirstIDs = changeSummary.getCurrentServers();
+                List<String> currentFirstIDs = serviceManager.getServiceListByGroup("discover").stream().map(Service::getServiceId).collect(Collectors.toList());
                 List<String> virtualServerIds = idManager.listNormalVirtualID(changeSummary.getStorageIndex());
                 String virtualServersPath = idManager.getVirtualServersPath();
                 if (virtualServerIds != null && !virtualServerIds.isEmpty()) {
