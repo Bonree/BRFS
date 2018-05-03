@@ -1,4 +1,4 @@
-package com.bonree.brfs.server.utils;
+package com.bonree.brfs.common.utils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -11,7 +11,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -20,6 +22,8 @@ import org.slf4j.LoggerFactory;
 public class FileUtils {
 
     private final static Logger LOG = LoggerFactory.getLogger(FileUtils.class);
+    
+    public final static String FILE_SEPARATOR = File.separator;
 
     /** 概述：创建目录
      * @param pathName 需要创建的目录名
@@ -146,6 +150,21 @@ public class FileUtils {
                 }
             }
         }
+    }
+
+    public static List<String> listFileNames(String dir) {
+        File file = new File(dir);
+        return Arrays.stream(file.list()).collect(Collectors.toList());
+    }
+
+    public static List<String> listFilePaths(String dir) {
+        File file = new File(dir);
+        return Arrays.stream(file.listFiles()).map(File::getPath).collect(Collectors.toList());
+    }
+    
+    public static List<File> listFiles(String dir){
+        File file = new File(dir);
+        return Arrays.stream(file.listFiles()).collect(Collectors.toList());
     }
 
 }

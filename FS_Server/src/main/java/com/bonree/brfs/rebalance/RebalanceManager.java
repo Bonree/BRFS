@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
 import com.bonree.brfs.rebalance.task.TaskDispatcher;
 import com.bonree.brfs.rebalance.task.TaskOperation;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -17,11 +18,12 @@ public class RebalanceManager {
     private TaskOperation opt = null;
     ServiceManager serviceManager;
 
-    public RebalanceManager(String zkHosts, ZookeeperPaths zkPaths, ServerIDManager idManager, ServiceManager serviceManager) {
+    public RebalanceManager(String zkHosts, String dataDir, ZookeeperPaths zkPaths, ServerIDManager idManager, ServiceManager serviceManager) {
         CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts, 500, 500);
         this.serviceManager = serviceManager;
         dispatch = new TaskDispatcher(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager, serviceManager);
-        opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), idManager);
+        opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), idManager, new DefaultStorageNameManager(curatorClient.getInnerClient()), dataDir);
+
     }
 
     public void start() throws Exception {

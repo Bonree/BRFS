@@ -22,4 +22,6 @@ public class Constants {
 
     public final static String NORMAL_ROUTE = "normal_route";
 
+    public final static String DISCOVER = "discover";
+
 }

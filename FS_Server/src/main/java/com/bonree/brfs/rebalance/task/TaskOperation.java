@@ -1,6 +1,7 @@
 package com.bonree.brfs.rebalance.task;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.configuration.Configuration;
 import com.bonree.brfs.configuration.Configuration.ConfigException;
 import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
@@ -37,11 +39,17 @@ public class TaskOperation implements Closeable {
     private ServerIDManager idManager;
     private CuratorTreeCache treeCache;
     private String tasksPath;
+    private String dataDir;
+    private StorageNameManager snManager;
 
-    public TaskOperation(final CuratorClient client, final String baseBalancePath, ServerIDManager idManager) {
+    private static final String FILE_SEPARATOR = File.separator;
+
+    public TaskOperation(final CuratorClient client, final String baseBalancePath, ServerIDManager idManager, StorageNameManager snManager, String dataDir) {
         this.client = client;
         this.idManager = idManager;
         this.tasksPath = baseBalancePath + Constants.SEPARATOR + Constants.TASKS_NODE;
+        this.dataDir = dataDir;
+        this.snManager = snManager;
         treeCache = CuratorCacheFactory.getTreeCache();
     }
 
@@ -52,7 +60,6 @@ public class TaskOperation implements Closeable {
 
     public void launchDelayTaskExecutor(BalanceTaskSummary taskSummary, String taskPath) {
         DataRecover recover = null;
-        long delayTime = 30l;
         List<String> multiIds = taskSummary.getOutputServers();
         System.out.println("output :" + multiIds);
         System.out.println(idManager.getSecondServerID(taskSummary.getStorageIndex()));
@@ -63,12 +70,12 @@ public class TaskOperation implements Closeable {
                 // recover = new MultiRecover(taskSummary, idManager, node, client);
                 // delayTime = taskSummary.getRuntime();
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
-                recover = new VirtualRecover(taskSummary, taskPath, client, idManager);
-                delayTime = taskSummary.getDelayTime();
+                String snDataDir = dataDir + FILE_SEPARATOR + taskSummary.getStorageIndex();
+                recover = new VirtualRecover(taskSummary, taskPath, client, idManager, snDataDir);
             }
 
             // 调用成岗的任务创建模块
-            launchTask(delayTime, recover);
+            launchTask(recover);
         }
     }
 
@@ -77,18 +84,12 @@ public class TaskOperation implements Closeable {
      * @param recover
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    private void launchTask(long delay, final DataRecover recover) {
+    private void launchTask(final DataRecover recover) {
         // TODO
-        new Thread("tttttttttttttttttttttttt") {
+        new Thread("ttttttttttttttt") {
             @Override
             public void run() {
                 // TODO 这边需要和成岗进行沟通
-                System.out.println("10s后启动！！！");
-                try {
-                    Thread.sleep(delay * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 recover.recover();
             }
         }.start();
@@ -111,7 +112,7 @@ public class TaskOperation implements Closeable {
         ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
         ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
         CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 500, 500);
-        TaskOperation opt = new TaskOperation(client, zookeeperPaths.getBaseRebalancePath(), idManager);
+        TaskOperation opt = new TaskOperation(client, zookeeperPaths.getBaseRebalancePath(), idManager, null, null);
         CuratorTreeCache cache = CuratorCacheFactory.getTreeCache();
         cache.addListener(zookeeperPaths.getBaseRebalancePath() + Constants.SEPARATOR + Constants.TASKS_NODE, new TaskExecutorListener("aaa", opt));
         Thread.sleep(Long.MAX_VALUE);

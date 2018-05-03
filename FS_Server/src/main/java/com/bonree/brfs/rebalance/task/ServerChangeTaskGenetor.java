@@ -124,7 +124,7 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     }
 
     private List<String> getCurrentServers(ServiceManager serviceManager) {
-        List<Service> servers = serviceManager.getServiceListByGroup("discover");
+        List<Service> servers = serviceManager.getServiceListByGroup(Constants.DISCOVER);
         List<String> serverIDs = servers.stream().map(Service::getServiceId).collect(Collectors.toList());
         return serverIDs;
     }

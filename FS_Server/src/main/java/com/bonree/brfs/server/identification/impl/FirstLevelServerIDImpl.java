@@ -2,10 +2,10 @@ package com.bonree.brfs.server.identification.impl;
 
 import java.util.List;
 
+import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.server.identification.LevelServerIDGen;
 import com.bonree.brfs.server.identification.LevelServerID;
-import com.bonree.brfs.server.utils.FileUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 

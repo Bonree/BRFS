@@ -8,11 +8,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
@@ -39,9 +39,13 @@ public class VirtualRecover implements DataRecover {
 
     private static final String NAME_SEPARATOR = "_";
 
+    private final String snDataDir;
+
     private ServerIDManager idManager;
 
     private final String taskNode;
+
+    private final String selfNode;
 
     private BalanceTaskSummary balanceSummary;
 
@@ -49,7 +53,15 @@ public class VirtualRecover implements DataRecover {
 
     private final CuratorClient client;
 
+    private final long delayTime;
+
     private boolean overFlag = false;
+
+    private boolean interrupt = false;
+
+    private TaskDetail detail;
+
+    private int currentCount = 0;
 
     private AtomicReference<TaskStatus> status = new AtomicReference<TaskStatus>(TaskStatus.INIT);
 
@@ -74,102 +86,132 @@ public class VirtualRecover implements DataRecover {
 
     }
 
-    public VirtualRecover(BalanceTaskSummary balanceSummary, String taskNode, CuratorClient client, ServerIDManager idManager) {
+    public VirtualRecover(BalanceTaskSummary balanceSummary, String taskNode, CuratorClient client, ServerIDManager idManager, String snDataDir) {
         this.balanceSummary = balanceSummary;
         this.taskNode = taskNode;
         this.client = client;
         this.idManager = idManager;
-
+        this.snDataDir = snDataDir;
         // 恢复需要对节点进行监听
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(taskNode, new RecoverListener("recover"));
-
+        this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstServerID();
+        this.delayTime = balanceSummary.getDelayTime();
     }
 
     @Override
     public void recover() {
+        try {
+            for (int i = 0; i < delayTime; i++) {
+                // 已注册任务，则直接退出
+                if (client.checkExists(selfNode)) {
+                    break;
+                }
+                System.out.println("remain time:" + (delayTime - i) + "s, start task!!!");
+                Thread.sleep(1000);
+            }
+        } catch (InterruptedException e) {
+            LOG.error("task back time count interrupt!!", e);
+        }
 
-        boolean interrupt = false;
-//        new Thread(consumerQueue()).start();
+        int timeFileCounts = 0;
 
-        TaskDetail detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 3000, 0, 0);
+        // List<String> replicasPaths = FileUtils.listFilePaths(snDataDir);
+        // for (String replicasPath : replicasPaths) {
+        // timeFileCounts += FileUtils.listFilePaths(replicasPath).size();
+        // }
+
+        Thread cosumerThread = new Thread(consumerQueue());
+        cosumerThread.start();
+
+        detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, timeFileCounts, 0, 0);
         // 注册节点
-        String selfNode = taskNode + Constants.SEPARATOR + idManager.getFirstServerID();
         System.out.println("create:" + selfNode + "-------------" + detail);
+
+        // 无注册的话，则注册，否则不用注册
         registerNode(selfNode, detail);
 
         detail.setStatus(ExecutionStatus.RECOVER);
         System.out.println("update:" + selfNode + "-------------" + detail);
         updateDetail(selfNode, detail);
 
-        List<String> files = getFiles();
         String storageName = getStorageNameCache(balanceSummary.getStorageIndex()).getStorageName();
         String remoteSecondId = balanceSummary.getInputServers().get(0);
         String remoteFirstID = idManager.getOtherFirstID(remoteSecondId, balanceSummary.getStorageIndex());
         String virtualID = balanceSummary.getServerId();
-
         LOG.info("balance virtual serverId:" + virtualID);
-        for (String fileName : files) {
-            int replicaPot = 0;
-            String[] metaArr = fileName.split(NAME_SEPARATOR);
-            List<String> fileServerIds = new ArrayList<>();
-            for (int j = 1; j < metaArr.length; j++) {
-                fileServerIds.add(metaArr[j]);
-            }
-            if (fileServerIds.contains(virtualID)) {
-                replicaPot = fileServerIds.indexOf(virtualID);
-                FileRecoverMeta fileMeta = new FileRecoverMeta(fileName, storageName, "", replicaPot, remoteFirstID);
-                try {
-                    fileRecoverQueue.put(fileMeta);
-                } catch (InterruptedException e) {
-                    LOG.error("put file: " + fileMeta, e);
-                }
-                // if (!isExistFile(remoteServerId, fileName)) {
-                // remoteCopyFile(remoteServerId, fileName, replicaPot);
-                // }
-            }
-        }
+        // for (String replicasPath : replicasPaths) { // 副本数
+        // List<String> timeFileNames = FileUtils.listFileNames(replicasPath);
+        // for (String timeFileName : timeFileNames) {// 时间文件
+        // String timePath = replicasPath + FileUtils.FILE_SEPARATOR + timeFileName;
+        // List<String> fileNames = FileUtils.listFileNames(timePath);
+        // for (String fileName : fileNames) {
+        // int replicaPot = 0;
+        // String[] metaArr = fileName.split(NAME_SEPARATOR);
+        // List<String> fileServerIds = new ArrayList<>();
+        // for (int j = 1; j < metaArr.length; j++) {
+        // fileServerIds.add(metaArr[j]);
+        // }
+        // if (fileServerIds.contains(virtualID)) {
+        // replicaPot = fileServerIds.indexOf(virtualID);
+        // FileRecoverMeta fileMeta = new FileRecoverMeta(fileName, storageName, timeFileName, replicaPot, remoteFirstID);
+        // try {
+        // fileRecoverQueue.put(fileMeta);
+        // } catch (InterruptedException e) {
+        // LOG.error("put file: " + fileMeta, e);
+        // }
+        // }
+        // }
+        // }
+        // }
 
+        // 模拟发送文件
         for (int i = 0; i < 3000; i++) {
+            currentCount += 1;
             if (TaskStatus.CANCEL.equals(status.get())) {
                 interrupt = true;
                 break;
             }
-            System.out.println("file:" + i);
+            System.out.println("file:" + currentCount);
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            detail.setCurentCount(i + 1);
+
+            detail.setCurentCount(currentCount);
             detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
             updateDetail(selfNode, detail);
             System.out.println("update:" + selfNode + "-------------" + detail);
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
         }
 
+        // 所有的文件已经处理完毕，等待队列为空
+        overFlag = true;
+
         try {
-            Thread.sleep(10);
+            cosumerThread.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.error("cosumerThread error!", e);
         }
+
         if (!interrupt) {
             detail.setStatus(ExecutionStatus.FINISH);
             System.out.println("update:" + selfNode + "-------------" + detail);
             updateDetail(selfNode, detail);
             System.out.println("virtual server id:" + virtualID + " transference over!!!");
-
-            overFlag = true;
         }
+
         try {
             nodeCache.cancelListener(taskNode);
         } catch (IOException e) {
             LOG.error("cancel listener failed!!", e);
         }
         System.out.println("over!!!!!!!!!!!!!!!!!!!!!");
-    }
-
-    public List<String> getFiles() {
-        return Lists.newArrayList();
     }
 
     public boolean isExistFile(String remoteServerId, String fileName) {
@@ -183,12 +225,22 @@ public class VirtualRecover implements DataRecover {
             public void run() {
                 try {
                     FileRecoverMeta fileRecover = null;
-
                     while (fileRecover != null || !overFlag) {
+                        if (TaskStatus.CANCEL.equals(status.get())) {
+                            interrupt = true;
+                            break;
+                        }
                         fileRecover = fileRecoverQueue.poll(100, TimeUnit.MILLISECONDS);
-                    }
+                        if (fileRecover != null) {
+                            System.out.println("transfer :" + fileRecover);// 此处来发送文件
+                            currentCount += 1;
+                            detail.setCurentCount(currentCount);
+                            detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
+                            updateDetail(selfNode, detail);
+                            System.out.println("update:" + selfNode + "-------------" + detail);
+                        }
 
-                    System.out.println("transfer :" + fileRecover);
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -227,13 +279,6 @@ public class VirtualRecover implements DataRecover {
         if (!client.checkExists(node)) {
             client.createPersistent(node, false, JSON.toJSONString(detail).getBytes());
         }
-    }
-
-    public static void main(String[] args) {
-        CuratorCacheFactory.init("192.168.101.86:2181");
-        BalanceTaskSummary ts=JSON.parseObject("{\"changeID\":\"15248232460eacd758-ea86-49d3-994a-10a8639b6c45\",\"delayTime\":10,\"inputServers\":[\"21\"],\"outputServers\":[\"20\"],\"serverId\":\"30\",\"storageIndex\":1,\"taskStatus\":\"CANCEL\",\"taskType\":\"VIRTUAL\"}",BalanceTaskSummary.class);
-        VirtualRecover v =new VirtualRecover(ts, "/brfs/wz_test1/rebalance/tasks/1/task", null, null);
-        v.recover();
     }
 
 }

@@ -74,6 +74,7 @@ public class TaskDispatcher {
     private final CuratorTreeCache treeCache;
 
     private final String virtualRoutePath;
+    
     private final String normalRoutePath;
 
     private final BalanceTaskGenerator taskGenerator;
@@ -329,32 +330,7 @@ public class TaskDispatcher {
             // 没有找到虚拟serverID迁移的任务，执行普通迁移的任务
             if (!dealVirtualTask(changeSummaries)) {
                 // String serverId = changeSummary.getChangeServer();
-                /*
-                 * 根据当时的的情况来判定，决策者如何决定，分为三种
-                 * 1.该SN正常，未做任何操作
-                 * 2.该SN正在进行virtual serverID恢复，此时分为两种，1.移除的机器为正在进行virtual ID映射的机器，2.移除的机器为其他参与者的机器
-                 * 3.该SN正在进行副本丢失迁移，此时会根据副本数来决定迁移是否继续。
-                 */
-                // for (int i = 1; i < changeSummaries.size(); i++) {
-                // ChangeSummary tmp = changeSummaries.get(i);
-                // String tempServerId = tmp.getChangeServer();
-                // if (StringUtils.equals(serverId, tempServerId)) {
-                // if (tmp.getChangeType() == ChangeType.ADD) {
-                // BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(changeSummary);
-                // if (monitor.getTaskProgress(taskSummary) < 0.6) { // TODO 0.6暂时填充
-                // cancelTask(taskSummary); // TODO 此处需要同步,为了一致性，不能是简单的修改任务状态
-                // auditTask(changeSummaries);
-                // }
-                // }
-                // }
-                //
-                // }
-                // BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(changeSummary);
-                // dispatchTask(taskSummary);
-                System.out.println(changeSummaries);
-                System.out.println("no data!!!");
-                ChangeSummary deleteSummary = changeSummaries.remove(0);
-                delChangeSummaryNode(deleteSummary);
+                dealNormalTask(changeSummaries);
             }
         }
 
@@ -379,6 +355,27 @@ public class TaskDispatcher {
                 }
             }
         }
+    }
+
+    private boolean dealNormalTask(List<ChangeSummary> changeSummaries) {
+
+        /*
+         * 根据当时的的情况来判定，决策者如何决定，分为三种
+         * 1.该SN正常，未做任何操作
+         * 2.该SN正在进行virtual serverID恢复，此时分为两种，1.移除的机器为正在进行virtual ID映射的机器，2.移除的机器为其他参与者的机器
+         * 3.该SN正在进行副本丢失迁移，此时会根据副本数来决定迁移是否继续。
+         */
+        //检测是否能进行数据恢复。
+        ChangeSummary cs =changeSummaries.get(0);
+        if(cs.getChangeType().equals(ChangeType.REMOVE)) {
+            List<String> aliveFirstIDs=serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
+            cs.getCurrentServers();
+        }
+        System.out.println(changeSummaries);
+        System.out.println("no data!!!");
+        ChangeSummary deleteSummary = changeSummaries.remove(0);
+        delChangeSummaryNode(deleteSummary);
+        return true;
     }
 
     private boolean dealVirtualTask(List<ChangeSummary> changeSummaries) {
@@ -406,7 +403,7 @@ public class TaskDispatcher {
                 addFlag = true;
                 String changeID = changeSummary.getChangeID();
                 int storageIndex = changeSummary.getStorageIndex();
-                List<String> currentFirstIDs = serviceManager.getServiceListByGroup("discover").stream().map(Service::getServiceId).collect(Collectors.toList());
+                List<String> currentFirstIDs = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
                 List<String> virtualServerIds = idManager.listNormalVirtualID(changeSummary.getStorageIndex());
                 String virtualServersPath = idManager.getVirtualServersPath();
                 if (virtualServerIds != null && !virtualServerIds.isEmpty()) {
@@ -425,7 +422,7 @@ public class TaskDispatcher {
                             String selectSecondID = idManager.getOtherSecondID(selectID, storageIndex);
 
                             String secondParticipator = null;
-                            List<String> aliveServices = serviceManager.getServiceListByGroup("discover").stream().map(Service::getServiceId).collect(Collectors.toList());
+                            List<String> aliveServices = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
 
                             for (String participator : participators) {
                                 if (aliveServices.contains(participator)) {
@@ -448,7 +445,6 @@ public class TaskDispatcher {
                             } while (!flag);
                             // 虚拟serverID置为无效
                             // 虚拟serverID迁移完成，会清理缓存和zk上的任务
-
                             break;
                         } else {
                             System.out.println("无须处理的变更");
@@ -530,7 +526,7 @@ public class TaskDispatcher {
                                     e.printStackTrace();
                                 }
 
-                                List<String> aliveServices = serviceManager.getServiceListByGroup("discover").stream().map(Service::getServiceId).collect(Collectors.toList());
+                                List<String> aliveServices = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
                                 String otherFirstID = idManager.getOtherFirstID(runningTaskSummary.getInputServers().get(0), runningTaskSummary.getStorageIndex());
 
                                 if (!aliveServices.contains(otherFirstID)) { // TODO 等候10s，检查该server是否回来
@@ -560,7 +556,7 @@ public class TaskDispatcher {
                                         e.printStackTrace();
                                     }
 
-                                    List<String> aliveServices = serviceManager.getServiceListByGroup("discover").stream().map(Service::getServiceId).collect(Collectors.toList());
+                                    List<String> aliveServices = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
                                     String otherFirstID = idManager.getOtherFirstID(runningTaskSummary.getOutputServers().get(0), runChangeSummary.getStorageIndex());
 
                                     if (!aliveServices.contains(otherFirstID)) {

@@ -8,7 +8,6 @@ import com.bonree.brfs.common.zookeeper.curator.locking.CuratorLocksClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.Executor;
 import com.google.common.base.Preconditions;
 
-
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
@@ -25,7 +24,9 @@ public class StorageSequenceGenetor {
 
     private final String zkUrl;
 
-    private final static String STORAGE_INDEX_NODE = "storage_index";
+    private final static String INDEX_NODE = "index";
+
+    private final static String STORAGE_SEQ = "storage_seq";
 
     private final static String LOCKS_PATH = "lock";
 
@@ -70,16 +71,36 @@ public class StorageSequenceGenetor {
         return storageSequenceGenetor;
     }
 
-    public Integer getIncreSequence() {
+    /** 概述：重置sequence
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public synchronized boolean resetSequence() {
+        CuratorClient client = null;
+        try {
+            client = CuratorClient.getClientInstance(zkUrl);
+            client.setData(basePath + SEPARATOR + INDEX_NODE + SEPARATOR + STORAGE_SEQ, "0".getBytes());
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+        return true;
+    }
+
+    /** 概述：获取递增sequence
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public synchronized Integer getIncreSequence() {
         int sequence = 0;
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkUrl);
-            String node = basePath + SEPARATOR + STORAGE_INDEX_NODE;
+            String node = basePath + SEPARATOR + INDEX_NODE + SEPARATOR + STORAGE_SEQ;
             ZKIncreSequence genExecutor = new ZKIncreSequence(node);
-            CuratorLocksClient<Integer> lockClient = new CuratorLocksClient<Integer>(client,basePath + SEPARATOR+ LOCKS_PATH, genExecutor, "genSingleIdentification");
+            CuratorLocksClient<Integer> lockClient = new CuratorLocksClient<Integer>(client, basePath + SEPARATOR + INDEX_NODE + SEPARATOR + LOCKS_PATH, genExecutor, "genSingleIdentification");
             sequence = lockClient.execute();
-
         } catch (Exception e) {
             LOG.error("getSingleIdentification error!", e);
         } finally {

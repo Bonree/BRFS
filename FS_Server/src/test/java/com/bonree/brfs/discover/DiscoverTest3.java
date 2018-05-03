@@ -8,6 +8,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
 import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.configuration.Configuration.ConfigException;
@@ -33,17 +34,17 @@ public class DiscoverTest3 {
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseServersPath().substring(1, zookeeperPaths.getBaseServersPath().length())));
             sm.start();
 
-            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), zookeeperPaths, idManager, sm);
+            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), serverConfig.getDataPath(), zookeeperPaths, idManager, sm);
             rebalanceServer.start();
 
             Service selfService = new Service();
             selfService.setHost(serverConfig.getHost());
             selfService.setPort(serverConfig.getPort());
-            selfService.setServiceGroup("discover");
+            selfService.setServiceGroup(Constants.DISCOVER);
             selfService.setServiceId(idManager.getFirstServerID());
             sm.registerService(selfService);
             System.out.println(selfService);
-            sm.addServiceStateListener("discover", new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000));
+            sm.addServiceStateListener(Constants.DISCOVER, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000));
 
             System.out.println("launch Server 3");
         } catch (ConfigException e) {
