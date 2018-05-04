@@ -55,5 +55,7 @@ public class TaskModel {
 	public void setAtomList(List<AtomTaskModel> atomList) {
 		this.atomList = atomList;
 	}
-	
+	public void putAtom(List<AtomTaskModel> atoms){
+		this.atomList.addAll(atoms);
+	}
 }

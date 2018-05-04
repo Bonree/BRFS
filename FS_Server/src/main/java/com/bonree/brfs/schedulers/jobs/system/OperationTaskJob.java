@@ -1,4 +1,4 @@
-package com.bonree.brfs.schedulers.jobs.task;
+package com.bonree.brfs.schedulers.jobs.system;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +24,8 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
+import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.jobs.biz.SystemDeleteJob;
 import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
@@ -86,6 +88,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				poolSize = schd.getTaskPoolSize(typeName);
 				sumbitSize = schd.getSumbitedTaskCount(typeName);
 				//判断任务是否可以执行
+				LOG.info("TEST1 {},{},{}",taskType.code(),poolSize,sumbitSize);
 				boolean isRun = runTask.taskRunnable(taskType.code(), poolSize, sumbitSize);
 				if(!isRun){
 					LOG.warn("resource is limit !!! skip {} !!!",typeName);
@@ -120,16 +123,18 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					runPattern.setSleepTime(1000);
 				}
 				
-				//创建任务提交信息
-				sumbitTask = null;
+				// 创建任务提交信息
+				// TODO：根据不同类型的任务在此生成的不一样
+				sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemDeleteJob.class.getCanonicalName());
 				
+				//
 				boolean isSumbit = schd.addTask(typeName, sumbitTask);
 				LOG.info("sumbit type:{}, taskName :{}, state:{}", typeName, currentTaskName, isSumbit);
 				if(!isSumbit){
 					LOG.info("next cycle will sumbit against type : {}, taskName : {}", typeName, currentTaskName);
 					continue;
 				}
-				
+				// 更新任务状态
 				//更新任务执行的位置
 				data.put(typeName, currentTaskName);
 			}
@@ -138,15 +143,32 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				e.printStackTrace();
 			}
 		}
-		
 	}
 	
-	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId){
+	
+	/**
+	 * 概述：生成任务信息
+	 * @param taskModel
+	 * @param runPattern
+	 * @param taskName
+	 * @param serverId
+	 * @param clazzName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId,String clazzName){
 		QuartzSimpleInfo task = new QuartzSimpleInfo();
 		task.setRunNowFlag(true);
 		task.setCycleFlag(false);
 		task.setTaskName(taskName);
-//		task.set
+		task.setTaskGroupName(TaskType.valueOf(taskModel.getTaskType()).name());
+		task.setRepeateCount(runPattern.getRepeateCount());
+		task.setInterval(runPattern.getSleepTime());
+		Map<String,String> dataMap = JobDataMapConstract.createOperationDataMap(taskName,serverId, taskModel, runPattern);
+		if(dataMap != null && !dataMap.isEmpty()){
+			task.setTaskContent(dataMap);
+		}
+		task.setClassInstanceName(clazzName);
 		return task;
 	}
 	

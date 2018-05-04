@@ -69,9 +69,11 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 		
 		int taskCount = threadCount;
 		if(taskCount < 0){
+			LOG.warn("there is no thread in the {} pool ",taskType);
 			return false;
 		}
 		if(poolSize <=0 ||poolSize <= taskCount){
+			LOG.warn("task pool size is full !!! pool size :{}, thread count :{}",poolSize,threadCount);
 			return false;
 		}
 		if(TaskType.SYSTEM_DELETE.code() == taskType || TaskType.USER_DELETE.code() == taskType){

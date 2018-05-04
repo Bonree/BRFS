@@ -19,8 +19,8 @@ public class QuartzSimpleInfo implements SumbitTaskInterface {
 	private String taskGroupName;
 	private String classInstanceName;
 	private Map<String,String> taskContent = new HashMap<String,String>();
-	private long interval = 60000;
-	private int repeateCount = 3;
+	private long interval = -1;
+	private int repeateCount = 0;
 	private int taskKind = 1;
 	private long delayTime = 0;
 	private boolean runNowFlag = false;

@@ -6,10 +6,13 @@ import java.util.Map;
 
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
+import com.bonree.brfs.schedulers.task.model.TaskModel;
+import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 
 public class JobDataMapConstract {
 	/**
@@ -49,6 +52,22 @@ public class JobDataMapConstract {
 	 */
 	public static final String AVAIABLE_SERVER_CLASS = "AVAIABLE_SERVER_CLASS";
 	/**
+	 * 任务重复次数
+	 */
+	public static final String TASK_REPEAT_RUN_COUNT = "REPEAT_RUN_COUNT";
+	/**
+	 * 任务执行间隔
+	 */
+	public static final String TASK_RUN_INVERAL_TIME = "TASK_RUN_INVERAL_TIME";
+	/**
+	 * 任务操作的队列
+	 */
+	public static final String TASK_OPERATION_ARRAYS = "TASK_OPERATION_ARRAYS";
+	public static final String TASK_NAME = "TASK_NAME";
+	public static final String TASK_TYPE = "TASK_TYPE";
+	public static final String TASK_STAT = "TASK_STAT";
+	
+	/**
 	 * 概述：生成采集job需要的参数
 	 * @param server
 	 * @param resource
@@ -79,10 +98,38 @@ public class JobDataMapConstract {
 		dataMap.put(AVAIABLE_SERVER_CLASS, RandomAvailable.class.getCanonicalName());
 		return dataMap;
 	}
-	
+	/**
+	 * 概述：任务管理信息
+	 * @param resource
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public static Map<String,String> createMetaDataMap(ResourceTaskConfig resource){
-		Map<String, String>  dataMap = new HashMap<>();
+		Map<String, String> dataMap = new HashMap<>();
 		dataMap.put(TASK_EXPIRED_TIME, resource.getTaskExpiredTime() + "");
+		return dataMap;
+	}
+	/**
+	 * 概述：创建任务信息
+	 * @param server
+	 * @param resource
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static Map<String,String> createCreateDataMap(ServerConfig server, ResourceTaskConfig resource){
+		Map<String, String> dataMap = new HashMap<>();
+		dataMap.put(DATA_PATH, server.getDataPath());
+		return dataMap;
+	}
+	public static Map<String, String> createOperationDataMap(String taskName,String serviceId, TaskModel task, TaskRunPattern pattern){
+		Map<String, String> dataMap = new HashMap<>();
+		dataMap.put(TASK_NAME, taskName);
+		dataMap.put(SERVER_ID, serviceId);
+		dataMap.put(TASK_TYPE, task.getTaskType() +"");
+		dataMap.put(TASK_STAT, task.getTaskState() + "");
+		dataMap.put(TASK_OPERATION_ARRAYS, JsonUtils.toJsonString(task.getAtomList()));
+		dataMap.put(TASK_REPEAT_RUN_COUNT, pattern.getRepeateCount() + "");
+		dataMap.put(TASK_RUN_INVERAL_TIME, pattern.getSleepTime() + "");
 		return dataMap;
 	}
 	/**

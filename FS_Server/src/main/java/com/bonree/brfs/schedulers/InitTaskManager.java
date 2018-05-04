@@ -40,9 +40,9 @@ import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.resource.AsynJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
-import com.bonree.brfs.schedulers.jobs.task.CreateSystemTaskJob;
-import com.bonree.brfs.schedulers.jobs.task.ManagerMetaTaskJob;
-import com.bonree.brfs.schedulers.jobs.task.OperationTaskJob;
+import com.bonree.brfs.schedulers.jobs.system.CreateSystemTaskJob;
+import com.bonree.brfs.schedulers.jobs.system.ManagerMetaTaskJob;
+import com.bonree.brfs.schedulers.jobs.system.OperationTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
@@ -142,6 +142,7 @@ public class InitTaskManager {
 		
 		// 工厂类添加发布接口
 		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
+		LOG.info("zkhost : {}  taskpath : {}", serverConfig.getZkHosts(), zkPath.getBaseTaskPath());
 		release.setPropreties(serverConfig.getZkHosts(), zkPath.getBaseTaskPath());
 		mcf.setTm(release);
 		// 工厂类添加任务可执行接口
@@ -241,7 +242,6 @@ public class InitTaskManager {
 		ServerModel smodel = new ServerModel();
 		smodel.setBase(base);
 		String str = JsonUtils.toJsonString(smodel);
-		LOG.info("base {}", str);
 		sm.updateService(serverConfig.getClusterName(), serverId, str);
 		
 		// 3.创建资源采集线程池
