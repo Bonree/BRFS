@@ -8,11 +8,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.CuratorLocksClient;
 import com.bonree.brfs.common.zookeeper.curator.locking.Executor;
-import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.server.identification.IncreServerID;
 import com.bonree.brfs.server.identification.VirtualServerID;
 import com.bonree.brfs.server.identification.VirtualServerIDGen;

@@ -1,5 +1,6 @@
 package com.bonree.brfs.rebalance.task;
 
+import java.util.List;
 
 import org.apache.curator.shaded.com.google.common.collect.Lists;
 
@@ -17,7 +18,7 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 public class SimpleTaskGenerator implements BalanceTaskGenerator {
 
     @Override
-    public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String virtualId, String selectID, String participator) {
+    public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String virtualId, String selectID, String participator, long delayTime) {
 
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
         // changeID
@@ -34,24 +35,35 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
         taskSummary.setTaskType(RecoverType.VIRTUAL);
         // 设置SN的index
         taskSummary.setStorageIndex(storageIndex);
+
         // 设置任务延迟触发时间
-        taskSummary.setDelayTime(10 * 1); // 1分钟后开始迁移
+        taskSummary.setDelayTime(delayTime); // 1分钟后开始迁移
 
         return taskSummary;
     }
-    
-    
 
     @Override
-    public BalanceTaskSummary genBalanceTask(ChangeSummary changeSummary) { // TODO 此处需要挑选机器
+    public BalanceTaskSummary genBalanceTask(String changeID, int storageIndex, String secondServerID, List<String> selectIDs, List<String> participators, long delayTime) {
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
-        taskSummary.setServerId(changeSummary.getChangeServer());
-        taskSummary.setStorageIndex(changeSummary.getStorageIndex());
-        taskSummary.setOutputServers(changeSummary.getCurrentServers());
-        taskSummary.setInputServers(changeSummary.getCurrentServers());
-        taskSummary.setTaskStatus(TaskStatus.INIT);
+
+        taskSummary.setChangeID(changeID);
+
+        taskSummary.setServerId(secondServerID);
+
+        taskSummary.setInputServers(selectIDs);
+
+        taskSummary.setOutputServers(participators);
+
+        taskSummary.setAliveServer(selectIDs);
+
+        taskSummary.setStorageIndex(storageIndex);
+
         taskSummary.setTaskType(RecoverType.NORMAL);
-        taskSummary.setDelayTime(60 * 30);
+
+        taskSummary.setTaskStatus(TaskStatus.INIT);
+
+        taskSummary.setDelayTime(delayTime);
+        
         return taskSummary;
     }
 

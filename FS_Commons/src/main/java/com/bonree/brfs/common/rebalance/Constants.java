@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalance;
+package com.bonree.brfs.common.rebalance;
 
 public class Constants {
 
@@ -23,5 +23,13 @@ public class Constants {
     public final static String NORMAL_ROUTE = "normal_route";
 
     public final static String DISCOVER = "discover";
+
+    public final static long DEFAULT_DELAY_TIME = 30;
+
+    public final static char SINGLE_ID = '1';
+
+    public final static char MULTI_ID = '2';
+
+    public final static char VIRTUAL_ID = '3';
 
 }

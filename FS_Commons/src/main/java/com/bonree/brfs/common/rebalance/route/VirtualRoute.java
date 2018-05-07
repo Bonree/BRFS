@@ -1,6 +1,6 @@
-package com.bonree.brfs.rebalance.route;
+package com.bonree.brfs.common.rebalance.route;
 
-import com.bonree.brfs.rebalance.task.TaskVersion;
+import com.bonree.brfs.common.rebalance.TaskVersion;
 
 public class VirtualRoute {
 

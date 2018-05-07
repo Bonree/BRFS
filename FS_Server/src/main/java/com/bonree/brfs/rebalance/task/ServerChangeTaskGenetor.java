@@ -13,11 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.server.StorageName;
 import com.bonree.brfs.server.identification.ServerIDManager;
 

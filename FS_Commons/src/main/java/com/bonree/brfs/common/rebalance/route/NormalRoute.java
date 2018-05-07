@@ -1,8 +1,9 @@
-package com.bonree.brfs.rebalance.route;
+package com.bonree.brfs.common.rebalance.route;
 
 import java.util.List;
 
-import com.bonree.brfs.rebalance.task.TaskVersion;
+import com.bonree.brfs.common.rebalance.TaskVersion;
+
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司

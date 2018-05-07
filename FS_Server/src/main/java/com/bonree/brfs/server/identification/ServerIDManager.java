@@ -34,7 +34,7 @@ public class ServerIDManager {
 
     private CuratorTreeCache secondIDCache = null;
 
-    private final static String SINGLE_FILE = "/id/server_id";
+    private final static String SINGLE_FILE_DIR = "/id/server_id";
 
     private Map<String, String> otherServerIDCache = null;
 
@@ -69,7 +69,7 @@ public class ServerIDManager {
     }
 
     public ServerIDManager(ServerConfig config, ZookeeperPaths zkBasePaths) {
-        firstLevelServerID = new FirstLevelServerIDImpl(config.getZkHosts(), zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE, zkBasePaths.getBaseServerIdSeqPath());
+        firstLevelServerID = new FirstLevelServerIDImpl(config.getZkHosts(), zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath());
         firstLevelServerID.initOrLoadServerID();
         virtualServerID = new VirtualServerIDImpl(config.getZkHosts(), zkBasePaths.getBaseServerIdSeqPath());
         otherServerIDCache = new ConcurrentHashMap<>();

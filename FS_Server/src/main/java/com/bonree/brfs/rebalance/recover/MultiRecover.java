@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,18 +16,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
-import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.record.BalanceRecord;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.server.StorageName;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*******************************************************************************
@@ -41,22 +42,34 @@ public class MultiRecover implements DataRecover {
 
     private Logger LOG = LoggerFactory.getLogger(MultiRecover.class);
 
-    private BalanceTaskSummary balanceSummary;
+    private static final String NAME_SEPARATOR = "_";
+
+    private final String snDataDir;
 
     private ServerIDManager idManager;
 
     private final String taskNode;
 
+    private final String selfNode;
+
+    private BalanceTaskSummary balanceSummary;
+
     // 该SN历史迁移路由信息
     private Map<String, BalanceTaskSummary> snStorageSummary;
-
-    private static final String NAME_SEPARATOR = "_";
 
     private CuratorNodeCache nodeCache;
 
     private final CuratorClient client;
 
+    private final long delayTime;
+
     private boolean overFlag = false;
+
+    private AtomicBoolean interrupt = new AtomicBoolean(false);
+
+    private TaskDetail detail;
+
+    private int currentCount = 0;
 
     private BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
@@ -70,86 +83,151 @@ public class MultiRecover implements DataRecover {
 
         @Override
         public void nodeChanged() throws Exception {
+            System.out.println("node change!!!");
             byte[] data = client.getData(taskNode);
             BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
             TaskStatus stats = bts.getTaskStatus();
             // 更新缓存
             status.set(stats);
+
+            if (TaskStatus.CANCEL.equals(status.get())) {
+                interrupt.set(true);
+                return;
+            }
+            System.out.println("stats:" + stats);
         }
 
     }
 
-    public MultiRecover(BalanceTaskSummary summary, ServerIDManager idManager, String taskNode, CuratorClient client) {
+    public MultiRecover(BalanceTaskSummary summary, ServerIDManager idManager, String taskNode, CuratorClient client, String snDataDir) {
         this.balanceSummary = summary;
         this.idManager = idManager;
         this.taskNode = taskNode;
         this.client = client;
+        this.snDataDir = snDataDir;
         // 开启监控
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(taskNode, new RecoverListener("recover"));
+        this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstServerID();
+        this.delayTime = balanceSummary.getDelayTime();
     }
 
     @Override
     public void recover() {
-        LOG.info("begin recover");
-        //启动消费队列
-        new Thread(consumerQueue()).start();
-        
-        TaskDetail detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
+        try {
+            for (int i = 0; i < delayTime; i++) {
+                // 已注册任务，则直接退出
+                if (client.checkExists(selfNode)) {
+                    break;
+                }
+                System.out.println("remain time:" + (delayTime - i) + "s, start task!!!");
+                Thread.sleep(1000);
+            }
+        } catch (InterruptedException e) {
+            LOG.error("task back time count interrupt!!", e);
+        }
 
-        String selfNode = taskNode + Constants.SEPARATOR + idManager.getFirstServerID();
+        LOG.info("begin normal recover");
+        int timeFileCounts = 0;
+        List<String> replicasNames = FileUtils.listFileNames(snDataDir);
+        for (String replicasName : replicasNames) {
+            String replicasPath = snDataDir + FileUtils.FILE_SEPARATOR + replicasName;
+            timeFileCounts += FileUtils.listFileNames(replicasPath).size();
+        }
+
+        // 启动消费队列
+        Thread cosumerThread = new Thread(consumerQueue());
+        cosumerThread.start();
+
+        detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, timeFileCounts, 0, 0);
+
+        // 注册节点
+        System.out.println("create:" + selfNode + "-------------" + detail);
+        // 无注册的话，则注册，否则不用注册
+        registerNode(selfNode, detail);
 
         detail.setStatus(ExecutionStatus.RECOVER);
+        System.out.println("update:" + selfNode + "-------------" + detail);
         updateDetail(selfNode, detail);
-
-        // 获取该sn的副本数
-        int replicas = getStorageName(balanceSummary.getStorageIndex()).getReplications();
 
         LOG.info("deal the local server:" + idManager.getSecondServerID(balanceSummary.getStorageIndex()));
 
-        // 以副本数来遍历
-        for (int i = 1; i <= replicas; i++) {
-            dealReplicas(i);
+        // 遍历副本文件
+        dealReplicas(replicasNames);
+
+        overFlag = true;
+        try {
+            cosumerThread.join();
+        } catch (InterruptedException e1) {
+            LOG.error("cosumerThread error!", e1);
         }
-        detail.setStatus(ExecutionStatus.FINISH);
-        updateDetail(selfNode, detail);
+        // 没有中断
+        if (!interrupt.get()) {
+            detail.setStatus(ExecutionStatus.FINISH);
+            updateDetail(selfNode, detail);
+            System.out.println("恢复正常完成！！！！！");
+        }
+
         try {
             nodeCache.cancelListener(taskNode);
         } catch (IOException e) {
             LOG.error("cancel listener failed!!", e);
         }
-        System.out.println("恢复完成");
-        overFlag = true;
+
     }
 
-    private void dealReplicas(int replica) {
-        // 需要迁移的文件,按目录的时间从小到大处理
-        List<String> repliFiles = getFiles();
-        dealFiles(repliFiles, replica);
-    }
+    private void dealReplicas(List<String> replicas) {
 
-    private void dealFiles(List<String> files, int replica) {
-        SimpleRecordWriter simpleWriter = null;
-        try {
-            simpleWriter = new SimpleRecordWriter("");
-            for (String perFile : files) {
-                dealFile(perFile, replica, simpleWriter);
+        for (String replica : replicas) {
+            if (interrupt.get()) {
+                return;
             }
-        } catch (IOException e) {
-            LOG.error("write balance record error!", e);
-        } finally {
-            if (simpleWriter != null) {
-                try {
-                    simpleWriter.close();
-                } catch (IOException e) {
-                    LOG.error("close simpleWriter error!", e);
+            // 需要迁移的文件,按目录的时间从小到大处理
+            String replicaPath = snDataDir + FileUtils.FILE_SEPARATOR + replica;
+            List<String> timeFileNames = FileUtils.listFileNames(replicaPath);
+            dealTimeFile(timeFileNames, Integer.valueOf(replica));
+        }
+    }
+
+    private void dealTimeFile(List<String> timeFileNames, int replica) {
+
+        for (String timeFileName : timeFileNames) {
+            if (interrupt.get()) {
+                return;
+            }
+            SimpleRecordWriter simpleWriter = null;
+            try {
+                simpleWriter = new SimpleRecordWriter("");
+                String timeFilePath = snDataDir + FileUtils.FILE_SEPARATOR + replica + FileUtils.FILE_SEPARATOR + timeFileName;
+                List<String> fileNames = FileUtils.listFileNames(timeFilePath);
+                dealFiles(fileNames, timeFileName, replica, simpleWriter);
+            } catch (IOException e) {
+                LOG.error("write balance record error!", e);
+            } finally {
+                if (simpleWriter != null) {
+                    try {
+                        simpleWriter.close();
+                    } catch (IOException e) {
+                        LOG.error("close simpleWriter error!", e);
+                    }
                 }
             }
         }
 
     }
 
-    private void dealFile(String perFile, int replica, SimpleRecordWriter simpleWriter) throws IOException {
+    private void dealFiles(List<String> fileNames, String timeFileName, int replica, SimpleRecordWriter simpleWriter) throws IOException {
+        for (String fileName : fileNames) {
+            if (interrupt.get()) {
+                return;
+            }
+            String filePath = snDataDir + FileUtils.FILE_SEPARATOR + replica + FileUtils.FILE_SEPARATOR + timeFileName + FileUtils.FILE_SEPARATOR + fileName;
+            dealFile(filePath, timeFileName, replica, simpleWriter);
+        }
+    }
+
+    private void dealFile(String perFile, String timeFileName, int replica, SimpleRecordWriter simpleWriter) throws IOException {
+
         // 对文件名进行分割处理
         String[] metaArr = perFile.split(NAME_SEPARATOR);
         // 提取出用于hash的部分
@@ -215,10 +293,21 @@ public class MultiRecover implements DataRecover {
                     FileRecoverMeta fileRecover = null;
 
                     while (fileRecover != null || !overFlag) {
+                        if (interrupt.get()) {
+                            break;
+                        }
                         fileRecover = fileRecoverQueue.take();
+                        if (fileRecover != null) {
+                            System.out.println("transfer :" + fileRecover);
+
+                            currentCount += 1;
+                            detail.setCurentCount(currentCount);
+                            detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
+                            updateDetail(selfNode, detail);
+                            System.out.println("update:" + selfNode + "-------------" + detail);
+                        }
                     }
 
-                    System.out.println("transfer :" + fileRecover);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -232,10 +321,6 @@ public class MultiRecover implements DataRecover {
 
     private void remoteCopyFile(String remoteServer, String fileName) {
 
-    }
-
-    private List<String> getFiles() {
-        return new ArrayList<String>();
     }
 
     /** 概述：判断是否需要恢复
@@ -303,10 +388,6 @@ public class MultiRecover implements DataRecover {
         } else {
             return false;
         }
-    }
-
-    public StorageName getStorageName(int storageIndex) {
-        return new StorageName();
     }
 
     /** 概述：更新任务信息

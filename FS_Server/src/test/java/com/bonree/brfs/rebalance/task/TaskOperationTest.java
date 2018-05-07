@@ -1,7 +1,7 @@
 package com.bonree.brfs.rebalance.task;
 
+import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.rebalance.Constants;
 
 public class TaskOperationTest {
 

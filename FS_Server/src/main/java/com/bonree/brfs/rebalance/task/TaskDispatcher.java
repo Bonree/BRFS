@@ -29,14 +29,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
+import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
-import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.task.listener.ServerChangeListener;
 import com.bonree.brfs.rebalance.task.listener.TaskStatusListener;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -61,6 +62,8 @@ public class TaskDispatcher {
 
     private ServerIDManager idManager;
 
+    private StorageNameManager snManager;
+
     // private TaskMonitor monitor;
 
     private final String baseRebalancePath;
@@ -74,7 +77,7 @@ public class TaskDispatcher {
     private final CuratorTreeCache treeCache;
 
     private final String virtualRoutePath;
-    
+
     private final String normalRoutePath;
 
     private final BalanceTaskGenerator taskGenerator;
@@ -365,16 +368,38 @@ public class TaskDispatcher {
          * 2.该SN正在进行virtual serverID恢复，此时分为两种，1.移除的机器为正在进行virtual ID映射的机器，2.移除的机器为其他参与者的机器
          * 3.该SN正在进行副本丢失迁移，此时会根据副本数来决定迁移是否继续。
          */
-        //检测是否能进行数据恢复。
-        ChangeSummary cs =changeSummaries.get(0);
-        if(cs.getChangeType().equals(ChangeType.REMOVE)) {
-            List<String> aliveFirstIDs=serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
-            cs.getCurrentServers();
+
+        // 检测是否能进行数据恢复。
+        ChangeSummary cs = changeSummaries.get(0);
+        if (cs.getChangeType().equals(ChangeType.REMOVE)) {
+            boolean canRecover = true;
+            int replicas = snManager.findStorageName(cs.getStorageIndex()).getReplicateCount();
+            List<String> aliveFirstIDs = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
+            List<String> joinerFirstIDs = cs.getCurrentServers();
+
+            for (String joiner : joinerFirstIDs) {
+                if (!aliveFirstIDs.contains(joiner)) {
+                    canRecover = false;
+                    break;
+                }
+            }
+            if (aliveFirstIDs.size() < replicas) {
+                canRecover = false;
+            }
+            if (canRecover) {
+                List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
+                List<String> joinerSecondIDs = joinerFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
+                // 构建任务
+                BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangeServer(), aliveSecondIDs, joinerSecondIDs, Constants.DEFAULT_DELAY_TIME);
+                // 发布任务
+                dispatchTask(taskSummary);
+                // 加入正在执行的任务的缓存中
+                setRunTask(taskSummary.getStorageIndex(), taskSummary);
+            } else {
+                System.out.println("恢复条件不满足：" + changeSummaries);
+            }
+
         }
-        System.out.println(changeSummaries);
-        System.out.println("no data!!!");
-        ChangeSummary deleteSummary = changeSummaries.remove(0);
-        delChangeSummaryNode(deleteSummary);
         return true;
     }
 
@@ -393,7 +418,6 @@ public class TaskDispatcher {
          * 1.参与者不足的情况，该sn出现异常，之后的变更都不能处理
          * 2.参与者充足的情况，需要重新选择参与者进行执行，remove任务依旧放在最后
          */
-
         System.out.println("dealVirtualTask !!!!");
         System.out.println(changeSummaries);
         boolean addFlag = false;
@@ -413,6 +437,7 @@ public class TaskDispatcher {
                         List<String> participators = curatorClient.getChildren(virtualServersPath + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + virtualID);
                         // 如果当前存活的firstID包括该 virtualID的参与者，那么
                         List<String> selectIds = selectAvailableIDs(currentFirstIDs, participators);
+
                         if (selectIds != null && !selectIds.isEmpty()) {
                             // 需要寻找一个可以恢复的虚拟serverID，此处选择新来的或者没参与过的
 
@@ -435,10 +460,13 @@ public class TaskDispatcher {
                                 }
                             }
                             // 构造任务
-                            BalanceTaskSummary taskSummary = taskGenerator.genVirtualTask(changeID, storageIndex, virtualID, selectSecondID, secondParticipator);
+                            BalanceTaskSummary taskSummary = taskGenerator.genVirtualTask(changeID, storageIndex, virtualID, selectSecondID, secondParticipator, Constants.DEFAULT_DELAY_TIME);
                             // 只在任务节点上创建任务，taskOperator会监听，去执行任务
+
                             dispatchTask(taskSummary);
                             setRunTask(changeSummary.getStorageIndex(), taskSummary);
+
+                            // 无效化virtualID,直到成功
                             boolean flag = false;
                             do {
                                 flag = idManager.invalidVirtualID(taskSummary.getStorageIndex(), virtualID);
@@ -447,9 +475,7 @@ public class TaskDispatcher {
                             // 虚拟serverID迁移完成，会清理缓存和zk上的任务
                             break;
                         } else {
-                            System.out.println("无须处理的变更");
-                            System.out.println(changeSummaries);
-
+                            System.out.println("该变更不用参与虚拟迁移:" + changeSummaries);
                             changeSummaries.remove(changeSummary);
                             delChangeSummaryNode(changeSummary);
 
@@ -507,7 +533,6 @@ public class TaskDispatcher {
             // 找到正在执行的变更
             ChangeSummary runChangeSummary = changeSummaries.stream().filter(x -> x.getChangeID().equals(changeID)).findFirst().get();
             System.out.println("run change summary:" + runChangeSummary);
-
             for (ChangeSummary cs : changeSummaries) {
                 if (!cs.getChangeID().equals(runChangeSummary.getChangeID())) { // 与正在执行的变更不同
                     if (runChangeSummary.getChangeType().equals(ChangeType.ADD)) { // 正在执行虚拟迁移任务
@@ -515,7 +540,7 @@ public class TaskDispatcher {
                         if (cs.getChangeType().equals(ChangeType.REMOVE)) { // 虚拟迁移时，出现问题
                             System.out.println("remove sid:" + cs.getChangeServer());
                             System.out.println("run task sid:" + runningTaskSummary.getInputServers().get(0));
-                            if (cs.getChangeServer().equals(runningTaskSummary.getInputServers().get(0))) { // TODO 起1，起2，传完挂1，起1(获取serverid),起3，挂2
+                            if (cs.getChangeServer().equals(runningTaskSummary.getInputServers().get(0))) {
 
                                 // 服务启动后，虚拟server没迁移完成，服务挂掉
                                 // 等待相应的时间后，该次迁移作废
@@ -528,12 +553,12 @@ public class TaskDispatcher {
 
                                 List<String> aliveServices = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
                                 String otherFirstID = idManager.getOtherFirstID(runningTaskSummary.getInputServers().get(0), runningTaskSummary.getStorageIndex());
-
                                 if (!aliveServices.contains(otherFirstID)) { // TODO 等候10s，检查该server是否回来
+
                                     updateTaskStatus(currentTask, TaskStatus.CANCEL);
 
                                     try {
-                                        Thread.sleep(3000);
+                                        Thread.sleep(5000);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
@@ -586,9 +611,24 @@ public class TaskDispatcher {
                             }
                         }
                     } else if (runChangeSummary.getChangeType().equals(ChangeType.REMOVE)) { // 正在执行普通迁移任务
+                        
+                        
                         if (cs.getChangeType().equals(ChangeType.ADD)) {
-
+                            // 正在执行的任务为remove恢复，检测到ADD时间，并且是同一个serverID
+                            if (cs.getChangeServer().equals(runChangeSummary.getChangeServer())) {
+                                // TODO 判断是否需要结束任务，此处不需要等待，打完标记即可
+                                
+                            }
                         }
+
+                        if (cs.getChangeType().equals(ChangeType.REMOVE)) {
+                            // 有可能是参与者挂掉，参与者包括接收者和发送者
+                            // 参与者停止恢复
+                            // TODO
+                            // 纯接收者，需要重选
+                            // TODO
+                        }
+
                     }
 
                 }
