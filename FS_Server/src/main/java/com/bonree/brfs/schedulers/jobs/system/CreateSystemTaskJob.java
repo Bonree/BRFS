@@ -92,8 +92,6 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 				task = createTaskModel(snList, taskType, currentTime, path, "");
 			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
 				task = createTaskModel(snList, taskType, currentTime, path, "");
-			}else if(TaskType.USER_DELETE.equals(taskType)){
-				task = createTaskModel(snList, taskType, currentTime, path, "");
 			}else{
 				continue;
 			}
