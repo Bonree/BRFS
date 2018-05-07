@@ -3,10 +3,10 @@ package com.bonree.brfs.client.meta;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceStateListener;
 
-public class ServerCacheListener implements ServiceStateListener {
+public class ServiceMetaListener implements ServiceStateListener {
     private ServiceMetaCache serviceCache;
 
-    public ServerCacheListener(ServiceMetaCache serviceCache) {
+    public ServiceMetaListener(ServiceMetaCache serviceCache) {
         this.serviceCache = serviceCache;
     }
 

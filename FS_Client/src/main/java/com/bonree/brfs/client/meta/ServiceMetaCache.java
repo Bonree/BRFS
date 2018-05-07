@@ -19,7 +19,7 @@ public class ServiceMetaCache {
     private String zkHosts;
 
     private int snIndex;
-
+    
     private Map<String, Service> firstServerCache;
 
     private Map<String, String> secondServerCache;
@@ -81,6 +81,14 @@ public class ServiceMetaCache {
         }
         return firstServerCache.get(firstServerID);
 
+    }
+
+    public Map<String, Service> getFirstServerCache() {
+        return firstServerCache;
+    }
+
+    public Map<String, String> getSecondServerCache() {
+        return secondServerCache;
     }
 
     public Service getRandomService() {

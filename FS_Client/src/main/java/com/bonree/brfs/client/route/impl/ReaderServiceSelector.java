@@ -5,39 +5,16 @@ import java.util.Random;
 
 import com.bonree.brfs.client.meta.ServiceMetaCache;
 import com.bonree.brfs.client.route.RouteParser;
-import com.bonree.brfs.client.route.ServiceSelector1;
+import com.bonree.brfs.client.route.ServiceSelector_1;
 import com.bonree.brfs.common.service.Service;
 import com.google.common.base.Preconditions;
 
-public class SimpleServiceSelector implements ServiceSelector1 {
+public class ReaderServiceSelector implements ServiceSelector_1 {
 
     private final static String NAME_SEPARATOR = "_";
 
-    private ServiceMetaCache serviceCache;
-    private RouteParser routeParser;
-
-    private SimpleServiceSelector(final String zkHosts, final String zkServerIDPath, final int snIndex, final String baseRoutePath) {
-        serviceCache = new ServiceMetaCache(zkHosts, zkServerIDPath, snIndex);
-        routeParser = new RouteParser(zkHosts, snIndex, baseRoutePath);
-    }
-
-    /** 概述：writer数据时，和service的硬盘有关联
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
     @Override
-    public Service selectWriteService() {
-        String perfectFirstID = null;
-        return serviceCache.getFirstServerCache(perfectFirstID);
-    }
-
-    /** 概述：根据部分fid，来获取
-     * @param partFid
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
-    @Override
-    public Service selectReadService(String partFid) {
+    public Service selectService(ServiceMetaCache serviceCache,RouteParser routeParser,String partFid) {
         Preconditions.checkNotNull(partFid);
         List<String> aliveServices = serviceCache.listSecondID();
         Service service = null;
@@ -67,12 +44,4 @@ public class SimpleServiceSelector implements ServiceSelector1 {
         return service;
     }
 
-    /** 概述：采用随机的方式
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
-    @Override
-    public Service selectRandomService() {
-        return serviceCache.getRandomService();
-    }
 }
