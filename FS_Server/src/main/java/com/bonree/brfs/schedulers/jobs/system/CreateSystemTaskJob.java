@@ -108,7 +108,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			for(String serviceId : serverIds){
 				release.updateServerTaskContentNode(serviceId, taskName, taskType.name(), createServerNodeModel());
 			}
-			LOG.info("create {} task success !!!!!",taskType);
+			LOG.info("=======>create {} task: {} ,stat:{} success !!!!!",taskType, taskName, TaskState.valueOf(task.getTaskState()).name());
 		}
 	}
 	public TaskServerNodeModel createServerNodeModel(){

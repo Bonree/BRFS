@@ -176,4 +176,12 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	List<Pair<String, Integer>> getServerStatus(String taskType, String taskName);
+	/***
+	 * 概述：获取servid第一次出现的任务
+	 * @param taskType
+	 * @param serverId
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	String getFirstServerTask(String taskType,String serverId);
 }

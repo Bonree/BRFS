@@ -82,6 +82,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		TaskRunPattern runPattern =null;
 		int poolSize = 0;
 		int sumbitSize = 0;
+		String serverId = mcf.getServerId();
 		SumbitTaskInterface sumbitTask = null;
 		for(TaskType taskType : switchList){
 			String prexTaskName = null;
@@ -101,7 +102,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					LOG.warn("data don't have  {}", typeName);
 				}
 				if(BrStringUtils.isEmpty(prexTaskName)){
-					prexTaskName = release.getFirstTaskName(typeName);
+					prexTaskName = release.getFirstServerTask(typeName, serverId);
 					currentTaskName = prexTaskName;
 				}else{
 					currentTaskName = release.getNextTaskName(typeName, prexTaskName);

@@ -271,7 +271,32 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		}
 		return null;
 	}
-
+	@Override
+	public String getFirstServerTask(String taskType,String serverId){
+		List<String> taskInfos = getOrderTaskInfos(taskType);
+		if(taskInfos == null || taskInfos.isEmpty()){
+			return null;
+		}
+		int maxIndex = taskInfos.size() - 1;
+		StringBuilder path = null;
+		StringBuilder pPath = null;
+		String taskName = null;
+		byte[] data = null;
+		String taskPath = null;
+		int lastLostIndex = -1;
+		for (int i = maxIndex; i >= 0; i--) {
+			taskName = taskInfos.get(i);
+			path = new StringBuilder();
+			path.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName).append("/").append(
+				serverId);
+			taskPath = path.toString();
+			if (!client.checkExists(taskPath)) {
+				continue;
+			}
+			return taskInfos.get(i);
+		}
+		return null;
+	}
 	@Override
 	public boolean deleteTask(String taskName, String taskType) {
 		try {
