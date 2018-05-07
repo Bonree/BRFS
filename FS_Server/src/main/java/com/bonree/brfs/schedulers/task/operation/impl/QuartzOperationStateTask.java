@@ -1,10 +1,24 @@
 package com.bonree.brfs.schedulers.task.operation.impl;
 
+import java.util.List;
+
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.task.TaskState;
+import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
+import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
+import com.bonree.brfs.schedulers.task.model.TaskModel;
+import com.bonree.brfs.schedulers.task.model.TaskResultModel;
+import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.operation.QuartzOperationStateInterface;
 
 public abstract class QuartzOperationStateTask implements QuartzOperationStateInterface {
@@ -20,7 +34,6 @@ public abstract class QuartzOperationStateTask implements QuartzOperationStateIn
 		}
 		
 	}
-
 	@Override
 	public abstract  void caughtException(JobExecutionContext context);
 

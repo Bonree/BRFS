@@ -1,6 +1,7 @@
 package com.bonree.brfs.schedulers.task.manager;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -26,6 +27,7 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	String updateTaskContentNode(TaskModel data, String taskType, String taskName);
+	
 	/**
 	 * 概述：修改或发布服务节点任务
 	 * @param serverId
@@ -62,6 +64,15 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	boolean changeTaskContentNodeState(String taskName,String taskType, int taskState);
+	/**
+	 * 概述：修改任务节点状态，加锁方式
+	 * @param taskName
+	 * @param taskType
+	 * @param taskState
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	boolean changeTaskContentNodeStateByLock(String serverId,String taskName,String taskType, int taskState);
 	/**
 	 * 概述：修改服务任务节点状态
 	 * @param taskName
@@ -130,7 +141,7 @@ public interface MetaTaskManagerInterface {
 	 * @param args
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	void setPropreties(String zkUrl, String taskPath, String... args);
+	void setPropreties(String zkUrl, String taskPath, String lockPath, String... args);
 	/**
 	 * 概述：维护任务数据状态，包括删除及任务状态校验
 	 * @param taskType
@@ -155,4 +166,14 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	String getFirstTaskName(String taskType);
+	/**
+	 * 概述：获取子任务所有状态
+	 * 当taskName为空时 则为发布任务
+	 * @param data
+	 * @param taskType
+	 * @param taskName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	List<Pair<String, Integer>> getServerStatus(String taskType, String taskName);
 }

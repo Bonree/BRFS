@@ -13,7 +13,7 @@ public class TaskServerNodeModel {
 	private long taskStartTime;
 	private long taskStopTime;
 	private int taskState;
-	private String result;
+	private TaskResultModel result;
 	
 	public long getTaskStartTime() {
 		return taskStartTime;
@@ -27,10 +27,10 @@ public class TaskServerNodeModel {
 	public void setTaskStopTime(long taskStopTime) {
 		this.taskStopTime = taskStopTime;
 	}
-	public String getResult() {
+	public TaskResultModel getResult() {
 		return result;
 	}
-	public void setResult(String result) {
+	public void setResult(TaskResultModel result) {
 		this.result = result;
 	}
 	public int getTaskState() {

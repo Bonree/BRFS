@@ -23,7 +23,7 @@ public class TaskModel {
 	/**
 	 * 任务结果
 	 */
-	private String result;
+	private TaskResultModel result;
 	
 	public int getTaskType() {
 		return taskType;
@@ -43,10 +43,10 @@ public class TaskModel {
 	public void setCreateTime(long createTime) {
 		this.createTime = createTime;
 	}
-	public String getResult() {
+	public TaskResultModel getResult() {
 		return result;
 	}
-	public void setResult(String result) {
+	public void setResult(TaskResultModel result) {
 		this.result = result;
 	}
 	public List<AtomTaskModel> getAtomList() {

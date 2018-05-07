@@ -132,9 +132,6 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 				}
 				long interval = Long.valueOf(cycles[0]);
 				int repeateCount = Integer.valueOf(cycles[1]);
-				if(repeateCount == 0){
-					return false;
-				}
 				repeateCount = repeateCount -1;
 				long delayTime = Long.valueOf(cycles[2]);
 				boolean rightNow = Boolean.valueOf(cycles[3]);
@@ -144,8 +141,11 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 				if (cycleFlag) {
 					builder.repeatForever();
 				}
-				else {
+				else if(repeateCount >=0) {
 					builder.withRepeatCount(repeateCount);
+				}else{
+					LOG.warn("repeated count is zero !!!!");
+					return false;
 				}
 				TriggerBuilder trigBuilder = TriggerBuilder.newTrigger().withIdentity(taskName, taskGroup).withSchedule(
 					builder);

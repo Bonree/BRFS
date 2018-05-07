@@ -91,6 +91,7 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 			if(stat.getMemoryRate() < limit.getMemoryRate()){
 				return true;
 			}else{
+				LOG.warn("state memoryRate : {}, limit Rate :{}",stat.getMemoryRate(), limit.getMemoryRate());
 				return false;
 			}
 		}
@@ -102,7 +103,7 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 
 }

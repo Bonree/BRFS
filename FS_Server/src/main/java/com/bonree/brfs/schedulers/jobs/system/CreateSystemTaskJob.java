@@ -60,7 +60,9 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String path = data.getString(JobDataMapConstract.DATA_PATH);
-		
+		if(BrStringUtils.isEmpty(path)){
+			throw new NullPointerException("data path is empty !!!");
+		}
 		MetaTaskManagerInterface release = mcf.getTm();
 		// 获取开启的任务名称
 		List<TaskType> switchList = mcf.getTaskOn();
@@ -88,6 +90,12 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			if(TaskType.SYSTEM_DELETE.equals(taskType)){
 				//创建删除任务
 				task = createTaskModel(snList, taskType, currentTime, path, "");
+			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
+				task = createTaskModel(snList, taskType, currentTime, path, "");
+			}else if(TaskType.USER_DELETE.equals(taskType)){
+				task = createTaskModel(snList, taskType, currentTime, path, "");
+			}else{
+				continue;
 			}
 			// 任务为空，跳过
 			if(task == null){
@@ -169,6 +177,10 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			atom.setStorageName(snName);
 			atom.setTaskOperation(taskOperation);
 			path = StorageNameFileUtils.createSNDir(snName, dataPath, i, time);
+			if(BrStringUtils.isEmpty(path)){
+				LOG.warn("sn {} create dir error !! path is empty !!!", snName);
+				continue;
+			}
 			atom.setDirName(path);
 			atomList.add(atom);
 		}

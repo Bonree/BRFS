@@ -1,10 +1,13 @@
 
 package com.bonree.brfs.schedulers.task.manager.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import javax.transaction.Synchronization;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -25,6 +28,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultReleaseTask.class);
 	private String zkUrl = null;
 	private String taskRootPath = null;
+	private String taskLockPath = null;
 	private ZookeeperClient client = null;
 	private static class releaseInstance {
 		public static DefaultReleaseTask instance = new DefaultReleaseTask();
@@ -375,7 +379,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	}
 
 	@Override
-	public void setPropreties(String zkUrl, String taskPath, String... args) {
+	public void setPropreties(String zkUrl, String taskPath,String lockPath, String... args) {
 		try {
 			this.zkUrl = zkUrl;
 			this.taskRootPath = taskPath;
@@ -385,6 +389,10 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			if (BrStringUtils.isEmpty(this.taskRootPath)) {
 				throw new NullPointerException("task root path is empty");
 			}
+			if(BrStringUtils.isEmpty(lockPath)){
+				throw new NullPointerException("task lock path is empty");
+			}
+			this.taskLockPath = lockPath;
 			client = CuratorClient.getClientInstance(this.zkUrl);
 		}
 		catch (Exception e) {
@@ -660,4 +668,73 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		}
 		return orderTaskName.get(0);
 	}
+
+	@Override
+	public boolean changeTaskContentNodeStateByLock(String serverId, String taskName, String taskType, int taskState) {
+		try {
+			if(BrStringUtils.isEmpty(serverId)){
+				return false;
+			}
+			if (BrStringUtils.isEmpty(taskName)) {
+				return false;
+			}
+			if (BrStringUtils.isEmpty(taskType)) {
+				return false;
+			}
+			StringBuilder lockPath = new StringBuilder();
+			lockPath.append(this.taskLockPath).append("/").append(taskType).append("/").append(taskName);
+			String locks = lockPath.toString();
+			byte[] data = serverId.getBytes("UTF-8");
+			if(!client.checkExists(locks)){
+				client.createEphemeral(locks, true, data);
+			}
+			byte[]tData = client.getData(locks);
+			String zkStr = new String(tData,"UTF-8");
+			if(!serverId.equals(zkStr)){
+				return false;
+			}
+			TaskModel tmp = getTaskContentNodeInfo(taskType, taskName);
+			if(tmp == null){
+				return false;
+			}
+			tmp.setTaskState(taskState);
+			updateTaskContentNode(tmp, taskType, taskName);
+			client.delete(locks, false);
+			return true;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	@Override
+	public List<Pair<String, Integer>> getServerStatus(String taskType, String taskName) {
+		List<Pair<String, Integer>> serverStatus = new ArrayList<Pair<String,Integer>>();
+		if(BrStringUtils.isEmpty(taskType)){
+			return serverStatus;
+		}
+		if(BrStringUtils.isEmpty(taskName)){
+			return serverStatus;
+		}
+		StringBuilder pathStr = new StringBuilder();
+		pathStr.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName);
+		String path = pathStr.toString();
+		List<String> childeServers = client.getChildren(path);
+		if(childeServers == null || childeServers.isEmpty()){
+			return serverStatus;
+		}
+		Pair<String, Integer> stat = null;
+		int iStat = -1;
+		TaskServerNodeModel tmpServer = null;
+		for(String child : childeServers){
+			stat = new Pair<String, Integer>();
+			tmpServer = getTaskServerContentNodeInfo(taskType, taskName, child);
+			stat.setKey(child);
+			iStat = tmpServer == null ? -3 :tmpServer.getTaskState();
+			stat.setValue(iStat);
+		}
+		return serverStatus;
+	}
+
 }

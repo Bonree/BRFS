@@ -11,6 +11,8 @@ import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
+import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
+import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 
@@ -66,6 +68,9 @@ public class JobDataMapConstract {
 	public static final String TASK_NAME = "TASK_NAME";
 	public static final String TASK_TYPE = "TASK_TYPE";
 	public static final String TASK_STAT = "TASK_STAT";
+	public static final String TASK_MAP_STAT = "TASK_MAP_STAT";
+	public static final String CURRENT_INDEX = "CURRENT_INDEX";
+	public static final String TASK_RESULT = "TASK_RESULT";
 	
 	/**
 	 * 概述：生成采集job需要的参数
@@ -128,6 +133,23 @@ public class JobDataMapConstract {
 		dataMap.put(TASK_TYPE, task.getTaskType() +"");
 		dataMap.put(TASK_STAT, task.getTaskState() + "");
 		dataMap.put(TASK_OPERATION_ARRAYS, JsonUtils.toJsonString(task.getAtomList()));
+		List<AtomTaskModel> atoms = task.getAtomList();
+		int size = atoms == null ? 0 : atoms.size();
+		int count = size / pattern.getRepeateCount();
+		BatchAtomModel batch = null;
+		List<AtomTaskModel> tmp = null;
+		int index = 0;
+		for(int i = 1; i <= count; i++){
+			batch = new BatchAtomModel();
+			if(index + count <= size){
+			tmp = atoms.subList(index, index + count);
+			}else{
+				tmp = atoms.subList(index, size - 1);
+			}
+			batch.addAll(tmp);
+			dataMap.put(i +"", JsonUtils.toJsonString(batch));
+			index = index +count;
+		}
 		dataMap.put(TASK_REPEAT_RUN_COUNT, pattern.getRepeateCount() + "");
 		dataMap.put(TASK_RUN_INVERAL_TIME, pattern.getSleepTime() + "");
 		return dataMap;
@@ -141,8 +163,9 @@ public class JobDataMapConstract {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String, String> createRebootTaskOpertionDataMap(List<TaskType> switchList, MetaTaskManagerInterface release, String serverId) {
+	public static Map<String, String> createRebootTaskOpertionDataMap(List<TaskType> switchList, MetaTaskManagerInterface release, String serverId,String dataPath) {
 		Map<String, String> dataMap = new HashMap<>();
+		dataMap.put(DATA_PATH, dataPath);
 		if (switchList == null || switchList.isEmpty()) {
 			return dataMap;
 		}

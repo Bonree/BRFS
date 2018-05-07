@@ -25,6 +25,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.jobs.biz.SystemCheckJob;
 import com.bonree.brfs.schedulers.jobs.biz.SystemDeleteJob;
 import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -57,6 +58,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
 		JobDataMap data = context.getJobDetail().getJobDataMap();
+		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		if(release == null){
@@ -75,7 +77,6 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 			throw new NullPointerException("RunnableTaskInterface is empty !!!");
 		}
 		String typeName = null;
-		String prexTaskName = null;
 		String currentTaskName = null;
 		TaskModel task = null;
 		TaskRunPattern runPattern =null;
@@ -83,12 +84,12 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		int sumbitSize = 0;
 		SumbitTaskInterface sumbitTask = null;
 		for(TaskType taskType : switchList){
+			String prexTaskName = null;
 			try {
 				typeName = taskType.name();
 				poolSize = schd.getTaskPoolSize(typeName);
 				sumbitSize = schd.getSumbitedTaskCount(typeName);
 				//判断任务是否可以执行
-				LOG.info("TEST1 {},{},{}",taskType.code(),poolSize,sumbitSize);
 				boolean isRun = runTask.taskRunnable(taskType.code(), poolSize, sumbitSize);
 				if(!isRun){
 					LOG.warn("resource is limit !!! skip {} !!!",typeName);
@@ -96,6 +97,8 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				}
 				if(data.containsKey(typeName)){
 					prexTaskName = data.getString(typeName);
+				}else{
+					LOG.warn("data don't have  {}", typeName);
 				}
 				if(BrStringUtils.isEmpty(prexTaskName)){
 					prexTaskName = release.getFirstTaskName(typeName);
@@ -103,6 +106,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				}else{
 					currentTaskName = release.getNextTaskName(typeName, prexTaskName);
 				}
+				LOG.info("type: {},  prexTaskName :{} , currentTaskName: {}", typeName, prexTaskName, currentTaskName);
 				if(BrStringUtils.isEmpty(currentTaskName)){
 					LOG.info("taskType :{} queue is empty ,skiping !!!",typeName);
 					continue;
@@ -125,7 +129,15 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				
 				// 创建任务提交信息
 				// TODO：根据不同类型的任务在此生成的不一样
-				sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemDeleteJob.class.getCanonicalName());
+				if(TaskType.SYSTEM_DELETE.equals(taskType)){
+					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemDeleteJob.class.getCanonicalName());
+				}
+				if(TaskType.SYSTEM_CHECK.equals(taskType)){
+					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName());
+				}
+				if(TaskType.USER_DELETE.equals(taskType)){
+					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName());
+				}
 				
 				//
 				boolean isSumbit = schd.addTask(typeName, sumbitTask);
@@ -168,6 +180,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		if(dataMap != null && !dataMap.isEmpty()){
 			task.setTaskContent(dataMap);
 		}
+		
 		task.setClassInstanceName(clazzName);
 		return task;
 	}

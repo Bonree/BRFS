@@ -64,11 +64,13 @@ public class InitTaskManager {
 		private SchedulerManagerInterface manager;
 		private ZookeeperPaths zkPaths;
 		private ResourceTaskConfig config;
+		private ServerConfig serverConfig;
 
-		public TaskLeader(SchedulerManagerInterface manager, ResourceTaskConfig config) {
+		public TaskLeader(SchedulerManagerInterface manager, ResourceTaskConfig config, ServerConfig serverConfig) {
 			this.manager = manager;
 			this.zkPaths = zkPaths;
 			this.config = config;
+			this.serverConfig = serverConfig;
 		}
 
 		// 身为leader时，会执行该函数的代码，执行完毕后，会放弃leader。并会参与下次竞选
@@ -85,7 +87,11 @@ public class InitTaskManager {
 				LOG.error("create task manager server fail !!!!");
 				return ;
 			}
-			this.manager.startTaskPool(META_TASK_MANAGER);
+			boolean cFlag = this.manager.startTaskPool(META_TASK_MANAGER);
+			if(!cFlag){
+				LOG.info("give up the biggest !!!");
+				return;
+			}
 			LOG.info("get leader success and create task manager server success !!!");
 			sumbitTask();
 			LOG.info("sumbit meta manager task success !!!!");
@@ -96,7 +102,7 @@ public class InitTaskManager {
 		}
 		
 		private void sumbitTask() throws ParamsErrorException{
-			Map<String,String> createDataMap = new HashMap<String,String>();
+			Map<String,String> createDataMap =JobDataMapConstract.createCreateDataMap(serverConfig,config);
 			SumbitTaskInterface createJob = createCycleTaskInfo("CREATE_SYSTEM_TASK", config.getCreateTaskIntervalTime(),-1, createDataMap, CreateSystemTaskJob.class);
 			Map<String,String> metaDataMap = JobDataMapConstract.createMetaDataMap(config);
 			SumbitTaskInterface metaJob = createCycleTaskInfo("META_MANAGER_TASK", config.getCreateTaskIntervalTime(), -1, metaDataMap, ManagerMetaTaskJob.class);
@@ -143,7 +149,7 @@ public class InitTaskManager {
 		// 工厂类添加发布接口
 		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
 		LOG.info("zkhost : {}  taskpath : {}", serverConfig.getZkHosts(), zkPath.getBaseTaskPath());
-		release.setPropreties(serverConfig.getZkHosts(), zkPath.getBaseTaskPath());
+		release.setPropreties(serverConfig.getZkHosts(), zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
 		mcf.setTm(release);
 		// 工厂类添加任务可执行接口
 		RunnableTaskInterface run = DefaultRunnableTask.getInstance();
@@ -167,7 +173,7 @@ public class InitTaskManager {
 			}
 			mcf.setTaskOn(tasks);
 			// 3.创建执行任务线程池
-			createOperationPool(managerConfig, tasks, isReboot);
+			createOperationPool(serverConfig, managerConfig, tasks, isReboot);
 		}
 		
 		if(managerConfig.isResourceFrameWorkSwitch()){
@@ -183,7 +189,7 @@ public class InitTaskManager {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static void createOperationPool(ResourceTaskConfig confg, List<TaskType> switchList, boolean isReboot) throws Exception{
+	private static void createOperationPool(ServerConfig server, ResourceTaskConfig confg, List<TaskType> switchList, boolean isReboot) throws Exception{
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		SchedulerManagerInterface manager = mcf.getStm();
 		MetaTaskManagerInterface release = mcf.getTm();
@@ -192,13 +198,17 @@ public class InitTaskManager {
 		Properties prop = createSimplePrope(1, 1000);
 		boolean createFlag = manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
 		if(!createFlag){
-			LOG.error("start task operation error !!!");
+			LOG.error("create task operation error !!!");
+			throw new NullPointerException("create task operation error !!!");
+		}
+		boolean sFlag = manager.startTaskPool(TASK_OPERATION_MANAGER);
+		if(!sFlag){
+			LOG.error("create task operation error !!!");
 			throw new NullPointerException("start task operation error !!!");
 		}
-		manager.startTaskPool(TASK_OPERATION_MANAGER);
 		Map<String,String> dataMap = new HashMap<>();
 		if(isReboot){
-			dataMap = JobDataMapConstract.createRebootTaskOpertionDataMap(switchList, release, serverId);
+			dataMap = JobDataMapConstract.createRebootTaskOpertionDataMap(switchList, release, serverId,server.getDataPath());
 		}
 		SumbitTaskInterface task = createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), -1, dataMap, OperationTaskJob.class);
 		boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
@@ -247,15 +257,24 @@ public class InitTaskManager {
 		// 3.创建资源采集线程池
 		Properties  prop = createSimplePrope(2, 1000);
 		manager.createTaskPool(RESOURCE_MANAGER, prop);
-		manager.startTaskPool(RESOURCE_MANAGER);
+		boolean cFlag = manager.startTaskPool(RESOURCE_MANAGER);
+		if(!cFlag){
+			LOG.error("{} start fail !!!", RESOURCE_MANAGER);
+		}
 		// 4.创建采集任务信息
 		Map<String, String> gatherMap = JobDataMapConstract.createGatherResourceDataMap(serverConfig, config, serverId);
 		SumbitTaskInterface gatherInterface = createCycleTaskInfo(GatherResourceJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, gatherMap, GatherResourceJob.class);
-		manager.addTask(RESOURCE_MANAGER, gatherInterface);
+		boolean taskFlag = manager.addTask(RESOURCE_MANAGER, gatherInterface);
+		if(!taskFlag){
+			LOG.error("sumbit gather job fail !!!");
+		}
 		// 2.创建同步信息
 		Map<String,String> syncMap = JobDataMapConstract.createAsynResourceDataMap(serverConfig, config);
 		SumbitTaskInterface syncInterface = createCycleTaskInfo(AsynJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, syncMap, AsynJob.class);
-		manager.addTask(RESOURCE_MANAGER, syncInterface);
+		taskFlag = manager.addTask(RESOURCE_MANAGER, syncInterface);
+		if(!taskFlag){
+			LOG.error("sumbit asyn job fail !!!");
+		}
 	}
 	/**
 	 * 概述：创建任务执行线程池
@@ -311,7 +330,7 @@ public class InitTaskManager {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	private static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config, ServerConfig serverConfig){
-		TaskLeader leader = new TaskLeader(manager, config);
+		TaskLeader leader = new TaskLeader(manager, config,serverConfig);
 		CuratorLeaderSelectorClient leaderSelector = CuratorLeaderSelectorClient.getLeaderSelectorInstance(serverConfig.getZkHosts());
 	    leaderSelector.addSelector(zkPaths.getBaseLocksPath() + "/MetaTaskLeaderLock", leader);
 	}
