@@ -134,7 +134,7 @@ public class BalanceTaskSummary {
 
     @Override
     public String toString() {
-        return "BalanceTaskSummary [changeID=" + changeID + ", serverId=" + serverId + ", storageIndex=" + storageIndex + ", taskType=" + taskType + ", taskStatus=" + taskStatus + ", outputServers=" + outputServers + ", inputServers=" + inputServers + ", aliveServer=" + aliveServer + ", runtime=" + delayTime + "]";
+        return "BalanceTaskSummary [changeID=" + changeID + ", serverId=" + serverId + ", storageIndex=" + storageIndex + ", taskType=" + taskType + ", taskStatus=" + taskStatus + ", outputServers=" + outputServers + ", inputServers=" + inputServers + ", aliveServer=" + aliveServer + ", delayTime=" + delayTime + "]";
     }
 
 }

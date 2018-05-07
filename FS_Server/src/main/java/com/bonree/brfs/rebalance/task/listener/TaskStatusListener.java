@@ -9,18 +9,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.rebalance.TaskVersion;
+import com.bonree.brfs.common.rebalance.route.NormalRoute;
+import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
-import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
-import com.bonree.brfs.rebalance.route.NormalRoute;
-import com.bonree.brfs.rebalance.route.VirtualRoute;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.ChangeSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskDispatcher;
-import com.bonree.brfs.rebalance.task.TaskVersion;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司

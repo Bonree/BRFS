@@ -1,6 +1,7 @@
 package com.bonree.brfs.discover;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
@@ -8,7 +9,6 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
 import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.rebalance.Constants;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.configuration.Configuration.ConfigException;
