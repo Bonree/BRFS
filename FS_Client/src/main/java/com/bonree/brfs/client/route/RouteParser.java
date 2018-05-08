@@ -1,5 +1,7 @@
 package com.bonree.brfs.client.route;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -12,14 +14,14 @@ import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 
-public class RouteParser {
+public class RouteParser implements Closeable {
 
     private final static Logger LOG = LoggerFactory.getLogger(RouteParser.class);
 
     private RouteRoleCache routeCache;
-
-    public RouteParser(String zkHosts, int snIndex, String baseRoutePath) {
-        routeCache = new RouteRoleCache(zkHosts, snIndex, baseRoutePath);
+    
+    public RouteParser(RouteRoleCache routeCache) {
+        this.routeCache = routeCache;
     }
 
     public String findServerID(String searchServerID, String fid, String separator, List<String> aliveServers) {
@@ -171,6 +173,11 @@ public class RouteParser {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+
     }
 
 }
