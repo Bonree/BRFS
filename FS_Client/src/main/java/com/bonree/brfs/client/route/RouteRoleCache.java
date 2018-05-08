@@ -77,6 +77,14 @@ public class RouteRoleCache {
         return storageIndex;
     }
 
+    public Map<String, NormalRoute> getNormalRouteCache() {
+        return normalRouteDetail;
+    }
+
+    public Map<String, VirtualRoute> getVirtualRouteCache() {
+        return virtualRouteDetail;
+    }
+
     public NormalRoute getRouteRole(String secondID) {
         return normalRouteDetail.get(secondID);
     }
@@ -84,5 +92,4 @@ public class RouteRoleCache {
     public VirtualRoute getVirtualRoute(String virtualID) {
         return virtualRouteDetail.get(virtualID);
     }
-    // TODO 少个监听
 }

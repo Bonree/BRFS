@@ -18,9 +18,9 @@ public class Constants {
 
     public final static String CHANGE_LEADER = "change_leader";
 
-    public final static String VIRTUAL_ROUTE = "virtual_route";
+    public final static String VIRTUAL_ROUTE = "virtual";
 
-    public final static String NORMAL_ROUTE = "normal_route";
+    public final static String NORMAL_ROUTE = "normal";
 
     public final static String DISCOVER = "discover";
 
