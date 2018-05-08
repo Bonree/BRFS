@@ -36,7 +36,7 @@ public class ServiceSelectorManager {
      * @throws Exception
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    ServiceSelectorCache useStorageIndex(int snIndex) throws Exception {
+    public ServiceSelectorCache useStorageIndex(int snIndex) throws Exception {
         ServiceSelectorCache serviceSelectorCache = serviceSelectorCachaMap.get(snIndex);
         if (serviceSelectorCache != null) {
             return serviceSelectorCache;

@@ -19,7 +19,7 @@ public class ServiceMetaCache {
     private String zkHosts;
 
     private int snIndex;
-    
+
     private Map<String, Service> firstServerCache;
 
     private Map<String, String> secondServerCache;

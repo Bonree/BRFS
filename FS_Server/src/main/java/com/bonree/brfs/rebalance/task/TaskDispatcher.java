@@ -611,13 +611,12 @@ public class TaskDispatcher {
                             }
                         }
                     } else if (runChangeSummary.getChangeType().equals(ChangeType.REMOVE)) { // 正在执行普通迁移任务
-                        
-                        
+
                         if (cs.getChangeType().equals(ChangeType.ADD)) {
                             // 正在执行的任务为remove恢复，检测到ADD时间，并且是同一个serverID
                             if (cs.getChangeServer().equals(runChangeSummary.getChangeServer())) {
                                 // TODO 判断是否需要结束任务，此处不需要等待，打完标记即可
-                                
+
                             }
                         }
 
