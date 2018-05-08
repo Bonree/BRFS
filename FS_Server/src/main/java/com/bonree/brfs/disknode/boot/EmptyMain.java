@@ -1,5 +1,7 @@
 package com.bonree.brfs.disknode.boot;
 
+import java.util.UUID;
+
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -24,12 +26,12 @@ import com.bonree.brfs.disknode.server.handler.WriteMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WritingInfoMessageHandler;
 
 public class EmptyMain {
-	private static final int id = 1;
-	private static final String dir = "disk_" + id;
-
+	
 	public static void main(String[] args) throws Exception {
-		int port = Integer.parseInt("910" + id);
+		int port = Integer.parseInt(args[0]);
 		System.out.println("----port---" + port);
+		
+		String serverId = System.getProperty("server_id", UUID.randomUUID().toString());
 		
 		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
 		CuratorFramework client = CuratorFrameworkFactory.newClient("192.168.101.86:2181", 3000, 15000, retryPolicy);
@@ -40,7 +42,7 @@ public class EmptyMain {
 		
 		ServiceManager serviceManager = new DefaultServiceManager(client);
 		serviceManager.start();
-		Service service = new Service("disk_" + id, "disk", "192.168.4.137", port);
+		Service service = new Service(serverId, "disk", "192.168.4.137", port);
 		serviceManager.registerService(service);
 		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
@@ -55,7 +57,8 @@ public class EmptyMain {
 		FileWriterManager writerManager = new FileWriterManager(recorderManager);
 		writerManager.start();
 		
-		DiskContext context = new DiskContext("/root/temp/" + dir);
+		String dir = System.getProperty("root_dir", "/data");
+		DiskContext context = new DiskContext(dir);
 		requestHandler.addMessageHandler("POST", new WriteMessageHandler(context, writerManager));
 		requestHandler.addMessageHandler("GET", new ReadMessageHandler(context));
 		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(context, writerManager));

@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication;
 
+import java.util.UUID;
+
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -44,7 +46,9 @@ public class BootStrap {
 	private static final Logger LOG = LoggerFactory.getLogger("Main");
 
 	public static void main(String[] args) throws Exception {
-		int port = 9001;
+		int port = Integer.parseInt(args[0]);
+		
+		String serverId = System.getProperty("server_id", UUID.randomUUID().toString());
 		
 		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
 		CuratorFramework client = CuratorFrameworkFactory.newClient("192.168.101.86:2181", 3000, 15000, retryPolicy);
@@ -53,7 +57,7 @@ public class BootStrap {
 		
 		client = client.usingNamespace("brfstest");
 		
-		Service service = new Service("dup_1", "duplicate_group", "192.168.4.137", port);
+		Service service = new Service(serverId, "duplicate_group", "192.168.4.137", port);
 		ServiceManager serviceManager = new DefaultServiceManager(client);
 		serviceManager.start();
 		serviceManager.registerService(service);
@@ -68,6 +72,7 @@ public class BootStrap {
 			public void serviceAdded(Service service) {
 				LOG.info("service Added[{}]", service.getServiceId());
 			}
+			
 		});
 		
 		StorageNameManager storageNameManager = new DefaultStorageNameManager(client);
