@@ -5,15 +5,11 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import com.bonree.brfs.disknode.client.SeqInfoList;
 import com.bonree.brfs.disknode.client.WriteResult;
+import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 
 public class SNOperationDemo implements SNOperation {
-
-	@Override
-	public boolean initFile(String path, boolean override) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	@Override
 	public WriteResult writeData(String path, int sequence, byte[] bytes) throws IOException {
@@ -52,12 +48,6 @@ public class SNOperationDemo implements SNOperation {
 	}
 
 	@Override
-	public int getValidLength(String path) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	public BitSet getWritingSequence(String path) {
 		// TODO Auto-generated method stub
 		return null;
@@ -87,6 +77,37 @@ public class SNOperationDemo implements SNOperation {
 	public boolean checkCRCFile(String path) {
 		
 		return true;
+	}
+
+	@Override
+	public boolean initFile(String path) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<FileInfo> listFiles(String path, int level) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void recover(String path, SeqInfoList infos) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public byte[] getBytesBySequence(String path, int sequence) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void copyTo(String host, int port, String localPath,
+			String remotePath) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -6,8 +6,9 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.DiskContext;
-import com.bonree.brfs.disknode.DiskReader;
+import com.bonree.brfs.disknode.data.read.DataFileReader;
 
 public class ReadMessageHandler implements MessageHandler {
 	public static final String PARAM_READ_OFFSET = "offset";
@@ -23,13 +24,14 @@ public class ReadMessageHandler implements MessageHandler {
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		HandleResult result = new HandleResult();
 		
+		DataFileReader reader = null;
 		try {
 			String offsetParam = msg.getParams().get(PARAM_READ_OFFSET);
 			String lengthParam = msg.getParams().get(PARAM_READ_LENGTH);
 			int offset = offsetParam == null ? 0 : Integer.parseInt(offsetParam);
 			int length = lengthParam == null ? Integer.MAX_VALUE : Integer.parseInt(lengthParam);
 			
-			DiskReader reader = new DiskReader(diskContext.getAbsoluteFilePath(msg.getPath()));
+			reader = new DataFileReader(diskContext.getConcreteFilePath(msg.getPath()));
 			byte[] data = reader.read(offset, length);
 			result.setSuccess(true);
 			result.setData(data);
@@ -38,6 +40,7 @@ public class ReadMessageHandler implements MessageHandler {
 			result.setCause(e);
 		} finally {
 			callback.completed(result);
+			CloseUtils.closeQuietly(reader);
 		}
 		
 	}

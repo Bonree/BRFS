@@ -47,7 +47,7 @@ public class DefaultFileLounge implements FileLounge {
 	
 	//对文件节点进行清理的集合大小阈值
 	private static final int FILE_SET_SIZE_CLEAN_THRESHOLD = 7;
-	private static final double FILE_USAGE_RATIO_THRESHOLD = 0.5;
+	private static final double FILE_USAGE_RATIO_THRESHOLD = 0.99;
 	private TimedObjectCollection<SortedSetMultimap<String, FileLimiter>> timedFileContainer;
 
 	private StorageNameManager storageNameManager;
@@ -143,7 +143,7 @@ public class DefaultFileLounge implements FileLounge {
 					//只对文件做清理标记，文件清理程序会自动删除有清理标记的文件；如果此文件当前有写入操作的情况下
 					//做清理标记会失败，没关系，可以下次在做标记
 					if(file.cleanIfOverSize(FILE_USAGE_RATIO_THRESHOLD)) {
-						System.out.println("Oversize clean --" + file.getFileNode().getName());
+						LOG.info("Oversize clean --[{}]", file.getFileNode().getName());
 					}
 					
 					return false;
@@ -248,7 +248,7 @@ public class DefaultFileLounge implements FileLounge {
 		FileNode fileNode = new FileNode(currentTime);
 		fileNode.setName(FileNameBuilder.createFile());
 		fileNode.setStorageName(storageNameNode.getName());
-		fileNode.setServiceId(ServiceIdBuilder.getServiceId());//TODO get service id
+		fileNode.setServiceId(service.getServiceId());//TODO get service id
 		fileNode.setDuplicateNodes(duplicationSelector.getDuplicationNodes(storageNameNode.getReplicateCount()));
 		fileCoordinator.store(fileNode);
 		
@@ -295,7 +295,7 @@ public class DefaultFileLounge implements FileLounge {
 			long currentTimeInterval = timedFileContainer.getTimeInterval(System.currentTimeMillis());
 			
 			for(TimedObject<SortedSetMultimap<String, FileLimiter>> obj : timedObjects) {
-				System.out.println(new Date() + "--FILE CLEANER----" + obj.getTimeInterval() + ">>>" + obj.getObj().size());
+				LOG.info("{} FILE CLEANER---- {} >>> {}",new Date(), obj.getTimeInterval(), obj.getObj().size());
 				SortedSetMultimap<String, FileLimiter> fileSet = obj.getObj();
 				
 				if(obj.getTimeInterval() < currentTimeInterval) {
@@ -385,7 +385,8 @@ public class DefaultFileLounge implements FileLounge {
 				
 				@Override
 				public void complete(FileNode fileNode) {
-					FileLimiter file = new FileLimiter(fileNode, fileNode.getSize(), fileNode.getWriteSequence());
+					//TODO 同步不同副本之间的文件内容，然后获取正确的文件大小和文件序列号
+					FileLimiter file = new FileLimiter(fileNode, 0/*文件大小*/, 0/*文件序列号*/);
 					addFileLimiter(file);
 				}
 

@@ -10,16 +10,17 @@ import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.disknode.DiskContext;
-import com.bonree.brfs.disknode.DiskWriterManager;
+import com.bonree.brfs.disknode.data.write.FileWriterManager;
+import com.bonree.brfs.disknode.server.handler.data.DeleteData;
 
 public class DeleteMessageHandler implements MessageHandler {
 	
 	private DiskContext diskContext;
-	private DiskWriterManager nodeManager;
+	private FileWriterManager writerManager;
 	
-	public DeleteMessageHandler(DiskContext context, DiskWriterManager nodeManager) {
+	public DeleteMessageHandler(DiskContext context, FileWriterManager nodeManager) {
 		this.diskContext = context;
-		this.nodeManager = nodeManager;
+		this.writerManager = nodeManager;
 	}
 
 	@Override
@@ -27,7 +28,7 @@ public class DeleteMessageHandler implements MessageHandler {
 		HandleResult result = new HandleResult();
 		
 		try {
-			String filePath = diskContext.getAbsoluteFilePath(msg.getPath());
+			String filePath = diskContext.getConcreteFilePath(msg.getPath());
 			
 			Map<String, String> params = msg.getParams();
 			DeleteData data = new DeleteData();
@@ -61,7 +62,7 @@ public class DeleteMessageHandler implements MessageHandler {
 	}
 	
 	private void closeFile(File file, boolean forceClose) throws IllegalStateException {
-		if(!nodeManager.isWriting(file.getAbsolutePath())) {
+		if(writerManager.getBinding(file.getAbsolutePath(), false) == null) {
 			file.delete();
 			return;
 		}
@@ -70,7 +71,7 @@ public class DeleteMessageHandler implements MessageHandler {
 			throw new IllegalStateException("File[" + file.getAbsolutePath() + "] is under writing now!");
 		}
 		
-		nodeManager.close(file.getAbsolutePath());
+		writerManager.close(file.getAbsolutePath());
 		file.delete();
 	}
 	

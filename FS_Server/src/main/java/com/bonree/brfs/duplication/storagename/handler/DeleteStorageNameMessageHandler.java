@@ -15,6 +15,7 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
 
 	@Override
 	public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
+		//TODO 删除前先检测其是否还有数据关联
 		boolean deleted = storageNameManager.removeStorageName(msg.getName());
 		
 		HandleResult result = new HandleResult();

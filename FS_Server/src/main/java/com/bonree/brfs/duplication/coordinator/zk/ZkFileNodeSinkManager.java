@@ -127,7 +127,7 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 			synchronized (tasks) {
 				task = tasks.get(service.getServiceId());
 			}
-			if(task != null && task.cancel(false)) {
+			if(task == null || (task != null && task.cancel(false))) {
 				//文件瓜分任务取消成功，文件将全部发送到原服务节点
 				ThreadPoolUtil.commonPool().execute(new Runnable() {
 					

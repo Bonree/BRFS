@@ -61,6 +61,7 @@ public class HttpParamsDecoder {
 		HttpPostRequestDecoder decoder = null;
 		try {
 			decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), request, CharsetUtil.UTF_8);
+			
 			List<InterfaceHttpData> postList = decoder.getBodyHttpDatas();
 	        for (InterfaceHttpData data : postList) {
 	            if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
@@ -68,6 +69,7 @@ public class HttpParamsDecoder {
 	                params.put(attribute.getName(), attribute.getValue());
 	            }
 	        }
+		} catch (Exception ignore){
 		} finally {
 			if(decoder != null) {
 				//必须释放，不然会导致内存泄漏

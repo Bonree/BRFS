@@ -1,5 +1,7 @@
 package com.bonree.brfs.disknode.server.handler;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,21 +11,25 @@ import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
+import com.bonree.brfs.common.utils.ThreadPoolUtil;
 import com.bonree.brfs.disknode.DiskContext;
-import com.bonree.brfs.disknode.DiskWriterManager;
-import com.bonree.brfs.disknode.InputEventCallback;
-import com.bonree.brfs.disknode.InputResult;
 import com.bonree.brfs.disknode.client.WriteResult;
+import com.bonree.brfs.disknode.data.write.FileWriterManager;
+import com.bonree.brfs.disknode.data.write.RecordFileWriter;
+import com.bonree.brfs.disknode.data.write.worker.WriteTask;
+import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
+import com.bonree.brfs.disknode.server.handler.data.WriteData;
+import com.bonree.brfs.disknode.utils.Pair;
 
 public class WriteMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteMessageHandler.class);
 	
 	private DiskContext diskContext;
-	private DiskWriterManager nodeManager;
+	private FileWriterManager writerManager;
 	
-	public WriteMessageHandler(DiskContext diskContext, DiskWriterManager nodeManager) {
+	public WriteMessageHandler(DiskContext diskContext, FileWriterManager nodeManager) {
 		this.diskContext = diskContext;
-		this.nodeManager = nodeManager;
+		this.writerManager = nodeManager;
 	}
 
 	@Override
@@ -31,47 +37,112 @@ public class WriteMessageHandler implements MessageHandler {
 		HandleResult handleResult = new HandleResult();
 		
 		try {
-			String realPath = diskContext.getAbsoluteFilePath(msg.getPath());
-			LOG.debug("WRITE [{}], data length[{}]", realPath, msg.getContent().length);
+			String realPath = diskContext.getConcreteFilePath(msg.getPath());
+			LOG.info("WRITE [{}], data length[{}]", realPath, msg.getContent().length);
 			
 			if(msg.getContent().length == 0) {
 				throw new IllegalArgumentException("Writing data is Empty!!");
 			}
 			
+			boolean binary = msg.getParams().containsKey("binary");
+			
 			WriteData item = ProtoStuffUtils.deserialize(msg.getContent(), WriteData.class);
 			
-			nodeManager.writeAsync(realPath, item, new InputEventCallback() {
-				
+			LOG.info("seq[{}], size[{}]", item.getSequence(), item.getBytes().length);
+			
+			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
+			if(binding == null) {
+				throw new IllegalStateException("File Writer is null");
+			}
+			
+			binding.second().put(new WriteTask<DataWriteResult>() {
+
 				@Override
-				public void error(Throwable t) {
-					handleResult.setSuccess(false);
-					handleResult.setCause(t);
+				protected DataWriteResult execute() throws IOException {
+					RecordFileWriter writer = binding.first();
+					DataWriteResult result = new DataWriteResult();
 					
-					callback.completed(handleResult);
+					writer.updateSequence(item.getSequence());
+					
+					result.setOffset(writer.position());
+					writer.write(item.getBytes());
+					
+					result.setSize(item.getBytes().length);
+					return result;
 				}
-				
+
 				@Override
-				public void complete(InputResult result) {
-					handleResult.setSuccess(true);
-					
-					WriteResult writeResult = new WriteResult();
-					writeResult.setOffset(result.getOffset());
-					writeResult.setSize(result.getSize());
-					try {
-//						handleResult.setData(ProtoStuffUtils.serialize(writeResult));
-						handleResult.setData(JsonUtils.toJsonBytes(writeResult));
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					
-					callback.completed(handleResult);
+				protected void onPostExecute(DataWriteResult result) {
+					ThreadPoolUtil.commonPool().execute(new Runnable() {
+						
+						@Override
+						public void run() {
+							handleResult.setSuccess(true);
+							
+							WriteResult writeResult = new WriteResult();
+							writeResult.setOffset(result.getOffset());
+							writeResult.setSize(result.getSize());
+							try {
+								handleResult.setData(binary ? ProtoStuffUtils.serialize(writeResult) : JsonUtils.toJsonBytes(writeResult));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							
+							callback.completed(handleResult);
+						}
+					});
+				}
+
+				@Override
+				protected void onFailed(Throwable e) {
+					ThreadPoolUtil.commonPool().execute(new Runnable() {
+						
+						@Override
+						public void run() {
+							handleResult.setSuccess(false);
+							handleResult.setCause(e);
+							
+							callback.completed(handleResult);
+						}
+					});
 				}
 			});
 		} catch (Exception e) {
+			LOG.error("EEEERRRRRR", e);
 			handleResult.setSuccess(false);
 			handleResult.setCause(e);
 			callback.completed(handleResult);
 		}
 	}
 
+	private class DataWriteResult {
+		private long offset;
+		private int size;
+
+		public long getOffset() {
+			return offset;
+		}
+
+		public void setOffset(long offset) {
+			this.offset = offset;
+		}
+
+		public int getSize() {
+			return size;
+		}
+
+		public void setSize(int size) {
+			this.size = size;
+		}
+		
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("[offset=").append(offset)
+			       .append(", size=").append(size)
+			       .append("]");
+			
+			return builder.toString();
+		}
+	}
 }

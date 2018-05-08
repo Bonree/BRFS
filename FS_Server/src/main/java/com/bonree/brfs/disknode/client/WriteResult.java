@@ -1,14 +1,14 @@
 package com.bonree.brfs.disknode.client;
 
 public class WriteResult {
-	private int offset;
+	private long offset;
 	private int size;
 
-	public int getOffset() {
+	public long getOffset() {
 		return offset;
 	}
 
-	public void setOffset(int offset) {
+	public void setOffset(long offset) {
 		this.offset = offset;
 	}
 

@@ -1,28 +1,33 @@
 package com.bonree.brfs.duplication.recovery;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.zookeeper.Op.Check;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.utils.BitSetUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.FileNodeProfile;
-import com.bonree.brfs.disknode.record.RecordElement;
+import com.bonree.brfs.disknode.client.SeqInfo;
+import com.bonree.brfs.disknode.client.SeqInfoList;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
-import com.bonree.brfs.duplication.coordinator.FileNameBuilder;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 
 public class DefaultFileRecovery implements FileRecovery {
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileRecovery.class);
+	
 	private static final int DEFAULT_THREAD_NUM = 1;
 	private ExecutorService threadPool;
 	
@@ -62,11 +67,17 @@ public class DefaultFileRecovery implements FileRecovery {
 			this.target = fileNode;
 			this.listener = listener;
 		}
-		
-		private void check() {
+
+		@Override
+		public void run() {
+			/**
+			 * 文件之间的内容协调是通过写入文件的序列号实现的，只要当前存活的磁盘节点包含
+			 * 所有写入序列号就能保证文件的完整性
+			 */
 			DuplicateNode[] duplicates = target.getDuplicateNodes();
 			
 			List<FileSequence> seqList = new ArrayList<FileSequence>();
+			
 			for(int i = 0; i < duplicates.length; i++) {
 				DiskNodeConnection connection = connectionPool.getConnection(duplicates[i]);
 				if(connection == null || connection.getClient() == null) {
@@ -82,109 +93,92 @@ public class DefaultFileRecovery implements FileRecovery {
 				FileSequence seq = new FileSequence();
 				seq.setNode(duplicates[i]);
 				seq.setSequenceSet(seqs);
+				
+				seqList.add(seq);
 			}
 			
-			int maxSeq = target.getWriteSequence();
-			BitSet fullSet = new BitSet(maxSeq);
+			BitSet[] sets = new BitSet[seqList.size()];
+			for(int i = 0; i < sets.length; i++) {
+				sets[i] = seqList.get(i).getSequenceSet();
+			}
+			
+			BitSet union = BitSetUtils.union(sets);
+			BitSet intersection = BitSetUtils.intersect(sets);
+			
+			int endIndex = union.cardinality();
 			/**
 			 * 查看所有节点的序列号是否覆盖了[0, maxSeq]之间的所有数值
 			 */
-			boolean full = false;
-			for(FileSequence sequence : seqList) {
-				fullSet.or(sequence.getSequenceSet());
-				if(fullSet.cardinality() == maxSeq) {
-					full = true;
-					break;
-				}
-			}
-			
-			if(full) {
+			LOG.info("Recovery Check union[{}], endIndex[{}]", union.cardinality(), endIndex);
+			if(union.nextSetBit(endIndex) == -1) {
 				//当前存活的所有节点包含了此文件的所有信息，可以进行文件内容同步
+				List<SeqInfo> infos = new ArrayList<SeqInfo>();
 				for(FileSequence sequence : seqList) {
 					BitSet set = sequence.getSequenceSet();
-					set.flip(0, maxSeq);
+					BitSet iHave = BitSetUtils.minus(set, intersection);
+					
+					SeqInfo info = new SeqInfo();
+					
+					DiskNodeConnection connection = connectionPool.getConnection(sequence.getNode());
+					if(connection == null || connection.getClient() == null) {
+						continue;
+					}
+					
+					info.setHost(connection.getService().getHost());
+					info.setPort(connection.getService().getPort());
+					info.setIntArray(iHave);
+					infos.add(info);
+				}
+				
+				for(FileSequence sequence : seqList) {
+					BitSet lack = BitSetUtils.minus(union, sequence.getSequenceSet());
+					if(lack.isEmpty()) {
+						continue;
+					}
+					
+					SeqInfoList infoList = new SeqInfoList();
+					
+					List<SeqInfo> complements = new ArrayList<SeqInfo>();
+					for(SeqInfo seqInfo : infos) {
+						BitSet set = BitSetUtils.intersect(new BitSet[]{seqInfo.getIntArray(), lack});
+						if(set.isEmpty()) {
+							continue;
+						}
+						
+						lack.andNot(set);
+						
+						SeqInfo complement = new SeqInfo();
+						complement.setIntArray(set);
+						complement.setHost(seqInfo.getHost());
+						complement.setPort(seqInfo.getPort());
+						
+						complements.add(complement);
+					}
+					
+					infoList.setInfoList(complements);
+					
+					DiskNodeConnection connection = connectionPool.getConnection(sequence.getNode());
+					if(connection == null || connection.getClient() == null) {
+						continue;
+					}
+					
+					DiskNodeClient client = connection.getClient();
+					try {
+						client.recover(FilePathBuilder.buildPath(target), infoList);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					listener.complete(target);
 				}
 			} else {
 				//存在文件内容丢失，怎么办，怎么办
 				//TODO 处理下这个情况
+				listener.error(new Exception("Content of the file[" + target.getName() + "] is deficient!!"));
 			}
-		}
-
-		@Override
-		public void run() {
-			/**
-			 * 文件之间的内容协调是通过写入文件的序列号实现的，只要当前存活的磁盘节点包含
-			 * 所有写入序列号就能保证文件的完整性
-			 */
-			
-			DuplicateNode[] duplicates = target.getDuplicateNodes();
-			FileNodeProfile[] profiles = new FileNodeProfile[duplicates.length];
-			
-			List<DuplicateNode> needRecover = new ArrayList<DuplicateNode>();
-			FileNodeProfile maxValid = null;
-			DuplicateNode from = null;
-			for(int i = 0; i < duplicates.length; i++) {
-				DiskNodeConnection connection = connectionPool.getConnection(duplicates[i]);
-				if(connection == null) {
-					needRecover.add(duplicates[i]);
-					continue;
-				}
-				
-				DiskNodeClient client = connection.getClient();
-				if(client == null) {
-					needRecover.add(duplicates[i]);
-					continue;
-				}
-				
-//				profiles[i] = client.getFileNodeProfile(FilePathBuilder.buildPath(target));
-//				if(profiles[i] == null) {
-//					needRecover.add(duplicates[i]);
-//					continue;
-//				}
-//				
-//				if(maxValid == null || maxValid.getElements().length < profiles[i].getElements().length) {
-//					maxValid = profiles[i];
-//					from = duplicates[i];
-//				}
-			}
-			
-			if(maxValid == null) {
-				listener.error(new Exception("What's fucking up of the file!?"));
-				return;
-			}
-			
-			for(int i = 0; i < duplicates.length; i++) {
-				if(profiles[i] == null) {
-					continue;
-				}
-				
-				if(maxValid.getElements().length != profiles[i].getElements().length) {
-					needRecover.add(duplicates[i]);
-				}
-			}
-			
-			recoverDuplicates(target, from, needRecover);
 		}
 		
 		private void recoverDuplicates(FileNode file, DuplicateNode from, List<DuplicateNode> to) {
 			//TODO 复制文件
-		}
-		
-		private boolean isEqual(FileNodeProfile profile1, FileNodeProfile profile2) {
-			RecordElement[] elements1 = profile1.getElements();
-			RecordElement[] elements2 = profile2.getElements();
-			
-			if(elements1.length != elements2.length) {
-				return false;
-			}
-			
-			for(int i = 0; i < elements1.length; i++) {
-				if(!elements1[i].equals(elements2[i])) {
-					return false;
-				}
-			}
-			
-			return true;
 		}
 		
 	}

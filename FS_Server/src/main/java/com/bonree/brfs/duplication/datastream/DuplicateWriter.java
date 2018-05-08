@@ -13,7 +13,6 @@ import com.bonree.brfs.common.asynctask.AsyncTaskGroupCallback;
 import com.bonree.brfs.common.asynctask.AsyncTaskResult;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.duplication.FidBuilder;
-import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
@@ -47,6 +46,7 @@ public class DuplicateWriter {
 	
 	public void write(int storageId, DataItem[] items, DataHandleCallback<DataWriteResult> callback) {
 		EmitResultGather resultGather = new EmitResultGather(items.length, callback);
+		LOG.info("---size=={}", items.length);
 		for(DataItem item : items) {
 			if(item == null || item.getBytes() == null || item.getBytes().length == 0) {
 				resultGather.putResultItem(new ResultItem(item.getSequence()));
@@ -55,9 +55,11 @@ public class DuplicateWriter {
 			
 			try {
 				FileLimiter file = fileLounge.getFileLimiter(storageId, item.getBytes().length);
+				LOG.info("get FileLimiter[{}]", file);
 				
 				emitData(item, file, resultGather);
 			} catch (Exception e) {
+				LOG.info("####-->{}", e.toString());
 				resultGather.putResultItem(new ResultItem(item.getSequence()));
 			}
 		}
@@ -65,11 +67,13 @@ public class DuplicateWriter {
 	
 	private void emitData(DataItem item, FileLimiter file, EmitResultGather resultGather) {
 		DiskNodeConnection[] connections = connectionPool.getConnections(file.getFileNode().getDuplicateNodes());
+		LOG.info("get Connections size={}", connections.length);
 		
 		AsyncTaskGroup<WriteTaskResult> taskGroup = new AsyncTaskGroup<WriteTaskResult>();
 		for(DiskNodeConnection connection : connections) {
+			LOG.info("get connection----{}", connection);
 			if(connection != null) {
-				taskGroup.addTask(new DataWriteTask(connection.getService().getServiceId(), connection, file.getFileNode(), file.sequence(), item));
+				taskGroup.addTask(new DataWriteTask(connection.getService().getServiceId(), connection, file, item));
 			}
 		}
 		
@@ -89,6 +93,7 @@ public class DuplicateWriter {
 
 		@Override
 		public void completed(AsyncTaskResult<WriteTaskResult>[] results) {
+			LOG.info("Write result size----{}", results.length);
 			List<WriteTaskResult> taskResultList = getValidResultList(results);
 			
 			if(taskResultList.isEmpty()) {
@@ -116,6 +121,10 @@ public class DuplicateWriter {
 		private List<WriteTaskResult> getValidResultList(AsyncTaskResult<WriteTaskResult>[] results) {
 			List<WriteTaskResult> taskResultList = new ArrayList<WriteTaskResult>(results.length);
 			for(AsyncTaskResult<WriteTaskResult> taskResult : results) {
+				if(taskResult.getError() != null) {
+					LOG.error("task[" + taskResult.getTaskId() + "] get error", taskResult.getError());
+				}
+				
 				if(taskResult.getResult() != null) {
 					taskResultList.add(taskResult.getResult());
 				}

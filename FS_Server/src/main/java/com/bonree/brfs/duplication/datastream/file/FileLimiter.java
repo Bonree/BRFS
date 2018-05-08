@@ -71,10 +71,7 @@ public class FileLimiter {
 			return;
 		}
 		
-		if(size == 0) {
-			//数据写入成功，增加写入系数
-			fileNode.setWriteSequence(sequence.getAndIncrement());
-		} else {
+		if(size != 0) {
 			while(true) {
 				int length = contentLength.get();
 				if(contentLength.compareAndSet(length, length - size)) {
@@ -83,7 +80,6 @@ public class FileLimiter {
 			}
 		}
 		
-		fileNode.setSize(contentLength.get());
 		writing.decrementAndGet();
 	}
 	

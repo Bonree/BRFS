@@ -1,5 +1,8 @@
 package com.bonree.brfs.duplication.datastream.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
@@ -12,6 +15,7 @@ import com.bonree.brfs.duplication.datastream.DuplicateWriter;
 import com.bonree.brfs.duplication.datastream.ResultItem;
 
 public class WriteDataMessageHandler implements MessageHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(WriteDataMessageHandler.class);
 	
 	private DuplicateWriter duplicateWriter;
 	
@@ -23,6 +27,8 @@ public class WriteDataMessageHandler implements MessageHandler {
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
 		DataItem[] items = writeMsg.getItems();
+		LOG.info("Writing DataItem[{}]", items.length);
+		
 		if(items == null || items.length == 0) {
 			HandleResult result = new HandleResult();
 			result.setSuccess(true);

@@ -9,7 +9,7 @@ public class ReadDataMessageHandler implements MessageHandler {
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		ReadDataMessage readMessage = ProtoStuffUtils.deserialize(msg.getContent(), ReadDataMessage.class);
+		String fileId = msg.getPath();
 	}
 
 }
