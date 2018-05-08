@@ -1,6 +1,7 @@
 package com.bonree.brfs.discover;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
@@ -15,8 +16,8 @@ import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class DiscoverTest1 {
 
-    public static final String CONFIG_NAME1 = "E:/tmp/server_default.properties";
-    public static final String HOME1 = "E:/tmp/";
+    public static final String CONFIG_NAME1 = "E:/BRFS1/config/server.properties";
+    public static final String HOME1 = "E:/BRFS1";
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -29,31 +30,24 @@ public class DiscoverTest1 {
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
             ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
             idManager.getSecondServerID(1); // TODO 模拟存储数据
-            idManager.getVirtualServerID(1, 2);
+            idManager.getVirtualServerID(1, 1);
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
-            ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace("atest"));
+            ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseServersPath().substring(1, zookeeperPaths.getBaseServersPath().length())));
             sm.start();
 
-            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), zookeeperPaths, idManager,sm);
+            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), serverConfig.getDataPath(), zookeeperPaths, idManager, sm);
             rebalanceServer.start();
-            
 
             Service selfService = new Service();
             selfService.setHost(serverConfig.getHost());
             selfService.setPort(serverConfig.getPort());
-            selfService.setServiceGroup("discover");
-//            String serverId = idManager.getFirstServerID();
-            String serverId = "10";
-            System.out.println(serverId);
-            selfService.setServiceId(serverId);
+            selfService.setServiceGroup(Constants.DISCOVER);
+            selfService.setServiceId(idManager.getFirstServerID());
             sm.registerService(selfService);
-            Service tmp = sm.getServiceById("discover", serverId);
-            sm.updateService("discover", serverId, "123456");
-            System.out.println(tmp);
-//            System.out.println(selfService);
-//            sm.addServiceStateListener("discover", new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000));
-//            System.out.println("launch Server 1");
+            System.out.println(selfService);
+            sm.addServiceStateListener(Constants.DISCOVER, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000));
+            System.out.println("launch Server 1");
         } catch (ConfigException e) {
             e.printStackTrace();
             System.exit(1);

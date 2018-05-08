@@ -1,6 +1,7 @@
 package com.bonree.brfs.discover;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
@@ -28,24 +29,24 @@ public class DiscoverTest2 {
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
             ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
             idManager.getSecondServerID(1); // TODO 模拟存储数据
-
+//            idManager.getVirtualServerID(1, 1);
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
 
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseServersPath().substring(1, zookeeperPaths.getBaseServersPath().length())));
             sm.start();
 
-            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), zookeeperPaths, idManager, sm);
+            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), serverConfig.getDataPath(), zookeeperPaths, idManager, sm);
             rebalanceServer.start();
 
             Service selfService = new Service();
             selfService.setHost(serverConfig.getHost());
             selfService.setPort(serverConfig.getPort());
-            selfService.setServiceGroup("discover");
+            selfService.setServiceGroup(Constants.DISCOVER);
             selfService.setServiceId(idManager.getFirstServerID());
             sm.registerService(selfService);
             System.out.println(selfService);
-            sm.addServiceStateListener("discover", new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000));
+            sm.addServiceStateListener(Constants.DISCOVER, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000));
             System.out.println("launch Server 2");
         } catch (ConfigException e) {
             e.printStackTrace();

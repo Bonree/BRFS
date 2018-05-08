@@ -312,10 +312,15 @@ public class TaskDispatcher {
         return changeSummaries;
     }
 
+    /** 概述：非阻塞审计任务
+     * @param changeSummaries
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public void auditTask(List<ChangeSummary> changeSummaries) {
         if (changeSummaries == null || changeSummaries.isEmpty()) {
             return;
         }
+
         System.out.println("audit:" + changeSummaries);
 
         // 当前有任务在执行
@@ -502,10 +507,11 @@ public class TaskDispatcher {
 
     private void checkTask(List<ChangeSummary> changeSummaries) {
         System.out.println("task check!!!");
+        // 获取当前任务信息
         BalanceTaskSummary currentTask = runTask.get(changeSummaries.get(0).getStorageIndex());
         String runChangeID = currentTask.getChangeID();
 
-        // 清除变更抵消，只删除remove变更
+        // trim change cache 清除变更抵消，只删除remove变更
         Iterator<ChangeSummary> it1 = changeSummaries.iterator();
         Iterator<ChangeSummary> it2 = changeSummaries.iterator();
         while (it1.hasNext()) {
@@ -526,6 +532,7 @@ public class TaskDispatcher {
                 }
             }
         }
+
         // 查找影响当前任务的变更
         if (changeSummaries.size() > 1) {
             BalanceTaskSummary runningTaskSummary = runTask.get(changeSummaries.get(0).getStorageIndex());
