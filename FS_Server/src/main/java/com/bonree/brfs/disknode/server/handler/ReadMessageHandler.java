@@ -1,12 +1,9 @@
 package com.bonree.brfs.disknode.server.handler;
 
-import java.io.IOException;
-
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
-import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 
@@ -24,25 +21,16 @@ public class ReadMessageHandler implements MessageHandler {
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		HandleResult result = new HandleResult();
 		
-		DataFileReader reader = null;
-		try {
-			String offsetParam = msg.getParams().get(PARAM_READ_OFFSET);
-			String lengthParam = msg.getParams().get(PARAM_READ_LENGTH);
-			int offset = offsetParam == null ? 0 : Integer.parseInt(offsetParam);
-			int length = lengthParam == null ? Integer.MAX_VALUE : Integer.parseInt(lengthParam);
-			
-			reader = new DataFileReader(diskContext.getConcreteFilePath(msg.getPath()));
-			byte[] data = reader.read(offset, length);
-			result.setSuccess(true);
-			result.setData(data);
-		} catch (IOException e) {
-			result.setSuccess(false);
-			result.setCause(e);
-		} finally {
-			callback.completed(result);
-			CloseUtils.closeQuietly(reader);
-		}
+		String offsetParam = msg.getParams().get(PARAM_READ_OFFSET);
+		String lengthParam = msg.getParams().get(PARAM_READ_LENGTH);
+		int offset = offsetParam == null ? 0 : Integer.parseInt(offsetParam);
+		int length = lengthParam == null ? Integer.MAX_VALUE : Integer.parseInt(lengthParam);
 		
+		byte[] data = DataFileReader.readFile(diskContext.getConcreteFilePath(msg.getPath()), offset, length);
+		
+		result.setSuccess(data == null ? false : true);
+		result.setData(data);
+		callback.completed(result);
 	}
 
 }

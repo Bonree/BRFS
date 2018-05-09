@@ -62,14 +62,12 @@ public class FileCopyMessageHandler implements MessageHandler {
 		} else if(copyMessage.getDirect() == FileCopyMessage.DIRECT_TO_REMOTE) {
 			LOG.info("copy from local[{}] to remote[{}]", copyMessage.getLocalPath(), copyMessage.getRemotePath());
 			DiskNodeClient client = null;
-			DataFileReader reader = null;
 			try {
 				client = new HttpDiskNodeClient(copyMessage.getRemoteHost(), copyMessage.getRemotePort());
-				reader = new DataFileReader(localPath);
 				
 				byte[] buf;
 				int offset = 0;
-				while((buf = reader.read(offset, TO_BUFFER_SIZE)).length != 0) {
+				while((buf = DataFileReader.readFile(localPath, offset, TO_BUFFER_SIZE)) != null) {
 					client.writeData(copyMessage.getRemotePath(), offset, buf);
 					offset += TO_BUFFER_SIZE;
 				}
@@ -85,7 +83,6 @@ public class FileCopyMessageHandler implements MessageHandler {
 				callback.completed(result);
 			} finally {
 				CloseUtils.closeQuietly(client);
-				CloseUtils.closeQuietly(reader);
 			}
 		} else {
 			LOG.error("Illegal copy directing!");

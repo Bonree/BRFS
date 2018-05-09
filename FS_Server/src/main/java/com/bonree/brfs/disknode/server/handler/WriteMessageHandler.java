@@ -44,7 +44,7 @@ public class WriteMessageHandler implements MessageHandler {
 				throw new IllegalArgumentException("Writing data is Empty!!");
 			}
 			
-			boolean binary = msg.getParams().containsKey("binary");
+			boolean json = msg.getParams().containsKey("json");
 			
 			WriteData item = ProtoStuffUtils.deserialize(msg.getContent(), WriteData.class);
 			
@@ -83,7 +83,7 @@ public class WriteMessageHandler implements MessageHandler {
 							writeResult.setOffset(result.getOffset());
 							writeResult.setSize(result.getSize());
 							try {
-								handleResult.setData(binary ? ProtoStuffUtils.serialize(writeResult) : JsonUtils.toJsonBytes(writeResult));
+								handleResult.setData(json ? JsonUtils.toJsonBytes(writeResult) : ProtoStuffUtils.serialize(writeResult));
 							} catch (Exception e) {
 								e.printStackTrace();
 							}

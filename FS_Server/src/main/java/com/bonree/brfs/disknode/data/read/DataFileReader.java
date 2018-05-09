@@ -1,44 +1,44 @@
 package com.bonree.brfs.disknode.data.read;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.utils.BufferUtils;
 
-public class DataFileReader implements Closeable {
-	private RandomAccessFile accessFile;
+public class DataFileReader {
 	
-	private MappedByteBuffer buffer;
-	
-	public DataFileReader(String filePath) throws IOException {
-		this(new File(filePath));
+	public static byte[] readFile(File file, int offset, int size) {
+		return readFile(file.getAbsolutePath(), offset, size);
 	}
 	
-	public DataFileReader(File file) throws IOException {
-		accessFile = new RandomAccessFile(file, "r");
-		buffer = accessFile.getChannel().map(MapMode.READ_ONLY, 0, file.length());
-	}
-	
-	public byte[] read(int offset, int size) {
-		if(offset < 0 || offset > buffer.capacity()) {
-			return new byte[0];
+	public static byte[] readFile(String filePath, int offset, int size) {
+		RandomAccessFile file = null;
+		MappedByteBuffer buffer = null;
+		try {
+			file = new RandomAccessFile(filePath, "r");
+			long fileLength = file.length();
+			
+			if(offset >= fileLength) {
+				return null;
+			}
+			
+			offset = Math.max(0, offset);
+			size = (int) Math.min(size, file.length() - offset);
+			byte[] bytes = new byte[size];
+			buffer = file.getChannel().map(MapMode.READ_ONLY, offset, size);
+			buffer.get(bytes);
+			
+			return bytes;
+		} catch (IOException e) {
+		} finally {
+			CloseUtils.closeQuietly(file);
+			BufferUtils.release(buffer);
 		}
 		
-		int byteLen = Math.min(size, buffer.capacity() - offset);
-		byte[] result = new byte[byteLen];
-		buffer.position(offset);
-		buffer.get(result);
-		
-		return result;
-	}
-	
-	@Override
-	public void close() throws IOException {
-		accessFile.close();
-		BufferUtils.release(buffer);
+		return null;
 	}
 }

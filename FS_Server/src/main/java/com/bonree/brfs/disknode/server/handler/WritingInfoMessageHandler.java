@@ -1,6 +1,5 @@
 package com.bonree.brfs.disknode.server.handler;
 
-import java.io.IOException;
 import java.util.BitSet;
 
 import org.slf4j.Logger;
@@ -10,7 +9,6 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
-import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
@@ -80,19 +78,7 @@ public class WritingInfoMessageHandler implements MessageHandler {
 			return null;
 		}
 		
-		DataFileReader reader = null;
-		try {
-			reader = new DataFileReader(RecordFileBuilder.reverse(records.recordFile()));
-			byte[] data = reader.read((int) element.getOffset(), element.getSize());
-			
-			return data;
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			CloseUtils.closeQuietly(reader);
-		}
-		
-		return null;
+		return DataFileReader.readFile(RecordFileBuilder.reverse(records.recordFile()), (int) element.getOffset(), element.getSize());
 	}
 	
 	private BitSet getAllSequence(RecordCollection records) {
