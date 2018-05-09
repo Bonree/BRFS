@@ -33,7 +33,7 @@ public class CreateStorageNameMessageHandler extends StorageNameMessageHandler {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			result.setData(nodeBytes);
+			result.setData(BrStringUtils.toUtf8Bytes(String.valueOf(node.getId())));
 		}
 		
 		callback.completed(result);
