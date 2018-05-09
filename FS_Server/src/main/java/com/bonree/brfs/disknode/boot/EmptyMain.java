@@ -32,9 +32,11 @@ public class EmptyMain {
 		System.out.println("----port---" + port);
 		
 		String serverId = System.getProperty("server_id", UUID.randomUUID().toString());
+		String zkAddress = System.getProperty("zk", "localhost:2181");
+		String ip = System.getProperty("ip");
 		
 		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-		CuratorFramework client = CuratorFrameworkFactory.newClient("192.168.101.86:2181", 3000, 15000, retryPolicy);
+		CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddress, 3000, 15000, retryPolicy);
 		client.start();
 		client.blockUntilConnected();
 		
@@ -42,7 +44,7 @@ public class EmptyMain {
 		
 		ServiceManager serviceManager = new DefaultServiceManager(client);
 		serviceManager.start();
-		Service service = new Service(serverId, "disk", "192.168.4.137", port);
+		Service service = new Service(serverId, "disk", ip, port);
 		serviceManager.registerService(service);
 		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();

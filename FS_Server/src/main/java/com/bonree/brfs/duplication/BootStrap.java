@@ -9,6 +9,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.http.HttpConfig;
 import com.bonree.brfs.common.http.netty.NettyHttpContextHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
@@ -17,6 +18,9 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
+import com.bonree.brfs.configuration.Configuration;
+import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkManager;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
@@ -41,6 +45,7 @@ import com.bonree.brfs.duplication.storagename.handler.CreateStorageNameMessageH
 import com.bonree.brfs.duplication.storagename.handler.DeleteStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.OpenStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.UpdateStorageNameMessageHandler;
+import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class BootStrap {
 	private static final Logger LOG = LoggerFactory.getLogger("Main");
@@ -49,15 +54,17 @@ public class BootStrap {
 		int port = Integer.parseInt(args[0]);
 		
 		String serverId = System.getProperty("server_id", UUID.randomUUID().toString());
+		String zkAddress = System.getProperty("zk", "localhost:2181");
+		String ip = System.getProperty("ip");
 		
 		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-		CuratorFramework client = CuratorFrameworkFactory.newClient("192.168.101.86:2181", 3000, 15000, retryPolicy);
+		CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddress, 3000, 15000, retryPolicy);
 		client.start();
 		client.blockUntilConnected();
 		
 		client = client.usingNamespace("brfstest");
 		
-		Service service = new Service(serverId, "duplicate_group", "192.168.4.137", port);
+		Service service = new Service(serverId, "duplicate_group", ip, port);
 		ServiceManager serviceManager = new DefaultServiceManager(client);
 		serviceManager.start();
 		serviceManager.registerService(service);
