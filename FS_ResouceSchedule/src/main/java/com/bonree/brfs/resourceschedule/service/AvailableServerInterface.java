@@ -52,6 +52,41 @@ public interface AvailableServerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList) throws Exception;
+	
+	/**
+	 * 概述：获取可用server
+	 * @param scene 场景枚举
+	 * @return
+	 * @throws Exception
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public String selectAvailableServer(int scene, int snId) throws Exception;
+	/**
+	 * 概述：获取可用server
+	 * @param scene 场景枚举
+	 * @param exceptionServerList 异常server集合
+	 * @return
+	 * @throws Exception
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public String selectAvailableServer(int scene, int snId,List<String> exceptionServerList) throws Exception;
+	/**
+	 * 概述：获取可用server集合
+	 * @param scene 场景枚举
+	 * @return
+	 * @throws Exception
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId) throws Exception;
+	/**
+	 * 概述：获取可用server集合
+	 * @param scene 场景枚举
+	 * @param exceptionServerList 异常server集合
+	 * @return
+	 * @throws Exception
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList) throws Exception;
 	/**
 	 * 概述：更新资源数据
 	 * @param resources key： serverId, resourceModel

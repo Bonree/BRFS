@@ -3,12 +3,14 @@ package com.bonree.brfs.resourceschedule.service.impl;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
@@ -23,6 +25,7 @@ public class RandomAvailable implements AvailableServerInterface {
 	 */
 	private List<ResourceModel> resource = new ArrayList<ResourceModel>();
 	private long updateTime = 0;
+	private Map<Integer, String> snIds = new ConcurrentHashMap<>();
 	private RandomAvailable(){
 		
 	}
@@ -203,7 +206,7 @@ public class RandomAvailable implements AvailableServerInterface {
 		for(ResourceModel ele : tmp){
 			server = ele.getServerId();
 			if(1 == scene){
-				sum = ele.getDiskRemainRate() + ele.getDiskWriteValue(storageName);
+				sum = ele.getDiskRemainValue(storageName) + ele.getDiskWriteValue(storageName);
 			}else if(2 == scene){
 				sum = ele.getDiskReadValue(storageName);
 			}else{
@@ -227,6 +230,16 @@ public class RandomAvailable implements AvailableServerInterface {
 		this.resource.clear();
 		this.resource.addAll(resources);
 		this.updateTime = System.currentTimeMillis();
+		Map<Integer,String> tmpMap = null;
+		Map<Integer,String> sumMap = new ConcurrentHashMap<>();
+		for(ResourceModel ele : resources){
+			tmpMap = ele.getSnIds();
+			if(tmpMap == null){
+				continue;
+			}
+			sumMap.putAll(tmpMap);
+		}
+		this.snIds = sumMap;
 	}
 	@Override
 	public long getLastUpdateTime() {
@@ -302,7 +315,29 @@ public class RandomAvailable implements AvailableServerInterface {
 	}
 	@Override
 	public void setLimitParameter(LimitServerResource limits) {
-		// TODO Auto-generated method stub
-		
+				
 	}
+	@Override
+	public String selectAvailableServer(int scene, int snId) throws Exception {
+		String snName = this.snIds.get(snIds);
+		return selectAvailableServer(scene, snName);
+	}
+	@Override
+	public String selectAvailableServer(int scene, int snId, List<String> exceptionServerList) throws Exception {
+		String snName = this.snIds.get(snIds);
+		return selectAvailableServer(scene, snName, exceptionServerList);
+	}
+	@Override
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId) throws Exception {
+		String snName = this.snIds.get(snIds);
+		
+		return selectAvailableServers(scene, snName);
+	}
+	@Override
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList)
+			throws Exception {
+		String snName = this.snIds.get(snIds);
+		return selectAvailableServers(scene, snName,exceptionServerList);
+	}
+	
 }
