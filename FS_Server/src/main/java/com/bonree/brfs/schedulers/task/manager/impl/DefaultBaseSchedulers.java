@@ -564,7 +564,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		}
 		// 程序未销毁抛异常
 		if(!isDestory()){
-			throw new RuntimeException(" server is not destory !!");
+			close(true);
 		}
 		initProperties(null);
 		start();
