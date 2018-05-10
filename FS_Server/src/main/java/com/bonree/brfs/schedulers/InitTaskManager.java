@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
@@ -52,6 +53,7 @@ import com.bonree.brfs.schedulers.task.manager.impl.DefaultSchedulersManager;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
+import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 
 public class InitTaskManager {
 	private static final Logger LOG = LoggerFactory.getLogger("InitTaskManager");
@@ -207,13 +209,85 @@ public class InitTaskManager {
 			throw new NullPointerException("start task operation error !!!");
 		}
 		Map<String,String> dataMap = new HashMap<>();
+		Map<String,String> switchMap = null;
 		if(isReboot){
-			dataMap = JobDataMapConstract.createRebootTaskOpertionDataMap(switchList, release, serverId,server.getDataPath());
+			// 将任务信息不完全的任务补充完整
+			LOG.info("========================================================================================");
+			switchMap = recoveryTask(switchList, release, serverId);
+			LOG.info("========================================================================================");
 		}
+		dataMap = JobDataMapConstract.createRebootTaskOpertionDataMap(server.getDataPath(), switchMap);
 		SumbitTaskInterface task = createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), -1, dataMap, OperationTaskJob.class);
 		boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
 		if(sumbitFlag){
 			LOG.info("operation task sumbit complete !!!");
+		}
+	}
+	/**
+	 * 概述：修复任务状态
+	 * @param swtichList
+	 * @param release
+	 * @param serverId
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private static Map<String,String> recoveryTask(List<TaskType> swtichList, MetaTaskManagerInterface release, String serverId){
+		Map<String,String> swtichMap = new HashMap<>();
+		if(swtichList == null || swtichList.isEmpty()){
+			return swtichMap;
+		}
+		String typeName = null;
+		String currentTask = null;
+		for(TaskType taskType : swtichList){
+			typeName = taskType.name();
+			currentTask = release.getLastSuccessTaskIndex(typeName, serverId);
+			if(!BrStringUtils.isEmpty(currentTask)){
+			}else{
+				currentTask = release.getFirstServerTask(typeName, serverId);
+			}
+			// 修复任务
+			recoveryTask(release, typeName, currentTask, serverId);
+			if(BrStringUtils.isEmpty(currentTask)){
+				continue;
+			}
+			swtichMap.put(typeName, currentTask);
+		}
+		return swtichMap;
+	}
+	/**
+	 * 概述：将因服务挂掉而错失的任务重建
+	 * @param release
+	 * @param taskType
+	 * @param currentTask
+	 * @param serverId
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private static void recoveryTask(MetaTaskManagerInterface release, String taskType, String currentTask, String serverId){
+		List<String> tasks = release.getTaskList(taskType);
+		if(tasks == null || tasks.isEmpty()){
+			return;
+		}
+		int index = tasks.indexOf(currentTask);
+		if(index < 0 ){
+			index = 0;
+		}
+		int size = tasks.size();
+		String taskName = null;
+		List<String> cList = null;
+		for(int i = index; i < size; i++ ){
+			taskName = tasks.get(i);
+			if(BrStringUtils.isEmpty(taskName)){
+				continue;
+			}
+			cList = release.getTaskServerList(taskType, taskName);
+			if(cList == null || cList.isEmpty() || !cList.contains(serverId)){
+				release.updateServerTaskContentNode(serverId, taskName, taskType, new TaskServerNodeModel());
+				int stat = release.queryTaskState(taskName, taskType);
+				if(TaskState.FINISH.code() == stat){
+					release.changeTaskContentNodeState(taskName, taskType, TaskState.RERUN.code());
+				}
+				LOG.info("Recover {} task's {} serverId  {} ",taskType, taskName, serverId);
+			}
 		}
 	}
 	/***

@@ -103,10 +103,13 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			if(taskName == null){
 				continue;
 			}
+			TaskServerNodeModel sTask = null;
 			for(String serviceId : serverIds){
-				release.updateServerTaskContentNode(serviceId, taskName, taskType.name(), createServerNodeModel());
+				sTask = createServerNodeModel();
+				release.updateServerTaskContentNode(serviceId, taskName, taskType.name(), sTask);
+				LOG.info("=======>create s task {} - {} - {} - {} ",taskType, taskName,serviceId, TaskState.valueOf(sTask.getTaskState()).name());
 			}
-			LOG.info("=======>create {} task: {} ,stat:{} success !!!!!",taskType, taskName, TaskState.valueOf(task.getTaskState()).name());
+			LOG.info("=======>create task {} - {} - {} ",taskType, taskName, TaskState.valueOf(task.getTaskState()).name());
 		}
 	}
 	public TaskServerNodeModel createServerNodeModel(){

@@ -33,7 +33,6 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 		int stat = -1;
 		try{
 			data = context.getJobDetail().getJobDataMap();
-			LOG.info("repeatCount {}", data.getString(JobDataMapConstract.TASK_REPEAT_RUN_COUNT));
 			int repeatCount = data.getInt(JobDataMapConstract.TASK_REPEAT_RUN_COUNT);
 			taskName = data.getString(JobDataMapConstract.TASK_NAME);
 			serverId = data.getString(JobDataMapConstract.SERVER_ID);
@@ -94,12 +93,13 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 		sTask.setTaskStopTime(System.currentTimeMillis());
 		sTask.setTaskState(stat);
 		release.updateServerTaskContentNode(serverId, taskname, taskType, sTask);
-		
+		LOG.info("----> complete server task :{} - {} - {} - {}",taskType, taskname, serverId, TaskState.valueOf(sTask.getTaskState()).name());
 		// 更新TaskContent
 		List<Pair<String,Integer>> cStatus = release.getServerStatus(taskType, taskname);
 		if(cStatus == null){
 			return;
 		}
+		LOG.info("complete c List {}",cStatus);
 		int cstat = -1;
 		boolean isException = false;
 		int finishCount = 0;
@@ -126,6 +126,7 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 			task.setTaskState(TaskState.FINISH.code());
 		}
 		release.updateTaskContentNode(task, taskType, taskname);
+		LOG.info("----> complete task :{} - {} - {}",taskType, taskname, TaskState.valueOf(task.getTaskState()).name());
 	}
 	/**
 	 * 概述：更新任务map的任务状态
@@ -186,6 +187,7 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 		serverNode.setTaskStartTime(System.currentTimeMillis());
 		serverNode.setTaskState(TaskState.RUN.code());
 		release.updateServerTaskContentNode(serverId, taskname, taskType, serverNode);
+		LOG.info("----> run server task :{} - {} - {} - {}",taskType, taskname, serverId, TaskState.valueOf(serverNode.getTaskState()).name());
 		//查询任务节点状态，若不为RUN则获取分布式锁，修改为RUN
 		if(taskStat != TaskState.RUN.code() ){
 			TaskModel task = release.getTaskContentNodeInfo(taskType, taskname);
@@ -194,6 +196,7 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 			}
 			task.setTaskState(TaskState.RUN.code());
 			release.updateTaskContentNode(task, taskType, taskname);
+			LOG.info("----> run task :{} - {} - {}",taskType, taskname,  TaskState.valueOf(task.getTaskState()).name());
 		}
 		
 	}
