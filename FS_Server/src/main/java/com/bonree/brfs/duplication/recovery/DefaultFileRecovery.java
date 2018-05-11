@@ -1,13 +1,10 @@
 package com.bonree.brfs.duplication.recovery;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -165,7 +162,7 @@ public class DefaultFileRecovery implements FileRecovery {
 					DiskNodeClient client = connection.getClient();
 					try {
 						client.recover(FilePathBuilder.buildPath(target), infoList);
-					} catch (IOException e) {
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 					listener.complete(target);
