@@ -96,7 +96,7 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 		LOG.info("----> complete server task :{} - {} - {} - {}",taskType, taskname, serverId, TaskState.valueOf(sTask.getTaskState()).name());
 		// 更新TaskContent
 		List<Pair<String,Integer>> cStatus = release.getServerStatus(taskType, taskname);
-		if(cStatus == null){
+		if(cStatus == null || cStatus.isEmpty()){
 			return;
 		}
 		LOG.info("complete c List {}",cStatus);

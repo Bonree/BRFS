@@ -1,5 +1,7 @@
 package com.bonree.brfs.schedulers.task.model;
 
+import com.bonree.brfs.configuration.ResourceTaskConfig;
+
 public class TaskExecutablePattern {
 	private double memoryRate;
 	private double cpuRate;
@@ -8,6 +10,24 @@ public class TaskExecutablePattern {
 	private double diskReadRate;
 	private double netRxRate;
 	private double netTxRate;
+	
+	/***
+	 * 概述：创建限制资源对象
+	 * @param conf
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static TaskExecutablePattern parse(ResourceTaskConfig conf){
+		TaskExecutablePattern limit = new TaskExecutablePattern();
+		limit.setCpuRate(conf.getLimitCpuRate());
+		limit.setMemoryRate(conf.getLimitMemoryRate());
+		limit.setDiskRemainRate(conf.getLimitDiskRemaintRate());
+		limit.setDiskReadRate(conf.getLimitDiskReadRate());
+		limit.setDiskWriteRate(conf.getLimitDiskWriteRate());
+		limit.setNetRxRate(conf.getLimitNetRxRate());
+		limit.setNetTxRate(conf.getLimitNetTxRate());
+		return limit;
+	}
 	public double getMemoryRate() {
 		return memoryRate;
 	}
