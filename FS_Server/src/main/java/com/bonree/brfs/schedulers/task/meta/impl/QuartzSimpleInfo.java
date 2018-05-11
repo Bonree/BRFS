@@ -3,6 +3,7 @@ package com.bonree.brfs.schedulers.task.meta.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 
 /******************************************************************************
@@ -57,6 +58,37 @@ public class QuartzSimpleInfo implements SumbitTaskInterface {
 		.append(",").append(this.cycleFlag);
 		return str.toString();
 	}
+	
+	/**
+	 * 概述：创建立即执行循环任务
+	 * @param intervalTime 间隔时间
+	 * @param jobMap 传入的数据
+	 * @param clazz 对应的Class
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static QuartzSimpleInfo createCycleTaskInfo(String name, long intervalTime,long delayTime, Map<String, String> jobMap, Class<?> clazz) {
+		if(BrStringUtils.isEmpty(name)|| intervalTime <=0){
+			return null;
+		}
+		QuartzSimpleInfo simple = new QuartzSimpleInfo();
+		simple.setTaskName(name);
+		simple.setTaskGroupName(name);
+		simple.setClassInstanceName(clazz.getCanonicalName());
+		simple.setCycleFlag(true);
+		simple.setInterval(intervalTime);
+		if(delayTime <0){
+			simple.setRunNowFlag(true);
+		}else{
+			simple.setRunNowFlag(false);
+			simple.setDelayTime(delayTime);
+		}
+		if(jobMap != null && !jobMap.isEmpty()){
+			simple.setTaskContent(jobMap);
+		}
+		return simple;
+	}
+	
 
 	@Override
 	public Map<String, String> getTaskContent() {

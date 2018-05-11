@@ -46,6 +46,8 @@ public class ResourceModel {
 	 * storagename与分区的映射关系
 	 */
 	private Map<String,String> storageNameOnPartitionMap = new ConcurrentHashMap<String,String>();
+	
+	private Map<Integer,String> snIds = new ConcurrentHashMap<Integer, String>();
 	public String getServerId() {
 		return serverId;
 	}
@@ -176,5 +178,11 @@ public class ResourceModel {
 	}
 	public void setNetTxValue(double netTxValue) {
 		this.netTxValue = netTxValue;
+	}
+	public Map<Integer, String> getSnIds() {
+		return snIds;
+	}
+	public void setSnIds(Map<Integer, String> snIds) {
+		this.snIds = snIds;
 	}
 }

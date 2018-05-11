@@ -2,8 +2,11 @@
 package com.bonree.brfs.schedulers.jobs.resource;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.curator.RetryPolicy;
@@ -33,7 +36,6 @@ import com.bonree.brfs.resourceschedule.model.ServerModel;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
 import com.bonree.brfs.resourceschedule.model.StateMetaServerModel;
 import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
-import com.bonree.brfs.resourceschedule.service.impl.AvailableServerFactory;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
@@ -130,10 +132,13 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		}
 		// 7.计算Resource值
 		ResourceModel resource = GatherResource.calcResourceValue(base, sum);
+		
 		if (resource == null) {
 			LOG.warn("calc resource value is null !!!");
 			return;
 		}
+		Map<Integer, String> snIds = getStorageNameIdWithName();
+		resource.setSnIds(snIds);
 		resource.setServerId(mcf.getServerId());
 		// 6.获取本机信息
 		ServerModel server = getServerModel();
@@ -253,6 +258,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		}
 		return snList;
 	}
+	
 
 	/**
 	 * 概述：计算集群基础信息
@@ -319,5 +325,37 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			return null;
 		}
 		return JsonUtils.toObject(payLoad, ServerModel.class);
+	}
+	/**
+	 * 概述：获取storageName关系
+	 * @param sns
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private Map<Integer,String> getStorageNameIdWithName(){
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		StorageNameManager snm = mcf.getSnm();
+		List<StorageNameNode> sns = snm.getStorageNameNodeList();
+		Map<Integer,String> snToId = new ConcurrentHashMap<Integer,String>();
+		if(sns == null || sns.isEmpty()){
+			return snToId;
+		}
+		int id = -1;
+		String name = null;
+		for (StorageNameNode sn : sns) {
+			if (sn == null) {
+				continue;
+			}
+			name = sn.getName();
+			if (BrStringUtils.isEmpty(name)) {
+				continue;
+			}
+			id = sn.getId();
+			if(snToId.containsKey(id)){
+				continue;
+			}
+			snToId.put(id, name);
+		}
+		return snToId;
 	}
 }

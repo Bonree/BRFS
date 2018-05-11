@@ -42,29 +42,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		return releaseInstance.instance;
 	}
 
-	private List<String> getOrderTaskInfos(String taskType) {
-		if (StringUtils.isEmpty(taskType)) {
-			throw new NullPointerException("taskType is empty");
-		}
-		StringBuilder pathBuilder = new StringBuilder();
-		pathBuilder.append(this.taskRootPath).append("/").append(taskType);
-		String path = pathBuilder.toString();
-		if (!client.checkExists(path)) {
-//			throw new NullPointerException(taskType + " is not exists");
-			return null;
-		}
-		List<String> childNodes = client.getChildren(path);
-		if (childNodes == null || childNodes.isEmpty()) {
-			return childNodes;
-		}
-		//升序排列任务
-		Collections.sort(childNodes, new Comparator<String>() {
-			public int compare(String o1, String o2) {
-				return o1.compareTo(o2);
-			}
-		});
-		return childNodes;
-	}
+	
 	public String updateTaskContentNode(TaskModel data, String taskType, String taskName){
 		String pathNode = null;
 		try {
@@ -110,7 +88,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	@Override
 	public String getCurrentTaskIndex(String taskType){
 		try {
-			List<String> taskInfos = getOrderTaskInfos(taskType);
+			List<String> taskInfos = getTaskList(taskType);
 			if(taskInfos == null || taskInfos.isEmpty()){
 				return null;
 			}
@@ -238,7 +216,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	@Override
 	public String getLastSuccessTaskIndex(String taskType, String serverId){
 		try {
-			List<String> taskInfos = getOrderTaskInfos(taskType);
+			List<String> taskInfos = getTaskList(taskType);
 			if(taskInfos == null || taskInfos.isEmpty()){
 				return null;
 			}
@@ -273,7 +251,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	}
 	@Override
 	public String getFirstServerTask(String taskType,String serverId){
-		List<String> taskInfos = getOrderTaskInfos(taskType);
+		List<String> taskInfos = getTaskList(taskType);
 		if(taskInfos == null || taskInfos.isEmpty()){
 			return null;
 		}
@@ -328,7 +306,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return -1;
 			}
 			// TODO Auto-generated method stub
-			List<String> nodes = getOrderTaskInfos(taskType);
+			List<String> nodes = getTaskList(taskType);
 			if(nodes == null || nodes.isEmpty()){
 				return 0;
 			}
@@ -436,7 +414,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				throw new NullPointerException("alive servers is empty");
 			}
 			// 获取子任务名称队列
-			List<String> taskQueues = getOrderTaskInfos(taskType);
+			List<String> taskQueues = getTaskList(taskType);
 			if(taskQueues == null || taskQueues.isEmpty()){
 				return counts;
 			}
@@ -668,7 +646,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		if(BrStringUtils.isEmpty(taskType) || BrStringUtils.isEmpty(taskName)){
 			return null;
 		}
-		List<String> orderTaskName = getOrderTaskInfos(taskType);
+		List<String> orderTaskName = getTaskList(taskType);
 		if(orderTaskName == null || orderTaskName.isEmpty()){
 			return null;
 		}
@@ -687,7 +665,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		if(BrStringUtils.isEmpty(taskType)){
 			return null;
 		}
-		List<String> orderTaskName = getOrderTaskInfos(taskType);
+		List<String> orderTaskName = getTaskList(taskType);
 		if(orderTaskName == null || orderTaskName.isEmpty()){
 			return null;
 		}
@@ -736,16 +714,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	@Override
 	public List<Pair<String, Integer>> getServerStatus(String taskType, String taskName) {
 		List<Pair<String, Integer>> serverStatus = new ArrayList<Pair<String,Integer>>();
-		if(BrStringUtils.isEmpty(taskType)){
-			return serverStatus;
-		}
-		if(BrStringUtils.isEmpty(taskName)){
-			return serverStatus;
-		}
-		StringBuilder pathStr = new StringBuilder();
-		pathStr.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName);
-		String path = pathStr.toString();
-		List<String> childeServers = client.getChildren(path);
+		List<String> childeServers = getTaskServerList(taskType, taskName);
 		if(childeServers == null || childeServers.isEmpty()){
 			return serverStatus;
 		}
@@ -758,8 +727,68 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			stat.setKey(child);
 			iStat = tmpServer == null ? -3 :tmpServer.getTaskState();
 			stat.setValue(iStat);
+			serverStatus.add(stat);
 		}
 		return serverStatus;
+	}
+
+	@Override
+	public List<String> getTaskServerList(String taskType, String taskName) {
+		List<String> childeServers = new ArrayList<String>();
+		if(BrStringUtils.isEmpty(taskType)){
+			return childeServers;
+		}
+		if(BrStringUtils.isEmpty(taskName)){
+			return childeServers;
+		}
+		StringBuilder pathStr = new StringBuilder();
+		pathStr.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName);
+		String path = pathStr.toString();
+		childeServers = client.getChildren(path);
+		if (childeServers == null || childeServers.isEmpty()) {
+			return childeServers;
+		}
+		//升序排列任务
+		Collections.sort(childeServers, new Comparator<String>() {
+			public int compare(String o1, String o2) {
+				return o1.compareTo(o2);
+			}
+		});
+		return childeServers;
+	}
+	@Override
+	public List<String> getTaskList(String taskType) {
+		if (StringUtils.isEmpty(taskType)) {
+			throw new NullPointerException("taskType is empty");
+		}
+		StringBuilder pathBuilder = new StringBuilder();
+		pathBuilder.append(this.taskRootPath).append("/").append(taskType);
+		String path = pathBuilder.toString();
+		if (!client.checkExists(path)) {
+			return null;
+		}
+		List<String> childNodes = client.getChildren(path);
+		if (childNodes == null || childNodes.isEmpty()) {
+			return childNodes;
+		}
+		//升序排列任务
+		Collections.sort(childNodes, new Comparator<String>() {
+			public int compare(String o1, String o2) {
+				return o1.compareTo(o2);
+			}
+		});
+		return childNodes;
+	}
+
+	@Override
+	public List<String> getTaskTypeList() {
+		List<String> taskTypeList = new ArrayList<String>();
+		StringBuilder pathBuilder = new StringBuilder();
+		if (!client.checkExists(this.taskRootPath)) {
+			return taskTypeList;
+		}
+		taskTypeList = client.getChildren(this.taskRootPath);
+		return taskTypeList;
 	}
 
 }

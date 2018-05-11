@@ -21,6 +21,9 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 	private Map<Integer,Integer> taskLevelMap = null;
 	private final static int REPEAT_COUNT [] = {1,2,4,8,10};
 	private final static long INTERVAL_TIME[] = {1000L, 2000L, 4000L, 8000L, 10000L};
+	private final static int batchCount = 5;
+	private final static long batchSleepTime = 5000;
+	private final static int maxbatchTimes = 10;
 	private DefaultRunnableTask(){
 		
 	}
@@ -54,13 +57,14 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 	public TaskRunPattern taskRunnPattern(TaskModel task) throws Exception {
 		TaskRunPattern runPattern = new TaskRunPattern();
 		int type = task.getTaskType();
-		if(TaskType.SYSTEM_DELETE.code() == type || TaskType.USER_DELETE.code() == type){
-			runPattern.setRepeateCount(REPEAT_COUNT[0]);
-			runPattern.setSleepTime(INTERVAL_TIME[0]);
-		}else{
-			runPattern.setRepeateCount(REPEAT_COUNT[REPEAT_COUNT.length -1]);
-			runPattern.setSleepTime(INTERVAL_TIME[INTERVAL_TIME.length -1]);
-		}
+		int dataSize = task.getAtomList().size();
+		
+		int repeadCount = (dataSize/batchCount) > maxbatchTimes ? maxbatchTimes : dataSize/batchCount;
+		repeadCount = repeadCount == 0 ? 1 : repeadCount;
+		long sleepTime = task.getTaskType() * batchSleepTime > 25000 ? 10000 : task.getTaskType() * batchSleepTime;
+		sleepTime = sleepTime == 0 ? batchSleepTime :sleepTime;
+		runPattern.setRepeateCount(repeadCount);
+		runPattern.setSleepTime(sleepTime);
 		return runPattern;
 	}
 

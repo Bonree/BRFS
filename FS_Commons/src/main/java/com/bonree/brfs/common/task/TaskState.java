@@ -6,7 +6,9 @@ public enum TaskState {
 	RUN(2),
 	FINISH(3),
 	EXCEPTION(4),
-	PAUSE(5);
+	PAUSE(5),
+	RERUN(6);
+	
 	private int stat;
 	TaskState(int stat){
 		this.stat = stat;
@@ -25,6 +27,8 @@ public enum TaskState {
 			return EXCEPTION;
 		} else if(stat == 5){
 			return PAUSE;
+		} else if(stat == 6){
+			return RERUN;
 		} else {
 			return UNKNOW;
 		}

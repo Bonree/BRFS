@@ -163,9 +163,6 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return false;
 		}
 		try {
-			if(!pool.isDestory()){
-				return false;
-			}
 			pool.reStart();
 		}
 		catch (Exception e) {

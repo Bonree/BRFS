@@ -206,10 +206,8 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			if (scheduler.isShutdown()) {
 				return;
 			}
-//			if (!isWaitTaskComplete) {
-//				scheduler.pauseAll();
-//				scheduler.clear();
-//			}
+			scheduler.pauseAll();
+			scheduler.clear();
 			scheduler.shutdown(isWaitTaskComplete);
 			this.pausePoolFlag = false;
 		}
@@ -449,6 +447,9 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		try {
 			TriggerKey triggerKey = TriggerKey.triggerKey(task.getTaskName(), task.getTaskGroupName());
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
+			if(scheduler == null){
+				return -1;
+			}
 			TriggerState tmp = scheduler.getTriggerState(triggerKey);
 			if (TriggerState.NONE.equals(tmp)) {
 				return -1;
@@ -500,6 +501,9 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	public int getSumbitTaskCount() {
 		try {
 			Scheduler scheduler = this.ssf.getScheduler(this.instanceName);
+			if(scheduler == null){
+				return 0;
+			}
 			int count = 0;
 			for (String groupName : scheduler.getJobGroupNames()) {
 				count += scheduler.getJobKeys((GroupMatcher<JobKey>) GroupMatcher.groupEquals(groupName)).size();
@@ -560,9 +564,23 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		}
 		// 程序未销毁抛异常
 		if(!isDestory()){
-			throw new RuntimeException(" server is not destory !!");
+			close(true);
 		}
 		initProperties(null);
 		start();
+	}
+	/**
+	 * 概述：创建简单的调度配置
+	 * @param poolSize
+	 * @param misfireTime
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static Properties createSimplePrope(int poolSize, long misfireTime) {
+		Properties prop = new Properties();
+		prop.put(StdSchedulerFactory.PROP_THREAD_POOL_CLASS, "org.quartz.simpl.SimpleThreadPool");
+		prop.put("org.quartz.threadPool.threadCount", poolSize + "");
+		prop.put("quartz.jobStore.misfireThreshold", misfireTime + "");
+		return prop;
 	}
 }

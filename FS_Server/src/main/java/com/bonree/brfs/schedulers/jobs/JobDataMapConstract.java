@@ -163,28 +163,11 @@ public class JobDataMapConstract {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String, String> createRebootTaskOpertionDataMap(List<TaskType> switchList, MetaTaskManagerInterface release, String serverId,String dataPath) {
+	public static Map<String, String> createRebootTaskOpertionDataMap(String dataPath,Map<String,String> switchMap) {
 		Map<String, String> dataMap = new HashMap<>();
 		dataMap.put(DATA_PATH, dataPath);
-		if (switchList == null || switchList.isEmpty()) {
-			return dataMap;
-		}
-		if (release == null) {
-			return dataMap;
-		}
-		String typeName = null;
-		;
-		String taskName = null;
-		for (TaskType taskType : switchList) {
-			typeName = taskType.name();
-			taskName = release.getLastSuccessTaskIndex(typeName, serverId);
-			if (BrStringUtils.isEmpty(taskName)) {
-				taskName = release.getFirstTaskName(typeName);
-			}
-			if (BrStringUtils.isEmpty(taskName)) {
-				continue;
-			}
-			dataMap.put(typeName, taskName);
+		if (switchMap != null && switchMap.isEmpty()) {
+			dataMap.putAll(switchMap);
 		}
 		return dataMap;
 	}

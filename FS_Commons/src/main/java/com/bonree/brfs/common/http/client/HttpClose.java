@@ -1,4 +1,4 @@
-package com.bonree.brfs.disknode.client;
+package com.bonree.brfs.common.http.client;
 
 import java.net.URI;
 

@@ -53,7 +53,7 @@ public class EmptyMain {
 		
 		NettyHttpServer server = new NettyHttpServer(config);
 		
-		NettyHttpContextHandler contextHandler = new NettyHttpContextHandler("/disk");
+		NettyHttpContextHandler contextHandler = new NettyHttpContextHandler(DiskContext.URI_DISK_NODE_ROOT);
 		
 		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
 		FileWriterManager writerManager = new FileWriterManager(recorderManager);
@@ -69,19 +69,19 @@ public class EmptyMain {
 		contextHandler.setNettyHttpRequestHandler(requestHandler);
 		server.addContextHandler(contextHandler);
 		
-		NettyHttpContextHandler infoHandler = new NettyHttpContextHandler("/info");
+		NettyHttpContextHandler infoHandler = new NettyHttpContextHandler(DiskContext.URI_INFO_NODE_ROOT);
 		NettyHttpRequestHandler infoRequestHandler = new NettyHttpRequestHandler();
 		infoRequestHandler.addMessageHandler("GET", new WritingInfoMessageHandler(context, recorderManager));
 		infoHandler.setNettyHttpRequestHandler(infoRequestHandler);
 		server.addContextHandler(infoHandler);
 		
-		NettyHttpContextHandler cpHandler = new NettyHttpContextHandler("/copy");
+		NettyHttpContextHandler cpHandler = new NettyHttpContextHandler(DiskContext.URI_COPY_NODE_ROOT);
 		NettyHttpRequestHandler cpRequestHandler = new NettyHttpRequestHandler();
 		cpRequestHandler.addMessageHandler("POST", new FileCopyMessageHandler(context));
 		cpHandler.setNettyHttpRequestHandler(cpRequestHandler);
 		server.addContextHandler(cpHandler);
 		
-		NettyHttpContextHandler listHandler = new NettyHttpContextHandler("/list");
+		NettyHttpContextHandler listHandler = new NettyHttpContextHandler(DiskContext.URI_LIST_NODE_ROOT);
 		NettyHttpRequestHandler listRequestHandler = new NettyHttpRequestHandler();
 		listRequestHandler.addMessageHandler("GET", new ListMessageHandler(context));
 		listHandler.setNettyHttpRequestHandler(listRequestHandler);

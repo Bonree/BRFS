@@ -184,4 +184,25 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	String getFirstServerTask(String taskType,String serverId);
+	/**
+	 * 概述：获取任务的server任务列表
+	 * @param taskType
+	 * @param taskName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	List<String> getTaskServerList(String taskType, String taskName);
+	/**
+	 * 概述：获取指定任务的列表
+	 * @param taskType
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	List<String> getTaskList(String taskType);
+	/**
+	 * 概述：获取任务类型列表
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	List<String> getTaskTypeList();
 }
