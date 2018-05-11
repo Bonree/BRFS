@@ -79,7 +79,6 @@ public class SNOperationDemo implements SNOperation {
 		return true;
 	}
 
-	@Override
 	public boolean initFile(String path) {
 		// TODO Auto-generated method stub
 		return false;
