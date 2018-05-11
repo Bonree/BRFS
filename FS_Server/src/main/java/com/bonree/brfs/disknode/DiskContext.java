@@ -3,6 +3,12 @@ package com.bonree.brfs.disknode;
 import java.io.File;
 
 public class DiskContext {
+	
+	public static final String URI_DISK_NODE_ROOT = "/disk";
+	public static final String URI_INFO_NODE_ROOT = "/info";
+	public static final String URI_COPY_NODE_ROOT = "/copy";
+	public static final String URI_LIST_NODE_ROOT = "/list";
+	
 	private String workDirectory;
 	
 	public DiskContext(String workDir) {

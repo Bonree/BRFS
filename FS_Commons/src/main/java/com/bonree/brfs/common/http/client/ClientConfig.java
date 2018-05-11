@@ -16,6 +16,12 @@ public class ClientConfig {
 	private static final int DEFAULT_SOCKET_TIMEOUT = 10 * 1000;
 	private int socketTimeout;
 	
+	private static final int DEFAULT_CONNECT_TIMEOUT = 30 * 1000;
+	private int connectTimeout;
+	
+	private static final int DEFAULT_IO_THREAD_NUM = 4;
+	private int ioThreadNum;
+	
 	public static ClientConfig DEFAULT = new ClientConfig();
 	
 	private ClientConfig() {
@@ -25,6 +31,8 @@ public class ClientConfig {
 		this.socketSendBufferSize = DEFAULT_SEND_BUFFER_SIZE;
 		this.socketRecvBufferSize = DEFAULT_RECV_BUFFER_SIZE;
 		this.socketTimeout = DEFAULT_SOCKET_TIMEOUT;
+		this.connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+		this.ioThreadNum = DEFAULT_IO_THREAD_NUM;
 	}
 
 	public int getMaxConnection() {
@@ -49,6 +57,14 @@ public class ClientConfig {
 	
 	public int getSocketTimeout() {
 		return socketTimeout;
+	}
+	
+	public int getConnectTimeout() {
+		return connectTimeout;
+	}
+	
+	public int getIOThreadNum() {
+		return ioThreadNum;
 	}
 	
 	public static Builder builder() {
@@ -85,6 +101,16 @@ public class ClientConfig {
 		
 		public Builder setSocketTimeout(int socketTimeout) {
 			config.socketTimeout = socketTimeout > 0 ? socketTimeout : DEFAULT_SOCKET_TIMEOUT;
+			return this;
+		}
+		
+		public Builder setConnectTimeout(int connectTimeout) {
+			config.connectTimeout = connectTimeout > 0 ? connectTimeout : DEFAULT_CONNECT_TIMEOUT;
+			return this;
+		}
+		
+		public Builder setIOThreadNum(int threadNum) {
+			config.ioThreadNum = threadNum > 0 ? threadNum : DEFAULT_IO_THREAD_NUM;
 			return this;
 		}
 		

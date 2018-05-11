@@ -22,6 +22,7 @@ import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.nio.client.util.HttpAsyncClientUtils;
 import org.apache.http.protocol.HttpContext;
@@ -40,6 +41,15 @@ public class HttpClient implements Closeable {
                 .setCharset(Consts.UTF_8)
                 .build();
 		
+		IOReactorConfig ioConfig = IOReactorConfig.custom()
+				.setSoKeepAlive(true)
+				.setConnectTimeout(clientConfig.getConnectTimeout())
+				.setSndBufSize(clientConfig.getSocketSendBufferSize())
+				.setRcvBufSize(clientConfig.getSocketRecvBufferSize())
+				.setIoThreadCount(clientConfig.getIOThreadNum())
+				.setTcpNoDelay(false)
+				.build();
+		
 		List<Header> defaultHeaders = new ArrayList<Header>();
 		defaultHeaders.add(new BasicHeader("Connection", "keep-alive"));
 		
@@ -47,6 +57,7 @@ public class HttpClient implements Closeable {
 		           .setMaxConnPerRoute(clientConfig.getMaxConnection())
 		           .setMaxConnTotal(clientConfig.getMaxConnection())
 		           .setDefaultConnectionConfig(connectionConfig)
+		           .setDefaultIOReactorConfig(ioConfig)
 		           .setConnectionReuseStrategy(new ConnectionReuseStrategy() {
 
 					@Override

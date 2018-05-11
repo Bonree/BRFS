@@ -8,7 +8,6 @@ import java.util.List;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 
 public interface DiskNodeClient extends Closeable {
-	boolean initFile(String path);
 	WriteResult writeData(String path, int sequence, byte[] bytes) throws IOException;
 	WriteResult writeData(String path, int sequence, byte[] bytes, int offset, int size) throws IOException;
 	byte[] readData(String path, int offset, int size) throws IOException;
@@ -25,10 +24,10 @@ public interface DiskNodeClient extends Closeable {
 	 */
 	BitSet getWritingSequence(String path);
 	
-	void recover(String path, SeqInfoList infos) throws IOException;
+	void recover(String path, SeqInfoList infos) throws Exception;
 	
 	byte[] getBytesBySequence(String path, int sequence);
 	
-	void copyFrom(String host, int port, String remotePath, String localPath) throws IOException;
-	void copyTo(String host, int port, String localPath, String remotePath) throws IOException;
+	void copyFrom(String host, int port, String remotePath, String localPath) throws Exception;
+	void copyTo(String host, int port, String localPath, String remotePath) throws Exception;
 }
