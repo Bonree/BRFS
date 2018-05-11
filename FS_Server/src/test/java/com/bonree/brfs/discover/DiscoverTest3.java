@@ -12,6 +12,8 @@ import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.configuration.Configuration.ConfigException;
+import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
+import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class DiscoverTest3 {
@@ -31,10 +33,11 @@ public class DiscoverTest3 {
             idManager.getSecondServerID(1); // TODO 模拟存储数据
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
+            StorageNameManager snManage = new DefaultStorageNameManager(client.getInnerClient());
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseServersPath().substring(1, zookeeperPaths.getBaseServersPath().length())));
             sm.start();
 
-            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), serverConfig.getDataPath(), zookeeperPaths, idManager, sm);
+            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), serverConfig.getDataPath(), zookeeperPaths, idManager,snManage, sm);
             rebalanceServer.start();
 
             Service selfService = new Service();

@@ -59,6 +59,13 @@ public class BalanceTaskSummary {
      *任务延迟执行时间,单位：秒
      */
     private long delayTime;
+    
+
+    /**
+     *用于初始化倒计时间隔
+     */
+    private int interval = -1;
+    
 
     public String getServerId() {
         return serverId;
@@ -131,10 +138,20 @@ public class BalanceTaskSummary {
     public void setChangeID(String changeID) {
         this.changeID = changeID;
     }
+    
+    public int getInterval() {
+        return interval;
+    }
+
+    public void setInterval(int interval) {
+        this.interval = interval;
+    }
 
     @Override
     public String toString() {
-        return "BalanceTaskSummary [changeID=" + changeID + ", serverId=" + serverId + ", storageIndex=" + storageIndex + ", taskType=" + taskType + ", taskStatus=" + taskStatus + ", outputServers=" + outputServers + ", inputServers=" + inputServers + ", aliveServer=" + aliveServer + ", delayTime=" + delayTime + "]";
+        return "BalanceTaskSummary [changeID=" + changeID + ", serverId=" + serverId + ", storageIndex=" + storageIndex + ", taskType=" + taskType + ", taskStatus=" + taskStatus + ", outputServers=" + outputServers + ", inputServers=" + inputServers + ", aliveServer=" + aliveServer + ", delayTime=" + delayTime + ", interval=" + interval + "]";
     }
+
+   
 
 }

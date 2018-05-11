@@ -1,5 +1,11 @@
 package com.bonree.brfs.rebalance.task;
 
+import java.util.List;
+
+import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
@@ -10,8 +16,23 @@ package com.bonree.brfs.rebalance.task;
  ******************************************************************************/
 public class TaskMonitor {
 
-    public double getTaskProgress(BalanceTaskSummary cts) {
-        
-        return 0;
+    public TaskMonitor() {}
+
+    public double getTaskProgress(CuratorClient client, String taskPath) {
+        double process = 0.0;
+        int curent = 0;
+        int total = 0;
+        List<String> joiners = client.getChildren(taskPath);
+        if (joiners != null && !joiners.isEmpty()) {
+            for (String joiner : joiners) {
+                String joinerPath = taskPath + Constants.SEPARATOR + joiner;
+                byte[] data = client.getData(joinerPath);
+                TaskDetail detail = JSON.parseObject(data, TaskDetail.class);
+                curent += detail.getCurentCount();
+                total += detail.getTotalDirectories();
+            }
+            process = curent / (double) total;
+        }
+        return process;
     }
 }

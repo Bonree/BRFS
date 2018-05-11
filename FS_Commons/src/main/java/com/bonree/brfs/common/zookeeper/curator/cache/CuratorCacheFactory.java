@@ -37,7 +37,7 @@ public class CuratorCacheFactory {
         if (treeCache == null) {
             synchronized (CuratorTreeCache.class) {
                 if (treeCache == null) {
-                    treeCache = new CuratorTreeCache(Preconditions.checkNotNull(client, "CuratorCacheFactory is not init"));
+                    treeCache = new CuratorTreeCache(Preconditions.checkNotNull(client, "CuratorCacheFactory is not init!!!"));
                 }
             }
         }
@@ -49,7 +49,7 @@ public class CuratorCacheFactory {
         if (pathCache == null) {
             synchronized (CuratorPathCache.class) {
                 if (pathCache == null) {
-                    pathCache = new CuratorPathCache(Preconditions.checkNotNull(client, "zkUrl is not null!"));
+                    pathCache = new CuratorPathCache(Preconditions.checkNotNull(client, "CuratorCacheFactory is not init!!!"));
                 }
             }
         }
@@ -61,7 +61,7 @@ public class CuratorCacheFactory {
         if (nodeCache == null) {
             synchronized (CuratorPathCache.class) {
                 if (nodeCache == null) {
-                    nodeCache = new CuratorNodeCache(Preconditions.checkNotNull(client, "zkUrl is not null!"));
+                    nodeCache = new CuratorNodeCache(Preconditions.checkNotNull(client, "CuratorCacheFactory is not init!!!"));
                 }
             }
         }

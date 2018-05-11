@@ -56,6 +56,10 @@ public class TaskDispatcher {
 
     private final static Logger LOG = LoggerFactory.getLogger(TaskDispatcher.class);
 
+    private final static int DEFAULT_INTERVAL = 30;
+
+    private final static double DEFAULT_PROCESS = 0.6;
+
     private CuratorClient curatorClient;
 
     private LeaderLatch leaderLath;
@@ -64,7 +68,7 @@ public class TaskDispatcher {
 
     private StorageNameManager snManager;
 
-    // private TaskMonitor monitor;
+    private TaskMonitor monitor = new TaskMonitor();;
 
     private final String baseRebalancePath;
 
@@ -91,7 +95,7 @@ public class TaskDispatcher {
     // 此处为任务缓存，只有身为leader的server才会进行数据缓存
     private Map<Integer, List<ChangeSummary>> cacheSummaryCache = new ConcurrentHashMap<Integer, List<ChangeSummary>>();
 
-    // 存放当前正在执行的任务，TODO 启动时需要加载当前任务
+    // 存放当前正在执行的任务
     private Map<Integer, BalanceTaskSummary> runTask = new ConcurrentHashMap<Integer, BalanceTaskSummary>();
 
     // 为了能够有序的处理变更，需要将变更添加到队列中
@@ -263,6 +267,7 @@ public class TaskDispatcher {
         String leaderPath = this.baseRebalancePath + Constants.SEPARATOR + Constants.DISPATCH_LEADER;
         LOG.info("leader path:" + leaderPath);
         leaderLath = new LeaderLatch(this.curatorClient.getInnerClient(), leaderPath);
+        
         leaderLath.addListener(new LeaderLatchListener() {
 
             @Override
@@ -344,6 +349,10 @@ public class TaskDispatcher {
 
     }
 
+    /** 概述：去掉无用的变更
+     * @param changeSummaries
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     private void trimTask(List<ChangeSummary> changeSummaries) {
         System.out.println("trimTask !!!!");
         // 需要清除变更抵消。
@@ -365,8 +374,12 @@ public class TaskDispatcher {
         }
     }
 
+    /** 概述：处理remove导致的数据迁移
+     * @param changeSummaries
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     private boolean dealNormalTask(List<ChangeSummary> changeSummaries) {
-
         /*
          * 根据当时的的情况来判定，决策者如何决定，分为三种
          * 1.该SN正常，未做任何操作
@@ -377,20 +390,9 @@ public class TaskDispatcher {
         // 检测是否能进行数据恢复。
         ChangeSummary cs = changeSummaries.get(0);
         if (cs.getChangeType().equals(ChangeType.REMOVE)) {
-            boolean canRecover = true;
-            int replicas = snManager.findStorageName(cs.getStorageIndex()).getReplicateCount();
-            List<String> aliveFirstIDs = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
+            List<String> aliveFirstIDs = getAliveServices();
             List<String> joinerFirstIDs = cs.getCurrentServers();
-
-            for (String joiner : joinerFirstIDs) {
-                if (!aliveFirstIDs.contains(joiner)) {
-                    canRecover = false;
-                    break;
-                }
-            }
-            if (aliveFirstIDs.size() < replicas) {
-                canRecover = false;
-            }
+            boolean canRecover = isCanRecover(cs, joinerFirstIDs, aliveFirstIDs);
             if (canRecover) {
                 List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
                 List<String> joinerSecondIDs = joinerFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
@@ -403,13 +405,38 @@ public class TaskDispatcher {
             } else {
                 System.out.println("恢复条件不满足：" + changeSummaries);
             }
-
         }
         return true;
     }
 
-    private boolean dealVirtualTask(List<ChangeSummary> changeSummaries) {
+    private List<String> getAliveServices() {
+        return serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
+    }
 
+    private boolean isCanRecover(ChangeSummary cs, List<String> joinerFirstIDs, List<String> aliveFirstIDs) {
+        boolean canRecover = true;
+        int replicas = snManager.findStorageName(cs.getStorageIndex()).getReplicateCount();
+
+        // 检查参与者是否都存活
+        for (String joiner : joinerFirstIDs) {
+            if (!aliveFirstIDs.contains(joiner)) {
+                canRecover = false;
+                break;
+            }
+        }
+        // 检查目前存活的服务，是否满足副本数
+        if (aliveFirstIDs.size() < replicas) {
+            canRecover = false;
+        }
+        return canRecover;
+    }
+
+    /** 概述：处理add导致的virtual server id数据迁移
+     * @param changeSummaries
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    private boolean dealVirtualTask(List<ChangeSummary> changeSummaries) {
         /*
          * 如果changeSummaries大于1，则说明在没完成第一个任务的时候，还发生了其他的变更，
          * 此时需要分情况考虑：
@@ -432,7 +459,7 @@ public class TaskDispatcher {
                 addFlag = true;
                 String changeID = changeSummary.getChangeID();
                 int storageIndex = changeSummary.getStorageIndex();
-                List<String> currentFirstIDs = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
+                List<String> currentFirstIDs = getAliveServices();
                 List<String> virtualServerIds = idManager.listNormalVirtualID(changeSummary.getStorageIndex());
                 String virtualServersPath = idManager.getVirtualServersPath();
                 if (virtualServerIds != null && !virtualServerIds.isEmpty()) {
@@ -452,7 +479,7 @@ public class TaskDispatcher {
                             String selectSecondID = idManager.getOtherSecondID(selectID, storageIndex);
 
                             String secondParticipator = null;
-                            List<String> aliveServices = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
+                            List<String> aliveServices = getAliveServices();
 
                             for (String participator : participators) {
                                 if (aliveServices.contains(participator)) {
@@ -507,6 +534,7 @@ public class TaskDispatcher {
 
     private void checkTask(List<ChangeSummary> changeSummaries) {
         System.out.println("task check!!!");
+
         // 获取当前任务信息
         BalanceTaskSummary currentTask = runTask.get(changeSummaries.get(0).getStorageIndex());
         String runChangeID = currentTask.getChangeID();
@@ -535,82 +563,76 @@ public class TaskDispatcher {
 
         // 查找影响当前任务的变更
         if (changeSummaries.size() > 1) {
-            BalanceTaskSummary runningTaskSummary = runTask.get(changeSummaries.get(0).getStorageIndex());
-            String changeID = runningTaskSummary.getChangeID();
+            String changeID = currentTask.getChangeID();
             // 找到正在执行的变更
             ChangeSummary runChangeSummary = changeSummaries.stream().filter(x -> x.getChangeID().equals(changeID)).findFirst().get();
             System.out.println("run change summary:" + runChangeSummary);
             for (ChangeSummary cs : changeSummaries) {
+
                 if (!cs.getChangeID().equals(runChangeSummary.getChangeID())) { // 与正在执行的变更不同
                     if (runChangeSummary.getChangeType().equals(ChangeType.ADD)) { // 正在执行虚拟迁移任务
                         // 正在执行的任务为虚拟serverID迁移
                         if (cs.getChangeType().equals(ChangeType.REMOVE)) { // 虚拟迁移时，出现问题
                             System.out.println("remove sid:" + cs.getChangeServer());
-                            System.out.println("run task sid:" + runningTaskSummary.getInputServers().get(0));
-                            if (cs.getChangeServer().equals(runningTaskSummary.getInputServers().get(0))) {
-
-                                // 服务启动后，虚拟server没迁移完成，服务挂掉
-                                // 等待相应的时间后，该次迁移作废
-                                try {
-                                    System.out.println("接收者服务挂掉，等候30s。。。");
-                                    Thread.sleep(10000);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-
-                                List<String> aliveServices = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
-                                String otherFirstID = idManager.getOtherFirstID(runningTaskSummary.getInputServers().get(0), runningTaskSummary.getStorageIndex());
-                                if (!aliveServices.contains(otherFirstID)) { // TODO 等候10s，检查该server是否回来
-
-                                    updateTaskStatus(currentTask, TaskStatus.CANCEL);
-
-                                    try {
-                                        Thread.sleep(5000);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
+                            System.out.println("run task sid:" + currentTask.getInputServers().get(0));
+                            if (cs.getChangeServer().equals(currentTask.getInputServers().get(0))) {
+                                // 用于倒计时
+                                int interval = currentTask.getInterval();
+                                if (interval == -1) {
+                                    currentTask.setInterval(DEFAULT_INTERVAL);
+                                } else if (interval == 0) {
+                                    List<String> aliveServices = getAliveServices();
+                                    String otherFirstID = idManager.getOtherFirstID(currentTask.getInputServers().get(0), currentTask.getStorageIndex());
+                                    if (!aliveServices.contains(otherFirstID)) {
+                                        if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
+                                            updateTaskStatus(currentTask, TaskStatus.CANCEL);
+                                        } else {
+                                            // 下次心跳删除该任务
+                                            changeSummaries.remove(runChangeSummary);
+                                            delChangeSummaryNode(runChangeSummary);
+                                            delBalanceTask(currentTask);
+                                            removeRunTask(currentTask.getStorageIndex());
+                                            // 将virtual serverID 标为可用
+                                            idManager.normalVirtualID(currentTask.getStorageIndex(), currentTask.getServerId());
+                                        }
                                     }
-                                    // 结束当前任务，删除任务
-                                    changeSummaries.remove(runChangeSummary);
-                                    delChangeSummaryNode(runChangeSummary);
-                                    delBalanceTask(runningTaskSummary);
-                                    removeRunTask(currentTask.getStorageIndex());
-                                    // 将virtual serverID 标为可用
-                                    idManager.normalVirtualID(runningTaskSummary.getStorageIndex(), runningTaskSummary.getServerId());
+                                } else if (interval > 0) {
+                                    currentTask.setInterval(currentTask.getInterval() - 1);
                                 }
+
                                 break;
                             } else {
-                                List<String> joiners = runningTaskSummary.getOutputServers();
+                                List<String> joiners = currentTask.getOutputServers();
                                 if (joiners.contains(cs.getChangeServer())) { // 参与者挂掉
-                                    try {
-                                        System.out.println("参与者服务挂掉，等候10s。。。");
-                                        Thread.sleep(30000);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
+                                    int interval = currentTask.getInterval();
 
-                                    List<String> aliveServices = serviceManager.getServiceListByGroup(Constants.DISCOVER).stream().map(Service::getServiceId).collect(Collectors.toList());
-                                    String otherFirstID = idManager.getOtherFirstID(runningTaskSummary.getOutputServers().get(0), runChangeSummary.getStorageIndex());
-
-                                    if (!aliveServices.contains(otherFirstID)) {
-                                        // 重新选择
-                                        String virtualServersPath = idManager.getVirtualServersPath();
-                                        List<String> participators = curatorClient.getChildren(virtualServersPath + Constants.SEPARATOR + currentTask.getStorageIndex() + Constants.SEPARATOR + currentTask.getServerId());
-
-                                        String secondParticipator = null;
-                                        for (String participator : participators) {
-                                            if (aliveServices.contains(participator)) {
-                                                if (participator.equals(idManager.getFirstServerID())) {
-                                                    secondParticipator = idManager.getSecondServerID(currentTask.getStorageIndex());
-                                                } else {
-                                                    secondParticipator = idManager.getOtherSecondID(participator, currentTask.getStorageIndex());
+                                    if (interval == -1) {
+                                        currentTask.setInterval(DEFAULT_INTERVAL);
+                                    } else if (interval > 0) {
+                                        currentTask.setInterval(currentTask.getInterval() - 1);
+                                    } else if (interval == 0) {
+                                        List<String> aliveServices = getAliveServices();
+                                        String otherFirstID = idManager.getOtherFirstID(currentTask.getOutputServers().get(0), runChangeSummary.getStorageIndex());
+                                        if (!aliveServices.contains(otherFirstID)) {
+                                            // 重新选择
+                                            String virtualServersPath = idManager.getVirtualServersPath();
+                                            List<String> participators = curatorClient.getChildren(virtualServersPath + Constants.SEPARATOR + currentTask.getStorageIndex() + Constants.SEPARATOR + currentTask.getServerId());
+                                            String secondParticipator = null;
+                                            for (String participator : participators) {
+                                                if (aliveServices.contains(participator)) {
+                                                    if (participator.equals(idManager.getFirstServerID())) {
+                                                        secondParticipator = idManager.getSecondServerID(currentTask.getStorageIndex());
+                                                    } else {
+                                                        secondParticipator = idManager.getOtherSecondID(participator, currentTask.getStorageIndex());
+                                                    }
+                                                    break;
                                                 }
-                                                break;
                                             }
-                                        }
-                                        if (secondParticipator != null) {// 选择成功
-                                            delBalanceTask(currentTask);
-                                            currentTask.setOutputServers(Lists.newArrayList(secondParticipator));
-                                            dispatchTask(currentTask);
+                                            if (secondParticipator != null) {// 选择成功
+                                                delBalanceTask(currentTask);
+                                                currentTask.setOutputServers(Lists.newArrayList(secondParticipator));
+                                                dispatchTask(currentTask);
+                                            }
                                         }
                                     }
                                     break;
@@ -618,28 +640,56 @@ public class TaskDispatcher {
                             }
                         }
                     } else if (runChangeSummary.getChangeType().equals(ChangeType.REMOVE)) { // 正在执行普通迁移任务
-
                         if (cs.getChangeType().equals(ChangeType.ADD)) {
                             // 正在执行的任务为remove恢复，检测到ADD时间，并且是同一个serverID
                             if (cs.getChangeServer().equals(runChangeSummary.getChangeServer())) {
-                                // TODO 判断是否需要结束任务，此处不需要等待，打完标记即可
-
+                                String taskPath = tasksPath + Constants.SEPARATOR + runChangeSummary.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
+                                // 任务进度小于指定进度，则终止任务
+                                if (currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
+                                    // 下次心跳删除该任务
+                                    changeSummaries.remove(runChangeSummary);
+                                    delChangeSummaryNode(runChangeSummary);
+                                    delBalanceTask(currentTask);
+                                    removeRunTask(currentTask.getStorageIndex());
+                                    break;
+                                }
+                                if (monitor.getTaskProgress(curatorClient, taskPath) < DEFAULT_PROCESS) {
+                                    if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
+                                        updateTaskStatus(currentTask, TaskStatus.CANCEL);
+                                    }
+                                    break;
+                                }
+                            } else {
+                                // 如果任务暂停，查看回来的是否为增经的参与者
+                                if (currentTask.getTaskStatus().equals(TaskStatus.PAUSE)) {
+                                    List<String> aliverServers = getAliveServices();
+                                    // 参与者和接收者都存活
+                                    if (aliverServers.containsAll(currentTask.getOutputServers()) && aliverServers.containsAll(currentTask.getInputServers())) {
+                                        updateTaskStatus(currentTask, TaskStatus.RUNNING);
+                                    }
+                                }
+                            }
+                        } else if (cs.getChangeType().equals(ChangeType.REMOVE)) {
+                            // 有可能是参与者挂掉，参与者包括接收者和发送者
+                            // 参与者停止恢复 停止恢复必须查看是否有
+                            String secondID = cs.getChangeServer();
+                            List<String> joiners = currentTask.getOutputServers();
+                            List<String> receivers = currentTask.getInputServers();
+                            if (joiners.contains(secondID)) { // 参与者出现问题 或 既是参与者又是接收者
+                                if (!TaskStatus.PAUSE.equals(currentTask.getTaskStatus())) {
+                                    updateTaskStatus(currentTask, TaskStatus.PAUSE);
+                                }
+                                break;
+                            } else if (receivers.contains(secondID)) {// 纯接收者，需要重选
+                                if (!TaskStatus.PAUSE.equals(currentTask.getTaskStatus())) {
+                                    updateTaskStatus(currentTask, TaskStatus.PAUSE);
+                                }
+                                break;
                             }
                         }
-
-                        if (cs.getChangeType().equals(ChangeType.REMOVE)) {
-                            // 有可能是参与者挂掉，参与者包括接收者和发送者
-                            // 参与者停止恢复
-                            // TODO
-                            // 纯接收者，需要重选
-                            // TODO
-                        }
-
                     }
-
                 }
             }
-
         }
     }
 

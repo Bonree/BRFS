@@ -8,14 +8,13 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.ZookeeperPaths;
+import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
-import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.configuration.Configuration.ConfigException;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.recover.MultiRecover;
@@ -40,15 +39,17 @@ public class TaskOperation implements Closeable {
     private CuratorTreeCache treeCache;
     private String tasksPath;
     private String dataDir;
+    private StorageNameManager snManager;
+    private ServiceManager serviceManager;
 
-    private static final String FILE_SEPARATOR = File.separator;
-
-    public TaskOperation(final CuratorClient client, final String baseBalancePath, ServerIDManager idManager, String dataDir) {
+    public TaskOperation(final CuratorClient client, final String baseBalancePath, ServerIDManager idManager, String dataDir, StorageNameManager snManager, ServiceManager serviceManager) {
         this.client = client;
         this.idManager = idManager;
         this.tasksPath = baseBalancePath + Constants.SEPARATOR + Constants.TASKS_NODE;
         this.dataDir = dataDir;
         treeCache = CuratorCacheFactory.getTreeCache();
+        this.snManager = snManager;
+        this.serviceManager = serviceManager;
     }
 
     public void start() {
@@ -65,16 +66,23 @@ public class TaskOperation implements Closeable {
         if (multiIds.contains(idManager.getSecondServerID(taskSummary.getStorageIndex()))) {
             // 注册自身的selfMultiId,并设置为created阶段
             if (taskSummary.getTaskType() == RecoverType.NORMAL) { // 正常迁移任务
-                String snDataDir = dataDir + FILE_SEPARATOR + taskSummary.getStorageIndex();
-                recover = new MultiRecover(taskSummary, idManager, taskPath, client, snDataDir);
+                String storageName = snManager.findStorageName(taskSummary.getStorageIndex()).getName();
+                recover = new MultiRecover(taskSummary, idManager, serviceManager, taskPath, client, dataDir, storageName);
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
-                String snDataDir = dataDir + FILE_SEPARATOR + taskSummary.getStorageIndex();
-                recover = new VirtualRecover(taskSummary, taskPath, client, idManager, snDataDir);
+                String storageName = snManager.findStorageName(taskSummary.getStorageIndex()).getName();
+                recover = new VirtualRecover(client, taskSummary, taskPath, dataDir, storageName, idManager, serviceManager);
             }
 
+            updateTaskStatus(taskSummary, TaskStatus.RUNNING);
             // 调用成岗的任务创建模块
             launchTask(recover);
         }
+    }
+
+    public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) {
+        task.setTaskStatus(status);
+        String taskNode = tasksPath + Constants.SEPARATOR + task.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
+        client.setData(taskNode, JSON.toJSONBytes(task));
     }
 
     /** 概述：生成一个具有延时的任务
@@ -86,7 +94,6 @@ public class TaskOperation implements Closeable {
         new Thread("ttttttttttttttt") {
             @Override
             public void run() {
-                // TODO 这边需要和成岗进行沟通
                 recover.recover();
             }
         }.start();
@@ -96,23 +103,4 @@ public class TaskOperation implements Closeable {
     public void close() throws IOException {
 
     }
-
-    public static final String CONFIG_NAME1 = "E:/BRFS1/config/server.properties";
-    public static final String HOME1 = "E:/BRFS1";
-
-    public static void main(String[] args) throws InterruptedException, IOException, ConfigException {
-        Configuration conf = Configuration.getInstance();
-        conf.parse(CONFIG_NAME1);
-        conf.printConfigDetail();
-        ServerConfig serverConfig = ServerConfig.parse(conf, HOME1);
-        CuratorCacheFactory.init(serverConfig.getZkHosts());
-        ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
-        ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
-        CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 500, 500);
-        TaskOperation opt = new TaskOperation(client, zookeeperPaths.getBaseRebalancePath(), idManager, null);
-        CuratorTreeCache cache = CuratorCacheFactory.getTreeCache();
-        cache.addListener(zookeeperPaths.getBaseRebalancePath() + Constants.SEPARATOR + Constants.TASKS_NODE, new TaskExecutorListener("aaa", opt));
-        Thread.sleep(Long.MAX_VALUE);
-    }
-
 }

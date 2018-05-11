@@ -105,4 +105,8 @@ public class ServiceMetaCache {
     public List<String> listFirstID() {
         return new ArrayList<String>(firstServerCache.keySet());
     }
+
+    public int getSnIndex() {
+        return snIndex;
+    }
 }

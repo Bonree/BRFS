@@ -12,6 +12,8 @@ import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.configuration.Configuration.ConfigException;
+import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
+import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class DiscoverTest2 {
@@ -32,11 +34,11 @@ public class DiscoverTest2 {
 //            idManager.getVirtualServerID(1, 1);
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
-
+            StorageNameManager snManage = new DefaultStorageNameManager(client.getInnerClient());
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseServersPath().substring(1, zookeeperPaths.getBaseServersPath().length())));
             sm.start();
 
-            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), serverConfig.getDataPath(), zookeeperPaths, idManager, sm);
+            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), serverConfig.getDataPath(), zookeeperPaths, idManager, snManage,sm);
             rebalanceServer.start();
 
             Service selfService = new Service();
