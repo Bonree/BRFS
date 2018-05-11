@@ -1,6 +1,5 @@
 package com.bonree.brfs.duplication.datastream.connection;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,9 +11,9 @@ import java.util.function.Consumer;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
-import com.google.common.io.Closeables;
 
 public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 	
@@ -38,9 +37,7 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 
 			@Override
 			public void accept(DiskNodeConnection connection) {
-				try {
-					Closeables.close(connection, true);
-				} catch (IOException ignore) {}
+				CloseUtils.closeQuietly(connection);
 			}
 		});
 		connectionCache.clear();

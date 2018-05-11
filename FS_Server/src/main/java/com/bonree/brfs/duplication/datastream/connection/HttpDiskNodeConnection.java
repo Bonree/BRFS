@@ -28,7 +28,7 @@ public class HttpDiskNodeConnection implements DiskNodeConnection {
 	@Override
 	public boolean isValid() {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
