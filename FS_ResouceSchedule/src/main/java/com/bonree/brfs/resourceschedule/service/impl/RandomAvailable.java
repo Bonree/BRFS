@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +25,7 @@ public class RandomAvailable implements AvailableServerInterface {
 	/**
 	 * 存储资源信息
 	 */
-	private List<ResourceModel> resource = new ArrayList<ResourceModel>();
+	private CopyOnWriteArrayList<ResourceModel> resource = new CopyOnWriteArrayList<ResourceModel>();
 	private long updateTime = 0;
 	private Map<Integer, String> snIds = new ConcurrentHashMap<>();
 	private RandomAvailable(){
