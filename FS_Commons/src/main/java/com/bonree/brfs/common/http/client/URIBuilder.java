@@ -4,7 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class URIBuilder {
-	private org.apache.http.client.utils.URIBuilder builder;
+	private org.apache.http.client.utils.URIBuilder builder = new org.apache.http.client.utils.URIBuilder();
 	
 	public URIBuilder setScheme(String scheme) {
 		builder.setScheme(scheme);
