@@ -569,4 +569,18 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		initProperties(null);
 		start();
 	}
+	/**
+	 * 概述：创建简单的调度配置
+	 * @param poolSize
+	 * @param misfireTime
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static Properties createSimplePrope(int poolSize, long misfireTime) {
+		Properties prop = new Properties();
+		prop.put(StdSchedulerFactory.PROP_THREAD_POOL_CLASS, "org.quartz.simpl.SimpleThreadPool");
+		prop.put("org.quartz.threadPool.threadCount", poolSize + "");
+		prop.put("quartz.jobStore.misfireThreshold", misfireTime + "");
+		return prop;
+	}
 }

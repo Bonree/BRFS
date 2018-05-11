@@ -727,6 +727,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			stat.setKey(child);
 			iStat = tmpServer == null ? -3 :tmpServer.getTaskState();
 			stat.setValue(iStat);
+			serverStatus.add(stat);
 		}
 		return serverStatus;
 	}
