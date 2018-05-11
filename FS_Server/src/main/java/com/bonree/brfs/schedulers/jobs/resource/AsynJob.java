@@ -29,7 +29,6 @@ import com.bonree.brfs.resourceschedule.model.ResourceModel;
 import com.bonree.brfs.resourceschedule.model.ServerModel;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
 import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
-import com.bonree.brfs.resourceschedule.service.impl.AvailableServerFactory;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
