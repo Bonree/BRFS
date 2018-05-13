@@ -35,7 +35,7 @@ public class ServiceSelectorCache {
         return writerSelector.selectService(serviceMetaCache);
     }
 
-    public Service readerService(String partFid) {
+    public ServiceMetaInfo readerService(String partFid) {
         return readerSelector.selectService(serviceMetaCache, routeParser, partFid);
     }
 

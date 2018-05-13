@@ -8,11 +8,9 @@ import org.apache.curator.framework.recipes.cache.TreeCache;
 import com.bonree.brfs.client.meta.ServiceMetaCache;
 import com.bonree.brfs.client.meta.ServiceMetaListener;
 import com.bonree.brfs.client.route.listener.RouteCacheListener;
-import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.DiskContext;
 
 public class ServiceSelectorManager {
 

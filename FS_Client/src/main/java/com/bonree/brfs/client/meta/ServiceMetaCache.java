@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
@@ -70,17 +71,45 @@ public class ServiceMetaCache {
         }
     }
 
-    public Service getFirstServerCache(String firstServerID) {
-        return firstServerCache.get(firstServerID);
+    public ServiceMetaInfo getFirstServerCache(String SecondID) {
+        firstServerCache.get(SecondID);
+        return new ServiceMetaInfo() {
+            
+            
+            @Override
+            public Service getFirstServer() {
+                String firstServerID = secondServerCache.get(SecondID);
+                if (firstServerID == null) {
+                    return null;
+                }
+                return firstServerCache.get(firstServerID);
+            }
+
+            @Override
+            public int getReplicatPot() {
+                return 1;
+            }
+        };
     }
 
-    public Service getSecondServerCache(String secondServerId) {
-        String firstServerID = secondServerCache.get(secondServerId);
-        if (firstServerID == null) {
-            return null;
-        }
-        return firstServerCache.get(firstServerID);
+    public ServiceMetaInfo getSecondServerCache(String secondServerId,int replicatPot) {
+        return new ServiceMetaInfo() {
 
+            @Override
+            public Service getFirstServer() {
+                String firstServerID = secondServerCache.get(secondServerId);
+                if (firstServerID == null) {
+                    return null;
+                }
+                return firstServerCache.get(firstServerID);
+            }
+
+            @Override
+            public int getReplicatPot() {
+                return replicatPot;
+            }
+            
+        };
     }
 
     public Map<String, Service> getFirstServerCache() {
