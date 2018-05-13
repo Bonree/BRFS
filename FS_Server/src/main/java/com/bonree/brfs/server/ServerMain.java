@@ -50,7 +50,7 @@ public class ServerMain {
             System.exit(1);
         }
         String brfsHome = args[0];
-//        String brfsHome = "E:/BRFS1";
+        // String brfsHome = "E:/BRFS1";
         try {
             Configuration conf = Configuration.getInstance();
             conf.parse(brfsHome + "/config/server.properties");
@@ -63,11 +63,9 @@ public class ServerMain {
             ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
             idManager.getFirstServerID();
 
-            StorageNameManager snManager = null;
-
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
-            StorageNameManager snManage = new DefaultStorageNameManager(client.getInnerClient());
+            StorageNameManager snManager = new DefaultStorageNameManager(client.getInnerClient());
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
             sm.start();
 
@@ -77,21 +75,20 @@ public class ServerMain {
             selfService.setServiceGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
             selfService.setServiceId(idManager.getFirstServerID());
 
+            sm.registerService(selfService);
+            System.out.println(selfService);
+
             // 磁盘管理模块
             EmptyMain diskMain = new EmptyMain(serverConfig.getDiskPort());
             diskMain.start();
 
             // 副本平衡模块
-            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), serverConfig.getDataPath(), zookeeperPaths, idManager, snManage, sm);
+            sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
+            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), serverConfig.getDataPath(), zookeeperPaths, idManager, snManager, sm);
             rebalanceServer.start();
 
             // 资源管理模块
-            InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManage, idManager);
-
-            sm.registerService(selfService);
-
-            System.out.println(selfService);
-            sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
+            InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
             System.out.println("launch Server 1");
         } catch (ConfigException e) {
             e.printStackTrace();
