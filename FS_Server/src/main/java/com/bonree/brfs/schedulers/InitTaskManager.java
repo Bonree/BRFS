@@ -33,6 +33,7 @@ import com.bonree.brfs.common.zookeeper.curator.leader.CuratorLeaderSelectorClie
 import com.bonree.brfs.configuration.Configuration;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
@@ -61,15 +62,14 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
+import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class InitTaskManager {
 	private static final Logger LOG = LoggerFactory.getLogger("InitTaskManager");
 	public static final String RESOURCE_MANAGER = "RESOURCE_MANAGER";
 	public static final String TASK_OPERATION_MANAGER = "TASK_OPERATION_MANAGER";
-	public static final String META_TASK_MANAGER = "META_TASK_MANAGER";
 	
 	private static LeaderLatch leaderLatch = null;
-//	private static CuratorTreeCache treeCache =null; 
 			
 	/**
 	 * 概述：初始化任务服务系统
@@ -79,21 +79,21 @@ public class InitTaskManager {
 	 * @throws ParamsErrorException 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	//TODO:临时参数serverId，groupName
-	public static void initManager(Configuration configuration, ServiceManager sm, StorageNameManager snm, String homePath, String serverId,String groupName,boolean isReboot) throws Exception {
-		ResourceTaskConfig managerConfig = ResourceTaskConfig.parse(configuration);
-		ServerConfig serverConfig = ServerConfig.parse(configuration, homePath);
-		ZookeeperPaths zkPath = ZookeeperPaths.create(serverConfig.getClusterName(),serverConfig.getZkHosts());
-		
+	//TODO:临时参数groupName
+	public static void initManager(ServerConfig serverConfig,ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm, ServerIDManager sim) throws Exception {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		String serverId = sim.getFirstServerID();
+		boolean isReboot = !sim.isNewService();
 		//TODO:临时代码 工厂类添加serverId与groupName
 		mcf.setServerId(serverId);
-		mcf.setGroupName(groupName);
+		mcf.setGroupName(DiskContext.URI_DISK_NODE_ROOT);
 		
 		// 工厂类添加服务管理
 		mcf.setSm(sm);
 		
 		// 工厂类添加storageName管理服务
+		// TODO:
+		StorageNameManager snm = null;
 		mcf.setSnm(snm);
 		
 		// 1.工厂类添加调度管理
@@ -106,7 +106,6 @@ public class InitTaskManager {
 		
 		// 工厂类添加发布接口
 		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
-		LOG.info("zkhost : {}  taskpath : {}", serverConfig.getZkHosts(), zkPath.getBaseTaskPath());
 		release.setPropreties(serverConfig.getZkHosts(), zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
 		mcf.setTm(release);
 		// 工厂类添加任务可执行接口
@@ -322,10 +321,6 @@ public class InitTaskManager {
 		leaderLatch = new LeaderLatch(client, zkPaths.getBaseLocksPath() + "/MetaTaskLeaderLock");
 		leaderLatch.addListener(leader);
 		leaderLatch.start();
-		// 添加任务状态信息
-//		CuratorCacheFactory.init(serverConfig.getZkHosts());
-//		treeCache = CuratorCacheFactory.getTreeCache();
-//		treeCache.addListener(zkPaths.getBaseTaskPath(), new RightTaskStateWatch("task_listener",leaderLatch,release,zkPaths.getBaseTaskPath()));
 	}
 	/**
 	 * 概述：根据switchMap 创建线程池
