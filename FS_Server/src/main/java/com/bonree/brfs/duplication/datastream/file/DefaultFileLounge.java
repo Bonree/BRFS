@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.ThreadPoolUtil;
 import com.bonree.brfs.duplication.DuplicationNodeSelector;
-import com.bonree.brfs.duplication.ServiceIdBuilder;
+import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNameBuilder;
 import com.bonree.brfs.duplication.coordinator.FileNode;
@@ -28,6 +28,7 @@ import com.bonree.brfs.duplication.recovery.FileRecoveryListener;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
+import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
@@ -53,6 +54,7 @@ public class DefaultFileLounge implements FileLounge {
 	private StorageNameManager storageNameManager;
 	private FileCoordinator fileCoordinator;
 	private DuplicationNodeSelector duplicationSelector;
+	private ServerIDManager idManager;
 	
 	private FileCloseListener fileCloseListener;
 	
@@ -71,8 +73,9 @@ public class DefaultFileLounge implements FileLounge {
 			StorageNameManager storageNameManager,
 			FileCoordinator fileCoordinator,
 			FileRecovery fileRecovery,
-			DuplicationNodeSelector selector) {
-		this(service, storageNameManager, fileCoordinator, fileRecovery, selector, DEFAULT_FILE_PATITION_TIME_INTERVAL, DEFAULT_CLEAN_FREQUENCY_MILLIS);
+			DuplicationNodeSelector selector,
+			ServerIDManager idManager) {
+		this(service, storageNameManager, fileCoordinator, fileRecovery, selector, idManager, DEFAULT_FILE_PATITION_TIME_INTERVAL, DEFAULT_CLEAN_FREQUENCY_MILLIS);
 	}
 	
 	public DefaultFileLounge(Service service,
@@ -80,6 +83,7 @@ public class DefaultFileLounge implements FileLounge {
 			FileCoordinator fileCoordinator,
 			FileRecovery fileRecovery,
 			DuplicationNodeSelector selector,
+			ServerIDManager idManager,
 			long timeIntervalMillis,
 			long cleanIntervalMillis) {
 		this.service = service;
@@ -87,6 +91,7 @@ public class DefaultFileLounge implements FileLounge {
 		this.fileCoordinator = fileCoordinator;
 		this.fileRecovery = fileRecovery;
 		this.duplicationSelector = selector;
+		this.idManager = idManager;
 		this.patitionTimeInterval = timeIntervalMillis;
 		this.cleanFrequencyMillis = cleanIntervalMillis;
 		
@@ -245,14 +250,16 @@ public class DefaultFileLounge implements FileLounge {
 			cleanIfNeeded(fileContainer.get(storageNameNode.getName()));
 		}
 		
+		DuplicateNode[] duplicateNodes = duplicationSelector.getDuplicationNodes(storageNameNode.getReplicateCount());
 		FileNode fileNode = new FileNode(currentTime);
-		fileNode.setName(FileNameBuilder.createFile());
+		fileNode.setName(FileNameBuilder.createFile(idManager, storageNameId, duplicateNodes));
 		fileNode.setStorageName(storageNameNode.getName());
-		fileNode.setServiceId(service.getServiceId());//TODO get service id
-		fileNode.setDuplicateNodes(duplicationSelector.getDuplicationNodes(storageNameNode.getReplicateCount()));
+		fileNode.setServiceId(service.getServiceId());
+		fileNode.setDuplicateNodes(duplicateNodes);
 		fileCoordinator.store(fileNode);
 		
 		FileLimiter fileLimiter = new FileLimiter(fileNode);
+		
 		fileLimiter.obtain(size);
 		
 		//不直接使用上面获取fileContainer是为了防止因为FileCleaner清理导致的fileContainer为null

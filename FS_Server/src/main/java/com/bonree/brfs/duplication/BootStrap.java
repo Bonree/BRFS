@@ -9,6 +9,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.http.HttpConfig;
 import com.bonree.brfs.common.http.netty.NettyHttpContextHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
@@ -17,6 +18,9 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
+import com.bonree.brfs.configuration.Configuration;
+import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkManager;
@@ -42,25 +46,31 @@ import com.bonree.brfs.duplication.storagename.handler.CreateStorageNameMessageH
 import com.bonree.brfs.duplication.storagename.handler.DeleteStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.OpenStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.UpdateStorageNameMessageHandler;
+import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class BootStrap {
 	private static final Logger LOG = LoggerFactory.getLogger("Main");
 
 	public static void main(String[] args) throws Exception {
-		int port = Integer.parseInt(args[0]);
+		String brfsHome = System.getProperty("brfs_home");
 		
-		String serverId = System.getProperty("server_id", UUID.randomUUID().toString());
-		String zkAddress = System.getProperty("zk", "localhost:2181");
-		String ip = System.getProperty("ip");
+		Configuration conf = Configuration.getInstance();
+        conf.parse(brfsHome + "/config/server.properties");
+        conf.printConfigDetail();
+        ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
+
+        CuratorCacheFactory.init(serverConfig.getZkHosts());
+        ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
+        ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
 		
 		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-		CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddress, 3000, 15000, retryPolicy);
+		CuratorFramework client = CuratorFrameworkFactory.newClient(serverConfig.getZkHosts(), 3000, 15000, retryPolicy);
 		client.start();
 		client.blockUntilConnected();
 		
-		client = client.usingNamespace("brfstest");
+		client = client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1));
 		
-		Service service = new Service(serverId, ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, ip, port);
+		Service service = new Service(idManager.getFirstServerID(), ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, serverConfig.getHost(), serverConfig.getPort());
 		ServiceManager serviceManager = new DefaultServiceManager(client);
 		serviceManager.start();
 		serviceManager.registerService(service);
@@ -92,12 +102,12 @@ public class BootStrap {
 		FileRecovery fileRecovery = new DefaultFileRecovery(connectionPool);
 		fileRecovery.start();
 		
-		DuplicationNodeSelector nodeSelector = new MockDuplicationNodeSelector();
+		DuplicationNodeSelector nodeSelector = new DefaultDuplicationNodeSelector(serviceManager);
 		
-		FileLounge lounge = new DefaultFileLounge(service, storageNameManager, fileCoordinator, fileRecovery, nodeSelector);
+		FileLounge lounge = new DefaultFileLounge(service, storageNameManager, fileCoordinator, fileRecovery, nodeSelector, idManager);
 		DuplicateWriter writer = new DuplicateWriter(lounge, fileRecovery, connectionPool);
 		
-		HttpConfig config = new HttpConfig(port);
+		HttpConfig config = new HttpConfig(serverConfig.getPort());
 		config.setKeepAlive(true);
 		NettyHttpServer httpServer = new NettyHttpServer(config);
 		
