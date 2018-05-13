@@ -14,6 +14,7 @@ import com.bonree.brfs.common.http.netty.NettyHttpServer;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
+import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
@@ -25,38 +26,40 @@ import com.bonree.brfs.disknode.server.handler.ReadMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WriteMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WritingInfoMessageHandler;
 
-public class EmptyMain {
+public class EmptyMain implements LifeCycle {
+	private String ip;
+	private int port;
+	private CuratorFramework client;
+	private String serviceId;
 	
-	public static void main(String[] args) throws Exception {
-		int port = Integer.parseInt(args[0]);
-		System.out.println("----port---" + port);
-		
-		String serverId = System.getProperty("server_id", UUID.randomUUID().toString());
-		String zkAddress = System.getProperty("zk", "localhost:2181");
-		String ip = System.getProperty("ip");
-		
-		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-		CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddress, 3000, 15000, retryPolicy);
-		client.start();
-		client.blockUntilConnected();
-		
-		client = client.usingNamespace("brfstest");
-		
-		ServiceManager serviceManager = new DefaultServiceManager(client);
+	private ServiceManager serviceManager;
+	private NettyHttpServer server;
+	private FileWriterManager writerManager;
+	
+	public EmptyMain(String ip, int port, CuratorFramework client, String serviceId) {
+		this.ip = ip;
+		this.port = port;
+		this.client = client;
+		this.serviceId = serviceId;
+	}
+
+	@Override
+	public void start() throws Exception {
+		serviceManager = new DefaultServiceManager(client);
 		serviceManager.start();
-		Service service = new Service(serverId, DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, ip, port);
+		Service service = new Service(serviceId, DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, ip, port);
 		serviceManager.registerService(service);
 		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
 		
 		HttpConfig config = new HttpConfig(port);
 		
-		NettyHttpServer server = new NettyHttpServer(config);
+		server = new NettyHttpServer(config);
 		
 		NettyHttpContextHandler contextHandler = new NettyHttpContextHandler(DiskContext.URI_DISK_NODE_ROOT);
 		
 		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
-		FileWriterManager writerManager = new FileWriterManager(recorderManager);
+		writerManager = new FileWriterManager(recorderManager);
 		writerManager.start();
 		
 		String dir = System.getProperty("root_dir", "/data");
@@ -90,4 +93,29 @@ public class EmptyMain {
 		server.start();
 	}
 
+	@Override
+	public void stop() throws Exception {
+		writerManager.stop();
+		server.stop();
+		serviceManager.stop();
+	}
+	
+	public static void main(String[] args) throws Exception {
+		int port = Integer.parseInt(args[0]);
+		System.out.println("----port---" + port);
+		
+		String serverId = System.getProperty("server_id", UUID.randomUUID().toString());
+		String zkAddress = System.getProperty("zk", "localhost:2181");
+		String ip = System.getProperty("ip");
+		
+		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+		CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddress, 3000, 15000, retryPolicy);
+		client.start();
+		client.blockUntilConnected();
+		
+		client = client.usingNamespace("brfstest");
+		
+		EmptyMain main = new EmptyMain(ip, port, client, serverId);
+		main.start();
+	}
 }
