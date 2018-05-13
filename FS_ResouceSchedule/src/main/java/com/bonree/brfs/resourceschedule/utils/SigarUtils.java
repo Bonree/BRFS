@@ -18,6 +18,8 @@ import org.hyperic.sigar.NetInterfaceConfig;
 import org.hyperic.sigar.NetInterfaceStat;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
@@ -33,6 +35,7 @@ import com.bonree.brfs.common.utils.Pair;
  */
 public enum SigarUtils {
 	instance;
+	private static final Logger LOG = LoggerFactory.getLogger(SigarUtils.class);
     private Sigar sigar = new Sigar();
     /**
      * 概述：获取cpu核心数
@@ -113,10 +116,12 @@ public enum SigarUtils {
     		tmpIp = netConfig.getAddress();    	
     		// 1.过滤非法的ip
     		if(NetUtils.filterIp(tmpIp)){
+    			LOG.warn("valid ip {} ", tmpIp);
     			continue;
     		}
     		// 2.过滤网卡不存在的
     		if(((netConfig.getFlags() & 1L) <= 0L)){
+    			LOG.warn("ip {} is not exists", tmpIp);
     			continue;
     		}
     		if(ipSet.contains(tmpIp)){
@@ -149,6 +154,7 @@ public enum SigarUtils {
     		devName = netConfig.getName();
     		// 1.过滤网卡不存在的
     		if(((netConfig.getFlags() & 1L) <= 0L)){
+    			LOG.warn("ip {} is not exists", tmpIp);
     			continue;
     		}
     		
@@ -159,7 +165,7 @@ public enum SigarUtils {
     	return objMap;
     }
     public Pair<Long, Long> gatherNetStatInfos(String ip) throws SigarException{
-    	Pair<Long, Long> nets = new Pair<Long, Long>();
+    	Pair<Long, Long> nets = null;
     	if(BrStringUtils.isEmpty(ip)){
     		return nets;
     	}
@@ -172,14 +178,17 @@ public enum SigarUtils {
     		tmpIp = netConfig.getAddress();    	
     		// 1.过滤非法的ip
     		if(NetUtils.filterIp(tmpIp)){
+    			LOG.warn("valid ip {} ", tmpIp);
     			continue;
     		}
     		// 2.过滤网卡不存在的
     		if(((netConfig.getFlags() & 1L) <= 0L)){
+    			LOG.warn("ip {} is not exists", tmpIp);
     			continue;
     		}
     		if(ip.equals(tmpIp)){
     			netStat = sigar.getNetInterfaceStat(netInfo);
+    			nets = new Pair<Long, Long>();
     			nets.setKey(netStat.getRxBytes());
     			nets.setValue(netStat.getTxBytes());
     			break;
@@ -202,6 +211,7 @@ public enum SigarUtils {
         }
         File file = new File(rootPath);
         if(!file.exists()||file.isFile()){
+        	LOG.warn("{} is not directory !!", rootPath);
             return objMap;
         }
         FileSystem[] fileSystems = sigar.getFileSystemList();

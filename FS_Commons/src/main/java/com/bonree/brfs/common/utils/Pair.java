@@ -25,5 +25,14 @@ public class Pair<T1, T2> {
 	public String toString(){
 		return this.key + ":" + this.value;
 	}
+	public boolean isBothEmpty(){
+		return isEmptyKey() && isEmptyValue();
+	}
+	public boolean isEmptyKey(){
+		return this.key == null;
+	}
+	public boolean isEmptyValue(){
+		return this.value == null;
+	}
 	
 }
