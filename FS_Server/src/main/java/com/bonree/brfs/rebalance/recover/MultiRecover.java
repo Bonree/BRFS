@@ -134,7 +134,7 @@ public class MultiRecover implements DataRecover {
         }
 
         LOG.info("begin normal recover");
-        String snDataDir = dataDir + FileUtils.FILE_SEPARATOR + dataDir;
+        String snDataDir = dataDir + FileUtils.FILE_SEPARATOR + storageName;
         int timeFileCounts = 0;
         List<String> replicasNames = FileUtils.listFileNames(snDataDir);
         for (String replicasName : replicasNames) {
