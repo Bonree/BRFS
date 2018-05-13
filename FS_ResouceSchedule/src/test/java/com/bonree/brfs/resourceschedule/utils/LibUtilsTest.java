@@ -65,5 +65,4 @@ public class LibUtilsTest {
 			fail(e.getMessage());
 		}
 	}
-
 }

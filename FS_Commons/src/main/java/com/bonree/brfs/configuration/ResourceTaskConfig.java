@@ -199,7 +199,7 @@ public class ResourceTaskConfig {
 		boolean resourceFrameWorkSwitch = Boolean.valueOf(resourceFrameWork);
 		conf.setResourceFrameWorkSwitch(resourceFrameWorkSwitch);
 		
-		String libPath = config.getProperty(RESOURCE_LIB_PATH);
+		String libPath = System.getProperty(RESOURCE_LIB_PATH);
 		if(BrStringUtils.isEmpty(libPath)){
 			throw new NullPointerException(RESOURCE_LIB_PATH +" is empty");
 		}
