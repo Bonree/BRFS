@@ -65,6 +65,8 @@ public class InitTaskManager {
 	 */
 	//TODO:临时参数groupName
 	public static void initManager(ServerConfig serverConfig,ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageNameManager snm, ServerIDManager sim) throws Exception {
+		
+		LOG.info("ttttttttttt : {}",sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP));
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
 		boolean isReboot = !sim.isNewService();
@@ -246,7 +248,7 @@ public class InitTaskManager {
 		ServerModel smodel = new ServerModel();
 		smodel.setBase(base);
 		String str = JsonUtils.toJsonString(smodel);
-		sm.updateService(serverConfig.getClusterName(), serverId, str);
+		sm.updateService(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, serverId, str);
 		
 		// 3.创建资源采集线程池
 		Properties  prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);
