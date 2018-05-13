@@ -42,6 +42,7 @@ public interface FileWriter extends Closeable {
 	
 	/**
 	 * 将数据同步到磁盘
+	 * 
 	 * @throws IOException 
 	 */
 	void flush() throws IOException;

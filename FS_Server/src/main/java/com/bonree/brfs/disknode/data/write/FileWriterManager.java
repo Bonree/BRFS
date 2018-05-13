@@ -18,6 +18,7 @@ import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorkerGroup;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorkerSelector;
 import com.bonree.brfs.disknode.utils.Pair;
+import com.bonree.brfs.server.utils.FileEncoder;
 
 public class FileWriterManager implements LifeCycle {
 	private static final Logger LOG = LoggerFactory
@@ -32,6 +33,9 @@ public class FileWriterManager implements LifeCycle {
 
 	private static int DEFAULT_RECORD_BUFFER_SIZE = 512 * 1024;
 	private static int DEFAULT_FILE_BUFFER_SIZE = 1024 * 1024;
+	
+	private static final int DEFAULT_FILE_VERSION = 1;
+	private static final int DEFAULT_FILE_VALIDTYPE = 0;
 
 	private Map<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new HashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
@@ -114,8 +118,7 @@ public class FileWriterManager implements LifeCycle {
 	}
 
 	private Pair<RecordFileWriter, WriteWorker> buildDiskWriter(String filePath) {
-		Pair<RecordFileWriter, WriteWorker> binding = runningWriters
-				.get(filePath);
+		Pair<RecordFileWriter, WriteWorker> binding = runningWriters.get(filePath);
 
 		if (binding == null) {
 			synchronized (runningWriters) {

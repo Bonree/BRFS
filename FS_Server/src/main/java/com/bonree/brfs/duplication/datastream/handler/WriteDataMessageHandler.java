@@ -7,12 +7,15 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.duplication.datastream.DataHandleCallback;
 import com.bonree.brfs.duplication.datastream.DataWriteResult;
 import com.bonree.brfs.duplication.datastream.DuplicateWriter;
 import com.bonree.brfs.duplication.datastream.ResultItem;
+import com.bonree.brfs.server.utils.FileEncoder;
+import com.google.protobuf.ByteString;
 
 public class WriteDataMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteDataMessageHandler.class);
@@ -34,6 +37,21 @@ public class WriteDataMessageHandler implements MessageHandler {
 			result.setSuccess(true);
 			callback.completed(result);
 			return;
+		}
+		
+		for(DataItem item : items) {
+			FileContent content = FileContent.newBuilder()
+					.setCompress(0)
+					.setDescription(null)
+					.setData(ByteString.copyFrom(item.getBytes()))
+					.setCrcFlag(false)
+					.setCrcCheckCode(0)
+					.build();
+			
+			try {
+				item.setBytes(FileEncoder.contents(content));
+			} catch (Exception e) {
+			}
 		}
 		
 		duplicateWriter.write(writeMsg.getStorageNameId(), items, new DataWriteCallback(callback));
