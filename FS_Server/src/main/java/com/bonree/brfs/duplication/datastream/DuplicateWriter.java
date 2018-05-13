@@ -57,7 +57,7 @@ public class DuplicateWriter {
 				FileLimiter file = fileLounge.getFileLimiter(storageId, item.getBytes().length);
 				LOG.info("get FileLimiter[{}]", file);
 				
-				emitData(item, file, resultGather);
+				emitData(item, file, storageId, resultGather);
 			} catch (Exception e) {
 				LOG.info("####-->{}", e.toString());
 				resultGather.putResultItem(new ResultItem(item.getSequence()));
@@ -65,7 +65,7 @@ public class DuplicateWriter {
 		}
 	}
 	
-	private void emitData(DataItem item, FileLimiter file, EmitResultGather resultGather) {
+	private void emitData(DataItem item, FileLimiter file, int storageId, EmitResultGather resultGather) {
 		DiskNodeConnection[] connections = connectionPool.getConnections(file.getFileNode().getDuplicateNodes());
 		LOG.info("get Connections size={}", connections.length);
 		
@@ -77,17 +77,19 @@ public class DuplicateWriter {
 			}
 		}
 		
-		executor.submit(taskGroup, new DataWriteResultCallback(item, file, resultGather));
+		executor.submit(taskGroup, new DataWriteResultCallback(item, file, storageId, resultGather));
 	}
 	
 	private class DataWriteResultCallback implements AsyncTaskGroupCallback<WriteTaskResult> {
 		private DataItem item;
 		private FileLimiter file;
+		private int storageId;
 		private EmitResultGather resultGather;
 		
-		public DataWriteResultCallback(DataItem item, FileLimiter file, EmitResultGather resultGather) {
+		public DataWriteResultCallback(DataItem item, FileLimiter file, int storageId, EmitResultGather resultGather) {
 			this.item = item;
 			this.file = file;
+			this.storageId = storageId;
 			this.resultGather = resultGather;
 		}
 
@@ -113,7 +115,7 @@ public class DuplicateWriter {
 			WriteTaskResult taskResult = taskResultList.get(0);
 			
 			ResultItem resultItem = new ResultItem(item.getSequence());
-			resultItem.setFid(FidBuilder.getFid(file.getFileNode(), taskResult.getOffset(), taskResult.getSize()));//TODO build FID and notify
+			resultItem.setFid(FidBuilder.getFid(file.getFileNode(), storageId, taskResult.getOffset(), taskResult.getSize()));
 			resultGather.putResultItem(resultItem);
 			file.release(0);
 		}
