@@ -68,7 +68,7 @@ public class ServerMain {
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
             StorageNameManager snManage = new DefaultStorageNameManager(client.getInnerClient());
-            ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseServersPath().substring(1, zookeeperPaths.getBaseServersPath().length())));
+            ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1, zookeeperPaths.getBaseServersPath().length())));
             sm.start();
 
             Service selfService = new Service();
