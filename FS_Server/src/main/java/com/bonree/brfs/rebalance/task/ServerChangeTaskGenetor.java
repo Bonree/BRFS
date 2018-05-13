@@ -1,6 +1,5 @@
 package com.bonree.brfs.rebalance.task;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +17,8 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.server.StorageName;
+import com.bonree.brfs.duplication.storagename.StorageNameManager;
+import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*******************************************************************************
@@ -79,14 +79,14 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
     private void genChangeSummary(Service service, ChangeType type) {
         String firstID = service.getServiceId();
-        List<StorageName> snList = getStorageCache(); // TODO 模拟sn缓存
-        for (StorageName snModel : snList) {
-            if (snModel.getReplications() > 1 && snModel.isRecover()) {
+        List<StorageNameNode> snList = getStorageCache(null); // TODO 模拟sn缓存
+        for (StorageNameNode snModel : snList) {
+            if (snModel.getReplicateCount() > 1) {
                 List<String> currentServers = getCurrentServers(serverManager); // TODO 需要获取当前的机器
-                String secondID = idManager.getOtherSecondID(firstID, snModel.getIndex());
+                String secondID = idManager.getOtherSecondID(firstID, snModel.getId());
                 if (!StringUtils.isEmpty(secondID)) { // 如果没数据，该sn的secondID会为null
-                    ChangeSummary tsm = new ChangeSummary(snModel.getIndex(), genChangeID(), type, secondID, currentServers);
-                    String snPath = changesPath + Constants.SEPARATOR + snModel.getIndex();
+                    ChangeSummary tsm = new ChangeSummary(snModel.getId(), genChangeID(), type, secondID, currentServers);
+                    String snPath = changesPath + Constants.SEPARATOR + snModel.getId();
                     String jsonStr = JSON.toJSONString(tsm);
                     String snTaskNode = snPath + Constants.SEPARATOR + tsm.getChangeID();
                     client.createPersistent(snTaskNode, true, jsonStr.getBytes());
@@ -99,28 +99,8 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
         return (Calendar.getInstance().getTimeInMillis() / 1000) + UUID.randomUUID().toString();
     }
 
-    private List<StorageName> getStorageCache() {
-        StorageName sn = new StorageName();
-        sn.setIndex(1);
-        sn.setStorageName("sdk");
-        sn.setDescription("sdk");
-        sn.setReplications(2);
-        sn.setRecover(true);
-        sn.setTtl(1000000);
-        sn.setTriggerRecoverTime(5454455544l);
-
-        StorageName sn1 = new StorageName();
-        sn1.setIndex(2);
-        sn1.setStorageName("v4");
-        sn1.setDescription("v4");
-        sn1.setReplications(2);
-        sn1.setRecover(true);
-        sn1.setTtl(1000000);
-        sn1.setTriggerRecoverTime(5454455544l);
-        List<StorageName> tmp = new ArrayList<StorageName>();
-        tmp.add(sn);
-        // tmp.add(sn1);
-        return tmp;
+    private List<StorageNameNode> getStorageCache(StorageNameManager snManager) {
+        return snManager.getStorageNameNodeList();
     }
 
     private List<String> getCurrentServers(ServiceManager serviceManager) {

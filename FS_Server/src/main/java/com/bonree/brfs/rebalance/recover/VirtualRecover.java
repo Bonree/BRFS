@@ -27,7 +27,6 @@ import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.server.StorageName;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*******************************************************************************
@@ -294,10 +293,6 @@ public class VirtualRecover implements DataRecover {
             e.printStackTrace();
         }
         return success;
-    }
-
-    public StorageName getStorageNameCache(int storageIndex) {
-        return new StorageName();
     }
 
     public void remoteCopyFile(String remoteServerId, String fileName, int replicaPot) {
