@@ -54,7 +54,7 @@ public class FileEncoder {
      * @throws Exception
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public byte[] validate(long validateCode) throws Exception {
+    public static byte[] validate(long validateCode) throws Exception {
         return FSCode.LongToByte(validateCode, 8);
     }
 
@@ -70,7 +70,7 @@ public class FileEncoder {
         byte[] describeLengthByte = null;
         int compressFlag = file.getCompress();
         String description = file.getDescription();
-        String content = file.getData();
+        byte[] content = file.getData().toByteArray();
         // 1.压缩
         int compress =  compressFlag << 6;
 
@@ -91,7 +91,7 @@ public class FileEncoder {
         byte[] contentLengthByte = null;
         // 3.内容
         if (content != null) {
-            contentByte = content.getBytes("utf-8");
+            contentByte = content;
             contentLengthByte = FSCode.moreFlagEncoder(contentByte.length, 7);
         }
         if (compressFlag == 1) {        // gzip压缩

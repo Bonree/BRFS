@@ -3,6 +3,7 @@ package com.bonree.brfs.server.utils;
 import com.bonree.brfs.common.code.FSCode;
 import com.bonree.brfs.common.code.GZipUtils;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
+import com.google.protobuf.ByteString;
 
 /**
  * *****************************************************************************
@@ -77,7 +78,7 @@ public class FileDecoder {
         
         // 3.封装数据内容
         if (data != null && data.length != 0) {
-            file.setData(new String(data));
+            file.setData(ByteString.copyFrom(bytes));
         }
 
         // 4.校验码标识
