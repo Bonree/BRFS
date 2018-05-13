@@ -109,6 +109,14 @@ public class ServerIDManager {
     public String getFirstServerID() {
         return firstLevelServerID.getServerID();
     }
+    
+    /** 概述：判断是否为新服务
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public boolean isNewService() {
+        return firstLevelServerID.isNewServer();
+    }
 
     /** 概述：获取本服务的某个SN的2级serverID
      * @param storageIndex
