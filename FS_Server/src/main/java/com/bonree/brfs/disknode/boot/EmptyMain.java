@@ -27,29 +27,17 @@ import com.bonree.brfs.disknode.server.handler.WriteMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WritingInfoMessageHandler;
 
 public class EmptyMain implements LifeCycle {
-	private String ip;
 	private int port;
-	private CuratorFramework client;
-	private String serviceId;
 	
-	private ServiceManager serviceManager;
 	private NettyHttpServer server;
 	private FileWriterManager writerManager;
 	
-	public EmptyMain(String ip, int port, CuratorFramework client, String serviceId) {
-		this.ip = ip;
+	public EmptyMain(int port) {
 		this.port = port;
-		this.client = client;
-		this.serviceId = serviceId;
 	}
 
 	@Override
 	public void start() throws Exception {
-		serviceManager = new DefaultServiceManager(client);
-		serviceManager.start();
-		Service service = new Service(serviceId, DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, ip, port);
-		serviceManager.registerService(service);
-		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
 		
 		HttpConfig config = new HttpConfig(port);
@@ -97,7 +85,6 @@ public class EmptyMain implements LifeCycle {
 	public void stop() throws Exception {
 		writerManager.stop();
 		server.stop();
-		serviceManager.stop();
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -115,7 +102,12 @@ public class EmptyMain implements LifeCycle {
 		
 		client = client.usingNamespace("brfstest");
 		
-		EmptyMain main = new EmptyMain(ip, port, client, serverId);
+		ServiceManager serviceManager = new DefaultServiceManager(client);
+		serviceManager.start();
+		Service service = new Service(serverId, DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, ip, port);
+		serviceManager.registerService(service);
+		
+		EmptyMain main = new EmptyMain(port);
 		main.start();
 	}
 }
