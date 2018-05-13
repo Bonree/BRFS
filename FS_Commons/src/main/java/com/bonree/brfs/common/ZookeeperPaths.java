@@ -26,7 +26,7 @@ public class ZookeeperPaths {
 
     public final static String SERVER_IDS = "server_ids";
 
-    public final static String SERVERS = "servers";
+    public final static String SERVERS = "servers_discover";
 
     public final static String LOCKS = "locks";
 
@@ -165,6 +165,7 @@ public class ZookeeperPaths {
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkHosts);
+            createPathIfNotExist(client, baseClusterName);
             createPathIfNotExist(client, baseLocksPath);
             createPathIfNotExist(client, baseServerIdSeqPath);
             createPathIfNotExist(client, baseServerIdPath);
@@ -192,7 +193,6 @@ public class ZookeeperPaths {
 
     private void createPath() {
         baseClusterName = SEPARATOR + ROOT + SEPARATOR + clusterName;
-
         setBaseServerIdPath(baseClusterName + SEPARATOR + SERVER_IDS);
         setBaseServerIdSeqPath(baseClusterName + SEPARATOR + SERVER_ID_SEQUENCES);
         setBaseLocksPath(baseClusterName + SEPARATOR + LOCKS);

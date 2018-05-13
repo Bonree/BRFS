@@ -82,7 +82,7 @@ public class ResourceTaskConfig {
 	/**
 	 * 资源采集依赖的第三包位置
 	 */
-	public final static String RESOURCE_LIB_PATH = "resource.lib.path";
+	public final static String RESOURCE_LIB_PATH = "resource_lib_path";
 	/**
 	 * 资源采集点之间的时间间隔，单位ms
 	 */
