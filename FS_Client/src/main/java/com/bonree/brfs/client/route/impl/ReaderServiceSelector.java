@@ -32,11 +32,11 @@ public class ReaderServiceSelector implements ServiceSelector_1 {
                 service = serviceCache.getSecondServerCache(aliveSecondID,random);
             } else {
                 for (int i = 0; i < replicas - 1; i++) {
-                    random = (random + 1) % replicas; // 尝试选择下一个service
-                    selectSId = arrs[random + 1];
+                    random = ((random + 1) % replicas) + 1; // 尝试选择下一个service
+                    selectSId = arrs[random];
                     aliveSecondID = routeParser.findServerID(selectSId, partFid, NAME_SEPARATOR, aliveServices);
                     if (aliveSecondID != null) {
-                        service = serviceCache.getSecondServerCache(aliveSecondID,random + 1);
+                        service = serviceCache.getSecondServerCache(aliveSecondID,random);
                         break;
                     }
                 }
