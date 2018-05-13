@@ -4871,9 +4871,9 @@ public final class FileDataProtos {
     boolean hasDescription();
     String getDescription();
     
-    // optional string data = 4;
+    // optional bytes data = 4;
     boolean hasData();
-    String getData();
+    com.google.protobuf.ByteString getData();
     
     // optional int32 compress = 5;
     boolean hasCompress();
@@ -4960,36 +4960,14 @@ public final class FileDataProtos {
       }
     }
     
-    // optional string data = 4;
+    // optional bytes data = 4;
     public static final int DATA_FIELD_NUMBER = 4;
-    private java.lang.Object data_;
+    private com.google.protobuf.ByteString data_;
     public boolean hasData() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
-    public String getData() {
-      java.lang.Object ref = data_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          data_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getDataBytes() {
-      java.lang.Object ref = data_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        data_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public com.google.protobuf.ByteString getData() {
+      return data_;
     }
     
     // optional int32 compress = 5;
@@ -5006,7 +4984,7 @@ public final class FileDataProtos {
       crcFlag_ = false;
       crcCheckCode_ = 0L;
       description_ = "";
-      data_ = "";
+      data_ = com.google.protobuf.ByteString.EMPTY;
       compress_ = 0;
     }
     private byte memoizedIsInitialized = -1;
@@ -5031,7 +5009,7 @@ public final class FileDataProtos {
         output.writeBytes(3, getDescriptionBytes());
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBytes(4, getDataBytes());
+        output.writeBytes(4, data_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeInt32(5, compress_);
@@ -5059,7 +5037,7 @@ public final class FileDataProtos {
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(4, getDataBytes());
+          .computeBytesSize(4, data_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
@@ -5195,7 +5173,7 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000002);
         description_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
-        data_ = "";
+        data_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000008);
         compress_ = 0;
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -5428,22 +5406,15 @@ public final class FileDataProtos {
         onChanged();
       }
       
-      // optional string data = 4;
-      private java.lang.Object data_ = "";
+      // optional bytes data = 4;
+      private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
       public boolean hasData() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
-      public String getData() {
-        java.lang.Object ref = data_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          data_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
+      public com.google.protobuf.ByteString getData() {
+        return data_;
       }
-      public Builder setData(String value) {
+      public Builder setData(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -5457,11 +5428,6 @@ public final class FileDataProtos {
         data_ = getDefaultInstance().getData();
         onChanged();
         return this;
-      }
-      void setData(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000008;
-        data_ = value;
-        onChanged();
       }
       
       // optional int32 compress = 5;
@@ -6450,7 +6416,7 @@ public final class FileDataProtos {
       " \001(\t\022\014\n\004user\030\003 \001(\t\022\022\n\nreturnCode\030\004 \001(\005\022\023" +
       "\n\013description\030\005 \001(\t\"i\n\013FileContent\022\017\n\007cr" +
       "cFlag\030\001 \001(\010\022\024\n\014crcCheckCode\030\002 \001(\003\022\023\n\013des" +
-      "cription\030\003 \001(\t\022\014\n\004data\030\004 \001(\t\022\020\n\010compress" +
+      "cription\030\003 \001(\t\022\014\n\004data\030\004 \001(\014\022\020\n\010compress" +
       "\030\005 \001(\005\"\236\001\n\003Fid\022\017\n\007version\030\001 \001(\005\022\020\n\010compr" +
       "ess\030\002 \001(\005\022\027\n\017storageNameCode\030\003 \001(\003\022\014\n\004uu" +
       "id\030\004 \001(\t\022\014\n\004time\030\005 \001(\003\022\017\n\007replica\030\006 \001(\005\022" +

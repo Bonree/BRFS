@@ -64,7 +64,7 @@ message FileContent{
 	optional bool crcFlag = 1;		//是否开启crc校验码
 	optional int64 crcCheckCode = 2;//crc校验码
 	optional string description = 3;//详细描述信息
-	optional string data = 4;		//数据内容
+	optional bytes data = 4;		//数据内容
     optional int32 compress = 5;    //是否压缩,0:不压缩,1:gzip,2:snappy,3保留
 }
 
