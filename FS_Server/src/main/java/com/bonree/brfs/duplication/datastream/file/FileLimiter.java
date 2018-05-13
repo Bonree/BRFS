@@ -48,16 +48,6 @@ public class FileLimiter {
 		this.sequence = new AtomicInteger(sequence);
 	}
 	
-	public void setHeader(byte[] header) {
-		this.header = header;
-		contentLength.addAndGet(header.length);
-	}
-	
-	public void setTailer(byte[] tailer) {
-		this.tailer = tailer;
-		contentLength.addAndGet(tailer.length);
-	}
-	
 	public int sequence() {
 		return sequence.get();
 	}

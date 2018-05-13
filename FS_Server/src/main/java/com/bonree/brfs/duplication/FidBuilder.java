@@ -9,10 +9,10 @@ import com.google.common.base.Splitter;
 
 public class FidBuilder {
 	
-	public static String getFid(FileNode node, int storageId, long offset, int size) {
+	public static String getFid(FileNode node, long offset, int size) {
 		Fid.Builder builder = Fid.newBuilder()
 				.setCompress(0)
-				.setStorageNameCode(storageId)
+				.setStorageNameCode(node.getStorageId())
 				.setTime(node.getCreateTime())
 				.setUuid(node.getName())
 				.setOffset(offset)

@@ -99,13 +99,13 @@ public class BootStrap {
 		
 		DiskNodeConnectionFactory connectionFactory = new HttpDiskNodeConnectionFactory();
 		DiskNodeConnectionPool connectionPool = new HttpDiskNodeConnectionPool(serviceManager, connectionFactory);
-		FileRecovery fileRecovery = new DefaultFileRecovery(connectionPool);
+		FileRecovery fileRecovery = new DefaultFileRecovery(connectionPool, idManager);
 		fileRecovery.start();
 		
 		DuplicationNodeSelector nodeSelector = new DefaultDuplicationNodeSelector(serviceManager);
 		
 		FileLounge lounge = new DefaultFileLounge(service, storageNameManager, fileCoordinator, fileRecovery, nodeSelector, idManager);
-		DuplicateWriter writer = new DuplicateWriter(lounge, fileRecovery, connectionPool);
+		DuplicateWriter writer = new DuplicateWriter(lounge, fileRecovery, idManager, connectionPool);
 		
 		HttpConfig config = new HttpConfig(serverConfig.getPort());
 		config.setKeepAlive(true);

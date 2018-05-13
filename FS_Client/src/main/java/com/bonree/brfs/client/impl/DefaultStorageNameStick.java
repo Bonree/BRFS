@@ -8,30 +8,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-
 import com.alibaba.fastjson.JSONArray;
 import com.bonree.brfs.client.InputItem;
 import com.bonree.brfs.client.StorageNameStick;
+import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.client.route.ServiceSelectorCache;
 import com.bonree.brfs.client.utils.FidDecoder;
+import com.bonree.brfs.common.http.client.HttpClient;
+import com.bonree.brfs.common.http.client.HttpResponse;
+import com.bonree.brfs.common.http.client.URIBuilder;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.InputUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
+import com.bonree.brfs.disknode.DiskContext;
+import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.handler.DataItem;
 import com.bonree.brfs.duplication.datastream.handler.WriteDataMessage;
 import com.google.common.base.Joiner;
@@ -39,63 +31,47 @@ import com.google.common.base.Joiner;
 public class DefaultStorageNameStick implements StorageNameStick {
 	private static final String URI_DATA_ROOT = "/duplication/";
 	
+	private static final String DEFAULT_SCHEME = "http";
+	
+	private String storageName;
 	private int storageId;
 
 	private ServiceSelectorCache selector;
+	private HttpClient client = new HttpClient();
 
-	public DefaultStorageNameStick(int storageId, ServiceSelectorCache selector) {
+	public DefaultStorageNameStick(String storageName, int storageId, ServiceSelectorCache selector) {
+		this.storageName = storageName;
 		this.storageId = storageId;
 		this.selector = selector;
 	}
 
-	private URI buildUri(Service service, String root, String path,
-			Map<String, String> params) {
-		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-		for (String name : params.keySet()) {
-			nameValuePairs.add(new BasicNameValuePair(name, params.get(name)));
-		}
-
-		try {
-			return new URIBuilder().setScheme("http")
-					.setHost(service.getHost())
-					.setPort(service.getPort()).setPath(root + path)
-					.setParameters(nameValuePairs).build();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	}
-
 	@Override
 	public String[] writeData(InputItem[] itemArrays) {
-		HttpPost httpPost = new HttpPost(buildUri(selector.writerService(), URI_DATA_ROOT, "", new HashMap<String, String>()));
-		WriteDataMessage dataMessage = new WriteDataMessage();
-		dataMessage.setStorageNameId(storageId);
+		Service service = selector.writerService();
+		
+		URI uri = new URIBuilder()
+	    .setScheme(DEFAULT_SCHEME)
+	    .setHost(service.getHost())
+	    .setPort(service.getPort())
+	    .setPath(URI_DATA_ROOT)
+	    .build();
 
-		DataItem[] dataItems = new DataItem[itemArrays.length];
-		for (int i = 0; i < dataItems.length; i++) {
-			dataItems[i] = new DataItem();
-			dataItems[i].setSequence(i);
-			dataItems[i].setBytes(itemArrays[i].getBytes());
-		}
-		dataMessage.setItems(dataItems);
-
-		CloseableHttpClient client = HttpClients.createDefault();
-		CloseableHttpResponse response = null;
 		try {
-			ByteArrayEntity requestEntity = new ByteArrayEntity(
-					ProtoStuffUtils.serialize(dataMessage));
-			httpPost.setEntity(requestEntity);
+			WriteDataMessage dataMessage = new WriteDataMessage();
+			dataMessage.setStorageNameId(storageId);
 
-			response = client.execute(httpPost);
-			StatusLine status = response.getStatusLine();
-			if (status.getStatusCode() == 200) {
-				HttpEntity responseEntity = response.getEntity();
-				byte[] resultBytes = new byte[(int) responseEntity.getContentLength()];
-				InputUtils.readBytes(responseEntity.getContent(), resultBytes, 0, resultBytes.length);
-				
-				JSONArray array = JSONArray.parseArray(new String(resultBytes));
+			DataItem[] dataItems = new DataItem[itemArrays.length];
+			for (int i = 0; i < dataItems.length; i++) {
+				dataItems[i] = new DataItem();
+				dataItems[i].setSequence(i);
+				dataItems[i].setBytes(itemArrays[i].getBytes());
+			}
+			dataMessage.setItems(dataItems);
+			
+			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(dataMessage));
+			
+			if(response.isReponseOK()) {
+				JSONArray array = JSONArray.parseArray(new String(response.getResponseBody()));
 				String[] fids = new String[array.size()];
 				for(int i = 0; i < array.size(); i++) {
 					fids[i] = array.getString(i);
@@ -103,15 +79,10 @@ public class DefaultStorageNameStick implements StorageNameStick {
 				
 				return fids;
 			}
-		} catch (ClientProtocolException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			CloseUtils.closeQuietly(client);
-			CloseUtils.closeQuietly(response);
 		}
-
+		
 		return null;
 	}
 
@@ -128,32 +99,36 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	@Override
 	public InputItem readData(String fid) throws Exception {
 		Fid fidObj = FidDecoder.build(fid);
+		if(fidObj.getStorageNameCode() != storageId) {
+			return null;
+		}
+		
 		List<String> parts = new ArrayList<String>();
 		parts.add(fidObj.getUuid());
 		for(int serverId : fidObj.getServerIdList()) {
 			parts.add(String.valueOf(serverId));
 		}
-		HttpGet httpGet = new HttpGet(buildUri(selector.readerService(Joiner.on('_').join(parts)), URI_DATA_ROOT, fid, new HashMap<String, String>()));
+		
+		ServiceMetaInfo service = selector.readerService(Joiner.on('_').join(parts));
+		
+		URI uri = new URIBuilder()
+	    .setScheme(DEFAULT_SCHEME)
+	    .setHost(service.getFirstServer().getHost())
+	    .setPort(service.getFirstServer().getPort())
+	    .setPath(DiskContext.URI_DISK_NODE_ROOT + FilePathBuilder.buildPath(fidObj, storageName, service.getReplicatPot()))
+	    .addParameter("offset", String.valueOf(fidObj.getOffset()))
+	    .addParameter("size", String.valueOf(fidObj.getSize()))
+	    .build();
 
-		CloseableHttpClient client = HttpClients.createDefault();
-		CloseableHttpResponse response = null;
+		byte[] result = null;
 		try {
-			response = client.execute(httpGet);
-			StatusLine status = response.getStatusLine();
-			if (status.getStatusCode() == 200) {
-				HttpEntity entity = response.getEntity();
-				byte[] bytes = new byte[(int) entity.getContentLength()];
-				InputUtils.readBytes(entity.getContent(), bytes, 0, bytes.length);
-
-				return new SimpleDataItem(bytes);
+			HttpResponse response = client.executeGet(uri);
+			
+			if(response.isReponseOK()) {
+				return new SimpleDataItem(response.getResponseBody());
 			}
-		} catch (ClientProtocolException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			CloseUtils.closeQuietly(client);
-			CloseUtils.closeQuietly(response);
 		}
 		
 		return null;
@@ -161,24 +136,23 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
 	@Override
 	public boolean deleteData(long startTime, long endTime) {
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("start", String.valueOf(startTime));
-		params.put("end", String.valueOf(endTime));
-		HttpDelete httpDelete = new HttpDelete(buildUri(selector.randomService(), URI_DATA_ROOT, "/", new HashMap<String, String>()));
-
-		CloseableHttpClient client = HttpClients.createDefault();
-		CloseableHttpResponse response = null;
+		Service service = selector.randomService();
+		
+		URI uri = new URIBuilder()
+	    .setScheme(DEFAULT_SCHEME)
+	    .setHost(service.getHost())
+	    .setPort(service.getPort())
+	    .setPath(URI_DATA_ROOT)
+	    .addParameter("start", String.valueOf(startTime))
+	    .addParameter("end", String.valueOf(endTime))
+	    .build();
+		
 		try {
-			response = client.execute(httpDelete);
-			StatusLine status = response.getStatusLine();
-			return status.getStatusCode() == 200;
-		} catch (ClientProtocolException e) {
+			HttpResponse response = client.executeDelete(uri);
+			
+			return response.isReponseOK();
+		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			CloseUtils.closeQuietly(client);
-			CloseUtils.closeQuietly(response);
 		}
 		
 		return false;

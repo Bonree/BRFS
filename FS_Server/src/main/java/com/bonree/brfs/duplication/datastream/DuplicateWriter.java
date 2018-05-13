@@ -24,6 +24,7 @@ import com.bonree.brfs.duplication.datastream.tasks.DataWriteTask;
 import com.bonree.brfs.duplication.datastream.tasks.WriteTaskResult;
 import com.bonree.brfs.duplication.recovery.FileRecovery;
 import com.bonree.brfs.duplication.recovery.FileRecoveryListener;
+import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class DuplicateWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(DuplicateWriter.class);
@@ -35,10 +36,12 @@ public class DuplicateWriter {
 	private FileLounge fileLounge;
 	
 	private FileRecovery fileRecovery;
+	private ServerIDManager idManager;
 	
-	public DuplicateWriter(FileLounge fileLounge, FileRecovery fileRecovery, DiskNodeConnectionPool connectionPool) {
+	public DuplicateWriter(FileLounge fileLounge, FileRecovery fileRecovery, ServerIDManager idManager, DiskNodeConnectionPool connectionPool) {
 		this.fileLounge = fileLounge;
 		this.fileRecovery = fileRecovery;
+		this.idManager = idManager;
 		this.connectionPool = connectionPool;
 		
 		this.fileLounge.setFileCloseListener(new FileNodeCloseListener());
@@ -57,7 +60,7 @@ public class DuplicateWriter {
 				FileLimiter file = fileLounge.getFileLimiter(storageId, item.getBytes().length);
 				LOG.info("get FileLimiter[{}]", file);
 				
-				emitData(item, file, storageId, resultGather);
+				emitData(item, file, resultGather);
 			} catch (Exception e) {
 				LOG.info("####-->{}", e.toString());
 				resultGather.putResultItem(new ResultItem(item.getSequence()));
@@ -65,31 +68,30 @@ public class DuplicateWriter {
 		}
 	}
 	
-	private void emitData(DataItem item, FileLimiter file, int storageId, EmitResultGather resultGather) {
+	private void emitData(DataItem item, FileLimiter file, EmitResultGather resultGather) {
 		DiskNodeConnection[] connections = connectionPool.getConnections(file.getFileNode().getDuplicateNodes());
 		LOG.info("get Connections size={}", connections.length);
 		
 		AsyncTaskGroup<WriteTaskResult> taskGroup = new AsyncTaskGroup<WriteTaskResult>();
-		for(DiskNodeConnection connection : connections) {
-			LOG.info("get connection----{}", connection);
-			if(connection != null) {
-				taskGroup.addTask(new DataWriteTask(connection.getService().getServiceId(), connection, file, item));
+		for(int i = 0; i < connections.length; i++) {
+			LOG.info("get connection----{}", connections[i]);
+			if(connections[i] != null) {
+				String serverId = idManager.getOtherSecondID(file.getFileNode().getDuplicateNodes()[i].getId(), file.getFileNode().getStorageId());
+				taskGroup.addTask(new DataWriteTask(connections[i].getService().getServiceId(), connections[i], file, item, serverId));
 			}
 		}
 		
-		executor.submit(taskGroup, new DataWriteResultCallback(item, file, storageId, resultGather));
+		executor.submit(taskGroup, new DataWriteResultCallback(item, file, resultGather));
 	}
 	
 	private class DataWriteResultCallback implements AsyncTaskGroupCallback<WriteTaskResult> {
 		private DataItem item;
 		private FileLimiter file;
-		private int storageId;
 		private EmitResultGather resultGather;
 		
-		public DataWriteResultCallback(DataItem item, FileLimiter file, int storageId, EmitResultGather resultGather) {
+		public DataWriteResultCallback(DataItem item, FileLimiter file, EmitResultGather resultGather) {
 			this.item = item;
 			this.file = file;
-			this.storageId = storageId;
 			this.resultGather = resultGather;
 		}
 
@@ -115,7 +117,7 @@ public class DuplicateWriter {
 			WriteTaskResult taskResult = taskResultList.get(0);
 			
 			ResultItem resultItem = new ResultItem(item.getSequence());
-			resultItem.setFid(FidBuilder.getFid(file.getFileNode(), storageId, taskResult.getOffset(), taskResult.getSize()));
+			resultItem.setFid(FidBuilder.getFid(file.getFileNode(), taskResult.getOffset(), taskResult.getSize()));
 			resultGather.putResultItem(resultItem);
 			file.release(0);
 		}
@@ -176,11 +178,12 @@ public class DuplicateWriter {
 				@Override
 				public void complete(FileNode file) {
 					DiskNodeConnection[] connections = connectionPool.getConnections(file.getDuplicateNodes());
-					for(DiskNodeConnection connection : connections) {
-						if(connection != null) {
-							DiskNodeClient client = connection.getClient();
+					for(int i = 0; i < connections.length; i++) {
+						if(connections[i] != null) {
+							DiskNodeClient client = connections[i].getClient();
 							if(client != null) {
-								client.closeFile(FilePathBuilder.buildPath(file));
+								String serverId = idManager.getOtherSecondID(file.getDuplicateNodes()[i].getId(), file.getStorageId());
+								client.closeFile(FilePathBuilder.buildPath(file, serverId));
 							}
 						}
 					}

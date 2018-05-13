@@ -21,6 +21,7 @@ import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
+import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class DefaultFileRecovery implements FileRecovery {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileRecovery.class);
@@ -30,12 +31,15 @@ public class DefaultFileRecovery implements FileRecovery {
 	
 	private DiskNodeConnectionPool connectionPool;
 	
-	public DefaultFileRecovery(DiskNodeConnectionPool connectionPool) {
-		this(DEFAULT_THREAD_NUM, connectionPool);
+	private ServerIDManager idManager;
+	
+	public DefaultFileRecovery(DiskNodeConnectionPool connectionPool, ServerIDManager idManager) {
+		this(DEFAULT_THREAD_NUM, connectionPool, idManager);
 	}
 	
-	public DefaultFileRecovery(int threadNum, DiskNodeConnectionPool connectionPool) {
+	public DefaultFileRecovery(int threadNum, DiskNodeConnectionPool connectionPool, ServerIDManager idManager) {
 		this.connectionPool = connectionPool;
+		this.idManager = idManager;
 		this.threadPool = new ThreadPoolExecutor(threadNum, threadNum,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(),
@@ -82,7 +86,9 @@ public class DefaultFileRecovery implements FileRecovery {
 				}
 				
 				DiskNodeClient client = connection.getClient();
-				BitSet seqs = client.getWritingSequence(FilePathBuilder.buildPath(target));
+				
+				String serverId = idManager.getOtherSecondID(duplicates[i].getId(), target.getStorageId());
+				BitSet seqs = client.getWritingSequence(FilePathBuilder.buildPath(target, serverId));
 				if(seqs == null) {
 					continue;
 				}
@@ -161,7 +167,8 @@ public class DefaultFileRecovery implements FileRecovery {
 					
 					DiskNodeClient client = connection.getClient();
 					try {
-						client.recover(FilePathBuilder.buildPath(target), infoList);
+						String serverId = idManager.getOtherSecondID(sequence.getNode().getId(), target.getStorageId());
+						client.recover(FilePathBuilder.buildPath(target, serverId), infoList);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

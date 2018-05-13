@@ -254,6 +254,7 @@ public class DefaultFileLounge implements FileLounge {
 		FileNode fileNode = new FileNode(currentTime);
 		fileNode.setName(FileNameBuilder.createFile(idManager, storageNameId, duplicateNodes));
 		fileNode.setStorageName(storageNameNode.getName());
+		fileNode.setStorageId(storageNameId);
 		fileNode.setServiceId(service.getServiceId());
 		fileNode.setDuplicateNodes(duplicateNodes);
 		fileCoordinator.store(fileNode);

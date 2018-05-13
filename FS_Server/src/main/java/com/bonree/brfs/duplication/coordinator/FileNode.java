@@ -3,6 +3,7 @@ package com.bonree.brfs.duplication.coordinator;
 public class FileNode {
 	private String name;
 	private String storageName;
+	private int storageId;
 	private long createTime;
 	private String serviceId;
 	private DuplicateNode[] duplicateNodes;
@@ -45,6 +46,14 @@ public class FileNode {
 
 	public void setServiceId(String serviceId) {
 		this.serviceId = serviceId;
+	}
+	
+	public int getStorageId() {
+		return storageId;
+	}
+
+	public void setStorageId(int storageId) {
+		this.storageId = storageId;
 	}
 
 	public DuplicateNode[] getDuplicateNodes() {

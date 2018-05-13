@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.asynctask.AsyncTask;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.WriteResult;
-import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.file.FileLimiter;
@@ -20,12 +19,14 @@ public class DataWriteTask extends AsyncTask<WriteTaskResult> {
 	private DataItem item;
 	
 	private String taskId;
+	private String serverId;
 	
-	public DataWriteTask(String taskId, DiskNodeConnection connection, FileLimiter file, DataItem item) {
+	public DataWriteTask(String taskId, DiskNodeConnection connection, FileLimiter file, DataItem item, String serverId) {
 		this.taskId = taskId;
 		this.connection = connection;
 		this.file = file;
 		this.item = item;
+		this.serverId = serverId;
 	}
 
 	@Override
@@ -48,7 +49,7 @@ public class DataWriteTask extends AsyncTask<WriteTaskResult> {
 			
 			LOG.info("write data to {}:{}", connection.getService().getHost(), connection.getService().getPort());
 			
-			String filePath = FilePathBuilder.buildPath(file.getFileNode());
+			String filePath = FilePathBuilder.buildPath(file.getFileNode(), serverId);
 			
 			LOG.info("writing {}[seq[{}]###size[{}]]", filePath, file.sequence(), item.getBytes().length);
 			WriteResult result = client.writeData(filePath, file.sequence(), item.getBytes());
