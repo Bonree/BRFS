@@ -21,7 +21,7 @@ public class ServiceSelectorManager {
     private Map<Integer, ServiceSelectorCache> serviceSelectorCachaMap = new ConcurrentHashMap<>();
     private TreeCache treeCache;
 
-    private ServiceSelectorManager(final ServiceManager sm, final String zkHosts, final String zkServerIDPath, final String baseRoutePath) {
+    public ServiceSelectorManager(final ServiceManager sm, final String zkHosts, final String zkServerIDPath, final String baseRoutePath) {
         this.zkHosts = zkHosts;
         this.zkServerIDPath = zkServerIDPath;
         this.baseRoutePath = baseRoutePath;
