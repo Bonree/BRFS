@@ -74,7 +74,7 @@ public class ServerMain {
             Service selfService = new Service();
             selfService.setHost(serverConfig.getHost());
             selfService.setPort(serverConfig.getPort());
-            selfService.setServiceGroup(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP);
+            selfService.setServiceGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
             selfService.setServiceId(idManager.getFirstServerID());
 
             // 磁盘管理模块
@@ -91,7 +91,7 @@ public class ServerMain {
             sm.registerService(selfService);
 
             System.out.println(selfService);
-            sm.addServiceStateListener(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
+            sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
             System.out.println("launch Server 1");
         } catch (ConfigException e) {
             e.printStackTrace();
