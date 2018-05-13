@@ -86,13 +86,12 @@ public class InitTaskManager {
 		boolean isReboot = !sim.isNewService();
 		//TODO:临时代码 工厂类添加serverId与groupName
 		mcf.setServerId(serverId);
-		mcf.setGroupName(DiskContext.URI_DISK_NODE_ROOT);
+		mcf.setGroupName(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP);
 		
 		// 工厂类添加服务管理
 		mcf.setSm(sm);
 		
 		// 工厂类添加storageName管理服务
-		// TODO:
 		mcf.setSnm(snm);
 		
 		// 1.工厂类添加调度管理
