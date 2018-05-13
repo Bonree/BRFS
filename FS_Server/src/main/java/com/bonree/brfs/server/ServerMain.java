@@ -50,6 +50,7 @@ public class ServerMain {
             System.exit(1);
         }
         String brfsHome = args[0];
+//        String brfsHome = "E:/BRFS1";
         try {
             Configuration conf = Configuration.getInstance();
             conf.parse(brfsHome + "/config/server.properties");
