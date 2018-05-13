@@ -17,6 +17,7 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -45,14 +46,17 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
     private ServiceManager serverManager;
 
-    private CuratorClient client; // TODO 可以替换成zkURL
+    private CuratorClient client;
+
+    private StorageNameManager snManager;
 
     private CuratorClient leaderClient;
 
     private int delayDeal;
 
-    public ServerChangeTaskGenetor(final CuratorClient leaderClient, final CuratorClient client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath, final int delayDeal) throws Exception {
+    public ServerChangeTaskGenetor(final CuratorClient leaderClient, final CuratorClient client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath, final int delayDeal, StorageNameManager snManager) throws Exception {
         this.serverManager = serverManager;
+        this.snManager = snManager;
         this.delayDeal = delayDeal;
         this.leaderPath = baseRebalancePath + Constants.SEPARATOR + Constants.CHANGE_LEADER;
         this.changesPath = baseRebalancePath + Constants.SEPARATOR + CHANGES_NODE;
@@ -63,7 +67,6 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
             @Override
             public void notLeader() {
-                // TODO Auto-generated method stub
 
             }
 
@@ -79,10 +82,10 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
     private void genChangeSummary(Service service, ChangeType type) {
         String firstID = service.getServiceId();
-        List<StorageNameNode> snList = getStorageCache(null); // TODO 模拟sn缓存
+        List<StorageNameNode> snList = getStorageCache(snManager);
         for (StorageNameNode snModel : snList) {
-            if (snModel.getReplicateCount() > 1) {
-                List<String> currentServers = getCurrentServers(serverManager); // TODO 需要获取当前的机器
+            if (snModel.getReplicateCount() > 1 && true) { // TODO 此处需要判断是否配置了sn恢复
+                List<String> currentServers = getCurrentServers(serverManager);
                 String secondID = idManager.getOtherSecondID(firstID, snModel.getId());
                 if (!StringUtils.isEmpty(secondID)) { // 如果没数据，该sn的secondID会为null
                     ChangeSummary tsm = new ChangeSummary(snModel.getId(), genChangeID(), type, secondID, currentServers);
@@ -104,7 +107,7 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     }
 
     private List<String> getCurrentServers(ServiceManager serviceManager) {
-        List<Service> servers = serviceManager.getServiceListByGroup(Constants.DISCOVER);
+        List<Service> servers = serviceManager.getServiceListByGroup(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP);
         List<String> serverIDs = servers.stream().map(Service::getServiceId).collect(Collectors.toList());
         return serverIDs;
     }

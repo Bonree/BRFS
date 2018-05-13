@@ -23,6 +23,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
+import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.LocalDiskNode;
 import com.bonree.brfs.rebalance.record.BalanceRecord;
@@ -314,7 +315,7 @@ public class MultiRecover implements DataRecover {
                             fileRecover = fileRecoverQueue.take();
                             if (fileRecover != null) {
                                 String logicPath = storageName + FileUtils.FILE_SEPARATOR + fileRecover.getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime() + FileUtils.FILE_SEPARATOR + fileRecover.getFileName();
-                                Service service = serviceManager.getServiceById(Constants.DISCOVER, fileRecover.getFirstServerID());
+                                Service service = serviceManager.getServiceById(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, fileRecover.getFirstServerID());
 
                                 while (true) {
                                     if (status.get().equals(TaskStatus.PAUSE)) {

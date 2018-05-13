@@ -22,8 +22,6 @@ public class Constants {
 
     public final static String NORMAL_ROUTE = "normal";
 
-    public final static String DISCOVER = "discover";
-
     public final static long DEFAULT_DELAY_TIME = 30;
 
     public final static char SINGLE_ID = '1';
