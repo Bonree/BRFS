@@ -39,20 +39,20 @@ public class WriteDataMessageHandler implements MessageHandler {
 			return;
 		}
 		
-		for(DataItem item : items) {
-			FileContent content = FileContent.newBuilder()
-					.setCompress(0)
-					.setDescription(null)
-					.setData(ByteString.copyFrom(item.getBytes()))
-					.setCrcFlag(false)
-					.setCrcCheckCode(0)
-					.build();
-			
-			try {
-				item.setBytes(FileEncoder.contents(content));
-			} catch (Exception e) {
-			}
-		}
+//		for(DataItem item : items) {
+//			FileContent content = FileContent.newBuilder()
+//					.setCompress(0)
+//					.setDescription(null)
+//					.setData(ByteString.copyFrom(item.getBytes()))
+//					.setCrcFlag(false)
+//					.setCrcCheckCode(0)
+//					.build();
+//			
+//			try {
+//				item.setBytes(FileEncoder.contents(content));
+//			} catch (Exception e) {
+//			}
+//		}
 		
 		duplicateWriter.write(writeMsg.getStorageNameId(), items, new DataWriteCallback(callback));
 	}
