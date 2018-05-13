@@ -9,6 +9,8 @@ public class DiskContext {
 	public static final String URI_COPY_NODE_ROOT = "/copy";
 	public static final String URI_LIST_NODE_ROOT = "/list";
 	
+	public static final String DEFAULT_DISK_NODE_SERVICE_GROUP = "disk_group";
+	
 	private String workDirectory;
 	
 	public DiskContext(String workDir) {

@@ -44,7 +44,7 @@ public class EmptyMain {
 		
 		ServiceManager serviceManager = new DefaultServiceManager(client);
 		serviceManager.start();
-		Service service = new Service(serverId, "disk", ip, port);
+		Service service = new Service(serverId, DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, ip, port);
 		serviceManager.registerService(service);
 		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();

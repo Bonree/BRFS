@@ -21,6 +21,7 @@ import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
 import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkManager;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
@@ -64,11 +65,11 @@ public class BootStrap {
 		
 		client = client.usingNamespace("brfstest");
 		
-		Service service = new Service(serverId, "duplicate_group", ip, port);
+		Service service = new Service(serverId, DuplicationEnvironment.DEFAULT_DUPLICATION_SERVICE_GROUP, ip, port);
 		ServiceManager serviceManager = new DefaultServiceManager(client);
 		serviceManager.start();
 		serviceManager.registerService(service);
-		serviceManager.addServiceStateListener("disk", new ServiceStateListener() {
+		serviceManager.addServiceStateListener(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServiceStateListener() {
 			
 			@Override
 			public void serviceRemoved(Service service) {
@@ -102,13 +103,14 @@ public class BootStrap {
 		DuplicateWriter writer = new DuplicateWriter(lounge, fileRecovery, connectionPool);
 		
 		HttpConfig config = new HttpConfig(port);
+		config.setKeepAlive(true);
 		NettyHttpServer httpServer = new NettyHttpServer(config);
 		
 		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
 		requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer));
 		requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
 		requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(serviceManager, storageNameManager));
-		NettyHttpContextHandler contextHttpHandler = new NettyHttpContextHandler("/duplication", requestHandler);
+		NettyHttpContextHandler contextHttpHandler = new NettyHttpContextHandler(DuplicationEnvironment.URI_DUPLICATION_NODE_ROOT, requestHandler);
 		httpServer.addContextHandler(contextHttpHandler);
 		
 		NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler();
@@ -116,7 +118,7 @@ public class BootStrap {
 		snRequestHandler.addMessageHandler("POST", new UpdateStorageNameMessageHandler(storageNameManager));
 		snRequestHandler.addMessageHandler("GET", new OpenStorageNameMessageHandler(storageNameManager));
 		snRequestHandler.addMessageHandler("DELETE", new DeleteStorageNameMessageHandler(storageNameManager));
-		NettyHttpContextHandler snContextHandler = new NettyHttpContextHandler("/storageName", snRequestHandler);
+		NettyHttpContextHandler snContextHandler = new NettyHttpContextHandler(DuplicationEnvironment.URI_STORAGENAME_NODE_ROOT, snRequestHandler);
 		httpServer.addContextHandler(snContextHandler);
 		
 		httpServer.start();
