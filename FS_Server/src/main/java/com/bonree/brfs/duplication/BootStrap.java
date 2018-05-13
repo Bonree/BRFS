@@ -9,7 +9,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.ServiceConfig;
 import com.bonree.brfs.common.http.HttpConfig;
 import com.bonree.brfs.common.http.netty.NettyHttpContextHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
@@ -18,10 +18,6 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
-import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
-import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkManager;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
@@ -46,7 +42,6 @@ import com.bonree.brfs.duplication.storagename.handler.CreateStorageNameMessageH
 import com.bonree.brfs.duplication.storagename.handler.DeleteStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.OpenStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.UpdateStorageNameMessageHandler;
-import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class BootStrap {
 	private static final Logger LOG = LoggerFactory.getLogger("Main");
@@ -65,11 +60,11 @@ public class BootStrap {
 		
 		client = client.usingNamespace("brfstest");
 		
-		Service service = new Service(serverId, DuplicationEnvironment.DEFAULT_DUPLICATION_SERVICE_GROUP, ip, port);
+		Service service = new Service(serverId, ServiceConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, ip, port);
 		ServiceManager serviceManager = new DefaultServiceManager(client);
 		serviceManager.start();
 		serviceManager.registerService(service);
-		serviceManager.addServiceStateListener(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServiceStateListener() {
+		serviceManager.addServiceStateListener(ServiceConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServiceStateListener() {
 			
 			@Override
 			public void serviceRemoved(Service service) {

@@ -6,41 +6,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
-import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
 import org.apache.curator.retry.RetryNTimes;
-import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ServiceConfig;
 import com.bonree.brfs.common.ZookeeperPaths;
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
-import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
-import com.bonree.brfs.common.zookeeper.curator.leader.CuratorLeaderSelectorClient;
-import com.bonree.brfs.configuration.Configuration;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
 import com.bonree.brfs.resourceschedule.model.ServerModel;
-import com.bonree.brfs.resourceschedule.model.StatServerModel;
-import com.bonree.brfs.resourceschedule.model.StateMetaServerModel;
 import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
 import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
@@ -48,8 +35,6 @@ import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.resource.AsynJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
-import com.bonree.brfs.schedulers.jobs.system.CreateSystemTaskJob;
-import com.bonree.brfs.schedulers.jobs.system.ManagerMetaTaskJob;
 import com.bonree.brfs.schedulers.jobs.system.OperationTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
@@ -86,7 +71,7 @@ public class InitTaskManager {
 		boolean isReboot = !sim.isNewService();
 		//TODO:临时代码 工厂类添加serverId与groupName
 		mcf.setServerId(serverId);
-		mcf.setGroupName(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		mcf.setGroupName(ServiceConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
 		
 		// 工厂类添加服务管理
 		mcf.setSm(sm);

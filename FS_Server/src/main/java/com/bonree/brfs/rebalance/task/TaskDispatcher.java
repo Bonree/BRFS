@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.bonree.brfs.common.ServiceConfig;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -36,7 +37,6 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
-import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.task.listener.ServerChangeListener;
@@ -411,7 +411,7 @@ public class TaskDispatcher {
     }
 
     private List<String> getAliveServices() {
-        return serviceManager.getServiceListByGroup(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP).stream().map(Service::getServiceId).collect(Collectors.toList());
+        return serviceManager.getServiceListByGroup(ServiceConfig.DEFAULT_DISK_NODE_SERVICE_GROUP).stream().map(Service::getServiceId).collect(Collectors.toList());
     }
 
     private boolean isCanRecover(ChangeSummary cs, List<String> joinerFirstIDs, List<String> aliveFirstIDs) {

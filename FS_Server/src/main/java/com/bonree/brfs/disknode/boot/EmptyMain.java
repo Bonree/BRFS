@@ -7,6 +7,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
+import com.bonree.brfs.common.ServiceConfig;
 import com.bonree.brfs.common.http.HttpConfig;
 import com.bonree.brfs.common.http.netty.NettyHttpContextHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
@@ -104,7 +105,7 @@ public class EmptyMain implements LifeCycle {
 		
 		ServiceManager serviceManager = new DefaultServiceManager(client);
 		serviceManager.start();
-		Service service = new Service(serverId, DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, ip, port);
+		Service service = new Service(serverId, ServiceConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, ip, port);
 		serviceManager.registerService(service);
 		
 		EmptyMain main = new EmptyMain(port);
