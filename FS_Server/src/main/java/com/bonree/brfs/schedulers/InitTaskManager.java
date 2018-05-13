@@ -80,7 +80,7 @@ public class InitTaskManager {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	//TODO:临时参数groupName
-	public static void initManager(ServerConfig serverConfig,ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm, ServerIDManager sim) throws Exception {
+	public static void initManager(ServerConfig serverConfig,ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageNameManager snm, ServerIDManager sim) throws Exception {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
 		boolean isReboot = !sim.isNewService();
@@ -93,7 +93,6 @@ public class InitTaskManager {
 		
 		// 工厂类添加storageName管理服务
 		// TODO:
-		StorageNameManager snm = null;
 		mcf.setSnm(snm);
 		
 		// 1.工厂类添加调度管理
