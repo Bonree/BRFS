@@ -69,6 +69,10 @@ public class Configuration {
     public static String NETWORK_PORT = "network.port";
 
     public static String NETWORK_PORT_VALUE = "8880";
+    
+    public static String DISK_PORT = "disk.port";
+
+    public static String DISK_PORT_VALUE = "8881";
 
     public static String PATH_DATA = "path.data";
 
@@ -126,6 +130,7 @@ public class Configuration {
         configMap.put(GLOBAL_REPLICATION_RECOVER_AFTER_TIME, GLOBAL_REPLICATION_RECOVER_AFTER_TIME_VALUE);
         configMap.put(NETWORK_HOST, NETWORK_HOST_VALUE);
         configMap.put(NETWORK_PORT, NETWORK_PORT_VALUE);
+        configMap.put(DISK_PORT, DISK_PORT_VALUE);
         configMap.put(PATH_DATA, PATH_DATA_VALUE);
         configMap.put(PATH_LOGS, PATH_LOGS_VALUE);
         configMap.put(ZOOKEEPER_NODES, ZOOKEEPER_NODES_VALUE);

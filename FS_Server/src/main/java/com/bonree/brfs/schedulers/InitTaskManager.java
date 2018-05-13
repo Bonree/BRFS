@@ -15,7 +15,6 @@ import org.apache.curator.retry.RetryNTimes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.ServiceConfig;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskState;
@@ -71,7 +70,7 @@ public class InitTaskManager {
 		boolean isReboot = !sim.isNewService();
 		//TODO:临时代码 工厂类添加serverId与groupName
 		mcf.setServerId(serverId);
-		mcf.setGroupName(ServiceConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		mcf.setGroupName(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
 		
 		// 工厂类添加服务管理
 		mcf.setSm(sm);

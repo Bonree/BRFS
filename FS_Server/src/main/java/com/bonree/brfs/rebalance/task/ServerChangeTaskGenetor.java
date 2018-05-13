@@ -12,12 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
-import com.bonree.brfs.common.ServiceConfig;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -107,7 +107,7 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     }
 
     private List<String> getCurrentServers(ServiceManager serviceManager) {
-        List<Service> servers = serviceManager.getServiceListByGroup(ServiceConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+        List<Service> servers = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
         List<String> serverIDs = servers.stream().map(Service::getServiceId).collect(Collectors.toList());
         return serverIDs;
     }

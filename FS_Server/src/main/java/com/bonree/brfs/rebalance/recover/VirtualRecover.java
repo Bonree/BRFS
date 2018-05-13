@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
-import com.bonree.brfs.common.ServiceConfig;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -22,6 +21,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
+import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.LocalDiskNode;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
@@ -263,7 +263,7 @@ public class VirtualRecover implements DataRecover {
                         if (fileRecover != null) {
                             System.out.println("transfer :" + fileRecover);// 此处来发送文件
                             String firstID = fileRecover.getFirstServerID();
-                            Service service = serviceManager.getServiceById(ServiceConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, firstID);
+                            Service service = serviceManager.getServiceById(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, firstID);
                             String logicPath = fileRecover.getStorageName() + FileUtils.FILE_SEPARATOR + fileRecover.getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime() + FileUtils.FILE_SEPARATOR + fileRecover.getFileName();
                             if (!diskNode.isExistFile(service.getHost(), service.getPort(), logicPath)) {
                                 while (!sucureCopyTo(service, logicPath)) {

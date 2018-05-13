@@ -11,6 +11,8 @@ import com.bonree.brfs.client.route.listener.RouteCacheListener;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.disknode.DiskContext;
 
 public class ServiceSelectorManager {
 
@@ -43,7 +45,7 @@ public class ServiceSelectorManager {
         }
         ServiceMetaCache serviceMetaCache = new ServiceMetaCache(zkHosts, zkServerIDPath, snIndex);
         ServiceMetaListener listener = new ServiceMetaListener(serviceMetaCache);
-        sm.addServiceStateListener(Constants.DISCOVER, listener);
+        sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, listener);
 
         RouteRoleCache routeCache = new RouteRoleCache(zkHosts, snIndex, baseRoutePath);
         RouteParser routeParser = new RouteParser(routeCache);

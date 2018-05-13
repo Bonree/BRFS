@@ -17,16 +17,22 @@ public class ServerConfig {
     private final String zkHosts;
     private final String host;
     private final int port;
+    private final int diskPort;
     private final long zkSessionTime;
     private final String dataPath;
     private final String logPath;
+    //磁盘节点的默认服务组名
+    public static final String DEFAULT_DISK_NODE_SERVICE_GROUP = "disk_group";
+    //副本节点的默认服务组名
+    public static final String DEFAULT_DUPLICATION_SERVICE_GROUP = "duplicate_group";
 
-    public ServerConfig(String homePath, String clusterName, String zkHosts, String host, int port, long zkSessionTime, String dataPath, String logPath) {
+    public ServerConfig(String homePath, String clusterName, String zkHosts, String host, int port, int diskPort, long zkSessionTime, String dataPath, String logPath) {
         this.homePath = homePath;
         this.clusterName = clusterName;
         this.zkHosts = zkHosts;
         this.host = host;
         this.port = port;
+        this.diskPort = diskPort;
         this.zkSessionTime = zkSessionTime;
         this.dataPath = dataPath;
         this.logPath = logPath;
@@ -37,12 +43,14 @@ public class ServerConfig {
         String zkHosts = config.getProperty(Configuration.ZOOKEEPER_NODES, Configuration.ZOOKEEPER_NODES_VALUE);
         String host = config.getProperty(Configuration.NETWORK_HOST, Configuration.NETWORK_HOST_VALUE);
         String portStr = config.getProperty(Configuration.NETWORK_PORT, Configuration.NETWORK_PORT_VALUE);
+        String diskPortStr = config.getProperty(Configuration.DISK_PORT, Configuration.DISK_PORT_VALUE);
         String zkSessionTimeStr = config.getProperty(Configuration.ZOOKEEPER_SESSION_TIMEOUT, Configuration.ZOOKEEPER_SESSION_TIMEOUT_VALUE);
         String dataPath = config.getProperty(Configuration.PATH_DATA, Configuration.PATH_DATA_VALUE);
         String logPath = config.getProperty(Configuration.PATH_LOGS, Configuration.PATH_LOGS_VALUE);
         int port = BrStringUtils.parseNumber(portStr, Integer.class);
+        int diskPort = BrStringUtils.parseNumber(diskPortStr, Integer.class);
         long zkSessionTime = BrStringUtils.parseNumber(zkSessionTimeStr, Long.class);
-        return new ServerConfig(homePath, clusterName, zkHosts, host, port, zkSessionTime, dataPath, logPath);
+        return new ServerConfig(homePath, clusterName, zkHosts, host, port, diskPort, zkSessionTime, dataPath, logPath);
     }
 
     public String getClusterName() {
@@ -77,9 +85,13 @@ public class ServerConfig {
         return homePath;
     }
 
+    public int getDiskPort() {
+        return diskPort;
+    }
+
     @Override
     public String toString() {
-        return "ServerConfig [homePath=" + homePath + ", clusterName=" + clusterName + ", zkNodes=" + zkHosts + ", host=" + host + ", port=" + port + ", zkSessionTime=" + zkSessionTime + ", dataPath=" + dataPath + ", logPath=" + logPath + "]";
+        return "ServerConfig [homePath=" + homePath + ", clusterName=" + clusterName + ", zkHosts=" + zkHosts + ", host=" + host + ", port=" + port + ", diskPort=" + diskPort + ", zkSessionTime=" + zkSessionTime + ", dataPath=" + dataPath + ", logPath=" + logPath + "]";
     }
 
 }

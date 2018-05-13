@@ -3,12 +3,6 @@ package com.bonree.brfs.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.util.StatusPrinter;
-
-import com.bonree.brfs.common.ServiceConfig;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -16,15 +10,22 @@ import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.configuration.Configuration.ConfigException;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
+import com.bonree.brfs.configuration.Configuration.ConfigException;
 import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.disknode.DiskContext;
+import com.bonree.brfs.disknode.boot.EmptyMain;
 import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.schedulers.InitTaskManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
+
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
 
 public class ServerMain {
 
@@ -70,6 +71,16 @@ public class ServerMain {
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseServersPath().substring(1, zookeeperPaths.getBaseServersPath().length())));
             sm.start();
 
+            Service selfService = new Service();
+            selfService.setHost(serverConfig.getHost());
+            selfService.setPort(serverConfig.getPort());
+            selfService.setServiceGroup(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP);
+            selfService.setServiceId(idManager.getFirstServerID());
+
+            // 磁盘管理模块
+            EmptyMain diskMain = new EmptyMain(serverConfig.getDiskPort());
+            diskMain.start();
+
             // 副本平衡模块
             RebalanceManager rebalanceServer = new RebalanceManager(serverConfig.getZkHosts(), serverConfig.getDataPath(), zookeeperPaths, idManager, snManage, sm);
             rebalanceServer.start();
@@ -77,14 +88,10 @@ public class ServerMain {
             // 资源管理模块
             InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManage, idManager);
 
-            Service selfService = new Service();
-            selfService.setHost(serverConfig.getHost());
-            selfService.setPort(serverConfig.getPort());
-            selfService.setServiceGroup(ServiceConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
-            selfService.setServiceId(idManager.getFirstServerID());
             sm.registerService(selfService);
+
             System.out.println(selfService);
-            sm.addServiceStateListener(ServiceConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
+            sm.addServiceStateListener(DiskContext.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
             System.out.println("launch Server 1");
         } catch (ConfigException e) {
             e.printStackTrace();
