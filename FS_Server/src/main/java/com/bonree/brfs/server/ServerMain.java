@@ -13,7 +13,6 @@ import com.bonree.brfs.configuration.Configuration;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.Configuration.ConfigException;
 import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.boot.EmptyMain;
 import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
