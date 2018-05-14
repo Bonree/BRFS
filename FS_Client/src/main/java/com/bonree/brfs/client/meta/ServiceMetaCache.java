@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.ServerConfig;
 
@@ -28,13 +29,48 @@ public class ServiceMetaCache {
 
     private Map<String, String> secondServerCache;
 
-    public ServiceMetaCache(final String zkHosts, final String zkServerIDPath, final int snIndex) {
+    public ServiceMetaCache(final String zkHosts, final String zkServerIDPath, final int snIndex, ServiceManager sm) {
         firstServerCache = new ConcurrentHashMap<>();
         secondServerCache = new ConcurrentHashMap<>();
         duplicaServerCache = new ConcurrentHashMap<>();
         this.zkHosts = zkHosts;
         this.zkServerIDPath = zkServerIDPath;
         this.snIndex = snIndex;
+        loadMetaCachae(sm);
+    }
+
+    private void loadMetaCachae(ServiceManager sm) {
+        // 加载元数据信息
+        CuratorClient curatorClient = null;
+        try {
+            curatorClient = CuratorClient.getClientInstance(zkHosts);
+            List<Service> diskServices = sm.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
+
+            // load 1级serverid
+            for (Service service : diskServices) {
+                firstServerCache.put(service.getServiceId(), service);
+                // load 2级serverid
+                String snPath = zkServerIDPath + SEPARATOR + service.getServiceId() + SEPARATOR + snIndex;
+                if (!curatorClient.checkExists(snPath)) {
+                    continue;
+                }
+                String secondID = new String(curatorClient.getData(snPath));
+                secondServerCache.put(secondID, service.getServiceId());
+            }
+            System.out.println("addserviceMap:" + firstServerCache);
+            System.out.println("addserviceMap:" + secondServerCache);
+
+            // load 副本管理
+            List<Service> dupliServices = sm.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
+            for (Service service : dupliServices) {
+                duplicaServerCache.put(service.getServiceId(), service);
+            }
+
+        } finally {
+            if (curatorClient != null) {
+                curatorClient.close();
+            }
+        }
     }
 
     /** 概述：加载所有关于该SN的2级SID对应的1级SID
@@ -44,7 +80,6 @@ public class ServiceMetaCache {
     public void addService(Service service) {
         // serverID信息加载
         if (service.getServiceGroup().equals(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP)) {
-            System.out.println("addservice:" + service);
             firstServerCache.put(service.getServiceId(), service);
             CuratorClient curatorClient = null;
             try {
@@ -52,11 +87,12 @@ public class ServiceMetaCache {
                 List<String> firstIDs = curatorClient.getChildren(zkServerIDPath);
                 for (String firstID : firstIDs) {
                     String snPath = zkServerIDPath + SEPARATOR + firstID + SEPARATOR + snIndex;
+                    if (!curatorClient.checkExists(snPath)) {
+                        continue;
+                    }
                     String secondID = new String(curatorClient.getData(snPath));
                     secondServerCache.put(secondID, firstID);
                 }
-                System.out.println("addserviceMap:" + firstServerCache);
-                System.out.println("addserviceMap:" + secondServerCache);
             } finally {
                 if (curatorClient != null) {
                     curatorClient.close();
@@ -94,7 +130,6 @@ public class ServiceMetaCache {
             @Override
             public Service getFirstServer() {
                 String firstServerID = secondServerCache.get(SecondID);
-                System.out.println(firstServerID);
                 if (firstServerID == null) {
                     return null;
                 }

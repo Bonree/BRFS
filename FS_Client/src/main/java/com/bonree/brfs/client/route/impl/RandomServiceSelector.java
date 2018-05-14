@@ -12,10 +12,14 @@ public class RandomServiceSelector implements ServiceSelector {
 
     @Override
     public Service selectService(ServiceMetaCache serviceMetaCache) {
+        Service service = null;
         List<String> firstIDs = new ArrayList<String>(serviceMetaCache.getDuplicaServerCache().keySet());
-        Random random = new Random();
-        String randomFirstID = firstIDs.get(random.nextInt(firstIDs.size()));
-        return serviceMetaCache.getDuplicaServerCache().get(randomFirstID);
+        if (firstIDs != null && !firstIDs.isEmpty()) {
+            Random random = new Random();
+            String randomFirstID = firstIDs.get(random.nextInt(firstIDs.size()));
+            service = serviceMetaCache.getDuplicaServerCache().get(randomFirstID);
+        }
+        return service;
     }
 
 }

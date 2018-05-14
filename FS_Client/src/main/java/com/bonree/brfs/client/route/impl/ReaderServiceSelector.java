@@ -21,7 +21,6 @@ public class ReaderServiceSelector implements ServiceSelector_1 {
         String[] arrs = partFid.split(NAME_SEPARATOR);
         int paras = arrs.length;
         if (paras == 2) { // 一个副本
-            System.out.println(arrs[1]);
             service = serviceCache.getFirstServerCache(arrs[1]);
         } else if (paras > 2) {// 多个副本时，选择一个副本
             int replicas = arrs.length - 1; // 除去UUID

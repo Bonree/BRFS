@@ -41,7 +41,7 @@ public class ServiceSelectorManager {
         if (serviceSelectorCache != null) {
             return serviceSelectorCache;
         }
-        ServiceMetaCache serviceMetaCache = new ServiceMetaCache(zkHosts, zkServerIDPath, snIndex);
+        ServiceMetaCache serviceMetaCache = new ServiceMetaCache(zkHosts, zkServerIDPath, snIndex, sm);
         ServiceMetaListener listener = new ServiceMetaListener(serviceMetaCache);
 
         sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, listener);
