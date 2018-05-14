@@ -20,4 +20,11 @@ public class WriteResult {
 		this.size = size;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("[").append(offset).append(", ").append(size).append("]");
+		
+		return builder.toString();
+	}
 }

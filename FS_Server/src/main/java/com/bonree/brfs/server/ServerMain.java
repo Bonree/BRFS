@@ -3,6 +3,11 @@ package com.bonree.brfs.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
+
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -10,21 +15,18 @@ import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.Configuration.ConfigException;
+import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.boot.EmptyMain;
 import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
+import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storagename.StorageNameStateListener;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.schedulers.InitTaskManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
-
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.util.StatusPrinter;
 
 public class ServerMain {
 
@@ -65,13 +67,30 @@ public class ServerMain {
 
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
-            StorageNameManager snManager = new DefaultStorageNameManager(client.getInnerClient());
+            
+            StorageNameManager snManager = new DefaultStorageNameManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);
+            snManager.addStorageNameStateListener(new StorageNameStateListener() {
+            	
+            	@Override
+				public void storageNameAdded(StorageNameNode node) {
+            		LOG.info("-----------StorageNameAdded--[{}]", node);
+            		idManager.getSecondServerID(node.getId());
+            	}
+				
+				@Override
+				public void storageNameUpdated(StorageNameNode node) {}
+				
+				@Override
+				public void storageNameRemoved(StorageNameNode node) {}
+			});
+            snManager.start();
+            
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
             sm.start();
 
             Service selfService = new Service();
             selfService.setHost(serverConfig.getHost());
-            selfService.setPort(serverConfig.getPort());
+            selfService.setPort(serverConfig.getDiskPort());
             selfService.setServiceGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
             selfService.setServiceId(idManager.getFirstServerID());
 

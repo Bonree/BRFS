@@ -21,8 +21,8 @@ public abstract class StorageNameMessageHandler implements MessageHandler {
 		LOG.info("handle StorageName[{}]", message.getName());
 		
 		Map<String, String> params = msg.getParams();
-		message.setReplicas(Integer.parseInt(params.get("replicas")));
-		message.setTtl(Integer.parseInt(params.get("ttl")));
+		message.setReplicas(Integer.parseInt(params.getOrDefault("replicas", "1")));
+		message.setTtl(Integer.parseInt(params.getOrDefault("ttl", "100")));
 		
 		handleMessage(message, callback);
 	}

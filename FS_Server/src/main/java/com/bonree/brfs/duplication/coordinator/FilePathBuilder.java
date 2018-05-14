@@ -17,7 +17,11 @@ public class FilePathBuilder {
 		.append(File.separatorChar)
 		.append(TimeUtils.timeInterval(fid.getTime(), 60 * 60 * 1000))
 		.append(File.separatorChar)
-		.append(fid.getUuid());
+		.append(fid.getUuid().toLowerCase());
+		
+		for(Integer serverId : fid.getServerIdList()) {
+			builder.append("_").append(serverId);
+		}
 		
 		return builder.toString();
 	}

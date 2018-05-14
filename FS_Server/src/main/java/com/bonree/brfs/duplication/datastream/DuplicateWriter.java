@@ -110,6 +110,7 @@ public class DuplicateWriter {
 			
 			for(WriteTaskResult result : taskResultList) {
 				if(file.size() != (result.getOffset() + result.getSize())) {
+					LOG.info("Write Task Result maybe ERROR!");
 					//TODO error: need to recover the file
 				}
 			}

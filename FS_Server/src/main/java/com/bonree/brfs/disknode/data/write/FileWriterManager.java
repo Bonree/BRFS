@@ -1,5 +1,6 @@
 package com.bonree.brfs.disknode.data.write;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +19,6 @@ import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorkerGroup;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorkerSelector;
 import com.bonree.brfs.disknode.utils.Pair;
-import com.bonree.brfs.server.utils.FileEncoder;
 
 public class FileWriterManager implements LifeCycle {
 	private static final Logger LOG = LoggerFactory
@@ -125,6 +125,11 @@ public class FileWriterManager implements LifeCycle {
 				binding = runningWriters.get(filePath);
 				if (binding == null) {
 					try {
+						File file = new File(filePath);
+						if(!file.getParentFile().exists()) {
+							file.getParentFile().mkdirs();
+						}
+						
 						RecordFileWriter writer = new RecordFileWriter(
 								recorderManager.getRecordCollection(filePath,
 										DEFAULT_RECORD_BUFFER_SIZE),

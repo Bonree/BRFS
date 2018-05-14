@@ -2,6 +2,9 @@ package com.bonree.brfs.duplication.storagename.handler;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.utils.BrStringUtils;
@@ -10,6 +13,7 @@ import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 
 public class OpenStorageNameMessageHandler extends StorageNameMessageHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(OpenStorageNameMessageHandler.class);
 	
 	private StorageNameManager storageNameManager;
 	
@@ -20,6 +24,7 @@ public class OpenStorageNameMessageHandler extends StorageNameMessageHandler {
 	@Override
 	public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
 		StorageNameNode node = storageNameManager.findStorageName(msg.getName());
+		
 		
 		HandleResult result = new HandleResult();
 		if(node == null) {
@@ -33,7 +38,7 @@ public class OpenStorageNameMessageHandler extends StorageNameMessageHandler {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			result.setData(nodeBytes);
+			result.setData(BrStringUtils.toUtf8Bytes(String.valueOf(node.getId())));
 		}
 		
 		callback.completed(result);

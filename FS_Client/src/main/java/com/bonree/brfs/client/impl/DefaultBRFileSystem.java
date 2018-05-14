@@ -11,6 +11,7 @@ import com.bonree.brfs.client.route.ServiceSelectorManager;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
 import com.bonree.brfs.common.http.client.URIBuilder;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.google.common.primitives.Ints;
 
@@ -106,7 +107,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
 		try {
 			HttpResponse response = client.executeGet(uri);
 
-			int storageId = Ints.fromByteArray(response.getResponseBody());
+			int storageId = Integer.parseInt(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
+			System.out.println("get id---" + storageId);
 			ServiceSelectorCache cache = serviceSelectorManager.useStorageIndex(storageId);
 			return new DefaultStorageNameStick(storageName, storageId, cache);
 		} catch (Exception e) {
