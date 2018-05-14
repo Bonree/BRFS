@@ -78,7 +78,11 @@ public class StorageSequenceGenetor {
     public synchronized boolean resetSequence() {
         CuratorClient client = null;
         try {
+            String indexPath =basePath + SEPARATOR + STORAGESEQ + SEPARATOR + INDEX_NODE;
             client = CuratorClient.getClientInstance(zkUrl);
+            if(!client.checkExists(indexPath)) {
+                return true;
+            }
             client.setData(basePath + SEPARATOR + STORAGESEQ + SEPARATOR + INDEX_NODE, "0".getBytes());
         } finally {
             if (client != null) {

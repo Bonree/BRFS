@@ -44,7 +44,7 @@ public class ServiceMetaCache {
     public void addService(Service service) {
         // serverID信息加载
         if (service.getServiceGroup().equals(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP)) {
-
+            System.out.println("addservice:" + service);
             firstServerCache.put(service.getServiceId(), service);
             CuratorClient curatorClient = null;
             try {
@@ -55,6 +55,8 @@ public class ServiceMetaCache {
                     String secondID = new String(curatorClient.getData(snPath));
                     secondServerCache.put(secondID, firstID);
                 }
+                System.out.println("addserviceMap:" + firstServerCache);
+                System.out.println("addserviceMap:" + secondServerCache);
             } finally {
                 if (curatorClient != null) {
                     curatorClient.close();
@@ -85,12 +87,14 @@ public class ServiceMetaCache {
     }
 
     public ServiceMetaInfo getFirstServerCache(String SecondID) {
-        firstServerCache.get(SecondID);
+        System.out.println(firstServerCache);
+        System.out.println(secondServerCache);
         return new ServiceMetaInfo() {
 
             @Override
             public Service getFirstServer() {
                 String firstServerID = secondServerCache.get(SecondID);
+                System.out.println(firstServerID);
                 if (firstServerID == null) {
                     return null;
                 }
