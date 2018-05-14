@@ -1,7 +1,5 @@
 package com.bonree.brfs.duplication;
 
-import java.util.UUID;
-
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -20,7 +18,6 @@ import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkManager;
@@ -42,6 +39,7 @@ import com.bonree.brfs.duplication.recovery.DefaultFileRecovery;
 import com.bonree.brfs.duplication.recovery.FileRecovery;
 import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
+import com.bonree.brfs.duplication.storagename.ZkStorageIdBuilder;
 import com.bonree.brfs.duplication.storagename.handler.CreateStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.DeleteStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.OpenStorageNameMessageHandler;
@@ -88,7 +86,7 @@ public class BootStrap {
 			
 		});
 		
-		StorageNameManager storageNameManager = new DefaultStorageNameManager(client);
+		StorageNameManager storageNameManager = new DefaultStorageNameManager(client, new ZkStorageIdBuilder(serverConfig.getZkHosts(), zookeeperPaths.getBaseSequencesPath()));
 		storageNameManager.start();
 		
 		FileNodeStorer storer = new ZkFileNodeStorer(client);

@@ -1,12 +1,8 @@
 package com.bonree.brfs.client.impl;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.alibaba.fastjson.JSONArray;
 import com.bonree.brfs.client.InputItem;
@@ -19,8 +15,6 @@ import com.bonree.brfs.common.http.client.HttpResponse;
 import com.bonree.brfs.common.http.client.URIBuilder;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.common.utils.CloseUtils;
-import com.bonree.brfs.common.utils.InputUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
@@ -47,7 +41,9 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
 	@Override
 	public String[] writeData(InputItem[] itemArrays) {
-		Service service = selector.writerService();
+		Service service = new Service();//.writerService();
+		service.setHost("localhost");
+		service.setPort(8880);
 		
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
@@ -120,12 +116,17 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	    .addParameter("size", String.valueOf(fidObj.getSize()))
 	    .build();
 
-		byte[] result = null;
 		try {
 			HttpResponse response = client.executeGet(uri);
 			
 			if(response.isReponseOK()) {
-				return new SimpleDataItem(response.getResponseBody());
+				return new InputItem() {
+					
+					@Override
+					public byte[] getBytes() {
+						return response.getResponseBody();
+					}
+				};
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

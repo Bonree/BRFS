@@ -14,20 +14,21 @@ public class FidBuilder {
 				.setCompress(0)
 				.setStorageNameCode(node.getStorageId())
 				.setTime(node.getCreateTime())
-				.setUuid(node.getName())
 				.setOffset(offset)
 				.setSize(size)
 				.setReplica(node.getDuplicateNodes().length)
 				.setVersion(0);
 		
 		List<String> nameParts = Splitter.on("_").splitToList(node.getName());
-		for(int i = 0; i < nameParts.size(); i++) {
+		builder.setUuid(nameParts.get(0));
+		for(int i = 1; i < nameParts.size(); i++) {
 			builder.addServerId(Integer.parseInt(nameParts.get(i)));
 		}
 		
 		try {
 			return FidEncoder.build(builder.build());
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		
 		return null;

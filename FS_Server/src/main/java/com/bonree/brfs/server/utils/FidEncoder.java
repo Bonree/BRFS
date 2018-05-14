@@ -34,7 +34,7 @@ public class FidEncoder {
         byte[] header = header(fid.getVersion(), fid.getCompress());
         byte[] storageName = storageName(fid.getStorageNameCode());
         byte[] uuid = uuid(fid.getUuid());
-        byte[] time = time(fid.getTime());
+        byte[] time = time(fid.getTime() / 1000 /  60);
         byte[] offset = offset(fid.getOffset());
         byte[] size = size(fid.getSize());
         byte[] serverId = serverId(fid.getServerIdList());
@@ -62,7 +62,7 @@ public class FidEncoder {
         if (fid.getUuid() == null || fid.getUuid().length() > 32 || fid.getUuid().length() % 2 != 0) { // uuid长度为32字节
             return ReturnCodeEnum.FID_UUID_ERROR;
         }
-        if (fid.getTime() <= 0 || fid.getTime() > 4701945540L) { // time取值范围可到2118-12-31 23:59
+        if (fid.getTime() <= 0 || fid.getTime() > 4701945540000L) { // time取值范围可到2118-12-31 23:59
             return ReturnCodeEnum.FID_TIME_ERROR;
         }
         if (fid.getServerIdCount() == 0) {
@@ -74,7 +74,7 @@ public class FidEncoder {
                 }
             }
         }
-        if (fid.getOffset() <= 0 || fid.getOffset() > 4294967295L) { // offset取值范围0~4294967295
+        if (fid.getOffset() < 0 || fid.getOffset() > 4294967295L) { // offset取值范围0~4294967295
             return ReturnCodeEnum.FID_OFFSET_ERROR;
         }
         if (fid.getSize() <= 0 || fid.getSize() > 4294967295L) { // size取值范围0~4294967295

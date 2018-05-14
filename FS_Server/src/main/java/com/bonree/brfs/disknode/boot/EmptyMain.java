@@ -6,6 +6,8 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.http.HttpConfig;
 import com.bonree.brfs.common.http.netty.NettyHttpContextHandler;
@@ -28,6 +30,8 @@ import com.bonree.brfs.disknode.server.handler.WriteMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WritingInfoMessageHandler;
 
 public class EmptyMain implements LifeCycle {
+	private static final Logger LOG = LoggerFactory.getLogger(EmptyMain.class);
+	
 	private int port;
 	
 	private NettyHttpServer server;
@@ -39,6 +43,7 @@ public class EmptyMain implements LifeCycle {
 
 	@Override
 	public void start() throws Exception {
+		LOG.info("Empty Main--port[{}]", port);
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
 		
 		HttpConfig config = new HttpConfig(port);

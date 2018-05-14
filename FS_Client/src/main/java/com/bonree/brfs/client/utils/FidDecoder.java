@@ -94,7 +94,7 @@ public class FidDecoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static long time(byte[] bytes) throws Exception {
-        return FSCode.byteToLong(bytes, 20, 5);
+        return FSCode.byteToLong(bytes, 20, 5) * 60 * 1000;
     }
 
     /**

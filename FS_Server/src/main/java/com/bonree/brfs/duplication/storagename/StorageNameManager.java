@@ -13,4 +13,6 @@ public interface StorageNameManager extends LifeCycle {
 	StorageNameNode findStorageName(String storageName);
 	StorageNameNode findStorageName(int id);
 	List<StorageNameNode> getStorageNameNodeList();
+	
+	void addStorageNameStateListener(StorageNameStateListener listener);
 }

@@ -3,6 +3,7 @@ package com.bonree.brfs.duplication.storagename;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -15,6 +16,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
@@ -36,7 +38,7 @@ import com.google.common.cache.LoadingCache;
 public class DefaultStorageNameManager implements StorageNameManager {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageNameManager.class);
 	
-	private static final String DEFAULT_STORAGE_NAME_ROOT = "storageNames";
+	private static final String DEFAULT_STORAGE_NAME_ROOT = ZookeeperPaths.STORAGE_NAMES;
 	
 	private static final int DEFAULT_MAX_CACHE_SIZE = 100;
 	private LoadingCache<String, Optional<StorageNameNode>> storageNameCache;
@@ -45,8 +47,13 @@ public class DefaultStorageNameManager implements StorageNameManager {
 	private CuratorFramework zkClient;
 	private PathChildrenCache childrenCache;
 	
-	public DefaultStorageNameManager(CuratorFramework client) {
+	private CopyOnWriteArrayList<StorageNameStateListener> listeners = new CopyOnWriteArrayList<StorageNameStateListener>();
+	
+	private StorageIdBuilder idBuilder;
+	
+	public DefaultStorageNameManager(CuratorFramework client, StorageIdBuilder idBuilder) {
 		this.zkClient = client;
+		this.idBuilder = idBuilder;
 		this.storageNameCache = CacheBuilder.newBuilder()
 				                            .maximumSize(DEFAULT_MAX_CACHE_SIZE)
 				                            .build(new StorageNameNodeLoader());
@@ -56,7 +63,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
 	@Override
 	public void start() throws Exception {
 		zkClient.createContainers(ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, null));
-		childrenCache.getListenable().addListener(new StorageNameStateListener());
+		childrenCache.getListenable().addListener(new InnerStorageNameStateListener());
 		childrenCache.start();
 	}
 
@@ -96,7 +103,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
 			return findStorageName(storageName);
 		}
 		
-		StorageNameNode node = new StorageNameNode(storageName, StorageIdBuilder.createStorageId(), replicas, ttl);
+		StorageNameNode node = new StorageNameNode(storageName, idBuilder.createStorageId(), replicas, ttl);
 		String storageNamePath = buildStorageNamePath(storageName);
 		
 		String path = null;
@@ -222,7 +229,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
 		
 	}
 	
-	private class StorageNameStateListener implements PathChildrenCacheListener {
+	private class InnerStorageNameStateListener implements PathChildrenCacheListener {
 
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
@@ -230,14 +237,40 @@ public class DefaultStorageNameManager implements StorageNameManager {
 			String storageName = ZKPaths.getNodeFromPath(data.getPath());
 			LOG.info("event[{}] for storagename[{}]", event.getType(), storageName);
 			switch (event.getType()) {
-			case CHILD_ADDED:
-				storageNameCache.get(storageName);
+			case CHILD_ADDED: {
+				Optional<StorageNameNode> nodeOptional = storageNameCache.get(storageName);
+				if(!listeners.isEmpty() && nodeOptional.isPresent()) {
+					for(StorageNameStateListener listener : listeners) {
+						try {
+							listener.storageNameAdded(nodeOptional.get());
+						} catch(Exception e) {}
+					}
+				}
+			}
 				break;
-			case CHILD_UPDATED:
+			case CHILD_UPDATED: {
 				storageNameCache.refresh(storageName);
+				Optional<StorageNameNode> nodeOptional = storageNameCache.get(storageName);
+				if(!listeners.isEmpty() && nodeOptional.isPresent()) {
+					for(StorageNameStateListener listener : listeners) {
+						try {
+							listener.storageNameUpdated(nodeOptional.get());
+						} catch(Exception e) {}
+					}
+				}
+			}
 				break;
-			case CHILD_REMOVED:
+			case CHILD_REMOVED: {
+				Optional<StorageNameNode> nodeOptional = storageNameCache.get(storageName);
 				storageNameCache.invalidate(storageName);
+				if(!listeners.isEmpty() && nodeOptional.isPresent()) {
+					for(StorageNameStateListener listener : listeners) {
+						try {
+							listener.storageNameUpdated(nodeOptional.get());
+						} catch(Exception e) {}
+					}
+				}
+			}
 				break;
 			default:
 				break;
@@ -251,5 +284,10 @@ public class DefaultStorageNameManager implements StorageNameManager {
 	@Override
 	public List<StorageNameNode> getStorageNameNodeList() {
 		return new ArrayList<StorageNameNode>(storageIdMap.values());
+	}
+
+	@Override
+	public void addStorageNameStateListener(StorageNameStateListener listener) {
+		listeners.add(listener);
 	}
 }

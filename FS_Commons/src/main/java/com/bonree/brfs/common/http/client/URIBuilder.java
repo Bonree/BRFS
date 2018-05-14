@@ -27,7 +27,7 @@ public class URIBuilder {
 	}
 	
 	public URIBuilder addParameter(String name, String value) {
-		builder.addParameter(name, name);
+		builder.addParameter(name, value);
 		return this;
 	}
 	
