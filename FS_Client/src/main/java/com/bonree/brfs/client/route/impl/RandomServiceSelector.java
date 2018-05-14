@@ -10,13 +10,12 @@ import com.bonree.brfs.common.service.Service;
 
 public class RandomServiceSelector implements ServiceSelector {
 
-
     @Override
-    public Service selectService(ServiceMetaCache serviceCache) {
-        List<String> firstIDs = new ArrayList<String>(serviceCache.getFirstServerCache().keySet());
+    public Service selectService(ServiceMetaCache serviceMetaCache) {
+        List<String> firstIDs = new ArrayList<String>(serviceMetaCache.getDuplicaServerCache().keySet());
         Random random = new Random();
         String randomFirstID = firstIDs.get(random.nextInt(firstIDs.size()));
-        return serviceCache.getFirstServerCache().get(randomFirstID);
+        return serviceMetaCache.getDuplicaServerCache().get(randomFirstID);
     }
 
 }

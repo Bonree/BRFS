@@ -43,10 +43,13 @@ public class ServiceSelectorManager {
         }
         ServiceMetaCache serviceMetaCache = new ServiceMetaCache(zkHosts, zkServerIDPath, snIndex);
         ServiceMetaListener listener = new ServiceMetaListener(serviceMetaCache);
+
         sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, listener);
+        sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, listener);
 
         RouteRoleCache routeCache = new RouteRoleCache(zkHosts, snIndex, baseRoutePath);
         RouteParser routeParser = new RouteParser(routeCache);
+        // 兼容余鹏的client读取
         serviceSelectorCache = new ServiceSelectorCache(serviceMetaCache, routeParser);
         RouteCacheListener cacheListener = new RouteCacheListener(routeCache);
 
