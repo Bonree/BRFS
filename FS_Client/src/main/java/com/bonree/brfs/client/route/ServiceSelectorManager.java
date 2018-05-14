@@ -61,8 +61,9 @@ public class ServiceSelectorManager {
         return serviceSelectorCache;
     }
 
-    public Service getRandomService() {
+    public Service getRandomService() throws Exception {
         Service service = null;
+        sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, null);
         List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
         if (services != null && !services.isEmpty()) {
             Random random = new Random();
