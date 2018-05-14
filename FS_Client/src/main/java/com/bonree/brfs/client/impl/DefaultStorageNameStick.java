@@ -10,20 +10,20 @@ import com.bonree.brfs.client.StorageNameStick;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.client.route.ServiceSelectorCache;
 import com.bonree.brfs.client.utils.FidDecoder;
+import com.bonree.brfs.client.utils.FilePathBuilder;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
 import com.bonree.brfs.common.http.client.URIBuilder;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
-import com.bonree.brfs.disknode.DiskContext;
-import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
-import com.bonree.brfs.duplication.datastream.handler.DataItem;
-import com.bonree.brfs.duplication.datastream.handler.WriteDataMessage;
+import com.bonree.brfs.common.write.data.DataItem;
+import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.google.common.base.Joiner;
 
 public class DefaultStorageNameStick implements StorageNameStick {
 	private static final String URI_DATA_ROOT = "/duplication/";
+	private static final String URI_DISK_NODE_ROOT = "/disk";
 	
 	private static final String DEFAULT_SCHEME = "http";
 	
@@ -111,7 +111,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(service.getFirstServer().getHost())
 	    .setPort(service.getFirstServer().getPort())
-	    .setPath(DiskContext.URI_DISK_NODE_ROOT + FilePathBuilder.buildPath(fidObj, storageName, service.getReplicatPot()))
+	    .setPath(URI_DISK_NODE_ROOT + FilePathBuilder.buildPath(fidObj, storageName, service.getReplicatPot()))
 	    .addParameter("offset", String.valueOf(fidObj.getOffset()))
 	    .addParameter("size", String.valueOf(fidObj.getSize()))
 	    .build();

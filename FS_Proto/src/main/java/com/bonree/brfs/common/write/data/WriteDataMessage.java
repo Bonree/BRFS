@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.datastream.handler;
+package com.bonree.brfs.common.write.data;
 
 public class WriteDataMessage {
 	private int storageNameId;

@@ -7,15 +7,14 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
-import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
+import com.bonree.brfs.common.write.data.DataItem;
+import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.bonree.brfs.duplication.datastream.DataHandleCallback;
 import com.bonree.brfs.duplication.datastream.DataWriteResult;
 import com.bonree.brfs.duplication.datastream.DuplicateWriter;
 import com.bonree.brfs.duplication.datastream.ResultItem;
-import com.bonree.brfs.server.utils.FileEncoder;
-import com.google.protobuf.ByteString;
 
 public class WriteDataMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteDataMessageHandler.class);

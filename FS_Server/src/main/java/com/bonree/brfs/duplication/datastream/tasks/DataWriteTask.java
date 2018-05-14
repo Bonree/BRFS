@@ -4,12 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.asynctask.AsyncTask;
+import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.WriteResult;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.file.FileLimiter;
-import com.bonree.brfs.duplication.datastream.handler.DataItem;
 
 public class DataWriteTask extends AsyncTask<WriteTaskResult> {
 	private static final Logger LOG = LoggerFactory.getLogger(DataWriteTask.class);
