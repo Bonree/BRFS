@@ -24,9 +24,9 @@ public class StorageSequenceGenetor {
 
     private final String zkUrl;
 
-    private final static String INDEX_NODE = "index";
+    private final static String STORAGESEQ = "storage_seq";
 
-    private final static String STORAGE_SEQ = "storage_seq";
+    private final static String INDEX_NODE = "index";
 
     private final static String LOCKS_PATH = "lock";
 
@@ -79,7 +79,7 @@ public class StorageSequenceGenetor {
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkUrl);
-            client.setData(basePath + SEPARATOR + INDEX_NODE + SEPARATOR + STORAGE_SEQ, "0".getBytes());
+            client.setData(basePath + SEPARATOR + STORAGESEQ + SEPARATOR + INDEX_NODE, "0".getBytes());
         } finally {
             if (client != null) {
                 client.close();
@@ -97,9 +97,9 @@ public class StorageSequenceGenetor {
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkUrl);
-            String node = basePath + SEPARATOR + INDEX_NODE + SEPARATOR + STORAGE_SEQ;
+            String node = basePath + SEPARATOR + STORAGESEQ + SEPARATOR + INDEX_NODE;
             ZKIncreSequence genExecutor = new ZKIncreSequence(node);
-            CuratorLocksClient<Integer> lockClient = new CuratorLocksClient<Integer>(client, basePath + SEPARATOR + INDEX_NODE + SEPARATOR + LOCKS_PATH, genExecutor, "genSingleIdentification");
+            CuratorLocksClient<Integer> lockClient = new CuratorLocksClient<Integer>(client, basePath + SEPARATOR + STORAGESEQ + SEPARATOR + LOCKS_PATH, genExecutor, "genSingleIdentification");
             sequence = lockClient.execute();
         } catch (Exception e) {
             LOG.error("getSingleIdentification error!", e);

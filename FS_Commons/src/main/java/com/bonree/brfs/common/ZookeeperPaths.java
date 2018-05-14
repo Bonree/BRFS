@@ -24,9 +24,9 @@ public class ZookeeperPaths {
 
     public final static String SERVER_ID_SEQUENCES = "server_id_sequences";
 
-    public final static String SERVER_IDS = "server_ids";
+    public final static String SEQUENCES = "sequences";
 
-    public final static String SERVERS = "servers_discover";
+    public final static String SERVER_IDS = "server_ids";
 
     public final static String LOCKS = "locks";
 
@@ -40,8 +40,6 @@ public class ZookeeperPaths {
 
     public final static String TASKS = "tasks";
 
-    public final static String RESOURCES = "resources";
-
     private final String clusterName;
 
     private final String zkHosts;
@@ -52,9 +50,9 @@ public class ZookeeperPaths {
 
     private String baseServerIdPath;
 
-    private String baseServersPath;
-
     private String baseLocksPath;
+
+    private String baseSequencesPath;
 
     private String baseStorageNamePath;
 
@@ -65,8 +63,6 @@ public class ZookeeperPaths {
     private String baseUserPath;
 
     private String baseTaskPath;
-
-    private String baseResourcePath;
 
     private ZookeeperPaths(final String clusterName, final String zkHosts) {
         this.clusterName = clusterName;
@@ -87,14 +83,6 @@ public class ZookeeperPaths {
 
     public void setBaseServerIdPath(String baseServerIdPath) {
         this.baseServerIdPath = baseServerIdPath;
-    }
-
-    public String getBaseServersPath() {
-        return baseServersPath;
-    }
-
-    public void setBaseServersPath(String baseServersPath) {
-        this.baseServersPath = baseServersPath;
     }
 
     public String getBaseLocksPath() {
@@ -145,14 +133,6 @@ public class ZookeeperPaths {
         this.baseTaskPath = baseTaskPath;
     }
 
-    public String getBaseResourcePath() {
-        return baseResourcePath;
-    }
-
-    public void setBaseResourcePath(String baseResourcePath) {
-        this.baseResourcePath = baseResourcePath;
-    }
-
     public String getClusterName() {
         return clusterName;
     }
@@ -161,21 +141,28 @@ public class ZookeeperPaths {
         return baseClusterName;
     }
 
+    public String getBaseSequencesPath() {
+        return baseSequencesPath;
+    }
+
+    public void setBaseSequencesPath(String baseSequencesPath) {
+        this.baseSequencesPath = baseSequencesPath;
+    }
+
     public void createZkPath() {
         CuratorClient client = null;
         try {
             client = CuratorClient.getClientInstance(zkHosts);
             createPathIfNotExist(client, baseClusterName);
             createPathIfNotExist(client, baseLocksPath);
+            createPathIfNotExist(client, baseSequencesPath);
             createPathIfNotExist(client, baseServerIdSeqPath);
             createPathIfNotExist(client, baseServerIdPath);
-            createPathIfNotExist(client, baseServersPath);
             createPathIfNotExist(client, baseRebalancePath);
             createPathIfNotExist(client, baseRoutePath);
             createPathIfNotExist(client, baseStorageNamePath);
             createPathIfNotExist(client, baseUserPath);
             createPathIfNotExist(client, baseTaskPath);
-            createPathIfNotExist(client, baseResourcePath);
         } finally {
             client.close();
         }
@@ -196,13 +183,12 @@ public class ZookeeperPaths {
         setBaseServerIdPath(baseClusterName + SEPARATOR + SERVER_IDS);
         setBaseServerIdSeqPath(baseClusterName + SEPARATOR + SERVER_ID_SEQUENCES);
         setBaseLocksPath(baseClusterName + SEPARATOR + LOCKS);
-        setBaseServersPath(baseClusterName + SEPARATOR + SERVERS);
+        setBaseSequencesPath(baseClusterName + SEPARATOR + SEQUENCES);
         setBaseStorageNamePath(baseClusterName + SEPARATOR + STORAGE_NAMES);
         setBaseRebalancePath(baseClusterName + SEPARATOR + REBALANCE);
         setBaseRoutePath(baseClusterName + SEPARATOR + ROUTES);
         setBaseUserPath(baseClusterName + SEPARATOR + USERS);
         setBaseTaskPath(baseClusterName + SEPARATOR + TASKS);
-        setBaseResourcePath(baseClusterName + SEPARATOR + RESOURCES);
     }
 
     public static ZookeeperPaths create(final String clusterName, final String zkHosts) {
