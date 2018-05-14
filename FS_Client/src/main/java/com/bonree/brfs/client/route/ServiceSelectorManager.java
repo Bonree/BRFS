@@ -1,6 +1,8 @@
 package com.bonree.brfs.client.route;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.recipes.cache.TreeCache;
@@ -8,6 +10,7 @@ import org.apache.curator.framework.recipes.cache.TreeCache;
 import com.bonree.brfs.client.meta.ServiceMetaCache;
 import com.bonree.brfs.client.meta.ServiceMetaListener;
 import com.bonree.brfs.client.route.listener.RouteCacheListener;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.ServerConfig;
@@ -56,6 +59,16 @@ public class ServiceSelectorManager {
         treeCache.getListenable().addListener(cacheListener);
         serviceSelectorCachaMap.put(snIndex, serviceSelectorCache);
         return serviceSelectorCache;
+    }
+
+    public Service getRandomService() {
+        Service service = null;
+        List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
+        if (services != null && !services.isEmpty()) {
+            Random random = new Random();
+            service = services.get(random.nextInt(services.size()));
+        }
+        return service;
     }
 
     public void close() {
