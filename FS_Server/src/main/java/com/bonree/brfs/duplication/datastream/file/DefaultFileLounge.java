@@ -367,11 +367,13 @@ public class DefaultFileLounge implements FileLounge {
 		
 		private boolean closeFile(FileLimiter file) {
 			try {
-				if(fileCloseListener != null && fileCloseListener.close(file)) {
-					fileCoordinator.delete(file.getFileNode());
-					
-					return true;
+				fileCoordinator.delete(file.getFileNode());
+				
+				if(fileCloseListener != null) {
+					fileCloseListener.close(file);
 				}
+				
+				return true;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

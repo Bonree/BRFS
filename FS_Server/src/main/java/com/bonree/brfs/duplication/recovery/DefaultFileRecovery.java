@@ -89,9 +89,13 @@ public class DefaultFileRecovery implements FileRecovery {
 				
 				String serverId = idManager.getOtherSecondID(duplicates[i].getId(), target.getStorageId());
 				BitSet seqs = client.getWritingSequence(FilePathBuilder.buildPath(target, serverId));
+				
 				if(seqs == null) {
+					LOG.info("server{} -- null", serverId);
 					continue;
 				}
+				
+				LOG.info("server{} -- {}", serverId, seqs.cardinality());
 				
 				FileSequence seq = new FileSequence();
 				seq.setNode(duplicates[i]);
@@ -108,12 +112,11 @@ public class DefaultFileRecovery implements FileRecovery {
 			BitSet union = BitSetUtils.union(sets);
 			BitSet intersection = BitSetUtils.intersect(sets);
 			
-			int endIndex = union.cardinality();
 			/**
 			 * 查看所有节点的序列号是否覆盖了[0, maxSeq]之间的所有数值
 			 */
-			LOG.info("Recovery Check union[{}], endIndex[{}]", union.cardinality(), endIndex);
-			if(union.nextSetBit(endIndex) == -1) {
+			LOG.info("Recovery Check union[{}]", union.cardinality());
+			if(union.nextSetBit(union.cardinality()) == -1) {
 				//当前存活的所有节点包含了此文件的所有信息，可以进行文件内容同步
 				List<SeqInfo> infos = new ArrayList<SeqInfo>();
 				for(FileSequence sequence : seqList) {

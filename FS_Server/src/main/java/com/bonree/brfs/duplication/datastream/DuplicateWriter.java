@@ -173,7 +173,7 @@ public class DuplicateWriter {
 	private class FileNodeCloseListener implements FileLounge.FileCloseListener {
 
 		@Override
-		public boolean close(FileLimiter file) {
+		public void close(FileLimiter file) {
 			fileRecovery.recover(file.getFileNode(), new FileRecoveryListener() {
 				
 				@Override
@@ -197,8 +197,6 @@ public class DuplicateWriter {
 				}
 				
 			});
-			
-			return true;
 		}
 		
 	}
