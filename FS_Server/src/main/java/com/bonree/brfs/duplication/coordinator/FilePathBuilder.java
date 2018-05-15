@@ -1,11 +1,11 @@
 package com.bonree.brfs.duplication.coordinator;
 
-import java.io.File;
-
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.google.common.base.Splitter;
 
 public class FilePathBuilder {
+	
+	private static final String PATH_SEPARATOR = "/";
 	
 	public static String buildPath(FileNode file, String serviceId) {
 		int index = 0;
@@ -18,13 +18,13 @@ public class FilePathBuilder {
 		}
 		
 		StringBuilder builder = new StringBuilder();
-		builder.append(File.separatorChar)
+		builder.append(PATH_SEPARATOR)
 		.append(file.getStorageName())
-		.append(File.separatorChar)
+		.append(PATH_SEPARATOR)
 		.append(index)
-		.append(File.separatorChar)
+		.append(PATH_SEPARATOR)
 		.append(TimeUtils.timeInterval(file.getCreateTime(), 60 * 60 * 1000))
-		.append(File.separatorChar)
+		.append(PATH_SEPARATOR)
 		.append(file.getName());
 		
 		return builder.toString();
