@@ -33,7 +33,6 @@ import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.manager.impl.ReleaseTaskFactory;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -75,7 +74,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		// 2.设置可用服务
 		List<String> serverIds = getServerIds(sm, groupName);
 		if(serverIds == null || serverIds.isEmpty()){
-			throw new NullPointerException(" available server list is null");
+			throw new NullPointerException(groupName + " available server list is null");
 		}
 		// 3.获取storageName
 		StorageNameManager snm = mcf.getSnm();

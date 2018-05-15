@@ -56,7 +56,9 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 			}
 			LOG.info("operation batch id {}",currentIndex);
 			// 更新任务状态
-			updateMapTaskMessage(context, null,TaskState.EXCEPTION.code());
+			TaskResultModel resultTask = new TaskResultModel();
+			resultTask.setSuccess(false);
+			updateMapTaskMessage(context, resultTask);
 			// 更新要操作的批次
 			if(currentIndex > 1){
 				data.put(JobDataMapConstract.CURRENT_INDEX, (currentIndex-1)+"" );
@@ -134,23 +136,23 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 	 * @param stat
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	protected  void updateMapTaskMessage(JobExecutionContext context, TaskResultModel result, int stat){
+	protected  void updateMapTaskMessage(JobExecutionContext context, TaskResultModel result){
 		JobDataMap data  = context.getJobDetail().getJobDataMap();
 		if(data == null){
 			return ;
+		}
+		// 更新任务结果
+		if(result == null){
+			return;
 		}
 		int taskStat = -1;
 		if(data.containsKey(JobDataMapConstract.TASK_MAP_STAT)){
 			taskStat = data.getInt(JobDataMapConstract.TASK_MAP_STAT);
 		}
-		if(TaskState.EXCEPTION.code() == taskStat || TaskState.FINISH.code() == taskStat){
-			return;
+		
+		if(!(TaskState.EXCEPTION.code() == taskStat || TaskState.FINISH.code() == taskStat)){
+			data.put(JobDataMapConstract.TASK_MAP_STAT, result.isSuccess() ? TaskState.FINISH.code() : TaskState.EXCEPTION.code());
 		}else{
-			data.put(JobDataMapConstract.TASK_MAP_STAT, stat+"");
-		}
-		// 更新任务结果
-		if(result == null){
-			return;
 		}
 		TaskResultModel sumResult = null;
 		String content = null;

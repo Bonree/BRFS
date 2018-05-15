@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TaskResultModel {
+	private boolean isSuccess = true;
 	private List<AtomTaskResultModel> atoms = new ArrayList<AtomTaskResultModel>();
 
 	public List<AtomTaskResultModel> getAtoms() {
@@ -18,5 +19,13 @@ public class TaskResultModel {
 	}
 	public void add(AtomTaskResultModel atom){
 		this.atoms.add(atom);
+	}
+
+	public boolean isSuccess() {
+		return isSuccess;
+	}
+
+	public void setSuccess(boolean isSuccess) {
+		this.isSuccess = isSuccess;
 	}
 }
