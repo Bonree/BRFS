@@ -4,6 +4,9 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.fastjson.JSONArray;
 import com.bonree.brfs.client.InputItem;
 import com.bonree.brfs.client.StorageNameStick;
@@ -23,6 +26,8 @@ import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.google.common.base.Joiner;
 
 public class DefaultStorageNameStick implements StorageNameStick {
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageNameStick.class);
+	
 	private static final String URI_DATA_ROOT = "/duplication/";
 	private static final String URI_DISK_NODE_ROOT = "/disk";
 	
@@ -106,13 +111,15 @@ public class DefaultStorageNameStick implements StorageNameStick {
 			parts.add(String.valueOf(serverId));
 		}
 		
-		ServiceMetaInfo service = selector.readerService(Joiner.on('_').join(parts));
+		ServiceMetaInfo serviceMetaInfo = selector.readerService(Joiner.on('_').join(parts));
+		Service service = serviceMetaInfo.getFirstServer();
+		LOG.info("read service[{}]", service);
 		
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
-	    .setHost(service.getFirstServer().getHost())
-	    .setPort(service.getFirstServer().getPort())
-	    .setPath(URI_DISK_NODE_ROOT + FilePathBuilder.buildPath(fidObj, storageName, service.getReplicatPot()))
+	    .setHost(service.getHost())
+	    .setPort(service.getPort())
+	    .setPath(URI_DISK_NODE_ROOT + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot()))
 	    .addParameter("offset", String.valueOf(fidObj.getOffset()))
 	    .addParameter("size", String.valueOf(fidObj.getSize()))
 	    .build();
