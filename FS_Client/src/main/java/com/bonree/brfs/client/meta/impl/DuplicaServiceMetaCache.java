@@ -13,13 +13,12 @@ public class DuplicaServiceMetaCache implements ServiceMetaCache {
     private Map<String, Service> duplicaServerCache;
     private String group;
 
-    public DuplicaServiceMetaCache(ServiceManager sm, String group) {
+    public DuplicaServiceMetaCache(String group) {
         duplicaServerCache = new ConcurrentHashMap<>();
         this.group = group;
-        loadMetaCachae(sm);
     }
 
-    private void loadMetaCachae(ServiceManager sm) {
+    public void loadMetaCachae(ServiceManager sm) {
         // load 副本管理
         List<Service> dupliServices = sm.getServiceListByGroup(group);
         for (Service service : dupliServices) {

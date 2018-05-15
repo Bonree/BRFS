@@ -29,17 +29,16 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
 
     private Map<String, String> secondServerCache;
 
-    public DiskServiceMetaCache(final String zkHosts, final String zkServerIDPath, final int snIndex, String group, ServiceManager sm) {
+    public DiskServiceMetaCache(final String zkHosts, final String zkServerIDPath, final int snIndex, String group) {
         firstServerCache = new ConcurrentHashMap<>();
         secondServerCache = new ConcurrentHashMap<>();
         this.zkHosts = zkHosts;
         this.zkServerIDPath = zkServerIDPath;
         this.snIndex = snIndex;
         this.group = group;
-        loadMetaCachae(sm);
     }
 
-    private void loadMetaCachae(ServiceManager sm) {
+    public void loadMetaCachae(ServiceManager sm) {
         // 加载元数据信息
         CuratorClient curatorClient = null;
         try {
