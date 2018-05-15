@@ -10,6 +10,6 @@ public interface FileLounge {
 	void setFileCloseListener(FileCloseListener listener);
 	
 	public static interface FileCloseListener {
-		boolean close(FileLimiter file);
+		void close(FileLimiter file);
 	}
 }

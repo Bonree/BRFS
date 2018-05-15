@@ -22,9 +22,6 @@ public class FileLimiter {
 	
 	private AtomicInteger sequence = new AtomicInteger(0);
 	
-	private byte[] header;
-	private byte[] tailer;
-	
 	/**
 	 * 用于跟踪对此文件的还未完成的写入操作的个数，清理文件时
 	 * 不能清理还在写入的文件
@@ -81,6 +78,8 @@ public class FileLimiter {
 					break;
 				}
 			}
+		} else {
+			sequence.incrementAndGet();
 		}
 		
 		writing.decrementAndGet();
