@@ -166,6 +166,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
 	public void close() throws IOException {
 		CloseUtils.closeQuietly(client);
 		CloseUtils.closeQuietly(zkClient);
+		CloseUtils.closeQuietly(serviceSelectorManager);
 		try {
 			if(serviceManager != null) {
 				serviceManager.stop();
