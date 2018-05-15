@@ -9,7 +9,6 @@ import com.bonree.brfs.client.meta.ServiceMetaListener;
 import com.bonree.brfs.client.meta.impl.DiskServiceMetaCache;
 import com.bonree.brfs.client.meta.impl.DuplicaServiceMetaCache;
 import com.bonree.brfs.client.route.listener.RouteCacheListener;
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.ServerConfig;
