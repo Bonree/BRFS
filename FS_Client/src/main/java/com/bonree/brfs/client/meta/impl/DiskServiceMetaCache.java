@@ -19,20 +19,20 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
 
     private String zkServerIDPath;
 
-    private String zkHosts;
-
     private int snIndex;
 
     private String group;
+
+    private CuratorClient curatorClient;
 
     private Map<String, Service> firstServerCache;
 
     private Map<String, String> secondServerCache;
 
-    public DiskServiceMetaCache(final String zkHosts, final String zkServerIDPath, final int snIndex, String group) {
+    public DiskServiceMetaCache(final CuratorClient curatorClient, final String zkServerIDPath, final int snIndex, String group) {
         firstServerCache = new ConcurrentHashMap<>();
         secondServerCache = new ConcurrentHashMap<>();
-        this.zkHosts = zkHosts;
+        this.curatorClient = curatorClient;
         this.zkServerIDPath = zkServerIDPath;
         this.snIndex = snIndex;
         this.group = group;
@@ -40,28 +40,17 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
 
     public void loadMetaCachae(ServiceManager sm) {
         // 加载元数据信息
-        CuratorClient curatorClient = null;
-        try {
-            curatorClient = CuratorClient.getClientInstance(zkHosts);
-            List<Service> diskServices = sm.getServiceListByGroup(group);
-            // load 1级serverid
-            for (Service service : diskServices) {
-                firstServerCache.put(service.getServiceId(), service);
-                // load 2级serverid
-                String snPath = zkServerIDPath + SEPARATOR + service.getServiceId() + SEPARATOR + snIndex;
-                if (!curatorClient.checkExists(snPath)) {
-                    continue;
-                }
-                String secondID = new String(curatorClient.getData(snPath));
-                secondServerCache.put(secondID, service.getServiceId());
+        List<Service> diskServices = sm.getServiceListByGroup(group);
+        // load 1级serverid
+        for (Service service : diskServices) {
+            firstServerCache.put(service.getServiceId(), service);
+            // load 2级serverid
+            String snPath = zkServerIDPath + SEPARATOR + service.getServiceId() + SEPARATOR + snIndex;
+            if (!curatorClient.checkExists(snPath)) {
+                continue;
             }
-            System.out.println("addserviceMap:" + firstServerCache);
-            System.out.println("addserviceMap:" + secondServerCache);
-
-        } finally {
-            if (curatorClient != null) {
-                curatorClient.close();
-            }
+            String secondID = new String(curatorClient.getData(snPath));
+            secondServerCache.put(secondID, service.getServiceId());
         }
     }
 
@@ -73,22 +62,14 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
     public void addService(Service service) {
         // serverID信息加载
         firstServerCache.put(service.getServiceId(), service);
-        CuratorClient curatorClient = null;
-        try {
-            curatorClient = CuratorClient.getClientInstance(zkHosts);
-            List<String> firstIDs = curatorClient.getChildren(zkServerIDPath);
-            for (String firstID : firstIDs) {
-                String snPath = zkServerIDPath + SEPARATOR + firstID + SEPARATOR + snIndex;
-                if (!curatorClient.checkExists(snPath)) {
-                    continue;
-                }
-                String secondID = new String(curatorClient.getData(snPath));
-                secondServerCache.put(secondID, firstID);
+        List<String> firstIDs = curatorClient.getChildren(zkServerIDPath);
+        for (String firstID : firstIDs) {
+            String snPath = zkServerIDPath + SEPARATOR + firstID + SEPARATOR + snIndex;
+            if (!curatorClient.checkExists(snPath)) {
+                continue;
             }
-        } finally {
-            if (curatorClient != null) {
-                curatorClient.close();
-            }
+            String secondID = new String(curatorClient.getData(snPath));
+            secondServerCache.put(secondID, firstID);
         }
     }
 

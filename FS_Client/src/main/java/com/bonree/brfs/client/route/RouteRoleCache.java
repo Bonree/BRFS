@@ -20,8 +20,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
  ******************************************************************************/
 public class RouteRoleCache {
 
-    private String zkHosts;
-
+    private CuratorClient curatorClient;
     private String baseRoutePath;
 
     private int storageIndex;
@@ -30,8 +29,8 @@ public class RouteRoleCache {
 
     private Map<String, VirtualRoute> virtualRouteDetail;
 
-    public RouteRoleCache(String zkHosts, int storageIndex, String baseRoutePath) {
-        this.zkHosts = zkHosts;
+    public RouteRoleCache(CuratorClient curatorClient, int storageIndex, String baseRoutePath) {
+        this.curatorClient = curatorClient;
         this.storageIndex = storageIndex;
         this.baseRoutePath = baseRoutePath;
         virtualRouteDetail = new ConcurrentHashMap<>();
@@ -40,9 +39,6 @@ public class RouteRoleCache {
     }
 
     private void loadRouteRole() {
-        CuratorClient curatorClient = null;
-        try {
-            curatorClient = CuratorClient.getClientInstance(zkHosts);
             // load virtual id
             String virtualPath = baseRoutePath + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE + Constants.SEPARATOR + storageIndex;
             List<String> virtualNodes = curatorClient.getChildren(virtualPath);
@@ -66,11 +62,6 @@ public class RouteRoleCache {
                     normalRouteDetail.put(normal.getSecondID(), normal);
                 }
             }
-        } finally {
-            if (curatorClient != null) {
-                curatorClient.close();
-            }
-        }
     }
 
     public int getStorageIndex() {
