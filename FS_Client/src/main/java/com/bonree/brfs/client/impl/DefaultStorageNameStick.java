@@ -97,7 +97,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	public InputItem readData(String fid) throws Exception {
 		Fid fidObj = FidDecoder.build(fid);
 		if(fidObj.getStorageNameCode() != storageId) {
-			return null;
+			throw new IllegalAccessException("Storage name of fid is not legal!");
 		}
 		
 		List<String> parts = new ArrayList<String>();
