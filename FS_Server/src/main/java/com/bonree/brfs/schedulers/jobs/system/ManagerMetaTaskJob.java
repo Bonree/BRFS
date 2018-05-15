@@ -20,7 +20,6 @@ import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
-import com.bonree.brfs.schedulers.task.manager.impl.ReleaseTaskFactory;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 
 public class ManagerMetaTaskJob extends QuartzOperationStateTask {

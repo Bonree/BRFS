@@ -30,27 +30,12 @@ public class StorageNameFileUtils {
 		if(BrStringUtils.isEmpty(dataPath)){
 			return null;
 		}
-		String strTime = getGranuleTime(time);
+		String strTime = TimeUtils.timeInterval(time, 60*60*1000);
 		StringBuilder str = new StringBuilder();
 		str.append(dataPath).append(File.separator)
 		.append(sn).append(File.separator)
 		.append(copyIndex).append(File.separator)
 		.append(strTime);
 		return str.toString();
-	}
-	/**
-	 * 概述：获取时间
-	 * @param time
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static String getGranuleTime(long time){
-		if(time > 0){
-			return null;
-		}
-		long tmpTime = time/60/1000*60*1000;
-		DateTime date = new DateTime();
-		date.withMillis(tmpTime);
-		return date.toString("yyyyMMddHHmmssSSS");
 	}
 }

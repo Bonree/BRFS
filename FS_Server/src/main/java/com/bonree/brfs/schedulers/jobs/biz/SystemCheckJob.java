@@ -10,9 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.schedulers.SNOperation;
-import com.bonree.brfs.schedulers.SNOperationDemo;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
@@ -65,6 +64,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		String dirName = null;
 		TaskResultModel result = new TaskResultModel();
 		AtomTaskResultModel atomR = null;
+		TaskResultModel batchResult = null;
 		boolean isException = false;
 		for(AtomTaskModel atom : atoms){
 			snName = atom.getStorageName();
@@ -78,30 +78,27 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 				continue;
 			}
 			//调用俞朋的接口
-			SNOperation snOperation = new SNOperationDemo();
-			List<String> files = snOperation.getFiles(dirName);
 			atomR = new AtomTaskResultModel();
 			atomR.setSn(snName);
 			atomR.setDir(dirName);
-			if(files != null){
-				String filePath = null;
-				int checkCount = 0;
-				for(String file : files){
-					filePath = dirName + "/"+file;
-					LOG.info("---------------------check file {}", filePath);
-					boolean isCheck = snOperation.checkCRCFile(filePath);
-					if(isCheck){
-						 checkCount ++;
-					}else{
-						atomR.add(file);
-						isException = true;
-					}
-				}
+			if(!FileUtils.isExist(dirName)){
+				LOG.warn("{} is not exists !!");
+				continue;
 			}
-			result.add(atomR);
+			batchResult = checkFiles(snName, dirName);
+			if(batchResult == null){
+				continue;
+			}
+			if(!batchResult.isSuccess()){
+				result.setSuccess(batchResult.isSuccess());
+			}
+			result.addAll(batchResult.getAtoms());
 		}
 		//更新任务状态
-		updateMapTaskMessage(context, result, TaskState.FINISH.code());
+		updateMapTaskMessage(context, result);
+	}
+	private TaskResultModel checkFiles(String snName, String dirName){
+		return null;
 	}
 
 }

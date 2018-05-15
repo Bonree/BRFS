@@ -166,5 +166,19 @@ public class FileUtils {
         File file = new File(dir);
         return Arrays.stream(file.listFiles()).collect(Collectors.toList());
     }
-
+    /**
+     * 概述：删除文件
+     * @param filePath
+     * @return
+     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     */
+    public static boolean deleteFile(String filePath){
+    	File file = new File(filePath);
+    	if(!file.exists()){
+    		return true;
+    	}
+    	// 资源回收，强制删除
+    	System.gc();
+    	return file.delete();
+    }
 }

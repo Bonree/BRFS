@@ -6,6 +6,8 @@ import java.util.List;
 public class AtomTaskResultModel {
 	private String sn;
 	private String dir;
+	private boolean isSuccess = true;
+	
 	private List<String> files = new ArrayList<String>();
 	private int operationFileCount = 0;
 	public String getSn() {
@@ -37,5 +39,11 @@ public class AtomTaskResultModel {
 	}
 	public void add(String file){
 		this.files.add(file);
+	}
+	public boolean isSuccess() {
+		return isSuccess;
+	}
+	public void setSuccess(boolean isSuccess) {
+		this.isSuccess = isSuccess;
 	}
 }
