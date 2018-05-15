@@ -1,5 +1,6 @@
 package com.bonree.brfs.schedulers.jobs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -139,12 +140,14 @@ public class JobDataMapConstract {
 		BatchAtomModel batch = null;
 		List<AtomTaskModel> tmp = null;
 		int index = 0;
-		for(int i = 1; i <= count; i++){
+		for(int i = 1; i <= count; i+=count){
 			batch = new BatchAtomModel();
 			if(index + count <= size){
 			tmp = atoms.subList(index, index + count);
-			}else{
+			}else if(size > 0){
 				tmp = atoms.subList(index, size - 1);
+			}else{
+				tmp = new ArrayList<AtomTaskModel>();
 			}
 			batch.addAll(tmp);
 			dataMap.put(i +"", JsonUtils.toJsonString(batch));
