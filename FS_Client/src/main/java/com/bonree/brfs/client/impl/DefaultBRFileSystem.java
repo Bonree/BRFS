@@ -11,7 +11,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import com.bonree.brfs.client.BRFileSystem;
 import com.bonree.brfs.client.StorageNameStick;
-import com.bonree.brfs.client.route.ServiceSelectorCache;
+import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.ServiceSelectorManager;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.http.client.HttpClient;
@@ -53,7 +53,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
 	public boolean createStorageName(String storageName, Map<String, Object> attrs) {
 		Service service;
 		try {
-			service = serviceSelectorManager.getRandomService();
+			service = serviceSelectorManager.useDuplicaSelector().randomService();
 		} catch (Exception e1) {
 			return false;
 		}
@@ -82,7 +82,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
 			Map<String, Object> attrs) {
 		Service service;
 		try {
-			service = serviceSelectorManager.getRandomService();
+			service = serviceSelectorManager.useDuplicaSelector().randomService();
 		} catch (Exception e1) {
 			return false;
 		}
@@ -110,7 +110,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
 	public boolean deleteStorageName(String storageName) {
 		Service service;
 		try {
-			service = serviceSelectorManager.getRandomService();
+			service = serviceSelectorManager.useDuplicaSelector().randomService();
 		} catch (Exception e1) {
 			return false;
 		}
@@ -136,7 +136,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
 	public StorageNameStick openStorageName(String storageName, boolean createIfNonexistent) {
 		Service service;
 		try {
-			service = serviceSelectorManager.getRandomService();
+			service = serviceSelectorManager.useDuplicaSelector().randomService();
 		} catch (Exception e1) {
 			return null;
 		}
@@ -153,8 +153,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
 
 			int storageId = Integer.parseInt(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
 			System.out.println("get id---" + storageId);
-			ServiceSelectorCache cache = serviceSelectorManager.useStorageIndex(storageId);
-			return new DefaultStorageNameStick(storageName, storageId, cache);
+			DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
+			return new DefaultStorageNameStick(storageName, storageId, cache, serviceSelectorManager.useDuplicaSelector());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

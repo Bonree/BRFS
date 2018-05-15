@@ -7,8 +7,9 @@ import java.util.List;
 import com.alibaba.fastjson.JSONArray;
 import com.bonree.brfs.client.InputItem;
 import com.bonree.brfs.client.StorageNameStick;
+import com.bonree.brfs.client.route.DiskServiceSelectorCache;
+import com.bonree.brfs.client.route.DuplicaServiceSelector;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
-import com.bonree.brfs.client.route.ServiceSelectorCache;
 import com.bonree.brfs.client.utils.FidDecoder;
 import com.bonree.brfs.client.utils.FilePathBuilder;
 import com.bonree.brfs.common.http.client.HttpClient;
@@ -30,20 +31,20 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	private String storageName;
 	private int storageId;
 
-	private ServiceSelectorCache selector;
+	private DiskServiceSelectorCache selector;
+	private DuplicaServiceSelector dupSelector;
 	private HttpClient client = new HttpClient();
 
-	public DefaultStorageNameStick(String storageName, int storageId, ServiceSelectorCache selector) {
+	public DefaultStorageNameStick(String storageName, int storageId, DiskServiceSelectorCache selector, DuplicaServiceSelector dupSelector) {
 		this.storageName = storageName;
 		this.storageId = storageId;
 		this.selector = selector;
+		this.dupSelector = dupSelector;
 	}
 
 	@Override
 	public String[] writeData(InputItem[] itemArrays) {
-		Service service = new Service();//.writerService();
-		service.setHost("localhost");
-		service.setPort(8880);
+		Service service = dupSelector.randomService();
 		
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
