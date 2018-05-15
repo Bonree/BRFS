@@ -1,14 +1,13 @@
 package com.bonree.brfs.client.route;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.recipes.cache.TreeCache;
 
-import com.bonree.brfs.client.meta.ServiceMetaCache;
 import com.bonree.brfs.client.meta.ServiceMetaListener;
+import com.bonree.brfs.client.meta.impl.DiskServiceMetaCache;
+import com.bonree.brfs.client.meta.impl.DuplicaServiceMetaCache;
 import com.bonree.brfs.client.route.listener.RouteCacheListener;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -21,7 +20,8 @@ public class ServiceSelectorManager {
     private String zkServerIDPath;
     private String baseRoutePath;
     private ServiceManager sm;
-    private Map<Integer, ServiceSelectorCache> serviceSelectorCachaMap = new ConcurrentHashMap<>();
+    private Map<Integer, DiskServiceSelectorCache> diskServiceSelectorCachaMap = new ConcurrentHashMap<>();
+    private DuplicaServiceSelector duplicaServiceSelector = null;
     private TreeCache treeCache;
 
     public ServiceSelectorManager(final ServiceManager sm, final String zkHosts, final String zkServerIDPath, final String baseRoutePath) {
@@ -39,37 +39,57 @@ public class ServiceSelectorManager {
      * @throws Exception
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public ServiceSelectorCache useStorageIndex(int snIndex) throws Exception {
-        ServiceSelectorCache serviceSelectorCache = serviceSelectorCachaMap.get(snIndex);
-        if (serviceSelectorCache != null) {
-            return serviceSelectorCache;
+    public DiskServiceSelectorCache useDiskSelector(int snIndex) throws Exception {
+        DiskServiceSelectorCache diskServiceSelectorCache = diskServiceSelectorCachaMap.get(snIndex);
+        if (diskServiceSelectorCache != null) {
+            return diskServiceSelectorCache;
         }
-        ServiceMetaCache serviceMetaCache = new ServiceMetaCache(zkHosts, zkServerIDPath, snIndex, sm);
-        ServiceMetaListener listener = new ServiceMetaListener(serviceMetaCache);
+        DiskServiceMetaCache diskServiceMetaCache = new DiskServiceMetaCache(zkHosts, zkServerIDPath, snIndex, ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, sm);
 
-        sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, listener);
-        sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, listener);
+        ServiceMetaListener diskListener = new ServiceMetaListener(diskServiceMetaCache);
+        sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, diskListener);
 
         RouteRoleCache routeCache = new RouteRoleCache(zkHosts, snIndex, baseRoutePath);
         RouteParser routeParser = new RouteParser(routeCache);
-        // 兼容余鹏的client读取
-        serviceSelectorCache = new ServiceSelectorCache(serviceMetaCache, routeParser);
-        RouteCacheListener cacheListener = new RouteCacheListener(routeCache);
 
+        // 兼容余鹏的client读取
+        diskServiceSelectorCache = new DiskServiceSelectorCache(diskServiceMetaCache, routeParser);
+
+        RouteCacheListener cacheListener = new RouteCacheListener(routeCache);
         treeCache.getListenable().addListener(cacheListener);
-        serviceSelectorCachaMap.put(snIndex, serviceSelectorCache);
-        return serviceSelectorCache;
+
+        diskServiceSelectorCachaMap.put(snIndex, diskServiceSelectorCache);
+        return diskServiceSelectorCache;
     }
 
-    public Service getRandomService() throws Exception {
-        Service service = null;
-        sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, null);
-        List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
-        if (services != null && !services.isEmpty()) {
-            Random random = new Random();
-            service = services.get(random.nextInt(services.size()));
+//    public Service getRandomService() throws Exception {
+//        if (duplicaServiceSelector != null) {
+//            return duplicaServiceSelector.randomService();
+//        }
+//
+//        DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(sm, ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
+//
+//        // 监听duplicaServiceCachecache
+//        ServiceMetaListener listener = new ServiceMetaListener(duplicaServiceMetaCache);
+//        sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, listener);
+//
+//        duplicaServiceSelector = new DuplicaServiceSelector(duplicaServiceMetaCache);
+//        return duplicaServiceSelector.randomService();
+//    }
+
+    public DuplicaServiceSelector useDuplicaSelector() throws Exception {
+        if (duplicaServiceSelector != null) {
+            return duplicaServiceSelector;
         }
-        return service;
+
+        DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(sm, ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
+
+        // 监听duplicaServiceCachecache
+        ServiceMetaListener listener = new ServiceMetaListener(duplicaServiceMetaCache);
+        sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, listener);
+
+        duplicaServiceSelector = new DuplicaServiceSelector(duplicaServiceMetaCache);
+        return duplicaServiceSelector;
     }
 
     public void close() {

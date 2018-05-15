@@ -1,4 +1,4 @@
-package com.bonree.brfs.client.meta;
+package com.bonree.brfs.client.meta.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,13 +7,13 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bonree.brfs.client.meta.ServiceMetaCache;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.configuration.ServerConfig;
 
-public class ServiceMetaCache {
+public class DiskServiceMetaCache implements ServiceMetaCache {
 
     private static final String SEPARATOR = "/";
 
@@ -23,19 +23,19 @@ public class ServiceMetaCache {
 
     private int snIndex;
 
-    private Map<String, Service> duplicaServerCache;
+    private String group;
 
     private Map<String, Service> firstServerCache;
 
     private Map<String, String> secondServerCache;
 
-    public ServiceMetaCache(final String zkHosts, final String zkServerIDPath, final int snIndex, ServiceManager sm) {
+    public DiskServiceMetaCache(final String zkHosts, final String zkServerIDPath, final int snIndex, String group, ServiceManager sm) {
         firstServerCache = new ConcurrentHashMap<>();
         secondServerCache = new ConcurrentHashMap<>();
-        duplicaServerCache = new ConcurrentHashMap<>();
         this.zkHosts = zkHosts;
         this.zkServerIDPath = zkServerIDPath;
         this.snIndex = snIndex;
+        this.group = group;
         loadMetaCachae(sm);
     }
 
@@ -44,8 +44,7 @@ public class ServiceMetaCache {
         CuratorClient curatorClient = null;
         try {
             curatorClient = CuratorClient.getClientInstance(zkHosts);
-            List<Service> diskServices = sm.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
-
+            List<Service> diskServices = sm.getServiceListByGroup(group);
             // load 1级serverid
             for (Service service : diskServices) {
                 firstServerCache.put(service.getServiceId(), service);
@@ -60,12 +59,6 @@ public class ServiceMetaCache {
             System.out.println("addserviceMap:" + firstServerCache);
             System.out.println("addserviceMap:" + secondServerCache);
 
-            // load 副本管理
-            List<Service> dupliServices = sm.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
-            for (Service service : dupliServices) {
-                duplicaServerCache.put(service.getServiceId(), service);
-            }
-
         } finally {
             if (curatorClient != null) {
                 curatorClient.close();
@@ -77,29 +70,26 @@ public class ServiceMetaCache {
      * @param service
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
+    @Override
     public void addService(Service service) {
         // serverID信息加载
-        if (service.getServiceGroup().equals(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP)) {
-            firstServerCache.put(service.getServiceId(), service);
-            CuratorClient curatorClient = null;
-            try {
-                curatorClient = CuratorClient.getClientInstance(zkHosts);
-                List<String> firstIDs = curatorClient.getChildren(zkServerIDPath);
-                for (String firstID : firstIDs) {
-                    String snPath = zkServerIDPath + SEPARATOR + firstID + SEPARATOR + snIndex;
-                    if (!curatorClient.checkExists(snPath)) {
-                        continue;
-                    }
-                    String secondID = new String(curatorClient.getData(snPath));
-                    secondServerCache.put(secondID, firstID);
+        firstServerCache.put(service.getServiceId(), service);
+        CuratorClient curatorClient = null;
+        try {
+            curatorClient = CuratorClient.getClientInstance(zkHosts);
+            List<String> firstIDs = curatorClient.getChildren(zkServerIDPath);
+            for (String firstID : firstIDs) {
+                String snPath = zkServerIDPath + SEPARATOR + firstID + SEPARATOR + snIndex;
+                if (!curatorClient.checkExists(snPath)) {
+                    continue;
                 }
-            } finally {
-                if (curatorClient != null) {
-                    curatorClient.close();
-                }
+                String secondID = new String(curatorClient.getData(snPath));
+                secondServerCache.put(secondID, firstID);
             }
-        } else if (service.getServiceGroup().equals(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP)) {
-            duplicaServerCache.put(service.getServiceId(), service);
+        } finally {
+            if (curatorClient != null) {
+                curatorClient.close();
+            }
         }
     }
 
@@ -107,17 +97,14 @@ public class ServiceMetaCache {
      * @param service
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
+    @Override
     public void removeService(Service service) {
-        if (service.getServiceGroup().equals(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP)) {
-            firstServerCache.remove(service.getServiceId(), service);
-            // 移除1级SID对应的2级SID
-            for (Entry<String, String> entry : secondServerCache.entrySet()) {
-                if (service.getServiceId().equals(entry.getValue())) {
-                    secondServerCache.remove(entry.getKey());
-                }
+        firstServerCache.remove(service.getServiceId(), service);
+        // 移除1级SID对应的2级SID
+        for (Entry<String, String> entry : secondServerCache.entrySet()) {
+            if (service.getServiceId().equals(entry.getValue())) {
+                secondServerCache.remove(entry.getKey());
             }
-        } else if (service.getServiceGroup().equals(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP)) {
-            duplicaServerCache.remove(service.getServiceId());
         }
 
     }
@@ -163,18 +150,6 @@ public class ServiceMetaCache {
         };
     }
 
-    public Map<String, Service> getFirstServerCache() {
-        return firstServerCache;
-    }
-
-    public Map<String, String> getSecondServerCache() {
-        return secondServerCache;
-    }
-
-    public Map<String, Service> getDuplicaServerCache() {
-        return duplicaServerCache;
-    }
-
     public Service getRandomService() {
         List<String> firstIDs = new ArrayList<String>(firstServerCache.keySet());
         Random random = new Random();
@@ -192,5 +167,10 @@ public class ServiceMetaCache {
 
     public int getSnIndex() {
         return snIndex;
+    }
+
+    @Override
+    public Map<String, Service> getServerCache() {
+        return firstServerCache;
     }
 }

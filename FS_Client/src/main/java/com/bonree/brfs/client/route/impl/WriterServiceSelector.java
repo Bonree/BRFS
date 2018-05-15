@@ -9,20 +9,23 @@ import com.bonree.brfs.client.route.ServiceSelector;
 import com.bonree.brfs.common.service.Service;
 
 public class WriterServiceSelector implements ServiceSelector {
+    private ServiceMetaCache serviceMetaCache;
 
-    // private AvailableServerInterface loadSelector;
+    public WriterServiceSelector(ServiceMetaCache serviceMetaCache) {
+        this.serviceMetaCache = serviceMetaCache;
+    }
 
     @Override
-    public Service selectService(ServiceMetaCache serviceMetaCache) {
+    public Service selectService() {
         Service service = null;
-        List<String> firstIDs = new ArrayList<String>(serviceMetaCache.getDuplicaServerCache().keySet());
+        List<String> firstIDs = new ArrayList<String>(serviceMetaCache.getServerCache().keySet());
         if (firstIDs != null && !firstIDs.isEmpty()) {
+
             Random random = new Random();
             String randomFirstID = firstIDs.get(random.nextInt(firstIDs.size()));
-            service = serviceMetaCache.getDuplicaServerCache().get(randomFirstID);
+            service = serviceMetaCache.getServerCache().get(randomFirstID);
         }
         return service;
-
     }
 
 }
