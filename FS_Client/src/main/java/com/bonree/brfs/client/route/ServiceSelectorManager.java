@@ -43,10 +43,12 @@ public class ServiceSelectorManager {
         if (diskServiceSelectorCache != null) {
             return diskServiceSelectorCache;
         }
-        DiskServiceMetaCache diskServiceMetaCache = new DiskServiceMetaCache(zkHosts, zkServerIDPath, snIndex, ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, sm);
 
+        DiskServiceMetaCache diskServiceMetaCache = new DiskServiceMetaCache(zkHosts, zkServerIDPath, snIndex, ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
         ServiceMetaListener diskListener = new ServiceMetaListener(diskServiceMetaCache);
         sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, diskListener);
+        
+        diskServiceMetaCache.loadMetaCachae(sm);
 
         RouteRoleCache routeCache = new RouteRoleCache(zkHosts, snIndex, baseRoutePath);
         RouteParser routeParser = new RouteParser(routeCache);
@@ -61,32 +63,34 @@ public class ServiceSelectorManager {
         return diskServiceSelectorCache;
     }
 
-//    public Service getRandomService() throws Exception {
-//        if (duplicaServiceSelector != null) {
-//            return duplicaServiceSelector.randomService();
-//        }
-//
-//        DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(sm, ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
-//
-//        // 监听duplicaServiceCachecache
-//        ServiceMetaListener listener = new ServiceMetaListener(duplicaServiceMetaCache);
-//        sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, listener);
-//
-//        duplicaServiceSelector = new DuplicaServiceSelector(duplicaServiceMetaCache);
-//        return duplicaServiceSelector.randomService();
-//    }
+    // public Service getRandomService() throws Exception {
+    // if (duplicaServiceSelector != null) {
+    // return duplicaServiceSelector.randomService();
+    // }
+    //
+    // DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(sm, ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
+    //
+    // // 监听duplicaServiceCachecache
+    // ServiceMetaListener listener = new ServiceMetaListener(duplicaServiceMetaCache);
+    // sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, listener);
+    //
+    // duplicaServiceSelector = new DuplicaServiceSelector(duplicaServiceMetaCache);
+    // return duplicaServiceSelector.randomService();
+    // }
 
     public DuplicaServiceSelector useDuplicaSelector() throws Exception {
         if (duplicaServiceSelector != null) {
             return duplicaServiceSelector;
         }
 
-        DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(sm, ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
+        DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
 
         // 监听duplicaServiceCachecache
         ServiceMetaListener listener = new ServiceMetaListener(duplicaServiceMetaCache);
         sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, listener);
 
+        duplicaServiceMetaCache.loadMetaCachae(sm);
+        
         duplicaServiceSelector = new DuplicaServiceSelector(duplicaServiceMetaCache);
         return duplicaServiceSelector;
     }
