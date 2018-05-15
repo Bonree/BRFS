@@ -184,10 +184,6 @@ public class DefaultFileRecovery implements FileRecovery {
 			}
 		}
 		
-		private void recoverDuplicates(FileNode file, DuplicateNode from, List<DuplicateNode> to) {
-			//TODO 复制文件
-		}
-		
 	}
 
 }

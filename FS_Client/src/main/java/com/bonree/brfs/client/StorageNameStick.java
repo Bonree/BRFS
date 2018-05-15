@@ -1,6 +1,8 @@
 package com.bonree.brfs.client;
 
-public interface StorageNameStick {
+import java.io.Closeable;
+
+public interface StorageNameStick extends Closeable {
 	String[] writeData(InputItem[] itemArrays);
 	String writeData(InputItem item);
 	InputItem readData(String fid) throws Exception;

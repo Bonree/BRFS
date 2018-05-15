@@ -46,7 +46,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
 		
 		
 		this.serviceSelectorManager = new ServiceSelectorManager(serviceManager,
-				zkAddresses, zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath());
+				zkClient, zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath());
 	}
 
 	@Override

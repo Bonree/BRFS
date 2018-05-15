@@ -1,5 +1,6 @@
 package com.bonree.brfs.client.impl;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -165,6 +166,11 @@ public class DefaultStorageNameStick implements StorageNameStick {
 		}
 		
 		return false;
+	}
+
+	@Override
+	public void close() throws IOException {
+		client.close();
 	}
 
 }
