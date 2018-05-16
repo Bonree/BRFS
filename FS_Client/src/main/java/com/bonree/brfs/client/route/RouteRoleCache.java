@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 /*******************************************************************************
@@ -46,7 +46,7 @@ public class RouteRoleCache {
                 for (String virtualNode : virtualNodes) {
                     String dataPath = virtualPath + Constants.SEPARATOR + virtualNode;
                     byte[] data = curatorClient.getData(dataPath);
-                    VirtualRoute virtual = JSON.parseObject(data, VirtualRoute.class);
+                    VirtualRoute virtual = JsonUtils.toObject(data, VirtualRoute.class);
                     virtualRouteDetail.put(virtual.getVirtualID(), virtual);
                 }
             }
@@ -58,7 +58,7 @@ public class RouteRoleCache {
                 for (String normalNode : normalNodes) {
                     String dataPath = normalPath + Constants.SEPARATOR + normalNode;
                     byte[] data = curatorClient.getData(dataPath);
-                    NormalRoute normal = JSON.parseObject(data, NormalRoute.class);
+                    NormalRoute normal =JsonUtils.toObject(data, NormalRoute.class);
                     normalRouteDetail.put(normal.getSecondID(), normal);
                 }
             }

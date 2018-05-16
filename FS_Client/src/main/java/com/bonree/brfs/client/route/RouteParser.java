@@ -4,7 +4,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -13,8 +12,10 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
+import com.bonree.brfs.common.utils.CompareFromName;
+import com.bonree.brfs.common.utils.RebalanceUtils;
 
-public class RouteParser implements Closeable {
+public class RouteParser {
 
     private final static Logger LOG = LoggerFactory.getLogger(RouteParser.class);
 
@@ -86,7 +87,7 @@ public class RouteParser implements Closeable {
         // 真正可选择的servers
         List<String> selectableServerList = null;
 
-        while (needRecover(fileServerIds, replicas, aliveServers)) {
+        while (RebalanceUtils.needRecover(fileServerIds, replicas, aliveServers)) {
             for (String deadServer : fileServerIds) {
                 if (!aliveServers.contains(deadServer)) {
                     int pot = fileServerIds.indexOf(deadServer);
@@ -99,12 +100,12 @@ public class RouteParser implements Closeable {
                     exceptionServerIds.addAll(fileServerIds);
                     exceptionServerIds.remove(deadServer);
                     selectableServerList = getSelectedList(recoverableServerList, exceptionServerIds);
-                    int index = hashFileName(namePart, selectableServerList.size());
+                    int index = RebalanceUtils.hashFileName(namePart, selectableServerList.size());
                     selectMultiId = selectableServerList.get(index);
                     fileServerIds.set(pot, selectMultiId);
 
                     // 判断选取的新节点是否存活
-                    if (isAlive(selectMultiId, aliveServers)) {
+                    if (RebalanceUtils.isAlive(selectMultiId, aliveServers)) {
                         // 判断选取的新节点是否为本节点，该serverID是否在相应的位置
                         if (pot == serverIDPot) {
                             break;
@@ -116,25 +117,6 @@ public class RouteParser implements Closeable {
         return selectMultiId;
     }
 
-    /** 概述：判断是否需要恢复
-     * @param serverIds
-     * @param replicaPot
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
-    private boolean needRecover(List<String> serverIds, int replicaPot, List<String> aliveServers) {
-        boolean flag = false;
-        for (int i = 1; i <= serverIds.size(); i++) {
-            if (i != replicaPot) {
-                if (!aliveServers.contains(serverIds.get(i - 1))) {
-                    flag = true;
-                    break;
-                }
-            }
-        }
-        return flag;
-    }
-
     private List<String> getSelectedList(List<String> aliveServerList, List<String> excludeServers) {
         List<String> selectedList = new ArrayList<>();
         for (String tmp : aliveServerList) {
@@ -144,40 +126,6 @@ public class RouteParser implements Closeable {
         }
         Collections.sort(selectedList, new CompareFromName());
         return selectedList;
-    }
-
-    static private class CompareFromName implements Comparator<String> {
-        @Override
-        public int compare(String o1, String o2) {
-            return o1.compareTo(o2);
-        }
-    }
-
-    private int hashFileName(String fileName, int size) {
-        int nameSum = sumName(fileName);
-        int matchSm = nameSum % size;
-        return matchSm;
-    }
-
-    private int sumName(String name) {
-        int sum = 0;
-        for (int i = 0; i < name.length(); i++) {
-            sum = sum + name.charAt(i);
-        }
-        return sum;
-    }
-
-    private boolean isAlive(String serverId, List<String> aliveServers) {
-        if (aliveServers.contains(serverId)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public void close() throws IOException {
-
     }
 
 }
