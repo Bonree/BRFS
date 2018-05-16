@@ -6,7 +6,8 @@ public enum TaskType {
 	SYSTEM_MERGER(2),
 	SYSTEM_CHECK(3),
 	USER_DELETE(4),
-	SYSTEM_RECOVERY(5);
+	SYSTEM_RECOVERY(5),
+	SYSTEM_COPY_CHECK(6);
 	private int index = 0;
 	TaskType(int index){
 		this.index = index;
@@ -22,6 +23,8 @@ public enum TaskType {
 			return USER_DELETE;
 		}else if(5 == index){
 			return SYSTEM_RECOVERY;
+		}else if(6 == index){
+			return SYSTEM_COPY_CHECK;
 		}else {
 			return UNDEFINE;
 		}

@@ -21,7 +21,7 @@ public class JobDataMapConstract {
 	/**
 	 * zookeeper地址
 	 */
-//	public static final String ZOOKEEPER_ADDRESS = "ZOOKEEPER_ADDRESS";
+	public static final String ZOOKEEPER_ADDRESS = "ZOOKEEPER_ADDRESS";
 	/**
 	 * 任务过期时间
 	 */
@@ -72,6 +72,8 @@ public class JobDataMapConstract {
 	public static final String TASK_MAP_STAT = "TASK_MAP_STAT";
 	public static final String CURRENT_INDEX = "CURRENT_INDEX";
 	public static final String TASK_RESULT = "TASK_RESULT";
+	public static final String BATCH_SIZE = "BATCH_SIZE";
+	public static final String CURRENT_TASK_NAME = "CURRENT_TASK_NAME";
 	
 	/**
 	 * 概述：生成采集job需要的参数

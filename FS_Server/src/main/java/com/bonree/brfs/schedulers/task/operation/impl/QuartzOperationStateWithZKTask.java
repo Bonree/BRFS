@@ -31,6 +31,7 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 		String taskTypeName = null;
 		String taskName = null;
 		int stat = -1;
+		boolean isSuccess = true;
 		try{
 			data = context.getJobDetail().getJobDataMap();
 			int repeatCount = data.getInt(JobDataMapConstract.TASK_REPEAT_RUN_COUNT);
@@ -49,6 +50,7 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 		}catch(Exception e){
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
+			isSuccess = false;
 			LOG.info("{}",e);
 		}finally{
 			if(data == null){
@@ -57,7 +59,7 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 			LOG.info("operation batch id {}",currentIndex);
 			// 更新任务状态
 			TaskResultModel resultTask = new TaskResultModel();
-			resultTask.setSuccess(false);
+			resultTask.setSuccess(isSuccess);
 			updateMapTaskMessage(context, resultTask);
 			// 更新要操作的批次
 			if(currentIndex > 1){
@@ -67,6 +69,7 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 				String result = data.getString(JobDataMapConstract.TASK_RESULT);
 				stat = data.getInt(JobDataMapConstract.TASK_MAP_STAT);
 				updateTaskStatusByCompelete(serverId, taskName, taskTypeName, result, stat);
+				data.put(JobDataMapConstract.CURRENT_INDEX, (currentIndex-1)+"" );
 			}
 		}
 		

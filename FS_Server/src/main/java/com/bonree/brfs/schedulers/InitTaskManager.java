@@ -66,7 +66,6 @@ public class InitTaskManager {
 	//TODO:临时参数groupName
 	public static void initManager(ServerConfig serverConfig,ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageNameManager snm, ServerIDManager sim) throws Exception {
 		
-		LOG.info("ttttttttttt : {}",sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP));
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
 		boolean isReboot = !sim.isNewService();

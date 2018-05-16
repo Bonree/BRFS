@@ -1,4 +1,9 @@
 package com.bonree.brfs.schedulers.task.model;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -11,6 +16,7 @@ package com.bonree.brfs.schedulers.task.model;
 public class AtomTaskModel {
 	private String storageName;
 	private String dirName;
+	private List<String> files = new ArrayList<String>();
 	private String taskOperation;
 	public String getStorageName() {
 		return storageName;
@@ -29,5 +35,11 @@ public class AtomTaskModel {
 	}
 	public void setTaskOperation(String taskOperation) {
 		this.taskOperation = taskOperation;
+	}
+	public List<String> getFiles() {
+		return files;
+	}
+	public void setFiles(Collection<String> files) {
+		this.files.addAll(files);
 	}
 }

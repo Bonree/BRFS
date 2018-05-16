@@ -24,6 +24,8 @@ public class TaskModel {
 	 * 任务结果
 	 */
 	private TaskResultModel result;
+	private long startDataTime;
+	private long endDataTime;
 	
 	public int getTaskType() {
 		return taskType;
@@ -57,5 +59,20 @@ public class TaskModel {
 	}
 	public void putAtom(List<AtomTaskModel> atoms){
 		this.atomList.addAll(atoms);
+	}
+	public void addAtom(AtomTaskModel atom){
+		this.atomList.add(atom);
+	}
+	public long getStartDataTime() {
+		return startDataTime;
+	}
+	public void setStartDataTime(long startDataTime) {
+		this.startDataTime = startDataTime;
+	}
+	public long getEndDataTime() {
+		return endDataTime;
+	}
+	public void setEndDataTime(long endDataTime) {
+		this.endDataTime = endDataTime;
 	}
 }

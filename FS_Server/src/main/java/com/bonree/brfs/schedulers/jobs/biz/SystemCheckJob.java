@@ -97,8 +97,50 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		//更新任务状态
 		updateMapTaskMessage(context, result);
 	}
+	/**
+	 * 概述：校验文件
+	 * @param snName
+	 * @param dirName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	private TaskResultModel checkFiles(String snName, String dirName){
-		return null;
+		if(!FileUtils.isExist(dirName)){
+			LOG.warn("{} is not exists !!",dirName);
+			return null;
+		}
+		TaskResultModel result = new TaskResultModel();
+		AtomTaskResultModel atomR = new AtomTaskResultModel();
+		boolean isSuccess = false;
+		if(!FileUtils.isDirectory(dirName)){
+			LOG.warn("{} is not a directory !! ", dirName);
+			atomR.setSuccess(false);
+			atomR.setSn(snName);
+			atomR.setDir(dirName);
+			result.add(atomR);
+			result.setSuccess(false);
+			return result;
+		}
+		List<String> files = FileUtils.listFilePaths(dirName);
+		atomR.setSn(snName);
+		atomR.setDir(dirName);
+		int deleteCount = 0;
+		if(files != null){
+			for(String file : files){
+//				boolean isDelete = FileUtils.deleteFile(file);
+				boolean isCheckSuccess = false;
+				if(isCheckSuccess){
+					deleteCount ++;
+				}else{
+					atomR.add(file);
+					atomR.setSuccess(false);
+					result.setSuccess(false);
+				}
+			}
+		}
+		atomR.setOperationFileCount(deleteCount);
+		result.add(atomR);
+		return result;
 	}
 
 }

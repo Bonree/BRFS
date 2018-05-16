@@ -62,6 +62,14 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		if(BrStringUtils.isEmpty(path)){
 			throw new NullPointerException("data path is empty !!!");
 		}
+		int lastIndex = path.lastIndexOf("/");
+		if(lastIndex >0){
+			path = path.substring(0, lastIndex);
+		}
+		lastIndex = path.lastIndexOf("\\");
+		if(lastIndex >0){
+			path = path.substring(0, lastIndex);
+		}
 		MetaTaskManagerInterface release = mcf.getTm();
 		// 获取开启的任务名称
 		List<TaskType> switchList = mcf.getTaskOn();
@@ -84,8 +92,26 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		TaskModel task = null;
 		byte[] byteData = null;
 		String taskName = null;
+		String prexTaskName = null;
+		TaskModel prexTask = null;
+		List<String> taskList = null;
+		long preCreateTime = 0l;
 		for(TaskType taskType : switchList){
-			
+			//检查创建的时间间隔是否达到一小时
+			taskList = release.getTaskList(taskType.name());
+			if(taskList != null && !taskList.isEmpty()){
+				prexTaskName = taskList.get(taskList.size() - 1);
+			}
+			if(!BrStringUtils.isEmpty(prexTaskName)){
+				prexTask = release.getTaskContentNodeInfo(taskType.name(), prexTaskName);
+			}
+			if(prexTask != null){
+				preCreateTime = prexTask.getCreateTime();
+			}
+			if(currentTime - preCreateTime< 60*60*1000 ){
+				LOG.info("skip create {} task", taskType.name());
+				continue;
+			}
 			if(TaskType.SYSTEM_DELETE.equals(taskType)){
 				//创建删除任务
 				task = createTaskModel(snList, taskType, currentTime, path, "");
@@ -141,9 +167,9 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			ttl = snn.getTtl();
 			//系统删除任务判断
 			if(TaskType.SYSTEM_DELETE.equals(taskType) && (currentTime - creatTime) < ttl){
-				operationDirTime =currentTime - ttl;
 				continue;
 			}
+			operationDirTime =currentTime - ttl;
 			cAtoms = createAtomTaskModel(snn, dataPath, operationDirTime, taskOperation);
 			if(cAtoms == null || cAtoms.isEmpty()){
 				continue;
@@ -166,7 +192,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private List<AtomTaskModel> createAtomTaskModel(StorageNameNode sn, String dataPath, long time, String taskOperation){
+	private List<AtomTaskModel> createAtomTaskModel(StorageNameNode sn, String dataPath, final long time, String taskOperation){
 		List<AtomTaskModel> atomList = new ArrayList<AtomTaskModel>();
 		AtomTaskModel atom = null;
 		int copyCount = sn.getReplicateCount();

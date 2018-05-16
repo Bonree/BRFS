@@ -23,7 +23,7 @@ public class StorageNameFileUtils {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static String createSNDir(String sn,String dataPath, int copyIndex, long time){
+	public static String createSNDir(String sn,String dataPath, int copyIndex, final long time){
 		if(BrStringUtils.isEmpty(sn)){
 			return null;
 		}

@@ -62,7 +62,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener{
 				LOG.warn("SchedulerManagerInterface is null, Loss biggerst !!!");
 				return;
 			}
-			Properties prop = DefaultBaseSchedulers.createSimplePrope(2, 1000l);
+			Properties prop = DefaultBaseSchedulers.createSimplePrope(3, 1000l);
 			boolean createFlag;
 			createFlag = this.manager.createTaskPool(META_TASK_MANAGER, prop);
 			// 若创建不成功则返回
@@ -105,6 +105,8 @@ public class MetaTaskLeaderManager implements LeaderLatchListener{
 		Map<String, String> metaDataMap = JobDataMapConstract.createMetaDataMap(config);
 		SumbitTaskInterface metaJob = QuartzSimpleInfo.createCycleTaskInfo("META_MANAGER_TASK",
 			config.getCreateTaskIntervalTime(), -1, metaDataMap, ManagerMetaTaskJob.class);
+		SumbitTaskInterface checkJob = QuartzSimpleInfo.createCycleTaskInfo("", intervalTime, delayTime, jobMap, clazz)
+		
 		boolean isSuccess = this.manager.addTask(META_TASK_MANAGER, createJob);
 		LOG.info("sumbit create Job {} ", isSuccess ? " Sucess" : "Fail");
 		isSuccess = this.manager.addTask(META_TASK_MANAGER, metaJob);
