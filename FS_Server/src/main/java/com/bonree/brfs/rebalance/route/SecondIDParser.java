@@ -1,5 +1,6 @@
 package com.bonree.brfs.rebalance.route;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -58,29 +59,48 @@ public class SecondIDParser {
     public String[] getAliveSecondID(String partfid) {
         String[] splitStr = partfid.split("_");
         String fileUUID = splitStr[0];
-        
-        String[] aliveArr = new String[splitStr.length - 1];
+        List<String> fileServerIDs = new ArrayList<>(splitStr.length - 1);
+        for (int i = 1; i < splitStr.length; i++) {
+            fileServerIDs.add(splitStr[i]);
+        }
 
         for (int i = 1; i < splitStr.length; i++) { // 处理所有的副本
             String serverID = splitStr[i];
             if (serverID.charAt(0) == Constants.VIRTUAL_ID) {
                 VirtualRoute virtualRoute = virtualRouteDetail.get(serverID);
-                if (virtualRoute == null) { // 虚拟serverID还没有迁移哈，所以不变
-                    aliveArr[i - 1] = serverID;
-                } else {
+                if (virtualRoute != null) { // 副本发生了迁移
                     serverID = virtualRoute.getNewSecondID(); // 找到迁移后的serverID
+                    fileServerIDs.set(i - 1, serverID);
                     NormalRoute normalRoute = normalRouteDetail.get(serverID);// 查看该serverID是否迁移
                     List<String> newServerIDS = null;
-                    while (normalRoute != null) { //只要发生了迁移，则继续计算迁移位置
+                    while (normalRoute != null) { // 只要发生了迁移，则继续计算迁移位置
                         newServerIDS = normalRoute.getNewSecondIDs();
-//                        RebalanceUtils.newServerID(fileUUID, newServerIDS, fileServerIDs);
+                        serverID = RebalanceUtils.newServerID(fileUUID, newServerIDS, fileServerIDs);
+                        fileServerIDs.set(i - 1, serverID);
+                        normalRoute = normalRouteDetail.get(serverID);
                     }
                 }
             } else if (serverID.charAt(0) == Constants.MULTI_ID) {
-
+                NormalRoute normalRoute = normalRouteDetail.get(serverID);// 查看该serverID是否迁移
+                List<String> newServerIDS = null;
+                while (normalRoute != null) { // 只要发生了迁移，则继续计算迁移位置
+                    newServerIDS = normalRoute.getNewSecondIDs();
+                    serverID = RebalanceUtils.newServerID(fileUUID, newServerIDS, fileServerIDs);
+                    fileServerIDs.set(i - 1, serverID);
+                    normalRoute = normalRouteDetail.get(serverID);
+                }
             }
         }
-        return null;
+        return fileServerIDs.toArray(new String[0]);
+    }
+    
+    public static void main(String[] args) {
+        List<String> strs = new ArrayList<String>();
+        strs.add("111");
+        strs.add("222");
+        
+        System.out.println(strs.toArray(new String[0]).length);
+        
     }
 
 }
