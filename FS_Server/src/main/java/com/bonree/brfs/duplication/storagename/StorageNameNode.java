@@ -9,12 +9,15 @@ public class StorageNameNode {
 	public static final String ATTR_REPLICATION = "replication";
 	//数据有效期属性名
 	public static final String ATTR_TTL = "ttl";
+	public static final String ATTR_ENABLE = "enable";
 	
 	private String name;
 	private int id;
 	private int replicateCount;
 	private int ttl;
 	private long createTime;
+	
+	private boolean enable = true;
 	
 	public StorageNameNode() {
 	}
@@ -53,6 +56,14 @@ public class StorageNameNode {
 	public void setCreateTime(long createTime) {
 		this.createTime = createTime;
 	}
+	
+	public boolean isEnable() {
+        return enable;
+    }
+
+    public void setEnable(boolean enable) {
+        this.enable = enable;
+    }
 
 	@Override
 	public boolean equals(Object obj) {
@@ -79,7 +90,8 @@ public class StorageNameNode {
 		       .append(name).append(",")
 		       .append(id).append(",")
 		       .append(replicateCount).append(",")
-		       .append(ttl).append("]");
+		       .append(ttl).append(",")
+		       .append(enable).append("]");
 		
 		return builder.toString();
 	}

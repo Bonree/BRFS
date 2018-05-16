@@ -120,7 +120,7 @@ public class BootStrap {
 		snRequestHandler.addMessageHandler("PUT", new CreateStorageNameMessageHandler(storageNameManager));
 		snRequestHandler.addMessageHandler("POST", new UpdateStorageNameMessageHandler(storageNameManager));
 		snRequestHandler.addMessageHandler("GET", new OpenStorageNameMessageHandler(storageNameManager));
-		snRequestHandler.addMessageHandler("DELETE", new DeleteStorageNameMessageHandler(storageNameManager));
+		snRequestHandler.addMessageHandler("DELETE", new DeleteStorageNameMessageHandler(storageNameManager,serviceManager));
 		NettyHttpContextHandler snContextHandler = new NettyHttpContextHandler(DuplicationEnvironment.URI_STORAGENAME_NODE_ROOT, snRequestHandler);
 		httpServer.addContextHandler(snContextHandler);
 		

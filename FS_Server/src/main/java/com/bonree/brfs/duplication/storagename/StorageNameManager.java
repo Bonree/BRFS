@@ -4,14 +4,10 @@ import java.util.List;
 
 import com.bonree.brfs.common.utils.Attributes;
 import com.bonree.brfs.common.utils.LifeCycle;
+import com.bonree.brfs.duplication.storagename.exception.StorageNameExistException;
+import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
+import com.bonree.brfs.duplication.storagename.exception.StorageNameRemoveException;
 
-/**
- * 管理StorageName相关信息，可以对StorageName进行
- * 增、删、改、查
- * 
- * @author yupeng
- *
- */
 public interface StorageNameManager extends LifeCycle {
 	/**
 	 * 判断有指定名称的StorageName是否存在
@@ -29,8 +25,9 @@ public interface StorageNameManager extends LifeCycle {
 	 * @param storageName StorageName名称
 	 * @param properties 与StorageName相关的属性信息
 	 * @return
+	 * @throws StorageNameExistException 
 	 */
-	StorageNameNode createStorageName(String storageName, Attributes properties);
+	StorageNameNode createStorageName(String storageName, Attributes properties) throws StorageNameExistException;
 	
 	/**
 	 * <p>更新指定StorageName的属性信息<p>
@@ -46,16 +43,20 @@ public interface StorageNameManager extends LifeCycle {
 	 * 
 	 * @param storageId
 	 * @return
+	 * @throws StorageNameNonexistentException 
+	 * @throws StorageNameRemoveException 
 	 */
-	boolean removeStorageName(int storageId);
+	boolean removeStorageName(int storageId) throws StorageNameNonexistentException, StorageNameRemoveException;
 	
 	/**
 	 * 删除指定名称的StorageName节点
 	 * 
 	 * @param storageName
 	 * @return
+	 * @throws StorageNameNonexistentException 
+	 * @throws StorageNameRemoveException 
 	 */
-	boolean removeStorageName(String storageName);
+	boolean removeStorageName(String storageName) throws StorageNameNonexistentException, StorageNameRemoveException;
 	
 	/**
 	 * 查询指定名称的StorageName节点
@@ -80,5 +81,6 @@ public interface StorageNameManager extends LifeCycle {
 	 */
 	List<StorageNameNode> getStorageNameNodeList();
 	
+
 	void addStorageNameStateListener(StorageNameStateListener listener);
 }
