@@ -29,7 +29,7 @@ public class WriteDataMessageHandler implements MessageHandler {
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
 		DataItem[] items = writeMsg.getItems();
-		LOG.info("Writing DataItem[{}]", items.length);
+		LOG.debug("Writing DataItem[{}]", items.length);
 		
 		if(items == null || items.length == 0) {
 			HandleResult result = new HandleResult();

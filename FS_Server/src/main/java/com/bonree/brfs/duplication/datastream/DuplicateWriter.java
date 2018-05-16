@@ -49,7 +49,7 @@ public class DuplicateWriter {
 	
 	public void write(int storageId, DataItem[] items, DataHandleCallback<DataWriteResult> callback) {
 		EmitResultGather resultGather = new EmitResultGather(items.length, callback);
-		LOG.info("---size=={}", items.length);
+		LOG.debug("---size=={}", items.length);
 		for(DataItem item : items) {
 			if(item == null || item.getBytes() == null || item.getBytes().length == 0) {
 				resultGather.putResultItem(new ResultItem(item.getSequence()));
@@ -58,7 +58,7 @@ public class DuplicateWriter {
 			
 			try {
 				FileLimiter file = fileLounge.getFileLimiter(storageId, item.getBytes().length);
-				LOG.info("get FileLimiter[{}]", file);
+				LOG.debug("get FileLimiter[{}]", file);
 				
 				emitData(item, file, resultGather);
 			} catch (Exception e) {
@@ -70,11 +70,11 @@ public class DuplicateWriter {
 	
 	private void emitData(DataItem item, FileLimiter file, EmitResultGather resultGather) {
 		DiskNodeConnection[] connections = connectionPool.getConnections(file.getFileNode().getDuplicateNodes());
-		LOG.info("get Connections size={}", connections.length);
+		LOG.debug("get Connections size={}", connections.length);
 		
 		AsyncTaskGroup<WriteTaskResult> taskGroup = new AsyncTaskGroup<WriteTaskResult>();
 		for(int i = 0; i < connections.length; i++) {
-			LOG.info("get connection----{}", connections[i]);
+			LOG.debug("get connection----{}", connections[i]);
 			if(connections[i] != null) {
 				String serverId = idManager.getOtherSecondID(file.getFileNode().getDuplicateNodes()[i].getId(), file.getFileNode().getStorageId());
 				taskGroup.addTask(new DataWriteTask(connections[i].getService().getServiceId(), connections[i], file, item, serverId));
@@ -97,7 +97,7 @@ public class DuplicateWriter {
 
 		@Override
 		public void completed(AsyncTaskResult<WriteTaskResult>[] results) {
-			LOG.info("Write result size----{}", results.length);
+			LOG.debug("Write result size----{}", results.length);
 			List<WriteTaskResult> taskResultList = getValidResultList(results);
 			
 			if(taskResultList.isEmpty()) {

@@ -38,7 +38,7 @@ public class WriteMessageHandler implements MessageHandler {
 		
 		try {
 			String realPath = diskContext.getConcreteFilePath(msg.getPath());
-			LOG.info("WRITE [{}], data length[{}]", realPath, msg.getContent().length);
+			LOG.debug("WRITE [{}], data length[{}]", realPath, msg.getContent().length);
 			
 			if(msg.getContent().length == 0) {
 				throw new IllegalArgumentException("Writing data is Empty!!");
@@ -48,7 +48,7 @@ public class WriteMessageHandler implements MessageHandler {
 			
 			WriteData item = ProtoStuffUtils.deserialize(msg.getContent(), WriteData.class);
 			
-			LOG.info("seq[{}], size[{}]", item.getSequence(), item.getBytes().length);
+			LOG.debug("seq[{}], size[{}]", item.getSequence(), item.getBytes().length);
 			
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
 			if(binding == null) {

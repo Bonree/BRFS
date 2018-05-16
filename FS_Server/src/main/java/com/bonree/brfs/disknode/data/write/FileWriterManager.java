@@ -69,7 +69,7 @@ public class FileWriterManager implements LifeCycle {
 					@Override
 					public void timeout(
 							Pair<RecordFileWriter, WriteWorker> target) {
-						LOG.info("timeout---{}", target.first().getPath());
+						LOG.debug("timeout---{}", target.first().getPath());
 
 						target.second().put(new WriteTask<Void>() {
 

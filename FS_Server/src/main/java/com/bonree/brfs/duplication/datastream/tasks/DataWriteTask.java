@@ -47,14 +47,18 @@ public class DataWriteTask extends AsyncTask<WriteTaskResult> {
 				return null;
 			}
 			
-			LOG.info("write data to {}:{}", connection.getService().getHost(), connection.getService().getPort());
+			LOG.debug("write data to {}:{}", connection.getService().getHost(), connection.getService().getPort());
 			
 			String filePath = FilePathBuilder.buildPath(file.getFileNode(), serverId);
 			
-			LOG.info("writing {}[seq[{}]###size[{}]]", filePath, file.sequence(), item.getBytes().length);
+			LOG.debug("writing {}[seq[{}]###size[{}]]", filePath, file.sequence(), item.getBytes().length);
 			WriteResult result = client.writeData(filePath, file.sequence(), item.getBytes());
+			if(result == null) {
+				return null;
+			}
+			
 			WriteTaskResult taskResult = new WriteTaskResult();
-			LOG.info("Write Result--{}", result);
+			LOG.debug("Write Result--{}", result);
 			
 			taskResult.setOffset(result.getOffset());
 			taskResult.setSize(result.getSize());
