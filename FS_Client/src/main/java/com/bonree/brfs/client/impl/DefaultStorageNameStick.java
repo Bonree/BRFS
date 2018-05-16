@@ -145,16 +145,19 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	}
 
 	@Override
-	public boolean deleteData(long startTime, long endTime) {
+	public boolean deleteData(String startTime, String endTime) {
 		Service service = dupSelector.randomService();
+		
+		StringBuilder pathBuilder = new StringBuilder();
+		pathBuilder.append(URI_DATA_ROOT)
+		           .append(storageId).append("/")
+		           .append(startTime).append("_").append(endTime);
 		
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(service.getHost())
 	    .setPort(service.getPort())
-	    .setPath(URI_DATA_ROOT + storageId)
-	    .addParameter("start", String.valueOf(startTime))
-	    .addParameter("end", String.valueOf(endTime))
+	    .setPath(pathBuilder.toString())
 	    .build();
 		
 		try {

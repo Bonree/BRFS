@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,16 @@ public class DeleteDataMessageHandler implements MessageHandler {
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		HandleResult result = new HandleResult();
-		int storageId = Integer.parseInt(msg.getPath().replaceAll("/", ""));
+		
+		List<String> deleteInfo = Splitter.on("/").omitEmptyStrings().trimResults().splitToList(msg.getPath());
+		if(deleteInfo.size() != 2) {
+			result.setSuccess(false);
+			result.setCause(new IllegalArgumentException(msg.getPath()));
+			callback.completed(result);
+			return;
+		}
+		
+		int storageId = Integer.parseInt(deleteInfo.get(0));
 		
 		LOG.info("DELETE data for storage[{}]", storageId);
 		
@@ -52,17 +62,10 @@ public class DeleteDataMessageHandler implements MessageHandler {
 			return;
 		}
 		
-		Map<String, String> params = msg.getParams();
-		if(!params.containsKey("start") || !params.containsKey("end")) {
-			result.setSuccess(false);
-			result.setCause(new Exception("start time and end time must be set!"));
-			return;
-		}
-		
-		long startTime = Long.parseLong(params.get("start"));
-		long endTime = Long.parseLong(params.get("end"));
-		LOG.info("DELETE DATA [{}-->{}]", startTime, endTime);
-		
+		List<String> times = Splitter.on("_").omitEmptyStrings().trimResults().splitToList(deleteInfo.get(1));
+		long startTime = DateTime.parse(times.get(0)).getMillis();
+		long endTime = DateTime.parse(times.get(1)).getMillis();
+		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
 		
 		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
 		boolean deleteCompleted = true;
@@ -110,7 +113,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 			}
 			
 			List<String> times = Splitter.on("_").splitToList(new File(info.getPath()).getName());
-			if(startTime <= Long.parseLong(times.get(0)) && Long.parseLong(times.get(1)) <= endTime) {
+			if(startTime <= DateTime.parse(times.get(0)).getMillis() && DateTime.parse(times.get(1)).getMillis() <= endTime) {
 				fileNames.add(info.getPath());
 			}
 		}

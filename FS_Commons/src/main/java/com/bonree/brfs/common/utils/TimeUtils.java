@@ -1,5 +1,7 @@
 package com.bonree.brfs.common.utils;
 
+import org.joda.time.DateTime;
+
 public final class TimeUtils {
 	
 	/**
@@ -12,7 +14,7 @@ public final class TimeUtils {
 	public static String timeInterval(long now, long interval) {
 		StringBuilder builder = new StringBuilder();
 		long last = (now - now % interval);
-		builder.append(last).append('_').append(last + interval);
+		builder.append(new DateTime(last)).append('_').append(new DateTime(last + interval));
 		
 		return builder.toString();
 	}

@@ -118,6 +118,13 @@ public class DefaultFileRecovery implements FileRecovery {
 			LOG.info("Recovery Check union[{}]", union.cardinality());
 			if(union.nextSetBit(union.cardinality()) == -1) {
 				//当前存活的所有节点包含了此文件的所有信息，可以进行文件内容同步
+				
+				if(intersection.cardinality() == union.cardinality()) {
+					//如果交集和并集的数量一样，说明没有文件数据缺失
+					listener.complete(target);
+					return;
+				}
+				
 				List<SeqInfo> infos = new ArrayList<SeqInfo>();
 				for(FileSequence sequence : seqList) {
 					BitSet set = sequence.getSequenceSet();
