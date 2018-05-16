@@ -1,10 +1,9 @@
 package com.bonree.brfs.duplication.datastream.handler;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import ch.qos.logback.core.net.server.Client;
 
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
@@ -13,13 +12,13 @@ import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.CloseUtils;
-import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
+import com.google.common.base.Splitter;
 
 public class DeleteDataMessageHandler implements MessageHandler {
 	private ServiceManager serviceManager;
@@ -59,7 +58,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 			DiskNodeClient client = null;
 			try {
 				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
-				List<FileInfo> fileList = client.listFiles(path, 2);
+				List<FileInfo> fileList = client.listFiles(path, 3);
 				
 				List<String> deleteList = filterByTime(fileList, startTime, endTime);
 				if(deleteList.isEmpty()) {
@@ -91,7 +90,17 @@ public class DeleteDataMessageHandler implements MessageHandler {
 	
 	private List<String> filterByTime(List<FileInfo> fileList, long startTime, long endTime) {
 		ArrayList<String> fileNames = new ArrayList<String>();
-		//TODO filter
+		for(FileInfo info : fileList) {
+			if(info.getLevel() != 3) {
+				continue;
+			}
+			
+			List<String> times = Splitter.on("_").splitToList(new File(info.getPath()).getName());
+			if(startTime <= Long.parseLong(times.get(0)) && Long.parseLong(times.get(1)) <= endTime) {
+				fileNames.add(info.getPath());
+			}
+		}
+		
 		return fileNames;
 	}
 }
