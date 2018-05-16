@@ -1,9 +1,6 @@
 package com.bonree.brfs.client.route;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -12,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
-import com.bonree.brfs.common.utils.CompareFromName;
 import com.bonree.brfs.common.utils.RebalanceUtils;
 
 public class RouteParser {
@@ -99,7 +95,7 @@ public class RouteParser {
                     exceptionServerIds = new ArrayList<>();
                     exceptionServerIds.addAll(fileServerIds);
                     exceptionServerIds.remove(deadServer);
-                    selectableServerList = getSelectedList(recoverableServerList, exceptionServerIds);
+                    selectableServerList = RebalanceUtils.getSelectedList(recoverableServerList, exceptionServerIds);
                     int index = RebalanceUtils.hashFileName(namePart, selectableServerList.size());
                     selectMultiId = selectableServerList.get(index);
                     fileServerIds.set(pot, selectMultiId);
@@ -115,17 +111,6 @@ public class RouteParser {
             }
         }
         return selectMultiId;
-    }
-
-    private List<String> getSelectedList(List<String> aliveServerList, List<String> excludeServers) {
-        List<String> selectedList = new ArrayList<>();
-        for (String tmp : aliveServerList) {
-            if (!excludeServers.contains(tmp)) {
-                selectedList.add(tmp);
-            }
-        }
-        Collections.sort(selectedList, new CompareFromName());
-        return selectedList;
     }
 
 }

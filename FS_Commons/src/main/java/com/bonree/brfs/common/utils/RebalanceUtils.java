@@ -1,5 +1,7 @@
 package com.bonree.brfs.common.utils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class RebalanceUtils {
@@ -60,6 +62,30 @@ public class RebalanceUtils {
             }
         }
         return flag;
+    }
+    
+    public static List<String> getSelectedList(List<String> aliveServerList, List<String> excludeServers) {
+        List<String> selectedList = new ArrayList<>();
+        for (String tmp : aliveServerList) {
+            if (!excludeServers.contains(tmp)) {
+                selectedList.add(tmp);
+            }
+        }
+        Collections.sort(selectedList, new CompareFromName());
+        return selectedList;
+    }
+    
+    /** 概述：选择新的serverID
+     * @param fileUUID
+     * @param serverIDs
+     * @param fileServerIDs
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public static String newServerID(String fileUUID,List<String> serverIDs,List<String> fileServerIDs) {
+        List<String> selectableServerList = RebalanceUtils.getSelectedList(serverIDs, fileServerIDs);
+        int index = RebalanceUtils.hashFileName(fileUUID, selectableServerList.size());
+        return selectableServerList.get(index);
     }
 
 }
