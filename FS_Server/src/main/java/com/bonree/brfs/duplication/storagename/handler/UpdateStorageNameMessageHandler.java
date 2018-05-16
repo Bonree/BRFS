@@ -15,7 +15,7 @@ public class UpdateStorageNameMessageHandler extends StorageNameMessageHandler {
 
 	@Override
 	public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
-		boolean success = storageNameManager.updateStorageName(msg.getName(), msg.getTtl());
+		boolean success = storageNameManager.updateStorageName(msg.getName(), msg.getAttributes());
 		
 		HandleResult result = new HandleResult();
 		result.setSuccess(success);

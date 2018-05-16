@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.utils.Attributes;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
@@ -39,6 +40,9 @@ public class DefaultStorageNameManager implements StorageNameManager {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageNameManager.class);
 	
 	private static final String DEFAULT_STORAGE_NAME_ROOT = ZookeeperPaths.STORAGE_NAMES;
+	
+	private static final int DEFAULT_STORAGE_NAME_REPLICATIONS = 2;
+	private static final int DEFAULT_STORAGE_NAME_TTL = 100;
 	
 	private static final int DEFAULT_MAX_CACHE_SIZE = 100;
 	private LoadingCache<String, Optional<StorageNameNode>> storageNameCache;
@@ -98,12 +102,14 @@ public class DefaultStorageNameManager implements StorageNameManager {
 	}
 
 	@Override
-	public StorageNameNode createStorageName(String storageName, int replicas, int ttl) {
+	public StorageNameNode createStorageName(String storageName, Attributes attrs) {
 		if(exists(storageName)) {
 			return findStorageName(storageName);
 		}
 		
-		StorageNameNode node = new StorageNameNode(storageName, idBuilder.createStorageId(), replicas, ttl);
+		StorageNameNode node = new StorageNameNode(storageName, idBuilder.createStorageId(),
+				attrs.getInt(StorageNameNode.ATTR_REPLICATION, DEFAULT_STORAGE_NAME_REPLICATIONS),
+				attrs.getInt(StorageNameNode.ATTR_TTL, DEFAULT_STORAGE_NAME_TTL));
 		String storageNamePath = buildStorageNamePath(storageName);
 		
 		String path = null;
@@ -196,13 +202,13 @@ public class DefaultStorageNameManager implements StorageNameManager {
 	}
 
 	@Override
-	public boolean updateStorageName(String storageName, int ttl) {
+	public boolean updateStorageName(String storageName, Attributes attrs) {
 		if(!exists(storageName)) {
 			return false;
 		}
 		
 		StorageNameNode node = findStorageName(storageName);
-		node.setTtl(ttl);
+		node.setTtl(attrs.getInt(StorageNameNode.ATTR_TTL, node.getTtl()));
 		
 		try {
 			zkClient.setData().forPath(buildStorageNamePath(storageName), ProtoStuffUtils.serialize(node));
@@ -234,6 +240,10 @@ public class DefaultStorageNameManager implements StorageNameManager {
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 			ChildData data = event.getData();
+			if(data == null) {
+				return;
+			}
+			
 			String storageName = ZKPaths.getNodeFromPath(data.getPath());
 			LOG.info("event[{}] for storagename[{}]", event.getType(), storageName);
 			switch (event.getType()) {

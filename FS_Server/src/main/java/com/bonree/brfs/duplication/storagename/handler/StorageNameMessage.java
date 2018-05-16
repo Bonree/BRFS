@@ -1,10 +1,10 @@
 package com.bonree.brfs.duplication.storagename.handler;
 
+import com.bonree.brfs.common.utils.Attributes;
+
 public class StorageNameMessage {
 	private String name;
-
-	private int replicas;
-	private int ttl;
+	private Attributes attrs = new Attributes();
 
 	public String getName() {
 		return name;
@@ -13,20 +13,12 @@ public class StorageNameMessage {
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	public int getReplicas() {
-		return replicas;
+	
+	public void addAttribute(String name, Object value) {
+		attrs.putObject(name, value);
 	}
-
-	public void setReplicas(int replicas) {
-		this.replicas = replicas;
-	}
-
-	public int getTtl() {
-		return ttl;
-	}
-
-	public void setTtl(int ttl) {
-		this.ttl = ttl;
+	
+	public Attributes getAttributes() {
+		return attrs;
 	}
 }

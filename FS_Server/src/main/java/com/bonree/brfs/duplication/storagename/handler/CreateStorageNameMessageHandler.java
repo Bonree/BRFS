@@ -23,8 +23,8 @@ public class CreateStorageNameMessageHandler extends StorageNameMessageHandler {
 
 	@Override
 	public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
-		LOG.info("create storageName[{}, {}, {}}", msg.getName(), msg.getReplicas(), msg.getTtl());
-		StorageNameNode node = storageNameManager.createStorageName(msg.getName(), msg.getReplicas(), msg.getTtl());
+		LOG.info("create storageName[{}]", msg.getName(), msg.getAttributes());
+		StorageNameNode node = storageNameManager.createStorageName(msg.getName(), msg.getAttributes());
 		
 		LOG.info("created NODE[{}]", node);
 		HandleResult result = new HandleResult();

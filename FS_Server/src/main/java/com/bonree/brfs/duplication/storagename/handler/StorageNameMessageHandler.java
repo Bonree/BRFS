@@ -8,10 +8,14 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.google.common.base.Splitter;
 
 public abstract class StorageNameMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(StorageNameMessageHandler.class);
+	
+	private static final String PARAM_REPLICATION = "replicas";
+	private static final String PARAM_TTL = "ttl";
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
@@ -21,8 +25,8 @@ public abstract class StorageNameMessageHandler implements MessageHandler {
 		LOG.info("handle StorageName[{}]", message.getName());
 		
 		Map<String, String> params = msg.getParams();
-		message.setReplicas(Integer.parseInt(params.getOrDefault("replicas", "1")));
-		message.setTtl(Integer.parseInt(params.getOrDefault("ttl", "100")));
+		message.addAttribute(StorageNameNode.ATTR_REPLICATION, Integer.parseInt(params.get(PARAM_REPLICATION)));
+		message.addAttribute(StorageNameNode.ATTR_TTL, Integer.parseInt(params.get(PARAM_TTL)));
 		
 		handleMessage(message, callback);
 	}

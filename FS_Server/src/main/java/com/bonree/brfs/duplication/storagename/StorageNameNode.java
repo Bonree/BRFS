@@ -2,6 +2,14 @@ package com.bonree.brfs.duplication.storagename;
 
 
 public class StorageNameNode {
+	/**
+	 * StorageName的属性名
+	 */
+	//副本数属性名
+	public static final String ATTR_REPLICATION = "replication";
+	//数据有效期属性名
+	public static final String ATTR_TTL = "ttl";
+	
 	private String name;
 	private int id;
 	private int replicateCount;
