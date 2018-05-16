@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
@@ -12,6 +15,7 @@ import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.CloseUtils;
+import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
@@ -21,6 +25,10 @@ import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentE
 import com.google.common.base.Splitter;
 
 public class DeleteDataMessageHandler implements MessageHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(DeleteDataMessageHandler.class);
+	
+	private static final int TIME_INTERVAL_LEVEL = 2;
+	
 	private ServiceManager serviceManager;
 	private StorageNameManager storageNameManager;
 	
@@ -32,7 +40,9 @@ public class DeleteDataMessageHandler implements MessageHandler {
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		HandleResult result = new HandleResult();
-		int storageId = Integer.parseInt(msg.getPath());
+		int storageId = Integer.parseInt(msg.getPath().replaceAll("/", ""));
+		
+		LOG.info("DELETE data for storage[{}]", storageId);
 		
 		String path = getPathByStorageNameId(storageId);
 		if(path == null) {
@@ -51,14 +61,17 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		
 		long startTime = Long.parseLong(params.get("start"));
 		long endTime = Long.parseLong(params.get("end"));
+		LOG.info("DELETE DATA [{}-->{}]", startTime, endTime);
 		
-		List<Service> serviceList = serviceManager.getServiceListByGroup("disk");
+		
+		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
 		boolean deleteCompleted = true;
 		for(Service service : serviceList) {
 			DiskNodeClient client = null;
 			try {
 				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
-				List<FileInfo> fileList = client.listFiles(path, 3);
+				List<FileInfo> fileList = client.listFiles(path, TIME_INTERVAL_LEVEL);
+				LOG.info("get file list size={}", fileList.size());
 				
 				List<String> deleteList = filterByTime(fileList, startTime, endTime);
 				if(deleteList.isEmpty()) {
@@ -66,6 +79,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 				}
 				
 				for(String deletePath : deleteList) {
+					LOG.info("Deleting----[{}]", deletePath);
 					deleteCompleted &= client.deleteDir(deletePath, true, true);
 				}
 			} catch(Exception e) {
@@ -91,7 +105,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 	private List<String> filterByTime(List<FileInfo> fileList, long startTime, long endTime) {
 		ArrayList<String> fileNames = new ArrayList<String>();
 		for(FileInfo info : fileList) {
-			if(info.getLevel() != 3) {
+			if(info.getLevel() != TIME_INTERVAL_LEVEL) {
 				continue;
 			}
 			

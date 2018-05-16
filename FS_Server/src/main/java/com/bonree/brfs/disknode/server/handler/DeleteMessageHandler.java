@@ -5,6 +5,9 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
@@ -14,6 +17,7 @@ import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.server.handler.data.DeleteData;
 
 public class DeleteMessageHandler implements MessageHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(DeleteMessageHandler.class);
 	
 	private DiskContext diskContext;
 	private FileWriterManager writerManager;
@@ -31,10 +35,13 @@ public class DeleteMessageHandler implements MessageHandler {
 			String filePath = diskContext.getConcreteFilePath(msg.getPath());
 			
 			Map<String, String> params = msg.getParams();
-			DeleteData data = new DeleteData();
-			data.setForceClose(Boolean.parseBoolean(params.getOrDefault("force", "false")));
-			data.setForceClose(Boolean.parseBoolean(params.getOrDefault("recursive", "false")));
+			LOG.info("delete params--{}", params);
 			
+			DeleteData data = new DeleteData();
+			data.setForceClose(params.containsKey("force") ? true : false);
+			data.setRecursive(params.containsKey("recursive") ? true : false);
+			
+			LOG.info("deleting path[{}], force[{}], recursive[{}]", filePath, data.isForceClose(), data.isRecursive());
 			File targetFile = new File(filePath);
 			if(targetFile.isFile()) {
 				try {
@@ -62,6 +69,8 @@ public class DeleteMessageHandler implements MessageHandler {
 	}
 	
 	private void closeFile(File file, boolean forceClose) throws IllegalStateException {
+		LOG.info("DISK Deleting file[{}]", file.getAbsolutePath());
+		
 		if(writerManager.getBinding(file.getAbsolutePath(), false) == null) {
 			file.delete();
 			return;
@@ -77,27 +86,37 @@ public class DeleteMessageHandler implements MessageHandler {
 	
 	private void closeDir(File dir, boolean recursive, boolean forceClose) {
 		Queue<File> fileQueue = new LinkedList<File>();
+		LinkedList<File> deletingDirs = new LinkedList<File>();
 		fileQueue.add(dir);
 		
-		File[] fileList = dir.listFiles();
-		if(fileList.length == 0) {
+		
+		if(dir.list().length == 0) {
 			dir.delete();
 			return;
 		}
 		
+		if(!recursive) {
+			throw new IllegalStateException("Directory[" + dir.getAbsolutePath() + "] is not empty!");
+		}
+		
+		//第一轮先删除普通文件节点
 		while(!fileQueue.isEmpty()) {
 			File file = fileQueue.poll();
 			if(file.isDirectory()) {
 				for(File child : file.listFiles()) {
 					fileQueue.add(child);
 				}
-			} else {
-				if(recursive) {
-					throw new IllegalStateException("File exists in dir[" + dir.getAbsolutePath() + "]");
-				}
 				
+				deletingDirs.addFirst(file);
+			} else {
 				closeFile(file, forceClose);
 			}
+		}
+		
+		//第二轮删除文件夹节点
+		for(File deleteDir : deletingDirs) {
+			LOG.info("DISK Deleting dir[{}]", deleteDir.getAbsolutePath());
+			deleteDir.delete();
 		}
 	}
 
