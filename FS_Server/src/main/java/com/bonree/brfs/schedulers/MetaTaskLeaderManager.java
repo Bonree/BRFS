@@ -105,7 +105,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener{
 		Map<String, String> metaDataMap = JobDataMapConstract.createMetaDataMap(config);
 		SumbitTaskInterface metaJob = QuartzSimpleInfo.createCycleTaskInfo("META_MANAGER_TASK",
 			config.getCreateTaskIntervalTime(), -1, metaDataMap, ManagerMetaTaskJob.class);
-		SumbitTaskInterface checkJob = QuartzSimpleInfo.createCycleTaskInfo("", intervalTime, delayTime, jobMap, clazz)
+//		SumbitTaskInterface checkJob = QuartzSimpleInfo.createCycleTaskInfo("COPY_CHECK_TASK", intervalTime, delayTime, jobMap, clazz)
 		
 		boolean isSuccess = this.manager.addTask(META_TASK_MANAGER, createJob);
 		LOG.info("sumbit create Job {} ", isSuccess ? " Sucess" : "Fail");
