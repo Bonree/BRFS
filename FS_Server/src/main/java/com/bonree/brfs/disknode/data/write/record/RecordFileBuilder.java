@@ -12,6 +12,16 @@ public final class RecordFileBuilder {
 	private static final String RECORD_FILE_SUFFIX = ".rd";
 	
 	/**
+	 * 判断文件是否是日志文件
+	 * 
+	 * @param filePath
+	 * @return
+	 */
+	public static boolean isRecordFile(String filePath) {
+		return filePath.endsWith(RECORD_FILE_SUFFIX);
+	}
+	
+	/**
 	 * 根据数据文件的文件名构建数据日志文件
 	 * 
 	 * @param dataFilePath

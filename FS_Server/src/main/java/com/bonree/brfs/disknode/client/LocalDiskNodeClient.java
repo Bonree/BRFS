@@ -109,4 +109,10 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	public void close() throws IOException {
 	}
 
+	@Override
+	public int[] getWritingFileMetaInfo(String path) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

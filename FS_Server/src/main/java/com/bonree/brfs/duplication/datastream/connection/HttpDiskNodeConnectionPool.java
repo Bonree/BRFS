@@ -9,6 +9,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.CloseUtils;
@@ -16,6 +19,7 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 
 public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
+	private static final Logger LOG = LoggerFactory.getLogger(HttpDiskNodeConnectionPool.class);
 	
 	private static final int DEFAULT_CONNECTION_STATE_CHECK_INTERVAL = 1;
 	private ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("connection_checker"));

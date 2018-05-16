@@ -59,7 +59,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		
 		try {
 			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(writeItem));
-			return ProtoStuffUtils.deserialize(response.getResponseBody(), WriteResult.class);
+			if(response.isReponseOK()) {
+				return ProtoStuffUtils.deserialize(response.getResponseBody(), WriteResult.class);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -96,7 +98,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		byte[] result = null;
 		try {
 			HttpResponse response = client.executeGet(uri);
-			result = response.getResponseBody();
+			if(response.isReponseOK()) {
+				result = response.getResponseBody();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -182,7 +186,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		
 		try {
 			HttpResponse response = client.executeGet(uri);
-			return BitSet.valueOf(response.getResponseBody());
+			if(response.isReponseOK()) {
+				return BitSet.valueOf(response.getResponseBody());
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -242,7 +248,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		
 		try {
 			HttpResponse response = client.executeGet(uri);
-			return response.getResponseBody();
+			if(response.isReponseOK()) {
+				return response.getResponseBody();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -263,18 +271,20 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		try {
 			HttpResponse response = client.executeGet(uri);
 			
-			JSONArray array = JSONArray.parseArray(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
-			ArrayList<FileInfo> result = new ArrayList<FileInfo>();
-			for(int i = 0; i < array.size(); i++) {
-				JSONObject object = array.getJSONObject(i);
-				FileInfo info = new FileInfo();
-				info.setType(object.getIntValue("type"));
-				info.setLevel(object.getIntValue("level"));
-				info.setPath(object.getString("path"));
-				result.add(info);
+			if(response.isReponseOK()) {
+				JSONArray array = JSONArray.parseArray(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
+				ArrayList<FileInfo> result = new ArrayList<FileInfo>();
+				for(int i = 0; i < array.size(); i++) {
+					JSONObject object = array.getJSONObject(i);
+					FileInfo info = new FileInfo();
+					info.setType(object.getIntValue("type"));
+					info.setLevel(object.getIntValue("level"));
+					info.setPath(object.getString("path"));
+					result.add(info);
+				}
+				
+				return result;
 			}
-			
-			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -282,6 +292,33 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		return null;
 	}
 
+	@Override
+	public int[] getWritingFileMetaInfo(String path) {
+		URI uri = new URIBuilder()
+	    .setScheme(DEFAULT_SCHEME)
+	    .setHost(host)
+	    .setPort(port)
+	    .setPath(DiskContext.URI_META_NODE_ROOT + path)
+	    .build();
+		
+		try {
+			HttpResponse response = client.executeGet(uri);
+			
+			if(response.isReponseOK()) {
+				JSONObject json = JSONObject.parseObject(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
+				int[] result = new int[2];
+				result[0] = json.getIntValue("seq");
+				result[1] = json.getIntValue("length");
+				
+				return result;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
 	@Override
 	public void close() throws IOException {
 		client.close();

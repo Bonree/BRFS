@@ -102,7 +102,7 @@ public class BootStrap {
 		
 		DuplicationNodeSelector nodeSelector = new DefaultDuplicationNodeSelector(serviceManager);
 		
-		FileLounge lounge = new DefaultFileLounge(service, storageNameManager, fileCoordinator, fileRecovery, nodeSelector, idManager);
+		FileLounge lounge = new DefaultFileLounge(service, storageNameManager, fileCoordinator, fileRecovery, nodeSelector, idManager, connectionPool);
 		DuplicateWriter writer = new DuplicateWriter(lounge, fileRecovery, idManager, connectionPool);
 		
 		HttpConfig config = new HttpConfig(serverConfig.getPort());

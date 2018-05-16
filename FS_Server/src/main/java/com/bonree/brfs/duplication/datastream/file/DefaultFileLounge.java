@@ -21,6 +21,9 @@ import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNameBuilder;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FileNodeSink;
+import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
+import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
+import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.TimedObjectCollection.ObjectBuilder;
 import com.bonree.brfs.duplication.datastream.file.TimedObjectCollection.TimedObject;
 import com.bonree.brfs.duplication.recovery.FileRecovery;
@@ -47,7 +50,7 @@ public class DefaultFileLounge implements FileLounge {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileLounge.class);
 	
 	//对文件节点进行清理的集合大小阈值
-	private static final int FILE_SET_SIZE_CLEAN_THRESHOLD = 7;
+	private static final int FILE_SET_SIZE_CLEAN_THRESHOLD = 3;
 	private static final double FILE_USAGE_RATIO_THRESHOLD = 0.99;
 	private TimedObjectCollection<SortedSetMultimap<String, FileLimiter>> timedFileContainer;
 
@@ -55,6 +58,8 @@ public class DefaultFileLounge implements FileLounge {
 	private FileCoordinator fileCoordinator;
 	private DuplicationNodeSelector duplicationSelector;
 	private ServerIDManager idManager;
+	
+	private DiskNodeConnectionPool connectionPool;
 	
 	private FileCloseListener fileCloseListener;
 	
@@ -74,8 +79,9 @@ public class DefaultFileLounge implements FileLounge {
 			FileCoordinator fileCoordinator,
 			FileRecovery fileRecovery,
 			DuplicationNodeSelector selector,
-			ServerIDManager idManager) {
-		this(service, storageNameManager, fileCoordinator, fileRecovery, selector, idManager, DEFAULT_FILE_PATITION_TIME_INTERVAL, DEFAULT_CLEAN_FREQUENCY_MILLIS);
+			ServerIDManager idManager,
+			DiskNodeConnectionPool connectionPool) {
+		this(service, storageNameManager, fileCoordinator, fileRecovery, selector, idManager, connectionPool, DEFAULT_FILE_PATITION_TIME_INTERVAL, DEFAULT_CLEAN_FREQUENCY_MILLIS);
 	}
 	
 	public DefaultFileLounge(Service service,
@@ -84,6 +90,7 @@ public class DefaultFileLounge implements FileLounge {
 			FileRecovery fileRecovery,
 			DuplicationNodeSelector selector,
 			ServerIDManager idManager,
+			DiskNodeConnectionPool connectionPool,
 			long timeIntervalMillis,
 			long cleanIntervalMillis) {
 		this.service = service;
@@ -92,6 +99,7 @@ public class DefaultFileLounge implements FileLounge {
 		this.fileRecovery = fileRecovery;
 		this.duplicationSelector = selector;
 		this.idManager = idManager;
+		this.connectionPool = connectionPool;
 		this.patitionTimeInterval = timeIntervalMillis;
 		this.cleanFrequencyMillis = cleanIntervalMillis;
 		
@@ -395,8 +403,34 @@ public class DefaultFileLounge implements FileLounge {
 				
 				@Override
 				public void complete(FileNode fileNode) {
-					//TODO 同步不同副本之间的文件内容，然后获取正确的文件大小和文件序列号
-					FileLimiter file = new FileLimiter(fileNode, 0/*文件大小*/, 0/*文件序列号*/);
+					//同步不同副本之间的文件内容，然后获取正确的文件大小和文件序列号
+					LOG.info("start rebuild file[{}]", fileNode.getName());
+					
+					int[] metaInfo = null;
+					DuplicateNode[] nodes = fileNode.getDuplicateNodes();
+					for(DuplicateNode node : nodes) {
+						DiskNodeConnection connection = connectionPool.getConnection(node);
+						
+						LOG.info("connection ==" + connection);
+						if(connection == null || connection.getClient() == null) {
+							continue;
+						}
+						
+						String serverId = idManager.getOtherSecondID(node.getId(), fileNode.getStorageId());
+						metaInfo = connection.getClient().getWritingFileMetaInfo(FilePathBuilder.buildPath(fileNode, serverId));
+						
+						if(metaInfo != null) {
+							break;
+						}
+					}
+					
+					if(metaInfo == null) {
+						LOG.error("Can not get Metadata of file[{}]", fileNode.getName());
+						return;
+					}
+					
+					LOG.info("rebuild file[{}] with length[{}], sequence[{}]", fileNode.getName(), metaInfo[1], metaInfo[0] + 1);
+					FileLimiter file = new FileLimiter(fileNode, metaInfo[1]/*文件大小*/, metaInfo[0] + 1/*文件序列号*/);
 					addFileLimiter(file);
 				}
 

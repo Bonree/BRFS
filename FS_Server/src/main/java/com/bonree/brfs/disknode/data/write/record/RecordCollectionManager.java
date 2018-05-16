@@ -40,7 +40,7 @@ public class RecordCollectionManager {
 	 * @return
 	 */
 	public RecordCollection getRecordCollectionReadOnly(String dataFilePath) {
-		return collections.get(dataFilePath);
+		return new RecordCollection(RecordFileBuilder.buildFrom(dataFilePath), null, this);
 	}
 	
 	/**
@@ -49,8 +49,8 @@ public class RecordCollectionManager {
 	 * @param dataFile 数据文件
 	 * @return
 	 */
-	public RecordCollection getRecordCollection(File dataFile, int bufferSize) {
-		return getRecordCollection(dataFile.getAbsolutePath(), bufferSize);
+	public RecordCollection getRecordCollection(File dataFile, boolean append, int bufferSize) {
+		return getRecordCollection(dataFile.getAbsolutePath(), append, bufferSize);
 	}
 	
 	/**
@@ -59,7 +59,7 @@ public class RecordCollectionManager {
 	 * @param dataFilePath 数据文件路径
 	 * @return
 	 */
-	public RecordCollection getRecordCollection(String dataFilePath, int bufferSize) {
+	public RecordCollection getRecordCollection(String dataFilePath, boolean append, int bufferSize) {
 		RecordCollection collection = collections.get(dataFilePath);
 		
 		if(collection == null) {
@@ -68,8 +68,8 @@ public class RecordCollectionManager {
 				if(collection == null) {
 					File recordFile = RecordFileBuilder.buildFrom(dataFilePath);
 					try {
-						FileWriter writer = bufferSize > 0 ? new BufferedFileWriter(recordFile, new ByteFileBuffer(bufferSize))
-						                                   : new DirectFileWriter(recordFile);
+						FileWriter writer = bufferSize > 0 ? new BufferedFileWriter(recordFile, append, new ByteFileBuffer(bufferSize))
+						                                   : new DirectFileWriter(recordFile, append);
 						
 						collection = new RecordCollection(recordFile, writer, this);
 						collections.put(dataFilePath, collection);

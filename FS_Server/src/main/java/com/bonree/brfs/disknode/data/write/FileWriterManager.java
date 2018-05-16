@@ -1,6 +1,8 @@
 package com.bonree.brfs.disknode.data.write;
 
 import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,8 +13,11 @@ import com.bonree.brfs.common.timer.WheelTimer;
 import com.bonree.brfs.common.timer.WheelTimer.Timeout;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.LifeCycle;
+import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.buf.ByteFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
+import com.bonree.brfs.disknode.data.write.record.RecordFileBuilder;
 import com.bonree.brfs.disknode.data.write.worker.RandomWriteWorkerSelector;
 import com.bonree.brfs.disknode.data.write.worker.WriteTask;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
@@ -30,6 +35,8 @@ public class FileWriterManager implements LifeCycle {
 	private WriteWorkerGroup workerGroup;
 	private WriteWorkerSelector workerSelector;
 	private RecordCollectionManager recorderManager;
+	
+	private DiskContext context;
 
 	private static int DEFAULT_RECORD_BUFFER_SIZE = 512 * 1024;
 	private static int DEFAULT_FILE_BUFFER_SIZE = 1024 * 1024;
@@ -43,24 +50,25 @@ public class FileWriterManager implements LifeCycle {
 	private WheelTimer<Pair<RecordFileWriter, WriteWorker>> timeoutWheel = new WheelTimer<Pair<RecordFileWriter, WriteWorker>>(
 			DEFAULT_TIMEOUT_SECONDS);
 
-	public FileWriterManager(RecordCollectionManager recorderManager) {
-		this(DEFAULT_WORKER_NUMBER, recorderManager);
+	public FileWriterManager(RecordCollectionManager recorderManager, DiskContext context) {
+		this(DEFAULT_WORKER_NUMBER, recorderManager, context);
 	}
 
 	public FileWriterManager(int workerNum,
-			RecordCollectionManager recorderManager) {
-		this(workerNum, new RandomWriteWorkerSelector(), recorderManager);
+			RecordCollectionManager recorderManager, DiskContext context) {
+		this(workerNum, new RandomWriteWorkerSelector(), recorderManager, context);
 	}
 
 	public FileWriterManager(int workerNum, WriteWorkerSelector selector,
-			RecordCollectionManager recorderManager) {
+			RecordCollectionManager recorderManager, DiskContext context) {
 		this.workerGroup = new WriteWorkerGroup(workerNum);
 		this.workerSelector = selector;
 		this.recorderManager = recorderManager;
+		this.context = context;
 	}
 
 	@Override
-	public void start() {
+	public void start() throws Exception {
 		workerGroup.start();
 
 		timeoutWheel
@@ -96,6 +104,57 @@ public class FileWriterManager implements LifeCycle {
 					}
 				});
 		timeoutWheel.start();
+		
+		rebuildFileWriters();
+	}
+	
+	private void rebuildFileWriters() throws IOException {
+		File root = new File(context.getRootDir());
+		
+		File[] snDirList = root.listFiles();
+		for(File snDir : snDirList) {
+			for(File serverDir : snDir.listFiles()) {
+				File[] timeDirList = serverDir.listFiles(new FilenameFilter() {
+					
+					@Override
+					public boolean accept(File dir, String name) {
+						long now = System.currentTimeMillis();
+						long interval = 60 * 60 * 1000;
+						
+						//返回当前时间段和上一个时间段的文件
+						return name.equals(TimeUtils.timeInterval(now, interval))
+								|| name.equals(TimeUtils.timeInterval(now  - interval, interval));
+					}
+				});
+				
+				for(File timeDir : timeDirList) {
+					File[] recordFileList = timeDir.listFiles(new FilenameFilter() {
+						
+						@Override
+						public boolean accept(File dir, String name) {
+							return RecordFileBuilder.isRecordFile(name);
+						}
+					});
+					
+					for(File recordFile : recordFileList) {
+						File dataFile = RecordFileBuilder.reverse(recordFile);
+						LOG.info("reopen file [{}]", dataFile);
+						
+						RecordFileWriter writer = new RecordFileWriter(
+								recorderManager.getRecordCollection(dataFile, true, DEFAULT_RECORD_BUFFER_SIZE),
+										new BufferedFileWriter(dataFile, true, new ByteFileBuffer(
+												DEFAULT_FILE_BUFFER_SIZE)));
+
+						Pair<RecordFileWriter, WriteWorker> binding = new Pair<RecordFileWriter, WriteWorker>(
+								writer, workerSelector.select(workerGroup
+										.getWorkerList()));
+						
+						timeoutWheel.update(binding);
+						runningWriters.put(dataFile.getAbsolutePath(), binding);
+					}
+				}
+			}
+		}
 	}
 
 	@Override
@@ -131,7 +190,7 @@ public class FileWriterManager implements LifeCycle {
 						}
 						
 						RecordFileWriter writer = new RecordFileWriter(
-								recorderManager.getRecordCollection(filePath,
+								recorderManager.getRecordCollection(filePath, false,
 										DEFAULT_RECORD_BUFFER_SIZE),
 								new BufferedFileWriter(filePath,
 										new ByteFileBuffer(

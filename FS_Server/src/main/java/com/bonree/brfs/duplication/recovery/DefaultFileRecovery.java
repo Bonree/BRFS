@@ -115,7 +115,7 @@ public class DefaultFileRecovery implements FileRecovery {
 			/**
 			 * 查看所有节点的序列号是否覆盖了[0, maxSeq]之间的所有数值
 			 */
-			LOG.info("Recovery Check union[{}]", union.cardinality());
+			LOG.info("Recovery Check union[{}], itersection[{}]", union.cardinality(), intersection.cardinality());
 			if(union.nextSetBit(union.cardinality()) == -1) {
 				//当前存活的所有节点包含了此文件的所有信息，可以进行文件内容同步
 				

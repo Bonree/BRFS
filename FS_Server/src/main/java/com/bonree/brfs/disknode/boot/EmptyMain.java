@@ -28,6 +28,7 @@ import com.bonree.brfs.disknode.server.handler.ListMessageHandler;
 import com.bonree.brfs.disknode.server.handler.ReadMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WriteMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WritingInfoMessageHandler;
+import com.bonree.brfs.disknode.server.handler.WritingMetaDataMessageHandler;
 
 public class EmptyMain implements LifeCycle {
 	private static final Logger LOG = LoggerFactory.getLogger(EmptyMain.class);
@@ -44,6 +45,10 @@ public class EmptyMain implements LifeCycle {
 	@Override
 	public void start() throws Exception {
 		LOG.info("Empty Main--port[{}]", port);
+		
+		String dir = System.getProperty("root_dir", "/data");
+		DiskContext context = new DiskContext(dir);
+		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
 		
 		HttpConfig config = new HttpConfig(port);
@@ -53,11 +58,9 @@ public class EmptyMain implements LifeCycle {
 		NettyHttpContextHandler contextHandler = new NettyHttpContextHandler(DiskContext.URI_DISK_NODE_ROOT);
 		
 		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
-		writerManager = new FileWriterManager(recorderManager);
+		writerManager = new FileWriterManager(recorderManager, context);
 		writerManager.start();
 		
-		String dir = System.getProperty("root_dir", "/data");
-		DiskContext context = new DiskContext(dir);
 		requestHandler.addMessageHandler("POST", new WriteMessageHandler(context, writerManager));
 		requestHandler.addMessageHandler("GET", new ReadMessageHandler(context));
 		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(context, writerManager));
@@ -71,6 +74,12 @@ public class EmptyMain implements LifeCycle {
 		infoRequestHandler.addMessageHandler("GET", new WritingInfoMessageHandler(context, recorderManager));
 		infoHandler.setNettyHttpRequestHandler(infoRequestHandler);
 		server.addContextHandler(infoHandler);
+		
+		NettyHttpContextHandler metaHandler = new NettyHttpContextHandler(DiskContext.URI_META_NODE_ROOT);
+		NettyHttpRequestHandler metaRequestHandler = new NettyHttpRequestHandler();
+		metaRequestHandler.addMessageHandler("GET", new WritingMetaDataMessageHandler(context, recorderManager));
+		metaHandler.setNettyHttpRequestHandler(metaRequestHandler);
+		server.addContextHandler(metaHandler);
 		
 		NettyHttpContextHandler cpHandler = new NettyHttpContextHandler(DiskContext.URI_COPY_NODE_ROOT);
 		NettyHttpRequestHandler cpRequestHandler = new NettyHttpRequestHandler();

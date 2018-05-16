@@ -8,11 +8,16 @@ public class DiskContext {
 	public static final String URI_INFO_NODE_ROOT = "/info";
 	public static final String URI_COPY_NODE_ROOT = "/copy";
 	public static final String URI_LIST_NODE_ROOT = "/list";
+	public static final String URI_META_NODE_ROOT = "/metadata";
 	
 	private String workDirectory;
 	
 	public DiskContext(String workDir) {
 		this.workDirectory = new File(workDir).getAbsolutePath();
+	}
+	
+	public String getRootDir() {
+		return this.workDirectory;
 	}
 	
 	/**
