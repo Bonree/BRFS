@@ -3,6 +3,7 @@ package com.bonree.brfs.client.impl;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -44,7 +45,6 @@ public class DefaultBRFileSystem implements BRFileSystem {
 		serviceManager = new DefaultServiceManager(zkClient.usingNamespace(zkPaths.getBaseClusterName().substring(1)));
 		serviceManager.start();
 		
-		
 		this.serviceSelectorManager = new ServiceSelectorManager(serviceManager,
 				zkClient, zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath());
 	}
@@ -58,17 +58,18 @@ public class DefaultBRFileSystem implements BRFileSystem {
 			return false;
 		}
 		
-		URI uri = new URIBuilder()
+		URIBuilder uriBuilder = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(service.getHost())
 	    .setPort(service.getPort())
-	    .setPath(URI_STORAGE_NAME_ROOT + storageName)
-	    .addParameter("replicas", String.valueOf(attrs.get("replicas")))
-	    .addParameter("ttl", String.valueOf(attrs.get("ttl")))
-	    .build();
+	    .setPath(URI_STORAGE_NAME_ROOT + storageName);
+		
+		for(Entry<String, Object> attr : attrs.entrySet()) {
+			uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
+		}
 
 		try {
-			HttpResponse response = client.executePut(uri);
+			HttpResponse response = client.executePut(uriBuilder.build());
 			return response.isReponseOK();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -87,17 +88,18 @@ public class DefaultBRFileSystem implements BRFileSystem {
 			return false;
 		}
 		
-		URI uri = new URIBuilder()
+		URIBuilder uriBuilder = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(service.getHost())
 	    .setPort(service.getPort())
-	    .setPath(URI_STORAGE_NAME_ROOT + storageName)
-	    .addParameter("replicas", String.valueOf(attrs.get("replicas")))
-	    .addParameter("ttl", String.valueOf(attrs.get("ttl")))
-	    .build();
+	    .setPath(URI_STORAGE_NAME_ROOT + storageName);
+		
+		for(Entry<String, Object> attr : attrs.entrySet()) {
+			uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
+		}
 
 		try {
-			HttpResponse response = client.executePost(uri);
+			HttpResponse response = client.executePost(uriBuilder.build());
 			return response.isReponseOK();
 		} catch (Exception e) {
 			e.printStackTrace();
