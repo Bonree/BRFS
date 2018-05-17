@@ -41,4 +41,12 @@ public class DuplicateNode {
 		return Strings.nullToEmpty(group).equals(other.group)
 				&& Strings.nullToEmpty(id).equals(other.id);
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("{").append(group).append(", ").append(id).append("}");
+		
+		return builder.toString();
+	}
 }

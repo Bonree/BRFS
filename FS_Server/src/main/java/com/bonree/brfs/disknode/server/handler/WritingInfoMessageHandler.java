@@ -84,7 +84,9 @@ public class WritingInfoMessageHandler implements MessageHandler {
 	private BitSet getAllSequence(RecordCollection records) {
 		BitSet seqSet = new BitSet();
 		for(RecordElement element : records) {
-			seqSet.set(element.getSequence());
+			if(element.getSequence() >= 0) {
+				seqSet.set(element.getSequence());
+			}
 		}
 		
 		return seqSet;

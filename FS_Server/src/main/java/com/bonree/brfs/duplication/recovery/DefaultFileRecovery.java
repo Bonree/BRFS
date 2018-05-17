@@ -71,6 +71,8 @@ public class DefaultFileRecovery implements FileRecovery {
 
 		@Override
 		public void run() {
+			LOG.info("start recovery file[{}]", target.getName());
+			
 			/**
 			 * 文件之间的内容协调是通过写入文件的序列号实现的，只要当前存活的磁盘节点包含
 			 * 所有写入序列号就能保证文件的完整性
@@ -88,7 +90,9 @@ public class DefaultFileRecovery implements FileRecovery {
 				DiskNodeClient client = connection.getClient();
 				
 				String serverId = idManager.getOtherSecondID(duplicates[i].getId(), target.getStorageId());
-				BitSet seqs = client.getWritingSequence(FilePathBuilder.buildPath(target, serverId));
+				String filePath =FilePathBuilder.buildPath(target, serverId);
+				LOG.info("checking---{}", filePath);
+				BitSet seqs = client.getWritingSequence(filePath);
 				
 				if(seqs == null) {
 					LOG.info("server{} -- null", serverId);
@@ -189,6 +193,8 @@ public class DefaultFileRecovery implements FileRecovery {
 				//TODO 处理下这个情况
 				listener.error(new Exception("Content of the file[" + target.getName() + "] is deficient!!"));
 			}
+			
+			LOG.info("End recovery file[{}]", target.getName());
 		}
 		
 	}
