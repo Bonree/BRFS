@@ -10,6 +10,7 @@ import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 public interface DiskNodeClient extends Closeable {
 	WriteResult writeData(String path, int sequence, byte[] bytes) throws IOException;
 	WriteResult writeData(String path, int sequence, byte[] bytes, int offset, int size) throws IOException;
+	
 	byte[] readData(String path, int offset, int size) throws IOException;
 	boolean closeFile(String path);
 	List<FileInfo> listFiles(String path, int level);

@@ -7,14 +7,17 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.write.data.DataItem;
+import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.bonree.brfs.duplication.datastream.DataHandleCallback;
 import com.bonree.brfs.duplication.datastream.DataWriteResult;
 import com.bonree.brfs.duplication.datastream.DuplicateWriter;
 import com.bonree.brfs.duplication.datastream.ResultItem;
+import com.google.protobuf.ByteString;
 
 public class WriteDataMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteDataMessageHandler.class);
@@ -29,7 +32,7 @@ public class WriteDataMessageHandler implements MessageHandler {
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
 		DataItem[] items = writeMsg.getItems();
-		LOG.debug("Writing DataItem[{}]", items.length);
+		LOG.info("Writing DataItem[{}]", items.length);
 		
 		if(items == null || items.length == 0) {
 			HandleResult result = new HandleResult();
@@ -38,20 +41,22 @@ public class WriteDataMessageHandler implements MessageHandler {
 			return;
 		}
 		
-//		for(DataItem item : items) {
-//			FileContent content = FileContent.newBuilder()
-//					.setCompress(0)
-//					.setDescription(null)
-//					.setData(ByteString.copyFrom(item.getBytes()))
-//					.setCrcFlag(false)
-//					.setCrcCheckCode(0)
-//					.build();
-//			
-//			try {
-//				item.setBytes(FileEncoder.contents(content));
-//			} catch (Exception e) {
-//			}
-//		}
+		for(DataItem item : items) {
+			FileContent content = FileContent.newBuilder()
+					.setCompress(0)
+					.setDescription("")
+					.setData(ByteString.copyFrom(item.getBytes()))
+					.setCrcFlag(false)
+					.setCrcCheckCode(0)
+					.build();
+			
+			try {
+				byte[] bytes = FileEncoder.contents(content);
+				item.setBytes(bytes);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		
 		duplicateWriter.write(writeMsg.getStorageNameId(), items, new DataWriteCallback(callback));
 	}

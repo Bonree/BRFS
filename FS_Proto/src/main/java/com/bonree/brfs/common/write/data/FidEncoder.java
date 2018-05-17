@@ -1,9 +1,8 @@
-package com.bonree.brfs.server.utils;
+package com.bonree.brfs.common.write.data;
 
 import java.util.List;
 
-import com.bonree.brfs.common.code.Base64;
-import com.bonree.brfs.common.code.FSCode;
+import com.bonree.brfs.common.data.utils.Base64;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.proto.ReturnCodeProtos.ReturnCodeEnum;
 
@@ -34,7 +33,7 @@ public class FidEncoder {
         byte[] header = header(fid.getVersion(), fid.getCompress());
         byte[] storageName = storageName(fid.getStorageNameCode());
         byte[] uuid = uuid(fid.getUuid());
-        byte[] time = time(fid.getTime() / 1000 /  60);
+        byte[] time = time(fid.getTime() / 1000 / 60);
         byte[] offset = offset(fid.getOffset());
         byte[] size = size(fid.getSize());
         byte[] serverId = serverId(fid.getServerIdList());

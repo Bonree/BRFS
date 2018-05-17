@@ -12,6 +12,7 @@ import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.ThreadPoolUtil;
+import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.client.WriteResult;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
@@ -19,7 +20,9 @@ import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.worker.WriteTask;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
+import com.bonree.brfs.disknode.utils.CheckUtils;
 import com.bonree.brfs.disknode.utils.Pair;
+import com.google.common.primitives.Bytes;
 
 public class WriteMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteMessageHandler.class);
@@ -34,8 +37,6 @@ public class WriteMessageHandler implements MessageHandler {
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		HandleResult handleResult = new HandleResult();
-		
 		try {
 			String realPath = diskContext.getConcreteFilePath(msg.getPath());
 			LOG.debug("WRITE [{}], data length[{}]", realPath, msg.getContent().length);
@@ -47,8 +48,11 @@ public class WriteMessageHandler implements MessageHandler {
 			boolean json = msg.getParams().containsKey("json");
 			
 			WriteData item = ProtoStuffUtils.deserialize(msg.getContent(), WriteData.class);
+			if(item.getSequence() == -2) {
+				item.setBytes(Bytes.concat(FileEncoder.validate(CheckUtils.check(realPath)), FileEncoder.tail()));
+			}
 			
-			LOG.debug("seq[{}], size[{}]", item.getSequence(), item.getBytes().length);
+			LOG.debug("write seq[{}]", item.getSequence());
 			
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
 			if(binding == null) {
@@ -77,6 +81,7 @@ public class WriteMessageHandler implements MessageHandler {
 						
 						@Override
 						public void run() {
+							HandleResult handleResult = new HandleResult();
 							handleResult.setSuccess(true);
 							
 							WriteResult writeResult = new WriteResult();
@@ -99,6 +104,7 @@ public class WriteMessageHandler implements MessageHandler {
 						
 						@Override
 						public void run() {
+							HandleResult handleResult = new HandleResult();
 							handleResult.setSuccess(false);
 							handleResult.setCause(e);
 							
@@ -109,6 +115,7 @@ public class WriteMessageHandler implements MessageHandler {
 			});
 		} catch (Exception e) {
 			LOG.error("EEEERRRRRR", e);
+			HandleResult handleResult = new HandleResult();
 			handleResult.setSuccess(false);
 			handleResult.setCause(e);
 			callback.completed(handleResult);

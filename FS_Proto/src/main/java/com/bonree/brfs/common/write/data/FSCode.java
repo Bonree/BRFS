@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.code;
+package com.bonree.brfs.common.write.data;
 
 /**
  * *****************************************************************************

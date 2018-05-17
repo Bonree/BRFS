@@ -11,6 +11,8 @@ import com.bonree.brfs.disknode.utils.BufferUtils;
 
 public class DataFileReader {
 	
+	private DataFileReader() {}
+	
 	public static byte[] readFile(File file, int offset, int size) {
 		return readFile(file.getAbsolutePath(), offset, size);
 	}

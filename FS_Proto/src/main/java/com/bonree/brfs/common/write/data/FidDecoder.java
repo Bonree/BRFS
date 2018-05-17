@@ -1,10 +1,9 @@
-package com.bonree.brfs.client.utils;
+package com.bonree.brfs.common.write.data;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.bonree.brfs.common.code.Base64;
-import com.bonree.brfs.common.code.FSCode;
+import com.bonree.brfs.common.data.utils.Base64;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 
 /**

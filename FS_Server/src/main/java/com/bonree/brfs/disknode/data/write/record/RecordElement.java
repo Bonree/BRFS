@@ -24,6 +24,11 @@ public class RecordElement {
 	}
 	
 	public RecordElement(long offset, int size, long crc) {
+		this(-1, offset, size, crc);
+	}
+	
+	public RecordElement(int seq, long offset, int size, long crc) {
+		this.sequence = seq;
 		this.offset = offset;
 		this.size = size;
 		this.crc = crc;

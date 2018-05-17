@@ -1,7 +1,6 @@
-package com.bonree.brfs.server.utils;
+package com.bonree.brfs.common.write.data;
 
-import com.bonree.brfs.common.code.FSCode;
-import com.bonree.brfs.common.code.GZipUtils;
+import com.bonree.brfs.common.data.utils.GZipUtils;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 
 /**

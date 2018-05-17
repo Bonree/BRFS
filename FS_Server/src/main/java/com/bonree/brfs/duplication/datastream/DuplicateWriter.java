@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.curator.shaded.com.google.common.primitives.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,9 @@ import com.bonree.brfs.common.asynctask.AsyncTaskGroup;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroupCallback;
 import com.bonree.brfs.common.asynctask.AsyncTaskResult;
 import com.bonree.brfs.common.write.data.DataItem;
+import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
+import com.bonree.brfs.disknode.client.WriteResult;
 import com.bonree.brfs.duplication.FidBuilder;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
@@ -62,6 +65,7 @@ public class DuplicateWriter {
 				
 				emitData(item, file, resultGather);
 			} catch (Exception e) {
+				e.printStackTrace();
 				LOG.info("####-->{}", e.toString());
 				resultGather.putResultItem(new ResultItem(item.getSequence()));
 			}
@@ -110,7 +114,7 @@ public class DuplicateWriter {
 			
 			for(WriteTaskResult result : taskResultList) {
 				if(file.size() != (result.getOffset() + result.getSize())) {
-					LOG.info("Write Task Result maybe ERROR!");
+					LOG.info("Write Task Result maybe ERROR!, expect[{}], but[{}]", file.size(), (result.getOffset() + result.getSize()));
 					//TODO error: need to recover the file
 				}
 			}
@@ -184,7 +188,16 @@ public class DuplicateWriter {
 							DiskNodeClient client = connections[i].getClient();
 							if(client != null) {
 								String serverId = idManager.getOtherSecondID(file.getDuplicateNodes()[i].getId(), file.getStorageId());
-								client.closeFile(FilePathBuilder.buildPath(file, serverId));
+								String filePath = FilePathBuilder.buildPath(file, serverId);
+								
+								try {
+									WriteResult result = client.writeData(filePath, -2, Bytes.concat(FileEncoder.validate(0), FileEncoder.tail()));
+									if(result != null) {
+										client.closeFile(filePath);
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
 							}
 						}
 					}

@@ -58,7 +58,7 @@ public class DataWriteTask extends AsyncTask<WriteTaskResult> {
 			}
 			
 			WriteTaskResult taskResult = new WriteTaskResult();
-			LOG.debug("Write Result--{}", result);
+			LOG.info("Write Result--{}", result);
 			
 			taskResult.setOffset(result.getOffset());
 			taskResult.setSize(result.getSize());

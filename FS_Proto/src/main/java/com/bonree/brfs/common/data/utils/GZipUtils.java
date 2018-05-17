@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.code;
+package com.bonree.brfs.common.data.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

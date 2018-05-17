@@ -3,8 +3,8 @@ package com.bonree.brfs.duplication;
 import java.util.List;
 
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
+import com.bonree.brfs.common.write.data.FidEncoder;
 import com.bonree.brfs.duplication.coordinator.FileNode;
-import com.bonree.brfs.server.utils.FidEncoder;
 import com.google.common.base.Splitter;
 
 public class FidBuilder {

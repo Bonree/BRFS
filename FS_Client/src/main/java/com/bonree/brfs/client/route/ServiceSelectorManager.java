@@ -64,21 +64,6 @@ public class ServiceSelectorManager implements Closeable {
         return diskServiceSelectorCache;
     }
 
-    // public Service getRandomService() throws Exception {
-    // if (duplicaServiceSelector != null) {
-    // return duplicaServiceSelector.randomService();
-    // }
-    //
-    // DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(sm, ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
-    //
-    // // 监听duplicaServiceCachecache
-    // ServiceMetaListener listener = new ServiceMetaListener(duplicaServiceMetaCache);
-    // sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, listener);
-    //
-    // duplicaServiceSelector = new DuplicaServiceSelector(duplicaServiceMetaCache);
-    // return duplicaServiceSelector.randomService();
-    // }
-
     public DuplicaServiceSelector useDuplicaSelector() throws Exception {
         if (duplicaServiceSelector != null) {
             return duplicaServiceSelector;

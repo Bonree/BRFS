@@ -41,19 +41,16 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 			return;
 		}
 		
-		int length = 0;
-		int sequence = -1;
+		RecordElement lastEle = new RecordElement(0, 0);
 		for(RecordElement ele : recordSet) {
-			if(sequence < ele.getSequence()) {
-				sequence = ele.getSequence();
+			if(lastEle.getSequence() < ele.getSequence()) {
+				lastEle = ele;
 			}
-			
-			length += ele.getSize();
 		}
 		
 		JSONObject json = new JSONObject();
-		json.put("seq", sequence);
-		json.put("length", length);
+		json.put("seq", lastEle.getSequence());
+		json.put("length", lastEle.getOffset() + lastEle.getSize());
 		
 		result.setSuccess(true);
 		result.setData(BrStringUtils.toUtf8Bytes(json.toJSONString()));

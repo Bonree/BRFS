@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.datastream.file;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -10,11 +11,14 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.curator.shaded.com.google.common.primitives.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.ThreadPoolUtil;
+import com.bonree.brfs.common.write.data.FileEncoder;
+import com.bonree.brfs.disknode.client.WriteResult;
 import com.bonree.brfs.duplication.DuplicationNodeSelector;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
@@ -245,6 +249,7 @@ public class DefaultFileLounge implements FileLounge {
 		SortedSetMultimap<String, FileLimiter> fileContainer = timedFileContainer.get(currentTime);
 		
 		synchronized (fileContainer) {
+			LOG.info("---FINDING --[{}]", storageNameNode.getName());
 			FileLimiter file = selectFileLimiter(fileContainer.get(storageNameNode.getName()), size);
 			if(file != null) {
 				fileContainer.put(storageNameNode.getName(), file);
@@ -265,9 +270,27 @@ public class DefaultFileLounge implements FileLounge {
 		fileNode.setStorageId(storageNameId);
 		fileNode.setServiceId(service.getServiceId());
 		fileNode.setDuplicateNodes(duplicateNodes);
+		
+		DuplicateNode[] nodes = fileNode.getDuplicateNodes();
+		byte[] header = Bytes.concat(FileEncoder.start(), FileEncoder.header(0, 0));
+		for(DuplicateNode node : nodes) {
+			DiskNodeConnection connection = connectionPool.getConnection(node);
+			
+			LOG.info("connection ==" + connection);
+			if(connection == null || connection.getClient() == null) {
+				continue;
+			}
+			
+			String serverId = idManager.getOtherSecondID(node.getId(), fileNode.getStorageId());
+			WriteResult result = connection.getClient().writeData(FilePathBuilder.buildPath(fileNode, serverId), -1, header);
+			if(result.getOffset() != 0 || result.getSize() != header.length) {
+				throw new IOException("Can't write header to file!");
+			}
+		}
+		
 		fileCoordinator.store(fileNode);
 		
-		FileLimiter fileLimiter = new FileLimiter(fileNode);
+		FileLimiter fileLimiter = new FileLimiter(fileNode, header.length, 0);
 		
 		fileLimiter.obtain(size);
 		

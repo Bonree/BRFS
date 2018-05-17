@@ -14,15 +14,17 @@ import com.bonree.brfs.client.StorageNameStick;
 import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.DuplicaServiceSelector;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
-import com.bonree.brfs.client.utils.FidDecoder;
 import com.bonree.brfs.client.utils.FilePathBuilder;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
 import com.bonree.brfs.common.http.client.URIBuilder;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
+import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.write.data.DataItem;
+import com.bonree.brfs.common.write.data.FidDecoder;
+import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.google.common.base.Joiner;
 
@@ -133,7 +135,14 @@ public class DefaultStorageNameStick implements StorageNameStick {
 					
 					@Override
 					public byte[] getBytes() {
-						return response.getResponseBody();
+						try {
+							FileContent content = FileDecoder.contents(response.getResponseBody());
+							return content.getData().toByteArray();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						
+						return null;
 					}
 				};
 			}

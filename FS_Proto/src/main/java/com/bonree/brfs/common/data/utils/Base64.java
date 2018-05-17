@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.bonree.brfs.common.code;
+package com.bonree.brfs.common.data.utils;
 
 import java.io.UnsupportedEncodingException;
 

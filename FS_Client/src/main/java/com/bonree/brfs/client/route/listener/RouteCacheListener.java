@@ -33,7 +33,10 @@ public class RouteCacheListener implements TreeCacheListener {
     @Override
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         // 过滤事件，并不是所有的事件都得响应
-        if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED) && event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
+        if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED)
+        		&& event.getData() != null
+        		&& event.getData().getData() != null
+        		&& event.getData().getData().length > 0) {
             String path = event.getData().getPath();
             List<String> splitPaths = Lists.newArrayList(Splitter.on(Constants.SEPARATOR).omitEmptyStrings().trimResults().split(path));
             String endStr = splitPaths.get(splitPaths.size() - 1);
