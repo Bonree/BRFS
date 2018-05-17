@@ -108,19 +108,35 @@ public class DefaultServiceManager implements ServiceManager {
 		service.setPayload(payload);
 		serviceDiscovery.updateService(buildFrom(service));
 	}
+	
+	private ServiceCache<String> getOrBuildServiceCache(String serviceGroup) {
+		ServiceCache<String> serviceCache = serviceCaches.get(serviceGroup);
+		if(serviceCache == null) {
+			serviceCache = serviceDiscovery.serviceCacheBuilder().name(serviceGroup).executorService(threadPools).build();
+			
+			try {
+				serviceCache.start();
+				serviceCaches.put(serviceGroup, serviceCache);
+				
+				return serviceCache;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return null;
+	}
 
 	@Override
 	public synchronized void addServiceStateListener(String serviceGroup, ServiceStateListener listener) throws Exception {
 		stateListeners.put(serviceGroup, listener);
 		
-		ServiceCache<String> serviceCache = serviceCaches.get(serviceGroup);
+		ServiceCache<String> serviceCache = getOrBuildServiceCache(serviceGroup);
 		if(serviceCache == null) {
-			serviceCache = serviceDiscovery.serviceCacheBuilder().name(serviceGroup).executorService(threadPools).build();
-			serviceCaches.put(serviceGroup, serviceCache);
-			
-			serviceCache.start();
-			serviceCache.addListener(new InnerServiceListener(serviceGroup));
+			throw new Exception("Can not get ServiceCache");
 		}
+		
+		serviceCache.addListener(new InnerServiceListener(serviceGroup));
 	}
 	
 	@Override
@@ -154,7 +170,8 @@ public class DefaultServiceManager implements ServiceManager {
 	@Override
 	public List<Service> getServiceListByGroup(String serviceGroup) {
 		ArrayList<Service> serviceList = new ArrayList<Service>();
-		ServiceCache<String> serviceCache = serviceCaches.get(serviceGroup);
+		ServiceCache<String> serviceCache = getOrBuildServiceCache(serviceGroup);
+		
 		if(serviceCache != null) {
 			for(ServiceInstance<String> instance : serviceCache.getInstances()) {
 				serviceList.add(buildFrom(instance));
