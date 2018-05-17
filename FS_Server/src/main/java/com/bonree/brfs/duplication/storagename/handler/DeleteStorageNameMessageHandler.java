@@ -59,7 +59,6 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
                }
                
                result.setSuccess(deleteCompleted);
-               callback.completed(result);
             }
         } catch (StorageNameNonexistentException e) {
             result.setSuccess(false);
