@@ -60,7 +60,7 @@ public class FileRecoveryJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("File Recover working");
+		LOG.info("----------->File Recover working");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		int count = data.getInt(JobDataMapConstract.BATCH_SIZE);
 		String zkHosts = data.getString(JobDataMapConstract.ZOOKEEPER_ADDRESS);

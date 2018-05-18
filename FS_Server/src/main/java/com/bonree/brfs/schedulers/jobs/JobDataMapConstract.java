@@ -77,6 +77,8 @@ public class JobDataMapConstract {
 	public static final String CURRENT_TASK_NAME = "CURRENT_TASK_NAME";
 	public static final String BASE_ROUTE_PATH = "BASE_ROUTE_PATH";
 	
+	public static final String DEBUG_CREATE_TASK_INVERATAL_ENABLE = "DEBUG_CREATE_TASK_INVERATAL_ENABLE";
+	
 	/**
 	 * 概述：生成采集job需要的参数
 	 * @param server
@@ -117,6 +119,8 @@ public class JobDataMapConstract {
 	public static Map<String,String> createMetaDataMap(ResourceTaskConfig resource){
 		Map<String, String> dataMap = new HashMap<>();
 		dataMap.put(TASK_EXPIRED_TIME, resource.getTaskExpiredTime() + "");
+		dataMap.put(DEBUG_CREATE_TASK_INVERATAL_ENABLE, resource.isCreateTaskInveralEnable()+ "");
+		
 		return dataMap;
 	}
 	/**
@@ -129,6 +133,7 @@ public class JobDataMapConstract {
 	public static Map<String,String> createCreateDataMap(ServerConfig server, ResourceTaskConfig resource){
 		Map<String, String> dataMap = new HashMap<>();
 		dataMap.put(DATA_PATH, server.getDataPath());
+		dataMap.put(DEBUG_CREATE_TASK_INVERATAL_ENABLE, resource.isCreateTaskInveralEnable()+ "");
 		return dataMap;
 	}
 	public static Map<String, String> createOperationDataMap(String taskName,String serviceId, TaskModel task, TaskRunPattern pattern){

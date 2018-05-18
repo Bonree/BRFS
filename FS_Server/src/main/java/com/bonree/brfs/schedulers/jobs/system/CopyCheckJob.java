@@ -52,7 +52,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("Check Copy Job working");		
+		LOG.info("----------- > createCheck Copy Job working");		
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		StorageNameManager snm = mcf.getSnm();

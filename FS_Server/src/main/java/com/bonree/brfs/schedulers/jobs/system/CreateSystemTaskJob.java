@@ -64,6 +64,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String path = data.getString(JobDataMapConstract.DATA_PATH);
+		boolean debugFlag = data.getBoolean(JobDataMapConstract.DEBUG_CREATE_TASK_INVERATAL_ENABLE);
 		if(BrStringUtils.isEmpty(path)){
 			throw new NullPointerException("data path is empty !!!");
 		}
@@ -113,7 +114,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			if(prexTask != null){
 				preCreateTime = prexTask.getCreateTime();
 			}
-			if(currentTime - preCreateTime< 60*60*1000 ){
+			if(currentTime - preCreateTime< 60*60*1000 && debugFlag){
 				LOG.info("skip create {} task", taskType.name());
 				continue;
 			}
@@ -123,14 +124,17 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
 				task = createTaskModel(snList, taskType, currentTime, path, "");
 			}else{
+				LOG.info("there is no task to create skip");
 				continue;
 			}
 			// 任务为空，跳过
 			if(task == null){
+				LOG.warn(" task create is null skip ");
 				continue;
 			}
 			taskName = release.updateTaskContentNode(task, taskType.name(), null);
 			if(taskName == null){
+				LOG.warn("create task error : taskName is empty");
 				continue;
 			}
 			TaskServerNodeModel sTask = null;

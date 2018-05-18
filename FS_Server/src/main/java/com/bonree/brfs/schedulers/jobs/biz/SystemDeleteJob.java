@@ -55,6 +55,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
+		LOG.info("batch {}",content);
 		// 获取当前执行的任务类型
 		int taskType = data.getInt(JobDataMapConstract.TASK_TYPE);
 		boolean isuser = TaskType.USER_DELETE.code() == taskType;
