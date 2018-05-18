@@ -124,7 +124,7 @@ public class DefaultServiceManager implements ServiceManager {
 			}
 		}
 		
-		return null;
+		return serviceCache;
 	}
 
 	@Override
