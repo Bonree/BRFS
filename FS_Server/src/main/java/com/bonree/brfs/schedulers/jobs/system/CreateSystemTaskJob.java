@@ -124,7 +124,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
 				task = createTaskModel(snList, taskType, currentTime, path, "");
 			}else{
-				LOG.info("there is no task to create skip");
+				LOG.info("there is no task to create skip {}",taskType);
 				continue;
 			}
 			// 任务为空，跳过

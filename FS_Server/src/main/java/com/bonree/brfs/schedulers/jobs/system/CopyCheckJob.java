@@ -85,7 +85,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		StorageNameNode sn = null;
 		List<String> files = null;
 		Map<String,Integer> snFilesCounts = null;
-		Pair<Collection<String>,Collection<String>> result = null;
+		Pair<List<String>,List<String>> result = null;
 		int filterCount = 0;
 		TaskModel newTask = new TaskModel();
 		newTask.setCreateTime(System.currentTimeMillis());
@@ -274,7 +274,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public Pair<Collection<String>,Collection<String>>filterLoser(Map<String,Integer> resultMap, int filterValue){
+	public Pair<List<String>,List<String>>filterLoser(Map<String,Integer> resultMap, int filterValue){
 		List<String> filterBiggestResult = new ArrayList<String>();
 		List<String> filterLitterResult = new ArrayList<String>();
 		String key = null;
@@ -290,7 +290,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 				filterBiggestResult.add(key);
 			}
 		}
-		Pair<Collection<String>,Collection<String>> result = new Pair<Collection<String>,Collection<String>>();
+		Pair<List<String>,List<String>> result = new Pair<List<String>,List<String>>();
 		result.setKey(filterLitterResult);
 		result.setValue(filterBiggestResult);
 		return result;

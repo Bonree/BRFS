@@ -16,7 +16,7 @@ import java.util.List;
 public class AtomTaskModel {
 	private String storageName;
 	private String dirName;
-	private List<String> files = new ArrayList<String>();
+	private ArrayList<String> files = new ArrayList<String>();
 	private String taskOperation;
 	public String getStorageName() {
 		return storageName;
@@ -39,7 +39,7 @@ public class AtomTaskModel {
 	public List<String> getFiles() {
 		return files;
 	}
-	public void setFiles(Collection<String> files) {
+	public void setFiles(List<String> files) {
 		this.files.addAll(files);
 	}
 }

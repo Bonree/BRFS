@@ -30,7 +30,7 @@ public final class JsonUtils {
 	public static <T> T toObject(String jsonString, Class<T> cls) {
 		return JSON.toJavaObject(JSON.parseObject(jsonString), cls);
 	}
-	
+
 	/**
 	 * 把Java对象转化为Json形式的字节数组
 	 * 

@@ -55,6 +55,11 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
+		LOG.info("batch data :{}", content);
+		if(BrStringUtils.isEmpty(content)){
+			LOG.warn("batch data is empty !!!");
+			return;
+		}
 		BatchAtomModel batch = JsonUtils.toObject(content, BatchAtomModel.class);
 		if(batch == null){
 			LOG.warn("batch data is empty !!!");
