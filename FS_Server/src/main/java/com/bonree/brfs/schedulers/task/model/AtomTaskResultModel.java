@@ -10,6 +10,7 @@ public class AtomTaskResultModel {
 	
 	private List<String> files = new ArrayList<String>();
 	private int operationFileCount = 0;
+	private String message;
 	public String getSn() {
 		return sn;
 	}
@@ -45,5 +46,11 @@ public class AtomTaskResultModel {
 	}
 	public void setSuccess(boolean isSuccess) {
 		this.isSuccess = isSuccess;
+	}
+	public String getMessage() {
+		return message;
+	}
+	public void setMessage(String message) {
+		this.message = message;
 	}
 }

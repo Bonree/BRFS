@@ -43,13 +43,11 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("CreateSysTask");
 	@Override
 	public void caughtException(JobExecutionContext context) {
-		// TODO Auto-generated method stub
-		LOG.info(" happened Exception !!!");
+		LOG.info("------------create sys task happened Exception !!!-----------------");
 	}
 
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
-		// TODO Auto-generated method stub
 		LOG.info(" happened Interrupt !!!");
 		
 	}

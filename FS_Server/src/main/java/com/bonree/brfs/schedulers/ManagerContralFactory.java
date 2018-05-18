@@ -10,6 +10,7 @@ import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
+import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class ManagerContralFactory {
 	/**
@@ -33,6 +34,7 @@ public class ManagerContralFactory {
 	 */
 	private SchedulerManagerInterface stm;
 	private RunnableTaskInterface rt;
+	private ServerIDManager sim;
 	/**
 	 * 开启任务列表
 	 */
@@ -107,5 +109,11 @@ public class ManagerContralFactory {
 	}
 	public void setRt(RunnableTaskInterface rt) {
 		this.rt = rt;
+	}
+	public ServerIDManager getSim() {
+		return sim;
+	}
+	public void setSim(ServerIDManager sim) {
+		this.sim = sim;
 	}
 }

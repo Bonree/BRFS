@@ -35,14 +35,26 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String groupName = mcf.getGroupName();
 		//获取client
-		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHost);
-		//获取监听的目录
-		ZookeeperPaths zkPaths = ZookeeperPaths.create(groupName, zkHost);
-		String rebalances = zkPaths.getBaseRebalancePath();
-		String tasksPath=rebalances + Constants.SEPARATOR+Constants.TASKS_NODE;
-		boolean isIt = isRecovery(curatorClient, tasksPath);
-		// 更新map的值
-		this.StateMap.put(RECOVERY_STATUSE, isIt);
+		CuratorClient curatorClient =null;
+		try {
+			curatorClient = CuratorClient.getClientInstance(zkHost);
+			//获取监听的目录
+			ZookeeperPaths zkPaths = ZookeeperPaths.create(groupName, zkHost);
+			String rebalances = zkPaths.getBaseRebalancePath();
+			String tasksPath=rebalances + Constants.SEPARATOR+Constants.TASKS_NODE;
+			boolean isIt = isRecovery(curatorClient, tasksPath);
+			// 更新map的值
+			//TODO 测试代码块
+			this.StateMap.put(RECOVERY_STATUSE, false);
+//		this.StateMap.put(RECOVERY_STATUSE, isIt);
+		}catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally{
+			if(curatorClient != null){
+				curatorClient.close();
+			}
+		}
 	}
 	/**
 	 * 概述：恢复任务是否执行判断

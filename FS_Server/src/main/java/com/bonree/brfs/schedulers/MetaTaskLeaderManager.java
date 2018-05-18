@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
@@ -22,6 +23,7 @@ import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.jobs.system.CreateSystemTaskJob;
 import com.bonree.brfs.schedulers.jobs.system.ManagerMetaTaskJob;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
@@ -38,7 +40,7 @@ import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
  * @Description: 选取任务管理leader
  *****************************************************************************
  */
-public class MetaTaskLeaderManager implements LeaderLatchListener{
+public class MetaTaskLeaderManager implements LeaderLatchListener {
 	private static final Logger LOG = LoggerFactory.getLogger(MetaTaskLeaderManager.class);
 	public static final String META_TASK_MANAGER = "META_TASK_MANAGER";
 	private SchedulerManagerInterface manager;
@@ -53,6 +55,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener{
 		this.config = config;
 		this.serverConfig = serverConfig;
 	}
+
 	@Override
 	public void isLeader() {
 		try {
@@ -84,15 +87,27 @@ public class MetaTaskLeaderManager implements LeaderLatchListener{
 			LOG.info("loss the leader !!!");
 		}
 		catch (ParamsErrorException | InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
 	@Override
 	public void notLeader() {
-		LOG.info(" ======================== Slave run away !!!");
+		try {
+			// 若接口为空则返回空
+			if (manager == null) {
+				LOG.warn("SchedulerManagerInterface is null, No to do");
+				return;
+			}
+			
+			manager.destoryTaskPool(META_TASK_MANAGER, false);
+			LOG.info("loss the leader !!!");
+		}
+		catch (ParamsErrorException e) {
+			e.printStackTrace();
+		}
 	}
+
 	/**
 	 * 概述：提交任务
 	 * @throws ParamsErrorException
@@ -105,11 +120,18 @@ public class MetaTaskLeaderManager implements LeaderLatchListener{
 		Map<String, String> metaDataMap = JobDataMapConstract.createMetaDataMap(config);
 		SumbitTaskInterface metaJob = QuartzSimpleInfo.createCycleTaskInfo("META_MANAGER_TASK",
 			config.getCreateTaskIntervalTime(), -1, metaDataMap, ManagerMetaTaskJob.class);
-//		SumbitTaskInterface checkJob = QuartzSimpleInfo.createCycleTaskInfo("COPY_CHECK_TASK", intervalTime, delayTime, jobMap, clazz)
-		
-		boolean isSuccess = this.manager.addTask(META_TASK_MANAGER, createJob);
+		SumbitTaskInterface checkJob = QuartzSimpleInfo.createCycleTaskInfo("COPY_CHECK_TASK",
+			config.getCreateCheckJobTaskervalTime(), -1, null, CopyCheckJob.class);
+
+		boolean isSuccess = false;
+		isSuccess = this.manager.addTask(META_TASK_MANAGER, createJob);
 		LOG.info("sumbit create Job {} ", isSuccess ? " Sucess" : "Fail");
 		isSuccess = this.manager.addTask(META_TASK_MANAGER, metaJob);
 		LOG.info("sumbit meta Job {} ", isSuccess ? " Sucess" : "Fail");
+		boolean createFlag = config.getTaskPoolSwitchMap().get(TaskType.SYSTEM_COPY_CHECK.name());
+		if (createFlag) {
+			isSuccess = this.manager.addTask(META_TASK_MANAGER, checkJob);
+			LOG.info("sumbit Create Job {} ", isSuccess ? " Sucess" : "Fail");
+		}
 	}
 }
