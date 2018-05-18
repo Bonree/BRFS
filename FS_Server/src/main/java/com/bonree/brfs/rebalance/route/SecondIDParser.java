@@ -1,6 +1,7 @@
 package com.bonree.brfs.rebalance.route;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,14 +17,14 @@ public class SecondIDParser {
     private int snID;
     private CuratorClient curatorClient;
     private String baseRoutesPath;
-    private Map<String, NormalRoute> normalRouteDetail;
-
-    private Map<String, VirtualRoute> virtualRouteDetail;
+    private Map<String, NormalRoute> normalRouteDetail = new HashMap<>();
+    private Map<String, VirtualRoute> virtualRouteDetail = new HashMap<>();
 
     public SecondIDParser(CuratorClient curatorClient, int snID, String baseRoutesPath) {
         this.snID = snID;
         this.curatorClient = curatorClient;
         this.baseRoutesPath = baseRoutesPath;
+
     }
 
     public void updateRoute() {
@@ -92,15 +93,6 @@ public class SecondIDParser {
             }
         }
         return fileServerIDs.toArray(new String[0]);
-    }
-    
-    public static void main(String[] args) {
-        List<String> strs = new ArrayList<String>();
-        strs.add("111");
-        strs.add("222");
-        
-        System.out.println(strs.toArray(new String[0]).length);
-        
     }
 
 }

@@ -16,12 +16,22 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
  ******************************************************************************/
 public class TaskMonitor {
 
-    public TaskMonitor() {}
+    public TaskMonitor() {
+    }
 
+    /** 概述：获取某个任务的进度
+     * @param client
+     * @param taskPath
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public double getTaskProgress(CuratorClient client, String taskPath) {
         double process = 0.0;
         int curent = 0;
         int total = 0;
+        if (!client.checkExists(taskPath)) {
+            return process;
+        }
         List<String> joiners = client.getChildren(taskPath);
         if (joiners != null && !joiners.isEmpty()) {
             for (String joiner : joiners) {
