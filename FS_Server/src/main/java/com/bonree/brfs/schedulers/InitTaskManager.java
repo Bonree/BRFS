@@ -32,8 +32,11 @@ import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.jobs.biz.FileRecoveryJob;
+import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.jobs.resource.AsynJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
+import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.jobs.system.OperationTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
@@ -45,6 +48,8 @@ import com.bonree.brfs.schedulers.task.manager.impl.DefaultSchedulersManager;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
+import com.bonree.brfs.schedulers.task.model.TaskModel;
+import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
@@ -65,7 +70,6 @@ public class InitTaskManager {
 	 */
 	//TODO:临时参数groupName
 	public static void initManager(ServerConfig serverConfig,ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageNameManager snm, ServerIDManager sim) throws Exception {
-		
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
 		boolean isReboot = !sim.isNewService();
@@ -111,6 +115,10 @@ public class InitTaskManager {
 			if(tasks == null || tasks.isEmpty()){
 				throw new NullPointerException("switch task on  but task type list is empty !!!");
 			}
+			if(tasks.contains(TaskType.SYSTEM_COPY_CHECK)){
+				SumbitTaskInterface copyJob = createSimpleTask(60000, TaskType.SYSTEM_COPY_CHECK.name(), serverId, FileRecoveryJob.class.getCanonicalName(), serverConfig.getZkHosts(), zkPath.getBaseRoutePath());
+				manager.addTask(TaskType.SYSTEM_COPY_CHECK.name(), copyJob);
+			}
 			mcf.setTaskOn(tasks);
 			//3.创建执行任务线程池
 			createOperationPool(serverConfig, managerConfig, tasks, isReboot);
@@ -135,7 +143,7 @@ public class InitTaskManager {
 		MetaTaskManagerInterface release = mcf.getTm();
 		String serverId = mcf.getServerId();
 		
-		Properties prop = DefaultBaseSchedulers.createSimplePrope(1, 1000);
+		Properties prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);
 		boolean createFlag = manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
 		if(!createFlag){
 			LOG.error("create task operation error !!!");
@@ -159,6 +167,12 @@ public class InitTaskManager {
 		boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
 		if(sumbitFlag){
 			LOG.info("operation task sumbit complete !!!");
+		}
+		Map<String,String>watchMap = JobDataMapConstract.createWatchJobMap(server.getZkHosts());
+		SumbitTaskInterface watchJob = QuartzSimpleInfo.createCycleTaskInfo("WATCH_TASK", 5000, -1, watchMap, WatchSomeThingJob.class);
+		sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, watchJob);
+		if(sumbitFlag){
+			LOG.info("watch task sumbit complete !!!");
 		}
 	}
 	/**
@@ -329,20 +343,45 @@ public class InitTaskManager {
 			}
 			size = sizeMap.get(poolName);
 			if (size == 0) {
-				//TODO:打印报警信息
 				LOG.warn("pool :{} config pool size is 0 ,will change to 1", poolName);
 				size = 1;
 			}
 			prop = DefaultBaseSchedulers.createSimplePrope(size, 1000l);
 			boolean createState = manager.createTaskPool(poolName, prop);
 			if (createState) {
-				//TODO:打印成功信息
 				manager.startTaskPool(poolName);
 			}
 			tasks.add(taskType);
 			count++;
 		}
 		LOG.info("pool :{} count: {} started !!!", manager.getAllPoolKey(), count);
+		
 		return tasks;
+	}
+	/**
+	 * 概述：生成任务信息
+	 * @param taskModel
+	 * @param runPattern
+	 * @param taskName
+	 * @param serverId
+	 * @param clazzName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private  static SumbitTaskInterface createSimpleTask(long invertalTime, String taskName, String serverId,String clazzName, String zkHost, String path){
+		QuartzSimpleInfo task = new QuartzSimpleInfo();
+		task.setRunNowFlag(true);
+		task.setCycleFlag(true);
+		task.setTaskName(taskName);
+		task.setTaskGroupName(TaskType.SYSTEM_COPY_CHECK.name());
+		task.setRepeateCount(-1);
+		task.setInterval(invertalTime);
+		Map<String,String> dataMap = JobDataMapConstract.createCOPYDataMap(taskName, serverId, invertalTime, zkHost, path);
+		if(dataMap != null && !dataMap.isEmpty()){
+			task.setTaskContent(dataMap);
+		}
+		
+		task.setClassInstanceName(clazzName);
+		return task;
 	}
 }

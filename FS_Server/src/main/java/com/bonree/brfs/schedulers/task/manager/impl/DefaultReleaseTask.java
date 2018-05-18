@@ -629,7 +629,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			StringBuilder taskPath = new StringBuilder();
 			taskPath.append(taskRootPath).append("/").append(taskType).append("/").append(taskName).append("/").append(serverId);
 			String path = taskPath.toString();
-			if(client.checkExists(path)){
+			if(!client.checkExists(path)){
 				return taskServerNode;
 			}
 			byte[] data = client.getData(path);

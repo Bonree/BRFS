@@ -52,7 +52,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		
+		LOG.info("Check Copy Job working");		
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		StorageNameManager snm = mcf.getSnm();
@@ -65,7 +65,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
 		//TODO：判断任务创建的时间若无则创建当前时间的前天的第一小时的
 		long startTime = getStartTime(release);
-		if(startTime <0){
+		if(startTime < 0){
 			LOG.warn("create inveral time less 1 hour");
 			return;
 		}
@@ -75,13 +75,12 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		//判断过滤sn，若sn为单副本的过滤掉，只针对多副本的
 		List<StorageNameNode> snList = filterSn(snm.getStorageNameNodeList(), size);
 		if(snList == null || snList.isEmpty()){
+			LOG.warn("storageName is null");
 			return;
 		}
 		
 		Map<StorageNameNode, List<String>> snFiles = collectionSnFiles(services, snList, startTime);
-		if(snFiles == null || snFiles.isEmpty()){
-			return;
-		}
+		
 		// 统计副本个数
 		StorageNameNode sn = null;
 		List<String> files = null;
@@ -95,7 +94,11 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		newTask.setTaskState(TaskState.INIT.code());
 		newTask.setTaskType(TaskType.SYSTEM_COPY_CHECK.code());
 		AtomTaskModel atom = null;
-		
+		if(snFiles == null || snFiles.isEmpty()){
+			release.updateTaskContentNode(newTask, taskType, null);
+			LOG.info("{} time cluster's is no data ", startTime);
+			return;
+		}
 		for(Map.Entry<StorageNameNode, List<String>> entry : snFiles.entrySet()){
 			sn = entry.getKey();
 			files = entry.getValue();
@@ -113,7 +116,6 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			newTask.addAtom(atom);
 		}
 		release.updateTaskContentNode(newTask, taskType, null);
-		
 	}
 	/**
 	 * 概述：获取集群对应目录的文件
@@ -227,12 +229,16 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		long currentTime = 0l;
 		long createTime = 0l;
 		if(tasks != null && !tasks.isEmpty()){
-			String lasTask = tasks.get(tasks.size() - 1);
+			String lasTask = tasks.get(tasks.size() - 1);			
 			TaskModel task = release.getTaskContentNodeInfo(taskType, lasTask);
+			LOG.info("TEST task {} {} ",taskType, lasTask);
 			if(task != null){
 				currentTime = task.getEndDataTime();
 				createTime = task.getCreateTime();
+				
 			}
+		}else{
+			LOG.info("{} task queue is empty !!", taskType);
 		}
 		//创建时间间隔小于一小时的不进行创建
 		if(System.currentTimeMillis() - createTime <60*60*1000){

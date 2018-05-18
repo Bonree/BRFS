@@ -47,6 +47,10 @@ public class ResourceTaskConfig {
 	 */
 	public final static String SYSTEM_CHECK_SWITCH = "system.check.pool.switch";
 	/**
+	 * 系统副本校验任务开关标识
+	 */
+	public final static String SYSTEM_COPY_CHECK_SWITCH = "system.copy.pool.switch";
+	/**
 	 * 系统副本恢复任务开关标识
 	 */
 	public final static String SYSTEM_RECOVERY_SWITCH = "system.recovery.pool.switch";
@@ -74,6 +78,10 @@ public class ResourceTaskConfig {
 	 * 用户删除任务线程池大小标识
 	 */
 	public final static String USER_DELETE_POOL_SIZE = "user.delete.pool.size";
+	/**
+	 * 系统副本校验任务开关标识
+	 */
+	public final static String SYSTEM_COPY_CHECK_POOL_SIZE = "system.copy.pool.size";
 	
 	/**
 	 * 资源采集开关标识
@@ -91,6 +99,8 @@ public class ResourceTaskConfig {
 	 * 当采集了N个资源点后进行资源值计算
 	 */
 	public final static String CALC_RESOURCE_VALUE_COUNT = "calc.resource.value.count";
+	
+	public final static String SYSTEM_COPY_INTERVAL_TIME = "system.copy.check.create.inveratal.time";
 	
 	/**
 	 * 资源限制配置
@@ -128,6 +138,7 @@ public class ResourceTaskConfig {
 	private double limitDiskWriteRate = 0.9;
 	private double limitNetTxRate = 0.9;
 	private double limitNetRxRate = 0.9;
+	private long createCheckJobTaskervalTime = 60000;
 	
 	
 	private ResourceTaskConfig(){
@@ -144,16 +155,19 @@ public class ResourceTaskConfig {
 		String sysCheckSwitch = config.getProperty(SYSTEM_CHECK_SWITCH, "false");
 		String sysRecoverySwitch = config.getProperty(SYSTEM_RECOVERY_SWITCH, "false");
 		String userDelSwitch = config.getProperty(USER_DELETE_SWITCH, "true");
+		String sysCopySwitch = config.getProperty(SYSTEM_COPY_CHECK_SWITCH,"true");
 		boolean sysDelFlag = Boolean.valueOf(sysDelSwitch);
 		boolean sysMergeFlag = Boolean.valueOf(sysMergeSwitch);
 		boolean sysCheckFlag =  Boolean.valueOf(sysCheckSwitch);
 		boolean sysRecoveryFlag =  Boolean.valueOf(sysRecoverySwitch);
 		boolean userDelFlag =  Boolean.valueOf(userDelSwitch);
+		boolean sysCopyFlag = Boolean.valueOf(sysCopySwitch);
 		configMap.put(TaskType.SYSTEM_DELETE.name(), sysDelFlag );
 		configMap.put(TaskType.SYSTEM_MERGER.name(), sysMergeFlag );
 		configMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckFlag);
 		configMap.put(TaskType.SYSTEM_RECOVERY.name(), sysRecoveryFlag);
 		configMap.put(TaskType.USER_DELETE.name(), userDelFlag);
+		configMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyFlag);
 		
 		Map poolMap = conf.getTaskPoolSizeMap();
 
@@ -162,23 +176,29 @@ public class ResourceTaskConfig {
 		String sysCheckPoolSize = config.getProperty(SYSTEM_CHECK_POOL_SIZE, "1");
 		String sysRecoveryPoolSize = config.getProperty(SYSTEM_RECOVERY_POOL_SIZE, "1");
 		String userDelPoolSize = config.getProperty(USER_DELETE_POOL_SIZE, "1");
+		String sysCopyPoolSize = config.getProperty(SYSTEM_COPY_CHECK_POOL_SIZE, "1");
 
 		int sysDelPool = Integer.valueOf(sysDelPoolSize); 
 		int sysMergePool = Integer.valueOf(sysMergePoolSize); 
 		int sysCheckPool = Integer.valueOf(sysCheckPoolSize);
 		int sysRecoveryPool = Integer.valueOf(sysRecoveryPoolSize); 
 		int userDelPool = Integer.valueOf(userDelPoolSize);
+		int sysCopyPool = Integer.valueOf(sysCopyPoolSize);
 
 		poolMap.put(TaskType.SYSTEM_DELETE.name(), sysDelPool );
 		poolMap.put(TaskType.SYSTEM_MERGER.name(), sysMergePool );
 		poolMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckPool );
 		poolMap.put(TaskType.SYSTEM_RECOVERY.name(),sysRecoveryPool ); 
 		poolMap.put(TaskType.USER_DELETE.name(), userDelPool );
+		poolMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool );
 
 
 		String createInveral = config.getProperty(CREATE_TASK_INTERVAL_TIME, "60000");
 		long createTaskInveral = Long.valueOf(createInveral);
 		conf.setCreateTaskIntervalTime(createTaskInveral);
+		String createCopyTime = config.getProperty(SYSTEM_COPY_INTERVAL_TIME, "60000");
+		long createCopytTimems = Long.valueOf(createCopyTime);
+		conf.setCreateCheckJobTaskervalTime(createCopytTimems);
 		
 		String executeInveral = config.getProperty(EXECUTE_TASK_INTERVAL_TIME, "60000");
 		long executeTaskInveral = Long.valueOf(executeInveral);
@@ -236,6 +256,7 @@ public class ResourceTaskConfig {
 		double limitNetRx = Double.valueOf(limitNetRxStr);
 		conf.setLimitNetRxRate(limitNetRx);
 		
+	
 		
 		return conf;
 	}
@@ -340,6 +361,12 @@ public class ResourceTaskConfig {
 	}
 	public void setLimitNetRxRate(double limitNetRxRate) {
 		this.limitNetRxRate = limitNetRxRate;
+	}
+	public long getCreateCheckJobTaskervalTime() {
+		return createCheckJobTaskervalTime;
+	}
+	public void setCreateCheckJobTaskervalTime(long createCheckJobTaskervalTime) {
+		this.createCheckJobTaskervalTime = createCheckJobTaskervalTime;
 	}
 	 
 }

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
@@ -74,6 +75,7 @@ public class JobDataMapConstract {
 	public static final String TASK_RESULT = "TASK_RESULT";
 	public static final String BATCH_SIZE = "BATCH_SIZE";
 	public static final String CURRENT_TASK_NAME = "CURRENT_TASK_NAME";
+	public static final String BASE_ROUTE_PATH = "BASE_ROUTE_PATH";
 	
 	/**
 	 * 概述：生成采集job需要的参数
@@ -174,6 +176,24 @@ public class JobDataMapConstract {
 		if (switchMap != null && switchMap.isEmpty()) {
 			dataMap.putAll(switchMap);
 		}
+		return dataMap;
+	}
+	public static Map<String,String> createWatchJobMap(String zkHost){
+		Map<String,String> dataMap = new HashMap<>();
+		dataMap.put(ZOOKEEPER_ADDRESS, zkHost);
+		return dataMap;
+	}
+	public static Map<String, String> createCOPYDataMap(String taskName,String serviceId, long invertalTime, String zkHost, String path){
+		Map<String, String> dataMap = new HashMap<>();
+		dataMap.put(TASK_NAME, "");
+		dataMap.put(SERVER_ID, serviceId);
+		dataMap.put(TASK_TYPE, TaskType.SYSTEM_COPY_CHECK.code() + "");
+		dataMap.put(TASK_STAT, TaskState.INIT + "");
+		dataMap.put(ZOOKEEPER_ADDRESS, zkHost);
+		dataMap.put(BASE_ROUTE_PATH, path);
+		dataMap.put(TASK_REPEAT_RUN_COUNT, "-1");
+		dataMap.put(TASK_RUN_INVERAL_TIME, invertalTime+"");
+		dataMap.put(BATCH_SIZE, "2");
 		return dataMap;
 	}
 }
