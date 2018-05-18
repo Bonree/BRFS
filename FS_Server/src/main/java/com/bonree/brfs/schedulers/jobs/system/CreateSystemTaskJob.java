@@ -64,7 +64,6 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String path = data.getString(JobDataMapConstract.DATA_PATH);
-		boolean debugFlag = data.getBoolean(JobDataMapConstract.DEBUG_CREATE_TASK_INVERATAL_ENABLE);
 		if(BrStringUtils.isEmpty(path)){
 			throw new NullPointerException("data path is empty !!!");
 		}
@@ -114,7 +113,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			if(prexTask != null){
 				preCreateTime = prexTask.getCreateTime();
 			}
-			if(currentTime - preCreateTime< 60*60*1000 && debugFlag){
+			if(currentTime - preCreateTime< 60*60*1000 ){
 				LOG.info("skip create {} task", taskType.name());
 				continue;
 			}

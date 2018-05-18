@@ -112,12 +112,7 @@ public class ResourceTaskConfig {
 	public final static String LIMIT_RESOURCE_VALUE_DISK_WRITE = "limit.resource.value.diskwritespeedrate";
 	public final static String LIMIT_RESOURCE_VALUE_NET_TX = "limit.resource.value.nettspeedrate";
 	public final static String LIMIT_RESOURCE_VALUE_NET_RX = "limit.resource.value.netrspeedrate";
-	/***
-	 * Debug配置
-	 */
-	public final static String DEBUG_CREATE_TASK_INVERALTIME_ENABLE = "debug.create.task.inveral.enable";
 	
-	private boolean createTaskInveralEnable = false;
 	/**
 	 * 任务开关
 	 */
@@ -261,13 +256,6 @@ public class ResourceTaskConfig {
 		double limitNetRx = Double.valueOf(limitNetRxStr);
 		conf.setLimitNetRxRate(limitNetRx);
 		
-		
-		//debug配置信息
-		String cTaskEnable = config.getProperty(DEBUG_CREATE_TASK_INVERALTIME_ENABLE, "false");
-		boolean cTaskEnableF = Boolean.valueOf(cTaskEnable);
-		conf.setCreateTaskInveralEnable(cTaskEnableF);
-	
-		
 		return conf;
 	}
 	public Map<String, Boolean> getTaskPoolSwitchMap() {
@@ -377,12 +365,5 @@ public class ResourceTaskConfig {
 	}
 	public void setCreateCheckJobTaskervalTime(long createCheckJobTaskervalTime) {
 		this.createCheckJobTaskervalTime = createCheckJobTaskervalTime;
-	}
-	public boolean isCreateTaskInveralEnable() {
-		return createTaskInveralEnable;
-	}
-	public void setCreateTaskInveralEnable(boolean createTaskInveralEnable) {
-		this.createTaskInveralEnable = createTaskInveralEnable;
-	}
-	 
+	}	 
 }
