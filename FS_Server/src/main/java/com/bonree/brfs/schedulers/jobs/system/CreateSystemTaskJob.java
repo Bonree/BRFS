@@ -31,6 +31,7 @@ import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
@@ -54,6 +55,12 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
+		LOG.info("-------> create system task working");
+		//判断是否有恢复任务，有恢复任务则不进行创建
+		if (WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
+			LOG.warn("rebalance task is running !! skip check copy task");
+			return;
+		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String path = data.getString(JobDataMapConstract.DATA_PATH);

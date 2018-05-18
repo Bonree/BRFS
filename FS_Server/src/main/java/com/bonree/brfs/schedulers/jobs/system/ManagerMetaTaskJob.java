@@ -17,6 +17,7 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
@@ -37,6 +38,12 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
+		LOG.info("----------> revise task work");
+		//判断是否有恢复任务，有恢复任务则不进行创建
+		if (WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
+			LOG.warn("rebalance task is running !! skip check copy task");
+			return;
+		}
 		// TODO 确定全局的数据读取key
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		// 任务过期时间 ms

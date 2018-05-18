@@ -44,9 +44,7 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 			String tasksPath=rebalances + Constants.SEPARATOR+Constants.TASKS_NODE;
 			boolean isIt = isRecovery(curatorClient, tasksPath);
 			// 更新map的值
-			//TODO 测试代码块
-			this.StateMap.put(RECOVERY_STATUSE, false);
-//		this.StateMap.put(RECOVERY_STATUSE, isIt);
+			this.StateMap.put(RECOVERY_STATUSE, isIt);
 		}catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

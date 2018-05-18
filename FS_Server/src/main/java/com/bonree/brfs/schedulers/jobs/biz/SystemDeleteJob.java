@@ -50,6 +50,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
+		LOG.info("----------> system delete work");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
