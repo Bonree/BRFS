@@ -121,6 +121,11 @@ public class WriteMessageHandler implements MessageHandler {
 			callback.completed(handleResult);
 		}
 	}
+	
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return true;
+	}
 
 	private class DataWriteResult {
 		private long offset;

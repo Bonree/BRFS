@@ -39,5 +39,10 @@ public class ReadMessageHandler implements MessageHandler {
 		result.setData(data);
 		callback.completed(result);
 	}
+	
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return true;
+	}
 
 }

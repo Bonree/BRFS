@@ -92,4 +92,9 @@ public class FileCopyMessageHandler implements MessageHandler {
 		}
 	}
 
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return true;
+	}
+
 }

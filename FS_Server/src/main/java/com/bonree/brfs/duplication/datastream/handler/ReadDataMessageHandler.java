@@ -11,4 +11,9 @@ public class ReadDataMessageHandler implements MessageHandler {
 		String fileId = msg.getPath();
 	}
 
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return false;
+	}
+
 }

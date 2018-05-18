@@ -65,6 +65,11 @@ public class WritingInfoMessageHandler implements MessageHandler {
 		callback.completed(result);
 	}
 	
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return true;
+	}
+	
 	private byte[] readSequenceData(RecordCollection records, int seq) {
 		RecordElement element = null;
 		for(RecordElement ele : records) {

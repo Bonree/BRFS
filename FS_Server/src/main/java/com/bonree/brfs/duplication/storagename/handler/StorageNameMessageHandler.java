@@ -48,4 +48,9 @@ public abstract class StorageNameMessageHandler implements MessageHandler {
 		return Splitter.on('/').omitEmptyStrings().trimResults().splitToList(uri).get(0);
 	}
 
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return !parseName(message.getPath()).isEmpty();
+	}
+
 }

@@ -122,4 +122,9 @@ public class RecoveryMessageHandler implements MessageHandler {
 		}
 	}
 	
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return true;
+	}
+	
 }

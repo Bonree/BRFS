@@ -49,6 +49,16 @@ public class NettyHttpRequestHandler {
 		request.content().readBytes(data);
 		message.setContent(data);
 		
-		handler.handle(message, new DefaultNettyHandleResultCallback(ctx));
+		try {
+			if(!handler.isValidRequest(message)) {
+				ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST);
+				return;
+			}
+			
+			handler.handle(message, new DefaultNettyHandleResultCallback(ctx));
+		} catch (Exception e) {
+			e.printStackTrace();
+			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 }

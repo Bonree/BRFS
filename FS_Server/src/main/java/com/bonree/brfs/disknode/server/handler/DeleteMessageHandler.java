@@ -120,4 +120,9 @@ public class DeleteMessageHandler implements MessageHandler {
 		}
 	}
 
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return !message.getPath().isEmpty();
+	}
+
 }

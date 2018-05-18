@@ -56,5 +56,10 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 		result.setData(BrStringUtils.toUtf8Bytes(json.toJSONString()));
 		callback.completed(result);
 	}
+	
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return true;
+	}
 
 }

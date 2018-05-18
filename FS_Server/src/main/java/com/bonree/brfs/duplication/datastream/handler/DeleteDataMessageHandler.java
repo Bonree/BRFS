@@ -3,7 +3,6 @@ package com.bonree.brfs.duplication.datastream.handler;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -119,5 +118,10 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		}
 		
 		return fileNames;
+	}
+
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return message.getPath().matches("/.*/.*_.*");
 	}
 }

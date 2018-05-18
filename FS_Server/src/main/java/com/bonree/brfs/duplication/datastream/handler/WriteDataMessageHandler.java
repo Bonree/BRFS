@@ -90,4 +90,9 @@ public class WriteDataMessageHandler implements MessageHandler {
 		}
 		
 	}
+
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return true;
+	}
 }

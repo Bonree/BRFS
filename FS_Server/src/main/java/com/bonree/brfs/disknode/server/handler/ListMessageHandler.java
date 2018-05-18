@@ -96,4 +96,9 @@ public class ListMessageHandler implements MessageHandler {
 		
 		return array.toJSONString();
 	}
+	
+	@Override
+	public boolean isValidRequest(HttpMessage message) {
+		return true;
+	}
 }
