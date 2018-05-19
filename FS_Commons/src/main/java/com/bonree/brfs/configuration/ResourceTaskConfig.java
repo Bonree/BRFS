@@ -99,8 +99,14 @@ public class ResourceTaskConfig {
 	 * 当采集了N个资源点后进行资源值计算
 	 */
 	public final static String CALC_RESOURCE_VALUE_COUNT = "calc.resource.value.count";
-	
+	/**
+	 * 副本校验的间隔时间
+	 */
 	public final static String SYSTEM_COPY_INTERVAL_TIME = "system.copy.check.create.inveratal.time";
+	/**
+	 * 副本过多久进行数据校验
+	 */
+    public final static String CHECK_DATA_TIME_TTL = "system.check.data.ttl";
 	
 	/**
 	 * 资源限制配置
@@ -139,6 +145,8 @@ public class ResourceTaskConfig {
 	private double limitNetTxRate = 0.9;
 	private double limitNetRxRate = 0.9;
 	private long createCheckJobTaskervalTime = 60000;
+	private long checkTtl = 24*60*60*1000;
+	private long globalSnTtl = 24*60*60*1000;
 	
 	
 	private ResourceTaskConfig(){
@@ -256,6 +264,13 @@ public class ResourceTaskConfig {
 		double limitNetRx = Double.valueOf(limitNetRxStr);
 		conf.setLimitNetRxRate(limitNetRx);
 		
+		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "1");
+		long checkTtl = Long.valueOf(checkTtlStr);
+		conf.setCheckTtl(checkTtl*24*60*60*1000);
+		
+		String snttlstr = config.getProperty(Configuration.STORAGE_DATA_TTL, "1");
+		long snttl = Long.valueOf(snttlstr);
+		conf.setGlobalSnTtl(snttl*24*60*60*1000);
 		return conf;
 	}
 	public Map<String, Boolean> getTaskPoolSwitchMap() {
@@ -365,5 +380,17 @@ public class ResourceTaskConfig {
 	}
 	public void setCreateCheckJobTaskervalTime(long createCheckJobTaskervalTime) {
 		this.createCheckJobTaskervalTime = createCheckJobTaskervalTime;
+	}
+	public long getCheckTtl() {
+		return checkTtl;
+	}
+	public void setCheckTtl(long checkTtl) {
+		this.checkTtl = checkTtl;
+	}
+	public long getGlobalSnTtl() {
+		return globalSnTtl;
+	}
+	public void setGlobalSnTtl(long globalSnTtl) {
+		this.globalSnTtl = globalSnTtl;
 	}	 
 }

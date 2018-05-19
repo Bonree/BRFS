@@ -15,7 +15,6 @@ public final class TimeUtils {
 		StringBuilder builder = new StringBuilder();
 		long last = (now - now % interval);
 		builder.append(new DateTime(last)).append('_').append(new DateTime(last + interval));
-		
 		return builder.toString();
 	}
 }
