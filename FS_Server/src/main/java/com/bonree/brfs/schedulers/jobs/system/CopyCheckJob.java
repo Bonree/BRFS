@@ -36,6 +36,7 @@ import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
+import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 
 public class CopyCheckJob extends QuartzOperationStateTask{
@@ -116,6 +117,22 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			newTask.addAtom(atom);
 		}
 		release.updateTaskContentNode(newTask, taskType, null);
+		//补充任务节点
+		String serverId = null;
+		for(Service service : services){
+			serverId = service.getServiceId();
+			release.updateServerTaskContentNode(serverId, null, TaskType.SYSTEM_COPY_CHECK.name(), createServerNodeModel());
+		}
+	}
+	/**
+	 * 概述：创建任务
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public TaskServerNodeModel createServerNodeModel(){
+		TaskServerNodeModel task = new TaskServerNodeModel();
+		task.setTaskState(TaskState.INIT.code());
+		return task;
 	}
 	/**
 	 * 概述：获取集群对应目录的文件

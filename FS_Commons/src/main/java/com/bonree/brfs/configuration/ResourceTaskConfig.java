@@ -128,11 +128,11 @@ public class ResourceTaskConfig {
 	 */
 	Map<String, Integer> taskPoolSizeMap = new ConcurrentHashMap<String, Integer>();
 	
-	//创建任务执行的时间间隔 ms
-	private long createTaskIntervalTime = 60000;
-	private long executeTaskIntervalTime = 60000;
-	private long gatherResourceInveralTime = 60000;
-	private long taskExpiredTime = 7*24*60*60*1000;
+	//创建任务执行的时间间隔s
+	private long createTaskIntervalTime = 60;
+	private long executeTaskIntervalTime = 60;
+	private long gatherResourceInveralTime = 60;
+	private long taskExpiredTime = 7*24*60*60;
 	private int calcResourceValueCount = 2;
 	private boolean taskFrameWorkSwitch = true;
 	private boolean resourceFrameWorkSwitch = true;
@@ -144,9 +144,9 @@ public class ResourceTaskConfig {
 	private double limitDiskWriteRate = 0.9;
 	private double limitNetTxRate = 0.9;
 	private double limitNetRxRate = 0.9;
-	private long createCheckJobTaskervalTime = 60000;
-	private long checkTtl = 24*60*60*1000;
-	private long globalSnTtl = 24*60*60*1000;
+	private long createCheckJobTaskervalTime = 60;
+	private long checkTtl = 24*60*60;
+	private long globalSnTtl = 24*60*60;
 	
 	
 	private ResourceTaskConfig(){
@@ -163,7 +163,7 @@ public class ResourceTaskConfig {
 		String sysCheckSwitch = config.getProperty(SYSTEM_CHECK_SWITCH, "false");
 		String sysRecoverySwitch = config.getProperty(SYSTEM_RECOVERY_SWITCH, "false");
 		String userDelSwitch = config.getProperty(USER_DELETE_SWITCH, "true");
-		String sysCopySwitch = config.getProperty(SYSTEM_COPY_CHECK_SWITCH,"true");
+		String sysCopySwitch = config.getProperty(SYSTEM_COPY_CHECK_SWITCH,"false");
 		boolean sysDelFlag = Boolean.valueOf(sysDelSwitch);
 		boolean sysMergeFlag = Boolean.valueOf(sysMergeSwitch);
 		boolean sysCheckFlag =  Boolean.valueOf(sysCheckSwitch);
@@ -201,18 +201,18 @@ public class ResourceTaskConfig {
 		poolMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool );
 
 
-		String createInveral = config.getProperty(CREATE_TASK_INTERVAL_TIME, "60000");
+		String createInveral = config.getProperty(CREATE_TASK_INTERVAL_TIME, "60");
 		long createTaskInveral = Long.valueOf(createInveral);
 		conf.setCreateTaskIntervalTime(createTaskInveral);
-		String createCopyTime = config.getProperty(SYSTEM_COPY_INTERVAL_TIME, "60000");
+		String createCopyTime = config.getProperty(SYSTEM_COPY_INTERVAL_TIME, "60");
 		long createCopytTimems = Long.valueOf(createCopyTime);
 		conf.setCreateCheckJobTaskervalTime(createCopytTimems);
 		
-		String executeInveral = config.getProperty(EXECUTE_TASK_INTERVAL_TIME, "60000");
+		String executeInveral = config.getProperty(EXECUTE_TASK_INTERVAL_TIME, "60");
 		long executeTaskInveral = Long.valueOf(executeInveral);
 		conf.setExecuteTaskIntervalTime(executeTaskInveral);
 		
-		String gatherInveral = config.getProperty(GATHER_RESOURCE_INVERAL_TIME, "60000");
+		String gatherInveral = config.getProperty(GATHER_RESOURCE_INVERAL_TIME, "60");
 		long gatherResourceInveral = Long.valueOf(gatherInveral);
 		conf.setGatherResourceInveralTime(gatherResourceInveral);
 		
@@ -232,7 +232,7 @@ public class ResourceTaskConfig {
 			throw new NullPointerException(RESOURCE_LIB_PATH +" is empty");
 		}
 		conf.setLibPath(libPath);
-		String expiredTime = config.getProperty(TASK_EXPIRED_TIME, "680400000");
+		String expiredTime = config.getProperty(TASK_EXPIRED_TIME, "680400");
 		long expiredTaskTime = Long.valueOf(expiredTime);
 		conf.setTaskExpiredTime(expiredTaskTime);
 		
@@ -266,11 +266,11 @@ public class ResourceTaskConfig {
 		
 		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "1");
 		long checkTtl = Long.valueOf(checkTtlStr);
-		conf.setCheckTtl(checkTtl*24*60*60*1000);
+		conf.setCheckTtl(checkTtl*24*60*60);
 		
 		String snttlstr = config.getProperty(Configuration.STORAGE_DATA_TTL, "1");
 		long snttl = Long.valueOf(snttlstr);
-		conf.setGlobalSnTtl(snttl*24*60*60*1000);
+		conf.setGlobalSnTtl(snttl*24*60*60);
 		return conf;
 	}
 	public Map<String, Boolean> getTaskPoolSwitchMap() {

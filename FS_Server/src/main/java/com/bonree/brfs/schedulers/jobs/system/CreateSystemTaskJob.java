@@ -62,7 +62,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			return;
 		}
 		JobDataMap data = context.getJobDetail().getJobDataMap();
-		long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL);
+		long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL)*1000;
 		long gsnTtl = data.getLong(JobDataMapConstract.GLOBAL_SN_DATA_TTL);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
@@ -91,11 +91,14 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		TaskModel prexTask = null;
 		List<String> taskList = null;
 		long preCreateTime = 0l;
+		boolean isFirst = false;
 		for(TaskType taskType : switchList){
 			//检查创建的时间间隔是否达到一小时
 			taskList = release.getTaskList(taskType.name());
 			if(taskList != null && !taskList.isEmpty()){
 				prexTaskName = taskList.get(taskList.size() - 1);
+			}else{
+				isFirst = true;
 			}
 			if(!BrStringUtils.isEmpty(prexTaskName)){
 				prexTask = release.getTaskContentNodeInfo(taskType.name(), prexTaskName);
@@ -150,7 +153,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public TaskModel createTaskModel(List<StorageNameNode> snList,TaskType taskType, long currentTime,long globalttl,String taskOperation){
+	public TaskModel createTaskModel(List<StorageNameNode> snList,TaskType taskType, long currentTime, long globalttl,String taskOperation){
 		TaskModel task = new TaskModel();
 		task.setCreateTime(System.currentTimeMillis());
 		task.setTaskState(TaskState.INIT.code());
@@ -162,18 +165,18 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		List<AtomTaskModel> cAtoms = null;
 		for(StorageNameNode snn : snList){
 			creatTime = snn.getCreateTime();
-			if(currentTime - creatTime < ttl){
-				continue;
-			}
 			//系统删除任务判断
 			if(TaskType.SYSTEM_DELETE.equals(taskType)){
-				ttl = snn.getTtl();
+				ttl = snn.getTtl()*1000;
+				if(currentTime - creatTime < ttl){
+					continue;
+				}
 			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
 				ttl = globalttl;
+				if(currentTime - creatTime < ttl){
+					continue;
+				}
 			}
-//			if(ttl < 24*60*60*1000){
-//				ttl = globalttl;
-//			}
 			operationDirTime =currentTime - ttl- 60*60*1000;
 			cAtoms = createAtomTaskModel(snn, operationDirTime, taskOperation);
 			if(cAtoms == null || cAtoms.isEmpty()){
