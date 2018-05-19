@@ -15,6 +15,7 @@ import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.DuplicaServiceSelector;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.client.utils.FilePathBuilder;
+import com.bonree.brfs.common.exception.BRFSException;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
 import com.bonree.brfs.common.http.client.URIBuilder;
@@ -83,6 +84,8 @@ public class DefaultStorageNameStick implements StorageNameStick {
 				}
 				
 				return fids;
+			}else {
+			    throw new BRFSException(storageName + " is disable!!! ");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
