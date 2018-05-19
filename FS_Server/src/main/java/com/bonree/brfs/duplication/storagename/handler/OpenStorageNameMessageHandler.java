@@ -39,7 +39,7 @@ public class OpenStorageNameMessageHandler extends StorageNameMessageHandler {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.SUCCESS.name()));
+			result.setData(BrStringUtils.toUtf8Bytes(String.valueOf(node.getId())));
 		}
 		
 		callback.completed(result);

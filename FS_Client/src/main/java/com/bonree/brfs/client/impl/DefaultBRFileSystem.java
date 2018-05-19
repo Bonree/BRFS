@@ -26,165 +26,155 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 
 public class DefaultBRFileSystem implements BRFileSystem {
-	private static final String URI_STORAGE_NAME_ROOT = "/storageName/";
-	
-	private static final String DEFAULT_SCHEME = "http";
-	
-	private HttpClient client = new HttpClient();
-	private CuratorFramework zkClient;
-	private ServiceManager serviceManager;
-	
-	private ServiceSelectorManager serviceSelectorManager;
+    private static final String URI_STORAGE_NAME_ROOT = "/storageName/";
 
-	public DefaultBRFileSystem(String zkAddresses, String cluster) throws Exception {
-		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-		zkClient = CuratorFrameworkFactory.newClient(zkAddresses, 3000, 15000, retryPolicy);
-		zkClient.start();
-		zkClient.blockUntilConnected();
-		
-		ZookeeperPaths zkPaths = ZookeeperPaths.create(cluster, zkAddresses);
-		serviceManager = new DefaultServiceManager(zkClient.usingNamespace(zkPaths.getBaseClusterName().substring(1)));
-		serviceManager.start();
-		
-		this.serviceSelectorManager = new ServiceSelectorManager(serviceManager,
-				zkClient, zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath());
-	}
+    private static final String DEFAULT_SCHEME = "http";
 
-	@Override
-	public boolean createStorageName(String storageName, Map<String, Object> attrs){
-		Service service;
-		try {
-			service = serviceSelectorManager.useDuplicaSelector().randomService();
-		} catch (Exception e1) {
-			return false;
-		}
-		
-		URIBuilder uriBuilder = new URIBuilder()
-	    .setScheme(DEFAULT_SCHEME)
-	    .setHost(service.getHost())
-	    .setPort(service.getPort())
-	    .setPath(URI_STORAGE_NAME_ROOT + storageName);
-		
-		for(Entry<String, Object> attr : attrs.entrySet()) {
-			uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
-		}
+    private HttpClient client = new HttpClient();
+    private CuratorFramework zkClient;
+    private ServiceManager serviceManager;
 
-		try {
-			HttpResponse response = client.executePut(uriBuilder.build());
-			String code=new String(response.getResponseBody());
-			System.out.println(code);
-			ReturnCode returnCode = ReturnCode.valueOf(code);
-			returnCode = ReturnCode.checkCode(storageName, returnCode);
-			return response.isReponseOK();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return false;
-	}
+    private ServiceSelectorManager serviceSelectorManager;
 
-	@Override
-	public boolean updateStorageName(String storageName,
-			Map<String, Object> attrs) {
-		Service service;
-		try {
-			service = serviceSelectorManager.useDuplicaSelector().randomService();
-		} catch (Exception e1) {
-			return false;
-		}
-		
-		URIBuilder uriBuilder = new URIBuilder()
-	    .setScheme(DEFAULT_SCHEME)
-	    .setHost(service.getHost())
-	    .setPort(service.getPort())
-	    .setPath(URI_STORAGE_NAME_ROOT + storageName);
-		
-		for(Entry<String, Object> attr : attrs.entrySet()) {
-			uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
-		}
+    public DefaultBRFileSystem(String zkAddresses, String cluster) throws Exception {
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+        zkClient = CuratorFrameworkFactory.newClient(zkAddresses, 3000, 15000, retryPolicy);
+        zkClient.start();
+        zkClient.blockUntilConnected();
 
-		try {
-			HttpResponse response = client.executePost(uriBuilder.build());
-			ReturnCode returnCode = ReturnCode.valueOf(new String(response.getResponseBody()));
+        ZookeeperPaths zkPaths = ZookeeperPaths.create(cluster, zkAddresses);
+        serviceManager = new DefaultServiceManager(zkClient.usingNamespace(zkPaths.getBaseClusterName().substring(1)));
+        serviceManager.start();
+
+        this.serviceSelectorManager = new ServiceSelectorManager(serviceManager, zkClient, zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath());
+    }
+
+    @Override
+    public boolean createStorageName(String storageName, Map<String, Object> attrs) {
+        Service service;
+        try {
+            service = serviceSelectorManager.useDuplicaSelector().randomService();
+        } catch (Exception e1) {
+            return false;
+        }
+
+        URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
+
+        for (Entry<String, Object> attr : attrs.entrySet()) {
+            uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
+        }
+
+        try {
+            HttpResponse response = client.executePut(uriBuilder.build());
+            String code = new String(response.getResponseBody());
+            System.out.println(code);
+            ReturnCode returnCode = ReturnCode.valueOf(code);
+            returnCode = ReturnCode.checkCode(storageName, returnCode);
+            return response.isReponseOK();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean updateStorageName(String storageName, Map<String, Object> attrs) {
+        Service service;
+        try {
+            service = serviceSelectorManager.useDuplicaSelector().randomService();
+        } catch (Exception e1) {
+            return false;
+        }
+
+        URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
+
+        for (Entry<String, Object> attr : attrs.entrySet()) {
+            uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
+        }
+
+        try {
+            HttpResponse response = client.executePost(uriBuilder.build());
+            ReturnCode returnCode = ReturnCode.valueOf(new String(response.getResponseBody()));
             ReturnCode.checkCode(storageName, returnCode);
-			return response.isReponseOK();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return false;
-	}
+            return response.isReponseOK();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-	@Override
-	public boolean deleteStorageName(String storageName) {
-		Service service;
-		try {
-			service = serviceSelectorManager.useDuplicaSelector().randomService();
-		} catch (Exception e1) {
-			return false;
-		}
-		
-		URI uri = new URIBuilder()
-	    .setScheme(DEFAULT_SCHEME)
-	    .setHost(service.getHost())
-	    .setPort(service.getPort())
-	    .setPath(URI_STORAGE_NAME_ROOT + storageName)
-	    .build();
+        return false;
+    }
 
-		try {
-			HttpResponse response = client.executeDelete(uri);
-			ReturnCode returnCode = ReturnCode.valueOf(new String(response.getResponseBody()));
-			ReturnCode.checkCode(storageName, returnCode);
-			return response.isReponseOK();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return false;
-	}
+    @Override
+    public boolean deleteStorageName(String storageName) {
+        Service service;
+        try {
+            service = serviceSelectorManager.useDuplicaSelector().randomService();
+        } catch (Exception e1) {
+            return false;
+        }
 
-	@Override
-	public StorageNameStick openStorageName(String storageName, boolean createIfNonexistent) {
-		Service service;
-		try {
-			service = serviceSelectorManager.useDuplicaSelector().randomService();
-		} catch (Exception e1) {
-			return null;
-		}
-		
-		URI uri = new URIBuilder()
-	    .setScheme(DEFAULT_SCHEME)
-	    .setHost(service.getHost())
-	    .setPort(service.getPort())
-	    .setPath(URI_STORAGE_NAME_ROOT + storageName)
-	    .build();
+        URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
 
-		try {
-			HttpResponse response = client.executeGet(uri);
+        try {
+            HttpResponse response = client.executeDelete(uri);
+            ReturnCode returnCode = ReturnCode.valueOf(new String(response.getResponseBody()));
+            ReturnCode.checkCode(storageName, returnCode);
+            return response.isReponseOK();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-			int storageId = Integer.parseInt(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
-			System.out.println("get id---" + storageId);
-			DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
-			return new DefaultStorageNameStick(storageName, storageId, cache, serviceSelectorManager.useDuplicaSelector());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        return false;
+    }
 
-		return null;
-	}
+    @Override
+    public StorageNameStick openStorageName(String storageName, boolean createIfNonexistent) {
+        Service service;
+        try {
+            service = serviceSelectorManager.useDuplicaSelector().randomService();
+        } catch (Exception e1) {
+            return null;
+        }
 
-	@Override
-	public void close() throws IOException {
-		CloseUtils.closeQuietly(client);
-		CloseUtils.closeQuietly(zkClient);
-		CloseUtils.closeQuietly(serviceSelectorManager);
-		try {
-			if(serviceManager != null) {
-				serviceManager.stop();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+        URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
+        boolean existFalg = true;
+        try {
+            HttpResponse response = client.executeGet(uri);
+            String code = BrStringUtils.fromUtf8Bytes(response.getResponseBody());
+            int storageId = -1;
+            try {
+                storageId = Integer.parseInt(code);
+            } catch (NumberFormatException e) {
+                ReturnCode returnCode = ReturnCode.valueOf(code);
+                ReturnCode.checkCode(storageName, returnCode);
+                existFalg = false;
+            }
+            if (!existFalg) {
+                return null;
+            }
+            System.out.println("get id---" + storageId);
+            DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
+            return new DefaultStorageNameStick(storageName, storageId, cache, serviceSelectorManager.useDuplicaSelector());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public void close() throws IOException {
+        CloseUtils.closeQuietly(client);
+        CloseUtils.closeQuietly(zkClient);
+        CloseUtils.closeQuietly(serviceSelectorManager);
+        try {
+            if (serviceManager != null) {
+                serviceManager.stop();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }
