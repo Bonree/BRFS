@@ -82,7 +82,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
 				for(int i = 0; i < array.size(); i++) {
 					fids[i] = array.getString(i);
 				}
-				
 				return fids;
 			}else {
 			    throw new BRFSException(storageName + " is disable!!! ");

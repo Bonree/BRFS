@@ -40,6 +40,8 @@ public class WriteDataMessageHandler implements MessageHandler {
 		if(!node.isEnable()) {
 		    HandleResult result = new HandleResult();
             result.setSuccess(false);
+            callback.completed(result);
+            return;
 		}
 		DataItem[] items = writeMsg.getItems();
 		LOG.info("Writing DataItem[{}]", items.length);
