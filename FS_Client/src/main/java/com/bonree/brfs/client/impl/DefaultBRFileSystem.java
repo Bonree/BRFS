@@ -14,6 +14,7 @@ import com.bonree.brfs.client.BRFileSystem;
 import com.bonree.brfs.client.StorageNameStick;
 import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.ServiceSelectorManager;
+import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
@@ -50,7 +51,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
 	}
 
 	@Override
-	public boolean createStorageName(String storageName, Map<String, Object> attrs) {
+	public boolean createStorageName(String storageName, Map<String, Object> attrs){
 		Service service;
 		try {
 			service = serviceSelectorManager.useDuplicaSelector().randomService();
@@ -70,6 +71,10 @@ public class DefaultBRFileSystem implements BRFileSystem {
 
 		try {
 			HttpResponse response = client.executePut(uriBuilder.build());
+			String code=new String(response.getResponseBody());
+			System.out.println(code);
+			ReturnCode returnCode = ReturnCode.valueOf(code);
+			returnCode = ReturnCode.checkCode(storageName, returnCode);
 			return response.isReponseOK();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -100,6 +105,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
 
 		try {
 			HttpResponse response = client.executePost(uriBuilder.build());
+			ReturnCode returnCode = ReturnCode.valueOf(new String(response.getResponseBody()));
+            ReturnCode.checkCode(storageName, returnCode);
 			return response.isReponseOK();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -126,6 +133,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
 
 		try {
 			HttpResponse response = client.executeDelete(uri);
+			ReturnCode returnCode = ReturnCode.valueOf(new String(response.getResponseBody()));
+			ReturnCode.checkCode(storageName, returnCode);
 			return response.isReponseOK();
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.service.Service;
@@ -17,7 +18,6 @@ import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameRemoveException;
-import com.bonree.brfs.server.ReturnCode;
 
 public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
     
@@ -41,7 +41,8 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
             deleted = storageNameManager.removeStorageName(msg.getName());
             result.setSuccess(deleted);
             if (!deleted) {
-                result.setData(BrStringUtils.toUtf8Bytes("errorCode:224"));
+                result.setSuccess(false);
+                result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_OPT_ERROR.name()));
             } else {
                List<Service> services= serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
                boolean deleteCompleted = true;
@@ -59,13 +60,14 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
                }
                
                result.setSuccess(deleteCompleted);
+               result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.SUCCESS.name()));
             }
         } catch (StorageNameNonexistentException e) {
             result.setSuccess(false);
-            result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_NONEXIST_ERROR.codeDetail()));
+            result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_NONEXIST_ERROR.name()));
         } catch (StorageNameRemoveException e) {
             result.setSuccess(false);
-            result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.codeDetail()));
+            result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()));
         }
 
         callback.completed(result);
