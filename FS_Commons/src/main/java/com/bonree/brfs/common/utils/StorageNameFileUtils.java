@@ -19,7 +19,7 @@ public class StorageNameFileUtils {
 	 * 概述：获取指定时间的目录
 	 * @param sn
 	 * @param dataPath
-	 * @param time
+	 * @param time 单位为ms
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */

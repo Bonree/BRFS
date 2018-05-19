@@ -93,6 +93,9 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		for(TaskType taskType : switchList){
 			String prexTaskName = null;
 			try {
+				if(TaskType.SYSTEM_COPY_CHECK.equals(taskType)){
+					continue;
+				}
 				typeName = taskType.name();
 				poolSize = schd.getTaskPoolSize(typeName);
 				sumbitSize = schd.getSumbitedTaskCount(typeName);
@@ -104,10 +107,8 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				}
 				if(data.containsKey(typeName)){
 					prexTaskName = data.getString(typeName);
-				}else{
-					LOG.warn("data don't have  {}", typeName);
 				}
-				if(BrStringUtils.isEmpty(prexTaskName)){
+				if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
 					prexTaskName = release.getFirstServerTask(typeName, serverId);
 					currentTaskName = prexTaskName;
 				}else{
