@@ -137,13 +137,13 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				// 创建任务提交信息
 				// TODO：根据不同类型的任务在此生成的不一样
 				if(TaskType.SYSTEM_DELETE.equals(taskType)){
-					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemDeleteJob.class.getCanonicalName());
+					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemDeleteJob.class.getCanonicalName(),dataPath);
 				}
 				if(TaskType.SYSTEM_CHECK.equals(taskType)){
-					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName());
+					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName(),dataPath);
 				}
 				if(TaskType.USER_DELETE.equals(taskType)){
-					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName());
+					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName(),dataPath);
 				}
 				
 				//
@@ -175,7 +175,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId,String clazzName){
+	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId,String clazzName,String path){
 		QuartzSimpleInfo task = new QuartzSimpleInfo();
 		task.setRunNowFlag(true);
 		task.setCycleFlag(false);
@@ -183,7 +183,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		task.setTaskGroupName(TaskType.valueOf(taskModel.getTaskType()).name());
 		task.setRepeateCount(runPattern.getRepeateCount());
 		task.setInterval(runPattern.getSleepTime());
-		Map<String,String> dataMap = JobDataMapConstract.createOperationDataMap(taskName,serverId, taskModel, runPattern);
+		Map<String,String> dataMap = JobDataMapConstract.createOperationDataMap(taskName,serverId, taskModel, runPattern,path);
 		if(dataMap != null && !dataMap.isEmpty()){
 			task.setTaskContent(dataMap);
 		}

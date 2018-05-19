@@ -61,20 +61,10 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			LOG.warn("rebalance task is running !! skip check copy task");
 			return;
 		}
-		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		JobDataMap data = context.getJobDetail().getJobDataMap();
-		String path = data.getString(JobDataMapConstract.DATA_PATH);
-		if(BrStringUtils.isEmpty(path)){
-			throw new NullPointerException("data path is empty !!!");
-		}
-		int lastIndex = path.lastIndexOf("/");
-		if(lastIndex >0){
-			path = path.substring(0, lastIndex);
-		}
-		lastIndex = path.lastIndexOf("\\");
-		if(lastIndex >0){
-			path = path.substring(0, lastIndex);
-		}
+		long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL);
+		long gsnTtl = data.getLong(JobDataMapConstract.GLOBAL_SN_DATA_TTL);
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		// 获取开启的任务名称
 		List<TaskType> switchList = mcf.getTaskOn();
@@ -119,9 +109,9 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			}
 			if(TaskType.SYSTEM_DELETE.equals(taskType)){
 				//创建删除任务
-				task = createTaskModel(snList, taskType, currentTime, path, "");
+				task = createTaskModel(snList, taskType, currentTime, gsnTtl, "");
 			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
-				task = createTaskModel(snList, taskType, currentTime, path, "");
+				task = createTaskModel(snList, taskType, currentTime, checkTtl,"");
 			}else{
 				LOG.info("there is no task to create skip {}",taskType);
 				continue;
@@ -160,7 +150,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public TaskModel createTaskModel(List<StorageNameNode> snList,TaskType taskType, long currentTime,String dataPath,String taskOperation){
+	public TaskModel createTaskModel(List<StorageNameNode> snList,TaskType taskType, long currentTime,long globalttl,String taskOperation){
 		TaskModel task = new TaskModel();
 		task.setCreateTime(System.currentTimeMillis());
 		task.setTaskState(TaskState.INIT.code());
@@ -172,13 +162,20 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		List<AtomTaskModel> cAtoms = null;
 		for(StorageNameNode snn : snList){
 			creatTime = snn.getCreateTime();
-			ttl = snn.getTtl();
-			//系统删除任务判断
-			if(TaskType.SYSTEM_DELETE.equals(taskType) && (currentTime - creatTime) < ttl){
+			if(currentTime - creatTime < ttl){
 				continue;
 			}
-			operationDirTime =currentTime - ttl;
-			cAtoms = createAtomTaskModel(snn, dataPath, operationDirTime, taskOperation);
+			//系统删除任务判断
+			if(TaskType.SYSTEM_DELETE.equals(taskType)){
+				ttl = snn.getTtl();
+			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
+				ttl = globalttl;
+			}
+//			if(ttl < 24*60*60*1000){
+//				ttl = globalttl;
+//			}
+			operationDirTime =currentTime - ttl- 60*60*1000;
+			cAtoms = createAtomTaskModel(snn, operationDirTime, taskOperation);
 			if(cAtoms == null || cAtoms.isEmpty()){
 				continue;
 			}
@@ -200,7 +197,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private List<AtomTaskModel> createAtomTaskModel(StorageNameNode sn, String dataPath, final long time, String taskOperation){
+	private List<AtomTaskModel> createAtomTaskModel(StorageNameNode sn, final long time, String taskOperation){
 		List<AtomTaskModel> atomList = new ArrayList<AtomTaskModel>();
 		AtomTaskModel atom = null;
 		int copyCount = sn.getReplicateCount();
@@ -210,7 +207,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			atom = new AtomTaskModel();
 			atom.setStorageName(snName);
 			atom.setTaskOperation(taskOperation);
-			path = StorageNameFileUtils.createSNDir(snName, dataPath, i, time);
+			path = StorageNameFileUtils.createSNDir(snName, i, time);
 			if(BrStringUtils.isEmpty(path)){
 				LOG.warn("sn {} create dir error !! path is empty !!!", snName);
 				continue;
@@ -243,7 +240,4 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		}
 		return sids;
 	}
-	
-	
-
 }

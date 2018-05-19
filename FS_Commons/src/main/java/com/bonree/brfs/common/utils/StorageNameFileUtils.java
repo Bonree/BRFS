@@ -23,17 +23,13 @@ public class StorageNameFileUtils {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static String createSNDir(String sn,String dataPath, int copyIndex, final long time){
+	public static String createSNDir(String sn, int copyIndex, final long time){
 		if(BrStringUtils.isEmpty(sn)){
-			return null;
-		}
-		if(BrStringUtils.isEmpty(dataPath)){
 			return null;
 		}
 		String strTime = TimeUtils.timeInterval(time, 60*60*1000);
 		StringBuilder str = new StringBuilder();
-		str.append(dataPath).append(File.separator)
-		.append(sn).append(File.separator)
+		str.append(sn).append(File.separator)
 		.append(copyIndex).append(File.separator)
 		.append(strTime);
 		return str.toString();

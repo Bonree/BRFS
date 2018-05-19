@@ -1,5 +1,6 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
@@ -77,6 +78,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		AtomTaskResultModel atomR = null;
 		TaskResultModel batchResult = null;
 		boolean isException = false;
+		String path = null;
 		for(AtomTaskModel atom : atoms){
 			snName = atom.getStorageName();
 			dirName = atom.getDirName();
@@ -92,11 +94,12 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 			atomR = new AtomTaskResultModel();
 			atomR.setSn(snName);
 			atomR.setDir(dirName);
-			if(!FileUtils.isExist(dirName)){
+			path = dirName+File.separator + dirName;
+			if(!FileUtils.isExist(path)){
 				LOG.warn("{} is not exists !!");
 				continue;
 			}
-			batchResult = checkFiles(snName, dirName);
+			batchResult = checkFiles(snName, dirName, dataPath);
 			if(batchResult == null){
 				continue;
 			}
@@ -115,8 +118,9 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private TaskResultModel checkFiles(String snName, String dirName){
-		if(!FileUtils.isExist(dirName)){
+	private TaskResultModel checkFiles(String snName, String dirName, String dataPath){
+		String path = dataPath + File.separator + dirName;
+		if(!FileUtils.isExist(path)){
 			LOG.warn("{} is not exists !!",dirName);
 			return null;
 		}
@@ -132,7 +136,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 			result.setSuccess(false);
 			return result;
 		}
-		List<String> files = FileUtils.listFilePaths(dirName);
+		List<String> files = FileUtils.listFilePaths(path);
 		atomR.setSn(snName);
 		atomR.setDir(dirName);
 		int deleteCount = 0;

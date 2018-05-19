@@ -76,6 +76,8 @@ public class JobDataMapConstract {
 	public static final String BATCH_SIZE = "BATCH_SIZE";
 	public static final String CURRENT_TASK_NAME = "CURRENT_TASK_NAME";
 	public static final String BASE_ROUTE_PATH = "BASE_ROUTE_PATH";
+	public static final String CHECK_TTL = "CHECK_TTL";
+	public static final String GLOBAL_SN_DATA_TTL = "GLOBAL_SN_DATA_TTL";
 	
 	
 	/**
@@ -129,11 +131,13 @@ public class JobDataMapConstract {
 	 */
 	public static Map<String,String> createCreateDataMap(ServerConfig server, ResourceTaskConfig resource){
 		Map<String, String> dataMap = new HashMap<>();
-		dataMap.put(DATA_PATH, server.getDataPath());
+		dataMap.put(GLOBAL_SN_DATA_TTL, resource.getGlobalSnTtl()+"");
+		dataMap.put(CHECK_TTL, resource.getCheckTtl()+"");
 		return dataMap;
 	}
-	public static Map<String, String> createOperationDataMap(String taskName,String serviceId, TaskModel task, TaskRunPattern pattern){
+	public static Map<String, String> createOperationDataMap(String taskName,String serviceId, TaskModel task, TaskRunPattern pattern,String path){
 		Map<String, String> dataMap = new HashMap<>();
+		dataMap.put(DATA_PATH, path);
 		dataMap.put(TASK_NAME, taskName);
 		dataMap.put(SERVER_ID, serviceId);
 		dataMap.put(TASK_TYPE, task.getTaskType() +"");
