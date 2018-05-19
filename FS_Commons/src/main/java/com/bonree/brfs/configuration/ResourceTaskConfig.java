@@ -234,7 +234,7 @@ public class ResourceTaskConfig {
 		conf.setLibPath(libPath);
 		String expiredTime = config.getProperty(TASK_EXPIRED_TIME, "680400");
 		long expiredTaskTime = Long.valueOf(expiredTime);
-		conf.setTaskExpiredTime(expiredTaskTime);
+		conf.setTaskExpiredTime(expiredTaskTime *1000);
 		
 		String limtCpuRateStr = config.getProperty(LIMIT_RESOURCE_VALUE_CPU,"0.9");
 		double limtCpuRate = Double.valueOf(limtCpuRateStr);
