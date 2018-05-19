@@ -110,7 +110,7 @@ public class BootStrap {
 		NettyHttpServer httpServer = new NettyHttpServer(config);
 		
 		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
-		requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer));
+		requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer,storageNameManager));
 		requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
 		requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(serviceManager, storageNameManager));
 		NettyHttpContextHandler contextHttpHandler = new NettyHttpContextHandler(DuplicationEnvironment.URI_DUPLICATION_NODE_ROOT, requestHandler);

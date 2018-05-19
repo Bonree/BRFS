@@ -17,20 +17,30 @@ import com.bonree.brfs.duplication.datastream.DataHandleCallback;
 import com.bonree.brfs.duplication.datastream.DataWriteResult;
 import com.bonree.brfs.duplication.datastream.DuplicateWriter;
 import com.bonree.brfs.duplication.datastream.ResultItem;
+import com.bonree.brfs.duplication.storagename.StorageNameManager;
+import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.google.protobuf.ByteString;
 
 public class WriteDataMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteDataMessageHandler.class);
 	
 	private DuplicateWriter duplicateWriter;
+	private StorageNameManager snManager;
 	
-	public WriteDataMessageHandler(DuplicateWriter duplicateWriter) {
+	public WriteDataMessageHandler(DuplicateWriter duplicateWriter,StorageNameManager snManager) {
 		this.duplicateWriter = duplicateWriter;
+		this.snManager = snManager;
 	}
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
+		StorageNameNode node =snManager.findStorageName(writeMsg.getStorageNameId());
+		
+		if(!node.isEnable()) {
+		    HandleResult result = new HandleResult();
+            result.setSuccess(false);
+		}
 		DataItem[] items = writeMsg.getItems();
 		LOG.info("Writing DataItem[{}]", items.length);
 		
