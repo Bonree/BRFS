@@ -22,8 +22,11 @@ import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.disknode.DiskContext;
+import com.bonree.brfs.disknode.client.DiskNodeClient;
+import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.rebalance.LocalDiskNode;
+import com.bonree.brfs.rebalance.record.BalanceRecord;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
@@ -58,7 +61,7 @@ public class VirtualRecover implements DataRecover {
 
     private CuratorNodeCache nodeCache;
 
-    private LocalDiskNode diskNode;
+    private DiskNodeClient diskClient;
 
     private final CuratorClient client;
 
@@ -103,7 +106,7 @@ public class VirtualRecover implements DataRecover {
         this.serviceManager = serviceManager;
         this.dataDir = dataDir;
         this.storageName = storageName;
-        diskNode = new LocalDiskNode(dataDir);
+        diskClient = new LocalDiskNodeClient();
         // 恢复需要对节点进行监听
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(taskNode, new RecoverListener("recover"));
@@ -261,22 +264,31 @@ public class VirtualRecover implements DataRecover {
                         }
                         fileRecover = fileRecoverQueue.poll(100, TimeUnit.MILLISECONDS);
                         if (fileRecover != null) {
+                            boolean success = false;
                             System.out.println("transfer :" + fileRecover);// 此处来发送文件
                             String firstID = fileRecover.getFirstServerID();
                             Service service = serviceManager.getServiceById(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, firstID);
                             String logicPath = fileRecover.getStorageName() + FileUtils.FILE_SEPARATOR + fileRecover.getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime() + FileUtils.FILE_SEPARATOR + fileRecover.getFileName();
-                            if (!diskNode.isExistFile(service.getHost(), service.getPort(), logicPath)) {
-                                while (!sucureCopyTo(service, logicPath)) {
-                                    Thread.sleep(1000);
+                            while (true) {
+                                
+                                if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
+                                    success = sucureCopyTo(service, logicPath);
+                                }
+                                if (success) {
+                                    break;
                                 }
                             }
+
                             currentCount += 1;
                             detail.setCurentCount(currentCount);
                             detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
                             updateDetail(selfNode, detail);
+                            if (success) {
+                                BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
+                                fileRecover.getSimpleWriter().writeRecord(record.toString());
+                            }
                             System.out.println("update:" + selfNode + "-------------" + detail);
                         }
-
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -288,8 +300,8 @@ public class VirtualRecover implements DataRecover {
     public boolean sucureCopyTo(Service service, String logicPath) {
         boolean success = true;
         try {
-            diskNode.copyTo(service.getHost(), service.getPort(), logicPath, logicPath);
-        } catch (IOException e) {
+            diskClient.copyTo(service.getHost(), service.getPort(), logicPath, logicPath);
+        } catch (Exception e) {
             success = false;
             e.printStackTrace();
         }
