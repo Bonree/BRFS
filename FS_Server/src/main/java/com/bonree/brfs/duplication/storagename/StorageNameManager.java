@@ -35,8 +35,9 @@ public interface StorageNameManager extends LifeCycle {
 	 * @param storageName
 	 * @param ttl
 	 * @return
+	 * @throws StorageNameNonexistentException 
 	 */
-	boolean updateStorageName(String storageName, Attributes properties);
+	boolean updateStorageName(String storageName, Attributes properties) throws StorageNameNonexistentException;
 	
 	/**
 	 * 删除具有指定ID的StorageName节点

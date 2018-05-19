@@ -210,9 +210,9 @@ public class DefaultStorageNameManager implements StorageNameManager {
     }
 
     @Override
-    public boolean updateStorageName(String storageName, Attributes attrs) {
+    public boolean updateStorageName(String storageName, Attributes attrs) throws StorageNameNonexistentException {
         if (!exists(storageName)) {
-            return false;
+            throw new StorageNameNonexistentException(storageName);
         }
 
         StorageNameNode node = findStorageName(storageName);
