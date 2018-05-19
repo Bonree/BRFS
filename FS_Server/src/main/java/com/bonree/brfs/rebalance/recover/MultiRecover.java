@@ -324,15 +324,12 @@ public class MultiRecover implements DataRecover {
                                         Thread.sleep(1000);
                                         continue;
                                     }
-
                                     if (status.get().equals(TaskStatus.CANCEL)) {
                                         break;
                                     }
-
-                                    if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
+//                                    if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
                                         success = secureCopyTo(service, logicPath);
-                                    }
-
+//                                    }
                                     if (success) {
                                         break;
                                     }

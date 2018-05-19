@@ -61,7 +61,11 @@ public class Configuration {
     public static String GLOBAL_REPLICATION_RECOVER_AFTER_TIME = "global.replication.recover.after.time";
 
     public static String GLOBAL_REPLICATION_RECOVER_AFTER_TIME_VALUE = "3600";
-
+    
+    public static String GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME = "global.replication.virtual.recover.after.time";
+    
+    public static String GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME_VALUE = "3600";
+    
     public static String NETWORK_HOST = "network.host";
 
     public static String NETWORK_HOST_VALUE = "127.0.0.1";
@@ -128,6 +132,7 @@ public class Configuration {
         configMap.put(STORAGE_DATA_ACHIVE_DFS, STORAGE_DATA_ACHIVE_DFS_VALUE);
         configMap.put(STORAGE_DATA_ACHIVE_AFTER_TIME, STORAGE_DATA_ACHIVE_AFTER_TIME_VALUE);
         configMap.put(GLOBAL_REPLICATION_RECOVER_AFTER_TIME, GLOBAL_REPLICATION_RECOVER_AFTER_TIME_VALUE);
+        configMap.put(GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME, GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME_VALUE);
         configMap.put(NETWORK_HOST, NETWORK_HOST_VALUE);
         configMap.put(NETWORK_PORT, NETWORK_PORT_VALUE);
         configMap.put(DISK_PORT, DISK_PORT_VALUE);

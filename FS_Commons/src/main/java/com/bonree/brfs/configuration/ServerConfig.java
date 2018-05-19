@@ -21,12 +21,16 @@ public class ServerConfig {
     private final long zkSessionTime;
     private final String dataPath;
     private final String logPath;
-    //磁盘节点的默认服务组名
+
+    private final int virtualDelay;
+    private final int normalDelay;
+
+    // 磁盘节点的默认服务组名
     public static final String DEFAULT_DISK_NODE_SERVICE_GROUP = "disk_group";
-    //副本节点的默认服务组名
+    // 副本节点的默认服务组名
     public static final String DEFAULT_DUPLICATION_SERVICE_GROUP = "duplicate_group";
 
-    public ServerConfig(String homePath, String clusterName, String zkHosts, String host, int port, int diskPort, long zkSessionTime, String dataPath, String logPath) {
+    public ServerConfig(String homePath, String clusterName, String zkHosts, String host, int port, int diskPort, long zkSessionTime, String dataPath, String logPath, int virtualDelay, int normalDelay) {
         this.homePath = homePath;
         this.clusterName = clusterName;
         this.zkHosts = zkHosts;
@@ -36,6 +40,8 @@ public class ServerConfig {
         this.zkSessionTime = zkSessionTime;
         this.dataPath = dataPath;
         this.logPath = logPath;
+        this.virtualDelay = virtualDelay;
+        this.normalDelay = normalDelay;
     }
 
     public static ServerConfig parse(Configuration config, String homePath) {
@@ -47,10 +53,14 @@ public class ServerConfig {
         String zkSessionTimeStr = config.getProperty(Configuration.ZOOKEEPER_SESSION_TIMEOUT, Configuration.ZOOKEEPER_SESSION_TIMEOUT_VALUE);
         String dataPath = config.getProperty(Configuration.PATH_DATA, Configuration.PATH_DATA_VALUE);
         String logPath = config.getProperty(Configuration.PATH_LOGS, Configuration.PATH_LOGS_VALUE);
+        String recoverDelayTimeStr = config.getProperty(Configuration.GLOBAL_REPLICATION_RECOVER_AFTER_TIME, Configuration.GLOBAL_REPLICATION_RECOVER_AFTER_TIME_VALUE);
+        String virtualDelayTimeStr = config.getProperty(Configuration.GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME, Configuration.GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME_VALUE);
+        int recoverDelayTime = BrStringUtils.parseNumber(recoverDelayTimeStr, Integer.class);
+        int virtualDelayTime = BrStringUtils.parseNumber(virtualDelayTimeStr, Integer.class);
         int port = BrStringUtils.parseNumber(portStr, Integer.class);
         int diskPort = BrStringUtils.parseNumber(diskPortStr, Integer.class);
         long zkSessionTime = BrStringUtils.parseNumber(zkSessionTimeStr, Long.class);
-        return new ServerConfig(homePath, clusterName, zkHosts, host, port, diskPort, zkSessionTime, dataPath, logPath);
+        return new ServerConfig(homePath, clusterName, zkHosts, host, port, diskPort, zkSessionTime, dataPath, logPath, virtualDelayTime, recoverDelayTime);
     }
 
     public String getClusterName() {
@@ -89,9 +99,17 @@ public class ServerConfig {
         return diskPort;
     }
 
+    public int getVirtualDelay() {
+        return virtualDelay;
+    }
+
+    public int getNormalDelay() {
+        return normalDelay;
+    }
+
     @Override
     public String toString() {
-        return "ServerConfig [homePath=" + homePath + ", clusterName=" + clusterName + ", zkHosts=" + zkHosts + ", host=" + host + ", port=" + port + ", diskPort=" + diskPort + ", zkSessionTime=" + zkSessionTime + ", dataPath=" + dataPath + ", logPath=" + logPath + "]";
+        return "ServerConfig [homePath=" + homePath + ", clusterName=" + clusterName + ", zkHosts=" + zkHosts + ", host=" + host + ", port=" + port + ", diskPort=" + diskPort + ", zkSessionTime=" + zkSessionTime + ", dataPath=" + dataPath + ", logPath=" + logPath + ", virtualDelay=" + virtualDelay + ", normalDelay=" + normalDelay + "]";
     }
 
 }

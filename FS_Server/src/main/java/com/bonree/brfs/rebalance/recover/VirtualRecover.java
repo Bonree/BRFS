@@ -22,7 +22,6 @@ import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.rebalance.DataRecover;
@@ -271,9 +270,9 @@ public class VirtualRecover implements DataRecover {
                             String logicPath = fileRecover.getStorageName() + FileUtils.FILE_SEPARATOR + fileRecover.getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime() + FileUtils.FILE_SEPARATOR + fileRecover.getFileName();
                             while (true) {
                                 
-                                if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
+//                                if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
                                     success = sucureCopyTo(service, logicPath);
-                                }
+//                                }
                                 if (success) {
                                     break;
                                 }
@@ -291,6 +290,8 @@ public class VirtualRecover implements DataRecover {
                         }
                     }
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }

@@ -1,7 +1,6 @@
 package com.bonree.brfs.rebalance.task;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -41,6 +40,7 @@ public class TaskOperation implements Closeable {
     private String dataDir;
     private StorageNameManager snManager;
     private ServiceManager serviceManager;
+
 
     public TaskOperation(final CuratorClient client, final String baseBalancePath, ServerIDManager idManager, String dataDir, StorageNameManager snManager, ServiceManager serviceManager) {
         this.client = client;

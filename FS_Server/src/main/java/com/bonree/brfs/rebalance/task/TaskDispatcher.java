@@ -85,6 +85,10 @@ public class TaskDispatcher {
 
     private final String normalRoutePath;
 
+    private int virtualDelay;
+
+    private int normalDelay;
+
     private final BalanceTaskGenerator taskGenerator;
 
     private final AtomicBoolean isLoad = new AtomicBoolean(false);
@@ -214,7 +218,6 @@ public class TaskDispatcher {
         treeCache.addListener(tasksPath, new TaskStatusListener("task_status", this));
 
         singleServer.execute(new Runnable() {
-
             @Override
             public void run() {
                 try {
@@ -241,7 +244,7 @@ public class TaskDispatcher {
 
     }
 
-    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager) {
+    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager, int virtualDelay, int normalDelay) {
         this.baseRebalancePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
         this.virtualRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE;
         this.normalRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.NORMAL_ROUTE;
@@ -268,7 +271,7 @@ public class TaskDispatcher {
         String leaderPath = this.baseRebalancePath + Constants.SEPARATOR + Constants.DISPATCH_LEADER;
         LOG.info("leader path:" + leaderPath);
         leaderLath = new LeaderLatch(this.curatorClient.getInnerClient(), leaderPath);
-        
+
         leaderLath.addListener(new LeaderLatchListener() {
 
             @Override
@@ -282,6 +285,17 @@ public class TaskDispatcher {
             }
         });
         treeCache = CuratorCacheFactory.getTreeCache();
+
+        if (virtualDelay < 60) {
+            this.virtualDelay = 60;
+        } else {
+            this.virtualDelay = virtualDelay;
+        }
+        if (normalDelay < 60) {
+            this.normalDelay = 60;
+        } else {
+            this.normalDelay = normalDelay;
+        }
 
     }
 
@@ -398,7 +412,7 @@ public class TaskDispatcher {
                 List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
                 List<String> joinerSecondIDs = joinerFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
                 // 构建任务
-                BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangeServer(), aliveSecondIDs, joinerSecondIDs, Constants.DEFAULT_DELAY_TIME);
+                BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangeServer(), aliveSecondIDs, joinerSecondIDs, normalDelay);
                 // 发布任务
                 dispatchTask(taskSummary);
                 // 加入正在执行的任务的缓存中
@@ -493,7 +507,7 @@ public class TaskDispatcher {
                                 }
                             }
                             // 构造任务
-                            BalanceTaskSummary taskSummary = taskGenerator.genVirtualTask(changeID, storageIndex, virtualID, selectSecondID, secondParticipator, Constants.DEFAULT_DELAY_TIME);
+                            BalanceTaskSummary taskSummary = taskGenerator.genVirtualTask(changeID, storageIndex, virtualID, selectSecondID, secondParticipator, virtualDelay);
                             // 只在任务节点上创建任务，taskOperator会监听，去执行任务
 
                             dispatchTask(taskSummary);

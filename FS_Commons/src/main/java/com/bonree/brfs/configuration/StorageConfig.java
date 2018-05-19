@@ -16,17 +16,15 @@ public class StorageConfig {
     private final int dataTtl;
     private final int replication;
     private final boolean recover;
-    private final int recoverDelayTime;
     private final boolean dataAchive;
     private final String achiverDFS;
     private final int achiverDelayTime;
 
-    public StorageConfig(int combinerFileSize, int dataTtl, int replication, boolean recover, int recoverDelayTime, boolean dataAchive, String achiverDFS, int achiverDelayTime) {
+    public StorageConfig(int combinerFileSize, int dataTtl, int replication, boolean recover, boolean dataAchive, String achiverDFS, int achiverDelayTime) {
         this.combinerFileSize = combinerFileSize;
         this.dataTtl = dataTtl;
         this.replication = replication;
         this.recover = recover;
-        this.recoverDelayTime = recoverDelayTime;
         this.dataAchive = dataAchive;
         this.achiverDFS = achiverDFS;
         this.achiverDelayTime = achiverDelayTime;
@@ -37,7 +35,6 @@ public class StorageConfig {
         String dataTtlStr = config.getProperty(Configuration.STORAGE_DATA_TTL, Configuration.STORAGE_DATA_TTL_VALUE);
         String replicationStr = config.getProperty(Configuration.STORAGE_REPLICATION_NUMBER, Configuration.STORAGE_REPLICATION_NUMBER_VALUE);
         String recoverStr = config.getProperty(Configuration.STORAGE_REPLICATION_RECOVER, Configuration.STORAGE_REPLICATION_RECOVER_VALUE);
-        String recoverDelayTimeStr = config.getProperty(Configuration.GLOBAL_REPLICATION_RECOVER_AFTER_TIME, Configuration.GLOBAL_REPLICATION_RECOVER_AFTER_TIME_VALUE);
         String dataAchiveStr = config.getProperty(Configuration.STORAGE_DATA_ACHIVE, Configuration.STORAGE_DATA_ACHIVE_VALUE);
         String achiverDFS = config.getProperty(Configuration.STORAGE_DATA_ACHIVE_DFS, Configuration.STORAGE_DATA_ACHIVE_DFS_VALUE);
         String achiverDelayTimeStr = config.getProperty(Configuration.STORAGE_DATA_ACHIVE_AFTER_TIME, Configuration.STORAGE_DATA_ACHIVE_AFTER_TIME_VALUE);
@@ -45,10 +42,9 @@ public class StorageConfig {
         int dataTtl = BrStringUtils.parseNumber(dataTtlStr, Integer.class);
         int replication = BrStringUtils.parseNumber(replicationStr, Integer.class);
         boolean recover = BrStringUtils.parseBoolean(recoverStr);
-        int recoverDelayTime = BrStringUtils.parseNumber(recoverDelayTimeStr, Integer.class);
         boolean dataAchive = BrStringUtils.parseBoolean(dataAchiveStr);
         int achiverDelayTime = BrStringUtils.parseNumber(achiverDelayTimeStr, Integer.class);
-        return new StorageConfig(combinerFileSize, dataTtl, replication, recover, recoverDelayTime, dataAchive, achiverDFS, achiverDelayTime);
+        return new StorageConfig(combinerFileSize, dataTtl, replication, recover, dataAchive, achiverDFS, achiverDelayTime);
     }
 
     public int getCombinerFileSize() {
@@ -63,12 +59,8 @@ public class StorageConfig {
         return replication;
     }
 
-    public boolean isReocover() {
+    public boolean isRecover() {
         return recover;
-    }
-
-    public int getRecoverDelayTime() {
-        return recoverDelayTime;
     }
 
     public boolean isDataAchive() {
@@ -85,7 +77,7 @@ public class StorageConfig {
 
     @Override
     public String toString() {
-        return "StorageConfig [combinerFileSize=" + combinerFileSize + ", dataTtl=" + dataTtl + ", replication=" + replication + ", recover=" + recover + ", recoverDelayTime=" + recoverDelayTime + ", dataAchive=" + dataAchive + ", achiverDFS=" + achiverDFS + ", achiverDelayTime=" + achiverDelayTime + "]";
+        return "StorageConfig [combinerFileSize=" + combinerFileSize + ", dataTtl=" + dataTtl + ", replication=" + replication + ", recover=" + recover + ", dataAchive=" + dataAchive + ", achiverDFS=" + achiverDFS + ", achiverDelayTime=" + achiverDelayTime + "]";
     }
 
 }
