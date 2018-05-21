@@ -12,6 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -95,7 +96,14 @@ public class TaskDispatcher {
 
     private ExecutorService singleServer = Executors.newSingleThreadExecutor();
 
-    private ScheduledExecutorService scheduleExecutor = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService scheduleExecutor = Executors.newScheduledThreadPool(1,new ThreadFactory() {
+        
+        @Override
+        public Thread newThread(Runnable r) {
+            
+            return new Thread(r, "xxoo");
+        }
+    });
 
     // 此处为任务缓存，只有身为leader的server才会进行数据缓存
     private Map<Integer, List<ChangeSummary>> cacheSummaryCache = new ConcurrentHashMap<Integer, List<ChangeSummary>>();
@@ -232,20 +240,26 @@ public class TaskDispatcher {
         scheduleExecutor.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
-                if (leaderLath.hasLeadership()) {
-                    if (isLoad.get()) {
-                        for (Entry<Integer, List<ChangeSummary>> entry : cacheSummaryCache.entrySet()) {
-                            LOG.info("auditTask:" + entry.getValue());
-                            auditTask(entry.getValue());
+                try {
+                    if (leaderLath.hasLeadership()) {
+                        if (isLoad.get()) { 
+                            System.out.println(isLoad.get());
+                            for (Entry<Integer, List<ChangeSummary>> entry : cacheSummaryCache.entrySet()) {
+                                System.out.println("auditTask auditTask auditTask auditTask");
+                                auditTask(entry.getValue());
+                            }
                         }
                     }
+                }catch (Exception e) {
+                    e.printStackTrace();
                 }
+                
             }
         }, 1000, 1000, TimeUnit.MILLISECONDS);
 
     }
 
-    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager, int virtualDelay, int normalDelay) {
+    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager,StorageNameManager snManager, int virtualDelay, int normalDelay) {
         this.baseRebalancePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
         this.virtualRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE;
         this.normalRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.NORMAL_ROUTE;
@@ -253,6 +267,7 @@ public class TaskDispatcher {
         this.tasksPath = baseRebalancePath + Constants.SEPARATOR + Constants.TASKS_NODE;
         this.idManager = idManager;
         this.serviceManager = serviceManager;
+        this.snManager = snManager;
         taskGenerator = new SimpleTaskGenerator();
         this.curatorClient = curatorClient;
         curatorClient.getInnerClient().getConnectionStateListenable().addListener(new ConnectionStateListener() {
@@ -431,8 +446,11 @@ public class TaskDispatcher {
 
     private boolean isCanRecover(ChangeSummary cs, List<String> joinerFirstIDs, List<String> aliveFirstIDs) {
         boolean canRecover = true;
+        System.out.println(snManager+"+"+cs);
+        System.out.println("xxoo:"+snManager.findStorageName(cs.getStorageIndex()));
         int replicas = snManager.findStorageName(cs.getStorageIndex()).getReplicateCount();
-
+       
+        
         // 检查参与者是否都存活
         for (String joiner : joinerFirstIDs) {
             if (!aliveFirstIDs.contains(joiner)) {
