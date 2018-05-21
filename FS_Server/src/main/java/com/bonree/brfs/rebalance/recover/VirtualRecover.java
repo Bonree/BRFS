@@ -87,12 +87,14 @@ public class VirtualRecover implements DataRecover {
         @Override
         public void nodeChanged() throws Exception {
             System.out.println("node change!!!");
-            byte[] data = client.getData(taskNode);
-            BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
-            TaskStatus stats = bts.getTaskStatus();
-            // 更新缓存
-            status.set(stats);
-            System.out.println("stats:" + stats);
+            if(client.checkExists(taskNode)) {
+                byte[] data = client.getData(taskNode);
+                BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
+                TaskStatus stats = bts.getTaskStatus();
+                // 更新缓存
+                status.set(stats);
+                System.out.println("stats:" + stats);
+            }
         }
 
     }
@@ -118,6 +120,9 @@ public class VirtualRecover implements DataRecover {
     public void recover() {
         try {
             for (int i = 0; i < delayTime; i++) {
+                if(status.get().equals(TaskStatus.CANCEL)) {
+                    return;
+                }
                 // 已注册任务，则直接退出
                 if (client.checkExists(selfNode)) {
                     break;
