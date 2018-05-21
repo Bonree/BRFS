@@ -108,7 +108,6 @@ public class ServerMain {
 
             // 资源管理模块
             InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
-            System.out.println("launch Server 1");
         } catch (ConfigException e) {
             e.printStackTrace();
             System.exit(1);

@@ -235,6 +235,7 @@ public class TaskDispatcher {
                 if (leaderLath.hasLeadership()) {
                     if (isLoad.get()) {
                         for (Entry<Integer, List<ChangeSummary>> entry : cacheSummaryCache.entrySet()) {
+                            LOG.info("auditTask:" + entry.getValue());
                             auditTask(entry.getValue());
                         }
                     }
