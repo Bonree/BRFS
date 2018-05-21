@@ -107,7 +107,7 @@ public class ServerMain {
             rebalanceServer.start();
 
             // 资源管理模块
-//            InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
+            InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
         } catch (ConfigException e) {
             e.printStackTrace();
             System.exit(1);
