@@ -118,6 +118,8 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
      */
     @Override
     public void serviceAdded(Service service) {
+        LOG.info("add wzlistener:"+service);
+        System.out.println("add wzlistener:"+service);
         try {
             Thread.sleep(delayDeal);
         } catch (InterruptedException e) {
@@ -140,6 +142,8 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
      */
     @Override
     public void serviceRemoved(Service service) {
+        LOG.info("remove wzlistener:"+service);
+        System.out.println("remove wzlistener:"+service);
         try {
             Thread.sleep(delayDeal);
         } catch (InterruptedException e) {
