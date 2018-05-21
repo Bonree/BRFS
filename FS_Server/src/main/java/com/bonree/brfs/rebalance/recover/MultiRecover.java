@@ -93,7 +93,7 @@ public class MultiRecover implements DataRecover {
         @Override
         public void nodeChanged() throws Exception {
             System.out.println("receive update event!!!");
-            if(client.checkExists(taskNode)) {
+            if (client.checkExists(taskNode)) {
                 byte[] data = client.getData(taskNode);
                 BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
                 TaskStatus stats = bts.getTaskStatus();
@@ -126,7 +126,7 @@ public class MultiRecover implements DataRecover {
     public void recover() {
         try {
             for (int i = 0; i < delayTime; i++) {
-                if(status.get().equals(TaskStatus.CANCEL)) {
+                if (status.get().equals(TaskStatus.CANCEL)) {
                     return;
                 }
                 // 已注册任务，则直接退出
@@ -142,6 +142,9 @@ public class MultiRecover implements DataRecover {
 
         LOG.info("begin normal recover");
         String snDataDir = dataDir + FileUtils.FILE_SEPARATOR + storageName;
+        if (!FileUtils.isExist(snDataDir)) {
+            return;
+        }
         int timeFileCounts = 0;
         List<String> replicasNames = FileUtils.listFileNames(snDataDir);
         for (String replicasName : replicasNames) {
@@ -332,9 +335,9 @@ public class MultiRecover implements DataRecover {
                                     if (status.get().equals(TaskStatus.CANCEL)) {
                                         break;
                                     }
-//                                    if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
-                                        success = secureCopyTo(service, logicPath);
-//                                    }
+                                    // if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
+                                    success = secureCopyTo(service, logicPath);
+                                    // }
                                     if (success) {
                                         break;
                                     }
@@ -422,6 +425,11 @@ public class MultiRecover implements DataRecover {
             success = false;
         }
         return success;
+
+    }
+
+    public static void main(String[] args) {
+        System.out.println(FileUtils.isExist("e:/BRFS1/data/sn_wz"));
 
     }
 

@@ -138,6 +138,11 @@ public class VirtualRecover implements DataRecover {
 
         int timeFileCounts = 0;
         String snDataDir = dataDir + FileUtils.FILE_SEPARATOR + storageName;
+        
+        if (!FileUtils.isExist(snDataDir)) {
+            return;
+        }
+        
         List<String> replicasPaths = FileUtils.listFilePaths(snDataDir);
         for (String replicasPath : replicasPaths) {
             timeFileCounts += FileUtils.listFilePaths(replicasPath).size();
