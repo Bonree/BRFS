@@ -31,8 +31,10 @@ public class DefaultFileLounge implements FileLounge {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileLounge.class);
 	
 	//对文件节点进行清理的集合大小阈值
-	private static final int FILE_SET_SIZE_CLEAN_THRESHOLD = 3;
-	private static final double FILE_USAGE_RATIO_THRESHOLD = 0.99;
+	private static final String KEY_FILE_SET_SIZE_CLEAN = "file_clean_size";
+	private static final int FILE_SET_SIZE_CLEAN_THRESHOLD = Integer.parseInt(System.getProperty(KEY_FILE_SET_SIZE_CLEAN, "3"));
+	private static final String KEY_FILE_USAGE_RATIO = "file_usage_ratio";
+	private static final double FILE_USAGE_RATIO_THRESHOLD = Double.parseDouble(System.getProperty(KEY_FILE_USAGE_RATIO, "0.99"));
 	private TimedObjectCollection<List<FileLimiter>> timedFileContainer;
 
 	private FileCloseListener fileCloseListener;
