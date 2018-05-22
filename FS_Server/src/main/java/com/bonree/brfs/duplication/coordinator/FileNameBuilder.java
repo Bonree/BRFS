@@ -11,7 +11,6 @@ public class FileNameBuilder {
 		builder.append(UUID.randomUUID().toString().replaceAll("-", ""));
 		
 		for(DuplicateNode node : duplicateNodes) {
-			System.out.println("build name########" + node.getId() + ", sn " + storageNameId);
 			builder.append('_').append(idManager.getOtherSecondID(node.getId(), storageNameId));
 		}
 		

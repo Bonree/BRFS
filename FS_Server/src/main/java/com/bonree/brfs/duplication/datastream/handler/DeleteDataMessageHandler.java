@@ -64,6 +64,13 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		List<String> times = Splitter.on("_").omitEmptyStrings().trimResults().splitToList(deleteInfo.get(1));
 		long startTime = DateTime.parse(times.get(0)).getMillis();
 		long endTime = DateTime.parse(times.get(1)).getMillis();
+		if(startTime > endTime) {
+			result.setSuccess(false);
+			result.setCause(new IllegalArgumentException("start time must before to end time!"));
+			callback.completed(result);
+			return;
+		}
+		
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
 		
 		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);

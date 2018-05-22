@@ -4,38 +4,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.asynctask.AsyncTask;
-import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.WriteResult;
-import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
+import com.bonree.brfs.disknode.server.handler.data.WriteData;
+import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
-import com.bonree.brfs.duplication.datastream.file.FileLimiter;
 
-public class DataWriteTask extends AsyncTask<WriteTaskResult> {
+public class DataWriteTask extends AsyncTask<WriteResult[]> {
 	private static final Logger LOG = LoggerFactory.getLogger(DataWriteTask.class);
 	
 	private DiskNodeConnection connection;
-	private FileLimiter file;
-	private DataItem item;
+	private String filePath;
+	private WriteData[] datas;
 	
-	private String taskId;
-	private String serverId;
-	
-	public DataWriteTask(String taskId, DiskNodeConnection connection, FileLimiter file, DataItem item, String serverId) {
-		this.taskId = taskId;
+	public DataWriteTask(String path, DiskNodeConnection connection, WriteData[] datas) {
 		this.connection = connection;
-		this.file = file;
-		this.item = item;
-		this.serverId = serverId;
+		this.filePath = path;
+		this.datas = datas;
 	}
 
 	@Override
-	public String getTaskId() {
-		return taskId;
-	}
-
-	@Override
-	public WriteTaskResult run() throws Exception {
+	public WriteResult[] run() throws Exception {
 		long start = System.currentTimeMillis();
 		try {
 			if(connection == null) {
@@ -47,22 +35,12 @@ public class DataWriteTask extends AsyncTask<WriteTaskResult> {
 				return null;
 			}
 			
-			LOG.debug("write data to {}:{}", connection.getService().getHost(), connection.getService().getPort());
+			LOG.info("write {} data to {}:{}", filePath, connection.getService().getHost(), connection.getService().getPort());
+			WriteResult[] result = client.writeDatas(filePath, datas);
 			
-			String filePath = FilePathBuilder.buildPath(file.getFileNode(), serverId);
+			LOG.info("get result---" + result);
 			
-			LOG.debug("writing {}[seq[{}]###size[{}]]", filePath, file.sequence(), item.getBytes().length);
-			WriteResult result = client.writeData(filePath, file.sequence(), item.getBytes());
-			if(result == null) {
-				return null;
-			}
-			
-			WriteTaskResult taskResult = new WriteTaskResult();
-			LOG.info("Write Result--{}", result);
-			
-			taskResult.setOffset(result.getOffset());
-			taskResult.setSize(result.getSize());
-			return taskResult;
+			return result;
 		} finally {
 			System.out.println("take##############" + (System.currentTimeMillis() - start));
 		}

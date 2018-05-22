@@ -1,8 +1,11 @@
 package com.bonree.brfs.duplication.datastream;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
 
 import org.apache.curator.shaded.com.google.common.primitives.Bytes;
 import org.slf4j.Logger;
@@ -12,19 +15,24 @@ import com.bonree.brfs.common.asynctask.AsyncExecutor;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroup;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroupCallback;
 import com.bonree.brfs.common.asynctask.AsyncTaskResult;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.WriteResult;
-import com.bonree.brfs.duplication.FidBuilder;
+import com.bonree.brfs.disknode.server.handler.data.WriteResult;
+import com.bonree.brfs.duplication.DuplicationEnvironment;
+import com.bonree.brfs.duplication.coordinator.DuplicateNode;
+import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNode;
+import com.bonree.brfs.duplication.coordinator.FileNodeSink;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
+import com.bonree.brfs.duplication.datastream.file.FileCloseListener;
 import com.bonree.brfs.duplication.datastream.file.FileLimiter;
 import com.bonree.brfs.duplication.datastream.file.FileLounge;
-import com.bonree.brfs.duplication.datastream.tasks.DataWriteTask;
-import com.bonree.brfs.duplication.datastream.tasks.WriteTaskResult;
+import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
+import com.bonree.brfs.duplication.datastream.tasks.MultiDataWriteTask;
 import com.bonree.brfs.duplication.recovery.FileRecovery;
 import com.bonree.brfs.duplication.recovery.FileRecoveryListener;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -35,135 +43,107 @@ public class DuplicateWriter {
 	private static final int DEFAULT_THREAD_NUM = 5;
 	private AsyncExecutor executor = new AsyncExecutor(DEFAULT_THREAD_NUM);
 	
+	private FileCoordinator fileCoordinator;
+	private Service service;
 	private DiskNodeConnectionPool connectionPool;
-	private FileLounge fileLounge;
+	
+	private FileLoungeFactory fileLoungeFactory;
+	private Map<Integer, FileLounge> fileLoungeList = new HashMap<Integer, FileLounge>();
 	
 	private FileRecovery fileRecovery;
 	private ServerIDManager idManager;
 	
-	public DuplicateWriter(FileLounge fileLounge, FileRecovery fileRecovery, ServerIDManager idManager, DiskNodeConnectionPool connectionPool) {
-		this.fileLounge = fileLounge;
+	public DuplicateWriter(Service service, FileLoungeFactory fileLoungeFactory, FileCoordinator fileCoordinator, FileRecovery fileRecovery, ServerIDManager idManager, DiskNodeConnectionPool connectionPool) {
+		this.service = service;
+		this.fileLoungeFactory = fileLoungeFactory;
 		this.fileRecovery = fileRecovery;
 		this.idManager = idManager;
 		this.connectionPool = connectionPool;
+		this.fileCoordinator = fileCoordinator;
 		
-		this.fileLounge.setFileCloseListener(new FileNodeCloseListener());
+		try {
+			fileCoordinator.addFileNodeSink(new DefaultFileNodeSink());
+		} catch (Exception e) {
+			throw new RuntimeException("can not register FileNodeSink");
+		}
+	}
+	
+	private FileLounge getFileLoungeByStorageId(int storageId) {
+		FileLounge fileLounge = fileLoungeList.get(storageId);
+		if(fileLounge == null) {
+			synchronized (fileLoungeList) {
+				fileLounge = fileLoungeList.get(storageId);
+				if(fileLounge == null) {
+					fileLounge = fileLoungeFactory.createFileLounge(storageId);
+					fileLounge.setFileCloseListener(new FileNodeCloseListener());
+					fileLoungeList.put(storageId, fileLounge);
+					fileLounge.setFileCloseListener(new FileNodeCloseListener());
+				}
+			}
+		}
+		
+		return fileLounge;
 	}
 	
 	public void write(int storageId, DataItem[] items, DataHandleCallback<DataWriteResult> callback) {
-		EmitResultGather resultGather = new EmitResultGather(items.length, callback);
-		LOG.debug("---size=={}", items.length);
-		for(DataItem item : items) {
-			if(item == null || item.getBytes() == null || item.getBytes().length == 0) {
-				resultGather.putResultItem(new ResultItem(item.getSequence()));
-				continue;
-			}
-			
-			try {
-				FileLimiter file = fileLounge.getFileLimiter(storageId, item.getBytes().length);
-				LOG.debug("get FileLimiter[{}]", file);
-				
-				emitData(item, file, resultGather);
-			} catch (Exception e) {
-				e.printStackTrace();
-				LOG.info("####-->{}", e.toString());
-				resultGather.putResultItem(new ResultItem(item.getSequence()));
-			}
-		}
-	}
-	
-	private void emitData(DataItem item, FileLimiter file, EmitResultGather resultGather) {
-		DiskNodeConnection[] connections = connectionPool.getConnections(file.getFileNode().getDuplicateNodes());
-		LOG.debug("get Connections size={}", connections.length);
+		FileLounge fileLounge = getFileLoungeByStorageId(storageId);
 		
-		AsyncTaskGroup<WriteTaskResult> taskGroup = new AsyncTaskGroup<WriteTaskResult>();
-		for(int i = 0; i < connections.length; i++) {
-			LOG.debug("get connection----{}", connections[i]);
-			if(connections[i] != null) {
-				String serverId = idManager.getOtherSecondID(file.getFileNode().getDuplicateNodes()[i].getId(), file.getFileNode().getStorageId());
-				taskGroup.addTask(new DataWriteTask(connections[i].getService().getServiceId(), connections[i], file, item, serverId));
-			}
-		}
-		
-		executor.submit(taskGroup, new DataWriteResultCallback(item, file, resultGather));
-	}
-	
-	private class DataWriteResultCallback implements AsyncTaskGroupCallback<WriteTaskResult> {
-		private DataItem item;
-		private FileLimiter file;
-		private EmitResultGather resultGather;
-		
-		public DataWriteResultCallback(DataItem item, FileLimiter file, EmitResultGather resultGather) {
-			this.item = item;
-			this.file = file;
-			this.resultGather = resultGather;
-		}
+		Arrays.sort(items, new Comparator<DataItem>() {
 
-		@Override
-		public void completed(AsyncTaskResult<WriteTaskResult>[] results) {
-			LOG.debug("Write result size----{}", results.length);
-			List<WriteTaskResult> taskResultList = getValidResultList(results);
+			@Override
+			public int compare(DataItem o1, DataItem o2) {
+				return o2.getBytes().length - o1.getBytes().length;
+			}
 			
-			if(taskResultList.isEmpty()) {
-				LOG.error("None correct result is return from DiskNode! FILE[" + file.getFileNode().getName() + "]");
+		});
+		
+		LOG.info("---size=={}", items.length);
+		int[] sizes = new int[items.length];
+		for(int i = 0; i < items.length; i++) {
+			sizes[i] = items[i].getBytes().length;
+		}
+		
+		FileLimiter[] fileList = fileLounge.getFileLimiterList(sizes);
+		AsyncTaskGroup<ResultItem[]> taskGroup = new AsyncTaskGroup<ResultItem[]>();
+		for(int i = 0; i < fileList.length; i++) {
+			FileLimiter file = fileList[i];
+			MultiDataWriteTask task = (MultiDataWriteTask) file.attach();
+			if(task == null) {
+				task = new MultiDataWriteTask(file, idManager, connectionPool, executor);
+				file.attach(task);
+				taskGroup.addTask(task);
+			}
+			
+			task.addDataItem(items[i]);
+		}
+		
+		executor.submit(taskGroup, new AsyncTaskGroupCallback<ResultItem[]>() {
+			private List<ResultItem> resultList = new ArrayList<ResultItem>();
+
+			@Override
+			public void completed(AsyncTaskResult<ResultItem[]>[] results) {
+				//每个taskResult代表一个文件的数据写入结果
+				for(AsyncTaskResult<ResultItem[]> taskResult : results) {
+					if(taskResult.getError() != null) {
+						//有异常的返回结果不处理
+						continue;
+					}
+					
+					for(ResultItem item : taskResult.getResult()) {
+						//把数据汇总到统一的集合中
+						resultList.add(item);
+					}
+				}
 				
-				file.release(item.getBytes().length);
-				resultGather.putResultItem(new ResultItem(item.getSequence()));
-				return;
-			}
-			
-			for(WriteTaskResult result : taskResultList) {
-				if(file.size() != (result.getOffset() + result.getSize())) {
-					LOG.info("Write Task Result maybe ERROR!, expect[{}], but[{}]", file.size(), (result.getOffset() + result.getSize()));
-					//TODO error: need to recover the file
-				}
-			}
-			
-			WriteTaskResult taskResult = taskResultList.get(0);
-			
-			ResultItem resultItem = new ResultItem(item.getSequence());
-			resultItem.setFid(FidBuilder.getFid(file.getFileNode(), taskResult.getOffset(), taskResult.getSize()));
-			resultGather.putResultItem(resultItem);
-			file.release(0);
-		}
-		
-		private List<WriteTaskResult> getValidResultList(AsyncTaskResult<WriteTaskResult>[] results) {
-			List<WriteTaskResult> taskResultList = new ArrayList<WriteTaskResult>(results.length);
-			for(AsyncTaskResult<WriteTaskResult> taskResult : results) {
-				if(taskResult.getError() != null) {
-					LOG.error("task[" + taskResult.getTaskId() + "] get error", taskResult.getError());
-				}
+				ResultItem[] allResults = new ResultItem[resultList.size()];
+				resultList.toArray(allResults);
 				
-				if(taskResult.getResult() != null) {
-					taskResultList.add(taskResult.getResult());
-				}
+				DataWriteResult dataWriteResult = new DataWriteResult();
+				dataWriteResult.setItems(allResults);
+				callback.completed(dataWriteResult);
 			}
 			
-			return taskResultList;
-		}
-	}
-	
-	private class EmitResultGather {
-		private DataHandleCallback<DataWriteResult> callback;
-		
-		private AtomicInteger count = new AtomicInteger();
-		private ResultItem[] resultItems;
-		
-		public EmitResultGather(int count, DataHandleCallback<DataWriteResult> callback) {
-			this.resultItems = new ResultItem[count];
-			this.callback = callback;
-		}
-		
-		public void putResultItem(ResultItem item) {
-			int index = count.getAndIncrement();
-			resultItems[index] = item;
-			
-			if((index + 1) == resultItems.length) {
-				DataWriteResult writeResult = new DataWriteResult();
-				writeResult.setItems(resultItems);
-				callback.completed(writeResult);
-			}
-		}
+		});
 	}
 	
 	/**
@@ -174,10 +154,12 @@ public class DuplicateWriter {
 	 * @author chen
 	 *
 	 */
-	private class FileNodeCloseListener implements FileLounge.FileCloseListener {
+	private class FileNodeCloseListener implements FileCloseListener {
 
 		@Override
-		public void close(FileLimiter file) {
+		public void close(FileLimiter file) throws Exception {
+			fileCoordinator.delete(file.getFileNode());
+			
 			fileRecovery.recover(file.getFileNode(), new FileRecoveryListener() {
 				
 				@Override
@@ -209,6 +191,63 @@ public class DuplicateWriter {
 					cause.printStackTrace();
 				}
 				
+			});
+		}
+		
+	}
+	
+	private class DefaultFileNodeSink implements FileNodeSink {
+
+		@Override
+		public Service getService() {
+			return service;
+		}
+
+		@Override
+		public void fill(FileNode fileNode) {
+			FileLounge fileLounge = getFileLoungeByStorageId(fileNode.getStorageId());
+
+			LOG.info("received transferred file--[{}]", fileNode.getName());
+			fileRecovery.recover(fileNode, new FileRecoveryListener() {
+				
+				@Override
+				public void complete(FileNode fileNode) {
+					//同步不同副本之间的文件内容，然后获取正确的文件大小和文件序列号
+					LOG.info("start rebuild file[{}]", fileNode.getName());
+					
+					int[] metaInfo = null;
+					DuplicateNode[] nodes = fileNode.getDuplicateNodes();
+					for(DuplicateNode node : nodes) {
+						DiskNodeConnection connection = connectionPool.getConnection(node);
+						
+						LOG.info("connection ==" + connection);
+						if(connection == null || connection.getClient() == null) {
+							continue;
+						}
+						
+						String serverId = idManager.getOtherSecondID(node.getId(), fileNode.getStorageId());
+						metaInfo = connection.getClient().getWritingFileMetaInfo(FilePathBuilder.buildPath(fileNode, serverId));
+						
+						if(metaInfo != null) {
+							break;
+						}
+					}
+					
+					if(metaInfo == null) {
+						LOG.error("Can not get Metadata of file[{}]", fileNode.getName());
+						return;
+					}
+					
+					LOG.info("rebuild file[{}] with length[{}], sequence[{}]", fileNode.getName(), metaInfo[1], metaInfo[0] + 1);
+					FileLimiter file = new FileLimiter(fileNode, DuplicationEnvironment.DEFAULT_MAX_FILE_SIZE, metaInfo[1]/*文件大小*/, metaInfo[0] + 1/*文件序列号*/);
+					fileLounge.addFileLimiter(file);
+				}
+
+				@Override
+				public void error(Throwable cause) {
+					//TODO unhandled
+					cause.printStackTrace();
+				}
 			});
 		}
 		

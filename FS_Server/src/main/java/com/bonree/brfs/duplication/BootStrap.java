@@ -30,8 +30,8 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionFacto
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.connection.HttpDiskNodeConnectionFactory;
 import com.bonree.brfs.duplication.datastream.connection.HttpDiskNodeConnectionPool;
-import com.bonree.brfs.duplication.datastream.file.DefaultFileLounge;
-import com.bonree.brfs.duplication.datastream.file.FileLounge;
+import com.bonree.brfs.duplication.datastream.file.DefaultFileLoungeFactory;
+import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.ReadDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.WriteDataMessageHandler;
@@ -102,8 +102,8 @@ public class BootStrap {
 		
 		DuplicationNodeSelector nodeSelector = new DefaultDuplicationNodeSelector(serviceManager);
 		
-		FileLounge lounge = new DefaultFileLounge(service, storageNameManager, fileCoordinator, fileRecovery, nodeSelector, idManager, connectionPool);
-		DuplicateWriter writer = new DuplicateWriter(lounge, fileRecovery, idManager, connectionPool);
+		FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager);
+		DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileRecovery, idManager, connectionPool);
 		
 		HttpConfig config = new HttpConfig(serverConfig.getPort());
 		config.setKeepAlive(true);

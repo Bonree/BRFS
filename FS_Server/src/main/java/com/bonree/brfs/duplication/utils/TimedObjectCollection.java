@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.datastream.file;
+package com.bonree.brfs.duplication.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  * 
  * @ThreadSafe
  * 
- * @author chen
+ * @author yupeng
  *
  * @param <T>
  */
@@ -23,8 +23,7 @@ public class TimedObjectCollection<T> {
 	private ObjectBuilder<T> objectBuilder;
 	private Map<Long, T> objects = new HashMap<Long, T>(8);
 
-	public TimedObjectCollection(long interval, TimeUnit unit,
-			ObjectBuilder<T> builder) {
+	public TimedObjectCollection(long interval, TimeUnit unit, ObjectBuilder<T> builder) {
 		this.intervalMillis = unit.toMillis(interval);
 		this.objectBuilder = builder;
 	}

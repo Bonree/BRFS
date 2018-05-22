@@ -98,16 +98,16 @@ public class ServerMain {
             System.out.println(selfService);
 
             // 磁盘管理模块
-            EmptyMain diskMain = new EmptyMain(serverConfig.getDiskPort());
+            EmptyMain diskMain = new EmptyMain(serverConfig);
             diskMain.start();
 
             // 副本平衡模块
-            sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
-            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig, zookeeperPaths, idManager, snManager, sm);
-            rebalanceServer.start();
-
-            // 资源管理模块
-            InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
+//            sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
+//            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig, zookeeperPaths, idManager, snManager, sm);
+//            rebalanceServer.start();
+//
+//            // 资源管理模块
+//            InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
         } catch (ConfigException e) {
             e.printStackTrace();
             System.exit(1);

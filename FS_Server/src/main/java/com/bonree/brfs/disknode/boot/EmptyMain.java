@@ -33,25 +33,23 @@ import com.bonree.brfs.disknode.server.handler.WritingMetaDataMessageHandler;
 public class EmptyMain implements LifeCycle {
 	private static final Logger LOG = LoggerFactory.getLogger(EmptyMain.class);
 	
-	private int port;
-	
 	private NettyHttpServer server;
 	private FileWriterManager writerManager;
+	private ServerConfig serverConfig;
 	
-	public EmptyMain(int port) {
-		this.port = port;
+	public EmptyMain(ServerConfig serverConfig) {
+		this.serverConfig = serverConfig;
 	}
 
 	@Override
 	public void start() throws Exception {
-		LOG.info("Empty Main--port[{}]", port);
+		LOG.info("Empty Main--port[{}]", serverConfig.getDiskPort());
 		
-		String dir = System.getProperty("root_dir", "/data");
-		DiskContext context = new DiskContext(dir);
+		DiskContext context = new DiskContext(serverConfig.getDataPath());
 		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
 		
-		HttpConfig config = new HttpConfig(port);
+		HttpConfig config = new HttpConfig(serverConfig.getDiskPort());
 		
 		server = new NettyHttpServer(config);
 		
@@ -122,7 +120,7 @@ public class EmptyMain implements LifeCycle {
 		Service service = new Service(serverId, ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, ip, port);
 		serviceManager.registerService(service);
 		
-		EmptyMain main = new EmptyMain(port);
+		EmptyMain main = new EmptyMain(null);
 		main.start();
 	}
 }

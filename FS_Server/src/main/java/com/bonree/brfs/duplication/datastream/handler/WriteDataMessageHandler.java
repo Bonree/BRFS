@@ -35,14 +35,15 @@ public class WriteDataMessageHandler implements MessageHandler {
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
-		StorageNameNode node =snManager.findStorageName(writeMsg.getStorageNameId());
+		StorageNameNode node = snManager.findStorageName(writeMsg.getStorageNameId());
 		
-		if(!node.isEnable()) {
+		if(node == null || !node.isEnable()) {
 		    HandleResult result = new HandleResult();
             result.setSuccess(false);
             callback.completed(result);
             return;
 		}
+		
 		DataItem[] items = writeMsg.getItems();
 		LOG.info("Writing DataItem[{}]", items.length);
 		

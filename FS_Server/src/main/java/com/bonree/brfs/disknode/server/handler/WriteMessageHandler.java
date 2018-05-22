@@ -9,20 +9,18 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.ThreadPoolUtil;
-import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.disknode.DiskContext;
-import com.bonree.brfs.disknode.client.WriteResult;
+import com.bonree.brfs.disknode.client.WriteDataList;
+import com.bonree.brfs.disknode.client.WriteResultList;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.worker.WriteTask;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
-import com.bonree.brfs.disknode.utils.CheckUtils;
+import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 import com.bonree.brfs.disknode.utils.Pair;
-import com.google.common.primitives.Bytes;
 
 public class WriteMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteMessageHandler.class);
@@ -45,74 +43,15 @@ public class WriteMessageHandler implements MessageHandler {
 				throw new IllegalArgumentException("Writing data is Empty!!");
 			}
 			
-			boolean json = msg.getParams().containsKey("json");
-			
-			WriteData item = ProtoStuffUtils.deserialize(msg.getContent(), WriteData.class);
-			if(item.getSequence() == -2) {
-				item.setBytes(Bytes.concat(FileEncoder.validate(CheckUtils.check(realPath)), FileEncoder.tail()));
-			}
-			
-			LOG.debug("write seq[{}]", item.getSequence());
+			WriteDataList dataList = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataList.class);
+			LOG.info("data count = {}", dataList.getDatas().length);
 			
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
 			if(binding == null) {
 				throw new IllegalStateException("File Writer is null");
 			}
 			
-			binding.second().put(new WriteTask<DataWriteResult>() {
-
-				@Override
-				protected DataWriteResult execute() throws IOException {
-					RecordFileWriter writer = binding.first();
-					DataWriteResult result = new DataWriteResult();
-					
-					writer.updateSequence(item.getSequence());
-					
-					result.setOffset(writer.position());
-					writer.write(item.getBytes());
-					
-					result.setSize(item.getBytes().length);
-					return result;
-				}
-
-				@Override
-				protected void onPostExecute(DataWriteResult result) {
-					ThreadPoolUtil.commonPool().execute(new Runnable() {
-						
-						@Override
-						public void run() {
-							HandleResult handleResult = new HandleResult();
-							handleResult.setSuccess(true);
-							
-							WriteResult writeResult = new WriteResult();
-							writeResult.setOffset(result.getOffset());
-							writeResult.setSize(result.getSize());
-							try {
-								handleResult.setData(json ? JsonUtils.toJsonBytes(writeResult) : ProtoStuffUtils.serialize(writeResult));
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-							
-							callback.completed(handleResult);
-						}
-					});
-				}
-
-				@Override
-				protected void onFailed(Throwable e) {
-					ThreadPoolUtil.commonPool().execute(new Runnable() {
-						
-						@Override
-						public void run() {
-							HandleResult handleResult = new HandleResult();
-							handleResult.setSuccess(false);
-							handleResult.setCause(e);
-							
-							callback.completed(handleResult);
-						}
-					});
-				}
-			});
+			binding.second().put(new DataWriteTask(binding.first(), dataList.getDatas(), callback));
 		} catch (Exception e) {
 			LOG.error("EEEERRRRRR", e);
 			HandleResult handleResult = new HandleResult();
@@ -122,39 +61,83 @@ public class WriteMessageHandler implements MessageHandler {
 		}
 	}
 	
+	private class DataWriteTask extends WriteTask<WriteResult[]> {
+		private WriteData[] dataList;
+		private WriteResult[] results;
+		private RecordFileWriter writer;
+		private HandleResultCallback callback;
+		
+		public DataWriteTask(RecordFileWriter writer, WriteData[] datas, HandleResultCallback callback) {
+			this.writer = writer;
+			this.dataList = datas;
+			this.results = new WriteResult[datas.length];
+			this.callback = callback;
+		}
+
+		@Override
+		protected WriteResult[] execute() throws Exception {
+			LOG.info("start writing...");
+			for(int i = 0; i < dataList.length; i++) {
+				WriteData data = dataList[i];
+				WriteResult result = new WriteResult();
+				result.setSequence(data.getDiskSequence());
+				
+				writer.updateSequence(data.getDiskSequence());
+				writer.write(data.getBytes());
+				
+				result.setSize(data.getBytes().length);
+				results[i] = result;
+			}
+			
+			return results;
+		}
+
+		@Override
+		protected void onPostExecute(WriteResult[] result) {
+			ThreadPoolUtil.commonPool().execute(new Runnable() {
+				
+				@Override
+				public void run() {
+					HandleResult handleResult = new HandleResult();
+					handleResult.setSuccess(true);
+					try {
+						WriteResultList resultList = new WriteResultList();
+						resultList.setWriteResults(results);
+						handleResult.setData(ProtoStuffUtils.serialize(resultList));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+					callback.completed(handleResult);
+				}
+			});
+		}
+
+		@Override
+		protected void onFailed(Throwable e) {
+			ThreadPoolUtil.commonPool().execute(new Runnable() {
+				
+				@Override
+				public void run() {
+					HandleResult handleResult = new HandleResult();
+					handleResult.setSuccess(true);
+					try {
+						WriteResultList resultList = new WriteResultList();
+						resultList.setWriteResults(results);
+						handleResult.setData(ProtoStuffUtils.serialize(resultList));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+					callback.completed(handleResult);
+				}
+			});
+		}
+		
+	}
+
 	@Override
 	public boolean isValidRequest(HttpMessage message) {
 		return true;
-	}
-
-	private class DataWriteResult {
-		private long offset;
-		private int size;
-
-		public long getOffset() {
-			return offset;
-		}
-
-		public void setOffset(long offset) {
-			this.offset = offset;
-		}
-
-		public int getSize() {
-			return size;
-		}
-
-		public void setSize(int size) {
-			this.size = size;
-		}
-		
-		@Override
-		public String toString() {
-			StringBuilder builder = new StringBuilder();
-			builder.append("[offset=").append(offset)
-			       .append(", size=").append(size)
-			       .append("]");
-			
-			return builder.toString();
-		}
 	}
 }

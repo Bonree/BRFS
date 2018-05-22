@@ -163,7 +163,11 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 		fileStorer.update(node);
 
 		// 在Sink中放入分配的文件名
-		client.create().forPath(buildSinkFileNodePath(node), JsonUtils.toJsonBytes(node));
+		try {
+			client.create().forPath(buildSinkFileNodePath(node), JsonUtils.toJsonBytes(node));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**

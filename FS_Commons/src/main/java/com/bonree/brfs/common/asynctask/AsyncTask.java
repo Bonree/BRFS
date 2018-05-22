@@ -20,7 +20,7 @@ public abstract class AsyncTask<V> implements Callable<AsyncTaskResult<V>> {
 	@Override
 	public AsyncTaskResult<V> call() throws Exception {
 		AsyncTaskResult<V> taskResult = new AsyncTaskResult<V>();
-		taskResult.setTaskId(getTaskId());
+		taskResult.setTask(this);
 		
 		V result = null;
 		try {
@@ -32,12 +32,6 @@ public abstract class AsyncTask<V> implements Callable<AsyncTaskResult<V>> {
 		
 		return taskResult;
 	}
-	
-	/**
-	 * 获取任务ID
-	 * @return
-	 */
-	public abstract String getTaskId();
 	
 	/**
 	 * 任务内容
