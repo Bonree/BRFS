@@ -156,24 +156,30 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public List<String> filterFiles(String dirName, List<String> dirs){
+	public List<String> filterFiles(String dirName, final List<String> dirs){
 		List<String> files = new ArrayList<String>();
+		List<String> filters = new ArrayList<String>();
+		File file = null;
+		for(String dir : dirs){
+			file = new File(dir);
+			filters.add(file.getAbsolutePath());
+		}
 		//升序排列任务
-		Collections.sort(dirs, new Comparator<String>() {
+		Collections.sort(filters, new Comparator<String>() {
 			public int compare(String o1, String o2) {
 				return o1.compareTo(o2);
 			}
 		});
 		//获取文件路径，统一分割符。
 		String path = new File(dirName).getAbsolutePath();
-		int index = dirs.indexOf(path);
+		int index = filters.indexOf(path);
 		if(index < 0){
 			files.add(dirName);
 			return files;
 		}
 		String tmpDir = null;
 		for(int i = 0; i <= index; i++){
-			tmpDir = dirs.get(i);
+			tmpDir = filters.get(i);
 			files.add(tmpDir);
 		}
 		return files;
@@ -200,23 +206,13 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 			atomR.setSn(snName);
 			atomR.setDir(dirName);
 			return atomR;
+		}else{
 		}
-		List<String> files = FileUtils.listFilePaths(path);
+		isSuccess = FileUtils.deleteFile(path);
 		atomR.setSn(snName);
 		atomR.setDir(dirName);
-		int deleteCount = 0;
-		if(files != null){
-			for(String file : files){
-				boolean isDelete = FileUtils.deleteFile(file);
-				if(isDelete){
-					deleteCount ++;
-				}else{
-					atomR.add(file);
-					atomR.setSuccess(false);
-				}
-			}
-		}
-		atomR.setOperationFileCount(deleteCount);
+		atomR.setSuccess(isSuccess);
+		atomR.setOperationFileCount(1);
 		return atomR;
 	}
 	public static String coveryPath(String path){

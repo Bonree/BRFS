@@ -109,12 +109,13 @@ public class InitTaskManager {
 		// 创建任务线程池
 		if (managerConfig.isTaskFrameWorkSwitch()) {
 			// 1.创建任务管理服务
-			createMetaTaskManager(manager, zkPath, managerConfig, serverConfig, release);
+			createMetaTaskManager(manager, zkPath, managerConfig, serverConfig);
 			// 2.启动任务线程池
-			List<TaskType> tasks = createAndStartThreadPool(manager, switchMap, sizeMap);
+			List<TaskType> tasks = managerConfig.getSwitchOnTaskType();
 			if(tasks == null || tasks.isEmpty()){
 				throw new NullPointerException("switch task on  but task type list is empty !!!");
 			}
+			createAndStartThreadPool(manager, managerConfig);
 			if(tasks.contains(TaskType.SYSTEM_COPY_CHECK)){
 				SumbitTaskInterface copyJob = createSimpleTask(60000, TaskType.SYSTEM_COPY_CHECK.name(), serverId, FileRecoveryJob.class.getCanonicalName(), serverConfig.getZkHosts(), zkPath.getBaseRoutePath());
 				manager.addTask(TaskType.SYSTEM_COPY_CHECK.name(), copyJob);
@@ -128,6 +129,24 @@ public class InitTaskManager {
 			// 创建资源调度服务
 			createResourceManager(manager, zkPath, managerConfig, serverConfig);
 		}
+	}
+	/**
+	 * 概述：创建集群任务管理服务
+	 * @param manager
+	 * @param zkPaths
+	 * @param config
+	 * @param serverConfig
+	 * @throws Exception 
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config, ServerConfig serverConfig) throws Exception{
+		MetaTaskLeaderManager leader = new MetaTaskLeaderManager(manager, config,serverConfig);
+		RetryPolicy retryPolicy = new RetryNTimes(3, 1000);
+		CuratorFramework client = CuratorFrameworkFactory.newClient(serverConfig.getZkHosts(), retryPolicy);
+		client.start();
+		leaderLatch = new LeaderLatch(client, zkPaths.getBaseLocksPath() + "/TaskManager/MetaTaskLeaderLock");
+		leaderLatch.addListener(leader);
+		leaderLatch.start();
 	}
 	/**
 	 * 概述：创建任务执行线程池
@@ -301,24 +320,7 @@ public class InitTaskManager {
 		manager.startTaskPool(TASK_OPERATION_MANAGER);
 		
 	}
-	/**
-	 * 概述：创建集群任务管理服务
-	 * @param manager
-	 * @param zkPaths
-	 * @param config
-	 * @param serverConfig
-	 * @throws Exception 
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config, ServerConfig serverConfig,MetaTaskManagerInterface release) throws Exception{
-		MetaTaskLeaderManager leader = new MetaTaskLeaderManager(manager, config,serverConfig);
-		RetryPolicy retryPolicy = new RetryNTimes(3, 1000);
-		CuratorFramework client = CuratorFrameworkFactory.newClient(serverConfig.getZkHosts(), retryPolicy);
-		client.start();
-		leaderLatch = new LeaderLatch(client, zkPaths.getBaseLocksPath() + "/MetaTaskLeaderLock");
-		leaderLatch.addListener(leader);
-		leaderLatch.start();
-	}
+	
 	/**
 	 * 概述：根据switchMap 创建线程池
 	 * @param manager
@@ -327,7 +329,9 @@ public class InitTaskManager {
 	 * @throws ParamsErrorException 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static List<TaskType> createAndStartThreadPool(SchedulerManagerInterface manager, Map<String, Boolean> switchMap, Map<String, Integer> sizeMap) throws ParamsErrorException{
+	private static void createAndStartThreadPool(SchedulerManagerInterface manager,ResourceTaskConfig config ) throws ParamsErrorException{
+		Map<String, Boolean> switchMap = config.getTaskPoolSwitchMap();
+		Map<String, Integer> sizeMap = config.getTaskPoolSizeMap();
 		Properties prop = null;
 		String poolName = null;
 		int count = 0;
@@ -356,7 +360,6 @@ public class InitTaskManager {
 		}
 		LOG.info("pool :{} count: {} started !!!", manager.getAllPoolKey(), count);
 		
-		return tasks;
 	}
 	/**
 	 * 概述：生成任务信息

@@ -1,5 +1,8 @@
 package com.bonree.brfs.configuration;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -275,6 +278,24 @@ public class ResourceTaskConfig {
 	}
 	public Map<String, Boolean> getTaskPoolSwitchMap() {
 		return taskPoolSwitchMap;
+	}
+	public List<TaskType> getSwitchOnTaskType(){
+		List<TaskType> collect = new ArrayList<TaskType>();
+		if(taskPoolSwitchMap == null || taskPoolSwitchMap.isEmpty()){
+			return null;
+		}
+		String task = null;
+		TaskType taskType = null;
+		for(Map.Entry<String, Boolean> entry : this.taskPoolSwitchMap.entrySet()){
+			task = entry.getKey();
+			if(entry.getValue() && !BrStringUtils.isEmpty(task)){
+				taskType = TaskType.valueOf(task);
+				if(taskType != null){
+					collect.add(taskType);
+				}
+			}
+		}
+		return collect;
 	}
 	public void setTaskPoolSwitchMap(Map<String, Boolean> taskPoolSwitchMap) {
 		this.taskPoolSwitchMap = taskPoolSwitchMap;

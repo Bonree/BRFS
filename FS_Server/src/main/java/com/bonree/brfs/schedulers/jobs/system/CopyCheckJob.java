@@ -89,7 +89,8 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		Pair<List<String>,List<String>> result = null;
 		int filterCount = 0;
 		TaskModel newTask = new TaskModel();
-		newTask.setCreateTime(System.currentTimeMillis());
+		long currentTime = System.currentTimeMillis();
+		newTask.setCreateTime(currentTime);
 		newTask.setEndDataTime(startTime + 60*60*1000);
 		newTask.setStartDataTime(startTime);
 		newTask.setTaskState(TaskState.INIT.code());
@@ -162,6 +163,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 						path = snName+File.separator+i+File.separator+dirName;
 						files =client.listFiles(path, 1);
 						if(files == null){
+							LOG.info("the list file of {} is null ", service.getServiceId());
 							continue;
 						}
 						if(!snMap.containsKey(sn)){

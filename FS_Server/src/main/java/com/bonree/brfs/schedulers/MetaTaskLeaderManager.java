@@ -5,12 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
-import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
-import org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +44,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 	private ZookeeperPaths zkPaths;
 	private ResourceTaskConfig config;
 	private ServerConfig serverConfig;
-
+	
 	public MetaTaskLeaderManager(SchedulerManagerInterface manager, ResourceTaskConfig config,
 			ServerConfig serverConfig) {
 		this.manager = manager;
@@ -131,7 +128,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 		boolean createFlag = config.getTaskPoolSwitchMap().get(TaskType.SYSTEM_COPY_CHECK.name());
 		if (createFlag) {
 			isSuccess = this.manager.addTask(META_TASK_MANAGER, checkJob);
-			LOG.info("sumbit Create Job {} ", isSuccess ? " Sucess" : "Fail");
+			LOG.info("sumbit Create Check Job {} ", isSuccess ? " Sucess" : "Fail");
 		}
 	}
 }
