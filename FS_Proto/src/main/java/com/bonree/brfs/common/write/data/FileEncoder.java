@@ -53,7 +53,7 @@ public class FileEncoder {
      * @throws Exception
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static byte[] validate(long validateCode) throws Exception {
+    public static byte[] validate(long validateCode) {
         return FSCode.LongToByte(validateCode, 8);
     }
 

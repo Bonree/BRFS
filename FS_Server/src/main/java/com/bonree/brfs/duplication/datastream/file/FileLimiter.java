@@ -2,7 +2,9 @@ package com.bonree.brfs.duplication.datastream.file;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.duplication.coordinator.FileNode;
+import com.google.common.primitives.Bytes;
 
 /**
  * 一个文件节点的包装类，增加了对文件的一些操作限制
@@ -12,11 +14,17 @@ import com.bonree.brfs.duplication.coordinator.FileNode;
  *
  */
 public class FileLimiter {
+	private static final int DEFAULT_HEADER_VERSION = 0;
+	private static final int DEFAULT_HEADER_TYPE = 0;
+	
 	private FileNode fileNode;
 	private final long capacity;
 	private volatile long logicLength;
 	private volatile long realLength;
 	private volatile int sequence;
+	
+	private byte[] header;
+	private byte[] tailer;
 	
 	private AtomicReference<Object> lockObject = new AtomicReference<Object>();
 	private Object attached;
@@ -27,10 +35,20 @@ public class FileLimiter {
 	
 	public FileLimiter(FileNode fileNode, int capacity, int length, int dataSequence) {
 		this.fileNode = fileNode;
-		this.capacity = capacity;
 		this.logicLength = length;
 		this.realLength = length;
 		this.sequence = dataSequence;
+		this.header = Bytes.concat(FileEncoder.start(), FileEncoder.header(DEFAULT_HEADER_VERSION, DEFAULT_HEADER_TYPE));
+		this.tailer = Bytes.concat(FileEncoder.validate(0), FileEncoder.tail());
+		this.capacity = capacity - header.length - tailer.length;
+	}
+	
+	public byte[] getHeader() {
+		return header;
+	}
+	
+	public byte[] getTailer() {
+		return tailer;
 	}
 	
 	public FileNode getFileNode() {

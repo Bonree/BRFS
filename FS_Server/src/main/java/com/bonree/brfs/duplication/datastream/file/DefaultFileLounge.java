@@ -75,7 +75,10 @@ public class DefaultFileLounge implements FileLounge {
 	
 	@Override
 	public void addFileLimiter(FileLimiter file) {
-		timedFileContainer.get(file.getFileNode().getCreateTime()).add(file);
+		List<FileLimiter> fileList = timedFileContainer.get(file.getFileNode().getCreateTime());
+		synchronized (fileList) {
+			fileList.add(file);
+		}
 	}
 
 	@Override
@@ -97,20 +100,22 @@ public class DefaultFileLounge implements FileLounge {
 				continue;
 			}
 			
-			for(FileLimiter file : fileList) {
-				if(!file.lock(requestSizes)) {
-					LOG.info("can not lock file[{}]", file.getFileNode().getName());
-					continue;
-				}
-				
-				if(file.apply(requestSizes[i])) {
-					results[i] = file;
-					selected.add(file);
-					break;
-				}
-				
-				if(!selected.contains(file)) {
-					file.unlock();
+			synchronized (fileList) {
+				for(FileLimiter file : fileList) {
+					if(!file.lock(requestSizes)) {
+//						LOG.info("can not lock file[{}]", file.getFileNode().getName());
+						continue;
+					}
+					
+					if(file.apply(requestSizes[i])) {
+						results[i] = file;
+						selected.add(file);
+						break;
+					}
+					
+					if(!selected.contains(file)) {
+						file.unlock();
+					}
 				}
 			}
 			
@@ -126,7 +131,10 @@ public class DefaultFileLounge implements FileLounge {
 				results[i] = newFile;
 				
 				//不直接使用上面获取fileContainer是为了防止因为FileCleaner清理导致的fileContainer为null
-				timedFileContainer.get(currentTime).add(newFile);
+				List<FileLimiter> tempFileList = timedFileContainer.get(currentTime);
+				synchronized (tempFileList) {
+					tempFileList.add(newFile);
+				}
 			}
 		}
 		
@@ -152,12 +160,12 @@ public class DefaultFileLounge implements FileLounge {
 			
 			for(TimedObject<List<FileLimiter>> obj : timedObjects) {
 				LOG.info("{} FILE CLEANER---- {} >>> {}",new Date(), obj.getTimeInterval(), obj.getObj().size());
-				List<FileLimiter> fileSet = obj.getObj();
+				List<FileLimiter> fileList = obj.getObj();
 				
 				if(obj.getTimeInterval() < currentTimeInterval) {
 					//历史时刻文件，清理所有能清理的文件
-					synchronized (fileSet) {
-						Iterator<FileLimiter> iterator = fileSet.iterator();
+					synchronized (fileList) {
+						Iterator<FileLimiter> iterator = fileList.iterator();
 						while(iterator.hasNext()) {
 							FileLimiter file = iterator.next();
 							if(file.lock(this) && closeFile(file)) {
@@ -167,14 +175,14 @@ public class DefaultFileLounge implements FileLounge {
 						}
 					}
 					
-					if(fileSet.isEmpty()) {
+					if(fileList.isEmpty()) {
 						timedFileContainer.remove(obj.getTimeInterval());
 					}
 				} else {
 					//当前时刻的文件集合，只对有clean标记的文件做处理
-					synchronized (fileSet) {
-						boolean cleanOverSize = fileSet.size() > FILE_SET_SIZE_CLEAN_THRESHOLD;
-						Iterator<FileLimiter> iterator = fileSet.iterator();
+					synchronized (fileList) {
+						boolean cleanOverSize = fileList.size() > FILE_SET_SIZE_CLEAN_THRESHOLD;
+						Iterator<FileLimiter> iterator = fileList.iterator();
 						while(iterator.hasNext()) {
 							FileLimiter file = iterator.next();
 							

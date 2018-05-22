@@ -102,7 +102,7 @@ public class BootStrap {
 		
 		DuplicationNodeSelector nodeSelector = new DefaultDuplicationNodeSelector(serviceManager);
 		
-		FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager);
+		FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool);
 		DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileRecovery, idManager, connectionPool);
 		
 		HttpConfig config = new HttpConfig(serverConfig.getPort());

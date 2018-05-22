@@ -27,18 +27,20 @@ public class DataWriteTask extends AsyncTask<WriteResult[]> {
 		long start = System.currentTimeMillis();
 		try {
 			if(connection == null) {
+				LOG.error("connection is null!!!");
 				return null;
 			}
 			
 			DiskNodeClient client = connection.getClient();
 			if(client == null) {
+				LOG.error("DiskNodeClient is null!!!");
 				return null;
 			}
 			
-			LOG.info("write {} data to {}:{}", filePath, connection.getService().getHost(), connection.getService().getPort());
+			LOG.debug("write {} data to {}:{}", filePath, connection.getService().getHost(), connection.getService().getPort());
 			WriteResult[] result = client.writeDatas(filePath, datas);
 			
-			LOG.info("get result---" + result);
+			LOG.debug("get result---" + result);
 			
 			return result;
 		} finally {

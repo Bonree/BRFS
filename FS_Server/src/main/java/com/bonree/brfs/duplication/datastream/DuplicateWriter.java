@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.curator.shaded.com.google.common.primitives.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +16,6 @@ import com.bonree.brfs.common.asynctask.AsyncTaskGroupCallback;
 import com.bonree.brfs.common.asynctask.AsyncTaskResult;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.write.data.DataItem;
-import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
@@ -40,8 +38,10 @@ import com.bonree.brfs.server.identification.ServerIDManager;
 public class DuplicateWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(DuplicateWriter.class);
 	
-	private static final int DEFAULT_THREAD_NUM = 5;
-	private AsyncExecutor executor = new AsyncExecutor(DEFAULT_THREAD_NUM);
+	private static final int DEFAULT_MULTI_TASK_THREAD_NUM = 5;
+	private AsyncExecutor multiTaskExecutor = new AsyncExecutor(DEFAULT_MULTI_TASK_THREAD_NUM);
+	private static final int DEFAULT_DATA_WRITE_THREAD_NUM = 10;
+	private AsyncExecutor writeTaskExecutor = new AsyncExecutor(DEFAULT_DATA_WRITE_THREAD_NUM);
 	
 	private FileCoordinator fileCoordinator;
 	private Service service;
@@ -107,9 +107,10 @@ public class DuplicateWriter {
 		AsyncTaskGroup<ResultItem[]> taskGroup = new AsyncTaskGroup<ResultItem[]>();
 		for(int i = 0; i < fileList.length; i++) {
 			FileLimiter file = fileList[i];
+			
 			MultiDataWriteTask task = (MultiDataWriteTask) file.attach();
 			if(task == null) {
-				task = new MultiDataWriteTask(file, idManager, connectionPool, executor);
+				task = new MultiDataWriteTask(file, idManager, connectionPool, writeTaskExecutor);
 				file.attach(task);
 				taskGroup.addTask(task);
 			}
@@ -117,7 +118,7 @@ public class DuplicateWriter {
 			task.addDataItem(items[i]);
 		}
 		
-		executor.submit(taskGroup, new AsyncTaskGroupCallback<ResultItem[]>() {
+		multiTaskExecutor.submit(taskGroup, new AsyncTaskGroupCallback<ResultItem[]>() {
 			private List<ResultItem> resultList = new ArrayList<ResultItem>();
 
 			@Override
@@ -163,17 +164,17 @@ public class DuplicateWriter {
 			fileRecovery.recover(file.getFileNode(), new FileRecoveryListener() {
 				
 				@Override
-				public void complete(FileNode file) {
-					DiskNodeConnection[] connections = connectionPool.getConnections(file.getDuplicateNodes());
+				public void complete(FileNode fileNode) {
+					DiskNodeConnection[] connections = connectionPool.getConnections(fileNode.getDuplicateNodes());
 					for(int i = 0; i < connections.length; i++) {
 						if(connections[i] != null) {
 							DiskNodeClient client = connections[i].getClient();
 							if(client != null) {
-								String serverId = idManager.getOtherSecondID(file.getDuplicateNodes()[i].getId(), file.getStorageId());
-								String filePath = FilePathBuilder.buildPath(file, serverId);
+								String serverId = idManager.getOtherSecondID(fileNode.getDuplicateNodes()[i].getId(), fileNode.getStorageId());
+								String filePath = FilePathBuilder.buildPath(fileNode, serverId);
 								
 								try {
-									WriteResult result = client.writeData(filePath, -2, Bytes.concat(FileEncoder.validate(0), FileEncoder.tail()));
+									WriteResult result = client.writeData(filePath, -2, file.getTailer());
 									if(result != null) {
 										client.closeFile(filePath);
 									}

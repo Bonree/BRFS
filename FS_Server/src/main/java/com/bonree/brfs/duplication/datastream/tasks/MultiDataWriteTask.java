@@ -88,7 +88,7 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 
 		@Override
 		public void completed(AsyncTaskResult<WriteResult[]>[] results) {
-			LOG.info("handle Writing result...");
+			LOG.info("handle Writing result for file[{}]", file.getFileNode().getName());
 			//先释放文件的锁定状态
 			
 			ResultItem[] resultItems = new ResultItem[dataList.size()];
@@ -134,7 +134,7 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 					file.setLength(offset + size);
 					
 					String fid = FidBuilder.getFid(file.getFileNode(), offset, size);
-					LOG.info("get FID-->{}", fid);
+					LOG.debug("get FID-->{}", fid);
 					resultItems[i].setFid(fid);
 				}
 				
