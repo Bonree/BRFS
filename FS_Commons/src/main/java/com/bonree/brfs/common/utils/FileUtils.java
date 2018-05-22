@@ -3,9 +3,11 @@ package com.bonree.brfs.common.utils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -22,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public class FileUtils {
 
     private final static Logger LOG = LoggerFactory.getLogger(FileUtils.class);
-    
+
     public final static String FILE_SEPARATOR = File.separator;
 
     /** 概述：创建目录
@@ -157,28 +159,45 @@ public class FileUtils {
         return Arrays.stream(file.list()).collect(Collectors.toList());
     }
 
+    public static List<String> listFileNames(String dir,final String filterEndStr) {
+        FilenameFilter filter = new FilenameFilter() {
+
+            @Override
+            public boolean accept(File dir, String name) {
+                if (name.toLowerCase().endsWith(filterEndStr)) {
+                    return false;
+                }
+                return true;
+            }
+        };
+
+        File file = new File(dir);
+        return Arrays.stream(file.list(filter)).collect(Collectors.toList());
+    }
+
     public static List<String> listFilePaths(String dir) {
         File file = new File(dir);
         return Arrays.stream(file.listFiles()).map(File::getPath).collect(Collectors.toList());
     }
-    
-    public static List<File> listFiles(String dir){
+
+    public static List<File> listFiles(String dir) {
         File file = new File(dir);
         return Arrays.stream(file.listFiles()).collect(Collectors.toList());
     }
+
     /**
      * 概述：删除文件
      * @param filePath
      * @return
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static boolean deleteFile(String filePath){
-    	File file = new File(filePath);
-    	if(!file.exists()){
-    		return true;
-    	}
-    	// 资源回收，强制删除
-    	System.gc();
-    	return file.delete();
+    public static boolean deleteFile(String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            return true;
+        }
+        // 资源回收，强制删除
+        System.gc();
+        return file.delete();
     }
 }

@@ -111,7 +111,6 @@ public class SimpleAuthentication implements UserOperation {
         pathCache = CuratorCacheFactory.getPathCache();
         userListener = new UserCacheListener("userManager");
         pathCache.addListener(userPath, userListener);
-        System.out.println(userPath);
     }
 
     /** 概述：初始化认证类

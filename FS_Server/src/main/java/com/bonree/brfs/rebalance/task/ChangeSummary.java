@@ -107,14 +107,4 @@ public class ChangeSummary implements Comparable<ChangeSummary> {
         return "ChangeSummary [changeID=" + changeID + "]";
     }
 
-    public static void main(String[] args) {
-        List<String> list = new ArrayList<>();
-        list.add("1111");
-        System.out.println(list);
-        System.out.println(list.remove(0));
-        list.add("222");
-        System.out.println(list);
-
-    }
-
 }

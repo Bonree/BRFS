@@ -7,7 +7,6 @@ public class FileTransfer {
     }
 
     public void remoteCopyFile(String remoteServerId, String fileName, int replicaPot) {
-        System.out.println("remove file:" + remoteServerId + "--" + fileName + "--" + replicaPot);
     }
 
 }

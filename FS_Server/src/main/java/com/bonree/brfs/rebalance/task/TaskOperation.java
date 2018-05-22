@@ -3,13 +3,17 @@ package com.bonree.brfs.rebalance.task;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.rebalance.route.NormalRoute;
+import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
@@ -40,12 +44,14 @@ public class TaskOperation implements Closeable {
     private String dataDir;
     private StorageNameManager snManager;
     private ServiceManager serviceManager;
+    private String baseRoutesPath;
 
 
-    public TaskOperation(final CuratorClient client, final String baseBalancePath, ServerIDManager idManager, String dataDir, StorageNameManager snManager, ServiceManager serviceManager) {
+    public TaskOperation(final CuratorClient client, final String baseBalancePath, String baseRoutesPath,ServerIDManager idManager, String dataDir, StorageNameManager snManager, ServiceManager serviceManager) {
         this.client = client;
         this.idManager = idManager;
         this.tasksPath = baseBalancePath + Constants.SEPARATOR + Constants.TASKS_NODE;
+        this.baseRoutesPath = baseRoutesPath;
         this.dataDir = dataDir;
         treeCache = CuratorCacheFactory.getTreeCache();
         this.snManager = snManager;
@@ -60,14 +66,12 @@ public class TaskOperation implements Closeable {
     public void launchDelayTaskExecutor(BalanceTaskSummary taskSummary, String taskPath) {
         DataRecover recover = null;
         List<String> multiIds = taskSummary.getOutputServers();
-        System.out.println("output :" + multiIds);
-        System.out.println(idManager.getSecondServerID(taskSummary.getStorageIndex()));
-        System.out.println("task type:" + taskSummary.getTaskType());
         if (multiIds.contains(idManager.getSecondServerID(taskSummary.getStorageIndex()))) {
             // 注册自身的selfMultiId,并设置为created阶段
             if (taskSummary.getTaskType() == RecoverType.NORMAL) { // 正常迁移任务
+                
                 String storageName = snManager.findStorageName(taskSummary.getStorageIndex()).getName();
-                recover = new MultiRecover(taskSummary, idManager, serviceManager, taskPath, client, dataDir, storageName);
+                recover = new MultiRecover(taskSummary, idManager, serviceManager, taskPath, client, dataDir, storageName,baseRoutesPath);
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
                 String storageName = snManager.findStorageName(taskSummary.getStorageIndex()).getName();
                 recover = new VirtualRecover(client, taskSummary, taskPath, dataDir, storageName, idManager, serviceManager);
@@ -98,6 +102,7 @@ public class TaskOperation implements Closeable {
             }
         }.start();
     }
+    
 
     @Override
     public void close() throws IOException {

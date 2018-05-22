@@ -86,14 +86,14 @@ public class VirtualRecover implements DataRecover {
 
         @Override
         public void nodeChanged() throws Exception {
-            System.out.println("node change!!!");
+            LOG.info("node change!!!");
             if(client.checkExists(taskNode)) {
                 byte[] data = client.getData(taskNode);
                 BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
                 TaskStatus stats = bts.getTaskStatus();
                 // 更新缓存
                 status.set(stats);
-                System.out.println("stats:" + stats);
+                LOG.info("stats:" + stats);
             }
         }
 
@@ -127,7 +127,7 @@ public class VirtualRecover implements DataRecover {
                 if (client.checkExists(selfNode)) {
                     break;
                 }
-                System.out.println("remain time:" + (delayTime - i) + "s, start task!!!");
+                LOG.info("update:" + selfNode + "-------------" + detail);
                 Thread.sleep(1000);
             }
         } catch (InterruptedException e) {
@@ -153,12 +153,12 @@ public class VirtualRecover implements DataRecover {
 
         detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, timeFileCounts, 0, 0);
         // 注册节点
-        System.out.println("create:" + selfNode + "-------------" + detail);
+        LOG.info("create:" + selfNode + "-------------" + detail);
         // 无注册的话，则注册，否则不用注册
         registerNode(selfNode, detail);
 
         detail.setStatus(ExecutionStatus.RECOVER);
-        System.out.println("update:" + selfNode + "-------------" + detail);
+        LOG.info("update:" + selfNode + "-------------" + detail);
         updateDetail(selfNode, detail);
 
         String remoteSecondId = balanceSummary.getInputServers().get(0);
@@ -215,7 +215,7 @@ public class VirtualRecover implements DataRecover {
             if (status.get().equals(TaskStatus.CANCEL)) {
                 break;
             }
-            System.out.println("file:" + currentCount);
+            LOG.info("file:" + currentCount);
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
@@ -225,7 +225,7 @@ public class VirtualRecover implements DataRecover {
             detail.setCurentCount(currentCount);
             detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
             updateDetail(selfNode, detail);
-            System.out.println("update:" + selfNode + "-------------" + detail);
+            LOG.info("update:" + selfNode + "-------------" + detail);
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e1) {
@@ -243,10 +243,10 @@ public class VirtualRecover implements DataRecover {
         // 没有中断
         if (status.get().equals(TaskStatus.RUNNING)) {
             detail.setStatus(ExecutionStatus.FINISH);
-            System.out.println("update:" + selfNode + "-------------" + detail);
+            LOG.info("update:" + selfNode + "-------------" + detail);
             updateDetail(selfNode, detail);
-            System.out.println("virtual server id:" + virtualID + " transference over!!!");
-            System.out.println("虚拟恢复正常完成！！！！！");
+            LOG.info("virtual server id:" + virtualID + " transference over!!!");
+            LOG.info("虚拟恢复正常完成！！！！！");
         }
 
         try {
@@ -274,7 +274,7 @@ public class VirtualRecover implements DataRecover {
                         fileRecover = fileRecoverQueue.poll(100, TimeUnit.MILLISECONDS);
                         if (fileRecover != null) {
                             boolean success = false;
-                            System.out.println("transfer :" + fileRecover);// 此处来发送文件
+                            LOG.info("transfer :" + fileRecover);
                             String firstID = fileRecover.getFirstServerID();
                             Service service = serviceManager.getServiceById(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, firstID);
                             String logicPath = fileRecover.getStorageName() + FileUtils.FILE_SEPARATOR + fileRecover.getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime() + FileUtils.FILE_SEPARATOR + fileRecover.getFileName();
@@ -296,7 +296,7 @@ public class VirtualRecover implements DataRecover {
                                 BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
                                 fileRecover.getSimpleWriter().writeRecord(record.toString());
                             }
-                            System.out.println("update:" + selfNode + "-------------" + detail);
+                            LOG.info("update:" + selfNode + "-------------" + detail);
                         }
                     }
                 } catch (InterruptedException e) {
@@ -320,7 +320,6 @@ public class VirtualRecover implements DataRecover {
     }
 
     public void remoteCopyFile(String remoteServerId, String fileName, int replicaPot) {
-        System.out.println("remove file:" + remoteServerId + "--" + fileName + "--" + replicaPot);
     }
 
     /** 概述：更新任务信息

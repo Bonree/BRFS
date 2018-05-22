@@ -69,7 +69,7 @@ public class ServerIDManager {
     }
 
     public ServerIDManager(ServerConfig config, ZookeeperPaths zkBasePaths) {
-        firstLevelServerID = new FirstLevelServerIDImpl(config.getZkHosts(), zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath());
+        firstLevelServerID = new FirstLevelServerIDImpl(config.getZkHosts(), zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath(),zkBasePaths.getBaseRoutePath());
         firstLevelServerID.initOrLoadServerID();
         virtualServerID = new VirtualServerIDImpl(config.getZkHosts(), zkBasePaths.getBaseServerIdSeqPath());
         otherServerIDCache = new ConcurrentHashMap<>();
@@ -241,13 +241,6 @@ public class ServerIDManager {
      */
     public boolean registerFirstID(int storageIndex, String virtualID, String firstID) {
         return virtualServerID.registerFirstID(storageIndex, virtualID, firstID);
-    }
-
-    public static void main(String[] args) {
-        String path = "/brfs/test1/server_ids/10/1";
-        String aa = path.substring(0, path.lastIndexOf('/'));
-        String bb = aa.substring(aa.lastIndexOf('/') + 1, aa.length());
-        System.out.println(bb);
     }
 
 }

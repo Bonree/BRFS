@@ -72,7 +72,7 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
             @Override
             public void isLeader() {
-                System.out.println("I'am ServerChangeTaskGenetor leader!!!!");
+                LOG.info("I'am ServerChangeTaskGenetor leader!!!!");
             }
         });
         this.idManager = idManager;
@@ -119,7 +119,6 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     @Override
     public void serviceAdded(Service service) {
         LOG.info("add wzlistener:"+service);
-        System.out.println("add wzlistener:"+service);
         try {
             Thread.sleep(delayDeal);
         } catch (InterruptedException e) {
@@ -130,7 +129,6 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
             if (firstID.equals(idManager.getFirstServerID())) {
                 return;
             }
-            System.out.println("add:" + service);
             genChangeSummary(service, ChangeType.ADD);
         }
 
@@ -143,7 +141,6 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     @Override
     public void serviceRemoved(Service service) {
         LOG.info("remove wzlistener:"+service);
-        System.out.println("remove wzlistener:"+service);
         try {
             Thread.sleep(delayDeal);
         } catch (InterruptedException e) {
@@ -154,7 +151,6 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
             if (firstID.equals(idManager.getFirstServerID())) {
                 return;
             }
-            System.out.println("remove:" + service);
             genChangeSummary(service, ChangeType.REMOVE);
         }
 

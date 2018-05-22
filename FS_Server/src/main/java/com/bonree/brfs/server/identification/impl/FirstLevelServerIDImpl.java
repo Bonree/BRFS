@@ -33,14 +33,14 @@ public class FirstLevelServerIDImpl implements LevelServerID{
 
     private boolean newServer = true;
 
-    public FirstLevelServerIDImpl(String zkHosts, String firstZKPath, String firstServerIDFile, String seqPath) {
+    public FirstLevelServerIDImpl(String zkHosts, String firstZKPath, String firstServerIDFile, String seqPath,String baseRoutesPath) {
         this.zkHosts = zkHosts;
         this.firstZKPath = firstZKPath;
         this.firstServerIDFile = firstServerIDFile;
         firstServerIDGen = new FirstServerIDGenImpl(zkHosts, seqPath);
         initOrLoadServerID();
 
-        secondServerID = new SecondLevelServerID(zkHosts, firstZKPath + '/' + firstServerID, seqPath);
+        secondServerID = new SecondLevelServerID(zkHosts, firstZKPath + '/' + firstServerID, seqPath,baseRoutesPath);
         secondServerID.loadServerID();
     }
 

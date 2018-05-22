@@ -24,7 +24,7 @@ public class RebalanceManager {
         CuratorClient curatorClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 500, 500);
         this.serviceManager = serviceManager;
         dispatch = new TaskDispatcher(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager, serviceManager,snManager,serverConfig.getVirtualDelay(),serverConfig.getNormalDelay());
-        opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), idManager, serverConfig.getDataPath(), snManager, serviceManager);
+        opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(),zkPaths.getBaseRoutePath(), idManager, serverConfig.getDataPath(), snManager, serviceManager);
 
     }
 

@@ -37,7 +37,7 @@ public class TaskExecutorListener extends AbstractTreeCacheListener {
                 if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
                     byte[] data = event.getData().getData();
                     BalanceTaskSummary taskSummary = JSON.parseObject(data, BalanceTaskSummary.class);
-                    System.out.println("deal task:" + taskSummary);
+                    LOG.info("deal task:" + taskSummary);
                     String taskPath = event.getData().getPath();
                     opt.launchDelayTaskExecutor(taskSummary, taskPath);
                 }

@@ -8,7 +8,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.server.identification.LevelServerIDGen;
 import com.google.common.base.Preconditions;
@@ -29,14 +32,17 @@ public class SecondLevelServerID {
 
     private String selfFirstPath;
 
+    private String baseRoutes;
+
     private Map<Integer, String> secondMap;
 
     private static Lock lock = new ReentrantLock();
 
-    public SecondLevelServerID(String zkHosts, String selfFirstPath, String seqPath) {
+    public SecondLevelServerID(String zkHosts, String selfFirstPath, String seqPath, String baseRoutes) {
         this.zkHosts = zkHosts;
         this.selfFirstPath = selfFirstPath;
         this.secondServerIDOpt = new SecondServerIDGenImpl(zkHosts, seqPath);
+        this.baseRoutes = baseRoutes;
         secondMap = new ConcurrentHashMap<>();
     }
 
@@ -49,7 +55,7 @@ public class SecondLevelServerID {
             for (String si : storageIndeies) {
                 String node = selfFirstPath + '/' + si;
                 String serverID = new String(client.getData(node));
-                if (isExpire(si, serverID)) { // 判断secondServerID是否过期，过期需要重新生成
+                if (isExpire(client, si, serverID)) { // 判断secondServerID是否过期，过期需要重新生成
                     serverID = secondServerIDOpt.genLevelID();
                     client.setData(node, serverID.getBytes()); // 覆盖以前的second server ID
                 }
@@ -63,7 +69,20 @@ public class SecondLevelServerID {
 
     }
 
-    private boolean isExpire(String si, String secondServerID) {
+    private boolean isExpire(CuratorClient client,String si, String secondServerID) {
+        String normalPath = baseRoutes + Constants.SEPARATOR + Constants.NORMAL_ROUTE;
+        String siPath = normalPath + Constants.SEPARATOR + si;
+        if(client.checkExists(normalPath) && client.checkExists(siPath)) {
+            List<String> routeNodes= client.getChildren(siPath);
+            for(String routeNode:routeNodes) {
+                String routePath = siPath+Constants.SEPARATOR +routeNode;
+                byte[] data = client.getData(routePath);
+                NormalRoute normalRoute= JsonUtils.toObject(data, NormalRoute.class);
+                if(normalRoute.getSecondID().equals(secondServerID)){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 

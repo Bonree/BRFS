@@ -26,9 +26,6 @@ public enum ReturnCode {
     public void setCode(int code) {
         this.code = code;
     }
-    public static void main(String[] args) {
-        System.out.println(ReturnCode.STORAGE_EXIST_ERROR.name());
-    }
     
     public static ReturnCode checkCode(String storageName,ReturnCode code) {
         if(code.equals(ReturnCode.STORAGE_EXIST_ERROR)) {

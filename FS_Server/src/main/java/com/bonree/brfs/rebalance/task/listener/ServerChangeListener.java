@@ -42,7 +42,6 @@ public class ServerChangeListener extends AbstractTreeCacheListener {
                     if (!dispatcher.isLoad().get()) {
                         // 此处加载缓存
                         LOG.info("load all");
-                        System.out.println("load all");
                         dispatcher.loadCache(client, event);
                         dispatcher.isLoad().set(true);
                     }

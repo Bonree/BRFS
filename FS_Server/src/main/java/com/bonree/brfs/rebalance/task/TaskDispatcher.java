@@ -15,6 +15,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +33,9 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.rebalance.TaskVersion;
+import com.bonree.brfs.common.rebalance.route.NormalRoute;
+import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
@@ -40,6 +45,8 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
+import com.bonree.brfs.rebalance.DataRecover;
+import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.task.listener.ServerChangeListener;
 import com.bonree.brfs.rebalance.task.listener.TaskStatusListener;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -61,6 +68,8 @@ public class TaskDispatcher {
     private final static int DEFAULT_INTERVAL = 30;
 
     private final static double DEFAULT_PROCESS = 0.6;
+
+    private Lock lock = new ReentrantLock();
 
     private CuratorClient curatorClient;
 
@@ -96,11 +105,11 @@ public class TaskDispatcher {
 
     private ExecutorService singleServer = Executors.newSingleThreadExecutor();
 
-    private ScheduledExecutorService scheduleExecutor = Executors.newScheduledThreadPool(1,new ThreadFactory() {
-        
+    private ScheduledExecutorService scheduleExecutor = Executors.newScheduledThreadPool(1, new ThreadFactory() {
+
         @Override
         public Thread newThread(Runnable r) {
-            
+
             return new Thread(r, "xxoo");
         }
     });
@@ -231,7 +240,7 @@ public class TaskDispatcher {
                 try {
                     dealChangeSDetail();
                 } catch (InterruptedException e) {
-                    System.out.println("consumer queue error!!");
+                    LOG.error("consumer queue error!!", e);
                     e.printStackTrace();
                 }
             }
@@ -242,24 +251,24 @@ public class TaskDispatcher {
             public void run() {
                 try {
                     if (leaderLath.hasLeadership()) {
-                        if (isLoad.get()) { 
+                        if (isLoad.get()) {
                             System.out.println(isLoad.get());
                             for (Entry<Integer, List<ChangeSummary>> entry : cacheSummaryCache.entrySet()) {
-                                System.out.println("auditTask auditTask auditTask auditTask");
-                                auditTask(entry.getValue());
+                                LOG.info("auditTask auditTask auditTask auditTask");
+                                syncAuditTask(entry.getValue());
                             }
                         }
                     }
-                }catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-                
+
             }
         }, 1000, 1000, TimeUnit.MILLISECONDS);
 
     }
 
-    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager,StorageNameManager snManager, int virtualDelay, int normalDelay) {
+    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager, StorageNameManager snManager, int virtualDelay, int normalDelay) {
         this.baseRebalancePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
         this.virtualRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE;
         this.normalRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.NORMAL_ROUTE;
@@ -297,7 +306,7 @@ public class TaskDispatcher {
 
             @Override
             public void isLeader() {
-                System.out.println("I'am taskDispatch leader!!!!");
+                LOG.info("I'am taskDispatch leader!!!!");
             }
         });
         treeCache = CuratorCacheFactory.getTreeCache();
@@ -320,7 +329,7 @@ public class TaskDispatcher {
         while (true) {
             cd = detailQueue.take();
             List<ChangeSummary> changeSummaries = addOneCache(cd.getClient(), cd.getEvent());
-            System.out.println("consume:" + changeSummaries);
+            LOG.info("consume:" + changeSummaries);
         }
 
     }
@@ -328,7 +337,7 @@ public class TaskDispatcher {
     public List<ChangeSummary> addOneCache(CuratorFramework client, TreeCacheEvent event) {
         List<ChangeSummary> changeSummaries = null;
         if (event.getData().getData() != null) {
-            System.out.println("parse:" + new String(event.getData().getData()));
+            LOG.info("parse:" + new String(event.getData().getData()));
             ChangeSummary changeSummary = JSON.parseObject(event.getData().getData(), ChangeSummary.class);
             int storageIndex = changeSummary.getStorageIndex();
             changeSummaries = cacheSummaryCache.get(storageIndex);
@@ -338,14 +347,116 @@ public class TaskDispatcher {
                 cacheSummaryCache.put(storageIndex, changeSummaries);
             }
             if (!changeSummaries.contains(changeSummary)) {
-                System.out.println("add cache:" + changeSummary);
+                LOG.info("add cache:" + changeSummary);
                 changeSummaries.add(changeSummary);
-                System.out.println("cacheSummaryCache:" + cacheSummaryCache);
+                LOG.info("cacheSummaryCache:" + cacheSummaryCache);
             }
             LOG.info("changeSummaries:" + changeSummaries);
         }
 
         return changeSummaries;
+    }
+
+    public void syncTaskTerminal(CuratorFramework client, TreeCacheEvent event) {
+        try {
+            lock.lock();
+            taskTerminal(client, event);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void taskTerminal(CuratorFramework client, TreeCacheEvent event) {
+        if (getLeaderLatch().hasLeadership()) {
+            CuratorClient curatorClient = CuratorClient.wrapClient(client);
+            LOG.info("leaderLath:" + getLeaderLatch().hasLeadership());
+            LOG.info("task Dispatch event detail:" + event.getType());
+            LOG.info("task Dispatch event detail:" + event);
+            if (event.getData() != null && event.getData().getData() != null) {
+                LOG.info("content:" + new String(event.getData().getData()));
+            }
+
+            if (isUpdatedNode(event)) {
+                if (event.getData() != null && event.getData().getData() != null) {
+                    // 此处会检测任务是否完成
+                    String eventPath = event.getData().getPath();
+                    if (eventPath.substring(eventPath.lastIndexOf('/') + 1, eventPath.length()).equals(Constants.TASK_NODE)) {
+                        return;
+                    }
+
+                    String parentPath = StringUtils.substring(eventPath, 0, eventPath.lastIndexOf('/'));
+
+                    // 节点已经删除
+                    if (!curatorClient.checkExists(parentPath)) {
+                        return;
+                    }
+
+                    BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(parentPath), BalanceTaskSummary.class);
+                    List<String> serverIds = curatorClient.getChildren(parentPath);
+                    boolean finishFlag = true;
+                    if (serverIds != null && !serverIds.isEmpty()) {
+                        for (String serverId : serverIds) {
+                            String nodePath = parentPath + Constants.SEPARATOR + serverId;
+                            TaskDetail td = JSON.parseObject(curatorClient.getData(nodePath), TaskDetail.class);
+                            if (td.getStatus() != DataRecover.ExecutionStatus.FINISH) {
+                                finishFlag = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    // 所有的服务都则发布迁移规则，并清理任务
+                    if (finishFlag) {
+                        if (bts.getTaskType() == RecoverType.VIRTUAL) {
+                            String virtualRouteNode = getVirualRoutePath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
+                            VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
+                            curatorClient.createPersistentSequential(virtualRouteNode, true, JSON.toJSONBytes(route));
+
+                            String firstID = getServerIDManager().getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
+
+                            List<String> normalVirtualIDs = getServerIDManager().listNormalVirtualID(bts.getStorageIndex());
+                            if (normalVirtualIDs != null && !normalVirtualIDs.isEmpty()) {
+                                for (String virtualID : normalVirtualIDs) {
+                                    getServerIDManager().registerFirstID(bts.getStorageIndex(), virtualID, firstID);
+                                }
+                            }
+
+                            // 删除virtual server ID
+                            curatorClient.delete(parentPath, true);
+                            getServerIDManager().deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
+
+                        } else if (bts.getTaskType() == RecoverType.NORMAL) {
+                            String normalRouteNode = getNormalRoutePath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
+                            NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
+                            curatorClient.createPersistentSequential(normalRouteNode, true, JSON.toJSONBytes(route));
+                        }
+
+                        List<ChangeSummary> changeSummaries = getSummaryCache().get(bts.getStorageIndex());
+                        // 清理变更
+                        LOG.info("status delete:" + bts.getChangeID());
+                        String changePath = getChangesPath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
+                        LOG.info("delete : " + changePath);
+                        curatorClient.delete(changePath, false);
+                        for (ChangeSummary cs : changeSummaries) {
+                            if (cs.getChangeID().equals(bts.getChangeID())) {
+                                changeSummaries.remove(cs);
+                            }
+                        }
+                        removeRunTask(bts.getStorageIndex());
+                    }
+                }
+            }
+        }
+
+    }
+    
+    public void syncAuditTask(List<ChangeSummary> changeSummaries) {
+        try {
+            lock.lock();
+            auditTask(changeSummaries);
+        }finally {
+            lock.unlock();
+        }
     }
 
     /** 概述：非阻塞审计任务
@@ -357,7 +468,7 @@ public class TaskDispatcher {
             return;
         }
 
-        System.out.println("audit:" + changeSummaries);
+        LOG.info("audit:" + changeSummaries);
 
         // 当前有任务在执行
         if (runTask.get(changeSummaries.get(0).getStorageIndex()) != null) {
@@ -385,7 +496,7 @@ public class TaskDispatcher {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     private void trimTask(List<ChangeSummary> changeSummaries) {
-        System.out.println("trimTask !!!!");
+        LOG.info("trimTask !!!!");
         // 需要清除变更抵消。
         Iterator<ChangeSummary> it1 = changeSummaries.iterator();
         Iterator<ChangeSummary> it2 = changeSummaries.iterator();
@@ -434,7 +545,7 @@ public class TaskDispatcher {
                 // 加入正在执行的任务的缓存中
                 setRunTask(taskSummary.getStorageIndex(), taskSummary);
             } else {
-                System.out.println("恢复条件不满足：" + changeSummaries);
+                LOG.info("恢复条件不满足：" + changeSummaries);
             }
         }
         return true;
@@ -446,11 +557,8 @@ public class TaskDispatcher {
 
     private boolean isCanRecover(ChangeSummary cs, List<String> joinerFirstIDs, List<String> aliveFirstIDs) {
         boolean canRecover = true;
-        System.out.println(snManager+"+"+cs);
-        System.out.println("xxoo:"+snManager.findStorageName(cs.getStorageIndex()));
         int replicas = snManager.findStorageName(cs.getStorageIndex()).getReplicateCount();
-       
-        
+
         // 检查参与者是否都存活
         for (String joiner : joinerFirstIDs) {
             if (!aliveFirstIDs.contains(joiner)) {
@@ -484,8 +592,7 @@ public class TaskDispatcher {
          * 1.参与者不足的情况，该sn出现异常，之后的变更都不能处理
          * 2.参与者充足的情况，需要重新选择参与者进行执行，remove任务依旧放在最后
          */
-        System.out.println("dealVirtualTask !!!!");
-        System.out.println(changeSummaries);
+        LOG.info("dealVirtualTask !!!!");
         boolean addFlag = false;
         for (ChangeSummary changeSummary : changeSummaries) {
             System.out.println(changeSummary);
@@ -541,7 +648,7 @@ public class TaskDispatcher {
                             // 虚拟serverID迁移完成，会清理缓存和zk上的任务
                             break;
                         } else {
-                            System.out.println("该变更不用参与虚拟迁移:" + changeSummaries);
+                            LOG.info("该变更不用参与虚拟迁移:" + changeSummaries);
                             changeSummaries.remove(changeSummary);
                             delChangeSummaryNode(changeSummary);
 
@@ -549,8 +656,7 @@ public class TaskDispatcher {
                     }
                 } else {
                     // 没有使用virtual id ，则不需要进行数据迁移
-                    System.out.println("not need to virtual recover!!!");
-                    System.out.println(changeSummaries);
+                    LOG.info("not need to virtual recover!!!");
 
                     changeSummaries.remove(changeSummary);
                     delChangeSummaryNode(changeSummary);
@@ -567,7 +673,7 @@ public class TaskDispatcher {
     }
 
     private void checkTask(List<ChangeSummary> changeSummaries) {
-        System.out.println("task check!!!");
+        LOG.info("task check!!!");
 
         // 获取当前任务信息
         BalanceTaskSummary currentTask = runTask.get(changeSummaries.get(0).getStorageIndex());
@@ -600,15 +706,13 @@ public class TaskDispatcher {
             String changeID = currentTask.getChangeID();
             // 找到正在执行的变更
             ChangeSummary runChangeSummary = changeSummaries.stream().filter(x -> x.getChangeID().equals(changeID)).findFirst().get();
-            System.out.println("run change summary:" + runChangeSummary);
+            LOG.info("run change summary:" + runChangeSummary);
             for (ChangeSummary cs : changeSummaries) {
 
                 if (!cs.getChangeID().equals(runChangeSummary.getChangeID())) { // 与正在执行的变更不同
                     if (runChangeSummary.getChangeType().equals(ChangeType.ADD)) { // 正在执行虚拟迁移任务
                         // 正在执行的任务为虚拟serverID迁移
                         if (cs.getChangeType().equals(ChangeType.REMOVE)) { // 虚拟迁移时，出现问题
-                            System.out.println("remove sid:" + cs.getChangeServer());
-                            System.out.println("run task sid:" + currentTask.getInputServers().get(0));
                             if (cs.getChangeServer().equals(currentTask.getInputServers().get(0))) {
                                 // 用于倒计时
                                 int interval = currentTask.getInterval();
@@ -728,13 +832,13 @@ public class TaskDispatcher {
     }
 
     public void delChangeSummaryNode(ChangeSummary summary) {
-        System.out.println("delete:" + summary);
+        LOG.info("delete:" + summary);
         String path = changesPath + Constants.SEPARATOR + summary.getStorageIndex() + Constants.SEPARATOR + summary.getChangeID();
         curatorClient.guaranteedDelete(path, false);
     }
 
     public void delBalanceTask(BalanceTaskSummary task) {
-        System.out.println("delete task:" + task);
+        LOG.info("delete task:" + task);
         String taskNode = tasksPath + Constants.SEPARATOR + task.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
         curatorClient.delete(taskNode, true);
     }
@@ -753,7 +857,7 @@ public class TaskDispatcher {
     public boolean dispatchTask(BalanceTaskSummary taskSummary) {
         int storageIndex = taskSummary.getStorageIndex();
         String jsonStr = JSON.toJSONString(taskSummary);
-        System.out.println("create task:" + jsonStr);
+        LOG.info("create task:" + jsonStr);
         // 创建任务
         String taskNode = tasksPath + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + Constants.TASK_NODE;
         if (!curatorClient.checkExists(taskNode)) {
