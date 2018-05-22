@@ -266,8 +266,9 @@ public class ResourceTaskConfig {
 		String limitNetRxStr = config.getProperty(LIMIT_RESOURCE_VALUE_NET_RX,"0.9");
 		double limitNetRx = Double.valueOf(limitNetRxStr);
 		conf.setLimitNetRxRate(limitNetRx);
-		
-		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "1");
+		//TODO 测试阶段，改字段改为ms
+//		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "1");
+		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "3600000");
 		long checkTtl = Long.valueOf(checkTtlStr);
 		conf.setCheckTtl(checkTtl*24*60*60);
 		

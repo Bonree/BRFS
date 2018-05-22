@@ -88,17 +88,15 @@ public class QuartzSimpleInfo implements SumbitTaskInterface {
 		}
 		return simple;
 	}
-	
+
 
 	@Override
 	public Map<String, String> getTaskContent() {
-		// TODO Auto-generated method stub
 		return taskContent;
 	}
 
 	@Override
 	public int getTaskKind() {
-		// TODO Auto-generated method stub
 		return this.taskKind;
 	}
 

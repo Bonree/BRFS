@@ -53,7 +53,9 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("----------- > createCheck Copy Job working");		
+		LOG.info("----------- > createCheck Copy Job working");	
+		JobDataMap data = context.getJobDetail().getJobDataMap();
+		long time = data.getLong(JobDataMapConstract.CHECK_TTL);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		StorageNameManager snm = mcf.getSnm();
@@ -65,9 +67,9 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		}
 		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
 		//TODO：判断任务创建的时间若无则创建当前时间的前天的第一小时的
-		long startTime = getStartTime(release);
+		long startTime = getStartTime(release,time);
 		if(startTime < 0){
-			LOG.warn("create inveral time less 1 hour");
+			LOG.warn("create inveral time less {} hour", time/1000/60/60);
 			return;
 		}
 
@@ -157,11 +159,12 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private long getStartTime(MetaTaskManagerInterface release){
+	private long getStartTime(MetaTaskManagerInterface release,long time){
 		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
 		//判断任务创建的时间若无则创建当前时间的前天的第一小时的
 		List<String> tasks = release.getTaskList(taskType);
-		long startTime = (new Date().getTime() - 24*60*60*1000)/(1000*60*60) *(1000*60*60);
+		long startTime = new Date().getTime()/(1000*60*60) *(1000*60*60);
+		startTime = startTime - time - 3600000;
 		long currentTime = 0l;
 		long createTime = 0l;
 		if(tasks != null && !tasks.isEmpty()){

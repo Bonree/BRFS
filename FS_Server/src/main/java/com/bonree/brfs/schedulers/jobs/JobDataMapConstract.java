@@ -183,6 +183,11 @@ public class JobDataMapConstract {
 		}
 		return dataMap;
 	}
+	public static Map<String,String> createCopyCheckMap(ResourceTaskConfig config){
+		Map<String, String> dataMap = new HashMap<>();
+		dataMap.put(CHECK_TTL, config.getCheckTtl()+"");
+		return dataMap;
+	}
 	public static Map<String,String> createWatchJobMap(String zkHost){
 		Map<String,String> dataMap = new HashMap<>();
 		dataMap.put(ZOOKEEPER_ADDRESS, zkHost);
