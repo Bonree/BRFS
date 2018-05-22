@@ -96,6 +96,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		newTask.setTaskState(TaskState.INIT.code());
 		newTask.setTaskType(TaskType.SYSTEM_COPY_CHECK.code());
 		AtomTaskModel atom = null;
+		LOG.info("create {} task success !!!", taskType);
 		if(snFiles == null || snFiles.isEmpty()){
 			release.updateTaskContentNode(newTask, taskType, null);
 			LOG.info("{} time cluster's is no data ", startTime);
