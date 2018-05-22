@@ -169,10 +169,11 @@ public class VirtualRecover implements DataRecover {
             List<String> timeFileNames = FileUtils.listFileNames(replicasPath);
             for (String timeFileName : timeFileNames) {// 时间文件
                 SimpleRecordWriter simpleWriter = null;
+                String timeFilePath = replicasPath + FileUtils.FILE_SEPARATOR + timeFileName;
+                String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
                 try {
-                    simpleWriter = new SimpleRecordWriter("");
-                    String timePath = replicasPath + FileUtils.FILE_SEPARATOR + timeFileName;
-                    List<String> fileNames = FileUtils.listFileNames(timePath);
+                    simpleWriter = new SimpleRecordWriter(recordPath);
+                    List<String> fileNames = FileUtils.listFileNames(timeFilePath,".rd");
                     for (String fileName : fileNames) {
 
                         if (status.get().equals(TaskStatus.CANCEL)) {
