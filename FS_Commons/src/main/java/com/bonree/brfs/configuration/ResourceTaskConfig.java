@@ -270,7 +270,8 @@ public class ResourceTaskConfig {
 //		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "1");
 		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "3600000");
 		long checkTtl = Long.valueOf(checkTtlStr);
-		conf.setCheckTtl(checkTtl*24*60*60);
+		conf.setCheckTtl(checkTtl);
+//		conf.setCheckTtl(checkTtl*24*60*60);
 		
 		String snttlstr = config.getProperty(Configuration.STORAGE_DATA_TTL, "1");
 		long snttl = Long.valueOf(snttlstr);

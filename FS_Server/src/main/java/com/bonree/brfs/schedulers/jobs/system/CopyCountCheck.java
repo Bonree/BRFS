@@ -42,6 +42,7 @@ public class CopyCountCheck {
 	public static Map<String,List<String>> collectLossFile(ServiceManager sm, StorageNameManager snm, String dirName){
 		List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
 		if(services == null || services.isEmpty()){
+			LOG.warn("service list is empty");
 			return null;
 		}
 		int size = services.size();
@@ -55,6 +56,7 @@ public class CopyCountCheck {
 		Map<StorageNameNode, List<String>> snFiles = collectionSnFiles(services, snList, dirName);
 		Map<StorageNameNode,Pair<List<String>, List<String>>> copyMap = calcCopyCount(snFiles);
 		if(copyMap == null|| copyMap.isEmpty()){
+			LOG.info("cluster data is normal !!!");
 			return null;
 		}
 		Map<String,List<String>> results = lossFiles(copyMap);
