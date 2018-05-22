@@ -1,17 +1,17 @@
 package com.bonree.brfs.disknode.server.handler.data;
 
 public class WriteData {
-	private int sequence;
+	private int diskSequence;
 	private byte[] bytes;
 
-	public int getSequence() {
-		return sequence;
+	public int getDiskSequence() {
+		return diskSequence;
 	}
 
-	public void setSequence(int sequence) {
-		this.sequence = sequence;
+	public void setDiskSequence(int diskSequence) {
+		this.diskSequence = diskSequence;
 	}
-
+	
 	public byte[] getBytes() {
 		return bytes;
 	}

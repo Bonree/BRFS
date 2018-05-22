@@ -98,7 +98,7 @@ public class ServerMain {
             System.out.println(selfService);
 
             // 磁盘管理模块
-            EmptyMain diskMain = new EmptyMain(serverConfig.getDiskPort());
+            EmptyMain diskMain = new EmptyMain(serverConfig);
             diskMain.start();
 
             // 副本平衡模块

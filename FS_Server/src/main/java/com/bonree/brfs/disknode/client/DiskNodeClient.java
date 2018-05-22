@@ -6,10 +6,14 @@ import java.util.BitSet;
 import java.util.List;
 
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
+import com.bonree.brfs.disknode.server.handler.data.WriteData;
+import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 
 public interface DiskNodeClient extends Closeable {
 	WriteResult writeData(String path, int sequence, byte[] bytes) throws IOException;
 	WriteResult writeData(String path, int sequence, byte[] bytes, int offset, int size) throws IOException;
+	
+	WriteResult[] writeDatas(String path, WriteData[] dataList) throws IOException;
 	
 	byte[] readData(String path, int offset, int size) throws IOException;
 	boolean closeFile(String path);

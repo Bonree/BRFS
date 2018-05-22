@@ -23,6 +23,7 @@ import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.server.handler.data.FileCopyMessage;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
+import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 
 public class HttpDiskNodeClient implements DiskNodeClient {
 	private static final Logger LOG = LoggerFactory.getLogger(HttpDiskNodeClient.class);
@@ -47,26 +48,12 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	@Override
 	public WriteResult writeData(String path, int sequence, byte[] bytes) throws IOException {
 		WriteData writeItem = new WriteData();
-		writeItem.setSequence(sequence);
+		writeItem.setDiskSequence(sequence);
 		writeItem.setBytes(bytes);
 		
-		URI uri = new URIBuilder()
-		.setScheme(DEFAULT_SCHEME)
-		.setHost(host)
-		.setPort(port)
-		.setPath(DiskContext.URI_DISK_NODE_ROOT + path)
-		.build();
+		WriteResult[] results = writeDatas(path, new WriteData[] {writeItem});
 		
-		try {
-			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(writeItem));
-			if(response.isReponseOK()) {
-				return ProtoStuffUtils.deserialize(response.getResponseBody(), WriteResult.class);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return null;
+		return results[0];
 	}
 
 	@Override
@@ -78,14 +65,35 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		
 		return writeData(path, sequence, copy);
 	}
+	
+	@Override
+	public WriteResult[] writeDatas(String path, WriteData[] dataList) throws IOException {
+		WriteDataList datas = new WriteDataList();
+		datas.setDatas(dataList);
+		
+		URI uri = new URIBuilder()
+		.setScheme(DEFAULT_SCHEME)
+		.setHost(host)
+		.setPort(port)
+		.setPath(DiskContext.URI_DISK_NODE_ROOT + path)
+		.build();
+		
+		try {
+			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(datas));
+			if(response.isReponseOK()) {
+				WriteResultList resultList = ProtoStuffUtils.deserialize(response.getResponseBody(), WriteResultList.class);
+				return resultList.getWriteResults();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
 
 	@Override
 	public byte[] readData(String path, int offset, int size)
 			throws IOException {
-		Map<String, String> params = new HashMap<String, String>();
-		params.put("offset", Integer.toString(offset));
-		params.put("size", Integer.toString(size));
-		
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(host)

@@ -201,18 +201,18 @@ public class ResourceTaskConfig {
 		poolMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool );
 
 
-		String createInveral = config.getProperty(CREATE_TASK_INTERVAL_TIME, "60");
+		String createInveral = config.getProperty(CREATE_TASK_INTERVAL_TIME, "60000");
 		long createTaskInveral = Long.valueOf(createInveral);
 		conf.setCreateTaskIntervalTime(createTaskInveral);
-		String createCopyTime = config.getProperty(SYSTEM_COPY_INTERVAL_TIME, "60");
+		String createCopyTime = config.getProperty(SYSTEM_COPY_INTERVAL_TIME, "60000");
 		long createCopytTimems = Long.valueOf(createCopyTime);
 		conf.setCreateCheckJobTaskervalTime(createCopytTimems);
 		
-		String executeInveral = config.getProperty(EXECUTE_TASK_INTERVAL_TIME, "60");
+		String executeInveral = config.getProperty(EXECUTE_TASK_INTERVAL_TIME, "60000");
 		long executeTaskInveral = Long.valueOf(executeInveral);
 		conf.setExecuteTaskIntervalTime(executeTaskInveral);
 		
-		String gatherInveral = config.getProperty(GATHER_RESOURCE_INVERAL_TIME, "60");
+		String gatherInveral = config.getProperty(GATHER_RESOURCE_INVERAL_TIME, "60000");
 		long gatherResourceInveral = Long.valueOf(gatherInveral);
 		conf.setGatherResourceInveralTime(gatherResourceInveral);
 		

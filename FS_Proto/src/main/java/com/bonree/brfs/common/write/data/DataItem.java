@@ -1,15 +1,15 @@
 package com.bonree.brfs.common.write.data;
 
 public class DataItem {
-	private int sequence;
+	private int userSequence;
 	private byte[] bytes;
 
-	public int getSequence() {
-		return sequence;
+	public int getUserSequence() {
+		return userSequence;
 	}
 
-	public void setSequence(int sequence) {
-		this.sequence = sequence;
+	public void setUserSequence(int userSequence) {
+		this.userSequence = userSequence;
 	}
 
 	public byte[] getBytes() {

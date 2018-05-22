@@ -19,14 +19,16 @@ public class DefaultDuplicationNodeSelector implements DuplicationNodeSelector {
 	@Override
 	public DuplicateNode[] getDuplicationNodes(int nums) {
 		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		if(serviceList.isEmpty()) {
+			return new DuplicateNode[0];
+		}
+		
 		int n = Math.min(nums, serviceList.size());
 		DuplicateNode[] nodes = new DuplicateNode[n];
 		int index = rand.nextInt(n);
 		
 		for(int i = 0; i < n; i++) {
 			Service service = serviceList.get(index);
-			
-			System.out.println("#######################" + service);
 			
 			nodes[i] = new DuplicateNode();
 			nodes[i].setGroup(service.getServiceGroup());
