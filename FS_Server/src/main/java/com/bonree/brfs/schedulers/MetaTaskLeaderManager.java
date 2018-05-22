@@ -129,6 +129,8 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 		if (createFlag) {
 			isSuccess = this.manager.addTask(META_TASK_MANAGER, checkJob);
 			LOG.info("sumbit Create Check Job {} ", isSuccess ? " Sucess" : "Fail");
+		}else{
+			LOG.info("=======> create copy check thread fail");
 		}
 	}
 }

@@ -70,24 +70,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			LOG.warn("create inveral time less 1 hour");
 			return;
 		}
-		
-		List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
-		int size = services.size();
-		//判断过滤sn，若sn为单副本的过滤掉，只针对多副本的
-		List<StorageNameNode> snList = filterSn(snm.getStorageNameNodeList(), size);
-		if(snList == null || snList.isEmpty()){
-			LOG.warn("storageName is null");
-			return;
-		}
-		
-		Map<StorageNameNode, List<String>> snFiles = collectionSnFiles(services, snList, startTime);
-		
-		// 统计副本个数
-		StorageNameNode sn = null;
-		List<String> files = null;
-		Map<String,Integer> snFilesCounts = null;
-		Pair<List<String>,List<String>> result = null;
-		int filterCount = 0;
+
 		TaskModel newTask = new TaskModel();
 		long currentTime = System.currentTimeMillis();
 		newTask.setCreateTime(currentTime);
@@ -95,35 +78,66 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		newTask.setStartDataTime(startTime);
 		newTask.setTaskState(TaskState.INIT.code());
 		newTask.setTaskType(TaskType.SYSTEM_COPY_CHECK.code());
+		List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		String dirName = TimeUtils.timeInterval(startTime, 60*60*1000);
+		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(sm, snm, dirName);
+		if(losers != null && !losers.isEmpty()){
+			List<AtomTaskModel> atoms = createAtoms(losers, dirName);
+			if(atoms != null && !atoms.isEmpty()){
+				newTask.setAtomList(atoms);
+			}
+		}
+		String taskName = release.updateTaskContentNode(newTask, taskType, null);
+		//补充任务节点
+		createServiceNodes(services, release, taskName);
+		LOG.info("create {} task {} success !!",taskType, taskName);
+	}
+	/**
+	 * 概述：创建子任务信息
+	 * @param losers
+	 * @param dirName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private List<AtomTaskModel> createAtoms(Map<String,List<String>> losers, String dirName){
+		if(losers == null|| losers.isEmpty()){
+			return null;
+		}
+		// 统计副本个数
+		StorageNameNode sn = null;
+		List<String> files = null;
+		Map<String, Integer> snFilesCounts = null;
+		Pair<List<String>, List<String>> result = null;
+		int filterCount = 0;
 		AtomTaskModel atom = null;
-		LOG.info("create {} task success !!!", taskType);
-		if(snFiles == null || snFiles.isEmpty()){
-			release.updateTaskContentNode(newTask, taskType, null);
-			LOG.info("{} time cluster's is no data ", startTime);
+		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
+		for (Map.Entry<String, List<String>> entry : losers.entrySet()) {
+			atom = new AtomTaskModel();
+			atom.setDirName(dirName);
+			atom.setFiles(entry.getValue());
+			atoms.add(atom);
+		}
+		return atoms;
+	}
+	/**
+	 * 概述：创建服务节点
+	 * @param services
+	 * @param release
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public void createServiceNodes(List<Service> services, MetaTaskManagerInterface release,String taskName){
+		if(services == null || services.isEmpty()){
+			LOG.warn("service list is null");
 			return;
 		}
-		for(Map.Entry<StorageNameNode, List<String>> entry : snFiles.entrySet()){
-			sn = entry.getKey();
-			files = entry.getValue();
-			if(files == null || files.isEmpty()){
-				continue;
-			}
-			snFilesCounts = calcFileCount(files);
-			if(snFilesCounts == null || snFilesCounts.isEmpty()){
-				continue;
-			}
-			result = filterLoser(snFilesCounts, sn.getReplicateCount());
-			atom = new AtomTaskModel();
-			atom.setStorageName(sn.getName());
-			atom.setFiles(result.getKey());
-			newTask.addAtom(atom);
-		}
-		release.updateTaskContentNode(newTask, taskType, null);
-		//补充任务节点
 		String serverId = null;
+		boolean isSuccess = false;
 		for(Service service : services){
 			serverId = service.getServiceId();
-			release.updateServerTaskContentNode(serverId, null, TaskType.SYSTEM_COPY_CHECK.name(), createServerNodeModel());
+			isSuccess = release.updateServerTaskContentNode(serverId, taskName, TaskType.SYSTEM_COPY_CHECK.name(), createServerNodeModel());
+			if(!isSuccess){
+				LOG.warn("create server node error {}", serverId);
+			}
 		}
 	}
 	/**
@@ -136,105 +150,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		task.setTaskState(TaskState.INIT.code());
 		return task;
 	}
-	/**
-	 * 概述：获取集群对应目录的文件
-	 * @param services
-	 * @param snList
-	 * @param dataPath
-	 * @param startTime
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private Map<StorageNameNode, List<String>> collectionSnFiles(List<Service> services, List<StorageNameNode> snList, long startTime){
-		Map<StorageNameNode,List<String>> snMap = new HashMap<>();
-		String dirName = TimeUtils.timeInterval(startTime, 60*60*1000);
-		DiskNodeClient client = null;
-		int reCount = 0;
-		String snName = null;
-		String path = null;
-		List<FileInfo> files = null;
-		List<String> strs = null;
-		for(Service service : services){
-			try {
-				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
-				for(StorageNameNode sn : snList){
-					reCount = sn.getReplicateCount();
-					snName = sn.getName();
-					for(int i = 0; i <reCount; i++){
-						path = snName+File.separator+i+File.separator+dirName;
-						files =client.listFiles(path, 1);
-						if(files == null){
-							LOG.info("the list file of {} is null ", service.getServiceId());
-							continue;
-						}
-						if(!snMap.containsKey(sn)){
-							snMap.put(sn, new ArrayList<String>());
-						}
-						strs = converToStringList(files);
-						snMap.get(snName).addAll(strs);
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}finally{
-				if(client != null){
-					try {
-						client.close();
-					}
-					catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			
-		}
-		return snMap;
-	}
-	/**
-	 * 概述：转换集合为str集合
-	 * @param files
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private List<String> converToStringList(List<FileInfo> files){
-		List<String> strs = new ArrayList<>();
-		String path = null;
-		String fileName = null;
-		int lastIndex = 0;
-		for(FileInfo file : files){
-			path = file.getPath();
-			lastIndex = path.lastIndexOf("/");
-			if(lastIndex <0){
-				lastIndex = path.lastIndexOf("\\");
-				continue;
-			}
-			if(lastIndex <0){
-				continue;
-			}
-			fileName = path.substring(lastIndex+1);
-			strs.add(fileName);
-		}
-		return strs;
-	}
-	private List<StorageNameNode> filterSn(List<StorageNameNode> sns, int size){
-		List<StorageNameNode> filters = new ArrayList<StorageNameNode>();
-		if(sns == null || sns.isEmpty()){
-			return filters;
-		}
-		int count = 0;
-		for(StorageNameNode sn : sns){
-			count = sn.getReplicateCount();
-			if(count == 1){
-				continue;
-			}
-			if(count >size){
-				continue;
-			}
-			filters.add(sn);
-		}
-		return sns;
-		
-	}
+	
 	/**
 	 * 概述：获取任务开始时间
 	 * @param release
@@ -270,50 +186,6 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			return currentTime;
 		}
 	}
-	/**
-	 * 概述：统计副本的个数
-	 * @param files
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public Map<String, Integer> calcFileCount(final Collection<String> files){
-		Map<String, Integer> filesMap = new HashMap<>();
-		for(String file : files){
-			if(filesMap.containsKey(file)){
-				filesMap.put(file, filesMap.get(file) + 1);
-			}else{
-				filesMap.put(file,1);
-			}
-		}
-		return filesMap;
-	}
-	/**
-	 * 概述：收集副本数异常的副本
-	 * @param resultMap
-	 * @param filterValue
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public Pair<List<String>,List<String>>filterLoser(Map<String,Integer> resultMap, int filterValue){
-		List<String> filterBiggestResult = new ArrayList<String>();
-		List<String> filterLitterResult = new ArrayList<String>();
-		String key = null;
-		int count = 0;
-		for(Map.Entry<String, Integer> entry : resultMap.entrySet()){
-			count = entry.getValue();
-			key = entry.getKey();
-			if(filterValue == count){
-				continue;
-			} else	if(filterValue > count){
-				filterLitterResult.add(key);
-			}else if(filterValue < count){
-				filterBiggestResult.add(key);
-			}
-		}
-		Pair<List<String>,List<String>> result = new Pair<List<String>,List<String>>();
-		result.setKey(filterLitterResult);
-		result.setValue(filterBiggestResult);
-		return result;
-	}
+	
 
 }
