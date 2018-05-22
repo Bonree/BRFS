@@ -55,7 +55,11 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 	public void operation(JobExecutionContext context) throws Exception {
 		LOG.info("----------- > createCheck Copy Job working");	
 		JobDataMap data = context.getJobDetail().getJobDataMap();
-		long time = data.getLong(JobDataMapConstract.CHECK_TTL);
+		String timestr = data.getString(JobDataMapConstract.CHECK_TTL);
+		long time = 3600000;
+		if(!BrStringUtils.isEmpty(timestr)){
+			time = data.getLong(JobDataMapConstract.CHECK_TTL);
+		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		StorageNameManager snm = mcf.getSnm();
