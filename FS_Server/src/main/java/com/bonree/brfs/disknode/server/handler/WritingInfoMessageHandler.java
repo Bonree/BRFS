@@ -9,6 +9,7 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
@@ -33,36 +34,41 @@ public class WritingInfoMessageHandler implements MessageHandler {
 		
 		LOG.info("GET INFO [{}]", msg.getPath());
 		String filePath = context.getConcreteFilePath(msg.getPath());
-		RecordCollection recordSet = collectionManager.getRecordCollectionReadOnly(filePath);
-		
-		if(recordSet == null) {
-			result.setSuccess(false);
-			result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
-			callback.completed(result);
-			return;
-		}
-		
-		String seqValue = msg.getParams().get("seq");
-		if(seqValue != null) {
-			int seq = Integer.parseInt(seqValue);
-			byte[] bytes = readSequenceData(recordSet, seq);
+		RecordCollection recordSet = null;
+		try {
+			recordSet = collectionManager.getRecordCollectionReadOnly(filePath);
 			
-			if(bytes != null) {
-				result.setSuccess(true);
-				result.setData(bytes);
+			if(recordSet == null) {
+				result.setSuccess(false);
+				result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
 				callback.completed(result);
 				return;
 			}
 			
-			result.setSuccess(false);
-			result.setCause(new Exception("Can't read sequence[" + seq + "]"));
+			String seqValue = msg.getParams().get("seq");
+			if(seqValue != null) {
+				int seq = Integer.parseInt(seqValue);
+				byte[] bytes = readSequenceData(recordSet, seq);
+				
+				if(bytes != null) {
+					result.setSuccess(true);
+					result.setData(bytes);
+					callback.completed(result);
+					return;
+				}
+				
+				result.setSuccess(false);
+				result.setCause(new Exception("Can't read sequence[" + seq + "]"));
+				callback.completed(result);
+				return;
+			}
+			
+			result.setSuccess(true);
+			result.setData(getAllSequence(recordSet).toByteArray());
 			callback.completed(result);
-			return;
+		} finally {
+			CloseUtils.closeQuietly(recordSet);
 		}
-		
-		result.setSuccess(true);
-		result.setData(getAllSequence(recordSet).toByteArray());
-		callback.completed(result);
 	}
 	
 	@Override

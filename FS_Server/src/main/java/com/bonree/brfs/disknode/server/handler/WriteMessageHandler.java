@@ -37,14 +37,13 @@ public class WriteMessageHandler implements MessageHandler {
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		try {
 			String realPath = diskContext.getConcreteFilePath(msg.getPath());
-			LOG.debug("WRITE [{}], data length[{}]", realPath, msg.getContent().length);
+			LOG.debug("writing to file [{}]", realPath);
 			
 			if(msg.getContent().length == 0) {
 				throw new IllegalArgumentException("Writing data is Empty!!");
 			}
 			
 			WriteDataList dataList = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataList.class);
-			LOG.info("data count = {}", dataList.getDatas().length);
 			
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
 			if(binding == null) {
@@ -79,6 +78,9 @@ public class WriteMessageHandler implements MessageHandler {
 			LOG.info("start writing...");
 			for(int i = 0; i < dataList.length; i++) {
 				WriteData data = dataList[i];
+				
+				LOG.info("writing file[{}] with data seq[{}], size[{}]", writer.getPath(), data.getDiskSequence(), data.getBytes().length);
+				
 				WriteResult result = new WriteResult();
 				result.setSequence(data.getDiskSequence());
 				

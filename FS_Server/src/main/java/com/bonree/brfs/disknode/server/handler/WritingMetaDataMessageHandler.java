@@ -9,6 +9,7 @@ import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
@@ -32,29 +33,34 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 		LOG.info("GET META DATA [{}]", msg.getPath());
 		String filePath = context.getConcreteFilePath(msg.getPath());
 		
-		RecordCollection recordSet = collectionManager.getRecordCollectionReadOnly(filePath);
-		
-		if(recordSet == null) {
-			result.setSuccess(false);
-			result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
-			callback.completed(result);
-			return;
-		}
-		
-		RecordElement lastEle = new RecordElement(-1, 0);
-		for(RecordElement ele : recordSet) {
-			if(lastEle.getSequence() < ele.getSequence()) {
-				lastEle = ele;
+		RecordCollection recordSet = null;
+		try {
+			recordSet = collectionManager.getRecordCollectionReadOnly(filePath);
+			
+			if(recordSet == null) {
+				result.setSuccess(false);
+				result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
+				callback.completed(result);
+				return;
 			}
+			
+			RecordElement lastEle = new RecordElement(-1, 0);
+			for(RecordElement ele : recordSet) {
+				if(lastEle.getSequence() < ele.getSequence()) {
+					lastEle = ele;
+				}
+			}
+			
+			JSONObject json = new JSONObject();
+			json.put("seq", lastEle.getSequence());
+			json.put("length", lastEle.getOffset() + lastEle.getSize());
+			
+			result.setSuccess(true);
+			result.setData(BrStringUtils.toUtf8Bytes(json.toJSONString()));
+			callback.completed(result);
+		}finally {
+			CloseUtils.closeQuietly(recordSet);
 		}
-		
-		JSONObject json = new JSONObject();
-		json.put("seq", lastEle.getSequence());
-		json.put("length", lastEle.getOffset() + lastEle.getSize());
-		
-		result.setSuccess(true);
-		result.setData(BrStringUtils.toUtf8Bytes(json.toJSONString()));
-		callback.completed(result);
 	}
 	
 	@Override
