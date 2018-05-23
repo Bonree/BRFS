@@ -10,6 +10,9 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
@@ -32,6 +35,8 @@ import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
 
 public class RecoveryMessageHandler implements MessageHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(RecoveryMessageHandler.class);
+	
 	private DiskContext context;
 	private RecordCollectionManager recordManager;
 	private ServiceManager serviceManager;
@@ -45,12 +50,14 @@ public class RecoveryMessageHandler implements MessageHandler {
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		String filePath = context.getConcreteFilePath(msg.getPath());
+		LOG.info("starting recover file[{}]", filePath);
 		
 		RecoverInfo info = ProtoStuffUtils.deserialize(msg.getContent(), RecoverInfo.class);
 		List<AvailableSequenceInfo> seqInfos = info.getInfoList();
 		BitSet lack = new BitSet();
 		lack.set(0, info.getMaxSeq() + 1);
 		
+		LOG.info("excepted max seq is {}", info.getMaxSeq());
 		SortedMap<Integer, byte[]> datas = new TreeMap<Integer, byte[]>();
 		RecordCollection recordSet = null;
 		RandomAccessFile originFile = null;
@@ -69,11 +76,14 @@ public class RecoveryMessageHandler implements MessageHandler {
 				lack.set(element.getSequence(), false);
 			}
 			
+			LOG.info("lack seq number-->{}", lack.cardinality());
+			
 			for(AvailableSequenceInfo seqInfo : seqInfos) {
 				if(lack.cardinality() ==  0) {
 					break;
 				}
 				
+				LOG.info("this loop lack size => {}", lack.cardinality());
 				BitSet availableSeq = BitSetUtils.intersect(seqInfo.getAvailableSequence(), lack);
 				if(availableSeq.cardinality() != 0) {
 					Service service = serviceManager.getServiceById(seqInfo.getServiceGroup(), seqInfo.getServiceId());
@@ -82,7 +92,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 					try {
 						client = new HttpDiskNodeClient(service.getHost(), service.getPort());
 						
-						for(int i = availableSeq.nextSetBit(0); i != -1; i = availableSeq.nextSetBit(i++)) {
+						for(int i = availableSeq.nextSetBit(0); i != -1; i = availableSeq.nextSetBit(++i)) {
 							byte[] bytes = client.getBytesBySequence(seqInfo.getFilePath(), i);
 							if(bytes != null) {
 								lack.set(i, false);
@@ -103,6 +113,8 @@ public class RecoveryMessageHandler implements MessageHandler {
 			CloseUtils.closeQuietly(originFile);
 			CloseUtils.closeQuietly(recordSet);
 		}
+		
+		LOG.info("finally lack size = {}", lack.cardinality());
 		
 		if(lack.cardinality() != 0) {
 			HandleResult handleResult = new HandleResult();

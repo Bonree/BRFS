@@ -109,6 +109,7 @@ public class DefaultFileRecovery implements FileRecovery {
 				
 				if(intersection.cardinality() == union.cardinality()) {
 					//如果交集和并集的数量一样，说明没有文件数据缺失
+					LOG.info("file[{}] is ok!");
 					listener.complete(target);
 					return;
 				}
@@ -190,6 +191,7 @@ public class DefaultFileRecovery implements FileRecovery {
 				
 				DiskNodeClient client = connection.getClient();
 				String serverId = idManager.getOtherSecondID(sequence.getNode().getId(), target.getStorageId());
+				LOG.info("start recover file[{}] at duplicate node[{}]", target.getName(), sequence.getNode());
 				if(!client.recover(FilePathBuilder.buildPath(target, serverId), recoverInfo)) {
 					listener.error(new Exception("can not recover file[" + target.getName() + "] at duplicate node" + sequence.getNode()));
 					return;
