@@ -151,13 +151,15 @@ public class CopyCountCheck {
 		List<String> strs = null;
 		for(Service service : services){
 			try {
-				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+				//TODO 目前客户端会夹死。
+//				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
 				for(StorageNameNode sn : snList){
 					reCount = sn.getReplicateCount();
 					snName = sn.getName();
 					for(int i = 0; i <reCount; i++){
 						path = snName+File.separator+i+File.separator+dirName;
-						files =client.listFiles(path, 1);
+						LOG.info("{}",path);
+//						files =client.listFiles(path, 1);
 						if(files == null){
 							LOG.info("the list file of {} is null ", service.getServiceId());
 							continue;

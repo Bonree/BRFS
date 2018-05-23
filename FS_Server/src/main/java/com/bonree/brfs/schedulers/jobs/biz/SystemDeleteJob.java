@@ -172,9 +172,10 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		});
 		//获取文件路径，统一分割符。
 		String path = new File(dirName).getAbsolutePath();
+		LOG.info("deleteList: {}, dirName:{},path:{}",filters,dirName,path);
 		int index = filters.indexOf(path);
 		if(index < 0){
-			files.add(dirName);
+			files.add(path);
 			return files;
 		}
 		String tmpDir = null;
