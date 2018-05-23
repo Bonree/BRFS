@@ -141,7 +141,7 @@ public class FileWriterManager implements LifeCycle {
 						LOG.info("reopen file [{}]", dataFile);
 						
 						RecordFileWriter writer = new RecordFileWriter(
-								recorderManager.getRecordCollection(dataFile, true, DEFAULT_RECORD_BUFFER_SIZE),
+								recorderManager.getRecordCollection(dataFile, true, DEFAULT_RECORD_BUFFER_SIZE, true),
 										new BufferedFileWriter(dataFile, true, new ByteFileBuffer(
 												DEFAULT_FILE_BUFFER_SIZE)));
 
@@ -191,7 +191,7 @@ public class FileWriterManager implements LifeCycle {
 						
 						RecordFileWriter writer = new RecordFileWriter(
 								recorderManager.getRecordCollection(filePath, false,
-										DEFAULT_RECORD_BUFFER_SIZE),
+										DEFAULT_RECORD_BUFFER_SIZE, true),
 								new BufferedFileWriter(filePath,
 										new ByteFileBuffer(
 												DEFAULT_FILE_BUFFER_SIZE)));

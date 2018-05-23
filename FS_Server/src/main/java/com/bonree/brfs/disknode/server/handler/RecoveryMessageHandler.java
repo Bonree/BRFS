@@ -133,7 +133,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 	private boolean writeDatas(String path, SortedMap<Integer, byte[]> datas) {
 		RecordFileWriter writer = null;
 		try {
-			writer = new RecordFileWriter(recordManager.getRecordCollection(path, false, 8196),
+			writer = new RecordFileWriter(recordManager.getRecordCollection(path, false, 8196, false),
 					new BufferedFileWriter(path, new ByteFileBuffer(1024 * 1024)));
 			
 			for(Entry<Integer, byte[]> entry : datas.entrySet()) {

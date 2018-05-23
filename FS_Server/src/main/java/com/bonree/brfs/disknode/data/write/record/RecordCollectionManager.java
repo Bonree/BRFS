@@ -2,8 +2,6 @@ package com.bonree.brfs.disknode.data.write.record;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.bonree.brfs.disknode.data.write.BufferedFileWriter;
 import com.bonree.brfs.disknode.data.write.DirectFileWriter;
@@ -17,7 +15,6 @@ import com.bonree.brfs.disknode.data.write.buf.ByteFileBuffer;
  *
  */
 public class RecordCollectionManager {
-	private Map<String, RecordCollection> collections = new HashMap<String, RecordCollection>();
 	
 	/**
 	 * 以只读的方式打开日志记录，这种方式不会创建不存在
@@ -40,7 +37,7 @@ public class RecordCollectionManager {
 	 * @return
 	 */
 	public RecordCollection getRecordCollectionReadOnly(String dataFilePath) {
-		return new RecordCollection(RecordFileBuilder.buildFrom(dataFilePath), null, this);
+		return new RecordCollection(RecordFileBuilder.buildFrom(dataFilePath), null, false);
 	}
 	
 	/**
@@ -49,8 +46,8 @@ public class RecordCollectionManager {
 	 * @param dataFile 数据文件
 	 * @return
 	 */
-	public RecordCollection getRecordCollection(File dataFile, boolean append, int bufferSize) {
-		return getRecordCollection(dataFile.getAbsolutePath(), append, bufferSize);
+	public RecordCollection getRecordCollection(File dataFile, boolean append, int bufferSize, boolean deleteOnClose) {
+		return getRecordCollection(dataFile.getAbsolutePath(), append, bufferSize, deleteOnClose);
 	}
 	
 	/**
@@ -59,32 +56,17 @@ public class RecordCollectionManager {
 	 * @param dataFilePath 数据文件路径
 	 * @return
 	 */
-	public RecordCollection getRecordCollection(String dataFilePath, boolean append, int bufferSize) {
-		RecordCollection collection = collections.get(dataFilePath);
-		
-		if(collection == null) {
-			synchronized (collections) {
-				collection = collections.get(dataFilePath);
-				if(collection == null) {
-					File recordFile = RecordFileBuilder.buildFrom(dataFilePath);
-					try {
-						FileWriter writer = bufferSize > 0 ? new BufferedFileWriter(recordFile, append, new ByteFileBuffer(bufferSize))
-						                                   : new DirectFileWriter(recordFile, append);
-						
-						collection = new RecordCollection(recordFile, writer, this);
-						collections.put(dataFilePath, collection);
-					} catch (IOException e) {
-					}
-				}
-			}
+	public RecordCollection getRecordCollection(String dataFilePath, boolean append, int bufferSize, boolean deleteOnClose) {
+		File recordFile = RecordFileBuilder.buildFrom(dataFilePath);
+		try {
+			FileWriter writer = bufferSize > 0 ? new BufferedFileWriter(recordFile, append, new ByteFileBuffer(bufferSize))
+			                                   : new DirectFileWriter(recordFile, append);
+			
+			return new RecordCollection(recordFile, writer, deleteOnClose);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		
-		return collection;
-	}
-	
-	void releaseCollection(File dataFile) {
-		synchronized (collections) {
-			collections.remove(dataFile.getAbsolutePath());
-		}
+		return null;
 	}
 }
