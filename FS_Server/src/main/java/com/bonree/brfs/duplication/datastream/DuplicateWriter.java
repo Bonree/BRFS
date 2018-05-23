@@ -159,8 +159,6 @@ public class DuplicateWriter {
 
 		@Override
 		public void close(FileLimiter file) throws Exception {
-			fileCoordinator.delete(file.getFileNode());
-			
 			fileRecovery.recover(file.getFileNode(), new FileRecoveryListener() {
 				
 				@Override
@@ -177,6 +175,7 @@ public class DuplicateWriter {
 									WriteResult result = client.writeData(filePath, -2, file.getTailer());
 									if(result != null) {
 										client.closeFile(filePath);
+										fileCoordinator.delete(file.getFileNode());
 									}
 								} catch (Exception e) {
 									e.printStackTrace();

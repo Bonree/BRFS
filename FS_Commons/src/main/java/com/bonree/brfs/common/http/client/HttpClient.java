@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Consts;
@@ -30,12 +31,15 @@ import org.apache.http.protocol.HttpContext;
 public class HttpClient implements Closeable {
 	
 	private CloseableHttpAsyncClient client;
+	private ClientConfig clientConfig;
 	
 	public HttpClient() {
 		this(ClientConfig.DEFAULT);
 	}
 	
 	public HttpClient(ClientConfig clientConfig) {
+		this.clientConfig = clientConfig;
+		
 		ConnectionConfig connectionConfig = ConnectionConfig.custom()
                 .setBufferSize(clientConfig.getBufferSize())
                 .setCharset(Consts.UTF_8)
@@ -64,6 +68,7 @@ public class HttpClient implements Closeable {
 					public boolean keepAlive(org.apache.http.HttpResponse response, HttpContext context) {
 						return true;
 					}
+					
 				})
 				.setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
 					
@@ -71,6 +76,7 @@ public class HttpClient implements Closeable {
 					public long getKeepAliveDuration(org.apache.http.HttpResponse response, HttpContext context) {
 						return clientConfig.getIdleTimeout();
 					}
+					
 				})
 				.setDefaultHeaders(defaultHeaders)
 				.build();
@@ -78,12 +84,12 @@ public class HttpClient implements Closeable {
 		client.start();
 	}
 	
-	public void executeGet(URI uri, ResponseHandler handler) {
-		executeInner(new HttpGet(uri), handler);
-	}
-	
 	public HttpResponse executeGet(URI uri) throws Exception {
 		return executeInner(new HttpGet(uri));
+	}
+	
+	public void executeGet(URI uri, ResponseHandler handler) {
+		executeInner(new HttpGet(uri), handler);
 	}
 	
 	public HttpResponse executePut(URI uri) throws Exception {
@@ -176,7 +182,7 @@ public class HttpClient implements Closeable {
 			}
 		});
 		
-		return new HttpResponseProxy(future.get());
+		return new HttpResponseProxy(future.get(clientConfig.getResponseTimeout(), TimeUnit.MILLISECONDS));
 	}
 	
 	private void executeInner(HttpUriRequest request, ResponseHandler handler) {

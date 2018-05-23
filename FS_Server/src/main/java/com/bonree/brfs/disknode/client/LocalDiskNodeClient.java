@@ -60,8 +60,8 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public void recover(String path, SeqInfoList infos) throws Exception {
-		throw new OperationNotSupportedException();
+	public boolean recover(String path, RecoverInfo infos) {
+		return false;
 	}
 
 	@Override

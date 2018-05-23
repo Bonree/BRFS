@@ -41,7 +41,7 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 			return;
 		}
 		
-		RecordElement lastEle = new RecordElement(0, 0);
+		RecordElement lastEle = new RecordElement(-1, 0);
 		for(RecordElement ele : recordSet) {
 			if(lastEle.getSequence() < ele.getSequence()) {
 				lastEle = ele;

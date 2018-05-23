@@ -53,7 +53,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		
 		WriteResult[] results = writeDatas(path, new WriteData[] {writeItem});
 		
-		return results[0];
+		return results != null ? results[0] : null;
 	}
 
 	@Override
@@ -233,15 +233,23 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public void recover(String path, SeqInfoList infos) throws Exception {
+	public boolean recover(String path, RecoverInfo infos) {
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(host)
 	    .setPort(port)
-	    .setPath(DiskContext.URI_INFO_NODE_ROOT + path)
+	    .setPath(DiskContext.URI_RECOVER_NODE_ROOT + path)
 	    .build();
 		
-		client.executePost(uri, ProtoStuffUtils.serialize(infos));
+		try {
+			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(infos));
+			
+			return response.isReponseOK();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 
 	@Override

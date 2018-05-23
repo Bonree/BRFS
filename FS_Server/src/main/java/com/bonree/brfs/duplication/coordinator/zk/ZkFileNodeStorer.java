@@ -15,8 +15,10 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 
 	private CuratorFramework client;
 
-	public ZkFileNodeStorer(CuratorFramework client) {
+	public ZkFileNodeStorer(CuratorFramework client) throws Exception {
 		this.client = client;
+		this.client.createContainers(ZKPaths.makePath(ZkFileCoordinatorPaths.COORDINATOR_ROOT,
+				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE));
 	}
 
 	@Override

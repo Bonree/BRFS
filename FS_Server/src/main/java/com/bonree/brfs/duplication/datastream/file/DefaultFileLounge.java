@@ -152,6 +152,7 @@ public class DefaultFileLounge implements FileLounge {
 	}
 	
 	private class FileCleaner implements Runnable {
+		private LinkedList<FileLimiter> removedFileList = new LinkedList<FileLimiter>();
 
 		@Override
 		public void run() {
@@ -168,8 +169,9 @@ public class DefaultFileLounge implements FileLounge {
 						Iterator<FileLimiter> iterator = fileList.iterator();
 						while(iterator.hasNext()) {
 							FileLimiter file = iterator.next();
-							if(file.lock(this) && closeFile(file)) {
+							if(file.lock(this)) {
 								System.out.println("!!!!history close---" + file.getFileNode().getName());
+								removedFileList.add(file);
 								iterator.remove();
 							}
 						}
@@ -188,29 +190,30 @@ public class DefaultFileLounge implements FileLounge {
 							
 							if(cleanOverSize
 									&& Double.compare(file.getLength(), file.capacity() * FILE_USAGE_RATIO_THRESHOLD) > 0
-									&& file.lock(this)
-									&& closeFile(file)) {
+									&& file.lock(this)) {
 								System.out.println("!!!!current close---" + file.getFileNode().getName());
+								removedFileList.add(file);
 								iterator.remove();
 							}
 						}
 					}
 				}
 			}
-		}
-		
-		private boolean closeFile(FileLimiter file) {
-			try {
-				if(fileCloseListener != null) {
-					fileCloseListener.close(file);
-				}
-				
-				return true;
-			} catch (Exception e) {
-				e.printStackTrace();
+			
+			if(fileCloseListener == null) {
+				removedFileList.clear();
+				return;
 			}
 			
-			return false;
+			Iterator<FileLimiter> iterator = removedFileList.iterator();
+			while(iterator.hasNext()) {
+				try {
+					fileCloseListener.close(iterator.next());
+					
+					iterator.remove();
+				} catch (Exception e) {
+				}
+			}
 		}
 	}
 }

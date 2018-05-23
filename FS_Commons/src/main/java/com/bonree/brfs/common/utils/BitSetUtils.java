@@ -10,7 +10,7 @@ public class BitSetUtils {
 	 * @param sets
 	 * @return
 	 */
-	public static BitSet intersect(BitSet[] sets) {
+	public static BitSet intersect(BitSet... sets) {
 		BitSet set = new BitSet();
 		
 		if(sets == null || sets.length == 0) {
@@ -31,7 +31,7 @@ public class BitSetUtils {
 	 * @param sets
 	 * @return
 	 */
-	public static BitSet union(BitSet[] sets) {
+	public static BitSet union(BitSet... sets) {
 		BitSet set = new BitSet();
 		
 		if(sets == null || sets.length == 0) {

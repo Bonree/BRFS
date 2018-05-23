@@ -88,7 +88,7 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 
 		@Override
 		public void completed(AsyncTaskResult<WriteResult[]>[] results) {
-			LOG.info("handle Writing result for file[{}]", file.getFileNode().getName());
+			LOG.debug("handle Writing result for file[{}]", file.getFileNode().getName());
 			//先释放文件的锁定状态
 			
 			ResultItem[] resultItems = new ResultItem[dataList.size()];
@@ -123,7 +123,7 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 					}
 				}
 				
-				LOG.info("result valid index = {}", validIndex);
+				LOG.debug("result valid index = {}", validIndex);
 				//有效索引范围内的数据才能生存FID
 				for(int i = 0; i < validIndex + 1; i++) {
 					//文件所在的文件偏移量和数据大小都是通过FileLimiter中的信息计算的

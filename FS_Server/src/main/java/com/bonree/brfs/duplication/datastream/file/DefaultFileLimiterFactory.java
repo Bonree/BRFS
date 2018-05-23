@@ -72,8 +72,9 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 			String serverId = idManager.getOtherSecondID(node.getId(), storageId);
 			String filePath = FilePathBuilder.buildPath(fileNode, serverId);
 			try {
-				WriteResult result = connection.getClient().writeData(filePath, -1, fileLimiter.getHeader());
-				if(result != null) {
+				byte[] header = fileLimiter.getHeader();
+				WriteResult result = connection.getClient().writeData(filePath, 0, header);
+				if(result != null && result.getSize() == header.length) {
 					headerWriting = true;
 				}
 			} catch (IOException e) {
@@ -83,10 +84,12 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		
 		//如果没有一个磁盘节点写入头数据成功，则放弃使用此文件节点
 		if(!headerWriting) {
+			LOG.error("can not write file header to any duplicate node for file[{}]", fileNode.getName());
 			return null;
 		}
 		
 		fileLimiter.setLength(fileLimiter.getHeader().length);
+		fileLimiter.incrementSequenceBy(1);
 		try {
 			coordinator.store(fileNode);
 			//只有把文件信息成功存入文件库中才能使用此文件节点

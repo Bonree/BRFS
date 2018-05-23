@@ -4,9 +4,9 @@ import java.util.BitSet;
 
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 
-public class FileSequence {
+public class DuplicateNodeSequence {
 	private DuplicateNode node;
-	private BitSet sequenceSet;
+	private BitSet sequenceNumbers;
 
 	public DuplicateNode getNode() {
 		return node;
@@ -16,11 +16,11 @@ public class FileSequence {
 		this.node = node;
 	}
 
-	public BitSet getSequenceSet() {
-		return sequenceSet;
+	public BitSet getSequenceNumbers() {
+		return sequenceNumbers;
 	}
 
-	public void setSequenceSet(BitSet sequenceSet) {
-		this.sequenceSet = sequenceSet;
+	public void setSequenceNumbers(BitSet sequenceNumber) {
+		this.sequenceNumbers = sequenceNumber;
 	}
 }

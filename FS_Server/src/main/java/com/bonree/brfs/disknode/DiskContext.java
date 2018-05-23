@@ -9,6 +9,7 @@ public class DiskContext {
 	public static final String URI_COPY_NODE_ROOT = "/copy";
 	public static final String URI_LIST_NODE_ROOT = "/list";
 	public static final String URI_META_NODE_ROOT = "/metadata";
+	public static final String URI_RECOVER_NODE_ROOT = "/recover";
 	
 	private String workDirectory;
 	

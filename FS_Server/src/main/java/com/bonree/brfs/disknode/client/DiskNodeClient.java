@@ -31,7 +31,7 @@ public interface DiskNodeClient extends Closeable {
 	
 	int[] getWritingFileMetaInfo(String path);
 	
-	void recover(String path, SeqInfoList infos) throws Exception;
+	boolean recover(String path, RecoverInfo infos);
 	
 	byte[] getBytesBySequence(String path, int sequence);
 	

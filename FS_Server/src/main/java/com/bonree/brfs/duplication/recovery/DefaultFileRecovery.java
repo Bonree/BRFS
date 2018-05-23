@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.utils.BitSetUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.SeqInfo;
-import com.bonree.brfs.disknode.client.SeqInfoList;
+import com.bonree.brfs.disknode.client.AvailableSequenceInfo;
+import com.bonree.brfs.disknode.client.RecoverInfo;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
@@ -77,51 +77,35 @@ public class DefaultFileRecovery implements FileRecovery {
 			 * 文件之间的内容协调是通过写入文件的序列号实现的，只要当前存活的磁盘节点包含
 			 * 所有写入序列号就能保证文件的完整性
 			 */
-			DuplicateNode[] duplicates = target.getDuplicateNodes();
+			List<DuplicateNodeSequence> seqNumberList = getAllDuplicateNodeSequence();
 			
-			List<FileSequence> seqList = new ArrayList<FileSequence>();
-			
-			for(int i = 0; i < duplicates.length; i++) {
-				DiskNodeConnection connection = connectionPool.getConnection(duplicates[i]);
-				if(connection == null || connection.getClient() == null) {
-					continue;
-				}
-				
-				DiskNodeClient client = connection.getClient();
-				
-				String serverId = idManager.getOtherSecondID(duplicates[i].getId(), target.getStorageId());
-				String filePath =FilePathBuilder.buildPath(target, serverId);
-				LOG.info("checking---{}", filePath);
-				BitSet seqs = client.getWritingSequence(filePath);
-				
-				if(seqs == null) {
-					LOG.info("server{} -- null", serverId);
-					continue;
-				}
-				
-				LOG.info("server{} -- {}", serverId, seqs.cardinality());
-				
-				FileSequence seq = new FileSequence();
-				seq.setNode(duplicates[i]);
-				seq.setSequenceSet(seqs);
-				
-				seqList.add(seq);
+			if(seqNumberList.isEmpty()) {
+				listener.error(new Exception("No available duplicate node to found for file[" + target.getName() + "]"));
+				return;
 			}
 			
-			BitSet[] sets = new BitSet[seqList.size()];
+			BitSet[] sets = new BitSet[seqNumberList.size()];
 			for(int i = 0; i < sets.length; i++) {
-				sets[i] = seqList.get(i).getSequenceSet();
+				sets[i] = seqNumberList.get(i).getSequenceNumbers();
 			}
 			
+			//每个副本节点的序列号的交集
 			BitSet union = BitSetUtils.union(sets);
+			//每个副本节点都有的序列号
 			BitSet intersection = BitSetUtils.intersect(sets);
 			
 			/**
 			 * 查看所有节点的序列号是否覆盖了[0, maxSeq]之间的所有数值
 			 */
-			LOG.info("Recovery Check union[{}], itersection[{}]", union.cardinality(), intersection.cardinality());
+			LOG.info("Recovery Check report union[{}], itersection[{}]", union.cardinality(), intersection.cardinality());
 			if(union.nextSetBit(union.cardinality()) == -1) {
 				//当前存活的所有节点包含了此文件的所有信息，可以进行文件内容同步
+				
+				if(seqNumberList.size() < target.getDuplicateNodes().length) {
+					//到这说明虽然在有部分副本信息没获取成功的前提下，文件的序列号还是连续的，这种情况下，虽然可以对文件进行修补，
+					//但并不能保证文件是完整的，只能保证[0, maxSeq]之间的数据是正确可用的
+					LOG.warn("File sequence numbers of [{}] can not be guaranteed to be full informed, although it seems to be perfect.", target.getName());
+				}
 				
 				if(intersection.cardinality() == union.cardinality()) {
 					//如果交集和并集的数量一样，说明没有文件数据缺失
@@ -129,65 +113,7 @@ public class DefaultFileRecovery implements FileRecovery {
 					return;
 				}
 				
-				List<SeqInfo> infos = new ArrayList<SeqInfo>();
-				for(FileSequence sequence : seqList) {
-					BitSet set = sequence.getSequenceSet();
-					BitSet iHave = BitSetUtils.minus(set, intersection);
-					
-					SeqInfo info = new SeqInfo();
-					
-					DiskNodeConnection connection = connectionPool.getConnection(sequence.getNode());
-					if(connection == null || connection.getClient() == null) {
-						continue;
-					}
-					
-					info.setHost(connection.getService().getHost());
-					info.setPort(connection.getService().getPort());
-					info.setIntArray(iHave);
-					infos.add(info);
-				}
-				
-				for(FileSequence sequence : seqList) {
-					BitSet lack = BitSetUtils.minus(union, sequence.getSequenceSet());
-					if(lack.isEmpty()) {
-						continue;
-					}
-					
-					SeqInfoList infoList = new SeqInfoList();
-					
-					List<SeqInfo> complements = new ArrayList<SeqInfo>();
-					for(SeqInfo seqInfo : infos) {
-						BitSet set = BitSetUtils.intersect(new BitSet[]{seqInfo.getIntArray(), lack});
-						if(set.isEmpty()) {
-							continue;
-						}
-						
-						lack.andNot(set);
-						
-						SeqInfo complement = new SeqInfo();
-						complement.setIntArray(set);
-						complement.setHost(seqInfo.getHost());
-						complement.setPort(seqInfo.getPort());
-						
-						complements.add(complement);
-					}
-					
-					infoList.setInfoList(complements);
-					
-					DiskNodeConnection connection = connectionPool.getConnection(sequence.getNode());
-					if(connection == null || connection.getClient() == null) {
-						continue;
-					}
-					
-					DiskNodeClient client = connection.getClient();
-					try {
-						String serverId = idManager.getOtherSecondID(sequence.getNode().getId(), target.getStorageId());
-						client.recover(FilePathBuilder.buildPath(target, serverId), infoList);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					listener.complete(target);
-				}
+				doRecover(seqNumberList, union, intersection);
 			} else {
 				//存在文件内容丢失，怎么办，怎么办
 				//TODO 处理下这个情况
@@ -197,6 +123,81 @@ public class DefaultFileRecovery implements FileRecovery {
 			LOG.info("End recovery file[{}]", target.getName());
 		}
 		
+		
+		private List<DuplicateNodeSequence> getAllDuplicateNodeSequence() {
+			List<DuplicateNodeSequence> seqNumberList = new ArrayList<DuplicateNodeSequence>();
+			
+			for(DuplicateNode node : target.getDuplicateNodes()) {
+				DiskNodeConnection connection = connectionPool.getConnection(node);
+				if(connection == null || connection.getClient() == null) {
+					LOG.error("duplication node[{}, {}] of [{}] is not available, that's maybe a trouble!", node.getGroup(), node.getId(), target.getName());
+					continue;
+				}
+				
+				String serverId = idManager.getOtherSecondID(node.getId(), target.getStorageId());
+				String filePath =FilePathBuilder.buildPath(target, serverId);
+				LOG.info("checking---{}", filePath);
+				BitSet seqNumbers = connection.getClient().getWritingSequence(filePath);
+				
+				if(seqNumbers == null) {
+					LOG.error("duplication node[{}, {}] of [{}] can not get file sequences, that's maybe a trouble!", node.getGroup(), node.getId(), target.getName());
+					continue;
+				}
+				
+				LOG.info("server{} -- {}", serverId, seqNumbers.cardinality());
+				
+				DuplicateNodeSequence nodeSequence = new DuplicateNodeSequence();
+				nodeSequence.setNode(node);
+				nodeSequence.setSequenceNumbers(seqNumbers);
+				
+				seqNumberList.add(nodeSequence);
+			}
+			
+			return seqNumberList;
+		}
+		
+		private void doRecover(List<DuplicateNodeSequence> seqNumberList, BitSet union, BitSet intersection) {
+			List<AvailableSequenceInfo> infos = new ArrayList<AvailableSequenceInfo>();
+			for(DuplicateNodeSequence sequence : seqNumberList) {
+				BitSet iHave = BitSetUtils.minus(sequence.getSequenceNumbers(), intersection);
+				AvailableSequenceInfo info = new AvailableSequenceInfo();
+				info.setServiceGroup(sequence.getNode().getGroup());
+				info.setServiceId(sequence.getNode().getId());
+				info.setAvailableSequence(iHave);
+				
+				String serverId = idManager.getOtherSecondID(sequence.getNode().getId(), target.getStorageId());
+				info.setFilePath(FilePathBuilder.buildPath(target, serverId));
+				
+				infos.add(info);
+			}
+			
+			//这部分我们称呼它为“补漏”
+			RecoverInfo recoverInfo = new RecoverInfo();
+			recoverInfo.setMaxSeq(union.cardinality() - 1);
+			recoverInfo.setInfoList(infos);
+			for(DuplicateNodeSequence sequence : seqNumberList) {
+				BitSet lack = BitSetUtils.minus(union, sequence.getSequenceNumbers());
+				if(lack.isEmpty()) {
+					//没有空缺内容，不需要恢复
+					continue;
+				}
+				
+				DiskNodeConnection connection = connectionPool.getConnection(sequence.getNode());
+				if(connection == null || connection.getClient() == null) {
+					LOG.error("can not recover file[{}], because of lack of connection to duplication node[{}]", target.getName(), sequence.getNode());
+					continue;
+				}
+				
+				DiskNodeClient client = connection.getClient();
+				String serverId = idManager.getOtherSecondID(sequence.getNode().getId(), target.getStorageId());
+				if(!client.recover(FilePathBuilder.buildPath(target, serverId), recoverInfo)) {
+					listener.error(new Exception("can not recover file[" + target.getName() + "] at duplicate node" + sequence.getNode()));
+					return;
+				}
+			}
+			
+			listener.complete(target);
+		}
 	}
 
 }

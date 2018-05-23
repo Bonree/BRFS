@@ -22,6 +22,9 @@ public class ClientConfig {
 	private static final int DEFAULT_IO_THREAD_NUM = 4;
 	private int ioThreadNum;
 	
+	private static final long DEFAULT_RESPONSE_TIMEOUT = Long.MAX_VALUE;
+	private long responseTimeout;
+	
 	public static ClientConfig DEFAULT = new ClientConfig();
 	
 	private ClientConfig() {
@@ -33,6 +36,7 @@ public class ClientConfig {
 		this.socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 		this.connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 		this.ioThreadNum = DEFAULT_IO_THREAD_NUM;
+		this.responseTimeout = DEFAULT_RESPONSE_TIMEOUT;
 	}
 
 	public int getMaxConnection() {
@@ -65,6 +69,10 @@ public class ClientConfig {
 	
 	public int getIOThreadNum() {
 		return ioThreadNum;
+	}
+	
+	public long getResponseTimeout() {
+		return responseTimeout;
 	}
 	
 	public static Builder builder() {
@@ -111,6 +119,11 @@ public class ClientConfig {
 		
 		public Builder setIOThreadNum(int threadNum) {
 			config.ioThreadNum = threadNum > 0 ? threadNum : DEFAULT_IO_THREAD_NUM;
+			return this;
+		}
+		
+		public Builder setResponseTimeout(long timeout) {
+			config.responseTimeout = timeout > 0 ? timeout : DEFAULT_RESPONSE_TIMEOUT;
 			return this;
 		}
 		

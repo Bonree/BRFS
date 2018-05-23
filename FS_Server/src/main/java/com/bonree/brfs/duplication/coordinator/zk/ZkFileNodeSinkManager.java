@@ -282,8 +282,8 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 		public void childEvent(CuratorFramework client,
 				PathChildrenCacheEvent event) throws Exception {
 			ChildData data = event.getData();
-			LOG.info("EVENT--{}--{}", event.getType(), data.getPath());
 			if (data != null) {
+				LOG.info("EVENT--{}--{}", event.getType(), data.getPath());
 				switch (event.getType()) {
 				case CHILD_ADDED:
 					FileNode fileNode = JsonUtils.toObject(data.getData(),

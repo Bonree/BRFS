@@ -1,11 +1,5 @@
 package com.bonree.brfs.disknode.boot;
 
-import java.util.UUID;
-
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,9 +7,7 @@ import com.bonree.brfs.common.http.HttpConfig;
 import com.bonree.brfs.common.http.netty.NettyHttpContextHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpServer;
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.DiskContext;
@@ -26,6 +18,7 @@ import com.bonree.brfs.disknode.server.handler.DeleteMessageHandler;
 import com.bonree.brfs.disknode.server.handler.FileCopyMessageHandler;
 import com.bonree.brfs.disknode.server.handler.ListMessageHandler;
 import com.bonree.brfs.disknode.server.handler.ReadMessageHandler;
+import com.bonree.brfs.disknode.server.handler.RecoveryMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WriteMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WritingInfoMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WritingMetaDataMessageHandler;
@@ -35,10 +28,12 @@ public class EmptyMain implements LifeCycle {
 	
 	private NettyHttpServer server;
 	private FileWriterManager writerManager;
+	private ServiceManager serviceManager;
 	private ServerConfig serverConfig;
 	
-	public EmptyMain(ServerConfig serverConfig) {
+	public EmptyMain(ServerConfig serverConfig, ServiceManager serviceManager) {
 		this.serverConfig = serverConfig;
+		this.serviceManager = serviceManager;
 	}
 
 	@Override
@@ -91,6 +86,12 @@ public class EmptyMain implements LifeCycle {
 		listHandler.setNettyHttpRequestHandler(listRequestHandler);
 		server.addContextHandler(listHandler);
 		
+		NettyHttpContextHandler recoverHandler = new NettyHttpContextHandler(DiskContext.URI_RECOVER_NODE_ROOT);
+		NettyHttpRequestHandler recoverRequestHandler = new NettyHttpRequestHandler();
+		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(context, recorderManager, serviceManager));
+		recoverHandler.setNettyHttpRequestHandler(recoverRequestHandler);
+		server.addContextHandler(recoverHandler);
+		
 		server.start();
 	}
 
@@ -98,29 +99,5 @@ public class EmptyMain implements LifeCycle {
 	public void stop() throws Exception {
 		writerManager.stop();
 		server.stop();
-	}
-	
-	public static void main(String[] args) throws Exception {
-		int port = Integer.parseInt(args[0]);
-		System.out.println("----port---" + port);
-		
-		String serverId = System.getProperty("server_id", UUID.randomUUID().toString());
-		String zkAddress = System.getProperty("zk", "localhost:2181");
-		String ip = System.getProperty("ip");
-		
-		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-		CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddress, 3000, 15000, retryPolicy);
-		client.start();
-		client.blockUntilConnected();
-		
-		client = client.usingNamespace("brfstest");
-		
-		ServiceManager serviceManager = new DefaultServiceManager(client);
-		serviceManager.start();
-		Service service = new Service(serverId, ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, ip, port);
-		serviceManager.registerService(service);
-		
-		EmptyMain main = new EmptyMain(null);
-		main.start();
 	}
 }
