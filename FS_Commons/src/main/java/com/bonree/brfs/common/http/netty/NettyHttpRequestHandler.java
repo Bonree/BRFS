@@ -35,7 +35,7 @@ public class NettyHttpRequestHandler {
 		
 		MessageHandler handler = methodToOps.get(request.method());
 		if(handler == null) {
-			ResponseSender.sendError(ctx, HttpResponseStatus.METHOD_NOT_ALLOWED);
+			ResponseSender.sendError(ctx, HttpResponseStatus.METHOD_NOT_ALLOWED, HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase());
 			return;
 		}
 		
@@ -51,14 +51,14 @@ public class NettyHttpRequestHandler {
 		
 		try {
 			if(!handler.isValidRequest(message)) {
-				ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST);
+				ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST, HttpResponseStatus.BAD_REQUEST.reasonPhrase());
 				return;
 			}
 			
 			handler.handle(message, new DefaultNettyHandleResultCallback(ctx));
 		} catch (Exception e) {
 			e.printStackTrace();
-			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toString());
 		}
 	}
 }

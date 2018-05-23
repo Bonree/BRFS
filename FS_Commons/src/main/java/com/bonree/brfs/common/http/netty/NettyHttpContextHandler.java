@@ -45,7 +45,7 @@ public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHtt
 			FullHttpRequest request) throws Exception {
 		if(!request.decoderResult().isSuccess()) {
 			//请求解析失败
-			ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST);
+			ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST, HttpResponseStatus.BAD_REQUEST.reasonPhrase());
 			return;
 		}
 		
@@ -76,7 +76,7 @@ public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHtt
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
 		if (ctx.channel().isActive()) {
-			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, cause.toString());
 		}
 	}
 }
