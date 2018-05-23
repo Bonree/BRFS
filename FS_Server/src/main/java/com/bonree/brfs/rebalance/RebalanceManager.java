@@ -1,6 +1,8 @@
 package com.bonree.brfs.rebalance;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,7 @@ public class RebalanceManager {
     ServiceManager serviceManager;
     StorageNameManager snManager;
     SimpleFileServer fileServer = null;
+    ExecutorService simpleFileServer = Executors.newSingleThreadExecutor();
 
     public RebalanceManager(ServerConfig serverConfig, ZookeeperPaths zkPaths, ServerIDManager idManager, StorageNameManager snManager, ServiceManager serviceManager) {
         CuratorClient curatorClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 500, 500);
@@ -41,7 +44,13 @@ public class RebalanceManager {
         dispatch.start();
         LOG.info("start taskoperation service!!");
         opt.start();
-        fileServer.start();
+        simpleFileServer.execute(new Runnable() {
+            @Override
+            public void run() {
+                fileServer.start();
+            }
+        });
+
     }
 
 }
