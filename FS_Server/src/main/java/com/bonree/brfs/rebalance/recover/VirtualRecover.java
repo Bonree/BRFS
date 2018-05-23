@@ -188,7 +188,8 @@ public class VirtualRecover implements DataRecover {
                         }
                         if (fileServerIds.contains(virtualID)) {
                             replicaPot = fileServerIds.indexOf(virtualID);
-                            FileRecoverMeta fileMeta = new FileRecoverMeta(fileName, storageName, timeFileName, replicaPot, remoteFirstID, simpleWriter);
+                            //TODO 需要指定位置
+                            FileRecoverMeta fileMeta = new FileRecoverMeta(fileName, storageName, timeFileName, 1,replicaPot, remoteFirstID, simpleWriter);
                             try {
                                 fileRecoverQueue.put(fileMeta);
                             } catch (InterruptedException e) {
@@ -318,9 +319,6 @@ public class VirtualRecover implements DataRecover {
             e.printStackTrace();
         }
         return success;
-    }
-
-    public void remoteCopyFile(String remoteServerId, String fileName, int replicaPot) {
     }
 
     /** 概述：更新任务信息

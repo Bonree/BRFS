@@ -3,7 +3,6 @@ package com.bonree.brfs.common.utils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -25,7 +24,8 @@ public class FileUtils {
 
     private final static Logger LOG = LoggerFactory.getLogger(FileUtils.class);
 
-    public final static String FILE_SEPARATOR = File.separator;
+//    public final static String FILE_SEPARATOR = File.separator;
+    public final static String FILE_SEPARATOR = "/";
 
     /** 概述：创建目录
      * @param pathName 需要创建的目录名
