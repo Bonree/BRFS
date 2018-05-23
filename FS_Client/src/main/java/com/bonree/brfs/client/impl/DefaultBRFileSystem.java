@@ -9,6 +9,8 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.client.BRFileSystem;
 import com.bonree.brfs.client.StorageNameStick;
@@ -16,6 +18,7 @@ import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.ServiceSelectorManager;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.exception.BRFSException;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
 import com.bonree.brfs.common.http.client.URIBuilder;
@@ -26,6 +29,7 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 
 public class DefaultBRFileSystem implements BRFileSystem {
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultBRFileSystem.class);
     private static final String URI_STORAGE_NAME_ROOT = "/storageName/";
 
     private static final String DEFAULT_SCHEME = "http";
@@ -54,8 +58,12 @@ public class DefaultBRFileSystem implements BRFileSystem {
         Service service;
         try {
             service = serviceSelectorManager.useDuplicaSelector().randomService();
+            LOG.info("select server:" + service);
         } catch (Exception e1) {
             return false;
+        }
+        if (service == null) {
+            throw new BRFSException("none aliver server!!!");
         }
 
         URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
@@ -83,8 +91,13 @@ public class DefaultBRFileSystem implements BRFileSystem {
         Service service;
         try {
             service = serviceSelectorManager.useDuplicaSelector().randomService();
+            LOG.info("select server:" + service);
         } catch (Exception e1) {
             return false;
+        }
+        
+        if (service == null) {
+            throw new BRFSException("none aliver server!!!");
         }
 
         URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
@@ -110,8 +123,12 @@ public class DefaultBRFileSystem implements BRFileSystem {
         Service service;
         try {
             service = serviceSelectorManager.useDuplicaSelector().randomService();
+            LOG.info("select server:" + service);
         } catch (Exception e1) {
             return false;
+        }
+        if (service == null) {
+            throw new BRFSException("none aliver server!!!");
         }
 
         URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
@@ -133,8 +150,13 @@ public class DefaultBRFileSystem implements BRFileSystem {
         Service service;
         try {
             service = serviceSelectorManager.useDuplicaSelector().randomService();
+            LOG.info("select server:" + service);
         } catch (Exception e1) {
             return null;
+        }
+        
+        if (service == null) {
+            throw new BRFSException("none aliver server!!!");
         }
 
         URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();

@@ -54,6 +54,10 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	@Override
 	public String[] writeData(InputItem[] itemArrays) {
 		Service service = dupSelector.randomService();
+		LOG.info("select server:"+service);
+		if(service==null) {
+		    throw new BRFSException("none server!!!");
+		}
 		
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
@@ -119,7 +123,9 @@ public class DefaultStorageNameStick implements StorageNameStick {
 		ServiceMetaInfo serviceMetaInfo = selector.readerService(Joiner.on('_').join(parts));
 		Service service = serviceMetaInfo.getFirstServer();
 		LOG.info("read service[{}]", service);
-		
+        if(service==null) {
+            throw new BRFSException("none disknode!!!");
+        }
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(service.getHost())
@@ -158,7 +164,10 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	@Override
 	public boolean deleteData(String startTime, String endTime) {
 		Service service = dupSelector.randomService();
-		
+		LOG.info("select server:"+service);
+        if(service==null) {
+            throw new BRFSException("none server!!!");
+        }
 		StringBuilder pathBuilder = new StringBuilder();
 		pathBuilder.append(URI_DATA_ROOT)
 		           .append(storageId).append("/")
