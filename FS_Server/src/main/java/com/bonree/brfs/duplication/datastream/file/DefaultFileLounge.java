@@ -160,20 +160,24 @@ public class DefaultFileLounge implements FileLounge {
 			long currentTimeInterval = timedFileContainer.getTimeInterval(System.currentTimeMillis());
 			
 			for(TimedObject<List<FileLimiter>> obj : timedObjects) {
-				LOG.info("{} FILE CLEANER---- {} >>> {}",new Date(), obj.getTimeInterval(), obj.getObj().size());
 				List<FileLimiter> fileList = obj.getObj();
+				LOG.info("{} FILE CLEANER---- {} >>> {}",new Date(), obj.getTimeInterval(), fileList.size());
 				
 				if(obj.getTimeInterval() < currentTimeInterval) {
+					LOG.info("clean historical file list!");
 					//历史时刻文件，清理所有能清理的文件
 					synchronized (fileList) {
 						Iterator<FileLimiter> iterator = fileList.iterator();
 						while(iterator.hasNext()) {
 							FileLimiter file = iterator.next();
-							if(file.lock(this)) {
-								System.out.println("!!!!history close---" + file.getFileNode().getName());
-								removedFileList.add(file);
-								iterator.remove();
+							if(!file.lock(this)) {
+								LOG.info("can not remove HISTORICAL locked file[{}]", file.getFileNode().getName());
+								continue;
 							}
+							
+							LOG.info("CLOSE historical file ---{}", file.getFileNode().getName());
+							removedFileList.add(file);
+							iterator.remove();
 						}
 					}
 					
@@ -183,18 +187,37 @@ public class DefaultFileLounge implements FileLounge {
 				} else {
 					//当前时刻的文件集合，只对有clean标记的文件做处理
 					synchronized (fileList) {
-						boolean cleanOverSize = fileList.size() > FILE_SET_SIZE_CLEAN_THRESHOLD;
+						boolean cleanOverSize = fileList.size() >= FILE_SET_SIZE_CLEAN_THRESHOLD;
+						
+						if(!cleanOverSize) {
+							//文件数量没达到阈值，不进行清理
+							LOG.info("file list size[{}] is smaller than threshold[{}], don't clean list.", fileList.size(),  FILE_SET_SIZE_CLEAN_THRESHOLD);
+							continue;
+						}
+						
 						Iterator<FileLimiter> iterator = fileList.iterator();
 						while(iterator.hasNext()) {
 							FileLimiter file = iterator.next();
 							
-							if(cleanOverSize
-									&& Double.compare(file.getLength(), file.capacity() * FILE_USAGE_RATIO_THRESHOLD) > 0
-									&& file.lock(this)) {
-								System.out.println("!!!!current close---" + file.getFileNode().getName());
-								removedFileList.add(file);
-								iterator.remove();
+							if(Double.compare(file.getLength(), file.capacity() * FILE_USAGE_RATIO_THRESHOLD) < 0) {
+								//文件大小没达到指定阈值，不进行清理
+								LOG.info("ignore current file[{}] contains [{}] bytes, not reach [{} * {}]",
+										file.getFileNode().getName(),
+										file.getLength(),
+										file.capacity(),
+										FILE_USAGE_RATIO_THRESHOLD);
+								continue;
 							}
+							
+							if(!file.lock(this)) {
+								//无法锁定文件，说明当前文件还有写入操作，不进行清理
+								LOG.info("can not remove CURRENT locked file[{}]", file.getFileNode().getName());
+								continue;
+							}
+							
+							LOG.info("close current file ---{}", file.getFileNode().getName());
+							removedFileList.add(file);
+							iterator.remove();
 						}
 					}
 				}
