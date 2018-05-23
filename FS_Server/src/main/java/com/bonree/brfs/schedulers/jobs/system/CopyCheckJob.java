@@ -86,7 +86,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		newTask.setTaskType(TaskType.SYSTEM_COPY_CHECK.code());
 		List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
 		String dirName = TimeUtils.timeInterval(startTime, 60*60*1000);
-		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(sm, snm, dirName);
+		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(dirName);
 		if(losers != null && !losers.isEmpty()){
 			List<AtomTaskModel> atoms = createAtoms(losers, dirName);
 			if(atoms != null && !atoms.isEmpty()){

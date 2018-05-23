@@ -25,6 +25,7 @@ import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateWithZKTask;
+import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -109,7 +110,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 			result.addAll(batchResult.getAtoms());
 		}
 		//更新任务状态
-		updateMapTaskMessage(context, result);
+		TaskStateLifeContral.updateMapTaskMessage(context, result);
 	}
 	/**
 	 * 概述：校验文件

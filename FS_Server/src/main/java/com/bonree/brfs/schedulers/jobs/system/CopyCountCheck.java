@@ -24,6 +24,7 @@ import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 
@@ -39,8 +40,11 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
 public class CopyCountCheck {
 	private static final Logger LOG = LoggerFactory.getLogger(CopyCountCheck.class);
 	
-	public static Map<String,List<String>> collectLossFile(ServiceManager sm, StorageNameManager snm, String dirName){
-		List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+	public static Map<String,List<String>> collectLossFile(String dirName){
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		ServiceManager sm = mcf.getSm();
+		StorageNameManager snm = mcf.getSnm();
+		List<Service> services = sm.getServiceListByGroup(mcf.getGroupName());
 		if(services == null || services.isEmpty()){
 			LOG.warn("service list is empty");
 			return null;
@@ -152,14 +156,14 @@ public class CopyCountCheck {
 		for(Service service : services){
 			try {
 				//TODO 目前客户端会夹死。
-//				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
 				for(StorageNameNode sn : snList){
 					reCount = sn.getReplicateCount();
 					snName = sn.getName();
 					for(int i = 0; i <reCount; i++){
 						path = snName+File.separator+i+File.separator+dirName;
 						LOG.info("{}",path);
-//						files =client.listFiles(path, 1);
+						files =client.listFiles(path, 1);
 						if(files == null){
 							LOG.info("the list file of {} is null ", service.getServiceId());
 							continue;
