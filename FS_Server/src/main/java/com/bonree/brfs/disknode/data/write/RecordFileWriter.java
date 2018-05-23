@@ -27,6 +27,10 @@ public class RecordFileWriter implements FileWriter {
 		return delegate.getPath();
 	}
 	
+	public RecordCollection getRecordCollection() {
+		return recorder;
+	}
+	
 	/**
 	 * 更新写入数据的系列号
 	 * 

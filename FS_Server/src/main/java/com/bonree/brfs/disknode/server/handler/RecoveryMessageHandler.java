@@ -27,24 +27,25 @@ import com.bonree.brfs.disknode.client.AvailableSequenceInfo;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.client.RecoverInfo;
-import com.bonree.brfs.disknode.data.write.BufferedFileWriter;
+import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
-import com.bonree.brfs.disknode.data.write.buf.ByteFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
+import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
+import com.bonree.brfs.disknode.utils.Pair;
 
 public class RecoveryMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(RecoveryMessageHandler.class);
 	
 	private DiskContext context;
-	private RecordCollectionManager recordManager;
 	private ServiceManager serviceManager;
+	private FileWriterManager writerManager;
 	
-	public RecoveryMessageHandler(DiskContext context, RecordCollectionManager recordManager, ServiceManager serviceManager) {
+	public RecoveryMessageHandler(DiskContext context, ServiceManager serviceManager, FileWriterManager writerManager) {
 		this.context = context;
-		this.recordManager = recordManager;
 		this.serviceManager = serviceManager;
+		this.writerManager = writerManager;
 	}
 
 	@Override
@@ -63,48 +64,52 @@ public class RecoveryMessageHandler implements MessageHandler {
 		RandomAccessFile originFile = null;
 		
 		try {
-			recordSet = recordManager.getRecordCollectionReadOnly(filePath);
-			originFile = new RandomAccessFile(filePath, "r");
-			MappedByteBuffer buf = originFile.getChannel().map(MapMode.READ_ONLY, 0, originFile.length());
-			
-			for(RecordElement element : recordSet) {
-				byte[] bytes = new byte[element.getSize()];
-				buf.position((int) element.getOffset());
-				buf.get(bytes);
+			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
+			if(binding != null) {
+				binding.first().flush();
+				recordSet = binding.first().getRecordCollection();
+				originFile = new RandomAccessFile(filePath, "r");
+				MappedByteBuffer buf = originFile.getChannel().map(MapMode.READ_ONLY, 0, originFile.length());
 				
-				datas.put(element.getSequence(), bytes);
-				lack.set(element.getSequence(), false);
-			}
-			
-			LOG.info("lack seq number-->{}", lack.cardinality());
-			
-			for(AvailableSequenceInfo seqInfo : seqInfos) {
-				if(lack.cardinality() ==  0) {
-					break;
+				for(RecordElement element : recordSet) {
+					byte[] bytes = new byte[element.getSize()];
+					buf.position((int) element.getOffset());
+					buf.get(bytes);
+					
+					datas.put(element.getSequence(), bytes);
+					lack.set(element.getSequence(), false);
 				}
 				
-				LOG.info("this loop lack size => {}", lack.cardinality());
-				BitSet availableSeq = BitSetUtils.intersect(seqInfo.getAvailableSequence(), lack);
-				if(availableSeq.cardinality() != 0) {
-					Service service = serviceManager.getServiceById(seqInfo.getServiceGroup(), seqInfo.getServiceId());
-					
-					DiskNodeClient client = null;
-					try {
-						client = new HttpDiskNodeClient(service.getHost(), service.getPort());
-						
-						for(int i = availableSeq.nextSetBit(0); i != -1; i = availableSeq.nextSetBit(++i)) {
-							byte[] bytes = client.getBytesBySequence(seqInfo.getFilePath(), i);
-							if(bytes != null) {
-								lack.set(i, false);
-								datas.put(i, bytes);
-							}
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					} finally {
-						CloseUtils.closeQuietly(client);
+				LOG.info("lack seq number-->{}", lack.cardinality());
+				
+				for(AvailableSequenceInfo seqInfo : seqInfos) {
+					if(lack.cardinality() ==  0) {
+						break;
 					}
 					
+					LOG.info("this loop lack size => {}", lack.cardinality());
+					BitSet availableSeq = BitSetUtils.intersect(seqInfo.getAvailableSequence(), lack);
+					if(availableSeq.cardinality() != 0) {
+						Service service = serviceManager.getServiceById(seqInfo.getServiceGroup(), seqInfo.getServiceId());
+						
+						DiskNodeClient client = null;
+						try {
+							client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+							
+							for(int i = availableSeq.nextSetBit(0); i != -1; i = availableSeq.nextSetBit(++i)) {
+								byte[] bytes = client.getBytesBySequence(seqInfo.getFilePath(), i);
+								if(bytes != null) {
+									lack.set(i, false);
+									datas.put(i, bytes);
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						} finally {
+							CloseUtils.closeQuietly(client);
+						}
+						
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -131,10 +136,15 @@ public class RecoveryMessageHandler implements MessageHandler {
 	}
 	
 	private boolean writeDatas(String path, SortedMap<Integer, byte[]> datas) {
-		RecordFileWriter writer = null;
 		try {
-			writer = new RecordFileWriter(recordManager.getRecordCollection(path, false, 8196, false),
-					new BufferedFileWriter(path, new ByteFileBuffer(1024 * 1024)));
+			writerManager.close(path);
+			
+			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(path, true);
+			if(binding == null) {
+				return false;
+			}
+			
+			RecordFileWriter writer = binding.first();
 			
 			for(Entry<Integer, byte[]> entry : datas.entrySet()) {
 				writer.updateSequence(entry.getKey());
@@ -145,8 +155,6 @@ public class RecoveryMessageHandler implements MessageHandler {
 			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			CloseUtils.closeQuietly(writer);
 		}
 		
 		return false;
