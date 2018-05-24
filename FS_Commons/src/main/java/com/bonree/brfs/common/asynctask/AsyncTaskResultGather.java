@@ -40,6 +40,7 @@ public class AsyncTaskResultGather<V> implements FutureCallback<AsyncTaskResult<
 	@Override
 	public void onFailure(Throwable t) {
 		//Nothing to do
+		t.printStackTrace();
 	}
 
 }
