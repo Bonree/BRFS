@@ -2,12 +2,16 @@ package com.bonree.brfs.duplication;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.write.data.FidEncoder;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.google.common.base.Splitter;
 
 public class FidBuilder {
+	private static final Logger LOG = LoggerFactory.getLogger(FidBuilder.class);
 	
 	public static String getFid(FileNode node, long offset, int size) {
 		Fid.Builder builder = Fid.newBuilder()
@@ -25,10 +29,13 @@ public class FidBuilder {
 			builder.addServerId(Integer.parseInt(nameParts.get(i)));
 		}
 		
+		Fid fid = builder.build();
+		
 		try {
-			return FidEncoder.build(builder.build());
+			return FidEncoder.build(fid);
 		} catch (Exception e) {
 			e.printStackTrace();
+			LOG.error("error create FID: file[{}], offset[{}], size[{}]", node.getName(), offset, size);
 		}
 		
 		return null;
