@@ -138,6 +138,10 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		
 		String path = parent.getAbsolutePath();
 		String basePath = parent.getParentFile().getName()+File.separator+parent.getName();
+		if(!FileUtils.isExist(path)){
+			result.setSuccess(true);
+			return result;
+		}
 		List<String> dirs = FileUtils.listFileNames(path);
 		if(!FileUtils.isExist(tmpPath)){
 			dirs.add(tmpName);
