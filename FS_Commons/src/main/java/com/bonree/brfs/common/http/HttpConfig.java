@@ -11,6 +11,7 @@ public class HttpConfig {
 	private int connectTimeoutMillies;
 	
 	private boolean isKeepAlive;
+	private boolean tcpNoDelay;
 	
 	private static final int DEFAULT_ACCEPT_WORKER_NUM = 2;
 	private int acceptWorkerNum;
@@ -70,6 +71,14 @@ public class HttpConfig {
 
 	public void setKeepAlive(boolean isKeepAlive) {
 		this.isKeepAlive = isKeepAlive;
+	}
+	
+	public boolean isTcpNoDelay() {
+		return tcpNoDelay;
+	}
+	
+	public void setTcpNoDelay(boolean tcpNoDelay) {
+		this.tcpNoDelay = tcpNoDelay;
 	}
 
 	public int getAcceptWorkerNum() {

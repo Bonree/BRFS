@@ -1,6 +1,8 @@
 package com.bonree.brfs.common.http.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -28,10 +30,6 @@ public class NettyHttpServer implements LifeCycle {
 	
 	private HttpConfig httpConfig;
 	
-	public NettyHttpServer() {
-		this(null);
-	}
-	
 	public NettyHttpServer(HttpConfig httpConfig) {
 		this.httpConfig = httpConfig;
 		this.handlerInitializer = new NettyChannelInitializer();
@@ -39,16 +37,8 @@ public class NettyHttpServer implements LifeCycle {
 		this.workerGroup = new NioEventLoopGroup(httpConfig.getRequestHandleWorkerNum());
 	}
 	
-	public void setConfig(HttpConfig config) {
-		this.httpConfig = config;
-	}
-	
 	@Override
 	public void start() throws InterruptedException {
-		if(httpConfig == null) {
-			throw new IllegalStateException("HttpConfig is null, forget to init it?");
-		}
-		
 		ServerBootstrap serverStart = new ServerBootstrap();
 		serverStart.group(bossGroup, workerGroup);
 		serverStart.channel(NioServerSocketChannel.class);
@@ -56,6 +46,9 @@ public class NettyHttpServer implements LifeCycle {
 		serverStart.option(ChannelOption.SO_BACKLOG, httpConfig.getBacklog());//积压数量
 		serverStart.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,httpConfig.getConnectTimeoutMillies());//连接超时时间(毫秒)
 		serverStart.childOption(ChannelOption.SO_KEEPALIVE, httpConfig.isKeepAlive());//保持连接
+		serverStart.childOption(ChannelOption.TCP_NODELAY, httpConfig.isTcpNoDelay());
+		serverStart.childOption(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator());
+		serverStart.childOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
 		
 		InetSocketAddress address = (httpConfig.getHost() == null ?
 				new InetSocketAddress(httpConfig.getPort()) : new InetSocketAddress(httpConfig.getHost(), httpConfig.getPort()));
