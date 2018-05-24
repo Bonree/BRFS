@@ -43,7 +43,7 @@ public class TasksUtils {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static TaskModel createTaskModel(final StorageNameNode sn,final TaskType taskType, final String opertationContent, final long startTime, final long endTime){
+	public static TaskModel createUserDelete(final StorageNameNode sn,final TaskType taskType, final String opertationContent, final long startTime, final long endTime){
 		TaskModel task = new TaskModel();
 		List<AtomTaskModel> storageAtoms = new ArrayList<AtomTaskModel>();
 		if(endTime == 0 || startTime > endTime){
@@ -91,7 +91,7 @@ public class TasksUtils {
 		sn.setName("Test");
 		sn.setReplicateCount(2);
 		sn.setTtl(3600000);
-		TaskModel task = createTaskModel(sn, TaskType.USER_DELETE, "", -1, System.currentTimeMillis());
+		TaskModel task = createUserDelete(sn, TaskType.USER_DELETE, "", -1, System.currentTimeMillis());
 		
 		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
 		release.setPropreties("192.168.101.86:2181", "/Test/tasks", "/Test/lock");
