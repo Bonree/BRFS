@@ -94,8 +94,9 @@ public class DefaultFileLounge implements FileLounge {
 		Set<FileLimiter> selected = new HashSet<FileLimiter>();
 		List<FileLimiter> fileList = timedFileContainer.get(currentTime);
 		for(int i = 0; i < requestSizes.length; i++) {
-			if(requestSizes[i] > DuplicationEnvironment.DEFAULT_MAX_FILE_SIZE) {
-				LOG.error("####request size is too big--{}", requestSizes[i]);
+			if(requestSizes[i] > DuplicationEnvironment.DEFAULT_MAX_AVAILABLE_FILE_SPACE) {
+				LOG.error("####request size[{}] is bigger than MAX_AVAILABLE_SIZE[{}]",
+						requestSizes[i], DuplicationEnvironment.DEFAULT_MAX_AVAILABLE_FILE_SPACE);
 				results[i] = null;
 				continue;
 			}
@@ -103,7 +104,7 @@ public class DefaultFileLounge implements FileLounge {
 			synchronized (fileList) {
 				for(FileLimiter file : fileList) {
 					if(!file.lock(requestSizes)) {
-//						LOG.info("can not lock file[{}]", file.getFileNode().getName());
+						LOG.debug("can not lock file[{}]", file.getFileNode().getName());
 						continue;
 					}
 					
