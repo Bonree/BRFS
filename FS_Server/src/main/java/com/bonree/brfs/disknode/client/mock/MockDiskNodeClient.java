@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.RecoverInfo;
@@ -13,6 +14,7 @@ import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 
 public class MockDiskNodeClient implements DiskNodeClient {
+	private static final int RATE = 50 * 1024 * 1024;
 
 	@Override
 	public void close() throws IOException {
@@ -21,6 +23,13 @@ public class MockDiskNodeClient implements DiskNodeClient {
 	@Override
 	public WriteResult writeData(String path, int sequence, byte[] bytes)
 			throws IOException {
+		int millis = (bytes.length * 1000 / RATE);
+		try {
+			TimeUnit.MILLISECONDS.sleep(millis);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 		WriteResult result = new WriteResult();
 		result.setSequence(sequence);
 		result.setSize(bytes.length);
@@ -31,6 +40,13 @@ public class MockDiskNodeClient implements DiskNodeClient {
 	@Override
 	public WriteResult writeData(String path, int sequence, byte[] bytes,
 			int offset, int size) throws IOException {
+		int millis = (size * 1000 / RATE);
+		try {
+			TimeUnit.MILLISECONDS.sleep(millis);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 		WriteResult result = new WriteResult();
 		result.setSequence(sequence);
 		result.setSize(size);
@@ -41,6 +57,18 @@ public class MockDiskNodeClient implements DiskNodeClient {
 	@Override
 	public WriteResult[] writeDatas(String path, WriteData[] dataList)
 			throws IOException {
+		int total = 0;
+		for(int i = 0; i < dataList.length; i++) {
+			total += dataList[i].getBytes().length;
+		}
+		
+		int millis = (total * 1000 / RATE);
+		try {
+			TimeUnit.MILLISECONDS.sleep(millis);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 		WriteResult[] results = new WriteResult[dataList.length];
 		for(int i = 0 ; i < dataList.length; i++) {
 			results[i] = new WriteResult();
