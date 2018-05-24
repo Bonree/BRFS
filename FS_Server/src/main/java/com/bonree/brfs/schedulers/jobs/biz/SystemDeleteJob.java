@@ -138,15 +138,11 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		
 		String path = parent.getAbsolutePath();
 		String basePath = parent.getParentFile().getName()+File.separator+parent.getName();
-		LOG.info("Base path {}", basePath);
 		List<String> dirs = FileUtils.listFileNames(path);
-		LOG.info("Test2 {}",dirs);
 		if(!FileUtils.isExist(tmpPath)){
-			LOG.info("add {} {}",tmpPath,tmpName);
 			dirs.add(tmpName);
 		}
 		List<String> filters = filterFiles(tmpName, dirs, basePath);
-		LOG.info(" {}", filters);
 		for(String file : filters){
 			atom = deleteFiles(snName, file, dataPath);
 			if(atom == null){
@@ -180,7 +176,6 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		});
 		//获取文件路径，统一分割符。
 		String path = new File(dirName).getPath();
-		LOG.info("deleteList: {}, dirName:{},path:{}",dirNames,dirName,path);
 		int index = dirNames.indexOf(path);
 		if(index < 0){
 			files.add(path);
