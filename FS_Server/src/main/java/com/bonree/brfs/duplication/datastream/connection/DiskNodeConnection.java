@@ -7,7 +7,6 @@ import com.bonree.brfs.disknode.client.DiskNodeClient;
 
 public interface DiskNodeConnection extends Closeable {
 	Service getService();
-	void connect();
 	boolean isValid();
 	DiskNodeClient getClient();
 }
