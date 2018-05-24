@@ -31,7 +31,7 @@ public class CreateStorageNameMessageHandler extends StorageNameMessageHandler {
 
         if (StringUtils.isEmpty(msg.getName()) || msg.getName().length() > 64) {
             result.setSuccess(false);
-            result.setData(BrStringUtils.toUtf8Bytes("illegal storageName!!!"));
+            result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_NAME_ERROR.name()));
             callback.completed(result);
             return;
         }
@@ -42,14 +42,14 @@ public class CreateStorageNameMessageHandler extends StorageNameMessageHandler {
             if (StorageNameNode.ATTR_REPLICATION.equals(name)) {
                 if (atts.getInt(name) <= 0 || atts.getInt(name) > 16) {
                     result.setSuccess(false);
-                    result.setData(BrStringUtils.toUtf8Bytes("illegal replication!!!"));
+                    result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REPLICATION_ERROR.name()));
                     callback.completed(result);
                     return;
                 }
             } else if (StorageNameNode.ATTR_TTL.equals(name)) {
                 if (atts.getInt(name) <= 0) {
                     result.setSuccess(false);
-                    result.setData(BrStringUtils.toUtf8Bytes("illegal ttl!!!"));
+                    result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_TTL_ERROR.name()));
                     callback.completed(result);
                     return;
                 }
