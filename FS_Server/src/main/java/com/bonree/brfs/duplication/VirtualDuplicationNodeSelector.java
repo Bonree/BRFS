@@ -3,6 +3,9 @@ package com.bonree.brfs.duplication;
 import java.util.List;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.configuration.ServerConfig;
@@ -10,6 +13,7 @@ import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class VirtualDuplicationNodeSelector implements DuplicationNodeSelector {
+	private static final Logger LOG = LoggerFactory.getLogger(VirtualDuplicationNodeSelector.class);
 	private ServiceManager serviceManager;
 	private ServerIDManager idManager;
 	private Random rand = new Random();
@@ -45,6 +49,7 @@ public class VirtualDuplicationNodeSelector implements DuplicationNodeSelector {
 		//分配虚拟服务节点
 		int virtualCount = nums - nodeIndex;
 		for(String virtualId : idManager.getVirtualServerID(storageId, virtualCount)) {
+			LOG.info("virtual id---{}", virtualId);
 			nodes[nodeIndex] = new DuplicateNode();
 			nodes[nodeIndex].setGroup(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP);
 			nodes[nodeIndex].setId(virtualId);
