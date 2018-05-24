@@ -58,7 +58,7 @@ public class HttpClient implements Closeable {
 		defaultHeaders.add(new BasicHeader("Connection", "keep-alive"));
 		
 		client = HttpAsyncClientBuilder.create()
-		           .setMaxConnPerRoute(clientConfig.getMaxConnection())
+		           .setMaxConnPerRoute(clientConfig.getMaxConnectionPerRoute())
 		           .setMaxConnTotal(clientConfig.getMaxConnection())
 		           .setDefaultConnectionConfig(connectionConfig)
 		           .setDefaultIOReactorConfig(ioConfig)
