@@ -29,6 +29,10 @@ public class AsyncTaskResultGather<V> implements FutureCallback<AsyncTaskResult<
 
 	@Override
 	public void onSuccess(AsyncTaskResult<V> result) {
+		if(result == null) {
+			System.out.println("AsyncTaskResultGather--- get null!!!");
+		}
+		
 		int index = taskCount.getAndIncrement();
 		taskResults[index] = result;
 		
@@ -40,6 +44,7 @@ public class AsyncTaskResultGather<V> implements FutureCallback<AsyncTaskResult<
 	@Override
 	public void onFailure(Throwable t) {
 		//Nothing to do
+		System.out.println("AsyncTaskResultGather--- get trouble!!!");
 		t.printStackTrace();
 	}
 

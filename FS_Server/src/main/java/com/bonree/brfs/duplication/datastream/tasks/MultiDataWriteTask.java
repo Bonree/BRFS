@@ -3,6 +3,7 @@ package com.bonree.brfs.duplication.datastream.tasks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,16 +32,22 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 	private List<DataItem> dataList = new ArrayList<DataItem>();
 	
 	private DiskNodeConnectionPool connectionPool;
-	private AsyncExecutor executor;
+	private AsyncExecutor taskRunner;
+	private ExecutorService resultHandleExecutor;
 	private ServerIDManager idManager;
 	
 	private ArrayBlockingQueue<ResultItem[]> resultGetter = new ArrayBlockingQueue<ResultItem[]>(1);
 	
-	public MultiDataWriteTask(FileLimiter file, ServerIDManager idManager, DiskNodeConnectionPool connectionPool, AsyncExecutor executor) {
+	public MultiDataWriteTask(FileLimiter file,
+			ServerIDManager idManager,
+			DiskNodeConnectionPool connectionPool,
+			AsyncExecutor executor,
+			ExecutorService resultExecutor) {
 		this.file = file;
 		this.idManager = idManager;
 		this.connectionPool = connectionPool;
-		this.executor = executor;
+		this.taskRunner = executor;
+		this.resultHandleExecutor = resultExecutor;
 	}
 	
 	public FileLimiter getFileLimiter() {
@@ -74,7 +81,7 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 		}
 		
 		DataWriteResultCallback callback = new DataWriteResultCallback(file);
-		executor.submit(taskGroup, callback);
+		taskRunner.submit(taskGroup, callback, resultHandleExecutor);
 		
 		return resultGetter.take();
 	}
