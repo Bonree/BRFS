@@ -17,6 +17,7 @@ public class AsyncTaskResultGather<V> implements FutureCallback<AsyncTaskResult<
 	 * 完成任务数量统计
 	 */
 	private AtomicInteger taskCount = new AtomicInteger();
+	private AtomicInteger resultCount = new AtomicInteger();
 	
 	private AsyncTaskGroupCallback<V> callback;
 	private AsyncTaskResult<V>[] taskResults;
@@ -29,14 +30,11 @@ public class AsyncTaskResultGather<V> implements FutureCallback<AsyncTaskResult<
 
 	@Override
 	public void onSuccess(AsyncTaskResult<V> result) {
-		if(result == null) {
-			System.out.println("AsyncTaskResultGather--- get null!!!");
-		}
-		
 		int index = taskCount.getAndIncrement();
 		taskResults[index] = result;
+		resultCount.incrementAndGet();
 		
-		if((index + 1) == taskResults.length) {
+		if(resultCount.get() == taskResults.length) {
 			callback.completed(taskResults);
 		}
 	}
@@ -44,7 +42,6 @@ public class AsyncTaskResultGather<V> implements FutureCallback<AsyncTaskResult<
 	@Override
 	public void onFailure(Throwable t) {
 		//Nothing to do
-		System.out.println("AsyncTaskResultGather--- get trouble!!!");
 		t.printStackTrace();
 	}
 
