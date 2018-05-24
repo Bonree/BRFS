@@ -24,7 +24,7 @@ public class DataWriteTask extends AsyncTask<WriteResult[]> {
 
 	@Override
 	public WriteResult[] run() throws Exception {
-		long start = System.currentTimeMillis();
+		long start = System.nanoTime();
 		try {
 			if(connection == null) {
 				LOG.error("file[{}] connection is null!!!", filePath);
@@ -45,7 +45,7 @@ public class DataWriteTask extends AsyncTask<WriteResult[]> {
 			
 			return result;
 		} finally {
-			LOG.info("take##############{}", (System.currentTimeMillis() - start));
+			LOG.info("take##############{}", (System.nanoTime() - start) / 1000000d);
 		}
 	}
 	

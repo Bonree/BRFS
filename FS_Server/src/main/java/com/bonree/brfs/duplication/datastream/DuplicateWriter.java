@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +44,8 @@ public class DuplicateWriter {
 	private AsyncExecutor multiTaskExecutor = new AsyncExecutor(DEFAULT_MULTI_TASK_THREAD_NUM);
 	private static final int DEFAULT_DATA_WRITE_THREAD_NUM = 10;
 	private AsyncExecutor writeTaskExecutor = new AsyncExecutor(DEFAULT_DATA_WRITE_THREAD_NUM);
+	private static final int DEFAULT_RESULT_HANDLE_THREAD_NUM = 8;
+	private ExecutorService resultExecutor = Executors.newFixedThreadPool(DEFAULT_RESULT_HANDLE_THREAD_NUM);
 	
 	private FileCoordinator fileCoordinator;
 	private Service service;
@@ -110,7 +114,7 @@ public class DuplicateWriter {
 			
 			MultiDataWriteTask task = (MultiDataWriteTask) file.attach();
 			if(task == null) {
-				task = new MultiDataWriteTask(file, idManager, connectionPool, writeTaskExecutor);
+				task = new MultiDataWriteTask(file, idManager, connectionPool, writeTaskExecutor, resultExecutor);
 				file.attach(task);
 				taskGroup.addTask(task);
 			}

@@ -1,6 +1,7 @@
 package com.bonree.brfs.common.asynctask;
 
 import java.lang.reflect.Array;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.bonree.brfs.common.utils.ThreadPoolUtil;
@@ -12,18 +13,18 @@ import com.google.common.util.concurrent.MoreExecutors;
 /**
  * 异步任务的执行线程池
  * 
- * @author chen
+ * @author yupeng
  *
  */
 public class AsyncExecutor {
-	private ListeningExecutorService threadPool;
+	private ListeningExecutorService workerThreadPool;
 	
 	/**
 	 * 
 	 * @param threadNum 线程池的线程数
 	 */
 	public AsyncExecutor(int threadNum) {
-		threadPool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threadNum));
+		workerThreadPool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threadNum));
 	}
 	
 	/**
@@ -33,8 +34,12 @@ public class AsyncExecutor {
 	 * @param callback
 	 */
 	public <V> void submit(AsyncTaskGroup<V> group, AsyncTaskGroupCallback<V> callback) {
+		submit(group, callback, ThreadPoolUtil.commonPool());
+	}
+	
+	public <V> void submit(AsyncTaskGroup<V> group, AsyncTaskGroupCallback<V> callback, ExecutorService executor) {
 		if(group.isEmpty()) {
-			ThreadPoolUtil.commonPool().submit(new Runnable() {
+			executor.submit(new Runnable() {
 				
 				@SuppressWarnings("unchecked")
 				@Override
@@ -48,9 +53,8 @@ public class AsyncExecutor {
 		
 		AsyncTaskResultGather<V> gather = new AsyncTaskResultGather<V>(group.size(), callback);
 		for(AsyncTask<V> task : group.getTaskList()) {
-			ListenableFuture<AsyncTaskResult<V>> future = threadPool.submit(task);
-			Futures.addCallback(future, gather, ThreadPoolUtil.commonPool());
+			ListenableFuture<AsyncTaskResult<V>> future = workerThreadPool.submit(task);
+			Futures.addCallback(future, gather, executor);
 		}
-		
 	}
 }
