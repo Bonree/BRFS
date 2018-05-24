@@ -13,7 +13,9 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -197,7 +199,57 @@ public class FileUtils {
             return true;
         }
         // 资源回收，强制删除
+        
         System.gc();
         return file.delete();
     }
+    /**
+     * 概述：删除目录
+     * @param dirpath
+     * @param recursive
+     * @return
+     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     */
+    public static boolean deleteDir(String dirpath, boolean recursive) {
+    	File dir = new File(dirpath);
+		Queue<File> fileQueue = new LinkedList<File>();
+		LinkedList<File> deletingDirs = new LinkedList<File>();
+		fileQueue.add(dir);
+		if(!dir.exists()){
+			return true;
+		}
+		
+		if(dir.list().length == 0) {
+			return dir.delete();
+		}
+		
+		if(!recursive) {
+			throw new IllegalStateException("Directory[" + dir.getAbsolutePath() + "] is not empty!");
+		}
+		boolean isSuccess = true;
+		//第一轮先删除普通文件节点
+		while(!fileQueue.isEmpty()) {
+			File file = fileQueue.poll();
+			if(file.isDirectory()) {
+				for(File child : file.listFiles()) {
+					fileQueue.add(child);
+				}
+				
+				deletingDirs.addFirst(file);
+			} else {
+				if(!file.delete()){
+					isSuccess = false;
+				}
+			}
+		}
+		
+		//第二轮删除文件夹节点
+		for(File deleteDir : deletingDirs) {
+			LOG.info("DISK Deleting dir[{}]", deleteDir.getAbsolutePath());
+			if(!deleteDir.delete()){
+				isSuccess = false;
+			}
+		}
+		return isSuccess;
+	}
 }

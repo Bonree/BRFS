@@ -89,10 +89,6 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 				continue;
 			}
 			path = dataPath + File.separator+ dirName;
-			if(!FileUtils.isExist(path)){
-				LOG.warn("{} is not exists !!");
-				continue;
-			}
 			if(isuser){
 				usrResult = deleteFiles(snName, dirName, dataPath);
 				if(usrResult == null){
@@ -123,10 +119,12 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private TaskResultModel deleteDirs(String snName, String dirName, String dataPath){
+	public TaskResultModel deleteDirs(String snName, String dirName, String dataPath){
 		TaskResultModel result = new TaskResultModel();
 		AtomTaskResultModel  atom = null;
-		if(!FileUtils.isDirectory(dirName)){
+		String tmpPath = dataPath+ File.separator+dirName;
+		LOG.info(tmpPath);
+		if(FileUtils.isExist(tmpPath) && !FileUtils.isDirectory(tmpPath)){
 			atom = deleteFiles(snName, dirName, dataPath);
 			if(atom != null){
 				result.add(atom);
@@ -134,10 +132,21 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 			}
 			return result;
 		}
-		File parent = new File(dirName).getParentFile();
+		File file1 = new File(tmpPath);
+		String tmpName = file1.getName();
+		File parent = new File(tmpPath).getParentFile();
+		
 		String path = parent.getAbsolutePath();
-		List<String> dirs = FileUtils.listFilePaths(path);
-		List<String> filters = filterFiles(dirName, dirs);
+		String basePath = parent.getParentFile().getName()+File.separator+parent.getName();
+		LOG.info("Base path {}", basePath);
+		List<String> dirs = FileUtils.listFileNames(path);
+		LOG.info("Test2 {}",dirs);
+		if(!FileUtils.isExist(tmpPath)){
+			LOG.info("add {} {}",tmpPath,tmpName);
+			dirs.add(tmpName);
+		}
+		List<String> filters = filterFiles(tmpName, dirs, basePath);
+		LOG.info(" {}", filters);
 		for(String file : filters){
 			atom = deleteFiles(snName, file, dataPath);
 			if(atom == null){
@@ -152,37 +161,35 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 	}
 	/**
 	 * 概述：过滤出需要删除的文件
-	 * @param dirName
-	 * @param dirs
+	 * @param dirNames
+	 * @param dirNames
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public List<String> filterFiles(String dirName, final List<String> dirs){
+	public List<String> filterFiles(String dirName, final List<String> dirNames,String basePath){
 		List<String> files = new ArrayList<String>();
-		List<String> filters = new ArrayList<String>();
-		File file = null;
-		for(String dir : dirs){
-			file = new File(dir);
-			filters.add(file.getAbsolutePath());
+		if(dirNames == null||dirNames.isEmpty()){
+			return files;
 		}
+		
 		//升序排列任务
-		Collections.sort(filters, new Comparator<String>() {
+		Collections.sort(dirNames, new Comparator<String>() {
 			public int compare(String o1, String o2) {
 				return o1.compareTo(o2);
 			}
 		});
 		//获取文件路径，统一分割符。
-		String path = new File(dirName).getAbsolutePath();
-		LOG.info("deleteList: {}, dirName:{},path:{}",filters,dirName,path);
-		int index = filters.indexOf(path);
+		String path = new File(dirName).getPath();
+		LOG.info("deleteList: {}, dirName:{},path:{}",dirNames,dirName,path);
+		int index = dirNames.indexOf(path);
 		if(index < 0){
 			files.add(path);
 			return files;
 		}
 		String tmpDir = null;
 		for(int i = 0; i <= index; i++){
-			tmpDir = filters.get(i);
-			files.add(tmpDir);
+			tmpDir = dirNames.get(i);
+			files.add(basePath +File.separator + tmpDir);
 		}
 		return files;
 	}
@@ -195,22 +202,14 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 	 */
 	private AtomTaskResultModel deleteFiles(String snName, String dirName,String dataPath){
 		String path = dataPath + File.separator + dirName;
+		LOG.info("Test path :{}", path);
 		if(!FileUtils.isExist(path)){
 			LOG.warn("{} is not exists !!",path);
 			return null;
 		}
 		AtomTaskResultModel atomR = new AtomTaskResultModel();
 		boolean isSuccess = false;
-		if(!FileUtils.isDirectory(path)){
-			LOG.warn("{} is not a directory !! will delete", dirName);
-			isSuccess = FileUtils.deleteFile(path);
-			atomR.setSuccess(isSuccess);
-			atomR.setSn(snName);
-			atomR.setDir(dirName);
-			return atomR;
-		}else{
-		}
-		isSuccess = FileUtils.deleteFile(path);
+		isSuccess = FileUtils.deleteDir(path,true);
 		atomR.setSn(snName);
 		atomR.setDir(dirName);
 		atomR.setSuccess(isSuccess);
