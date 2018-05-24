@@ -38,6 +38,8 @@ public interface ZookeeperClient {
     void setDataAsync(String path, byte[] data, CuratorListener listener);
 
     void delete(String path, boolean isRecursion);
+    
+    void checkAndDelte(String path, boolean isRecursion);
 
     void guaranteedDelete(String path, boolean isRecursion);
 

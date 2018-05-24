@@ -8,12 +8,14 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
@@ -22,6 +24,11 @@ import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
+import com.bonree.brfs.schedulers.task.TasksUtils;
+import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
+import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
+import com.bonree.brfs.schedulers.task.model.TaskModel;
+import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.google.common.base.Splitter;
 
 public class DeleteDataMessageHandler implements MessageHandler {
@@ -31,9 +38,13 @@ public class DeleteDataMessageHandler implements MessageHandler {
 	
 	private ServiceManager serviceManager;
 	private StorageNameManager storageNameManager;
+	private ServerConfig serverConfig;
+	private ZookeeperPaths zkPaths;
 	
-	public DeleteDataMessageHandler(ServiceManager serviceManager, StorageNameManager storageNameManager) {
-		this.serviceManager = serviceManager;
+	public DeleteDataMessageHandler(ServerConfig serverConfig,ZookeeperPaths zkPaths,ServiceManager serviceManager, StorageNameManager storageNameManager) {
+		this.serverConfig = serverConfig;
+		this.zkPaths = zkPaths;
+	    this.serviceManager = serviceManager;
 		this.storageNameManager = storageNameManager;
 	}
 
@@ -53,8 +64,9 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		
 		LOG.info("DELETE data for storage[{}]", storageId);
 		
-		String path = getPathByStorageNameId(storageId);
-		if(path == null) {
+//		String path = getPathByStorageNameId(storageId);
+		StorageNameNode sn = storageNameManager.findStorageName(storageId);
+		if(sn == null) {
 			result.setSuccess(false);
 			result.setCause(new StorageNameNonexistentException(storageId));
 			callback.completed(result);
@@ -74,31 +86,41 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
 		
 		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
-		boolean deleteCompleted = true;
-		for(Service service : serviceList) {
-			DiskNodeClient client = null;
-			try {
-				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
-				List<FileInfo> fileList = client.listFiles(path, TIME_INTERVAL_LEVEL);
-				LOG.info("get file list size={}", fileList.size());
-				
-				List<String> deleteList = filterByTime(fileList, startTime, endTime);
-				if(deleteList.isEmpty()) {
-					continue;
-				}
-				
-				for(String deletePath : deleteList) {
-					LOG.info("Deleting----[{}]", deletePath);
-					deleteCompleted &= client.deleteDir(deletePath, true, true);
-				}
-			} catch(Exception e) {
-				e.printStackTrace();
-			} finally {
-				CloseUtils.closeQuietly(client);
-			}
-		}
+//		boolean deleteCompleted = true;
+//		for(Service service : serviceList) {
+//			DiskNodeClient client = null;
+//			try {
+//				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+//				List<FileInfo> fileList = client.listFiles(path, TIME_INTERVAL_LEVEL);
+//				LOG.info("get file list size={}", fileList.size());
+//				
+//				List<String> deleteList = filterByTime(fileList, startTime, endTime);
+//				if(deleteList.isEmpty()) {
+//					continue;
+//				}
+//				
+//				for(String deletePath : deleteList) {
+//					LOG.info("Deleting----[{}]", deletePath);
+//					deleteCompleted &= client.deleteDir(deletePath, true, true);
+//				}
+//			} catch(Exception e) {
+//				e.printStackTrace();
+//			} finally {
+//				CloseUtils.closeQuietly(client);
+//			}
+//		}
+         TaskModel task = TasksUtils.createUserDelete(sn, TaskType.USER_DELETE, "", startTime, endTime);
+         MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
+         release.setPropreties(serverConfig.getZkHosts(), zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
+         // 创建任务节点
+         String taskName = release.updateTaskContentNode(task, TaskType.USER_DELETE.name(), null);
+         TaskServerNodeModel serverModel = TasksUtils.createServerTaskNode();
+         // 创建服务节点
+         for (Service service : serviceList) {
+             release.updateServerTaskContentNode(service.getServiceId(), taskName, TaskType.USER_DELETE.name(), serverModel);
+         }
 		
-		result.setSuccess(deleteCompleted);
+		result.setSuccess(true);
 		callback.completed(result);
 	}
 
