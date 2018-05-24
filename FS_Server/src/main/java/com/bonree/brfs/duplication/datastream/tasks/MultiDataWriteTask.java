@@ -101,6 +101,11 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 				
 				int validIndex = -1;
 				for(AsyncTaskResult<WriteResult[]> taskResult : results) {
+					if(taskResult == null) {
+						LOG.error("That's impossible to happen like this!, task result is NULL!");
+						continue;
+					}
+					
 					//每个taskResult对象代表一个磁盘节点的数据写入结果
 					if(taskResult.getError() != null) {
 						//如果有异常，说明某个磁盘节点写入数据失败
