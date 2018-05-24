@@ -48,6 +48,7 @@ public class VirtualDuplicationNodeSelector implements DuplicationNodeSelector {
 		
 		//分配虚拟服务节点
 		int virtualCount = nums - nodeIndex;
+		LOG.info("---get virtual id---{}", virtualCount);
 		for(String virtualId : idManager.getVirtualServerID(storageId, virtualCount)) {
 			LOG.info("virtual id---{}", virtualId);
 			nodes[nodeIndex] = new DuplicateNode();
