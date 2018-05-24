@@ -367,7 +367,7 @@ public class TaskDispatcher {
     }
 
     public void taskTerminal(CuratorFramework client, TreeCacheEvent event) {
-        if (getLeaderLatch().hasLeadership()) {
+        if (leaderLath.hasLeadership()) {
             CuratorClient curatorClient = CuratorClient.wrapClient(client);
             LOG.info("leaderLath:" + getLeaderLatch().hasLeadership());
             LOG.info("task Dispatch event detail:" + event.getType());
@@ -407,42 +407,49 @@ public class TaskDispatcher {
 
                     // 所有的服务都则发布迁移规则，并清理任务
                     if (finishFlag) {
+                        
                         if (bts.getTaskType() == RecoverType.VIRTUAL) {
-                            String virtualRouteNode = getVirualRoutePath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
+                            String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
                             VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
                             curatorClient.createPersistentSequential(virtualRouteNode, true, JSON.toJSONBytes(route));
 
-                            String firstID = getServerIDManager().getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
+                            String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
 
-                            List<String> normalVirtualIDs = getServerIDManager().listNormalVirtualID(bts.getStorageIndex());
+                            List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
                             if (normalVirtualIDs != null && !normalVirtualIDs.isEmpty()) {
                                 for (String virtualID : normalVirtualIDs) {
-                                    getServerIDManager().registerFirstID(bts.getStorageIndex(), virtualID, firstID);
+                                    idManager.registerFirstID(bts.getStorageIndex(), virtualID, firstID);
                                 }
                             }
 
                             // 删除virtual server ID
-                            curatorClient.delete(parentPath, true);
-                            getServerIDManager().deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
+                            curatorClient.checkAndDelte(parentPath, true);
+                            idManager.deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
 
                         } else if (bts.getTaskType() == RecoverType.NORMAL) {
-                            String normalRouteNode = getNormalRoutePath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
+                            String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
                             NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
                             curatorClient.createPersistentSequential(normalRouteNode, true, JSON.toJSONBytes(route));
                         }
 
-                        List<ChangeSummary> changeSummaries = getSummaryCache().get(bts.getStorageIndex());
-                        // 清理变更
+                        List<ChangeSummary> changeSummaries = cacheSummaryCache.get(bts.getStorageIndex());
+                        
+                        // 清理zk上的变更
                         LOG.info("status delete:" + bts.getChangeID());
-                        String changePath = getChangesPath() + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
+                        String changePath = changesPath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
                         LOG.info("delete : " + changePath);
-                        curatorClient.delete(changePath, false);
+                        curatorClient.checkAndDelte(changePath, false);
+                        
+                        //清理缓存
                         for (ChangeSummary cs : changeSummaries) {
                             if (cs.getChangeID().equals(bts.getChangeID())) {
                                 changeSummaries.remove(cs);
                             }
                         }
                         removeRunTask(bts.getStorageIndex());
+                        
+                        //删除zk上的任务
+                        delBalanceTask(bts);
                     }
                 }
             }
@@ -840,7 +847,7 @@ public class TaskDispatcher {
     public void delBalanceTask(BalanceTaskSummary task) {
         LOG.info("delete task:" + task);
         String taskNode = tasksPath + Constants.SEPARATOR + task.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
-        curatorClient.delete(taskNode, true);
+        curatorClient.checkAndDelte(taskNode, true);
     }
 
     public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) {

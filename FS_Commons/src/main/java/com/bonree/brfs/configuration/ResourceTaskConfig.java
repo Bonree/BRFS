@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 
@@ -19,6 +22,7 @@ import com.bonree.brfs.common.utils.BrStringUtils;
  *****************************************************************************
  */
 public class ResourceTaskConfig {
+	private static final Logger LOG = LoggerFactory.getLogger("ResourceTaskConfig");
 	/**
 	 * 整体任务控制开关标识
 	 */
@@ -204,19 +208,19 @@ public class ResourceTaskConfig {
 		poolMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool );
 
 
-		String createInveral = config.getProperty(CREATE_TASK_INTERVAL_TIME, "60000");
-		long createTaskInveral = Long.valueOf(createInveral);
+		String createInveral = config.getProperty(CREATE_TASK_INTERVAL_TIME, "60");
+		long createTaskInveral = Long.valueOf(createInveral)*1000;
 		conf.setCreateTaskIntervalTime(createTaskInveral);
-		String createCopyTime = config.getProperty(SYSTEM_COPY_INTERVAL_TIME, "60000");
-		long createCopytTimems = Long.valueOf(createCopyTime);
+		String createCopyTime = config.getProperty(SYSTEM_COPY_INTERVAL_TIME, "60");
+		long createCopytTimems = Long.valueOf(createCopyTime)*1000;
 		conf.setCreateCheckJobTaskervalTime(createCopytTimems);
 		
-		String executeInveral = config.getProperty(EXECUTE_TASK_INTERVAL_TIME, "60000");
-		long executeTaskInveral = Long.valueOf(executeInveral);
+		String executeInveral = config.getProperty(EXECUTE_TASK_INTERVAL_TIME, "60");
+		long executeTaskInveral = Long.valueOf(executeInveral)*1000;
 		conf.setExecuteTaskIntervalTime(executeTaskInveral);
 		
-		String gatherInveral = config.getProperty(GATHER_RESOURCE_INVERAL_TIME, "60000");
-		long gatherResourceInveral = Long.valueOf(gatherInveral);
+		String gatherInveral = config.getProperty(GATHER_RESOURCE_INVERAL_TIME, "60");
+		long gatherResourceInveral = Long.valueOf(gatherInveral)*1000;
 		conf.setGatherResourceInveralTime(gatherResourceInveral);
 		
 		String calcCount = config.getProperty(CALC_RESOURCE_VALUE_COUNT, "5");
@@ -236,8 +240,8 @@ public class ResourceTaskConfig {
 		}
 		conf.setLibPath(libPath);
 		String expiredTime = config.getProperty(TASK_EXPIRED_TIME, "680400");
-		long expiredTaskTime = Long.valueOf(expiredTime);
-		conf.setTaskExpiredTime(expiredTaskTime *1000);
+		long expiredTaskTime = Long.valueOf(expiredTime) *1000;
+		conf.setTaskExpiredTime(expiredTaskTime);
 		
 		String limtCpuRateStr = config.getProperty(LIMIT_RESOURCE_VALUE_CPU,"0.9");
 		double limtCpuRate = Double.valueOf(limtCpuRateStr);
@@ -266,17 +270,46 @@ public class ResourceTaskConfig {
 		String limitNetRxStr = config.getProperty(LIMIT_RESOURCE_VALUE_NET_RX,"0.9");
 		double limitNetRx = Double.valueOf(limitNetRxStr);
 		conf.setLimitNetRxRate(limitNetRx);
-		//TODO 测试阶段，改字段改为ms
-//		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "1");
-		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "3600000");
-		long checkTtl = Long.valueOf(checkTtlStr);
+		//TODO 测试阶段，改字段改为s
+		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "3600");
+		long checkTtl = Long.valueOf(checkTtlStr)*1000;
 		conf.setCheckTtl(checkTtl);
-//		conf.setCheckTtl(checkTtl*24*60*60);
 		
 		String snttlstr = config.getProperty(Configuration.STORAGE_DATA_TTL, "1");
 		long snttl = Long.valueOf(snttlstr);
 		conf.setGlobalSnTtl(snttl*24*60*60);
+		
 		return conf;
+	}
+	
+	public void printDetail(){
+		LOG.info("{} :{} ",SYSTEM_DELETE_SWITCH, this.taskPoolSwitchMap.get(TaskType.SYSTEM_DELETE.name()));
+		LOG.info("{} :{} ",SYSTEM_CHECK_SWITCH, this.taskPoolSwitchMap.get(TaskType.SYSTEM_CHECK.name()));
+		LOG.info("{} :{} ",SYSTEM_COPY_CHECK_SWITCH, this.taskPoolSwitchMap.get(TaskType.SYSTEM_COPY_CHECK.name()));
+		LOG.info("{} :{} ",USER_DELETE_SWITCH, this.taskPoolSwitchMap.get(TaskType.USER_DELETE.name()));
+		
+		LOG.info("{} :{} ",SYSTEM_DELETE_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.SYSTEM_DELETE.name()));
+		LOG.info("{} :{} ",SYSTEM_CHECK_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.SYSTEM_CHECK.name()));
+		LOG.info("{} :{} ",SYSTEM_COPY_CHECK_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.SYSTEM_COPY_CHECK.name()));
+		LOG.info("{} :{} ",USER_DELETE_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.USER_DELETE.name()));
+		LOG.info("{}:{}",CALC_RESOURCE_VALUE_COUNT, this.calcResourceValueCount);
+		LOG.info("{}:{} ms",CHECK_DATA_TIME_TTL, this.checkTtl);
+		LOG.info("{}:{} ms",SYSTEM_COPY_INTERVAL_TIME, this.createCheckJobTaskervalTime);
+		LOG.info("{}:{} ms",EXECUTE_TASK_INTERVAL_TIME, this.executeTaskIntervalTime);
+		LOG.info("{}:{} ms",CREATE_TASK_INTERVAL_TIME,this.createTaskIntervalTime);
+		LOG.info("{}:{} ms",GATHER_RESOURCE_INVERAL_TIME,this.gatherResourceInveralTime);
+		LOG.info("{}:{} d",TASK_EXPIRED_TIME, this.taskExpiredTime/1000/60/60/24);
+		LOG.info("{}:{} s",Configuration.STORAGE_DATA_TTL, this.globalSnTtl);
+		LOG.info("{}:{}",RESOURCE_LIB_PATH,this.libPath);
+		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_NET_RX,this.limitNetRxRate);
+		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_NET_TX,this.limitNetTxRate);
+		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_CPU,this.limitCpuRate);
+		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_DISK_READ,this.limitDiskReadRate);
+		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_DISK_REMAIN,this.limitDiskRemaintRate);
+		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_DISK_WRITE,this.limitDiskWriteRate);
+		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_MEMORY,this.limitMemoryRate);
+		LOG.info("{}:{}",RESOURCE_FRAMEWORK_SWITCH, this.resourceFrameWorkSwitch);
+		LOG.info("{}:{}",TASK_FRAMEWORK_SWITCH,this.taskFrameWorkSwitch);
 	}
 	public Map<String, Boolean> getTaskPoolSwitchMap() {
 		return taskPoolSwitchMap;

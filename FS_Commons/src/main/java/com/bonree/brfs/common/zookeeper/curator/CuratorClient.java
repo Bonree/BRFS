@@ -121,6 +121,13 @@ public class CuratorClient implements ZookeeperClient {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
+    @Override
+    public void checkAndDelte(String path, boolean isRecursion) {
+        if(checkExists(path)) {
+            delete(path,isRecursion);
+        }
+        
+    }
 
     @Override
     public List<String> getChildren(String path) {

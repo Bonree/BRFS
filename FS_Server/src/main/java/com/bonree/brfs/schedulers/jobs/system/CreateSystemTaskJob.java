@@ -64,7 +64,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			return;
 		}
 		JobDataMap data = context.getJobDetail().getJobDataMap();
-		long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL)*1000;
+		long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL);
 		long gsnTtl = data.getLong(JobDataMapConstract.GLOBAL_SN_DATA_TTL);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
@@ -176,17 +176,20 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
 				ttl = globalttl;
 				if(currentTime - creatTime < ttl){
+					LOG.warn("no data is need check !! checkTTL : {}",ttl);
 					continue;
 				}
 			}
 			operationDirTime =currentTime - ttl- 60*60*1000;
 			cAtoms = createAtomTaskModel(snn, operationDirTime, taskOperation);
 			if(cAtoms == null || cAtoms.isEmpty()){
+				LOG.warn("{} atom task list is empty", taskType.name());
 				continue;
 			}
 			atoms.addAll(cAtoms);
 		}
 		if(atoms == null || atoms.isEmpty()){
+			LOG.info("skip create {} Task because is empty",taskType.name());
 			return null;
 		}
 		task.setAtomList(atoms);
