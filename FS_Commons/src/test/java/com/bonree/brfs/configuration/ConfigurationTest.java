@@ -1,11 +1,12 @@
 package com.bonree.brfs.configuration;
 
+import com.bonree.brfs.common.exception.ConfigParseException;
 import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.configuration.Configuration.ConfigException;
+import com.bonree.brfs.configuration.Configuration.ConfigPathException;
 
 public class ConfigurationTest {
 
-    public static void main(String[] args) throws ConfigException {
+    public static void main(String[] args) throws ConfigPathException, ConfigParseException {
         Configuration configuration = Configuration.getInstance();
 
         configuration.printConfigDetail();

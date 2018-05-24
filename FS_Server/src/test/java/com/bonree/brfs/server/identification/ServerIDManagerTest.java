@@ -3,8 +3,9 @@ package com.bonree.brfs.server.identification;
 import java.util.List;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.exception.ConfigParseException;
 import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.configuration.Configuration.ConfigException;
+import com.bonree.brfs.configuration.Configuration.ConfigPathException;
 import com.bonree.brfs.configuration.ServerConfig;
 
 public class ServerIDManagerTest {
@@ -31,9 +32,11 @@ public class ServerIDManagerTest {
             virtualServerIDs=idManager.getVirtualServerID(1, 2);
             System.out.println(virtualServerIDs);
             
-        } catch (ConfigException e) {
+        } catch (ConfigPathException e) {
             e.printStackTrace();
             System.exit(1);
+        } catch (ConfigParseException e) {
+            e.printStackTrace();
         }
     }
 }

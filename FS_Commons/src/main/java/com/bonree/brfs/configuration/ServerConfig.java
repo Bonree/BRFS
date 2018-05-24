@@ -1,5 +1,6 @@
 package com.bonree.brfs.configuration;
 
+import com.bonree.brfs.common.exception.ConfigParseException;
 import com.bonree.brfs.common.utils.BrStringUtils;
 
 /*******************************************************************************
@@ -44,7 +45,7 @@ public class ServerConfig {
         this.normalDelay = normalDelay;
     }
 
-    public static ServerConfig parse(Configuration config, String homePath) {
+    public static ServerConfig parse(Configuration config, String homePath) throws ConfigParseException {
         String clusterName = config.getProperty(Configuration.CLUSTER_NAME, Configuration.CLUSTER_NAME_VALUE);
         String zkHosts = config.getProperty(Configuration.ZOOKEEPER_NODES, Configuration.ZOOKEEPER_NODES_VALUE);
         String host = config.getProperty(Configuration.NETWORK_HOST, Configuration.NETWORK_HOST_VALUE);
@@ -55,12 +56,17 @@ public class ServerConfig {
         String logPath = config.getProperty(Configuration.PATH_LOGS, Configuration.PATH_LOGS_VALUE);
         String recoverDelayTimeStr = config.getProperty(Configuration.GLOBAL_REPLICATION_RECOVER_AFTER_TIME, Configuration.GLOBAL_REPLICATION_RECOVER_AFTER_TIME_VALUE);
         String virtualDelayTimeStr = config.getProperty(Configuration.GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME, Configuration.GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME_VALUE);
-        int recoverDelayTime = BrStringUtils.parseNumber(recoverDelayTimeStr, Integer.class);
-        int virtualDelayTime = BrStringUtils.parseNumber(virtualDelayTimeStr, Integer.class);
-        int port = BrStringUtils.parseNumber(portStr, Integer.class);
-        int diskPort = BrStringUtils.parseNumber(diskPortStr, Integer.class);
-        long zkSessionTime = BrStringUtils.parseNumber(zkSessionTimeStr, Long.class);
-        return new ServerConfig(homePath, clusterName, zkHosts, host, port, diskPort, zkSessionTime, dataPath, logPath, virtualDelayTime, recoverDelayTime);
+        try {
+
+            int recoverDelayTime = BrStringUtils.parseNumber(recoverDelayTimeStr, Integer.class);
+            int virtualDelayTime = BrStringUtils.parseNumber(virtualDelayTimeStr, Integer.class);
+            int port = BrStringUtils.parseNumber(portStr, Integer.class);
+            int diskPort = BrStringUtils.parseNumber(diskPortStr, Integer.class);
+            long zkSessionTime = BrStringUtils.parseNumber(zkSessionTimeStr, Long.class);
+            return new ServerConfig(homePath, clusterName, zkHosts, host, port, diskPort, zkSessionTime, dataPath, logPath, virtualDelayTime, recoverDelayTime);
+        } catch (NumberFormatException e) {
+            throw new ConfigParseException("configuration error!!");
+        }
     }
 
     public String getClusterName() {

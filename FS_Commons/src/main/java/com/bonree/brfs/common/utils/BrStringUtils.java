@@ -199,6 +199,7 @@ public class BrStringUtils {
         }
         return instance;
     }
+    
 
     /** 概述：解析字符为布尔类型
      * @param str
