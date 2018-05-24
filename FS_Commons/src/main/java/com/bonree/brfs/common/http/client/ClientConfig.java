@@ -3,6 +3,8 @@ package com.bonree.brfs.common.http.client;
 public class ClientConfig {
 	private static final int DEFAULT_MAX_CONNECTION = 4;
 	private int maxConnection;
+	private static final int DEFAULT_MAX_CONNECTION_PER_ROUTE = 2;
+	private int maxConnectionPerRoute;
 	
 	private static final int DEFAULT_BUFFER_SIZE = 8 * 1024;
 	private int bufferSize;
@@ -29,6 +31,7 @@ public class ClientConfig {
 	
 	private ClientConfig() {
 		this.maxConnection = DEFAULT_MAX_CONNECTION;
+		this.maxConnectionPerRoute = DEFAULT_MAX_CONNECTION_PER_ROUTE;
 		this.bufferSize = DEFAULT_BUFFER_SIZE;
 		this.idleTimeout = 0;
 		this.socketSendBufferSize = DEFAULT_SEND_BUFFER_SIZE;
@@ -41,6 +44,10 @@ public class ClientConfig {
 
 	public int getMaxConnection() {
 		return maxConnection;
+	}
+	
+	public int getMaxConnectionPerRoute() {
+		return maxConnectionPerRoute;
 	}
 
 	public int getBufferSize() {
@@ -84,6 +91,11 @@ public class ClientConfig {
 		
 		public Builder setMaxConnection(int maxConnection) {
 			config.maxConnection = maxConnection > 0 ? maxConnection : DEFAULT_MAX_CONNECTION;
+			return this;
+		}
+		
+		public Builder setMaxConnectionPerRoute(int maxConnectionPerRoute) {
+			config.maxConnectionPerRoute = maxConnectionPerRoute > 0 ? maxConnectionPerRoute : DEFAULT_MAX_CONNECTION_PER_ROUTE;
 			return this;
 		}
 		

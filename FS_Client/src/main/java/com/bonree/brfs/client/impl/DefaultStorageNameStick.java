@@ -42,11 +42,12 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
 	private DiskServiceSelectorCache selector;
 	private DuplicaServiceSelector dupSelector;
-	private HttpClient client = new HttpClient();
+	private HttpClient client;
 
-	public DefaultStorageNameStick(String storageName, int storageId, DiskServiceSelectorCache selector, DuplicaServiceSelector dupSelector) {
+	public DefaultStorageNameStick(String storageName, int storageId, HttpClient client, DiskServiceSelectorCache selector, DuplicaServiceSelector dupSelector) {
 		this.storageName = storageName;
 		this.storageId = storageId;
+		this.client = client;
 		this.selector = selector;
 		this.dupSelector = dupSelector;
 	}
@@ -54,7 +55,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	@Override
 	public String[] writeData(InputItem[] itemArrays) {
 		Service service = dupSelector.randomService();
-		LOG.info("select server:"+service);
+		System.out.println("select write server:"+service);
 		if(service==null) {
 		    throw new BRFSException("none server!!!");
 		}
@@ -87,8 +88,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
 					fids[i] = array.getString(i);
 				}
 				return fids;
-			}else {
-			    throw new BRFSException(storageName + " is disable!!! ");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -193,7 +192,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
 	@Override
 	public void close() throws IOException {
-		client.close();
 	}
 
 }

@@ -32,6 +32,7 @@ public class AsyncTaskResultGather<V> implements FutureCallback<AsyncTaskResult<
 	public void onSuccess(AsyncTaskResult<V> result) {
 		int index = taskCount.getAndIncrement();
 		taskResults[index] = result;
+		//添加count数是保证callback触发时所有结果都填充到数组中了
 		resultCount.incrementAndGet();
 		
 		if(resultCount.get() == taskResults.length) {
