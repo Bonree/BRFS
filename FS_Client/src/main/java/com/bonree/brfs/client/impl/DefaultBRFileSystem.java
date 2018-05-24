@@ -2,6 +2,7 @@ package com.bonree.brfs.client.impl;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -39,6 +40,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
     private ServiceManager serviceManager;
 
     private ServiceSelectorManager serviceSelectorManager;
+    
+    private Map<String, StorageNameStick> stickContainer = new HashMap<String, StorageNameStick>();
 
     public DefaultBRFileSystem(String zkAddresses, String cluster) throws Exception {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
@@ -147,42 +150,51 @@ public class DefaultBRFileSystem implements BRFileSystem {
 
     @Override
     public StorageNameStick openStorageName(String storageName, boolean createIfNonexistent) {
-        Service service;
-        try {
-            service = serviceSelectorManager.useDuplicaSelector().randomService();
-            LOG.info("select server:" + service);
-        } catch (Exception e1) {
-            return null;
-        }
-        
-        if (service == null) {
-            throw new BRFSException("none aliver server!!!");
-        }
+    	StorageNameStick stick = stickContainer.get(storageName);
+    	if(stick == null) {
+    		synchronized (stickContainer) {
+    			stick = stickContainer.get(storageName);
+    			if(stick == null) {
+    				Service service;
+    		        try {
+    		            service = serviceSelectorManager.useDuplicaSelector().randomService();
+    		            LOG.info("select server:" + service);
+    		        } catch (Exception e1) {
+    		            return null;
+    		        }
+    		        
+    		        if (service == null) {
+    		            throw new BRFSException("none aliver server!!!");
+    		        }
 
-        URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
-        boolean existFalg = true;
-        try {
-            HttpResponse response = client.executeGet(uri);
-            String code = BrStringUtils.fromUtf8Bytes(response.getResponseBody());
-            int storageId = -1;
-            try {
-                storageId = Integer.parseInt(code);
-            } catch (NumberFormatException e) {
-                ReturnCode returnCode = ReturnCode.valueOf(code);
-                ReturnCode.checkCode(storageName, returnCode);
-                existFalg = false;
-            }
-            if (!existFalg) {
-                return null;
-            }
-            System.out.println("get id---" + storageId);
-            DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
-            return new DefaultStorageNameStick(storageName, storageId, cache, serviceSelectorManager.useDuplicaSelector());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    		        URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
+    		        boolean existFalg = true;
+    		        try {
+    		            HttpResponse response = client.executeGet(uri);
+    		            String code = BrStringUtils.fromUtf8Bytes(response.getResponseBody());
+    		            int storageId = -1;
+    		            try {
+    		                storageId = Integer.parseInt(code);
+    		            } catch (NumberFormatException e) {
+    		                ReturnCode returnCode = ReturnCode.valueOf(code);
+    		                ReturnCode.checkCode(storageName, returnCode);
+    		                existFalg = false;
+    		            }
+    		            if (!existFalg) {
+    		                return null;
+    		            }
+    		            System.out.println("get id---" + storageId);
+    		            DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
+    		            stick = new DefaultStorageNameStick(storageName, storageId, client, cache, serviceSelectorManager.useDuplicaSelector());
+    		            stickContainer.put(storageName, stick);
+    		        } catch (Exception e) {
+    		            e.printStackTrace();
+    		        }
+    			}
+			}
+    	}
 
-        return null;
+        return stick;
     }
 
     @Override
@@ -190,6 +202,11 @@ public class DefaultBRFileSystem implements BRFileSystem {
         CloseUtils.closeQuietly(client);
         CloseUtils.closeQuietly(zkClient);
         CloseUtils.closeQuietly(serviceSelectorManager);
+        
+        for(StorageNameStick stick : stickContainer.values()) {
+        	CloseUtils.closeQuietly(stick);
+        }
+        
         try {
             if (serviceManager != null) {
                 serviceManager.stop();
