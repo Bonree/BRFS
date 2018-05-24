@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.datastream.connection;
+package com.bonree.brfs.duplication.datastream.connection.http;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,20 +17,20 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
+import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
+import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 
 public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 	private static final Logger LOG = LoggerFactory.getLogger(HttpDiskNodeConnectionPool.class);
 	
 	private static final int DEFAULT_CONNECTION_STATE_CHECK_INTERVAL = 1;
 	private ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("connection_checker"));
-	private Map<DuplicateNode, DiskNodeConnection> connectionCache = new HashMap<DuplicateNode, DiskNodeConnection>();
-	private DiskNodeConnectionFactory connectionFactory;
+	private Map<DuplicateNode, HttpDiskNodeConnection> connectionCache = new HashMap<DuplicateNode, HttpDiskNodeConnection>();
 	
 	private ServiceManager serviceManager;
 	
-	public HttpDiskNodeConnectionPool(ServiceManager serviceManager, DiskNodeConnectionFactory connectionFactory) {
+	public HttpDiskNodeConnectionPool(ServiceManager serviceManager) {
 		this.serviceManager = serviceManager;
-		this.connectionFactory = connectionFactory;
 		exec.scheduleAtFixedRate(new ConnectionStateChecker(), 0, DEFAULT_CONNECTION_STATE_CHECK_INTERVAL, TimeUnit.SECONDS);
 	}
 	
@@ -49,7 +49,7 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 
 	@Override
 	public DiskNodeConnection getConnection(DuplicateNode duplicateNode) {
-		DiskNodeConnection connection = connectionCache.get(duplicateNode);
+		HttpDiskNodeConnection connection = connectionCache.get(duplicateNode);
 		
 		if(connection != null) {
 			return connection;
@@ -61,7 +61,8 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 				return null;
 			}
 			
-			connection = connectionFactory.createConnection(service);
+			connection = new HttpDiskNodeConnection(service);
+			connection.connect();
 			connectionCache.put(duplicateNode, connection);
 		}
 		

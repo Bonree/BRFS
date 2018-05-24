@@ -52,7 +52,11 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 			return null;
 		}
 		
-		DuplicateNode[] nodes = duplicationNodeSelector.getDuplicationNodes(storageNameNode.getReplicateCount());
+		DuplicateNode[] nodes = duplicationNodeSelector.getDuplicationNodes(storageId, storageNameNode.getReplicateCount());
+		if(nodes.length == 0) {
+			//没有磁盘节点可用
+			return null;
+		}
 		
 		FileNode fileNode = new FileNode(time);
 		fileNode.setName(FileNameBuilder.createFile(idManager, storageId, nodes));

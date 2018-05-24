@@ -16,7 +16,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
-import com.bonree.brfs.duplication.datastream.connection.HttpDiskNodeConnection;
+import com.bonree.brfs.duplication.datastream.connection.http.HttpDiskNodeConnection;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.rebalance.route.SecondIDParser;

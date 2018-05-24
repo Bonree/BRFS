@@ -27,10 +27,9 @@ import com.bonree.brfs.duplication.coordinator.zk.RandomFileNodeServiceSelector;
 import com.bonree.brfs.duplication.coordinator.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.coordinator.zk.ZkFileNodeStorer;
 import com.bonree.brfs.duplication.datastream.DuplicateWriter;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionFactory;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
-import com.bonree.brfs.duplication.datastream.connection.HttpDiskNodeConnectionFactory;
-import com.bonree.brfs.duplication.datastream.connection.HttpDiskNodeConnectionPool;
+import com.bonree.brfs.duplication.datastream.connection.FilteredDiskNodeConnectionPool;
+import com.bonree.brfs.duplication.datastream.connection.http.HttpDiskNodeConnectionPool;
+import com.bonree.brfs.duplication.datastream.connection.virtual.VirtualDiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.DefaultFileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
@@ -97,8 +96,9 @@ public class BootStrap {
 		
 		FileCoordinator fileCoordinator = new FileCoordinator(storer, sinkManager);
 		
-		DiskNodeConnectionFactory connectionFactory = new HttpDiskNodeConnectionFactory();
-		DiskNodeConnectionPool connectionPool = new HttpDiskNodeConnectionPool(serviceManager, connectionFactory);
+		FilteredDiskNodeConnectionPool connectionPool = new FilteredDiskNodeConnectionPool();
+		connectionPool.addFactory(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP, new VirtualDiskNodeConnectionPool());
+		connectionPool.addFactory(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new HttpDiskNodeConnectionPool(serviceManager));
 		FileRecovery fileRecovery = new DefaultFileRecovery(connectionPool, idManager);
 		fileRecovery.start();
 		

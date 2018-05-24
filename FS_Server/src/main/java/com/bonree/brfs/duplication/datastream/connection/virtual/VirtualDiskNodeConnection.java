@@ -1,17 +1,16 @@
-package com.bonree.brfs.duplication.datastream.connection.mock;
+package com.bonree.brfs.duplication.datastream.connection.virtual;
 
 import java.io.IOException;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.mock.MockDiskNodeClient;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 
-public class MockDiskNodeConnection implements DiskNodeConnection {
-	private Service service;
+public class VirtualDiskNodeConnection implements DiskNodeConnection {
+	private Service virtualService;
 	
-	public MockDiskNodeConnection(Service service) {
-		this.service = service;
+	public VirtualDiskNodeConnection(Service virtualService) {
+		this.virtualService = virtualService;
 	}
 
 	@Override
@@ -20,11 +19,7 @@ public class MockDiskNodeConnection implements DiskNodeConnection {
 
 	@Override
 	public Service getService() {
-		return service;
-	}
-
-	@Override
-	public void connect() {
+		return virtualService;
 	}
 
 	@Override
@@ -34,7 +29,7 @@ public class MockDiskNodeConnection implements DiskNodeConnection {
 
 	@Override
 	public DiskNodeClient getClient() {
-		return new MockDiskNodeClient();
+		return null;
 	}
 
 }
