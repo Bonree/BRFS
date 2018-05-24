@@ -101,12 +101,12 @@ public class Configuration {
     private Map<String, String> configMap = new HashMap<String, String>();
 
     @SuppressWarnings("serial")
-    public static class ConfigException extends Exception {
-        public ConfigException(String msg) {
+    public static class ConfigPathException extends Exception {
+        public ConfigPathException(String msg) {
             super(msg);
         }
 
-        public ConfigException(String msg, Exception e) {
+        public ConfigPathException(String msg, Exception e) {
             super(msg, e);
         }
     }
@@ -146,7 +146,7 @@ public class Configuration {
         return configFileName;
     }
 
-    public void parse(String fileName) throws ConfigException {
+    public void parse(String fileName) throws ConfigPathException {
         LOG.info("Reading configuration from: " + fileName);
 
         try {
@@ -163,9 +163,9 @@ public class Configuration {
             parseProperties(cfg);
 
         } catch (IOException e) {
-            throw new ConfigException("Error processing " + fileName, e);
+            throw new ConfigPathException("Error processing " + fileName, e);
         } catch (IllegalArgumentException e) {
-            throw new ConfigException("Error processing " + fileName, e);
+            throw new ConfigPathException("Error processing " + fileName, e);
         }
     }
 

@@ -9,15 +9,17 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.exception.ConfigParseException;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.configuration.Configuration.ConfigException;
+import com.bonree.brfs.configuration.Configuration.ConfigPathException;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.StorageConfig;
 import com.bonree.brfs.disknode.boot.EmptyMain;
 import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
@@ -58,6 +60,7 @@ public class ServerMain {
             conf.parse(brfsHome + "/config/server.properties");
             conf.printConfigDetail();
             ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
+            StorageConfig storageConfig = StorageConfig.parse(conf);
             ResourceTaskConfig resourceConfig = ResourceTaskConfig.parse(conf);
 
             CuratorCacheFactory.init(serverConfig.getZkHosts());
@@ -67,24 +70,26 @@ public class ServerMain {
 
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
-            
-            StorageNameManager snManager = new DefaultStorageNameManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);
+
+            StorageNameManager snManager = new DefaultStorageNameManager(storageConfig, client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);
             snManager.addStorageNameStateListener(new StorageNameStateListener() {
-            	
-            	@Override
-				public void storageNameAdded(StorageNameNode node) {
-            		LOG.info("-----------StorageNameAdded--[{}]", node);
-            		idManager.getSecondServerID(node.getId());
-            	}
-				
-				@Override
-				public void storageNameUpdated(StorageNameNode node) {}
-				
-				@Override
-				public void storageNameRemoved(StorageNameNode node) {}
-			});
+
+                @Override
+                public void storageNameAdded(StorageNameNode node) {
+                    LOG.info("-----------StorageNameAdded--[{}]", node);
+                    idManager.getSecondServerID(node.getId());
+                }
+
+                @Override
+                public void storageNameUpdated(StorageNameNode node) {
+                }
+
+                @Override
+                public void storageNameRemoved(StorageNameNode node) {
+                }
+            });
             snManager.start();
-            
+
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
             sm.start();
 
@@ -108,11 +113,15 @@ public class ServerMain {
 
             // 资源管理模块
             InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
-        } catch (ConfigException e) {
+        } catch (ConfigPathException e) {
+            e.printStackTrace();
+            System.exit(1);
+        } catch (ConfigParseException e) {
             e.printStackTrace();
             System.exit(1);
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 

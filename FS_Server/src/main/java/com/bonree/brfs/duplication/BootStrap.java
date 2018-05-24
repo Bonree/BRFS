@@ -19,6 +19,7 @@ import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
 import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.StorageConfig;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkManager;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
@@ -55,6 +56,7 @@ public class BootStrap {
         conf.parse(brfsHome + "/config/server.properties");
         conf.printConfigDetail();
         ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
+        StorageConfig storageConfig = StorageConfig.parse(conf);
 
         CuratorCacheFactory.init(serverConfig.getZkHosts());
         ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
@@ -85,7 +87,7 @@ public class BootStrap {
 			
 		});
 		
-		StorageNameManager storageNameManager = new DefaultStorageNameManager(client, new ZkStorageIdBuilder(serverConfig.getZkHosts(), zookeeperPaths.getBaseSequencesPath()));
+		StorageNameManager storageNameManager = new DefaultStorageNameManager(storageConfig,client, new ZkStorageIdBuilder(serverConfig.getZkHosts(), zookeeperPaths.getBaseSequencesPath()));
 		storageNameManager.start();
 		
 		FileNodeStorer storer = new ZkFileNodeStorer(client);

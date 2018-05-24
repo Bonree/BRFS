@@ -1,5 +1,6 @@
 package com.bonree.brfs.configuration;
 
+import com.bonree.brfs.common.exception.ConfigParseException;
 import com.bonree.brfs.common.utils.BrStringUtils;
 
 /*******************************************************************************
@@ -30,7 +31,7 @@ public class StorageConfig {
         this.achiverDelayTime = achiverDelayTime;
     }
 
-    public static StorageConfig parse(Configuration config) {
+    public static StorageConfig parse(Configuration config) throws ConfigParseException {
         String combinerFileSizeStr = config.getProperty(Configuration.STORAGE_COMBINER_FILE_MAX_SIZE, Configuration.STORAGE_COMBINER_FILE_MAX_SIZE_VALUE);
         String dataTtlStr = config.getProperty(Configuration.STORAGE_DATA_TTL, Configuration.STORAGE_DATA_TTL_VALUE);
         String replicationStr = config.getProperty(Configuration.STORAGE_REPLICATION_NUMBER, Configuration.STORAGE_REPLICATION_NUMBER_VALUE);
@@ -38,13 +39,27 @@ public class StorageConfig {
         String dataAchiveStr = config.getProperty(Configuration.STORAGE_DATA_ACHIVE, Configuration.STORAGE_DATA_ACHIVE_VALUE);
         String achiverDFS = config.getProperty(Configuration.STORAGE_DATA_ACHIVE_DFS, Configuration.STORAGE_DATA_ACHIVE_DFS_VALUE);
         String achiverDelayTimeStr = config.getProperty(Configuration.STORAGE_DATA_ACHIVE_AFTER_TIME, Configuration.STORAGE_DATA_ACHIVE_AFTER_TIME_VALUE);
-        int combinerFileSize = BrStringUtils.parseNumber(combinerFileSizeStr, Integer.class);
-        int dataTtl = BrStringUtils.parseNumber(dataTtlStr, Integer.class);
-        int replication = BrStringUtils.parseNumber(replicationStr, Integer.class);
-        boolean recover = BrStringUtils.parseBoolean(recoverStr);
-        boolean dataAchive = BrStringUtils.parseBoolean(dataAchiveStr);
-        int achiverDelayTime = BrStringUtils.parseNumber(achiverDelayTimeStr, Integer.class);
-        return new StorageConfig(combinerFileSize, dataTtl, replication, recover, dataAchive, achiverDFS, achiverDelayTime);
+        try {
+            
+            int combinerFileSize = BrStringUtils.parseNumber(combinerFileSizeStr, Integer.class);
+            int dataTtl = BrStringUtils.parseNumber(dataTtlStr, Integer.class);
+            if (dataTtl <= 0) {
+                throw new ConfigParseException("configuration error!!");
+            }
+            
+            int replication = BrStringUtils.parseNumber(replicationStr, Integer.class);
+            if (replication <= 0 || replication > 16) {
+                throw new ConfigParseException("configuration error!!");
+            }
+            
+            boolean recover = BrStringUtils.parseBoolean(recoverStr);
+            boolean dataAchive = BrStringUtils.parseBoolean(dataAchiveStr);
+            int achiverDelayTime = BrStringUtils.parseNumber(achiverDelayTimeStr, Integer.class);
+            return new StorageConfig(combinerFileSize, dataTtl, replication, recover, dataAchive, achiverDFS, achiverDelayTime);
+        }catch (NumberFormatException e) {
+            throw new ConfigParseException("configuration error!!");
+        }
+
     }
 
     public int getCombinerFileSize() {

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.utils.Attributes;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.configuration.StorageConfig;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameExistException;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameRemoveException;
@@ -46,8 +47,8 @@ public class DefaultStorageNameManager implements StorageNameManager {
 
     private static final String DEFAULT_STORAGE_NAME_ROOT = ZookeeperPaths.STORAGE_NAMES;
 
-    private static final int DEFAULT_STORAGE_NAME_REPLICATIONS = 2;
-    private static final int DEFAULT_STORAGE_NAME_TTL = 100;
+//    private static final int DEFAULT_STORAGE_NAME_REPLICATIONS = 2;
+//    private static final int DEFAULT_STORAGE_NAME_TTL = 100;
 
     private static final int DEFAULT_MAX_CACHE_SIZE = 100;
     private LoadingCache<String, Optional<StorageNameNode>> storageNameCache;
@@ -55,12 +56,15 @@ public class DefaultStorageNameManager implements StorageNameManager {
 
     private CuratorFramework zkClient;
     private PathChildrenCache childrenCache;
+    
+    private StorageConfig storageConfig;
 
     private CopyOnWriteArrayList<StorageNameStateListener> listeners = new CopyOnWriteArrayList<StorageNameStateListener>();
 
     private StorageIdBuilder idBuilder;
 
-    public DefaultStorageNameManager(CuratorFramework client, StorageIdBuilder idBuilder) {
+    public DefaultStorageNameManager(StorageConfig storageConfig,CuratorFramework client, StorageIdBuilder idBuilder) {
+        this.storageConfig = storageConfig;
         this.zkClient = client;
         this.idBuilder = idBuilder;
         this.storageNameCache = CacheBuilder.newBuilder().maximumSize(DEFAULT_MAX_CACHE_SIZE).build(new StorageNameNodeLoader());
@@ -109,8 +113,8 @@ public class DefaultStorageNameManager implements StorageNameManager {
         if (exists(storageName)) {
             throw new StorageNameExistException(storageName);
         }
-
-        StorageNameNode node = new StorageNameNode(storageName, idBuilder.createStorageId(), attrs.getInt(StorageNameNode.ATTR_REPLICATION, DEFAULT_STORAGE_NAME_REPLICATIONS), attrs.getInt(StorageNameNode.ATTR_TTL, DEFAULT_STORAGE_NAME_TTL));
+        
+        StorageNameNode node = new StorageNameNode(storageName, idBuilder.createStorageId(), attrs.getInt(StorageNameNode.ATTR_REPLICATION, storageConfig.getReplication()), attrs.getInt(StorageNameNode.ATTR_TTL, storageConfig.getDataTtl()));
         String storageNamePath = buildStorageNamePath(storageName);
 
         String path = null;
