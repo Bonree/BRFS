@@ -102,7 +102,7 @@ public class BootStrap {
 		FileRecovery fileRecovery = new DefaultFileRecovery(connectionPool, idManager);
 		fileRecovery.start();
 		
-		DuplicationNodeSelector nodeSelector = new DefaultDuplicationNodeSelector(serviceManager);
+		DuplicationNodeSelector nodeSelector = new VirtualDuplicationNodeSelector(serviceManager, idManager);
 		
 		FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool);
 		DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileRecovery, idManager, connectionPool);
