@@ -21,6 +21,8 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 	private static final int DEFAULT_MAX_HTTP_CONTENT_LENGTH = 65 * 1024 * 1024;
 	
 	private List<NettyHttpContextHandler> contextHandlers = new ArrayList<NettyHttpContextHandler>();
+	
+	private DefaultHttpRequestHandler defaultHttpRequestHandler = new DefaultHttpRequestHandler();
 
 	public void addContextHandler(NettyHttpContextHandler handler) {
 		contextHandlers.add(handler);
@@ -36,5 +38,6 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 		pipeline.addLast(new HttpObjectAggregator(DEFAULT_MAX_HTTP_CONTENT_LENGTH));
 		pipeline.addLast(new ChunkedWriteHandler());
 		contextHandlers.forEach((NettyHttpContextHandler handler) -> pipeline.addLast(handler));
+		pipeline.addLast(defaultHttpRequestHandler);
     }
 }
