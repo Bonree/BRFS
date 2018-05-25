@@ -55,7 +55,7 @@ public class TasksUtils {
 		}else{
 			startHour = startTime/1000/60/60*60*60*1000;
 		}
-		long endHour = endTime/1000/60/60*60*60*1000;
+		long endHour = endTime/1000/60/60*60*60*1000 + 3600000;
 		AtomTaskModel atom = null;
 		String dirName = null;
 		String snName = sn.getName();

@@ -20,6 +20,8 @@ import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 
 public class TaskStateLifeContral {
 	private static final Logger LOG = LoggerFactory.getLogger("TaskLife");
+	
+	
 	/**
 	 * 概述：更新任务状态
 	 * @param serverId
@@ -38,6 +40,7 @@ public class TaskStateLifeContral {
 		MetaTaskManagerInterface release = mcf.getTm();
 		TaskServerNodeModel sTask = release.getTaskServerContentNodeInfo(taskType, taskname, serverId);
 		if(sTask == null){
+			LOG.info("server task is null !!! {} {} {}", taskType,taskname, serverId);
 			sTask = new TaskServerNodeModel();
 		}
 		sTask.setResult(taskResult);
@@ -69,7 +72,9 @@ public class TaskStateLifeContral {
 		}
 		TaskModel task = release.getTaskContentNodeInfo(taskType, taskname);
 		if(task == null){
+			LOG.info("task is null !!! {} {} {}", taskType,taskname);
 			task = new TaskModel();
+			task.setCreateTime(System.currentTimeMillis());
 		}
 		if(isException){
 			task.setTaskState(TaskState.EXCEPTION.code());
