@@ -479,9 +479,6 @@ public class MultiRecover implements DataRecover {
         boolean success = true;
         try {
             // diskClient.copyTo(service.getHost(), service.getPort(), logicPath, logicPath);
-            System.out.println(logicPath);
-            System.out.println(remoteDir);
-            System.out.println(fileName);
             fileClient.sendFile(service.getHost(), service.getPort() + 20, logicPath, remoteDir, fileName);
         } catch (Exception e) {
             success = false;
