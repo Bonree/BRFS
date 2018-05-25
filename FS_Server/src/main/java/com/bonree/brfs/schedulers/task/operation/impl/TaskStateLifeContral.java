@@ -35,8 +35,7 @@ public class TaskStateLifeContral {
 		String typeName = taskType.name();
 		String currentTaskName = null;
 		if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
-			prexTaskName = release.getFirstServerTask(typeName, serverId);
-			currentTaskName = prexTaskName;
+			currentTaskName = release.getFirstServerTask(typeName, serverId);
 		}else{
 			currentTaskName = release.getNextTaskName(typeName, prexTaskName);
 		}
@@ -46,21 +45,18 @@ public class TaskStateLifeContral {
 	/**
 	 * 概述：获取任务信息
 	 * @param release
-	 * @param taskName
+	 * @param prexTaskName
 	 * @param serviceId
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Pair<String, TaskModel> getTaskModel(MetaTaskManagerInterface release,TaskType taskType,String taskName, String serviceId){
-		String currentTaskName = getcurrentTaskName(release, taskName, taskType, serviceId);
+	public static Pair<String, TaskModel> getTaskModel(MetaTaskManagerInterface release,TaskType taskType,String prexTaskName, String serviceId){
+		String currentTaskName = getcurrentTaskName(release, prexTaskName, taskType, serviceId);
 		if(BrStringUtils.isEmpty(currentTaskName)){
 			return null;
 		}
-		TaskModel task = release.getTaskContentNodeInfo(taskType.name(), taskName);
-		if(task != null && task.getTaskState() == TaskState.EXCEPTION.code()){
-			return new Pair<String,TaskModel>(taskName, task);
-		}
-		return null;
+		TaskModel task = release.getTaskContentNodeInfo(taskType.name(), currentTaskName);
+		return new Pair<String,TaskModel>(currentTaskName, task);
 	}
 	
 	/**
@@ -76,6 +72,10 @@ public class TaskStateLifeContral {
 		TaskResultModel taskResult = null;
 		if(!BrStringUtils.isEmpty(result)){
 			taskResult = JsonUtils.toObject(result, TaskResultModel.class);
+		}
+		if(BrStringUtils.isEmpty(taskname)){
+			LOG.info("task name is empty !!! {} {} {}", taskType,taskname, serverId);
+			return;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();

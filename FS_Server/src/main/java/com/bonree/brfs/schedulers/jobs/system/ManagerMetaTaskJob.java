@@ -54,10 +54,10 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 		
 		MetaTaskManagerInterface release = mcf.getTm();
 		// 获取开启的任务名称
-		List<TaskType> switchList = mcf.getTaskOn();
-		if(switchList==null || switchList.isEmpty()){
-			throw new NullPointerException("switch on task is empty !!!");
-		}
+//		List<TaskType> switchList = TaskType.values();
+//		if(switchList==null || switchList.isEmpty()){
+//			throw new NullPointerException("switch on task is empty !!!");
+//		}
 		// 获取可用服务
 		String groupName = mcf.getGroupName();
 		ServiceManager sm = mcf.getSm();
@@ -66,7 +66,7 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 		if(serverIds == null || serverIds.isEmpty()){
 			throw new NullPointerException(" available server list is null");
 		}
-		for(TaskType taskType : switchList){
+		for(TaskType taskType : TaskType.values()){
 			try {
 				release.reviseTaskStat(taskType.name(), ttlTime, serverIds);
 			} catch (Exception e) {

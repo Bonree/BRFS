@@ -204,7 +204,7 @@ public class JobDataMapConstract {
 		dataMap.put(BASE_ROUTE_PATH, path);
 		dataMap.put(TASK_REPEAT_RUN_COUNT, "-1");
 		dataMap.put(TASK_RUN_INVERAL_TIME, invertalTime+"");
-		dataMap.put(BATCH_SIZE, "2");
+		dataMap.put(BATCH_SIZE, "10");
 		return dataMap;
 	}
 }

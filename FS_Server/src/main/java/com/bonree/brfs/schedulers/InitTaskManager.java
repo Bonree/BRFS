@@ -32,6 +32,7 @@ import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
 import com.bonree.brfs.schedulers.jobs.biz.FileRecoveryJob;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.jobs.resource.AsynJob;
@@ -118,7 +119,7 @@ public class InitTaskManager {
 			}
 			createAndStartThreadPool(manager, managerConfig);
 			if(tasks.contains(TaskType.SYSTEM_COPY_CHECK)){
-				SumbitTaskInterface copyJob = createSimpleTask(60000, TaskType.SYSTEM_COPY_CHECK.name(), serverId, FileRecoveryJob.class.getCanonicalName(), serverConfig.getZkHosts(), zkPath.getBaseRoutePath());
+				SumbitTaskInterface copyJob = createSimpleTask(managerConfig.getExecuteTaskIntervalTime(), TaskType.SYSTEM_COPY_CHECK.name(), serverId, CopyRecoveryJob.class.getCanonicalName(), serverConfig.getZkHosts(), zkPath.getBaseRoutePath());
 				manager.addTask(TaskType.SYSTEM_COPY_CHECK.name(), copyJob);
 			}
 			mcf.setTaskOn(tasks);
@@ -373,6 +374,22 @@ public class InitTaskManager {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	private  static SumbitTaskInterface createSimpleTask(long invertalTime, String taskName, String serverId,String clazzName, String zkHost, String path){
+		QuartzSimpleInfo task = new QuartzSimpleInfo();
+		task.setRunNowFlag(true);
+		task.setCycleFlag(true);
+		task.setTaskName(taskName);
+		task.setTaskGroupName(TaskType.SYSTEM_COPY_CHECK.name());
+		task.setRepeateCount(-1);
+		task.setInterval(invertalTime);
+		Map<String,String> dataMap = JobDataMapConstract.createCOPYDataMap(taskName, serverId, invertalTime, zkHost, path);
+		if(dataMap != null && !dataMap.isEmpty()){
+			task.setTaskContent(dataMap);
+		}
+		
+		task.setClassInstanceName(clazzName);
+		return task;
+	}
+	private  static SumbitTaskInterface createCopySimpleTask(long invertalTime, String taskName, String serverId,String clazzName, String zkHost, String path){
 		QuartzSimpleInfo task = new QuartzSimpleInfo();
 		task.setRunNowFlag(true);
 		task.setCycleFlag(true);
