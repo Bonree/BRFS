@@ -61,7 +61,7 @@ public class TasksUtils {
 		String snName = sn.getName();
 		int count = sn.getReplicateCount();
 		for(long tmpTime = startHour; tmpTime < endHour; tmpTime+= 60*60*1000 ){
-			for(int i = 0; i<count;i++){
+			for(int i = 1; i<=count; i++){
 				atom = new AtomTaskModel();
 				atom.setStorageName(snName);
 				atom.setTaskOperation(opertationContent);
