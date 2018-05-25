@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskState;
+import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
@@ -21,6 +22,46 @@ import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 public class TaskStateLifeContral {
 	private static final Logger LOG = LoggerFactory.getLogger("TaskLife");
 	
+	/**
+	 * 概述：获取当前任务
+	 * @param release
+	 * @param prexTaskName
+	 * @param taskType
+	 * @param serverId
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static String getcurrentTaskName(MetaTaskManagerInterface release, String prexTaskName,TaskType taskType, String serverId){
+		String typeName = taskType.name();
+		String currentTaskName = null;
+		if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
+			prexTaskName = release.getFirstServerTask(typeName, serverId);
+			currentTaskName = prexTaskName;
+		}else{
+			currentTaskName = release.getNextTaskName(typeName, prexTaskName);
+		}
+		LOG.info("type: {},  prexTaskName :{} , currentTaskName: {}", typeName, prexTaskName, currentTaskName);
+		return currentTaskName;
+	}
+	/**
+	 * 概述：获取任务信息
+	 * @param release
+	 * @param taskName
+	 * @param serviceId
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static Pair<String, TaskModel> getTaskModel(MetaTaskManagerInterface release,TaskType taskType,String taskName, String serviceId){
+		String currentTaskName = getcurrentTaskName(release, taskName, taskType, serviceId);
+		if(BrStringUtils.isEmpty(currentTaskName)){
+			return null;
+		}
+		TaskModel task = release.getTaskContentNodeInfo(taskType.name(), taskName);
+		if(task != null && task.getTaskState() == TaskState.EXCEPTION.code()){
+			return new Pair<String,TaskModel>(taskName, task);
+		}
+		return null;
+	}
 	
 	/**
 	 * 概述：更新任务状态
