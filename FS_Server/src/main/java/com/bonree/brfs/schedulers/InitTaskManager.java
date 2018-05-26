@@ -215,8 +215,14 @@ public class InitTaskManager {
 			typeName = taskType.name();
 			currentTask = release.getLastSuccessTaskIndex(typeName, serverId);
 			if(BrStringUtils.isEmpty(currentTask)){
-			
 				currentTask = release.getFirstServerTask(typeName, serverId);
+			}
+			if(BrStringUtils.isEmpty(currentTask)){
+				currentTask = release.getFirstTaskName(typeName);
+			}
+			if(BrStringUtils.isEmpty(currentTask)){
+				LOG.info("{} task queue is empty", currentTask);
+				continue;
 			}
 			// 修复任务
 			recoveryTask(release, typeName, currentTask, serverId);
