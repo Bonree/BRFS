@@ -189,6 +189,17 @@ public class MultiRecover implements DataRecover {
         }
 
         LOG.info("begin normal recover");
+        
+        detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
+        // 注册节点
+        LOG.info("create:" + selfNode + "-------------" + detail);
+        // 无注册的话，则注册，否则不用注册
+        registerNode(selfNode, detail);
+
+        detail.setStatus(ExecutionStatus.RECOVER);
+        LOG.info("update:" + selfNode + "-------------" + detail);
+        updateDetail(selfNode, detail);
+        
 
         String snDataDir = dataDir + FileUtils.FILE_SEPARATOR + storageName;
         if (!FileUtils.isExist(snDataDir)) {
@@ -205,16 +216,8 @@ public class MultiRecover implements DataRecover {
         // 启动消费队列
         Thread cosumerThread = new Thread(consumerQueue());
         cosumerThread.start();
-
-        detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, timeFileCounts, 0, 0);
-
-        // 注册节点
-        LOG.info("create:" + selfNode + "-------------" + detail);
-        // 无注册的话，则注册，否则不用注册
-        registerNode(selfNode, detail);
-
-        detail.setStatus(ExecutionStatus.RECOVER);
-        LOG.info("update:" + selfNode + "-------------" + detail);
+        
+        detail.setTotalDirectories(timeFileCounts);
         updateDetail(selfNode, detail);
 
         LOG.info("deal the local server:" + idManager.getSecondServerID(balanceSummary.getStorageIndex()));
@@ -380,7 +383,7 @@ public class MultiRecover implements DataRecover {
                         } else if (status.get().equals(TaskStatus.PAUSE)) {
                             Thread.sleep(1000);
                         } else if (status.get().equals(TaskStatus.RUNNING)) {
-                            fileRecover = fileRecoverQueue.poll(1,TimeUnit.SECONDS);
+                            fileRecover = fileRecoverQueue.poll(1, TimeUnit.SECONDS);
                             if (fileRecover != null) {
                                 String localDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover.getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
                                 String remoteDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover.getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
