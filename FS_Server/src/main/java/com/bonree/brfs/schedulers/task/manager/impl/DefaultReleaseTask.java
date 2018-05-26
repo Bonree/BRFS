@@ -262,7 +262,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		byte[] data = null;
 		String taskPath = null;
 		int lastLostIndex = -1;
-		for (int i = 0; i <=  size; i++) {
+		for (int i = 0; i < size; i++) {
 			taskName = taskInfos.get(i);
 			path = new StringBuilder();
 			path.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName).append("/").append(
