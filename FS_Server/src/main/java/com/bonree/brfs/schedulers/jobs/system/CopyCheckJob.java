@@ -119,6 +119,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
 		for (Map.Entry<String, List<String>> entry : losers.entrySet()) {
 			atom = new AtomTaskModel();
+			atom.setStorageName(entry.getKey());
 			atom.setDirName(dirName);
 			atom.setFiles(entry.getValue());
 			atoms.add(atom);
