@@ -34,6 +34,9 @@ public class TaskStateLifeContral {
 	public static String getcurrentTaskName(MetaTaskManagerInterface release, String prexTaskName,TaskType taskType, String serverId){
 		String typeName = taskType.name();
 		String currentTaskName = null;
+		if(BrStringUtils.isEmpty(prexTaskName)){
+			prexTaskName = release.getLastSuccessTaskIndex(typeName, serverId);
+		}
 		if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
 			currentTaskName = release.getFirstServerTask(typeName, serverId);
 		}else{
