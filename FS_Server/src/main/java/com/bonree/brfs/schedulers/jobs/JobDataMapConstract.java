@@ -194,7 +194,7 @@ public class JobDataMapConstract {
 		dataMap.put(ZOOKEEPER_ADDRESS, zkHost);
 		return dataMap;
 	}
-	public static Map<String, String> createCOPYDataMap(String taskName,String serviceId, long invertalTime, String zkHost, String path){
+	public static Map<String, String> createCOPYDataMap(String taskName,String serviceId, long invertalTime, String zkHost, String path,String dataPath){
 		Map<String, String> dataMap = new HashMap<>();
 		dataMap.put(TASK_NAME, "");
 		dataMap.put(SERVER_ID, serviceId);
@@ -205,6 +205,8 @@ public class JobDataMapConstract {
 		dataMap.put(TASK_REPEAT_RUN_COUNT, "-1");
 		dataMap.put(TASK_RUN_INVERAL_TIME, invertalTime+"");
 		dataMap.put(BATCH_SIZE, "10");
+		dataMap.put(DATA_PATH, dataPath);
+		
 		return dataMap;
 	}
 }

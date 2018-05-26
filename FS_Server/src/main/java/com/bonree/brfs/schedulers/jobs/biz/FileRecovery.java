@@ -1,6 +1,7 @@
 
 package com.bonree.brfs.schedulers.jobs.biz;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class FileRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static TaskResultModel recoveryDirs(String content, String zkHosts, String baseRoutesPath) {
+	public static TaskResultModel recoveryDirs(String content, String zkHosts, String baseRoutesPath,String dataPath) {
 		TaskResultModel result = new TaskResultModel();
 		BatchAtomModel batch = converStringToBatch(content);
 		if(batch == null){
@@ -82,7 +83,7 @@ public class FileRecovery {
 			snSId = sim.getSecondServerID(snId);
 			parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
 			parser.updateRoute();
-			errors = recoveryFiles(sm, sim, parser, sn, atom);
+			errors = recoveryFiles(sm, sim, parser, sn, atom,dataPath);
 			if(errors == null || errors.isEmpty()){
 				result.add(atomR);
 				continue;
@@ -123,7 +124,7 @@ public class FileRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> recoveryFiles(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageNameNode snNode,AtomTaskModel atom) {
+	public static List<String> recoveryFiles(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageNameNode snNode,AtomTaskModel atom, String dataPath) {
 
 		String snName = atom.getStorageName();
 		String dirName = atom.getDirName();
@@ -137,7 +138,7 @@ public class FileRecovery {
 		boolean isSuccess = false;
 		List<String> errors = new ArrayList<String>();
 		for (String fileName : fileNames) {
-			isSuccess = recoveryFileByName( sm, sim, parser, snNode, fileName, dirName);
+			isSuccess = recoveryFileByName( sm, sim, parser, snNode, fileName, dirName, dataPath);
 			if(!isSuccess){
 				errors.add(fileName);
 			}
@@ -156,7 +157,7 @@ public class FileRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageNameNode snNode, String fileName,String dirName){
+	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageNameNode snNode, String fileName,String dirName, String dataPath){
 		String[] sss = null;
 		String remoteName = null;
 		Service remoteService = null;
@@ -182,6 +183,11 @@ public class FileRecovery {
 		}
 		
 		localPath = snName + "/" + localIndex + "/" + dirName + "/" + fileName;
+		
+		File file = new File(dataPath + "/"+localPath);
+		if(file.exists()){
+			return true;
+		}
 		remoteIndex = 0;
 		for (String snsid : sss) {
 			//排除自己

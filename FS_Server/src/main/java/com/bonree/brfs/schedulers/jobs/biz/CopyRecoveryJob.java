@@ -17,9 +17,10 @@ public class CopyRecoveryJob extends CycleJobWithZKTask {
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String zkHosts = data.getString(JobDataMapConstract.ZOOKEEPER_ADDRESS);
 		String baseRoutPath = data.getString(JobDataMapConstract.BASE_ROUTE_PATH);
+		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		TaskResultModel result = null;
 		String content = data.getString(currentIndex);
-		result = FileRecovery.recoveryDirs(content,zkHosts, baseRoutPath);
+		result = FileRecovery.recoveryDirs(content,zkHosts, baseRoutPath,dataPath);
 		TaskStateLifeContral.updateMapTaskMessage(context, result);
 	}
 
