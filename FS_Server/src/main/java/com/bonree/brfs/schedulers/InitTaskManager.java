@@ -214,8 +214,8 @@ public class InitTaskManager {
 		for(TaskType taskType : swtichList){
 			typeName = taskType.name();
 			currentTask = release.getLastSuccessTaskIndex(typeName, serverId);
-			if(!BrStringUtils.isEmpty(currentTask)){
-			}else{
+			if(BrStringUtils.isEmpty(currentTask)){
+			
 				currentTask = release.getFirstServerTask(typeName, serverId);
 			}
 			// 修复任务
@@ -247,14 +247,17 @@ public class InitTaskManager {
 		int size = tasks.size();
 		String taskName = null;
 		List<String> cList = null;
+		TaskServerNodeModel serverNode = new TaskServerNodeModel();
+		serverNode.setTaskState(TaskState.INIT.code());
 		for(int i = index; i < size; i++ ){
 			taskName = tasks.get(i);
 			if(BrStringUtils.isEmpty(taskName)){
 				continue;
 			}
 			cList = release.getTaskServerList(taskType, taskName);
+			
 			if(cList == null || cList.isEmpty() || !cList.contains(serverId)){
-				release.updateServerTaskContentNode(serverId, taskName, taskType, new TaskServerNodeModel());
+				release.updateServerTaskContentNode(serverId, taskName, taskType, serverNode);
 				int stat = release.queryTaskState(taskName, taskType);
 				if(TaskState.FINISH.code() == stat){
 					release.changeTaskContentNodeState(taskName, taskType, TaskState.RERUN.code());
