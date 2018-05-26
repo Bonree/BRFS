@@ -255,14 +255,14 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		if(taskInfos == null || taskInfos.isEmpty()){
 			return null;
 		}
-		int maxIndex = taskInfos.size() - 1;
+		int size = taskInfos.size();
 		StringBuilder path = null;
 		StringBuilder pPath = null;
 		String taskName = null;
 		byte[] data = null;
 		String taskPath = null;
 		int lastLostIndex = -1;
-		for (int i = 0; i <=  maxIndex; i--) {
+		for (int i = 0; i <=  size; i++) {
 			taskName = taskInfos.get(i);
 			path = new StringBuilder();
 			path.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName).append("/").append(
