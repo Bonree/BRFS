@@ -44,7 +44,7 @@ public enum SigarUtils {
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public int gatherCpuCoreCount()throws SigarException{
-        return new Sigar().getCpuInfoList().length;
+        return sigar.getCpuInfoList().length;
     }
     /**
      * 概述：获取内存大小
