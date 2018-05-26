@@ -93,14 +93,11 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		TaskModel prexTask = null;
 		List<String> taskList = null;
 		long preCreateTime = 0l;
-		boolean isFirst = false;
 		for(TaskType taskType : switchList){
 			//检查创建的时间间隔是否达到一小时
 			taskList = release.getTaskList(taskType.name());
 			if(taskList != null && !taskList.isEmpty()){
 				prexTaskName = taskList.get(taskList.size() - 1);
-			}else{
-				isFirst = true;
 			}
 			if(!BrStringUtils.isEmpty(prexTaskName)){
 				prexTask = release.getTaskContentNodeInfo(taskType.name(), prexTaskName);
@@ -108,7 +105,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			if(prexTask != null){
 				preCreateTime = prexTask.getCreateTime();
 			}
-			if(currentTime - preCreateTime< 60*60*1000 ){
+			if(currentTime - preCreateTime <= 60*60*1000 ){
 				LOG.info("skip create {} task", taskType.name());
 				continue;
 			}
@@ -118,7 +115,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
 				task = createTaskModel(snList, taskType, currentTime, checkTtl,"");
 			}else{
-				LOG.info("there is no task to create skip {}",taskType);
+				LOG.info("taskType :{} is no create method!!!",taskType);
 				continue;
 			}
 			// 任务为空，跳过
@@ -169,8 +166,12 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			creatTime = snn.getCreateTime();
 			//系统删除任务判断
 			if(TaskType.SYSTEM_DELETE.equals(taskType)){
+				if(snn.getTtl() < 0){
+					continue;
+				}
 				ttl = snn.getTtl()*1000;
 				if(currentTime - creatTime < ttl){
+					LOG.warn("no data is need delete !! del ttl : {}", ttl);
 					continue;
 				}
 			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){

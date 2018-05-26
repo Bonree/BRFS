@@ -96,7 +96,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		String taskName = release.updateTaskContentNode(newTask, taskType, null);
 		//补充任务节点
 		createServiceNodes(services, release, taskName);
-		LOG.info("create {} task {} success !!",taskType, taskName);
+		LOG.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>create {} task {} success !!",taskType, taskName);
 	}
 	/**
 	 * 概述：创建子任务信息
@@ -119,6 +119,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
 		for (Map.Entry<String, List<String>> entry : losers.entrySet()) {
 			atom = new AtomTaskModel();
+			atom.setStorageName(entry.getKey());
 			atom.setDirName(dirName);
 			atom.setFiles(entry.getValue());
 			atoms.add(atom);
@@ -174,11 +175,9 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		if(tasks != null && !tasks.isEmpty()){
 			String lasTask = tasks.get(tasks.size() - 1);			
 			TaskModel task = release.getTaskContentNodeInfo(taskType, lasTask);
-			LOG.info("TEST task {} {} ",taskType, lasTask);
 			if(task != null){
 				currentTime = task.getEndDataTime();
 				createTime = task.getCreateTime();
-				
 			}
 		}else{
 			LOG.info("{} task queue is empty !!", taskType);

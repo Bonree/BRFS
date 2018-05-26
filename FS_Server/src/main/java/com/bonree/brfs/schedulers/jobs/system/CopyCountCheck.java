@@ -125,6 +125,7 @@ public class CopyCountCheck {
 				continue;
 			}
 			fileCopyCount = calcFileCount(files);
+			LOG.info("copycount {}",fileCopyCount);
 			if(fileCopyCount == null || fileCopyCount.isEmpty()){
 				continue;
 			}
@@ -160,10 +161,11 @@ public class CopyCountCheck {
 				for(StorageNameNode sn : snList){
 					reCount = sn.getReplicateCount();
 					snName = sn.getName();
-					for(int i = 0; i <reCount; i++){
-						path = snName+File.separator+i+File.separator+dirName;
-						LOG.info("{}",path);
+					for(int i = 1; i <=reCount; i++){
+						//TODO 错误假死
+						path = File.separator+snName+File.separator+i+File.separator+dirName;
 						files =client.listFiles(path, 1);
+						LOG.info(">>>>> after {}",path);
 						if(files == null){
 							LOG.info("the list file of {} is null ", service.getServiceId());
 							continue;
@@ -171,8 +173,8 @@ public class CopyCountCheck {
 						if(!snMap.containsKey(sn)){
 							snMap.put(sn, new ArrayList<String>());
 						}
-						strs = converToStringList(files);
-						snMap.get(snName).addAll(strs);
+						strs = converToStringList(files, path);
+						snMap.get(sn).addAll(strs);
 					}
 				}
 			} catch (Exception e) {
@@ -197,25 +199,32 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static List<String> converToStringList(List<FileInfo> files){
+	private static List<String> converToStringList(List<FileInfo> files,String dir){
 		List<String> strs = new ArrayList<>();
 		String path = null;
 		String fileName = null;
 		int lastIndex = 0;
+		String dirName = getFileName(dir); 
 		for(FileInfo file : files){
 			path = file.getPath();
-			lastIndex = path.lastIndexOf("/");
-			if(lastIndex <0){
-				lastIndex = path.lastIndexOf("\\");
+			fileName = getFileName(path);
+			if(dirName.equals(fileName)){
 				continue;
 			}
-			if(lastIndex <0){
-				continue;
-			}
-			fileName = path.substring(lastIndex+1);
 			strs.add(fileName);
 		}
 		return strs;
+	}
+	public static String getFileName(String path){
+		int lastIndex = 0;
+		lastIndex = path.lastIndexOf("/");
+		if(lastIndex <0){
+			lastIndex = path.lastIndexOf("\\");
+		}
+		if(lastIndex <0){
+			return new String(path);
+		}
+		return path.substring(lastIndex+1);
 	}
 	/**
 	 * 概述：过滤出有效的集合

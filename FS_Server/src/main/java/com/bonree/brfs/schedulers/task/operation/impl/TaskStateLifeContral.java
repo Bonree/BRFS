@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskState;
+import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
@@ -20,6 +21,47 @@ import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 
 public class TaskStateLifeContral {
 	private static final Logger LOG = LoggerFactory.getLogger("TaskLife");
+	
+	/**
+	 * 概述：获取当前任务
+	 * @param release
+	 * @param prexTaskName
+	 * @param taskType
+	 * @param serverId
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static String getcurrentTaskName(MetaTaskManagerInterface release, String prexTaskName,TaskType taskType, String serverId){
+		String typeName = taskType.name();
+		String currentTaskName = null;
+		if(BrStringUtils.isEmpty(prexTaskName)){
+			prexTaskName = release.getLastSuccessTaskIndex(typeName, serverId);
+		}
+		if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
+			currentTaskName = release.getFirstServerTask(typeName, serverId);
+		}else{
+			currentTaskName = release.getNextTaskName(typeName, prexTaskName);
+		}
+		LOG.info("type: {},  prexTaskName :{} , currentTaskName: {}", typeName, prexTaskName, currentTaskName);
+		return currentTaskName;
+	}
+	/**
+	 * 概述：获取任务信息
+	 * @param release
+	 * @param prexTaskName
+	 * @param serviceId
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static Pair<String, TaskModel> getTaskModel(MetaTaskManagerInterface release,TaskType taskType,String prexTaskName, String serviceId){
+		String currentTaskName = getcurrentTaskName(release, prexTaskName, taskType, serviceId);
+		if(BrStringUtils.isEmpty(currentTaskName)){
+			return null;
+		}
+		TaskModel task = release.getTaskContentNodeInfo(taskType.name(), currentTaskName);
+		return new Pair<String,TaskModel>(currentTaskName, task);
+	}
+	
 	/**
 	 * 概述：更新任务状态
 	 * @param serverId
@@ -34,10 +76,15 @@ public class TaskStateLifeContral {
 		if(!BrStringUtils.isEmpty(result)){
 			taskResult = JsonUtils.toObject(result, TaskResultModel.class);
 		}
+		if(BrStringUtils.isEmpty(taskname)){
+			LOG.info("task name is empty !!! {} {} {}", taskType,taskname, serverId);
+			return;
+		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		TaskServerNodeModel sTask = release.getTaskServerContentNodeInfo(taskType, taskname, serverId);
 		if(sTask == null){
+			LOG.info("server task is null !!! {} {} {}", taskType,taskname, serverId);
 			sTask = new TaskServerNodeModel();
 		}
 		sTask.setResult(taskResult);
@@ -69,7 +116,9 @@ public class TaskStateLifeContral {
 		}
 		TaskModel task = release.getTaskContentNodeInfo(taskType, taskname);
 		if(task == null){
+			LOG.info("task is null !!! {} {} {}", taskType,taskname);
 			task = new TaskModel();
+			task.setCreateTime(System.currentTimeMillis());
 		}
 		if(isException){
 			task.setTaskState(TaskState.EXCEPTION.code());

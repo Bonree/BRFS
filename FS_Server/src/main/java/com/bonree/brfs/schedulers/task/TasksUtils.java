@@ -55,13 +55,13 @@ public class TasksUtils {
 		}else{
 			startHour = startTime/1000/60/60*60*60*1000;
 		}
-		long endHour = endTime/1000/60/60*60*60*1000;
+		long endHour = endTime/1000/60/60*60*60*1000 + 3600000;
 		AtomTaskModel atom = null;
 		String dirName = null;
 		String snName = sn.getName();
 		int count = sn.getReplicateCount();
 		for(long tmpTime = startHour; tmpTime < endHour; tmpTime+= 60*60*1000 ){
-			for(int i = 0; i<count;i++){
+			for(int i = 1; i<=count; i++){
 				atom = new AtomTaskModel();
 				atom.setStorageName(snName);
 				atom.setTaskOperation(opertationContent);

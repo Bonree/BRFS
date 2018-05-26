@@ -201,7 +201,6 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 	 */
 	private AtomTaskResultModel deleteFiles(String snName, String dirName,String dataPath){
 		String path = dataPath + File.separator + dirName;
-		LOG.info("Test path :{}", path);
 		if(!FileUtils.isExist(path)){
 			LOG.warn("{} is not exists !!",path);
 			return null;
