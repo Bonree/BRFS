@@ -1,5 +1,6 @@
 package com.bonree.brfs.disknode.server.handler;
 
+import java.io.IOException;
 import java.util.BitSet;
 
 import org.slf4j.Logger;
@@ -12,20 +13,24 @@ import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
+import com.bonree.brfs.disknode.data.write.FileWriterManager;
+import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
 import com.bonree.brfs.disknode.data.write.record.RecordFileBuilder;
+import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
+import com.bonree.brfs.disknode.utils.Pair;
 
 public class WritingInfoMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WritingInfoMessageHandler.class);
 	
 	private DiskContext context;
-	private RecordCollectionManager collectionManager;
+	private FileWriterManager nodeManager;
 	
-	public WritingInfoMessageHandler(DiskContext context, RecordCollectionManager collectionManager) {
+	public WritingInfoMessageHandler(DiskContext context, FileWriterManager nodeManager) {
 		this.context = context;
-		this.collectionManager = collectionManager;
+		this.nodeManager = nodeManager;
 	}
 
 	@Override
@@ -34,17 +39,19 @@ public class WritingInfoMessageHandler implements MessageHandler {
 		
 		LOG.info("GET INFO [{}]", msg.getPath());
 		String filePath = context.getConcreteFilePath(msg.getPath());
-		RecordCollection recordSet = null;
 		try {
-			recordSet = collectionManager.getRecordCollectionReadOnly(filePath);
+			Pair<RecordFileWriter, WriteWorker> binding = nodeManager.getBinding(filePath, false);
 			
-			if(recordSet == null) {
+			if(binding == null) {
+				LOG.error("Can not find Record File Writer for file[{}]", filePath);
 				result.setSuccess(false);
 				result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
 				callback.completed(result);
 				return;
 			}
 			
+			binding.first().flush();
+			RecordCollection recordSet = binding.first().getRecordCollection();
 			String seqValue = msg.getParams().get("seq");
 			if(seqValue != null) {
 				int seq = Integer.parseInt(seqValue);
@@ -66,8 +73,8 @@ public class WritingInfoMessageHandler implements MessageHandler {
 			result.setSuccess(true);
 			result.setData(getAllSequence(recordSet).toByteArray());
 			callback.completed(result);
-		} finally {
-			CloseUtils.closeQuietly(recordSet);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	

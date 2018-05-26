@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.state.ConnectionState;
+import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.utils.ZKPaths;
 
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FileNodeFilter;
+import com.bonree.brfs.duplication.coordinator.FileNodeInvalidListener;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
 
 public class ZkFileNodeStorer implements FileNodeStorer {
@@ -57,8 +60,10 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 				fileName);
 		
 		try {
-			return JsonUtils.toObject(client.getData().forPath(fileNodePath), FileNode.class);
+			byte[] bytes = client.getData().forPath(fileNodePath);
+			return JsonUtils.toObject(bytes, FileNode.class);
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
@@ -82,9 +87,11 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 		List<FileNode> fileNodes = new ArrayList<FileNode>();
 		for(String fileName : getFileNameList()) {
 			FileNode node = getFileNode(fileName);
-			if(filter.filter(node)) {
-				fileNodes.add(getFileNode(fileName));
+			if(filter != null && !filter.filter(node)) {
+				continue;
 			}
+			
+			fileNodes.add(node);
 		}
 		
 		return fileNodes;
@@ -100,5 +107,34 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public void setFileNodeInvalidListener(FileNodeInvalidListener listener) {
+		client.getConnectionStateListenable().addListener(new ZkConnectionStateListener(listener));
+	}
+	
+	/**
+	 * 
+	 * 对Zookeeper的连接状态进行监听
+	 * 
+	 * @author yupeng
+	 *
+	 */
+	private class ZkConnectionStateListener implements ConnectionStateListener {
+		private FileNodeInvalidListener listener;
+		
+		public ZkConnectionStateListener(FileNodeInvalidListener listener) {
+			this.listener = listener;
+		}
+
+		@Override
+		public void stateChanged(CuratorFramework client, ConnectionState newState) {
+			if(!newState.isConnected() && listener != null) {
+				//如果连接断开则清理当前服务维护的所有文件节点
+				listener.invalid();
+			}
+		}
+		
 	}
 }

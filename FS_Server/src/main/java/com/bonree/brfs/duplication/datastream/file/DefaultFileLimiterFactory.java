@@ -63,6 +63,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		fileNode.setStorageName(storageNameNode.getName());
 		fileNode.setStorageId(storageNameNode.getId());
 		fileNode.setServiceId(service.getServiceId());
+		fileNode.setServiceGroup(service.getServiceGroup());
 		fileNode.setDuplicateNodes(nodes);
 		
 		FileLimiter fileLimiter = new FileLimiter(fileNode, DuplicationEnvironment.DEFAULT_MAX_FILE_SIZE);

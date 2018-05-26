@@ -3,11 +3,13 @@ package com.bonree.brfs.duplication.datastream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import com.bonree.brfs.common.asynctask.AsyncTaskGroup;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroupCallback;
 import com.bonree.brfs.common.asynctask.AsyncTaskResult;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
@@ -24,6 +27,7 @@ import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNode;
+import com.bonree.brfs.duplication.coordinator.FileNodeInvalidListener;
 import com.bonree.brfs.duplication.coordinator.FileNodeSink;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
@@ -31,6 +35,7 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.FileCloseListener;
 import com.bonree.brfs.duplication.datastream.file.FileLimiter;
 import com.bonree.brfs.duplication.datastream.file.FileLounge;
+import com.bonree.brfs.duplication.datastream.file.FileLoungeCleaner;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.tasks.MultiDataWriteTask;
 import com.bonree.brfs.duplication.recovery.FileRecovery;
@@ -46,13 +51,18 @@ public class DuplicateWriter {
 	private AsyncExecutor writeTaskExecutor = new AsyncExecutor(DEFAULT_DATA_WRITE_THREAD_NUM);
 	private static final int DEFAULT_RESULT_HANDLE_THREAD_NUM = 8;
 	private ExecutorService resultExecutor = Executors.newFixedThreadPool(DEFAULT_RESULT_HANDLE_THREAD_NUM);
+	private ScheduledExecutorService timedExecutor = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("File_Cleaner"));
+	
+	private static final long DEFAULT_CLEAN_FREQUENCY_MILLIS = TimeUnit.MINUTES.toMillis(1);
+	private final long cleanFrequencyMillis = DEFAULT_CLEAN_FREQUENCY_MILLIS;
 	
 	private FileCoordinator fileCoordinator;
 	private Service service;
 	private DiskNodeConnectionPool connectionPool;
 	
 	private FileLoungeFactory fileLoungeFactory;
-	private Map<Integer, FileLounge> fileLoungeList = new HashMap<Integer, FileLounge>();
+	private ConcurrentHashMap<Integer, FileLounge> fileLoungeList = new ConcurrentHashMap<Integer, FileLounge>();
+	private List<ScheduledFuture<?>> fileLoungeCleaners = new ArrayList<ScheduledFuture<?>>();
 	
 	private FileRecovery fileRecovery;
 	private ServerIDManager idManager;
@@ -64,6 +74,7 @@ public class DuplicateWriter {
 		this.idManager = idManager;
 		this.connectionPool = connectionPool;
 		this.fileCoordinator = fileCoordinator;
+		this.fileCoordinator.setFileNodeCleanListener(new FileInvalidator());
 		
 		try {
 			fileCoordinator.addFileNodeSink(new DefaultFileNodeSink());
@@ -82,6 +93,7 @@ public class DuplicateWriter {
 					fileLounge.setFileCloseListener(new FileNodeCloseListener());
 					fileLoungeList.put(storageId, fileLounge);
 					fileLounge.setFileCloseListener(new FileNodeCloseListener());
+					fileLoungeCleaners.add(timedExecutor.scheduleAtFixedRate(new FileLoungeCleaner(fileLounge), 0, cleanFrequencyMillis, TimeUnit.MILLISECONDS));
 				}
 			}
 		}
@@ -151,6 +163,18 @@ public class DuplicateWriter {
 		});
 	}
 	
+	private class FileInvalidator implements FileNodeInvalidListener {
+
+		@Override
+		public void invalid() {
+			fileLoungeList.clear();
+			for(ScheduledFuture<?> f : fileLoungeCleaners) {
+				f.cancel(false);
+			}
+		}
+		
+	}
+	
 	/**
 	 * 文件关闭监听接口
 	 * 
@@ -176,7 +200,9 @@ public class DuplicateWriter {
 								String filePath = FilePathBuilder.buildPath(fileNode, serverId);
 								
 								try {
+									LOG.info("file tailer--{}", file.getTailer().length);
 									WriteResult result = client.writeData(filePath, -2, file.getTailer());
+									LOG.info("write file[{}] TAILER result[{}]", filePath, result);
 									if(result != null) {
 										client.closeFile(filePath);
 										fileCoordinator.delete(file.getFileNode());

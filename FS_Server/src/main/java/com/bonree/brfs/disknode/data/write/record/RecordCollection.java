@@ -7,8 +7,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.bonree.brfs.common.utils.CloseUtils;
@@ -24,7 +24,7 @@ import com.bonree.brfs.disknode.data.write.FileWriter;
 public class RecordCollection implements Closeable, Iterable<RecordElement> {
 	private File recordFile;
 	private FileWriter recordWriter;
-	private List<InputStream> openedStreams = new ArrayList<InputStream>();
+	private List<InputStream> openedStreams = new LinkedList<InputStream>();
 	
 	private boolean deleteOnClose;
 	
@@ -122,6 +122,12 @@ public class RecordCollection implements Closeable, Iterable<RecordElement> {
 		
 		private void readNext() {
 			next = ProtoStuffUtils.readFrom(recordInput, RecordElement.class);
+			
+			if(next == null) {
+				//读完即关闭
+				CloseUtils.closeQuietly(recordInput);
+				openedStreams.remove(recordInput);
+			}
 		}
 	}
 }

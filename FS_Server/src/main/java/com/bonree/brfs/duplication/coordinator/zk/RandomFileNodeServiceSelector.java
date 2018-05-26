@@ -5,14 +5,24 @@ import java.util.Random;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.duplication.coordinator.FileNode;
-import com.bonree.brfs.duplication.coordinator.FileNodeServiceSelector;
+import com.bonree.brfs.duplication.coordinator.FileNodeSinkSelector;
 
-public class RandomFileNodeServiceSelector implements FileNodeServiceSelector {
+/**
+ * 随机选择
+ * 
+ * @author yupeng
+ *
+ */
+public class RandomFileNodeServiceSelector implements FileNodeSinkSelector {
 	private static Random random = new Random();
 
 	@Override
-	public Service selectWith(FileNode fileNode, List<Service> services) {
-		return services.get(random.nextInt(services.size()));
+	public Service selectWith(FileNode fileNode, List<Service> serviceList) {
+		if(serviceList.isEmpty()) {
+			return null;
+		}
+		
+		return serviceList.get(random.nextInt(serviceList.size()));
 	}
 
 }

@@ -42,7 +42,7 @@ public interface FileLounge {
 	/**
 	 * 清空当前所有文件节点
 	 */
-	void clear();
+	void clean();
 	
 	/**
 	 * 设置文件关闭事件监听接口，当文件关闭时可以做一些额外操作

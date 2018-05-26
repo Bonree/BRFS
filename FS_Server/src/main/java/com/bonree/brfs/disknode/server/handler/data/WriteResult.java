@@ -19,5 +19,13 @@ public class WriteResult {
 	public void setSize(int size) {
 		this.size = size;
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("{").append(sequence).append(", ").append(size).append("}");
+		
+		return builder.toString();
+	}
 
 }

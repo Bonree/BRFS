@@ -5,6 +5,14 @@ import com.google.common.base.Strings;
 public class DuplicateNode {
 	private String group;
 	private String id;
+	
+	public DuplicateNode() {
+	}
+	
+	public DuplicateNode(String group, String id) {
+		this.group = group;
+		this.id = id;
+	}
 
 	public String getGroup() {
 		return group;
