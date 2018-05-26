@@ -113,6 +113,7 @@ public class ServerIDManager {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
+    @Deprecated
     public boolean isNewService() {
         return firstLevelServerID.isNewServer();
     }
