@@ -70,7 +70,6 @@ public class ServerIDManager {
 
     public ServerIDManager(ServerConfig config, ZookeeperPaths zkBasePaths) {
         firstLevelServerID = new FirstLevelServerIDImpl(config.getZkHosts(), zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath(),zkBasePaths.getBaseRoutePath());
-        firstLevelServerID.initOrLoadServerID();
         virtualServerID = new VirtualServerIDImpl(config.getZkHosts(), zkBasePaths.getBaseServerIdSeqPath());
         otherServerIDCache = new ConcurrentHashMap<>();
         loadSecondServerIDCache(config.getZkHosts(), zkBasePaths.getBaseServerIdPath());
