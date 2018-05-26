@@ -109,7 +109,7 @@ public class DefaultFileRecovery implements FileRecovery {
 				
 				if(intersection.cardinality() == union.cardinality()) {
 					//如果交集和并集的数量一样，说明没有文件数据缺失
-					LOG.info("file[{}] is ok!");
+					LOG.info("file[{}] is ok!", target.getName());
 					listener.complete(target);
 					return;
 				}
@@ -140,7 +140,7 @@ public class DefaultFileRecovery implements FileRecovery {
 				LOG.info("checking---{}", filePath);
 				BitSet seqNumbers = connection.getClient().getWritingSequence(filePath);
 				
-				if(seqNumbers == null) {
+				if(seqNumbers == null || seqNumbers.cardinality() == 0) {
 					LOG.error("duplication node[{}, {}] of [{}] can not get file sequences, that's maybe a trouble!", node.getGroup(), node.getId(), target.getName());
 					continue;
 				}

@@ -30,9 +30,7 @@ public class DefaultDuplicationNodeSelector implements DuplicationNodeSelector {
 		for(int i = 0; i < n; i++) {
 			Service service = serviceList.get(index);
 			
-			nodes[i] = new DuplicateNode();
-			nodes[i].setGroup(service.getServiceGroup());
-			nodes[i].setId(service.getServiceId());
+			nodes[i] = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
 			
 			index = (index + 1) % n;
 		}

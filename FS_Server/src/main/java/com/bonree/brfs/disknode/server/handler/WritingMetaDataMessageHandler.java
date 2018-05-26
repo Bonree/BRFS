@@ -1,5 +1,7 @@
 package com.bonree.brfs.disknode.server.handler;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,21 +11,23 @@ import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.DiskContext;
+import com.bonree.brfs.disknode.data.write.FileWriterManager;
+import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
-import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
+import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
+import com.bonree.brfs.disknode.utils.Pair;
 
 public class WritingMetaDataMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WritingMetaDataMessageHandler.class);
 	
 	private DiskContext context;
-	private RecordCollectionManager collectionManager;
+	private FileWriterManager nodeManager;
 	
-	public WritingMetaDataMessageHandler(DiskContext context, RecordCollectionManager collectionManager) {
+	public WritingMetaDataMessageHandler(DiskContext context, FileWriterManager nodeManager) {
 		this.context = context;
-		this.collectionManager = collectionManager;
+		this.nodeManager = nodeManager;
 	}
 
 	@Override
@@ -33,22 +37,33 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 		LOG.info("GET META DATA [{}]", msg.getPath());
 		String filePath = context.getConcreteFilePath(msg.getPath());
 		
-		RecordCollection recordSet = null;
+		Pair<RecordFileWriter, WriteWorker> binding = nodeManager.getBinding(filePath, false);
+		
+		if(binding == null) {
+			LOG.error("Can not find Record File Writer for file[{}]", filePath);
+			result.setSuccess(false);
+			result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
+			callback.completed(result);
+			return;
+		}
+		
 		try {
-			recordSet = collectionManager.getRecordCollectionReadOnly(filePath);
-			
-			if(recordSet == null) {
-				result.setSuccess(false);
-				result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
-				callback.completed(result);
-				return;
-			}
+			binding.first().flush();
+			RecordCollection recordSet = binding.first().getRecordCollection();
 			
 			RecordElement lastEle = new RecordElement(-1, 0);
 			for(RecordElement ele : recordSet) {
 				if(lastEle.getSequence() < ele.getSequence()) {
 					lastEle = ele;
 				}
+			}
+			
+			if(lastEle.getSize() == 0) {
+				LOG.error("No record elements exists about file[{}]", filePath);
+				result.setSuccess(false);
+				result.setCause(new Exception("no record element exists!"));
+				callback.completed(result);
+				return;
 			}
 			
 			JSONObject json = new JSONObject();
@@ -58,8 +73,12 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 			result.setSuccess(true);
 			result.setData(BrStringUtils.toUtf8Bytes(json.toJSONString()));
 			callback.completed(result);
-		}finally {
-			CloseUtils.closeQuietly(recordSet);
+		} catch (IOException e) {
+			e.printStackTrace();
+			
+			result.setSuccess(false);
+			result.setCause(e);
+			callback.completed(result);
 		}
 	}
 	

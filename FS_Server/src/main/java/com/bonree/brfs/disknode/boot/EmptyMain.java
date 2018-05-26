@@ -64,13 +64,13 @@ public class EmptyMain implements LifeCycle {
 		
 		NettyHttpContextHandler infoHandler = new NettyHttpContextHandler(DiskContext.URI_INFO_NODE_ROOT);
 		NettyHttpRequestHandler infoRequestHandler = new NettyHttpRequestHandler();
-		infoRequestHandler.addMessageHandler("GET", new WritingInfoMessageHandler(context, recorderManager));
+		infoRequestHandler.addMessageHandler("GET", new WritingInfoMessageHandler(context, writerManager));
 		infoHandler.setNettyHttpRequestHandler(infoRequestHandler);
 		server.addContextHandler(infoHandler);
 		
 		NettyHttpContextHandler metaHandler = new NettyHttpContextHandler(DiskContext.URI_META_NODE_ROOT);
 		NettyHttpRequestHandler metaRequestHandler = new NettyHttpRequestHandler();
-		metaRequestHandler.addMessageHandler("GET", new WritingMetaDataMessageHandler(context, recorderManager));
+		metaRequestHandler.addMessageHandler("GET", new WritingMetaDataMessageHandler(context, writerManager));
 		metaHandler.setNettyHttpRequestHandler(metaRequestHandler);
 		server.addContextHandler(metaHandler);
 		

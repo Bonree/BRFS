@@ -9,11 +9,13 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.ThreadPoolUtil;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.client.WriteDataList;
 import com.bonree.brfs.disknode.client.WriteResultList;
+import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.worker.WriteTask;
@@ -21,6 +23,7 @@ import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 import com.bonree.brfs.disknode.utils.Pair;
+import com.google.common.primitives.Longs;
 
 public class WriteMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteMessageHandler.class);
@@ -44,13 +47,22 @@ public class WriteMessageHandler implements MessageHandler {
 			}
 			
 			WriteDataList dataList = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataList.class);
-			
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
 			if(binding == null) {
 				throw new IllegalStateException("File Writer is null");
 			}
 			
-			binding.second().put(new DataWriteTask(binding.first(), dataList.getDatas(), callback));
+			WriteData[] datas = dataList.getDatas();
+			if(datas.length == 1 && datas[0].getDiskSequence() < 0) {
+				if(datas[0].getBytes().length == 9) {
+					LOG.info("start writing file tailer for {}", realPath);
+					binding.first().flush();
+					byte[] crcCode = Longs.toByteArray(ByteUtils.crc(DataFileReader.readFile(realPath, 2, Integer.MAX_VALUE)));
+					System.arraycopy(crcCode, 0, datas[0].getBytes(), 0, 8);
+				}
+			}
+			
+			binding.second().put(new DataWriteTask(binding.first(), datas, callback));
 		} catch (Exception e) {
 			LOG.error("EEEERRRRRR", e);
 			HandleResult handleResult = new HandleResult();

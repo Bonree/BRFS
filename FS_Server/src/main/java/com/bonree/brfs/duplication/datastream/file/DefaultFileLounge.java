@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.utils.ThreadPoolUtil;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.utils.TimedObjectCollection;
 import com.bonree.brfs.duplication.utils.TimedObjectCollection.ObjectBuilder;
@@ -27,7 +26,7 @@ import com.bonree.brfs.duplication.utils.TimedObjectCollection.TimedObject;
  * @author chen
  *
  */
-public class DefaultFileLounge implements FileLounge {
+public class DefaultFileLounge implements FileLounge, Runnable {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileLounge.class);
 	
 	//对文件节点进行清理的集合大小阈值
@@ -36,6 +35,7 @@ public class DefaultFileLounge implements FileLounge {
 	private static final String KEY_FILE_USAGE_RATIO = "file_usage_ratio";
 	private static final double FILE_USAGE_RATIO_THRESHOLD = Double.parseDouble(System.getProperty(KEY_FILE_USAGE_RATIO, "0.99"));
 	private TimedObjectCollection<List<FileLimiter>> timedFileContainer;
+	private LinkedList<FileLimiter> removedFileList = new LinkedList<FileLimiter>();
 
 	private FileCloseListener fileCloseListener;
 	
@@ -45,20 +45,16 @@ public class DefaultFileLounge implements FileLounge {
 	//默认文件的时间分区间隔为一个小时
 	private final long patitionTimeInterval;
 	
-	private static final long DEFAULT_CLEAN_FREQUENCY_MILLIS = TimeUnit.MINUTES.toMillis(1);
-	private final long cleanFrequencyMillis;
-	
 	private int storageId;
 	
 	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory) {
-		this(storageId, fileLimiterFactory, DEFAULT_FILE_PATITION_TIME_INTERVAL, DEFAULT_CLEAN_FREQUENCY_MILLIS);
+		this(storageId, fileLimiterFactory, DEFAULT_FILE_PATITION_TIME_INTERVAL);
 	}
 	
-	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, long timeIntervalMillis, long cleanIntervalMillis) {
+	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, long timeIntervalMillis) {
 		this.storageId = storageId;
 		this.fileLimiterFactory = fileLimiterFactory;
 		this.patitionTimeInterval = timeIntervalMillis;
-		this.cleanFrequencyMillis = cleanIntervalMillis;
 		
 		this.timedFileContainer = new TimedObjectCollection<List<FileLimiter>>(
 				patitionTimeInterval, TimeUnit.MILLISECONDS, new ObjectBuilder<List<FileLimiter>>() {
@@ -69,8 +65,6 @@ public class DefaultFileLounge implements FileLounge {
 					}
 					
 				});
-		
-		ThreadPoolUtil.scheduleAtFixedRate(new FileCleaner(), 0, cleanFrequencyMillis, TimeUnit.MILLISECONDS);
 	}
 	
 	@Override
@@ -143,8 +137,88 @@ public class DefaultFileLounge implements FileLounge {
 	}
 	
 	@Override
-	public void clear() {
+	public void clean() {
+		List<TimedObject<List<FileLimiter>>> timedObjects = timedFileContainer.allObjects();
+		long currentTimeInterval = timedFileContainer.getTimeInterval(System.currentTimeMillis());
 		
+		for(TimedObject<List<FileLimiter>> obj : timedObjects) {
+			List<FileLimiter> fileList = obj.getObj();
+			LOG.info("{} FILE CLEANER---- {} >>> {}",new Date(), obj.getTimeInterval(), fileList.size());
+			
+			if(obj.getTimeInterval() < currentTimeInterval) {
+				LOG.info("clean historical file list!");
+				//历史时刻文件，清理所有能清理的文件
+				synchronized (fileList) {
+					Iterator<FileLimiter> iterator = fileList.iterator();
+					while(iterator.hasNext()) {
+						FileLimiter file = iterator.next();
+						if(!file.lock(this)) {
+							LOG.info("can not remove HISTORICAL locked file[{}]", file.getFileNode().getName());
+							continue;
+						}
+						
+						LOG.info("CLOSE historical file ---{}", file.getFileNode().getName());
+						removedFileList.add(file);
+						iterator.remove();
+					}
+				}
+				
+				if(fileList.isEmpty()) {
+					timedFileContainer.remove(obj.getTimeInterval());
+				}
+			} else {
+				//当前时刻的文件集合，只对有clean标记的文件做处理
+				synchronized (fileList) {
+					boolean cleanOverSize = fileList.size() >= FILE_SET_SIZE_CLEAN_THRESHOLD;
+					
+					if(!cleanOverSize) {
+						//文件数量没达到阈值，不进行清理
+						LOG.info("file list size[{}] is smaller than threshold[{}], don't clean list.", fileList.size(),  FILE_SET_SIZE_CLEAN_THRESHOLD);
+						continue;
+					}
+					
+					Iterator<FileLimiter> iterator = fileList.iterator();
+					while(iterator.hasNext()) {
+						FileLimiter file = iterator.next();
+						
+						if(Double.compare(file.getLength(), file.capacity() * FILE_USAGE_RATIO_THRESHOLD) < 0) {
+							//文件大小没达到指定阈值，不进行清理
+							LOG.info("ignore current file[{}] contains [{}] bytes, not reach [{} * {}]",
+									file.getFileNode().getName(),
+									file.getLength(),
+									file.capacity(),
+									FILE_USAGE_RATIO_THRESHOLD);
+							continue;
+						}
+						
+						if(!file.lock(this)) {
+							//无法锁定文件，说明当前文件还有写入操作，不进行清理
+							LOG.info("can not remove CURRENT locked file[{}]", file.getFileNode().getName());
+							continue;
+						}
+						
+						LOG.info("close current file ---{}", file.getFileNode().getName());
+						removedFileList.add(file);
+						iterator.remove();
+					}
+				}
+			}
+		}
+		
+		if(fileCloseListener == null) {
+			removedFileList.clear();
+			return;
+		}
+		
+		Iterator<FileLimiter> iterator = removedFileList.iterator();
+		while(iterator.hasNext()) {
+			try {
+				fileCloseListener.close(iterator.next());
+				
+				iterator.remove();
+			} catch (Exception e) {
+			}
+		}
 	}
 
 	@Override
@@ -152,92 +226,6 @@ public class DefaultFileLounge implements FileLounge {
 		this.fileCloseListener = listener;
 	}
 	
-	private class FileCleaner implements Runnable {
-		private LinkedList<FileLimiter> removedFileList = new LinkedList<FileLimiter>();
-
-		@Override
-		public void run() {
-			List<TimedObject<List<FileLimiter>>> timedObjects = timedFileContainer.allObjects();
-			long currentTimeInterval = timedFileContainer.getTimeInterval(System.currentTimeMillis());
-			
-			for(TimedObject<List<FileLimiter>> obj : timedObjects) {
-				List<FileLimiter> fileList = obj.getObj();
-				LOG.info("{} FILE CLEANER---- {} >>> {}",new Date(), obj.getTimeInterval(), fileList.size());
-				
-				if(obj.getTimeInterval() < currentTimeInterval) {
-					LOG.info("clean historical file list!");
-					//历史时刻文件，清理所有能清理的文件
-					synchronized (fileList) {
-						Iterator<FileLimiter> iterator = fileList.iterator();
-						while(iterator.hasNext()) {
-							FileLimiter file = iterator.next();
-							if(!file.lock(this)) {
-								LOG.info("can not remove HISTORICAL locked file[{}]", file.getFileNode().getName());
-								continue;
-							}
-							
-							LOG.info("CLOSE historical file ---{}", file.getFileNode().getName());
-							removedFileList.add(file);
-							iterator.remove();
-						}
-					}
-					
-					if(fileList.isEmpty()) {
-						timedFileContainer.remove(obj.getTimeInterval());
-					}
-				} else {
-					//当前时刻的文件集合，只对有clean标记的文件做处理
-					synchronized (fileList) {
-						boolean cleanOverSize = fileList.size() >= FILE_SET_SIZE_CLEAN_THRESHOLD;
-						
-						if(!cleanOverSize) {
-							//文件数量没达到阈值，不进行清理
-							LOG.info("file list size[{}] is smaller than threshold[{}], don't clean list.", fileList.size(),  FILE_SET_SIZE_CLEAN_THRESHOLD);
-							continue;
-						}
-						
-						Iterator<FileLimiter> iterator = fileList.iterator();
-						while(iterator.hasNext()) {
-							FileLimiter file = iterator.next();
-							
-							if(Double.compare(file.getLength(), file.capacity() * FILE_USAGE_RATIO_THRESHOLD) < 0) {
-								//文件大小没达到指定阈值，不进行清理
-								LOG.info("ignore current file[{}] contains [{}] bytes, not reach [{} * {}]",
-										file.getFileNode().getName(),
-										file.getLength(),
-										file.capacity(),
-										FILE_USAGE_RATIO_THRESHOLD);
-								continue;
-							}
-							
-							if(!file.lock(this)) {
-								//无法锁定文件，说明当前文件还有写入操作，不进行清理
-								LOG.info("can not remove CURRENT locked file[{}]", file.getFileNode().getName());
-								continue;
-							}
-							
-							LOG.info("close current file ---{}", file.getFileNode().getName());
-							removedFileList.add(file);
-							iterator.remove();
-						}
-					}
-				}
-			}
-			
-			if(fileCloseListener == null) {
-				removedFileList.clear();
-				return;
-			}
-			
-			Iterator<FileLimiter> iterator = removedFileList.iterator();
-			while(iterator.hasNext()) {
-				try {
-					fileCloseListener.close(iterator.next());
-					
-					iterator.remove();
-				} catch (Exception e) {
-				}
-			}
-		}
-	}
+	@Override
+	public void run() {}
 }
