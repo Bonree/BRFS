@@ -8,6 +8,8 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 
+import com.bonree.brfs.authentication.SimpleAuthentication;
+import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.exception.ConfigParseException;
 import com.bonree.brfs.common.service.Service;
@@ -54,7 +56,6 @@ public class ServerMain {
             System.exit(1);
         }
         String brfsHome = args[0];
-        // String brfsHome = "E:/BRFS1";
         try {
             Configuration conf = Configuration.getInstance();
             conf.parse(brfsHome + "/config/server.properties");
@@ -62,14 +63,23 @@ public class ServerMain {
             ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
             StorageConfig storageConfig = StorageConfig.parse(conf);
             ResourceTaskConfig resourceConfig = ResourceTaskConfig.parse(conf);
+            
+            CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
+            CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
 
             CuratorCacheFactory.init(serverConfig.getZkHosts());
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
+            
+            SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client.getInnerClient());
+            
+            UserModel model = authentication.getUser("root");
+            if(model == null) {
+                LOG.error("please init server!!!");
+                System.exit(1);
+            }
+            
             ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
             idManager.getFirstServerID();
-
-            CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
-            CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
 
             StorageNameManager snManager = new DefaultStorageNameManager(storageConfig, client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);
             snManager.addStorageNameStateListener(new StorageNameStateListener() {

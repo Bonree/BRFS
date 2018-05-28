@@ -98,10 +98,10 @@ public class SimpleAuthentication implements UserOperation {
         }
     }
 
-    private SimpleAuthentication(String basePath, String zkUrl) {
+    private SimpleAuthentication(String basePath, CuratorFramework client) {
         String userPath = BrStringUtils.trimBasePath(basePath);
         userCache = new ConcurrentHashMap<String, UserModel>();
-        userOpt = new ZookeeperUserOperation(zkUrl, userPath);
+        userOpt = new ZookeeperUserOperation(client, userPath);
         List<UserModel> userList = userOpt.getUserList();
         for (UserModel user : userList) {
             userCache.put(user.getUserName(), user);
@@ -119,12 +119,12 @@ public class SimpleAuthentication implements UserOperation {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public static SimpleAuthentication getAuthInstance(String basePath, String zkUrl) {
+    public static SimpleAuthentication getAuthInstance(String basePath, CuratorFramework client) {
         LOG.info("init SimpleAuthentication...");
         if (auth == null) {
             synchronized (SimpleAuthentication.class) {
                 if (auth == null) {
-                    auth = new SimpleAuthentication(basePath, zkUrl);
+                    auth = new SimpleAuthentication(basePath, client);
                 }
 
             }

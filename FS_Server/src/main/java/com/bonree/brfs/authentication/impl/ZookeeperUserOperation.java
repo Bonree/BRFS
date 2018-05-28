@@ -3,6 +3,7 @@ package com.bonree.brfs.authentication.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,30 +27,25 @@ public class ZookeeperUserOperation implements UserOperation {
 
     private final static String ROOT_USER = "root";
 
-    private String zkUrl;
+    private CuratorClient curatorClient;
 
     private final static String SEPARATOR = "/";
 
     private String basePath;
 
-    public ZookeeperUserOperation(String zkUrl, String basePath) {
-        this.zkUrl = zkUrl;
+    public ZookeeperUserOperation(CuratorFramework client, String basePath) {
+        this.curatorClient = CuratorClient.wrapClient(client);
         this.basePath = BrStringUtils.trimBasePath(basePath);
     }
 
     @Override
     public void createUser(UserModel user) {
-        CuratorClient client = CuratorClient.getClientInstance(zkUrl);
-        try {
-            String userNode = basePath + SEPARATOR + user.getUserName();
-            String jsonStr = JSON.toJSONString(user);
-            if (!client.checkExists(userNode)) {
-                client.createPersistent(userNode, false, jsonStr.getBytes());
-            } else {
-                LOG.warn("the user:" + user.getUserName() + " is exist!");
-            }
-        } finally {
-            client.close();
+        String userNode = basePath + SEPARATOR + user.getUserName();
+        String jsonStr = JSON.toJSONString(user);
+        if (!curatorClient.checkExists(userNode)) {
+            curatorClient.createPersistent(userNode, false, jsonStr.getBytes());
+        } else {
+            LOG.warn("the user:" + user.getUserName() + " is exist!");
         }
     }
 
@@ -59,56 +55,39 @@ public class ZookeeperUserOperation implements UserOperation {
             LOG.warn("can not delete: " + ROOT_USER);
             return;
         }
-        CuratorClient client = CuratorClient.getClientInstance(zkUrl);
-        try {
-            String userNode = basePath + SEPARATOR + userName;
-            client.delete(userNode, false);
-        } finally {
-            client.close();
-        }
+        String userNode = basePath + SEPARATOR + userName;
+        curatorClient.delete(userNode, false);
     }
 
     @Override
     public void updateUser(UserModel user) {
-        CuratorClient client = CuratorClient.getClientInstance(zkUrl);
-        try {
-            String userNode = basePath + SEPARATOR + user.getUserName();
-            String jsonStr = JSON.toJSONString(user);
-            client.setData(userNode, jsonStr.getBytes());
-        } finally {
-            client.close();
-        }
+        String userNode = basePath + SEPARATOR + user.getUserName();
+        String jsonStr = JSON.toJSONString(user);
+        curatorClient.setData(userNode, jsonStr.getBytes());
     }
 
     @Override
     public UserModel getUser(String userName) {
-        CuratorClient client = CuratorClient.getClientInstance(zkUrl);
-        try {
-            String userNode = basePath + SEPARATOR + userName;
-            String jsonStr = new String(client.getData(userNode));
-            UserModel user = JSON.parseObject(jsonStr, UserModel.class);
-            return user;
-        } finally {
-            client.close();
+        String userNode = basePath + SEPARATOR + userName;
+        if (!curatorClient.checkExists(userNode)) {
+            return null;
         }
+        String jsonStr = new String(curatorClient.getData(userNode));
+        UserModel user = JSON.parseObject(jsonStr, UserModel.class);
+        return user;
     }
 
     @Override
     public List<UserModel> getUserList() {
-        CuratorClient client = CuratorClient.getClientInstance(zkUrl);
-        try {
-            List<UserModel> userList = new ArrayList<>();
-            List<String> userNameList = client.getChildren(basePath);
-            if (userNameList != null && userNameList.size() > 0) {
-                for (String userName : userNameList) {
-                    UserModel user = getUser(userName);
-                    userList.add(user);
-                }
+        List<UserModel> userList = new ArrayList<>();
+        List<String> userNameList = curatorClient.getChildren(basePath);
+        if (userNameList != null && userNameList.size() > 0) {
+            for (String userName : userNameList) {
+                UserModel user = getUser(userName);
+                userList.add(user);
             }
-            return userList;
-        } finally {
-            client.close();
         }
+        return userList;
     }
 
 }
