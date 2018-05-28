@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -407,7 +408,7 @@ public class TaskDispatcher {
 
                     // 所有的服务都则发布迁移规则，并清理任务
                     if (finishFlag) {
-                        
+
                         if (bts.getTaskType() == RecoverType.VIRTUAL) {
                             String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
                             VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
@@ -433,22 +434,22 @@ public class TaskDispatcher {
                         }
 
                         List<ChangeSummary> changeSummaries = cacheSummaryCache.get(bts.getStorageIndex());
-                        
+
                         // 清理zk上的变更
                         LOG.info("status delete:" + bts.getChangeID());
                         String changePath = changesPath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
                         LOG.info("delete : " + changePath);
                         curatorClient.checkAndDelte(changePath, false);
-                        
-                        //清理缓存
+
+                        // 清理缓存
                         for (ChangeSummary cs : changeSummaries) {
                             if (cs.getChangeID().equals(bts.getChangeID())) {
                                 changeSummaries.remove(cs);
                             }
                         }
                         removeRunTask(bts.getStorageIndex());
-                        
-                        //删除zk上的任务
+
+                        // 删除zk上的任务
                         delBalanceTask(bts);
                     }
                 }
@@ -456,12 +457,12 @@ public class TaskDispatcher {
         }
 
     }
-    
+
     public void syncAuditTask(List<ChangeSummary> changeSummaries) {
         try {
             lock.lock();
             auditTask(changeSummaries);
-        }finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -712,7 +713,12 @@ public class TaskDispatcher {
         if (changeSummaries.size() > 1) {
             String changeID = currentTask.getChangeID();
             // 找到正在执行的变更
-            ChangeSummary runChangeSummary = changeSummaries.stream().filter(x -> x.getChangeID().equals(changeID)).findFirst().get();
+            Optional<ChangeSummary> runChangeOpt = changeSummaries.stream().filter(x -> x.getChangeID().equals(changeID)).findFirst();
+            if (!runChangeOpt.isPresent()) {
+                LOG.error("some thing error!" + changeID + ":is not exist!!!");
+                return;
+            }
+            ChangeSummary runChangeSummary = runChangeOpt.get();
             LOG.info("run change summary:" + runChangeSummary);
             for (ChangeSummary cs : changeSummaries) {
 
