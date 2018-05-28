@@ -36,7 +36,7 @@ public class VirtualDuplicationNodeSelector implements DuplicationNodeSelector {
 		
 		int nodeIndex = 0;
 		//分配真实服务节点
-		for(; nodeIndex < serviceCount; nodeIndex++) {
+		for(; nodeIndex < serviceCount && nodeIndex < nums; nodeIndex++) {
 			Service service = serviceList.get(index);
 			
 			nodes[nodeIndex] = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
@@ -46,12 +46,14 @@ public class VirtualDuplicationNodeSelector implements DuplicationNodeSelector {
 		
 		//分配虚拟服务节点
 		int virtualCount = nums - nodeIndex;
-		LOG.info("---get virtual id---{}", virtualCount);
-		for(String virtualId : idManager.getVirtualServerID(storageId, virtualCount)) {
-			LOG.info("virtual id---{}", virtualId);
-			nodes[nodeIndex] = new DuplicateNode(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP, virtualId);
-			
-			nodeIndex++;
+		if(virtualCount > 0) {
+			LOG.info("---get virtual id---{}", virtualCount);
+			for(String virtualId : idManager.getVirtualServerID(storageId, virtualCount)) {
+				LOG.info("virtual id---{}", virtualId);
+				nodes[nodeIndex] = new DuplicateNode(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP, virtualId);
+				
+				nodeIndex++;
+			}
 		}
 		
 		return nodes;
