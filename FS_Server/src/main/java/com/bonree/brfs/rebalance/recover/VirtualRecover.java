@@ -22,10 +22,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.rebalance.DataRecover.ExecutionStatus;
 import com.bonree.brfs.rebalance.record.BalanceRecord;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
@@ -140,6 +137,16 @@ public class VirtualRecover implements DataRecover {
         }
 
         LOG.info("begin virtual recover");
+        
+        detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
+        // 注册节点
+        LOG.info("create:" + selfNode + "-------------" + detail);
+        // 无注册的话，则注册，否则不用注册
+        registerNode(selfNode, detail);
+
+        detail.setStatus(ExecutionStatus.RECOVER);
+        LOG.info("update:" + selfNode + "-------------" + detail);
+        updateDetail(selfNode, detail);
 
         int timeFileCounts = 0;
         String snDataDir = dataDir + FileUtils.FILE_SEPARATOR + storageName;
@@ -162,15 +169,8 @@ public class VirtualRecover implements DataRecover {
 
         Thread cosumerThread = new Thread(consumerQueue());
         cosumerThread.start();
-
-        detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, timeFileCounts, 0, 0);
-        // 注册节点
-        LOG.info("create:" + selfNode + "-------------" + detail);
-        // 无注册的话，则注册，否则不用注册
-        registerNode(selfNode, detail);
-
-        detail.setStatus(ExecutionStatus.RECOVER);
-        LOG.info("update:" + selfNode + "-------------" + detail);
+        
+        detail.setTotalDirectories(timeFileCounts);
         updateDetail(selfNode, detail);
 
         String remoteSecondId = balanceSummary.getInputServers().get(0);

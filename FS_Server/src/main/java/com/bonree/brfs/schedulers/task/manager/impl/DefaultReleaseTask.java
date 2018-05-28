@@ -227,6 +227,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			byte[] data = null;
 			String taskPath = null;
 			int lastLostIndex = -1;
+			TaskServerNodeModel tmpR = null;
 			for (int i = maxIndex; i >= 0; i--) {
 				taskName = taskInfos.get(i);
 				path = new StringBuilder();
@@ -236,9 +237,11 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				if (!client.checkExists(taskPath)) {
 					continue;
 				}
-				int stat = queryTaskState(taskName, taskType);
-				// 不成功的跳过
-				if (stat != TaskState.FINISH.code()) {
+				tmpR = getTaskServerContentNodeInfo(taskType, taskName, serverId);
+				if(tmpR == null){
+					continue;
+				}
+				if(tmpR.getTaskState() != TaskState.FINISH.code()){
 					continue;
 				}
 				return taskInfos.get(i);

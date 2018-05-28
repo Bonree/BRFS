@@ -81,6 +81,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			e.printStackTrace();
 		}finally{
 
+			LOG.info("batchId {}", batchIndex);
 			if(batchIndex >= 1){
 				LOG.info("------------------- work>>>work");
 				TaskResultModel resultTask = new TaskResultModel();

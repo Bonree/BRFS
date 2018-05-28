@@ -21,13 +21,22 @@ public class TaskStateLifeContralTest {
 		release.setPropreties("192.168.101.86:2181", "/brfs/zcgTest/tasks", "/brfs/zcgTest/locks");
 		TaskModel task = new TaskModel();
 		task.setCreateTime(System.currentTimeMillis());
-		task.setTaskState(TaskState.INIT.code());
+		task.setTaskState(TaskState.FINISH.code());
 		task.setTaskType(TaskType.SYSTEM_COPY_CHECK.code());
 		TaskServerNodeModel server = new TaskServerNodeModel();
-		server.setTaskState(TaskState.INIT.code());
+		server.setTaskState(TaskState.FINISH.code());
 		for(int i = 0; i<=10;i++){
 			String taskName = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
 			release.updateServerTaskContentNode("10", taskName, TaskType.SYSTEM_COPY_CHECK.name(), server);
+		}
+		task.setTaskState(TaskState.RERUN.code());
+		String taskName = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
+		release.updateServerTaskContentNode("10", taskName, TaskType.SYSTEM_COPY_CHECK.name(), server);
+		task.setTaskState(TaskState.INIT.code());
+		server.setTaskState(TaskState.INIT.code());
+		for(int i = 0; i<=10;i++){
+			String taskName1 = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
+			release.updateServerTaskContentNode("10", taskName1, TaskType.SYSTEM_COPY_CHECK.name(), server);
 		}
 		Pair<String, TaskModel> pair = TaskStateLifeContral.getTaskModel(release, TaskType.SYSTEM_COPY_CHECK, null, "10");
 		if(pair == null){
