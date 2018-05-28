@@ -31,7 +31,7 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
 
     private final String basePath;
 
-    private String zkHosts;
+    private CuratorClient client;
 
     private final static String NORMAL_DATA = "normal";
 
@@ -69,8 +69,8 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
         }
     }
 
-    public VirtualServerIDImpl(String zkHosts, String baseServerIDSeq) {
-        this.zkHosts = zkHosts;
+    public VirtualServerIDImpl(CuratorClient client, String baseServerIDSeq) {
+        this.client = client;
         this.basePath = BrStringUtils.trimBasePath(baseServerIDSeq);
         this.lockPath = basePath + SEPARATOR + LOCKS_PATH_PART;
         this.virtualServersPath = basePath + SEPARATOR + VIRTUAL_SERVERS;
@@ -83,63 +83,47 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
     @Override
     public synchronized String genVirtualID(int storageIndex) {
         String serverId = null;
-        CuratorClient client = null;
+        String virtualNode = basePath + SEPARATOR + VIRTUAL_NODE;
+        VirtualGen genExecutor = new VirtualGen(virtualNode, storageIndex);
+        CuratorLocksClient<String> lockClient = new CuratorLocksClient<String>(client, lockPath, genExecutor, "genVirtualIdentification");
         try {
-            client = CuratorClient.getClientInstance(zkHosts);
-            String virtualNode = basePath + SEPARATOR + VIRTUAL_NODE;
-            VirtualGen genExecutor = new VirtualGen(virtualNode, storageIndex);
-            CuratorLocksClient<String> lockClient = new CuratorLocksClient<String>(client, lockPath, genExecutor, "genVirtualIdentification");
-            try {
-                serverId = lockClient.execute();
-            } catch (Exception e) {
-                LOG.error("getVirtureIdentification error!", e);
-            }
-        } finally {
-            if (client != null) {
-                client.close();
-            }
+            serverId = lockClient.execute();
+        } catch (Exception e) {
+            LOG.error("getVirtureIdentification error!", e);
         }
         return serverId;
     }
 
     @Override
     public synchronized List<String> getVirtualID(int storageIndex, int count, String selfFirstID) {
-        CuratorClient client = null;
         List<String> resultVirtualIds = new ArrayList<String>(count);
-        try {
-            client = CuratorClient.getClientInstance(zkHosts);
-            String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
-            List<String> virtualIds = client.getChildren(storageSIDPath);
-            // 排除无效的虚拟ID
-            virtualIds = filterVirtualId(client, storageIndex, virtualIds, INVALID_DATA);
-            if (virtualIds == null) {
-                for (int i = 0; i < count; i++) {
+        String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
+        List<String> virtualIds = client.getChildren(storageSIDPath);
+        // 排除无效的虚拟ID
+        virtualIds = filterVirtualId(client, storageIndex, virtualIds, INVALID_DATA);
+        if (virtualIds == null) {
+            for (int i = 0; i < count; i++) {
+                String tmp = genVirtualID(storageIndex);
+                resultVirtualIds.add(tmp);
+            }
+        } else {
+            if (virtualIds.size() < count) {
+                resultVirtualIds.addAll(virtualIds);
+                int distinct = count - virtualIds.size();
+                for (int i = 0; i < distinct; i++) {
                     String tmp = genVirtualID(storageIndex);
                     resultVirtualIds.add(tmp);
                 }
             } else {
-                if (virtualIds.size() < count) {
-                    resultVirtualIds.addAll(virtualIds);
-                    int distinct = count - virtualIds.size();
-                    for (int i = 0; i < distinct; i++) {
-                        String tmp = genVirtualID(storageIndex);
-                        resultVirtualIds.add(tmp);
-                    }
-                } else {
-                    for (int i = 0; i < count; i++) {
-                        resultVirtualIds.add(virtualIds.get(i));
-                    }
+                for (int i = 0; i < count; i++) {
+                    resultVirtualIds.add(virtualIds.get(i));
                 }
             }
-            for (String virtualID : resultVirtualIds) {
-                String node = storageSIDPath + SEPARATOR + virtualID + SEPARATOR + selfFirstID;
-                if (!client.checkExists(node)) {
-                    client.createPersistent(node, true);
-                }
-            }
-        } finally {
-            if (client != null) {
-                client.close();
+        }
+        for (String virtualID : resultVirtualIds) {
+            String node = storageSIDPath + SEPARATOR + virtualID + SEPARATOR + selfFirstID;
+            if (!client.checkExists(node)) {
+                client.createPersistent(node, true);
             }
         }
         return resultVirtualIds;
@@ -148,17 +132,11 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
     @Override
     public boolean invalidVirtualIden(int storageIndex, String id) {
         String node = virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + id;
-        CuratorClient client = null;
         try {
-            client = CuratorClient.getClientInstance(zkHosts);
             client.setData(node, INVALID_DATA.getBytes());
             return true;
         } catch (Exception e) {
             LOG.error("set node :" + node + "  error!", e);
-        } finally {
-            if (client != null) {
-                client.close();
-            }
         }
         return false;
     }
@@ -166,17 +144,11 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
     @Override
     public boolean deleteVirtualIden(int storageIndex, String id) {
         String node = virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + id;
-        CuratorClient client = null;
         try {
-            client = CuratorClient.getClientInstance(zkHosts);
             client.guaranteedDelete(node, true);
             return true;
         } catch (Exception e) {
             LOG.error("delete the node: " + node + "  error!", e);
-        } finally {
-            if (client != null) {
-                client.close();
-            }
         }
         return false;
     }
@@ -184,47 +156,23 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
     @Override
     public List<String> listNormalVirtualID(int storageIndex) {
         String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
-        CuratorClient client = null;
-        try {
-            client = CuratorClient.getClientInstance(zkHosts);
-            List<String> virtualIds = client.getChildren(storageSIDPath);
-            // 过滤掉正在恢复的虚拟ID。
-            return filterVirtualId(client, storageIndex, virtualIds, INVALID_DATA);
-        } finally {
-            if (client != null) {
-                client.close();
-            }
-        }
+        List<String> virtualIds = client.getChildren(storageSIDPath);
+        // 过滤掉正在恢复的虚拟ID。
+        return filterVirtualId(client, storageIndex, virtualIds, INVALID_DATA);
     }
 
     @Override
     public List<String> listInvalidVirtualID(int storageIndex) {
         String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
-        CuratorClient client = null;
-        try {
-            client = CuratorClient.getClientInstance(zkHosts);
-            List<String> virtualIds = client.getChildren(storageSIDPath);
-            return filterVirtualId(client, storageIndex, virtualIds, NORMAL_DATA);
-        } finally {
-            if (client != null) {
-                client.close();
-            }
-        }
+        List<String> virtualIds = client.getChildren(storageSIDPath);
+        return filterVirtualId(client, storageIndex, virtualIds, NORMAL_DATA);
 
     }
 
     @Override
     public List<String> listAllVirtualID(int storageIndex) {
         String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
-        CuratorClient client = null;
-        try {
-            client = CuratorClient.getClientInstance(zkHosts);
-            return client.getChildren(storageSIDPath);
-        } finally {
-            if (client != null) {
-                client.close();
-            }
-        }
+        return client.getChildren(storageSIDPath);
     }
 
     private List<String> filterVirtualId(CuratorClient client, int storageIndex, List<String> virtualIds, String type) {
@@ -248,36 +196,22 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
 
     @Override
     public boolean registerFirstID(int storageIndex, String virtualID, String firstID) {
-        CuratorClient client = null;
-        try {
-            String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex + Constants.SEPARATOR + virtualID;
-            client = CuratorClient.getClientInstance(zkHosts);
-            if (!client.checkExists(storageSIDPath)) {
-                return false;
-            }
-            client.createPersistent(storageSIDPath + Constants.SEPARATOR + firstID, false);
-        } finally {
-            if (client != null) {
-                client.close();
-            }
+        String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex + Constants.SEPARATOR + virtualID;
+        if (!client.checkExists(storageSIDPath)) {
+            return false;
         }
+        client.createPersistent(storageSIDPath + Constants.SEPARATOR + firstID, false);
         return true;
     }
 
     @Override
     public boolean normalVirtualIden(int storageIndex, String id) {
         String node = virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + id;
-        CuratorClient client = null;
         try {
-            client = CuratorClient.getClientInstance(zkHosts);
             client.setData(node, NORMAL_DATA.getBytes());
             return true;
         } catch (Exception e) {
             LOG.error("set node :" + node + "  error!", e);
-        } finally {
-            if (client != null) {
-                client.close();
-            }
         }
         return false;
     }

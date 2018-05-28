@@ -25,7 +25,7 @@ public class SecondServerIDGenImpl implements LevelServerIDGen {
 
     private final String basePath;
 
-    private final String zkHosts;
+    private final CuratorClient client;
 
     private final static String SECOND_NODE = "secondID";
 
@@ -52,8 +52,8 @@ public class SecondServerIDGenImpl implements LevelServerIDGen {
 
     }
 
-    public SecondServerIDGenImpl(String zkHosts, String basePath) {
-        this.zkHosts = zkHosts;
+    public SecondServerIDGenImpl(CuratorClient client, String basePath) {
+        this.client = client;
         this.basePath = BrStringUtils.trimBasePath(basePath);
         this.lockPath = basePath + SEPARATOR + LOCKS_PATH_PART;
     }
@@ -65,21 +65,13 @@ public class SecondServerIDGenImpl implements LevelServerIDGen {
     @Override
     public synchronized String genLevelID() {
         String serverId = null;
-        CuratorClient client = null;
+        String multiNode = basePath + SEPARATOR + SECOND_NODE;
+        SecondGen genExecutor = new SecondGen(multiNode);
+        CuratorLocksClient<String> lockClient = new CuratorLocksClient<String>(client, lockPath, genExecutor, "genMultiIdentification");
         try {
-            client = CuratorClient.getClientInstance(zkHosts);
-            String multiNode = basePath + SEPARATOR + SECOND_NODE;
-            SecondGen genExecutor = new SecondGen(multiNode);
-            CuratorLocksClient<String> lockClient = new CuratorLocksClient<String>(client, lockPath, genExecutor, "genMultiIdentification");
-            try {
-                serverId = lockClient.execute();
-            } catch (Exception e) {
-                LOG.error("getMultiIndentification error!", e);
-            }
-        } finally {
-            if (client != null) {
-                client.close();
-            }
+            serverId = lockClient.execute();
+        } catch (Exception e) {
+            LOG.error("getMultiIndentification error!", e);
         }
         return serverId;
     }

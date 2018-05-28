@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
 public class SecondLevelServerID {
     private LevelServerIDGen secondServerIDOpt;
 
-    private String zkHosts;
+    private CuratorClient client;
 
     private String selfFirstPath;
 
@@ -38,47 +38,39 @@ public class SecondLevelServerID {
 
     private static Lock lock = new ReentrantLock();
 
-    public SecondLevelServerID(String zkHosts, String selfFirstPath, String seqPath, String baseRoutes) {
-        this.zkHosts = zkHosts;
+    public SecondLevelServerID(CuratorClient client, String selfFirstPath, String seqPath, String baseRoutes) {
+        this.client = client;
         this.selfFirstPath = selfFirstPath;
-        this.secondServerIDOpt = new SecondServerIDGenImpl(zkHosts, seqPath);
+        this.secondServerIDOpt = new SecondServerIDGenImpl(client, seqPath);
         this.baseRoutes = baseRoutes;
         secondMap = new ConcurrentHashMap<>();
     }
 
     public void loadServerID() {
-        CuratorClient client = null;
-        try {
-            client = CuratorClient.getClientInstance(zkHosts);
-            List<String> storageIndeies = client.getChildren(selfFirstPath);
-            // 此处需要进行判断是否过期
-            for (String si : storageIndeies) {
-                String node = selfFirstPath + '/' + si;
-                String serverID = new String(client.getData(node));
-                if (isExpire(client, si, serverID)) { // 判断secondServerID是否过期，过期需要重新生成
-                    serverID = secondServerIDOpt.genLevelID();
-                    client.setData(node, serverID.getBytes()); // 覆盖以前的second server ID
-                }
-                secondMap.put(BrStringUtils.parseNumber(si, Integer.class), serverID);
+        List<String> storageIndeies = client.getChildren(selfFirstPath);
+        // 此处需要进行判断是否过期
+        for (String si : storageIndeies) {
+            String node = selfFirstPath + '/' + si;
+            String serverID = new String(client.getData(node));
+            if (isExpire(client, si, serverID)) { // 判断secondServerID是否过期，过期需要重新生成
+                serverID = secondServerIDOpt.genLevelID();
+                client.setData(node, serverID.getBytes()); // 覆盖以前的second server ID
             }
-        } finally {
-            if (client != null) {
-                client.close();
-            }
+            secondMap.put(BrStringUtils.parseNumber(si, Integer.class), serverID);
         }
 
     }
 
-    private boolean isExpire(CuratorClient client,String si, String secondServerID) {
+    private boolean isExpire(CuratorClient client, String si, String secondServerID) {
         String normalPath = baseRoutes + Constants.SEPARATOR + Constants.NORMAL_ROUTE;
         String siPath = normalPath + Constants.SEPARATOR + si;
-        if(client.checkExists(normalPath) && client.checkExists(siPath)) {
-            List<String> routeNodes= client.getChildren(siPath);
-            for(String routeNode:routeNodes) {
-                String routePath = siPath+Constants.SEPARATOR +routeNode;
+        if (client.checkExists(normalPath) && client.checkExists(siPath)) {
+            List<String> routeNodes = client.getChildren(siPath);
+            for (String routeNode : routeNodes) {
+                String routePath = siPath + Constants.SEPARATOR + routeNode;
                 byte[] data = client.getData(routePath);
-                NormalRoute normalRoute= JsonUtils.toObject(data, NormalRoute.class);
-                if(normalRoute.getSecondID().equals(secondServerID)){
+                NormalRoute normalRoute = JsonUtils.toObject(data, NormalRoute.class);
+                if (normalRoute.getSecondID().equals(secondServerID)) {
                     return true;
                 }
             }
@@ -92,13 +84,10 @@ public class SecondLevelServerID {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public String getServerID(int storageIndex) {
-        CuratorClient client = null;
         Preconditions.checkNotNull(secondMap, "Second Level Server ID is not init!!!");
         String serverID = secondMap.get(storageIndex);
-        // TODO 多线程调用可能会出现线程安全的问题
         if (StringUtils.isEmpty(serverID)) { // 需要对新的SN的进行初始化
             try {
-                client = CuratorClient.getClientInstance(zkHosts);
                 String node = selfFirstPath + '/' + storageIndex;
                 lock.lock();
                 if (!client.checkExists(node)) {
@@ -110,9 +99,6 @@ public class SecondLevelServerID {
                 secondMap.put(storageIndex, serverID);
             } finally {
                 lock.unlock();
-                if (client != null) {
-                    client.close();
-                }
             }
         }
         return serverID;

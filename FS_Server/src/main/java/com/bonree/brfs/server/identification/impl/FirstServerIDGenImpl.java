@@ -25,14 +25,14 @@ public class FirstServerIDGenImpl implements LevelServerIDGen {
 
     private final String basePath;
 
-    private final String zkHosts;
+    private final CuratorClient client;
 
     private final static String FIRST_NODE = "firstID";
 
     private final static String LOCKS_PATH_PART = "locks";
 
     private final static String SEPARATOR = "/";
-    
+
     private IncreServerID<String> increServerID = new SimpleIncreServerID();
 
     private final String lockPath;
@@ -52,8 +52,8 @@ public class FirstServerIDGenImpl implements LevelServerIDGen {
 
     }
 
-    public FirstServerIDGenImpl(String zkHosts, String basePath) {
-        this.zkHosts = zkHosts;
+    public FirstServerIDGenImpl(CuratorClient client, String basePath) {
+        this.client = client;
         this.basePath = BrStringUtils.trimBasePath(basePath);
         this.lockPath = basePath + SEPARATOR + LOCKS_PATH_PART;
     }
@@ -64,22 +64,14 @@ public class FirstServerIDGenImpl implements LevelServerIDGen {
 
     @Override
     public synchronized String genLevelID() {
-        CuratorClient client = null;
         String serverId = null;
+        String singleNode = basePath + SEPARATOR + FIRST_NODE;
+        FirstGen genExecutor = new FirstGen(singleNode);
+        CuratorLocksClient<String> lockClient = new CuratorLocksClient<String>(client, lockPath, genExecutor, "genSingleIdentification");
         try {
-            client = CuratorClient.getClientInstance(zkHosts);
-            String singleNode = basePath + SEPARATOR + FIRST_NODE;
-            FirstGen genExecutor = new FirstGen(singleNode);
-            CuratorLocksClient<String> lockClient = new CuratorLocksClient<String>(client, lockPath, genExecutor, "genSingleIdentification");
-            try {
-                serverId = lockClient.execute();
-            } catch (Exception e) {
-                LOG.error("getSingleIdentification error!", e);
-            }
-        } finally {
-            if (client != null) {
-                client.close();
-            }
+            serverId = lockClient.execute();
+        } catch (Exception e) {
+            LOG.error("getSingleIdentification error!", e);
         }
         return serverId;
     }

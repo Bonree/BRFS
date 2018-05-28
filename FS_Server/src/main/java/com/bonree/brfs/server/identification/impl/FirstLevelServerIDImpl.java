@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 1级serverID实例
  ******************************************************************************/
-public class FirstLevelServerIDImpl implements LevelServerID{
+public class FirstLevelServerIDImpl implements LevelServerID {
 
     private LevelServerIDGen firstServerIDGen;
 
@@ -25,7 +25,7 @@ public class FirstLevelServerIDImpl implements LevelServerID{
 
     private String firstServerIDFile;
 
-    private String zkHosts;
+    private CuratorClient client;
 
     private String firstZKPath;
 
@@ -33,14 +33,14 @@ public class FirstLevelServerIDImpl implements LevelServerID{
 
     private boolean newServer = true;
 
-    public FirstLevelServerIDImpl(String zkHosts, String firstZKPath, String firstServerIDFile, String seqPath,String baseRoutesPath) {
-        this.zkHosts = zkHosts;
+    public FirstLevelServerIDImpl(CuratorClient client, String firstZKPath, String firstServerIDFile, String seqPath, String baseRoutesPath) {
+        this.client = client;
         this.firstZKPath = firstZKPath;
         this.firstServerIDFile = firstServerIDFile;
-        firstServerIDGen = new FirstServerIDGenImpl(zkHosts, seqPath);
+        firstServerIDGen = new FirstServerIDGenImpl(client, seqPath);
         initOrLoadServerID();
 
-        secondServerID = new SecondLevelServerID(zkHosts, firstZKPath + '/' + firstServerID, seqPath,baseRoutesPath);
+        secondServerID = new SecondLevelServerID(client, firstZKPath + '/' + firstServerID, seqPath, baseRoutesPath);
         secondServerID.loadServerID();
     }
 
@@ -52,35 +52,27 @@ public class FirstLevelServerIDImpl implements LevelServerID{
      */
     public void initOrLoadServerID() {
         // 文件不存在，则说明为新的服务，需要生成serverID，并保存
-        CuratorClient client = null;
-        try {
-            client = CuratorClient.getClientInstance(zkHosts);
-            if (!FileUtils.isExist(firstServerIDFile)) {
-                FileUtils.createFile(firstServerIDFile, true);
+        if (!FileUtils.isExist(firstServerIDFile)) {
+            FileUtils.createFile(firstServerIDFile, true);
+            firstServerID = firstServerIDGen.genLevelID();
+            List<String> contents = Lists.newArrayList(firstServerID);
+            FileUtils.writeFileFromList(firstServerIDFile, contents);
+        } else {
+            List<String> contents = FileUtils.readFileByLine(firstServerIDFile);
+            if (contents.isEmpty()) {
                 firstServerID = firstServerIDGen.genLevelID();
-                List<String> contents = Lists.newArrayList(firstServerID);
+                contents = Lists.newArrayList(firstServerID);
                 FileUtils.writeFileFromList(firstServerIDFile, contents);
             } else {
-                List<String> contents = FileUtils.readFileByLine(firstServerIDFile);
-                if (contents.isEmpty()) {
-                    firstServerID = firstServerIDGen.genLevelID();
-                    contents = Lists.newArrayList(firstServerID);
-                    FileUtils.writeFileFromList(firstServerIDFile, contents);
-                } else {
-                    newServer = false;
-                    firstServerID = contents.get(0);
-                }
+                newServer = false;
+                firstServerID = contents.get(0);
+            }
 
-            }
-            // 检查zk上是否一致
-            String firstIDNode = firstZKPath + '/' + firstServerID;
-            if (!client.checkExists(firstIDNode)) {
-                client.createPersistent(firstIDNode, false);
-            }
-        } finally {
-            if (client != null) {
-                client.close();
-            }
+        }
+        // 检查zk上是否一致
+        String firstIDNode = firstZKPath + '/' + firstServerID;
+        if (!client.checkExists(firstIDNode)) {
+            client.createPersistent(firstIDNode, false);
         }
     }
 
@@ -101,6 +93,7 @@ public class FirstLevelServerIDImpl implements LevelServerID{
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
+    @Deprecated
     public boolean isNewServer() {
         return newServer;
     }

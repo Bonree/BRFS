@@ -69,34 +69,27 @@ public class ServerIDManager {
     }
 
     public ServerIDManager(ServerConfig config, ZookeeperPaths zkBasePaths) {
-        firstLevelServerID = new FirstLevelServerIDImpl(config.getZkHosts(), zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath(),zkBasePaths.getBaseRoutePath());
-        virtualServerID = new VirtualServerIDImpl(config.getZkHosts(), zkBasePaths.getBaseServerIdSeqPath());
+        CuratorClient curatorClient = CuratorClient.getClientInstance(config.getZkHosts());
+        firstLevelServerID = new FirstLevelServerIDImpl(curatorClient, zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath(), zkBasePaths.getBaseRoutePath());
+        virtualServerID = new VirtualServerIDImpl(curatorClient, zkBasePaths.getBaseServerIdSeqPath());
         otherServerIDCache = new ConcurrentHashMap<>();
-        loadSecondServerIDCache(config.getZkHosts(), zkBasePaths.getBaseServerIdPath());
+        loadSecondServerIDCache(curatorClient, zkBasePaths.getBaseServerIdPath());
         secondIDCache = CuratorCacheFactory.getTreeCache();
         secondIDCache.addListener(zkBasePaths.getBaseServerIdPath(), new SecondIDCacheListener("second_server_id_cache"));
     }
 
-    private void loadSecondServerIDCache(String zkHosts, String serverIDsPath) {
-        CuratorClient client = null;
-        try {
-            client = CuratorClient.getClientInstance(zkHosts);
-            List<String> firstServerIDs = client.getChildren(serverIDsPath);
-            if (firstServerIDs != null && !firstServerIDs.isEmpty()) {
+    private void loadSecondServerIDCache(CuratorClient client, String serverIDsPath) {
+        List<String> firstServerIDs = client.getChildren(serverIDsPath);
+        if (firstServerIDs != null && !firstServerIDs.isEmpty()) {
 
-                for (String firstServerID : firstServerIDs) {
-                    List<String> sns = client.getChildren(serverIDsPath + "/" + firstServerID);
-                    if (sns != null && !sns.isEmpty()) {
-                        for (String sn : sns) {
-                            byte[] secondServerID = client.getData(serverIDsPath + '/' + firstServerID + '/' + sn);
-                            otherServerIDCache.put(sn + SEPARATOR + new String(secondServerID), firstServerID);
-                        }
+            for (String firstServerID : firstServerIDs) {
+                List<String> sns = client.getChildren(serverIDsPath + "/" + firstServerID);
+                if (sns != null && !sns.isEmpty()) {
+                    for (String sn : sns) {
+                        byte[] secondServerID = client.getData(serverIDsPath + '/' + firstServerID + '/' + sn);
+                        otherServerIDCache.put(sn + SEPARATOR + new String(secondServerID), firstServerID);
                     }
                 }
-            }
-        } finally {
-            if (client != null) {
-                client.close();
             }
         }
     }
@@ -108,7 +101,7 @@ public class ServerIDManager {
     public String getFirstServerID() {
         return firstLevelServerID.getServerID();
     }
-    
+
     /** 概述：判断是否为新服务
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
