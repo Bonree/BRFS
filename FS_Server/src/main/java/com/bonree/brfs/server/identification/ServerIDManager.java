@@ -1,5 +1,7 @@
 package com.bonree.brfs.server.identification;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,7 +28,7 @@ import com.bonree.brfs.server.identification.impl.VirtualServerIDImpl;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 管理Identification
  ******************************************************************************/
-public class ServerIDManager {
+public class ServerIDManager implements Closeable {
 
     private FirstLevelServerIDImpl firstLevelServerID;
 
@@ -39,6 +41,7 @@ public class ServerIDManager {
     private Map<String, String> otherServerIDCache = null;
 
     private final static String SEPARATOR = ":";
+    private CuratorClient curatorClient;
 
     private class SecondIDCacheListener extends AbstractTreeCacheListener {
 
@@ -69,7 +72,7 @@ public class ServerIDManager {
     }
 
     public ServerIDManager(ServerConfig config, ZookeeperPaths zkBasePaths) {
-        CuratorClient curatorClient = CuratorClient.getClientInstance(config.getZkHosts());
+        curatorClient = CuratorClient.getClientInstance(config.getZkHosts());
         firstLevelServerID = new FirstLevelServerIDImpl(curatorClient, zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath(), zkBasePaths.getBaseRoutePath());
         virtualServerID = new VirtualServerIDImpl(curatorClient, zkBasePaths.getBaseServerIdSeqPath());
         otherServerIDCache = new ConcurrentHashMap<>();
@@ -234,6 +237,13 @@ public class ServerIDManager {
      */
     public boolean registerFirstID(int storageIndex, String virtualID, String firstID) {
         return virtualServerID.registerFirstID(storageIndex, virtualID, firstID);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (curatorClient != null) {
+            curatorClient.close();
+        }
     }
 
 }
