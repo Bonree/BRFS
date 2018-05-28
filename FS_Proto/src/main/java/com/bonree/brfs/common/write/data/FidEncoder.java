@@ -55,7 +55,7 @@ public class FidEncoder {
         if (fid.getCompress() < 0 || fid.getCompress() > 3) { // compress取值范围0~3
             return ReturnCodeEnum.FID_COMPRESS_ERROR;
         }
-        if (fid.getStorageNameCode() <= 0 || fid.getStorageNameCode() > 65535) { // storageNameCode取值范围0~65535
+        if (fid.getStorageNameCode() < 0 || fid.getStorageNameCode() > 65535) { // storageNameCode取值范围0~65535
             return ReturnCodeEnum.FID_STORAGE_NAME_CODE_ERROR;
         }
         if (fid.getUuid() == null || fid.getUuid().length() > 32 || fid.getUuid().length() % 2 != 0) { // uuid长度为32字节
