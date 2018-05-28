@@ -33,7 +33,7 @@ public class ReaderServiceSelector implements ServiceSelector_1 {
             int replicas = arrs.length - 1; // 除去UUID
             int random = new Random().nextInt(replicas) + 1;
             String selectSId = arrs[random];
-
+            System.out.println(selectSId);
             String aliveSecondID = routeParser.findServerID(selectSId, partFid, NAME_SEPARATOR, aliveServices);
             if (aliveSecondID != null) {
                 service = diskServiceMetaCache.getSecondServerCache(aliveSecondID, random);

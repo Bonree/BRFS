@@ -26,7 +26,7 @@ public class RouteParser {
         // fid分为单副本serverID,多副本serverID,虚拟serverID。
         // 单副本不需要查找路由
         // 多副本需要查找路由，查找路由方式不同
-        String secondID = null;
+        String secondID = searchServerID;
         if (Constants.VIRTUAL_ID == searchServerID.charAt(0)) {
             VirtualRoute virtualRoute = routeCache.getVirtualRoute(secondID);
             if (virtualRoute == null) {
@@ -34,7 +34,6 @@ public class RouteParser {
             }
             secondID = virtualRoute.getNewSecondID();
         }
-        secondID = searchServerID;
         // 说明该secondID存活，不需要路由查找
         if (aliveServers.contains(secondID)) {
             return secondID;
