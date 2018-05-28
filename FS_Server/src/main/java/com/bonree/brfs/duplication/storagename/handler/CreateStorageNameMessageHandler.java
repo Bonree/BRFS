@@ -47,7 +47,7 @@ public class CreateStorageNameMessageHandler extends StorageNameMessageHandler {
                     return;
                 }
             } else if (StorageNameNode.ATTR_TTL.equals(name)) {
-                if (atts.getInt(name) <= 0) {
+                if (atts.getInt(name) == 0) {
                     result.setSuccess(false);
                     result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_TTL_ERROR.name()));
                     callback.completed(result);
