@@ -1,5 +1,8 @@
 package com.bonree.brfs.schedulers.task.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -13,6 +16,7 @@ public class TaskServerNodeModel {
 	private long taskStartTime;
 	private long taskStopTime;
 	private int taskState;
+	private List<AtomTaskModel> sAtoms = new ArrayList<AtomTaskModel>();
 	private TaskResultModel result;
 	
 	public long getTaskStartTime() {
@@ -38,6 +42,24 @@ public class TaskServerNodeModel {
 	}
 	public void setTaskState(int taskState) {
 		this.taskState = taskState;
+	}
+	public List<AtomTaskModel> getsAtoms() {
+		return sAtoms;
+	}
+	public void setsAtoms(List<AtomTaskModel> sAtoms) {
+		this.sAtoms = sAtoms;
+	}
+	public void addAll(List<AtomTaskModel> sAtoms){
+		if(this.sAtoms == null){
+			this.sAtoms = new ArrayList<>();
+		}
+		this.sAtoms.addAll(sAtoms);
+	}
+	public void add(AtomTaskModel atom){
+		if(this.sAtoms == null){
+			this.sAtoms = new ArrayList<>();
+		}
+		this.sAtoms.add(atom);
 	}
 	
 }
