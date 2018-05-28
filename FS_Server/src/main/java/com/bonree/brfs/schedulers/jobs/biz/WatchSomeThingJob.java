@@ -18,6 +18,7 @@ import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 public class WatchSomeThingJob extends QuartzOperationStateTask {
 	private static Map<Integer,Boolean> StateMap = new ConcurrentHashMap<Integer, Boolean>();
 	public static int RECOVERY_STATUSE = 1;
+	private static CuratorClient curatorClient =null;
 	@Override
 	public void caughtException(JobExecutionContext context) {
 
@@ -31,13 +32,15 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
 		JobDataMap data = context.getJobDetail().getJobDataMap();
-		String zkHost = data.getString(JobDataMapConstract.ZOOKEEPER_ADDRESS);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		String zkHost = data.getString(JobDataMapConstract.ZOOKEEPER_ADDRESS);
 		String groupName = mcf.getGroupName();
 		//获取client
-		CuratorClient curatorClient =null;
+		
 		try {
-			curatorClient = CuratorClient.getClientInstance(zkHost);
+			if(curatorClient == null){
+				curatorClient = CuratorClient.getClientInstance(zkHost);
+			}
 			//获取监听的目录
 			ZookeeperPaths zkPaths = ZookeeperPaths.create(groupName, zkHost);
 			String rebalances = zkPaths.getBaseRebalancePath();
@@ -48,10 +51,6 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 		}catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} finally{
-			if(curatorClient != null){
-				curatorClient.close();
-			}
 		}
 	}
 	/**

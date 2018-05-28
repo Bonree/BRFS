@@ -80,8 +80,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			isSuccess = false;
 			e.printStackTrace();
 		}finally{
-
-			LOG.info("batchId {}", batchIndex);
+			LOG.info("batch ID :{} {} {} {} {}",batchIndex,taskType,currentTaskName,serverId,stat);
 			if(batchIndex >= 1){
 				LOG.info("------------------- work>>>work");
 				TaskResultModel resultTask = new TaskResultModel();
@@ -93,14 +92,12 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 				LOG.info("------------------- work>>>work");
 				String result = data.getString(JobDataMapConstract.TASK_RESULT);
 				stat = data.getInt(JobDataMapConstract.TASK_MAP_STAT);
-				LOG.info("batch ID :{} {} {} {} {}",batchIndex,taskType,currentTaskName,serverId,stat);
 				TaskStateLifeContral.updateTaskStatusByCompelete(serverId, currentTaskName, taskType.name(), result, stat);
 				data.put(JobDataMapConstract.CURRENT_INDEX, (batchIndex-1)+"" );
 				data.put(JobDataMapConstract.TASK_MAP_STAT, TaskState.INIT.code());
 				data.put(JobDataMapConstract.TASK_RESULT, "");
 				data.put(JobDataMapConstract.PREX_TASK_NAME, currentTaskName);
 				data.put(JobDataMapConstract.CURRENT_TASK_NAME, "");
-				LOG.info("work------------  batchId:{}",batchIndex);
 				data.put(JobDataMapConstract.CURRENT_INDEX, (batchIndex-1)+"" );
 			}else if(batchIndex <=0){
 				ManagerContralFactory mcf = ManagerContralFactory.getInstance();
@@ -109,7 +106,6 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 				createBatchData(release, data, serverId, taskType, prexName, batchSize);
 			}else{
 				//更新任务状态
-				LOG.info(">>>>>>>>>>  batchId:{}",batchIndex);
 				data.put(JobDataMapConstract.CURRENT_INDEX, (batchIndex-1)+"" );
 			}
 			
@@ -130,7 +126,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			LOG.info("{} {} task behind is empty !!!",taskType.name(),prexName);
 			return ;
 		}
-		Map<String,String> batchDatas = BatchTaskFactory.createBatch(release, task, currentTaskName, serverId, batchSize);
+		Map<String,String> batchDatas = BatchTaskFactory.createBatch(task, batchSize);
 		// 若批次为空则更新任务状态
 		if(batchDatas == null || batchDatas.isEmpty()){
 			LOG.info("batch data is empty !! update task :{} {}",taskType.name(),currentTaskName);

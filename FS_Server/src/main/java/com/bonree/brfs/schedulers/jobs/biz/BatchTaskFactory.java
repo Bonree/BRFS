@@ -30,7 +30,7 @@ public class BatchTaskFactory {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,String> createBatch(MetaTaskManagerInterface release, TaskModel task, String taskName, String serverId,int batchSize){
+	public static Map<String,String> createBatch(TaskModel task, int batchSize){
 		Map<String,String> batchDatas = new HashMap<String,String>();
 		if(task == null){
 			return batchDatas;
@@ -41,25 +41,31 @@ public class BatchTaskFactory {
 			return batchDatas;
 		}
 		int size = atoms.size(); 
-		int count = size / batchSize;
+		int batchCount = size % batchSize == 0 ? size /batchSize : size/batchSize +1;
 		BatchAtomModel batch = null;
 		List<AtomTaskModel> tmp = null;
-		batchDatas.put(JobDataMapConstract.CURRENT_INDEX, count + "");
-		int index = 0;
-		for (int i = 1; i <= count; i += count) {
+		//若不足一次则按一次来
+		if(batchCount == 0){
 			batch = new BatchAtomModel();
-			if (index + count <= size) {
-				tmp = atoms.subList(index, index + count);
-			}
-			else if (size > 0) {
-				tmp = atoms.subList(index, size - 1);
-			}
-			else {
-				tmp = new ArrayList<AtomTaskModel>();
+			batch.addAll(atoms);
+			batchDatas.put(JobDataMapConstract.CURRENT_INDEX,  "1");
+			batchDatas.put("1", JsonUtils.toJsonString(batch));
+			return batchDatas;
+		}
+		batchDatas.put(JobDataMapConstract.CURRENT_INDEX, batchCount + "");
+		int index = 0;
+		for (int i = 1; i <= batchCount; i ++) {
+			batch = new BatchAtomModel();
+			if(index >= size){
+				tmp = new ArrayList<>();
+			}else if (index + batchSize > size) {
+				tmp = atoms.subList(index, size);
+			}else if (index + batchSize <= size) {
+				tmp = atoms.subList(index, index + batchSize);
 			}
 			batch.addAll(tmp);
 			batchDatas.put(i + "", JsonUtils.toJsonString(batch));
-			index = index + count;
+			index = index + batchSize;
 		}
 		return batchDatas;
 	}
