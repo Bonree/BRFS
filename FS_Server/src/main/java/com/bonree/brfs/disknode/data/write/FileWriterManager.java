@@ -40,9 +40,6 @@ public class FileWriterManager implements LifeCycle {
 
 	private static int DEFAULT_RECORD_BUFFER_SIZE = 512 * 1024;
 	private static int DEFAULT_FILE_BUFFER_SIZE = 1024 * 1024;
-	
-	private static final int DEFAULT_FILE_VERSION = 1;
-	private static final int DEFAULT_FILE_VALIDTYPE = 0;
 
 	private Map<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new HashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
@@ -146,11 +143,10 @@ public class FileWriterManager implements LifeCycle {
 												DEFAULT_FILE_BUFFER_SIZE)));
 
 						Pair<RecordFileWriter, WriteWorker> binding = new Pair<RecordFileWriter, WriteWorker>(
-								writer, workerSelector.select(workerGroup
-										.getWorkerList()));
+								writer, workerSelector.select(workerGroup.getWorkerList()));
 						
-						timeoutWheel.update(binding);
 						runningWriters.put(dataFile.getAbsolutePath(), binding);
+						timeoutWheel.update(binding);
 					}
 				}
 			}

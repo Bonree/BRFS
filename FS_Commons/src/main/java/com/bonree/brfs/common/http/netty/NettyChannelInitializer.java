@@ -23,6 +23,11 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 	private List<NettyHttpContextHandler> contextHandlers = new ArrayList<NettyHttpContextHandler>();
 	
 	private DefaultHttpRequestHandler defaultHttpRequestHandler = new DefaultHttpRequestHandler();
+	private NettyHttpAuthenticationHandler authenticationHandler;
+	
+	public void addAuthenticationHandler(NettyHttpAuthenticationHandler authenticationHandler) {
+		this.authenticationHandler = authenticationHandler;
+	}
 
 	public void addContextHandler(NettyHttpContextHandler handler) {
 		contextHandlers.add(handler);
@@ -37,6 +42,10 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 		pipeline.addLast(new HttpRequestDecoder());
 		pipeline.addLast(new HttpObjectAggregator(DEFAULT_MAX_HTTP_CONTENT_LENGTH));
 		pipeline.addLast(new ChunkedWriteHandler());
+		if(authenticationHandler != null) {
+			pipeline.addLast(authenticationHandler);
+		}
+		
 		contextHandlers.forEach((NettyHttpContextHandler handler) -> pipeline.addLast(handler));
 		pipeline.addLast(defaultHttpRequestHandler);
     }

@@ -67,6 +67,10 @@ public class NettyHttpServer implements LifeCycle {
 		}
 	}
 	
+	public void addHttpAuthenticator(HttpAuthenticator authenticator) {
+		handlerInitializer.addAuthenticationHandler(new NettyHttpAuthenticationHandler(authenticator));
+	}
+	
 	public void addContextHandler(NettyHttpContextHandler contextHttpHandler) {
 		handlerInitializer.addContextHandler(contextHttpHandler);
 	}

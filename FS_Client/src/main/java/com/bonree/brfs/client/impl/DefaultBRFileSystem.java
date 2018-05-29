@@ -43,8 +43,14 @@ public class DefaultBRFileSystem implements BRFileSystem {
     private ServiceSelectorManager serviceSelectorManager;
     
     private Map<String, StorageNameStick> stickContainer = new HashMap<String, StorageNameStick>();
+    
+    private String userName;
+    private String passwd;
 
-    public DefaultBRFileSystem(String zkAddresses, String cluster) throws Exception {
+    public DefaultBRFileSystem(String zkAddresses, String cluster, String userName, String passwd) throws Exception {
+    	this.userName = userName;
+    	this.passwd = passwd;
+    	
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         zkClient = CuratorFrameworkFactory.newClient(zkAddresses, 3000, 15000, retryPolicy);
         zkClient.start();
@@ -71,7 +77,11 @@ public class DefaultBRFileSystem implements BRFileSystem {
             	
                 HttpResponse response = null;
             	try {
-            		 response = client.executePut(uriBuilder.build());
+            		Map<String, String> headers = new HashMap<String, String>();
+            		headers.put("username", userName);
+            		headers.put("password", passwd);
+            		
+            		 response = client.executePut(uriBuilder.build(), headers);
     			} catch (Exception e) {
     				continue;
     			}
@@ -108,7 +118,11 @@ public class DefaultBRFileSystem implements BRFileSystem {
             	
                 HttpResponse response = null;
             	try {
-            		response = client.executePost(uriBuilder.build());
+            		Map<String, String> headers = new HashMap<String, String>();
+            		headers.put("username", userName);
+            		headers.put("password", passwd);
+            		
+            		response = client.executePost(uriBuilder.build(), headers);
     			} catch (Exception e) {
     				continue;
     			}
@@ -141,7 +155,11 @@ public class DefaultBRFileSystem implements BRFileSystem {
             	
                 HttpResponse response = null;
             	try {
-            		response = client.executeDelete(uri);
+            		Map<String, String> headers = new HashMap<String, String>();
+            		headers.put("username", userName);
+            		headers.put("password", passwd);
+            		
+            		response = client.executeDelete(uri, headers);
     			} catch (Exception e) {
     				continue;
     			}
@@ -179,7 +197,11 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		            	
     		                HttpResponse response = null;
     		            	try {
-    		            		response = client.executeGet(uri);
+    		            		Map<String, String> headers = new HashMap<String, String>();
+    		            		headers.put("username", userName);
+    		            		headers.put("password", passwd);
+    		            		
+    		            		response = client.executeGet(uri, headers);
     		    			} catch (Exception e) {
     		    				continue;
     		    			}
@@ -192,7 +214,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		            		int storageId = Integer.parseInt(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
     		            		
     		            		DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
-    	    		            stick = new DefaultStorageNameStick(storageName, storageId, client, cache, serviceSelectorManager.useDuplicaSelector());
+    	    		            stick = new DefaultStorageNameStick(storageName, storageId, client, cache, serviceSelectorManager.useDuplicaSelector(), userName, passwd);
     	    		            stickContainer.put(storageName, stick);
     	    		            
     	    		            return stick;

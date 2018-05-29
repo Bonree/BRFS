@@ -30,7 +30,6 @@ import com.bonree.brfs.disknode.client.RecoverInfo;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
-import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.utils.Pair;
@@ -87,13 +86,14 @@ public class RecoveryMessageHandler implements MessageHandler {
 						break;
 					}
 					
-					LOG.info("this loop lack size => {}", lack.cardinality());
+					LOG.info("this loop available size{}, lack size{}", seqInfo.getAvailableSequence().cardinality(), lack.cardinality());
 					BitSet availableSeq = BitSetUtils.intersect(seqInfo.getAvailableSequence(), lack);
 					if(availableSeq.cardinality() != 0) {
 						Service service = serviceManager.getServiceById(seqInfo.getServiceGroup(), seqInfo.getServiceId());
 						
 						DiskNodeClient client = null;
 						try {
+							LOG.info("get data from{} to recover...", service);
 							client = new HttpDiskNodeClient(service.getHost(), service.getPort());
 							
 							for(int i = availableSeq.nextSetBit(0); i != -1; i = availableSeq.nextSetBit(++i)) {

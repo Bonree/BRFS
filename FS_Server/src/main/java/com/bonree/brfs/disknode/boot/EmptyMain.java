@@ -17,6 +17,7 @@ import com.bonree.brfs.disknode.server.handler.CloseMessageHandler;
 import com.bonree.brfs.disknode.server.handler.DeleteMessageHandler;
 import com.bonree.brfs.disknode.server.handler.FileCopyMessageHandler;
 import com.bonree.brfs.disknode.server.handler.ListMessageHandler;
+import com.bonree.brfs.disknode.server.handler.PingPongRequestHandler;
 import com.bonree.brfs.disknode.server.handler.ReadMessageHandler;
 import com.bonree.brfs.disknode.server.handler.RecoveryMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WriteMessageHandler;
@@ -91,6 +92,12 @@ public class EmptyMain implements LifeCycle {
 		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(context, serviceManager, writerManager));
 		recoverHandler.setNettyHttpRequestHandler(recoverRequestHandler);
 		server.addContextHandler(recoverHandler);
+		
+		NettyHttpContextHandler pingHandler = new NettyHttpContextHandler(DiskContext.URI_PING_PONG_ROOT);
+		NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler();
+		pingRequestHandler.addMessageHandler("GET", new PingPongRequestHandler());
+		pingHandler.setNettyHttpRequestHandler(pingRequestHandler);
+		server.addContextHandler(pingHandler);
 		
 		server.start();
 	}

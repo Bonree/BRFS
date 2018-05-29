@@ -10,6 +10,8 @@ import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 
 public interface DiskNodeClient extends Closeable {
+	boolean ping();
+	
 	WriteResult writeData(String path, int sequence, byte[] bytes) throws IOException;
 	WriteResult writeData(String path, int sequence, byte[] bytes, int offset, int size) throws IOException;
 	

@@ -50,11 +50,4 @@ public interface FileNodeStorer {
 	 * @return
 	 */
 	List<FileNode> listFileNodes(FileNodeFilter filter);
-	
-	/**
-	 * 设置文件节点无效事件的监听类
-	 * 
-	 * @param listener
-	 */
-	void setFileNodeInvalidListener(FileNodeInvalidListener listener);
 }

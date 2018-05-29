@@ -54,6 +54,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		
 		DuplicateNode[] nodes = duplicationNodeSelector.getDuplicationNodes(storageId, storageNameNode.getReplicateCount());
 		if(nodes.length == 0) {
+			LOG.error("No available duplication node to build FileNode");
 			//没有磁盘节点可用
 			return null;
 		}

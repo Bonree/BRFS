@@ -4,32 +4,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.state.ConnectionState;
-import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.utils.ZKPaths;
 
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FileNodeFilter;
-import com.bonree.brfs.duplication.coordinator.FileNodeInvalidListener;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
 
 public class ZkFileNodeStorer implements FileNodeStorer {
-
 	private CuratorFramework client;
+	private String storePath;
 
-	public ZkFileNodeStorer(CuratorFramework client) throws Exception {
+	public ZkFileNodeStorer(CuratorFramework client, String nodePath) throws Exception {
 		this.client = client;
-		this.client.createContainers(ZKPaths.makePath(ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE));
+		this.storePath = ZKPaths.makePath(ZkFileCoordinatorPaths.COORDINATOR_ROOT, nodePath);
+		this.client.createContainers(storePath);
 	}
 
 	@Override
 	public void save(FileNode fileNode) {
-		String fileNodePath = ZKPaths.makePath(
-				ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE,
-				fileNode.getName());
+		String fileNodePath = ZKPaths.makePath(storePath, fileNode.getName());
 
 		try {
 			client.create().creatingParentsIfNeeded().forPath(fileNodePath, JsonUtils.toJsonBytes(fileNode));
@@ -40,10 +34,7 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 
 	@Override
 	public void delete(String fileName) {
-		String fileNodePath = ZKPaths.makePath(
-				ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE,
-				fileName);
+		String fileNodePath = ZKPaths.makePath(storePath, fileName);
 		
 		try {
 			client.delete().quietly().forPath(fileNodePath);
@@ -54,10 +45,7 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 
 	@Override
 	public FileNode getFileNode(String fileName) {
-		String fileNodePath = ZKPaths.makePath(
-				ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE,
-				fileName);
+		String fileNodePath = ZKPaths.makePath(storePath, fileName);
 		
 		try {
 			byte[] bytes = client.getData().forPath(fileNodePath);
@@ -70,10 +58,7 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 
 	@Override
 	public void update(FileNode fileNode) {
-		String fileNodePath = ZKPaths.makePath(
-				ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE,
-				fileNode.getName());
+		String fileNodePath = ZKPaths.makePath(storePath, fileNode.getName());
 		
 		try {
 			client.setData().forPath(fileNodePath, JsonUtils.toJsonBytes(fileNode));
@@ -98,43 +83,10 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 	}
 
 	private List<String> getFileNameList() {
-		String fileNodesPath = ZKPaths.makePath(
-				ZkFileCoordinatorPaths.COORDINATOR_ROOT,
-				ZkFileCoordinatorPaths.COORDINATOR_FILESTORE);
-		
 		try {
-			return client.getChildren().forPath(fileNodesPath);
+			return client.getChildren().forPath(storePath);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	@Override
-	public void setFileNodeInvalidListener(FileNodeInvalidListener listener) {
-		client.getConnectionStateListenable().addListener(new ZkConnectionStateListener(listener));
-	}
-	
-	/**
-	 * 
-	 * 对Zookeeper的连接状态进行监听
-	 * 
-	 * @author yupeng
-	 *
-	 */
-	private class ZkConnectionStateListener implements ConnectionStateListener {
-		private FileNodeInvalidListener listener;
-		
-		public ZkConnectionStateListener(FileNodeInvalidListener listener) {
-			this.listener = listener;
-		}
-
-		@Override
-		public void stateChanged(CuratorFramework client, ConnectionState newState) {
-			if(!newState.isConnected() && listener != null) {
-				//如果连接断开则清理当前服务维护的所有文件节点
-				listener.invalid();
-			}
-		}
-		
 	}
 }

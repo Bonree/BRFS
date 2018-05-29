@@ -3,8 +3,9 @@ package com.bonree.brfs.client.impl;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,6 @@ import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.DuplicaServiceSelector;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.client.utils.FilePathBuilder;
-import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.exception.BRFSException;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
@@ -45,13 +45,22 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	private DiskServiceSelectorCache selector;
 	private DuplicaServiceSelector dupSelector;
 	private HttpClient client;
+	
+	private String userName;
+	private String passwd;
 
-	public DefaultStorageNameStick(String storageName, int storageId, HttpClient client, DiskServiceSelectorCache selector, DuplicaServiceSelector dupSelector) {
+	public DefaultStorageNameStick(String storageName, int storageId, HttpClient client,
+			DiskServiceSelectorCache selector,
+			DuplicaServiceSelector dupSelector,
+			String username,
+			String passwd) {
 		this.storageName = storageName;
 		this.storageId = storageId;
 		this.client = client;
 		this.selector = selector;
 		this.dupSelector = dupSelector;
+		this.userName = username;
+		this.passwd = passwd;
 	}
 
 	@Override
@@ -79,7 +88,11 @@ public class DefaultStorageNameStick implements StorageNameStick {
             	
                 HttpResponse response = null;
             	try {
-            		 response = client.executePost(uri, ProtoStuffUtils.serialize(dataMessage));
+            		Map<String, String> headers = new HashMap<String, String>();
+            		headers.put("username", userName);
+            		headers.put("password", passwd);
+            		
+            		 response = client.executePost(uri, headers, ProtoStuffUtils.serialize(dataMessage));
     			} catch (Exception e) {
     				continue;
     			}
@@ -143,7 +156,11 @@ public class DefaultStorageNameStick implements StorageNameStick {
 	    .build();
 
 		try {
-			HttpResponse response = client.executeGet(uri);
+			Map<String, String> headers = new HashMap<String, String>();
+    		headers.put("username", userName);
+    		headers.put("password", passwd);
+			
+			HttpResponse response = client.executeGet(uri, headers);
 			
 			if(response.isReponseOK()) {
 				return new InputItem() {

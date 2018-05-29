@@ -42,6 +42,25 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		this.port = port;
 		this.client = new HttpClient(clientConfig);
 	}
+	
+	@Override
+	public boolean ping() {
+		URI uri = new URIBuilder()
+		.setScheme(DEFAULT_SCHEME)
+		.setHost(host)
+		.setPort(port)
+		.setPath(DiskContext.URI_PING_PONG_ROOT + "/")
+		.build();
+		
+		try {
+			HttpResponse response = client.executeGet(uri);
+			return response.isReponseOK();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
 
 	@Override
 	public WriteResult writeData(String path, int sequence, byte[] bytes) throws IOException {
