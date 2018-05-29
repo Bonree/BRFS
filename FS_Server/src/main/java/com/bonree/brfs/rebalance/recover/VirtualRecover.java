@@ -299,8 +299,9 @@ public class VirtualRecover implements DataRecover {
     public boolean sucureCopyTo(Service service, String localPath,String remoteDir, String fileName) {
         boolean success = true;
         try {
-//            diskClient.copyTo(service.getHost(), service.getPort(), logicPath, logicPath);
-            fileClient.sendFile(service.getHost(), service.getPort()+20, localPath, remoteDir, fileName);
+            if(!FileUtils.isExist(localPath+".rd")){
+                fileClient.sendFile(service.getHost(), service.getPort()+20, localPath, remoteDir, fileName);
+            }
         } catch (Exception e) {
             success = false;
             e.printStackTrace();

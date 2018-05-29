@@ -474,15 +474,17 @@ public class MultiRecover implements DataRecover {
         }
     }
 
-    public boolean secureCopyTo(Service service, String logicPath, String remoteDir, String fileName) {
+    public boolean secureCopyTo(Service service, String localPath, String remoteDir, String fileName) {
         boolean success = true;
         try {
-            fileClient.sendFile(service.getHost(), service.getPort() + 20, logicPath, remoteDir, fileName);
+            if(!FileUtils.isExist(localPath+".rd")){
+                fileClient.sendFile(service.getHost(), service.getPort() + 20, localPath, remoteDir, fileName);
+            }
         } catch (Exception e) {
             success = false;
+            e.printStackTrace();
         }
         return success;
-
     }
 
     public static void main(String[] args) throws Exception {

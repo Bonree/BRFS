@@ -49,7 +49,6 @@ public class DefaultBRFileSystem implements BRFileSystem {
         zkClient.start();
         zkClient.blockUntilConnected();
         ZookeeperPaths zkPaths = ZookeeperPaths.getBasePath(cluster, zkAddresses);
-        
         if(zkClient.checkExists().forPath(zkPaths.getBaseClusterName()) == null) {
             throw new BRFSException("cluster is not exist!!!");
         }
