@@ -200,4 +200,11 @@ public class ZookeeperPaths {
         return zkPaths;
     }
 
+    public static ZookeeperPaths getBasePath(final String clusterName,final String zkHosts) {
+        BrStringUtils.checkNotEmpty(clusterName, clusterName + " is empty!!!");
+        ZookeeperPaths zkPaths = new ZookeeperPaths(clusterName, zkHosts);
+        zkPaths.createPath();
+        return zkPaths;
+    }
+
 }

@@ -30,7 +30,6 @@ import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.record.BalanceRecord;
@@ -61,8 +60,6 @@ public class MultiRecover implements DataRecover {
     private Map<String, NormalRoute> normalRoutes = null;
 
     private Map<String, VirtualRoute> virtualRoutes = null;
-
-    private DiskNodeClient diskClient;
 
     private SimpleFileClient fileClient;
 
@@ -126,7 +123,6 @@ public class MultiRecover implements DataRecover {
         this.client = client;
         this.dataDir = dataDir;
         this.storageName = storageName;
-        this.diskClient = new LocalDiskNodeClient();
         this.fileClient = new SimpleFileClient();
         // 开启监控
         nodeCache = CuratorCacheFactory.getNodeCache();
@@ -481,7 +477,6 @@ public class MultiRecover implements DataRecover {
     public boolean secureCopyTo(Service service, String logicPath, String remoteDir, String fileName) {
         boolean success = true;
         try {
-            // diskClient.copyTo(service.getHost(), service.getPort(), logicPath, logicPath);
             fileClient.sendFile(service.getHost(), service.getPort() + 20, logicPath, remoteDir, fileName);
         } catch (Exception e) {
             success = false;

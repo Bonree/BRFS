@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+
 public class RebalanceUtils {
 
     public static int hashFileName(String fileName, int size) {
@@ -63,7 +65,7 @@ public class RebalanceUtils {
         }
         return flag;
     }
-    
+
     public static List<String> getSelectedList(List<String> aliveServerList, List<String> excludeServers) {
         List<String> selectedList = new ArrayList<>();
         for (String tmp : aliveServerList) {
@@ -74,7 +76,7 @@ public class RebalanceUtils {
         Collections.sort(selectedList, new CompareFromName());
         return selectedList;
     }
-    
+
     /** 概述：选择新的serverID
      * @param fileUUID
      * @param serverIDs
@@ -82,10 +84,28 @@ public class RebalanceUtils {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public static String newServerID(String fileUUID,List<String> serverIDs,List<String> fileServerIDs) {
+    public static String newServerID(String fileUUID, List<String> serverIDs, List<String> fileServerIDs) {
         List<String> selectableServerList = RebalanceUtils.getSelectedList(serverIDs, fileServerIDs);
         int index = RebalanceUtils.hashFileName(fileUUID, selectableServerList.size());
         return selectableServerList.get(index);
+    }
+
+    /** 概述：
+     * @param event
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public static String convertEvent(TreeCacheEvent event) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[event:").append(event.getType().name());
+        if (event.getData() != null) {
+            sb.append(",").append("path:").append(event.getData().getPath());
+            if (event.getData().getData() != null && event.getData().getData().length > 0) {
+                sb.append(",").append("data:").append(new String(event.getData().getData()));
+            }
+        }
+        sb.append("]");
+        return sb.toString();
     }
 
 }

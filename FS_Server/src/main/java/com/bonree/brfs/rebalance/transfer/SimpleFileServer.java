@@ -23,7 +23,6 @@ public class SimpleFileServer implements Closeable {
         serverSocket = new ServerSocket(port);
         this.dataDir = dataDir;
         es = Executors.newFixedThreadPool(threadCount, new ThreadFactory() {
-
             @Override
             public Thread newThread(Runnable r) {
                 return new Thread(r, "file_transfer");
@@ -50,10 +49,4 @@ public class SimpleFileServer implements Closeable {
             serverSocket.close();
         }
     }
-
-    public static void main(String[] args) throws IOException {
-        SimpleFileServer server = new SimpleFileServer(10007, "D:/basefile", 10);
-        server.start();
-    }
-
 }

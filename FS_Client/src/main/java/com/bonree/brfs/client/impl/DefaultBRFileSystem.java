@@ -48,11 +48,10 @@ public class DefaultBRFileSystem implements BRFileSystem {
         zkClient = CuratorFrameworkFactory.newClient(zkAddresses, 3000, 15000, retryPolicy);
         zkClient.start();
         zkClient.blockUntilConnected();
-
-        ZookeeperPaths zkPaths = ZookeeperPaths.create(cluster, zkAddresses);
+        ZookeeperPaths zkPaths = ZookeeperPaths.getBasePath(cluster, zkAddresses);
+        
         serviceManager = new DefaultServiceManager(zkClient.usingNamespace(zkPaths.getBaseClusterName().substring(1)));
         serviceManager.start();
-
         this.serviceSelectorManager = new ServiceSelectorManager(serviceManager, zkClient, zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath());
     }
 

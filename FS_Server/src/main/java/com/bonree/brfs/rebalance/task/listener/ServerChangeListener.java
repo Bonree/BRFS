@@ -41,7 +41,7 @@ public class ServerChangeListener extends AbstractTreeCacheListener {
                     // 需要进行检查，在切换leader的时候，变更记录需要加载进来。
                     if (!dispatcher.isLoad().get()) {
                         // 此处加载缓存
-                        LOG.info("load all");
+                        LOG.info("load all changes");
                         dispatcher.loadCache(client, event);
                         dispatcher.isLoad().set(true);
                     }
@@ -49,7 +49,7 @@ public class ServerChangeListener extends AbstractTreeCacheListener {
                     // 将变更细节添加到队列即可
                     dispatcher.getDetailQueue().put(detail);
                 } else {
-                    LOG.info("ignore the change:" + event);
+                    LOG.info("ignore the invalid change:" + event);
                 }
             }
         }
