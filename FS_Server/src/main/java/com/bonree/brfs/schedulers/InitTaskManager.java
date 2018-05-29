@@ -112,7 +112,7 @@ public class InitTaskManager {
 		// 创建任务线程池
 		if (managerConfig.isTaskFrameWorkSwitch()) {
 			// 1.创建任务管理服务
-			createMetaTaskManager(manager, zkPath, managerConfig, serverConfig);
+			createMetaTaskManager(manager, zkPath, managerConfig, serverConfig, serverId);
 			// 2.启动任务线程池
 			List<TaskType> tasks = managerConfig.getSwitchOnTaskType();
 			if(tasks == null || tasks.isEmpty()){
@@ -142,12 +142,12 @@ public class InitTaskManager {
 	 * @throws Exception 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config, ServerConfig serverConfig) throws Exception{
+	public static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config, ServerConfig serverConfig,String serverId) throws Exception{
 		MetaTaskLeaderManager leader = new MetaTaskLeaderManager(manager, config,serverConfig);
 		RetryPolicy retryPolicy = new RetryNTimes(3, 1000);
 		CuratorFramework client = CuratorFrameworkFactory.newClient(serverConfig.getZkHosts(), retryPolicy);
 		client.start();
-		leaderLatch = new LeaderLatch(client, zkPaths.getBaseLocksPath() + "/TaskManager/MetaTaskLeaderLock");
+		leaderLatch = new LeaderLatch(client, zkPaths.getBaseLocksPath() + "/TaskManager/MetaTaskLeaderLock", serverId);
 		leaderLatch.addListener(leader);
 		leaderLatch.start();
 	}

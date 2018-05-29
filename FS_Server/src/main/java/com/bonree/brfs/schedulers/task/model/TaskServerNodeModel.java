@@ -3,6 +3,8 @@ package com.bonree.brfs.schedulers.task.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bonree.brfs.common.task.TaskState;
+
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -15,7 +17,8 @@ import java.util.List;
 public class TaskServerNodeModel {
 	private long taskStartTime;
 	private long taskStopTime;
-	private int taskState;
+	private int taskState = TaskState.INIT.code();
+	private int retryCount = 0;
 	private List<AtomTaskModel> sAtoms = new ArrayList<AtomTaskModel>();
 	private TaskResultModel result;
 	
@@ -60,6 +63,12 @@ public class TaskServerNodeModel {
 			this.sAtoms = new ArrayList<>();
 		}
 		this.sAtoms.add(atom);
+	}
+	public int getRetryCount() {
+		return retryCount;
+	}
+	public void setRetryCount(int retryCount) {
+		this.retryCount = retryCount;
 	}
 	
 }

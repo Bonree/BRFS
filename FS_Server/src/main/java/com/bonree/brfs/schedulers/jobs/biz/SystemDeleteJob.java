@@ -143,6 +143,10 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 			return result;
 		}
 		List<String> dirs = FileUtils.listFileNames(path);
+		if(dirs == null || dirs.isEmpty()){
+			result.setSuccess(true);
+			return result;
+		}
 		if(!FileUtils.isExist(tmpPath)){
 			dirs.add(tmpName);
 		}

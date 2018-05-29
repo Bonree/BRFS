@@ -158,6 +158,9 @@ public class FileUtils {
 
     public static List<String> listFileNames(String dir) {
         File file = new File(dir);
+        if(file.list() == null|| file.list().length == 0){
+        	return null;
+        }
         return Arrays.stream(file.list()).collect(Collectors.toList());
     }
 
