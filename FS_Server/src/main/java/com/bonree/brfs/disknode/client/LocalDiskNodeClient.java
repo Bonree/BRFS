@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.util.BitSet;
 import java.util.List;
 
-import javax.naming.OperationNotSupportedException;
-
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
@@ -113,15 +111,18 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 
 	@Override
 	public int[] getWritingFileMetaInfo(String path) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public WriteResult[] writeDatas(String path, WriteData[] dataList)
 			throws IOException {
-		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean ping() {
+		return true;
 	}
 
 }

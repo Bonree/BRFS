@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +24,7 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 	private static final Logger LOG = LoggerFactory.getLogger(HttpDiskNodeConnectionPool.class);
 	
-	private static final int DEFAULT_CONNECTION_STATE_CHECK_INTERVAL = 1;
+	private static final int DEFAULT_CONNECTION_STATE_CHECK_INTERVAL = 3;
 	private ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("connection_checker"));
 	private Map<DuplicateNode, HttpDiskNodeConnection> connectionCache = new HashMap<DuplicateNode, HttpDiskNodeConnection>();
 	
@@ -85,9 +86,9 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 		@Override
 		public void run() {
 			List<DuplicateNode> invalidKeys = new ArrayList<DuplicateNode>();
-			for(DuplicateNode node : connectionCache.keySet()) {
-				if(!connectionCache.get(node).isValid()) {
-					invalidKeys.add(node);
+			for(Entry<DuplicateNode, HttpDiskNodeConnection> entry : connectionCache.entrySet()) {
+				if(!entry.getValue().isValid()) {
+					invalidKeys.add(entry.getKey());
 				}
 			}
 			

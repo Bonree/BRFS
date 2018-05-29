@@ -13,11 +13,14 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BitSetUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
+import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.AvailableSequenceInfo;
 import com.bonree.brfs.disknode.client.RecoverInfo;
+import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileNode;
+import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
@@ -30,15 +33,17 @@ public class DefaultFileRecovery implements FileRecovery {
 	private ExecutorService threadPool;
 	
 	private DiskNodeConnectionPool connectionPool;
+	private FileNodeStorer recoveryStorer;
 	
 	private ServerIDManager idManager;
 	
-	public DefaultFileRecovery(DiskNodeConnectionPool connectionPool, ServerIDManager idManager) {
-		this(DEFAULT_THREAD_NUM, connectionPool, idManager);
+	public DefaultFileRecovery(DiskNodeConnectionPool connectionPool, FileNodeStorer recoveryStorer, ServerIDManager idManager) {
+		this(DEFAULT_THREAD_NUM, connectionPool, recoveryStorer, idManager);
 	}
 	
-	public DefaultFileRecovery(int threadNum, DiskNodeConnectionPool connectionPool, ServerIDManager idManager) {
+	public DefaultFileRecovery(int threadNum, DiskNodeConnectionPool connectionPool, FileNodeStorer recoveryStorer, ServerIDManager idManager) {
 		this.connectionPool = connectionPool;
+		this.recoveryStorer = recoveryStorer;
 		this.idManager = idManager;
 		this.threadPool = new ThreadPoolExecutor(threadNum, threadNum,
                 0L, TimeUnit.MILLISECONDS,
@@ -79,6 +84,10 @@ public class DefaultFileRecovery implements FileRecovery {
 			 */
 			List<DuplicateNodeSequence> seqNumberList = getAllDuplicateNodeSequence();
 			
+			if(seqNumberList.size() != target.getDuplicateNodes().length) {
+				//TODO 不相等的情况需要考虑一下是否要继续
+			}
+			
 			if(seqNumberList.isEmpty()) {
 				listener.error(new Exception("No available duplicate node to found for file[" + target.getName() + "]"));
 				return;
@@ -105,6 +114,7 @@ public class DefaultFileRecovery implements FileRecovery {
 					//到这说明虽然在有部分副本信息没获取成功的前提下，文件的序列号还是连续的，这种情况下，虽然可以对文件进行修补，
 					//但并不能保证文件是完整的，只能保证[0, maxSeq]之间的数据是正确可用的
 					LOG.warn("File sequence numbers of [{}] can not be guaranteed to be full informed, although it seems to be perfect.", target.getName());
+					
 				}
 				
 				if(intersection.cardinality() == union.cardinality()) {
@@ -129,6 +139,10 @@ public class DefaultFileRecovery implements FileRecovery {
 			List<DuplicateNodeSequence> seqNumberList = new ArrayList<DuplicateNodeSequence>();
 			
 			for(DuplicateNode node : target.getDuplicateNodes()) {
+				if(node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+					continue;
+				}
+				
 				DiskNodeConnection connection = connectionPool.getConnection(node);
 				if(connection == null || connection.getClient() == null) {
 					LOG.error("duplication node[{}, {}] of [{}] is not available, that's maybe a trouble!", node.getGroup(), node.getId(), target.getName());

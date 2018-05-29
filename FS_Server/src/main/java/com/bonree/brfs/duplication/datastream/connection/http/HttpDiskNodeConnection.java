@@ -27,8 +27,7 @@ public class HttpDiskNodeConnection implements DiskNodeConnection {
 
 	@Override
 	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return true;
+		return client != null && client.ping();
 	}
 
 	@Override
