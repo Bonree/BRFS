@@ -1,5 +1,6 @@
 package com.bonree.brfs.rebalance;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,19 +18,18 @@ import com.bonree.brfs.rebalance.task.TaskOperation;
 import com.bonree.brfs.rebalance.transfer.SimpleFileServer;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
-public class RebalanceManager {
+public class RebalanceManager implements Closeable {
     private final static Logger LOG = LoggerFactory.getLogger(RebalanceManager.class);
 
     private TaskDispatcher dispatch = null;
     private TaskOperation opt = null;
-    ServiceManager serviceManager;
     StorageNameManager snManager;
     SimpleFileServer fileServer = null;
     ExecutorService simpleFileServer = Executors.newSingleThreadExecutor();
+    private CuratorClient curatorClient = null;
 
     public RebalanceManager(ServerConfig serverConfig, ZookeeperPaths zkPaths, ServerIDManager idManager, StorageNameManager snManager, ServiceManager serviceManager) {
-        CuratorClient curatorClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 500, 500);
-        this.serviceManager = serviceManager;
+        curatorClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 500, 500);
         dispatch = new TaskDispatcher(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager, serviceManager, snManager, serverConfig.getVirtualDelay(), serverConfig.getNormalDelay());
         opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager, serverConfig.getDataPath(), snManager, serviceManager);
         try {
@@ -44,6 +44,7 @@ public class RebalanceManager {
         dispatch.start();
         LOG.info("start taskoperation service!!");
         opt.start();
+        LOG.info("start Simple file server!!!");
         simpleFileServer.execute(new Runnable() {
             @Override
             public void run() {
@@ -51,6 +52,24 @@ public class RebalanceManager {
             }
         });
 
+    }
+
+    @Override
+    public void close() throws IOException {
+
+        if (dispatch != null) {
+        }
+
+        if (opt != null) {
+
+        }
+
+        if (fileServer != null) {
+            fileServer.close();
+        }
+        if (curatorClient != null) {
+            curatorClient.close();
+        }
     }
 
 }

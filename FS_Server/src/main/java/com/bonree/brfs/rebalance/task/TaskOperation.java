@@ -3,17 +3,16 @@ package com.bonree.brfs.rebalance.task;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
-import com.bonree.brfs.common.rebalance.route.NormalRoute;
-import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
@@ -46,6 +45,12 @@ public class TaskOperation implements Closeable {
     private StorageNameManager snManager;
     private ServiceManager serviceManager;
     private String baseRoutesPath;
+    private ExecutorService es = Executors.newFixedThreadPool(10, new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread(r, "task_executor");
+        }
+    });
 
     public TaskOperation(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, ServerIDManager idManager, String dataDir, StorageNameManager snManager, ServiceManager serviceManager) {
         this.client = client;
@@ -87,7 +92,6 @@ public class TaskOperation implements Closeable {
             }
 
             updateTaskStatus(taskSummary, TaskStatus.RUNNING);
-            // 调用成岗的任务创建模块
             launchTask(recover);
         }
     }
@@ -104,16 +108,17 @@ public class TaskOperation implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     private void launchTask(final DataRecover recover) {
-        new Thread("ttttttttttttttt") {
+        es.execute(new Runnable() {
             @Override
             public void run() {
                 recover.recover();
             }
-        }.start();
+        });
     }
 
     @Override
     public void close() throws IOException {
-
+        es.shutdown();
+        treeCache.cancelListener(tasksPath);
     }
 }

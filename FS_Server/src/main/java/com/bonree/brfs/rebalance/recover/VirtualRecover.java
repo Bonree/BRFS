@@ -58,8 +58,6 @@ public class VirtualRecover implements DataRecover {
     private BalanceTaskSummary balanceSummary;
 
     private CuratorNodeCache nodeCache;
-
-//    private DiskNodeClient diskClient;
     
     private SimpleFileClient fileClient;
 
@@ -109,7 +107,6 @@ public class VirtualRecover implements DataRecover {
         this.dataDir = dataDir;
         this.storageName = storageName;
         this.fileClient = new SimpleFileClient();
-//        diskClient = new LocalDiskNodeClient();
         // 恢复需要对节点进行监听
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(taskNode, new RecoverListener("recover"));
@@ -155,11 +152,6 @@ public class VirtualRecover implements DataRecover {
             finishTask();
             return;
         }
-
-        // List<String> replicasPaths = FileUtils.listFileName(snDataDir);
-        // for (String replicasPath : replicasPaths) {
-        // timeFileCounts += FileUtils.listFilePaths(replicasPath).size();
-        // }
 
         List<String> replicasNames = FileUtils.listFileNames(snDataDir);
         for (String replicasName : replicasNames) {
@@ -307,8 +299,9 @@ public class VirtualRecover implements DataRecover {
     public boolean sucureCopyTo(Service service, String localPath,String remoteDir, String fileName) {
         boolean success = true;
         try {
-//            diskClient.copyTo(service.getHost(), service.getPort(), logicPath, logicPath);
-            fileClient.sendFile(service.getHost(), service.getPort()+20, localPath, remoteDir, fileName);
+            if(!FileUtils.isExist(localPath+".rd")){
+                fileClient.sendFile(service.getHost(), service.getPort()+20, localPath, remoteDir, fileName);
+            }
         } catch (Exception e) {
             success = false;
             e.printStackTrace();
