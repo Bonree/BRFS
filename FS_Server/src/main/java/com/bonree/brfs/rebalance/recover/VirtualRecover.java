@@ -89,10 +89,18 @@ public class VirtualRecover implements DataRecover {
             if (client.checkExists(taskNode)) {
                 byte[] data = client.getData(taskNode);
                 BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
-                TaskStatus stats = bts.getTaskStatus();
-                // 更新缓存
-                status.set(stats);
-                LOG.info("stats:" + stats);
+                String newChangeID = bts.getChangeID();
+                String oldChangeID = balanceSummary.getChangeID();
+                if (newChangeID.equals(oldChangeID)) {
+                    TaskStatus stats = bts.getTaskStatus();
+                    // 更新缓存
+                    status.set(stats);
+                    LOG.info("stats:" + stats);
+                } else {
+                    LOG.info("newChangeID:{} not match oldChangeID:{}", newChangeID, oldChangeID);
+                    LOG.info("cancel multirecover:{}", balanceSummary);
+                    status.set(TaskStatus.CANCEL);
+                }
             }
         }
 
