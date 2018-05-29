@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.DuplicaServiceSelector;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.client.utils.FilePathBuilder;
+import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.exception.BRFSException;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
@@ -54,44 +56,50 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
 	@Override
 	public String[] writeData(InputItem[] itemArrays) {
-		Service service = dupSelector.randomService();
-		System.out.println("select write server:"+service);
-		if(service==null) {
-		    throw new BRFSException("none server!!!");
+		WriteDataMessage dataMessage = new WriteDataMessage();
+		dataMessage.setStorageNameId(storageId);
+
+		DataItem[] dataItems = new DataItem[itemArrays.length];
+		for (int i = 0; i < dataItems.length; i++) {
+			dataItems[i] = new DataItem();
+			dataItems[i].setUserSequence(i);
+			dataItems[i].setBytes(itemArrays[i].getBytes());
 		}
+		dataMessage.setItems(dataItems);
 		
-		URI uri = new URIBuilder()
-	    .setScheme(DEFAULT_SCHEME)
-	    .setHost(service.getHost())
-	    .setPort(service.getPort())
-	    .setPath(URI_DATA_ROOT)
-	    .build();
-
 		try {
-			WriteDataMessage dataMessage = new WriteDataMessage();
-			dataMessage.setStorageNameId(storageId);
-
-			DataItem[] dataItems = new DataItem[itemArrays.length];
-			for (int i = 0; i < dataItems.length; i++) {
-				dataItems[i] = new DataItem();
-				dataItems[i].setUserSequence(i);
-				dataItems[i].setBytes(itemArrays[i].getBytes());
-			}
-			dataMessage.setItems(dataItems);
-			
-			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(dataMessage));
-			
-			if(response.isReponseOK()) {
-				JSONArray array = JSONArray.parseArray(new String(response.getResponseBody()));
-				String[] fids = new String[array.size()];
-				for(int i = 0; i < array.size(); i++) {
-					fids[i] = array.getString(i);
-				}
-				return fids;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        	List<Service> serviceList = dupSelector.randomServiceList();
+        	for(Service service : serviceList) {
+        		URI uri = new URIBuilder()
+        	    .setScheme(DEFAULT_SCHEME)
+        	    .setHost(service.getHost())
+        	    .setPort(service.getPort())
+        	    .setPath(URI_DATA_ROOT)
+        	    .build();
+            	
+                HttpResponse response = null;
+            	try {
+            		 response = client.executePost(uri, ProtoStuffUtils.serialize(dataMessage));
+    			} catch (Exception e) {
+    				continue;
+    			}
+            	
+            	if(response == null) {
+            		throw new Exception("can not get response for writeData!");
+            	}
+            	
+            	if(response.isReponseOK()) {
+    				JSONArray array = JSONArray.parseArray(new String(response.getResponseBody()));
+    				String[] fids = new String[array.size()];
+    				for(int i = 0; i < array.size(); i++) {
+    					fids[i] = array.getString(i);
+    				}
+    				return fids;
+    			}
+        	}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 		
 		return null;
 	}

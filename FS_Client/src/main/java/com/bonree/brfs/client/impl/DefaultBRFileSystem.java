@@ -3,6 +3,7 @@ package com.bonree.brfs.client.impl;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -19,7 +20,6 @@ import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.ServiceSelectorManager;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
-import com.bonree.brfs.common.exception.BRFSException;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
 import com.bonree.brfs.common.http.client.URIBuilder;
@@ -58,30 +58,34 @@ public class DefaultBRFileSystem implements BRFileSystem {
 
     @Override
     public boolean createStorageName(String storageName, Map<String, Object> attrs) {
-        Service service;
         try {
-            service = serviceSelectorManager.useDuplicaSelector().randomService();
-            LOG.info("select server:" + service);
-        } catch (Exception e1) {
-            return false;
-        }
-        if (service == null) {
-            throw new BRFSException("none aliver server!!!");
-        }
+        	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
+        	for(Service service : serviceList) {
+        		URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
 
-        URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
-
-        for (Entry<String, Object> attr : attrs.entrySet()) {
-            uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
-        }
-
-        try {
-            HttpResponse response = client.executePut(uriBuilder.build());
-            String code = new String(response.getResponseBody());
-            System.out.println(code);
-            ReturnCode returnCode = ReturnCode.valueOf(code);
-            returnCode = ReturnCode.checkCode(storageName, returnCode);
-            return response.isReponseOK();
+                for (Entry<String, Object> attr : attrs.entrySet()) {
+                    uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
+                }
+            	
+                HttpResponse response = null;
+            	try {
+            		 response = client.executePut(uriBuilder.build());
+    			} catch (Exception e) {
+    				continue;
+    			}
+            	
+            	if(response == null) {
+            		throw new Exception("can not get response for createStorageName!");
+            	}
+            	
+            	if(response.isReponseOK()) {
+        			return true;
+        		}
+        		
+        		String code = new String(response.getResponseBody());
+                ReturnCode returnCode = ReturnCode.valueOf(code);
+                returnCode = ReturnCode.checkCode(storageName, returnCode);
+        	}
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -91,56 +95,67 @@ public class DefaultBRFileSystem implements BRFileSystem {
 
     @Override
     public boolean updateStorageName(String storageName, Map<String, Object> attrs) {
-        Service service;
-        try {
-            service = serviceSelectorManager.useDuplicaSelector().randomService();
-            LOG.info("select server:" + service);
-        } catch (Exception e1) {
-            return false;
-        }
-        
-        if (service == null) {
-            throw new BRFSException("none aliver server!!!");
-        }
+    	try {
+        	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
+        	for(Service service : serviceList) {
+        		URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
 
-        URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
-
-        for (Entry<String, Object> attr : attrs.entrySet()) {
-            uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
-        }
-
-        try {
-            HttpResponse response = client.executePost(uriBuilder.build());
-            ReturnCode returnCode = ReturnCode.valueOf(new String(response.getResponseBody()));
-            ReturnCode.checkCode(storageName, returnCode);
-            return response.isReponseOK();
+                for (Entry<String, Object> attr : attrs.entrySet()) {
+                    uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
+                }
+            	
+                HttpResponse response = null;
+            	try {
+            		response = client.executePost(uriBuilder.build());
+    			} catch (Exception e) {
+    				continue;
+    			}
+            	
+            	if(response == null) {
+            		throw new Exception("can not get response for updateStorageName!");
+            	}
+            	
+            	if(response.isReponseOK()) {
+        			return true;
+        		}
+        		
+        		String code = new String(response.getResponseBody());
+                ReturnCode returnCode = ReturnCode.valueOf(code);
+                returnCode = ReturnCode.checkCode(storageName, returnCode);
+        	}
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return false;
+    	
+    	return false;
     }
 
     @Override
     public boolean deleteStorageName(String storageName) {
-        Service service;
-        try {
-            service = serviceSelectorManager.useDuplicaSelector().randomService();
-            LOG.info("select server:" + service);
-        } catch (Exception e1) {
-            return false;
-        }
-        if (service == null) {
-            throw new BRFSException("none aliver server!!!");
-        }
-
-        URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
-
-        try {
-            HttpResponse response = client.executeDelete(uri);
-            ReturnCode returnCode = ReturnCode.valueOf(new String(response.getResponseBody()));
-            ReturnCode.checkCode(storageName, returnCode);
-            return response.isReponseOK();
+    	try {
+        	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
+        	for(Service service : serviceList) {
+        		URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
+            	
+                HttpResponse response = null;
+            	try {
+            		response = client.executeDelete(uri);
+    			} catch (Exception e) {
+    				continue;
+    			}
+            	
+            	if(response == null) {
+            		throw new Exception("can not get response for deleteStorageName!");
+            	}
+            	
+            	if(response.isReponseOK()) {
+        			return true;
+        		}
+        		
+        		String code = new String(response.getResponseBody());
+                ReturnCode returnCode = ReturnCode.valueOf(code);
+                returnCode = ReturnCode.checkCode(storageName, returnCode);
+        	}
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -155,38 +170,36 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		synchronized (stickContainer) {
     			stick = stickContainer.get(storageName);
     			if(stick == null) {
-    				Service service;
-    		        try {
-    		            service = serviceSelectorManager.useDuplicaSelector().randomService();
-    		            LOG.info("select server:" + service);
-    		        } catch (Exception e1) {
-    		            return null;
-    		        }
-    		        
-    		        if (service == null) {
-    		            throw new BRFSException("none aliver server!!!");
-    		        }
-
-    		        URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
-    		        boolean existFalg = true;
-    		        try {
-    		            HttpResponse response = client.executeGet(uri);
-    		            String code = BrStringUtils.fromUtf8Bytes(response.getResponseBody());
-    		            int storageId = -1;
-    		            try {
-    		                storageId = Integer.parseInt(code);
-    		            } catch (NumberFormatException e) {
+    				try {
+    		        	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
+    		        	for(Service service : serviceList) {
+    		        		URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
+    		            	
+    		                HttpResponse response = null;
+    		            	try {
+    		            		response = client.executeGet(uri);
+    		    			} catch (Exception e) {
+    		    				continue;
+    		    			}
+    		            	
+    		            	if(response == null) {
+    		            		throw new Exception("can not get response for deleteStorageName!");
+    		            	}
+    		            	
+    		            	if(response.isReponseOK()) {
+    		            		int storageId = Integer.parseInt(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
+    		            		
+    		            		DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
+    	    		            stick = new DefaultStorageNameStick(storageName, storageId, client, cache, serviceSelectorManager.useDuplicaSelector());
+    	    		            stickContainer.put(storageName, stick);
+    	    		            
+    	    		            return stick;
+    		        		}
+    		        		
+    		        		String code = new String(response.getResponseBody());
     		                ReturnCode returnCode = ReturnCode.valueOf(code);
-    		                ReturnCode.checkCode(storageName, returnCode);
-    		                existFalg = false;
-    		            }
-    		            if (!existFalg) {
-    		                return null;
-    		            }
-    		            System.out.println("get id---" + storageId);
-    		            DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
-    		            stick = new DefaultStorageNameStick(storageName, storageId, client, cache, serviceSelectorManager.useDuplicaSelector());
-    		            stickContainer.put(storageName, stick);
+    		                returnCode = ReturnCode.checkCode(storageName, returnCode);
+    		        	}
     		        } catch (Exception e) {
     		            e.printStackTrace();
     		        }

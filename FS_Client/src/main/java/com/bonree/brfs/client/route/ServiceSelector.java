@@ -1,5 +1,7 @@
 package com.bonree.brfs.client.route;
 
+import java.util.List;
+
 import com.bonree.brfs.common.service.Service;
 
 public interface ServiceSelector {
@@ -10,4 +12,6 @@ public interface ServiceSelector {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public Service selectService();
+    
+    public List<Service> selectServiceList();
 }
