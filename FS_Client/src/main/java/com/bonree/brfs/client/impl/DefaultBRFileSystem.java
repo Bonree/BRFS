@@ -20,6 +20,7 @@ import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.ServiceSelectorManager;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.exception.BRFSException;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
 import com.bonree.brfs.common.http.client.URIBuilder;
@@ -48,11 +49,12 @@ public class DefaultBRFileSystem implements BRFileSystem {
         zkClient = CuratorFrameworkFactory.newClient(zkAddresses, 3000, 15000, retryPolicy);
         zkClient.start();
         zkClient.blockUntilConnected();
-
-        ZookeeperPaths zkPaths = ZookeeperPaths.create(cluster, zkAddresses);
+        ZookeeperPaths zkPaths = ZookeeperPaths.getBasePath(cluster, zkAddresses);
+        if(zkClient.checkExists().forPath(zkPaths.getBaseClusterName()) == null) {
+            throw new BRFSException("cluster is not exist!!!");
+        }
         serviceManager = new DefaultServiceManager(zkClient.usingNamespace(zkPaths.getBaseClusterName().substring(1)));
         serviceManager.start();
-
         this.serviceSelectorManager = new ServiceSelectorManager(serviceManager, zkClient, zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath());
     }
 

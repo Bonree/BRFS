@@ -45,8 +45,8 @@ class FileServThread implements Runnable {
                     break;
                 }
             }
-            writeOutInfo(sock, "上传成功!");   // 文件接收成功后给客户端反馈一个信息
-            LOG.info("文件接收成功!" + System.getProperty("line.separator"));  // 服务端打印一下
+            writeOutInfo(sock, "send file "+file+" finish");   // 文件接收成功后给客户端反馈一个信息
+            LOG.info("文件传送成功!" + System.getProperty("line.separator"));  // 服务端打印一下
             fos.close();
             sock.close();
         } catch (Exception ex) {
@@ -62,7 +62,7 @@ class FileServThread implements Runnable {
 
     public File getClientFileName(InputStream sockIn) throws Exception // 获取文件名并创建
     {
-        // 获取客户端请求发送的文件名,并判断在D盘创建同名文件的情况
+        // 获取客户端请求发送的文件名,创建路径
         byte[] bufName = new byte[1024];
         int lenInfo = 0;
         lenInfo = sockIn.read(bufName);  // 获取文件名
@@ -70,7 +70,7 @@ class FileServThread implements Runnable {
 
         String filePath = dataDir + FileUtils.FILE_SEPARATOR + fileName;
 
-        File file = new File(filePath);    // 存到D盘根目录
+        File file = new File(filePath);  //保存到相应的位置
         if (file.isDirectory()) {
             LOG.info(file.getName() + "不能传输目录,断开该ip连接." + System.getProperty("line.separator"));
             writeOutInfo(sock, "服务端不能传输目录!"); // 反馈给客户端的信息
