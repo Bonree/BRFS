@@ -13,5 +13,5 @@ public interface BRFileSystem extends Closeable {
 	boolean createStorageName(String storageName, Map<String, Object> attrs) throws Exception;
 	boolean updateStorageName(String storageName, Map<String, Object> attrs);
 	boolean deleteStorageName(String storageName);
-	StorageNameStick openStorageName(String storageName, boolean createIfNonexistent);
+	StorageNameStick openStorageName(String storageName);
 }

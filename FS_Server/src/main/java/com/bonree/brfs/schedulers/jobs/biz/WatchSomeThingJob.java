@@ -19,6 +19,7 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 	private static Map<Integer,Boolean> StateMap = new ConcurrentHashMap<Integer, Boolean>();
 	public static int RECOVERY_STATUSE = 1;
 	private static CuratorClient curatorClient =null;
+	private static String basePath = null;
 	@Override
 	public void caughtException(JobExecutionContext context) {
 
@@ -41,13 +42,16 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 			if(curatorClient == null){
 				curatorClient = CuratorClient.getClientInstance(zkHost);
 			}
-			//获取监听的目录
-			ZookeeperPaths zkPaths = ZookeeperPaths.create(groupName, zkHost);
-			String rebalances = zkPaths.getBaseRebalancePath();
-			String tasksPath=rebalances + Constants.SEPARATOR+Constants.TASKS_NODE;
-			boolean isIt = isRecovery(curatorClient, tasksPath);
-			// 更新map的值
-			this.StateMap.put(RECOVERY_STATUSE, isIt);
+			if(basePath == null){
+				//获取监听的目录
+				ZookeeperPaths zkPaths = mcf.getZkPath();
+				basePath = zkPaths.getBaseRebalancePath();
+			}else{
+				String tasksPath=basePath + Constants.SEPARATOR+Constants.TASKS_NODE;
+				boolean isIt = isRecovery(curatorClient, tasksPath);
+				// 更新map的值
+				this.StateMap.put(RECOVERY_STATUSE, isIt);
+			}
 		}catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

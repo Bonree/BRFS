@@ -148,7 +148,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     }
 
     @Override
-    public StorageNameStick openStorageName(String storageName, boolean createIfNonexistent) {
+    public StorageNameStick openStorageName(String storageName) {
     	StorageNameStick stick = stickContainer.get(storageName);
     	if(stick == null) {
     		synchronized (stickContainer) {

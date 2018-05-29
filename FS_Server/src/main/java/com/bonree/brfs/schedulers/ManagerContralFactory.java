@@ -3,6 +3,7 @@ package com.bonree.brfs.schedulers;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
@@ -39,6 +40,8 @@ public class ManagerContralFactory {
 	 * 开启任务列表
 	 */
 	private List<TaskType> taskOn = new ArrayList<TaskType>();
+	private ZookeeperPaths zkPath = null;
+	
 	
 	String serverId;
 	String groupName;
@@ -115,5 +118,11 @@ public class ManagerContralFactory {
 	}
 	public void setSim(ServerIDManager sim) {
 		this.sim = sim;
+	}
+	public ZookeeperPaths getZkPath() {
+		return zkPath;
+	}
+	public void setZkPath(ZookeeperPaths zkPath) {
+		this.zkPath = zkPath;
 	}
 }

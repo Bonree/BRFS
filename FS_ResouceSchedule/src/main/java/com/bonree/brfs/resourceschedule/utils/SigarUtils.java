@@ -45,6 +45,7 @@ public enum SigarUtils {
      */
     public int gatherCpuCoreCount()throws SigarException{
         return sigar.getCpuInfoList().length;
+        
     }
     /**
      * 概述：获取内存大小
