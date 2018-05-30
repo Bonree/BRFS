@@ -28,6 +28,7 @@ import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.SystemCheckJob;
 import com.bonree.brfs.schedulers.jobs.biz.SystemDeleteJob;
+import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -157,7 +158,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName(),dataPath);
 				}
 				if(TaskType.USER_DELETE.equals(taskType)){
-					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName(),dataPath);
+					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), UserDeleteJob.class.getCanonicalName(),dataPath);
 				}
 				
 				//

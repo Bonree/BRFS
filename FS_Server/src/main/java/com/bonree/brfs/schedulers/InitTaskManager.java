@@ -103,6 +103,7 @@ public class InitTaskManager {
 		run.setLimitParameter(limit);
 		mcf.setRt(run);
 		mcf.setZkPath(zkPath);
+		mcf.setSim(sim);
 		
 		Map<String, Boolean> switchMap = managerConfig.getTaskPoolSwitchMap();
 		Map<String, Integer> sizeMap = managerConfig.getTaskPoolSizeMap();

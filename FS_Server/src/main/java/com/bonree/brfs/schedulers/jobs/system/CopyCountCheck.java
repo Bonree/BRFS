@@ -156,7 +156,6 @@ public class CopyCountCheck {
 		List<String> strs = null;
 		for(Service service : services){
 			try {
-				//TODO 目前客户端会夹死。
 				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
 				for(StorageNameNode sn : snList){
 					reCount = sn.getReplicateCount();
@@ -199,21 +198,45 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static List<String> converToStringList(List<FileInfo> files,String dir){
+	public static List<String> converToStringList(List<FileInfo> files,String dir){
 		List<String> strs = new ArrayList<>();
 		String path = null;
 		String fileName = null;
 		int lastIndex = 0;
 		String dirName = getFileName(dir); 
+		List<String> filterRd = new ArrayList<>();
 		for(FileInfo file : files){
 			path = file.getPath();
 			fileName = getFileName(path);
 			if(dirName.equals(fileName)){
 				continue;
 			}
+			if(fileName.indexOf(".rd") > 0){
+				fileName = fileName.substring(0, fileName.indexOf(".rd"));
+				filterRd.add(fileName);
+				continue;
+			}
 			strs.add(fileName);
 		}
-		return strs;
+		return filterRd(strs, filterRd);
+	}
+	public static List<String> filterRd(final List<String> files, final List<String> rds){
+		List<String> rFiles = new ArrayList<>();
+		if(files == null || files.isEmpty()){
+			return rFiles;
+		}
+		if(rds == null || rds.isEmpty()){
+			rFiles.addAll(files);
+			return rFiles;
+		}
+		for(String file : files){
+			if(rds.contains(file)){
+				continue;
+			}
+			rFiles.add(file);
+		}
+		return rFiles;
+		
 	}
 	public static String getFileName(String path){
 		int lastIndex = 0;
