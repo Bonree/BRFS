@@ -24,6 +24,7 @@ public class TaskModel {
 	 * 任务结果
 	 */
 	private TaskResultModel result;
+	private int retryCount = 0;
 	private long startDataTime;
 	private long endDataTime;
 	
@@ -74,5 +75,11 @@ public class TaskModel {
 	}
 	public void setEndDataTime(long endDataTime) {
 		this.endDataTime = endDataTime;
+	}
+	public int getRetryCount() {
+		return retryCount;
+	}
+	public void setRetryCount(int retryCount) {
+		this.retryCount = retryCount;
 	}
 }

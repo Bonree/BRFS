@@ -36,7 +36,7 @@ import com.bonree.brfs.duplication.datastream.file.FileLounge;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeCleaner;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.tasks.MultiDataWriteTask;
-import com.bonree.brfs.duplication.recovery.FileRecovery;
+import com.bonree.brfs.duplication.recovery.FileSynchronizer;
 import com.bonree.brfs.duplication.recovery.FileRecoveryListener;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
@@ -62,13 +62,13 @@ public class DuplicateWriter {
 	private ConcurrentHashMap<Integer, FileLounge> fileLoungeList = new ConcurrentHashMap<Integer, FileLounge>();
 	private List<ScheduledFuture<?>> fileLoungeCleaners = new ArrayList<ScheduledFuture<?>>();
 	
-	private FileRecovery fileRecovery;
+	private FileSynchronizer fileRecovery;
 	private ServerIDManager idManager;
 	
 	private FileLimiterCloser fileCloser;
 	
 	public DuplicateWriter(Service service, FileLoungeFactory fileLoungeFactory,
-			FileCoordinator fileCoordinator, FileRecovery fileRecovery,
+			FileCoordinator fileCoordinator, FileSynchronizer fileRecovery,
 			ServerIDManager idManager, DiskNodeConnectionPool connectionPool,
 			FileLimiterCloser fileCloser) {
 		this.service = service;

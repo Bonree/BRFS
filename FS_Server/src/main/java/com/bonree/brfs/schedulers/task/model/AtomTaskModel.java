@@ -59,4 +59,10 @@ public class AtomTaskModel {
 	public void setFiles(ArrayList<String> files) {
 		this.files = files;
 	}
+	public void addAllFiles(ArrayList<String> files){
+		this.files.addAll(files);
+	}
+	public void addFile(String file){
+		this.files.add(file);
+	}
 }
