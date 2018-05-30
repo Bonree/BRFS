@@ -48,6 +48,12 @@ public class TasksUtils {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	 public static boolean createUserDeleteTask(List<Service> services,ServerConfig serverConfig, ZookeeperPaths zkPaths, StorageNameNode sn, long startTime, long endTime){
+		 	if(services == null || services.isEmpty()){
+		 		return false;
+		 	}
+		 	if(sn == null){
+		 		return false;
+		 	}
 	    	TaskModel task = TasksUtils.createUserDelete(sn, TaskType.USER_DELETE, "", startTime, endTime);
 	    	if(task == null){
 	    		return false;
@@ -77,6 +83,9 @@ public class TasksUtils {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static TaskModel createUserDelete(final StorageNameNode sn,final TaskType taskType, final String opertationContent, final long startTime, final long endTime){
+		if(sn == null ||taskType == null){
+			return null;
+		}
 		TaskModel task = new TaskModel();
 		List<AtomTaskModel> storageAtoms = new ArrayList<AtomTaskModel>();
 		if(endTime == 0 || startTime > endTime){
