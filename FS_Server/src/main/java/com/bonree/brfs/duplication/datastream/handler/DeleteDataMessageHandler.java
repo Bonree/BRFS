@@ -83,6 +83,16 @@ public class DeleteDataMessageHandler implements MessageHandler {
 			result.setCause(new IllegalArgumentException("start time must before to end time!"));
 			callback.completed(result);
 			return;
+		}else if(startTime != startTime/1000/60/60*1000*60*60 ){
+			result.setSuccess(false);
+			result.setCause(new IllegalArgumentException("startTime : "+ startTime +" is not integral time !!"));
+			callback.completed(result);
+			return;
+		}else if( endTime != endTime/1000/60/60*1000*60*60){
+			result.setSuccess(false);
+			result.setCause(new IllegalArgumentException("startTime : "+ endTime +" is not integral time !!"));
+			callback.completed(result);
+			return;
 		}
 		
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
@@ -111,7 +121,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 //				CloseUtils.closeQuietly(client);
 //			}
 //		}
-         boolean isCreate = TasksUtils.createUserDeleteTask(serviceList, serverConfig, zkPaths, sn, startTime, endTime);
+        boolean isCreate = TasksUtils.createUserDeleteTask(serviceList, serverConfig, zkPaths, sn, startTime, endTime);
         
 		result.setSuccess(isCreate);
 		if(!isCreate){
