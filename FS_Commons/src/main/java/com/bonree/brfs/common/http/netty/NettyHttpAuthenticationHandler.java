@@ -1,8 +1,6 @@
 package com.bonree.brfs.common.http.netty;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -10,6 +8,10 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.ReferenceCountUtil;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Sharable
 public class NettyHttpAuthenticationHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 	private static final Logger LOG = LoggerFactory.getLogger(NettyHttpAuthenticationHandler.class);
 	private HttpAuthenticator httpAuthenticator;
