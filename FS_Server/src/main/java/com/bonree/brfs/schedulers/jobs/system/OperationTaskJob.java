@@ -21,6 +21,7 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
@@ -39,6 +40,7 @@ import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
+import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
 
 public class OperationTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("OperationTaskJob");
@@ -57,7 +59,6 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("----------> get task operation work");
 		//判断是否有恢复任务，有恢复任务则不进行创建
 		if (WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
 			LOG.warn("rebalance task is running !! skip check copy task");
@@ -105,27 +106,40 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					LOG.warn("resource is limit !!! skip {} !!!",typeName);
 					continue;
 				}
-				if(data.containsKey(typeName)){
-					prexTaskName = data.getString(typeName);
+//				if(data.containsKey(typeName)){
+//					prexTaskName = data.getString(typeName);
+//				}
+//				if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
+//					prexTaskName = release.getFirstServerTask(typeName, serverId);
+//					currentTaskName = prexTaskName;
+//				}else{
+//					currentTaskName = release.getNextTaskName(typeName, prexTaskName);
+//				}
+//				LOG.info("type: {},  prexTaskName :{} , currentTaskName: {}", typeName, prexTaskName, currentTaskName);
+//				if(BrStringUtils.isEmpty(currentTaskName)){
+//					LOG.info("taskType :{} queue is empty ,skiping !!!",typeName);
+//					continue;
+//				}
+				
+//				//获取任务信息
+//				task = release.getTaskContentNodeInfo(typeName, currentTaskName);
+//				if(task == null){
+//					LOG.warn("taskType :{} taskName: {} is vaild ,skiping !!!",typeName, currentTaskName);
+//					data.put(typeName, currentTaskName);
+//					continue;
+//				}
+				int retryCount = 3;
+				if(TaskType.SYSTEM_CHECK.equals(taskType)||TaskType.SYSTEM_RECOVERY.equals(taskType)||TaskType.SYSTEM_MERGER.equals(taskType)){
+					retryCount = 0;
 				}
-				if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
-					prexTaskName = release.getFirstServerTask(typeName, serverId);
-					currentTaskName = prexTaskName;
-				}else{
-					currentTaskName = release.getNextTaskName(typeName, prexTaskName);
-				}
-				LOG.info("type: {},  prexTaskName :{} , currentTaskName: {}", typeName, prexTaskName, currentTaskName);
-				if(BrStringUtils.isEmpty(currentTaskName)){
-					LOG.info("taskType :{} queue is empty ,skiping !!!",typeName);
+				Pair<String,TaskModel> taskPair = TaskStateLifeContral.getCurrentOperationTask(release, typeName, serverId, retryCount);
+				if(taskPair == null){
+					LOG.warn("taskType :{} taskName: null is vaild ,skiping !!!",typeName);
 					continue;
 				}
-				//获取任务信息
-				task = release.getTaskContentNodeInfo(typeName, currentTaskName);
-				if(task == null){
-					LOG.warn("taskType :{} taskName: {} is vaild ,skiping !!!",typeName, currentTaskName);
-					data.put(typeName, currentTaskName);
-					continue;
-				}
+				currentTaskName = taskPair.getKey();
+				
+				task = taskPair.getValue();
 				// 获取执行策略
 				runPattern = runTask.taskRunnPattern(task);
 				if(runPattern == null){
@@ -134,7 +148,6 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					runPattern.setRepeateCount(1);
 					runPattern.setSleepTime(1000);
 				}
-				
 				// 创建任务提交信息
 				// TODO：根据不同类型的任务在此生成的不一样
 				if(TaskType.SYSTEM_DELETE.equals(taskType)){

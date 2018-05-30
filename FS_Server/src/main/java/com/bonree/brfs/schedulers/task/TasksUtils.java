@@ -21,6 +21,8 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.disknode.server.handler.data.FileInfo;
+import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
@@ -32,7 +34,41 @@ import com.bonree.brfs.schedulers.task.model.TaskSNMessageModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 
 public class TasksUtils {
-	
+	/***
+	 * 概述：生成任务信息
+	 * @param sn
+	 * @param files
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static TaskModel createFilePairModel(final StorageNameNode sn, List<FileNode> files){
+		if(sn == null || files == null){
+			return null;
+		}
+		TaskModel task = new TaskModel();
+		task.addAtom(createAtoms(files, sn));
+		return task;
+	}
+	/**
+	 * 概述：生成原子任务
+	 * @param files
+	 * @param sn
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private static AtomTaskModel createAtoms(List<FileNode> files, StorageNameNode sn){
+		AtomTaskModel atom = new AtomTaskModel();
+		atom.setStorageName(sn.getName());
+		String content = null;
+		for(FileNode file : files){
+			if(file == null){
+				continue;
+			}
+			content = JsonUtils.toJsonString(file);
+			atom.addFile(content);
+		}
+		return atom;
+	}
 	/**
 	 * 概述：创建可执行任务信息
 	 * @param sn storageName信息

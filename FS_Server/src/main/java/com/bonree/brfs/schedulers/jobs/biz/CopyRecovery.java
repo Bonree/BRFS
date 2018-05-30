@@ -28,8 +28,8 @@ import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
-public class FileRecovery {
-	private static final Logger LOG = LoggerFactory.getLogger(FileRecovery.class);
+public class CopyRecovery {
+	private static final Logger LOG = LoggerFactory.getLogger(CopyRecovery.class);
 	/**
 	 * 概述：修复目录
 	 * @param content

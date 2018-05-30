@@ -211,11 +211,28 @@ public class TaskStateLifeContral {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Pair<String,Pair<Integer,Integer>> getCurrentOperationTask(MetaTaskManagerInterface release, String typeName,String serverId, int limitCount){
+	public static Pair<String,TaskModel> getCurrentOperationTask(MetaTaskManagerInterface release, String typeName,String serverId, int limitCount){
 		List<Pair<String,Pair<Integer,Integer>>> needTasks = getServerState(release, typeName, serverId);
 		Pair<String,Pair<Integer,Integer>> task = getOperationTask(needTasks, limitCount);
-		return task;
+		if(task == null){
+			return null;
+		}
+		if(BrStringUtils.isEmpty(task.getKey())){
+			return null;
+		}
+		TaskModel cTask = release.getTaskContentNodeInfo(typeName, task.getKey());
+		if(cTask == null){
+			return null;
+		}
+		//更新异常的次数
+		if(task.getValue().getKey() == TaskState.EXCEPTION.code()){
+			TaskServerNodeModel server = release.getTaskServerContentNodeInfo(typeName, task.getKey(), serverId);
+			server.setRetryCount(server.getRetryCount() + 1);
+			release.updateServerTaskContentNode(serverId, task.getKey(), typeName, server);
+		}
+		return new Pair<String,TaskModel>(task.getKey(), cTask);
 	}
+	
 	/**
 	 * 概述：获取指定任务的队列
 	 * @param release
@@ -247,6 +264,29 @@ public class TaskStateLifeContral {
 		}
 		return sTaskStatuss;
 	}
+	public static List<Pair<String,Pair<Integer,Integer>>> getTaskState(MetaTaskManagerInterface release, String typeName, String serverId){
+		List<String> taskNames = release.getTaskList(typeName);
+		List<Pair<String,Pair<Integer,Integer>>> sTaskStatuss = new ArrayList<Pair<String,Pair<Integer,Integer>>>();
+		if(taskNames == null || taskNames.isEmpty()){
+			return sTaskStatuss;
+		}
+		Pair<String,Pair<Integer,Integer>> sTaskStatus = null;
+		Pair<Integer,Integer> codeAndCount = null;
+		TaskModel task = null;
+		for(String taskName : taskNames){
+			task = release.getTaskContentNodeInfo(typeName, taskName);
+			if(task == null){
+				continue;
+			}
+			if(task.getTaskState() == TaskState.FINISH.code()){
+				continue;
+			}
+			codeAndCount = new Pair<Integer, Integer>(task.getTaskState(), task.getRetryCount());
+			sTaskStatus = new Pair<String,Pair<Integer,Integer>>(taskName,codeAndCount);
+			sTaskStatuss.add(sTaskStatus);
+		}
+		return sTaskStatuss;
+	}
 	/**
 	 * 概述：获取当前执行的任务
 	 * @param tasks
@@ -269,7 +309,7 @@ public class TaskStateLifeContral {
 				continue;
 			}else if(codeAndCount.getKey() == TaskState.INIT.code()){
 				return task;
-			}else if(codeAndCount.getKey() == TaskState.EXCEPTION.code()){
+			}else if(codeAndCount.getKey() == TaskState.EXCEPTION.code() && limtCount > 0){
 				if(codeAndCount.getValue() >limtCount){
 					eTasks.add(task);
 				}else{
@@ -279,7 +319,7 @@ public class TaskStateLifeContral {
 				LOG.info("{} is not seclect ", task);
 			}
 		}
-		if(eTasks == null || eTasks.isEmpty()){
+		if(eTasks == null || eTasks.isEmpty()|| limtCount <= 0){
 			return null;
 		}
 		Collections.sort(eTasks, new Comparator<Pair<String,Pair<Integer,Integer>>>() {
