@@ -231,8 +231,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
         		}
         		
         		String code = new String(response.getResponseBody());
-                ReturnCode returnCode = ReturnCode.valueOf(code);
-                returnCode = ReturnCode.checkCode(storageName, returnCode);
+                ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
         	}
         } catch (Exception e) {
             e.printStackTrace();

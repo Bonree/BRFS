@@ -99,8 +99,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         		}
         		
         		String code = new String(response.getResponseBody());
-                ReturnCode returnCode = ReturnCode.valueOf(code);
-                returnCode = ReturnCode.checkCode(storageName, returnCode);
+                ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
         	}
         } catch (Exception e) {
             e.printStackTrace();
@@ -144,8 +143,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         		}
         		
         		String code = new String(response.getResponseBody());
-                ReturnCode returnCode = ReturnCode.valueOf(code);
-                returnCode = ReturnCode.checkCode(storageName, returnCode);
+        		ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
         	}
         } catch (Exception e) {
             e.printStackTrace();
@@ -185,8 +183,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         		}
         		
         		String code = new String(response.getResponseBody());
-                ReturnCode returnCode = ReturnCode.valueOf(code);
-                returnCode = ReturnCode.checkCode(storageName, returnCode);
+        		ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
         	}
         } catch (Exception e) {
             e.printStackTrace();
@@ -237,8 +234,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		        		}
     		        		
     		        		String code = new String(response.getResponseBody());
-    		                ReturnCode returnCode = ReturnCode.valueOf(code);
-    		                returnCode = ReturnCode.checkCode(storageName, returnCode);
+    		        		ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
     		        	}
     		        } catch (Exception e) {
     		            e.printStackTrace();
