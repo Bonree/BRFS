@@ -48,30 +48,22 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
         boolean deleted;
         HandleResult result = new HandleResult();
         try {
-            deleted = storageNameManager.removeStorageName(msg.getName());
-            result.setSuccess(deleted);
-            if (!deleted) {
-                result.setSuccess(false);
-                result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_OPT_ERROR.name()));
-            } else {
-                LOG.info("clean all data for " + msg.getName());
+			List<Service> services = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+			StorageNameNode sn = storageNameManager.findStorageName(msg.getName());
+			boolean isCreate = TasksUtils.createUserDeleteTask(services, serverConfig, zkPaths, sn, -1,	System.currentTimeMillis());
+			if (!isCreate) {
+				result.setSuccess(false);
+				result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()));
+			} else {
+				deleted = storageNameManager.removeStorageName(msg.getName());
+				result.setSuccess(deleted);
+				if (deleted) {
+					LOG.info("clean all data for " + msg.getName());
+				}else{
+					result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()));
+				}
+			}
 
-                List<Service> services = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
-                StorageNameNode sn = storageNameManager.findStorageName(msg.getName());
-                TaskModel task = TasksUtils.createUserDelete(sn, TaskType.USER_DELETE, "", -1, System.currentTimeMillis());
-                MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
-                release.setPropreties(serverConfig.getZkHosts(), zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
-                // 创建任务节点
-                String taskName = release.updateTaskContentNode(task, TaskType.USER_DELETE.name(), null);
-                TaskServerNodeModel serverModel = TasksUtils.createServerTaskNode();
-                // 创建服务节点
-                for (Service service : services) {
-                    release.updateServerTaskContentNode(service.getServiceId(), taskName, TaskType.USER_DELETE.name(), serverModel);
-                }
-
-                result.setSuccess(true);
-                result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.SUCCESS.name()));
-            }
         } catch (StorageNameNonexistentException e) {
             result.setSuccess(false);
             result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_NONEXIST_ERROR.name()));
@@ -79,8 +71,6 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
             result.setSuccess(false);
             result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()));
         }
-
         callback.completed(result);
     }
-
 }
