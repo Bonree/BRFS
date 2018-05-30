@@ -17,6 +17,7 @@ import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.DuplicaServiceSelector;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.client.utils.FilePathBuilder;
+import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.exception.BRFSException;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
@@ -78,6 +79,10 @@ public class DefaultStorageNameStick implements StorageNameStick {
 		
 		try {
         	List<Service> serviceList = dupSelector.randomServiceList();
+        	if(serviceList.isEmpty()) {
+        		throw new BRFSException("none disknode!!!");
+        	}
+        	
         	for(Service service : serviceList) {
         		URI uri = new URIBuilder()
         	    .setScheme(DEFAULT_SCHEME)
@@ -187,32 +192,53 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
 	@Override
 	public boolean deleteData(String startTime, String endTime) {
-		Service service = dupSelector.randomService();
-		LOG.info("select server:"+service);
-        if(service==null) {
-            throw new BRFSException("none server!!!");
-        }
-		StringBuilder pathBuilder = new StringBuilder();
-		pathBuilder.append(URI_DATA_ROOT)
-		           .append(storageId).append("/")
-		           .append(startTime).append("_").append(endTime);
-		
-		URI uri = new URIBuilder()
-	    .setScheme(DEFAULT_SCHEME)
-	    .setHost(service.getHost())
-	    .setPort(service.getPort())
-	    .setPath(pathBuilder.toString())
-	    .build();
-		
 		try {
-			HttpResponse response = client.executeDelete(uri);
-			
-			return response.isReponseOK();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return false;
+        	List<Service> serviceList = dupSelector.randomServiceList();
+        	if(serviceList.isEmpty()) {
+        		throw new BRFSException("none disknode!!!");
+        	}
+        	
+        	for(Service service : serviceList) {
+        		StringBuilder pathBuilder = new StringBuilder();
+        		pathBuilder.append(URI_DATA_ROOT)
+        		           .append(storageId).append("/")
+        		           .append(startTime).append("_").append(endTime);
+        		
+        		URI uri = new URIBuilder()
+        	    .setScheme(DEFAULT_SCHEME)
+        	    .setHost(service.getHost())
+        	    .setPort(service.getPort())
+        	    .setPath(pathBuilder.toString())
+        	    .build();
+            	
+                HttpResponse response = null;
+            	try {
+            		Map<String, String> headers = new HashMap<String, String>();
+            		headers.put("username", userName);
+            		headers.put("password", passwd);
+            		
+            		 response = client.executeDelete(uri);
+    			} catch (Exception e) {
+    				continue;
+    			}
+            	
+            	if(response == null) {
+            		throw new Exception("can not get response for createStorageName!");
+            	}
+            	
+            	if(response.isReponseOK()) {
+        			return true;
+        		}
+        		
+        		String code = new String(response.getResponseBody());
+                ReturnCode returnCode = ReturnCode.valueOf(code);
+                returnCode = ReturnCode.checkCode(storageName, returnCode);
+        	}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
 	}
 
 	@Override

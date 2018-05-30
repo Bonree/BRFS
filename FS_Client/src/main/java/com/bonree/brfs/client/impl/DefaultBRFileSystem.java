@@ -68,6 +68,10 @@ public class DefaultBRFileSystem implements BRFileSystem {
     public boolean createStorageName(String storageName, Map<String, Object> attrs) {
         try {
         	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
+        	if(serviceList.isEmpty()) {
+        		throw new BRFSException("none disknode!!!");
+        	}
+        	
         	for(Service service : serviceList) {
         		URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
 
@@ -109,6 +113,10 @@ public class DefaultBRFileSystem implements BRFileSystem {
     public boolean updateStorageName(String storageName, Map<String, Object> attrs) {
     	try {
         	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
+        	if(serviceList.isEmpty()) {
+        		throw new BRFSException("none disknode!!!");
+        	}
+        	
         	for(Service service : serviceList) {
         		URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
 
@@ -150,6 +158,10 @@ public class DefaultBRFileSystem implements BRFileSystem {
     public boolean deleteStorageName(String storageName) {
     	try {
         	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
+        	if(serviceList.isEmpty()) {
+        		throw new BRFSException("none disknode!!!");
+        	}
+        	
         	for(Service service : serviceList) {
         		URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
             	
@@ -192,6 +204,10 @@ public class DefaultBRFileSystem implements BRFileSystem {
     			if(stick == null) {
     				try {
     		        	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
+    		        	if(serviceList.isEmpty()) {
+    		        		throw new BRFSException("none disknode!!!");
+    		        	}
+    		        	
     		        	for(Service service : serviceList) {
     		        		URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
     		            	
