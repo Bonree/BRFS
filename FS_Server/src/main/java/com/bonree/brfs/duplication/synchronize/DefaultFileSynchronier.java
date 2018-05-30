@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.recovery;
+package com.bonree.brfs.duplication.synchronize;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -134,6 +134,10 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			
 			BitSet[] sets = new BitSet[seqNumberList.size()];
 			for(int i = 0; i < sets.length; i++) {
+				if(seqNumberList.get(i).getNode().getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+					continue;
+				}
+				
 				sets[i] = seqNumberList.get(i).getSequenceNumbers();
 			}
 			
@@ -217,7 +221,13 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 		private void dosynchronize(List<DuplicateNodeSequence> seqNumberList, BitSet union, BitSet intersection) {
 			List<AvailableSequenceInfo> infos = new ArrayList<AvailableSequenceInfo>();
 			for(DuplicateNodeSequence sequence : seqNumberList) {
+				if(sequence.getNode().getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+					continue;
+				}
+				
 				BitSet iHave = BitSetUtils.minus(sequence.getSequenceNumbers(), intersection);
+				LOG.info("Duplicate node[{}] has available seq num[{}]", sequence.getNode(), iHave.cardinality());
+				
 				AvailableSequenceInfo info = new AvailableSequenceInfo();
 				info.setServiceGroup(sequence.getNode().getGroup());
 				info.setServiceId(sequence.getNode().getId());
@@ -235,7 +245,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			recoverInfo.setInfoList(infos);
 			for(DuplicateNodeSequence sequence : seqNumberList) {
 				BitSet lack = BitSetUtils.minus(union, sequence.getSequenceNumbers());
-				if(lack.isEmpty()) {
+				if(lack.isEmpty() || sequence.getNode().getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
 					//没有空缺内容，不需要恢复
 					continue;
 				}

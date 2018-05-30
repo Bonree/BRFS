@@ -36,8 +36,8 @@ import com.bonree.brfs.duplication.datastream.file.FileLounge;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeCleaner;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.tasks.MultiDataWriteTask;
-import com.bonree.brfs.duplication.recovery.FileSynchronizer;
-import com.bonree.brfs.duplication.recovery.FileSynchronizeCallback;
+import com.bonree.brfs.duplication.synchronize.FileSynchronizeCallback;
+import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class DuplicateWriter {

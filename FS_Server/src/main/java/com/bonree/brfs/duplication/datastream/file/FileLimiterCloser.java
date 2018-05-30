@@ -11,8 +11,8 @@ import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
-import com.bonree.brfs.duplication.recovery.FileSynchronizeCallback;
-import com.bonree.brfs.duplication.recovery.FileSynchronizer;
+import com.bonree.brfs.duplication.synchronize.FileSynchronizeCallback;
+import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class FileLimiterCloser implements FileCloseListener {

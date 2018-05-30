@@ -39,8 +39,6 @@ import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.ReadDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.WriteDataMessageHandler;
-import com.bonree.brfs.duplication.recovery.DefaultFileSynchronier;
-import com.bonree.brfs.duplication.recovery.FileSynchronizer;
 import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.ZkStorageIdBuilder;
@@ -48,6 +46,8 @@ import com.bonree.brfs.duplication.storagename.handler.CreateStorageNameMessageH
 import com.bonree.brfs.duplication.storagename.handler.DeleteStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.OpenStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.UpdateStorageNameMessageHandler;
+import com.bonree.brfs.duplication.synchronize.DefaultFileSynchronier;
+import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class BootStrap {

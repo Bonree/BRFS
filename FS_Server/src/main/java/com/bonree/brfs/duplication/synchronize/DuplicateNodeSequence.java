@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.recovery;
+package com.bonree.brfs.duplication.synchronize;
 
 import java.util.BitSet;
 
