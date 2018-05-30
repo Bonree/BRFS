@@ -8,6 +8,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
@@ -16,6 +17,7 @@ import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
@@ -81,6 +83,16 @@ public class DeleteDataMessageHandler implements MessageHandler {
 			result.setCause(new IllegalArgumentException("start time must before to end time!"));
 			callback.completed(result);
 			return;
+		}else if(startTime != startTime/1000/60/60*1000*60*60 ){
+			result.setSuccess(false);
+			result.setCause(new IllegalArgumentException("startTime : "+ startTime +" is not integral time !!"));
+			callback.completed(result);
+			return;
+		}else if( endTime != endTime/1000/60/60*1000*60*60){
+			result.setSuccess(false);
+			result.setCause(new IllegalArgumentException("startTime : "+ endTime +" is not integral time !!"));
+			callback.completed(result);
+			return;
 		}
 		
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
@@ -109,18 +121,12 @@ public class DeleteDataMessageHandler implements MessageHandler {
 //				CloseUtils.closeQuietly(client);
 //			}
 //		}
-         TaskModel task = TasksUtils.createUserDelete(sn, TaskType.USER_DELETE, "", startTime, endTime);
-         MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
-         release.setPropreties(serverConfig.getZkHosts(), zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
-         // 创建任务节点
-         String taskName = release.updateTaskContentNode(task, TaskType.USER_DELETE.name(), null);
-         TaskServerNodeModel serverModel = TasksUtils.createServerTaskNode();
-         // 创建服务节点
-         for (Service service : serviceList) {
-             release.updateServerTaskContentNode(service.getServiceId(), taskName, TaskType.USER_DELETE.name(), serverModel);
-         }
-		
-		result.setSuccess(true);
+        boolean isCreate = TasksUtils.createUserDeleteTask(serviceList, serverConfig, zkPaths, sn, startTime, endTime);
+        
+		result.setSuccess(isCreate);
+		if(!isCreate){
+			result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_OPT_ERROR.name()));
+		}
 		callback.completed(result);
 	}
 

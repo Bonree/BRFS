@@ -13,6 +13,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
 import org.quartz.JobDataMap;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
@@ -21,6 +22,7 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
@@ -34,41 +36,42 @@ import com.bonree.brfs.schedulers.task.model.TaskSNMessageModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 
 public class TasksUtils {
-	/***
-	 * 概述：生成任务信息
-	 * @param sn
-	 * @param files
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static TaskModel createFilePairModel(final StorageNameNode sn, List<FileNode> files){
-		if(sn == null || files == null){
-			return null;
-		}
-		TaskModel task = new TaskModel();
-		task.addAtom(createAtoms(files, sn));
-		return task;
-	}
 	/**
-	 * 概述：生成原子任务
-	 * @param files
+	 * 概述：
+	 * @param services
+	 * @param serverConfig
+	 * @param zkPaths
 	 * @param sn
+	 * @param startTime
+	 * @param endTime
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static AtomTaskModel createAtoms(List<FileNode> files, StorageNameNode sn){
-		AtomTaskModel atom = new AtomTaskModel();
-		atom.setStorageName(sn.getName());
-		String content = null;
-		for(FileNode file : files){
-			if(file == null){
-				continue;
-			}
-			content = JsonUtils.toJsonString(file);
-			atom.addFile(content);
-		}
-		return atom;
-	}
+	 public static boolean createUserDeleteTask(List<Service> services,ServerConfig serverConfig, ZookeeperPaths zkPaths, StorageNameNode sn, long startTime, long endTime){
+		 	if(services == null || services.isEmpty()){
+		 		return false;
+		 	}
+		 	if(sn == null){
+		 		return false;
+		 	}
+	    	TaskModel task = TasksUtils.createUserDelete(sn, TaskType.USER_DELETE, "", startTime, endTime);
+	    	if(task == null){
+	    		return false;
+	    	}
+	        MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
+	        release.setPropreties(serverConfig.getZkHosts(), zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
+	        // 创建任务节点
+	        String taskName = release.updateTaskContentNode(task, TaskType.USER_DELETE.name(), null);
+	        if(BrStringUtils.isEmpty(taskName)){
+	        	return false;
+	        }
+	        TaskServerNodeModel serverModel = TasksUtils.createServerTaskNode();
+	        // 创建服务节点
+	        for (Service service : services) {
+	            release.updateServerTaskContentNode(service.getServiceId(), taskName, TaskType.USER_DELETE.name(), serverModel);
+	        }
+	    	return true;
+	    }
 	/**
 	 * 概述：创建可执行任务信息
 	 * @param sn storageName信息
@@ -80,6 +83,9 @@ public class TasksUtils {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static TaskModel createUserDelete(final StorageNameNode sn,final TaskType taskType, final String opertationContent, final long startTime, final long endTime){
+		if(sn == null ||taskType == null){
+			return null;
+		}
 		TaskModel task = new TaskModel();
 		List<AtomTaskModel> storageAtoms = new ArrayList<AtomTaskModel>();
 		if(endTime == 0 || startTime > endTime){
@@ -92,6 +98,7 @@ public class TasksUtils {
 			startHour = startTime/1000/60/60*60*60*1000;
 		}
 		long endHour = endTime/1000/60/60*60*60*1000 + 3600000;
+		
 		AtomTaskModel atom = null;
 		String dirName = null;
 		String snName = sn.getName();

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.authentication.SimpleAuthentication;
+import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.http.HttpConfig;
 import com.bonree.brfs.common.http.netty.NettyHttpContextHandler;
@@ -71,6 +72,11 @@ public class BootStrap {
 		client.blockUntilConnected();
 		
 		SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client);
+		UserModel model = simpleAuthentication.getUser("root");
+        if(model == null) {
+            LOG.error("please init server!!!");
+            System.exit(1);
+        }
 		
 		client = client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1));
 		
