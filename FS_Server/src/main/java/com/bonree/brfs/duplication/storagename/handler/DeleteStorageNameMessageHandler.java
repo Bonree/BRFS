@@ -50,6 +50,12 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
         try {
 			List<Service> services = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
 			StorageNameNode sn = storageNameManager.findStorageName(msg.getName());
+			if(sn.isEnable()){
+				result.setSuccess(false);
+				result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()));
+				callback.completed(result);
+				return;
+			}
 			boolean isCreate = TasksUtils.createUserDeleteTask(services, serverConfig, zkPaths, sn, -1,	System.currentTimeMillis());
 			if (!isCreate) {
 				result.setSuccess(false);
