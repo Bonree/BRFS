@@ -96,7 +96,7 @@ public class HttpClient implements Closeable {
 			httpGet.setHeader(entry.getKey(), entry.getValue());
 		}
 		
-		return executeInner(new HttpGet(uri));
+		return executeInner(httpGet);
 	}
 	
 	public void executeGet(URI uri, ResponseHandler handler) {
