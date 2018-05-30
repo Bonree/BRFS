@@ -105,18 +105,21 @@ public class MultiRecover implements DataRecover {
             if (client.checkExists(taskNode)) {
                 byte[] data = client.getData(taskNode);
                 BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
-                String newChangeID = bts.getChangeID();
-                String oldChangeID = balanceSummary.getChangeID();
-                if (newChangeID.equals(oldChangeID)) {
+                String newID = bts.getId();
+                String oldID = balanceSummary.getId();
+                if (newID.equals(oldID)) { // 是同一个任务
                     TaskStatus stats = bts.getTaskStatus();
                     // 更新缓存
                     status.set(stats);
                     LOG.info("stats:" + stats);
-                } else {
-                    LOG.info("newChangeID:{} not match oldChangeID:{}", newChangeID, oldChangeID);
+                } else { // 不是同一个任务
+                    LOG.info("newID:{} not match oldID:{}", newID, oldID);
                     LOG.info("cancel multirecover:{}", balanceSummary);
                     status.set(TaskStatus.CANCEL);
                 }
+            } else {
+                LOG.info("task is deleted!!,this task will cancel!");
+                status.set(TaskStatus.CANCEL);
             }
         }
 

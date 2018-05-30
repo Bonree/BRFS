@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -891,6 +892,9 @@ public class TaskDispatcher implements Closeable {
      */
     public boolean dispatchTask(BalanceTaskSummary taskSummary) {
         int storageIndex = taskSummary.getStorageIndex();
+        //设置唯一任务UUID
+        taskSummary.setId(UUID.randomUUID().toString());
+        
         String jsonStr = JSON.toJSONString(taskSummary);
         LOG.info("dispatch task:{}", jsonStr);
         // 创建任务
