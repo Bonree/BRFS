@@ -12,7 +12,8 @@ public enum ReturnCode {
     STORAGE_NONEXIST_ERROR(4002),   //storage name不存在
     STORAGE_UPDATE_ERROR(4003),     //更新storage name发生错误
     STORAGE_REMOVE_ERROR(4004), //移除storage name发生错误
-    STORAGE_OPT_ERROR(4005); //创建storage name发生错误
+    STORAGE_OPT_ERROR(4005), //创建storage name发生错误
+    USER_FORBID(3001); //用户不行
 
     // 成员变量
     private int code;
@@ -47,6 +48,8 @@ public enum ReturnCode {
             throw new BRFSException(storageName+" replication illegal!!!!");
         }else if(code.equals(ReturnCode.STORAGE_TTL_ERROR)) {
             throw new BRFSException(storageName+" ttl illegal!!!!");
+        }else if(code.equals(ReturnCode.USER_FORBID)) {
+        	throw new BRFSException("User is forbidden!!!!");
         }
         return code;
     }
