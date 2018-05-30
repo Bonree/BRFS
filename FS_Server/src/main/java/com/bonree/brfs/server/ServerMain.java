@@ -71,7 +71,6 @@ public class ServerMain {
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
             
             SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client.getInnerClient());
-            
             UserModel model = authentication.getUser("root");
             if(model == null) {
                 LOG.error("please init server!!!");
