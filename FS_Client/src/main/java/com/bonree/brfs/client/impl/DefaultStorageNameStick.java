@@ -217,7 +217,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
             		headers.put("username", userName);
             		headers.put("password", passwd);
             		
-            		 response = client.executeDelete(uri);
+            		 response = client.executeDelete(uri, headers);
     			} catch (Exception e) {
     				continue;
     			}
