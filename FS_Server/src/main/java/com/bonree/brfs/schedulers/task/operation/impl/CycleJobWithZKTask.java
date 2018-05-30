@@ -103,7 +103,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 				ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 				MetaTaskManagerInterface release = mcf.getTm();
 				//创建任务
-				createBatchData(release, data, serverId, taskType, prexName, batchSize);
+				createBatchData(release, data, serverId, taskType, prexName, batchSize, 3);
 			}else{
 				//更新任务状态
 				data.put(JobDataMapConstract.CURRENT_INDEX, (batchIndex-1)+"" );
@@ -112,9 +112,9 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 		}
 	}
 	
-	public void createBatchData(MetaTaskManagerInterface release,JobDataMap data,String serverId, TaskType taskType, String prexName, int batchSize){
+	public void createBatchData(MetaTaskManagerInterface release,JobDataMap data,String serverId, TaskType taskType, String prexName, int batchSize, int limitCount){
 		// 从zk获取任务信息最后一次执行成功的  若任务为空则返回
-		Pair<String,TaskModel> taskPair = TaskStateLifeContral.getTaskModel(release,taskType, prexName, serverId);
+		Pair<String,TaskModel> taskPair = TaskStateLifeContral.getCurrentOperationTask(release, taskType.name(), serverId, limitCount);
 		if(taskPair == null){
 			LOG.info("{} task queue is empty !!!",taskType.name());
 			return;
