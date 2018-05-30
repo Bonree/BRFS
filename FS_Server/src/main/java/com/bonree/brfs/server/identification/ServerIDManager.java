@@ -208,13 +208,23 @@ public class ServerIDManager implements Closeable {
      */
     public String getOtherSecondID(String firstID, int snIndex) {
         String secondID = null;
-        for (Entry<String, String> entry : otherServerIDCache.entrySet()) {
-            if (entry.getValue().equals(firstID)) {
-                String[] arr = entry.getKey().split(SEPARATOR);
-                String sn = arr[0];
-                if (sn.equals(String.valueOf(snIndex))) {
-                    secondID = arr[1];
+        while (true) {
+            for (Entry<String, String> entry : otherServerIDCache.entrySet()) {
+                if (entry.getValue().equals(firstID)) {
+                    String[] arr = entry.getKey().split(SEPARATOR);
+                    String sn = arr[0];
+                    if (sn.equals(String.valueOf(snIndex))) {
+                        secondID = arr[1];
+                    }
                 }
+            }
+            if(secondID!=null) {
+               break; 
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
         return secondID;

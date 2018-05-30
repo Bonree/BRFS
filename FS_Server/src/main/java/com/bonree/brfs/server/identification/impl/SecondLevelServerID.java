@@ -3,10 +3,13 @@ package com.bonree.brfs.server.identification.impl;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.recipes.locks.InterProcessLock;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
@@ -26,6 +29,8 @@ import com.google.common.base.Preconditions;
  * 所以每个SN都会有自己的二级ServerID。
  ******************************************************************************/
 public class SecondLevelServerID {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SecondLevelServerID.class);
     private LevelServerIDGen secondServerIDOpt;
 
     private CuratorClient client;
@@ -36,7 +41,12 @@ public class SecondLevelServerID {
 
     private Map<Integer, String> secondMap;
 
-    private static Lock lock = new ReentrantLock();
+    private final static String SECOND_LOCKS = "second_locks";
+
+    private final static String SEPARATOR = "/";
+
+    // private static Lock lock = new ReentrantLock();
+    private InterProcessLock lock;
 
     public SecondLevelServerID(CuratorClient client, String selfFirstPath, String seqPath, String baseRoutes) {
         this.client = client;
@@ -44,6 +54,7 @@ public class SecondLevelServerID {
         this.secondServerIDOpt = new SecondServerIDGenImpl(client, seqPath);
         this.baseRoutes = baseRoutes;
         secondMap = new ConcurrentHashMap<>();
+        lock = new InterProcessMutex(client.getInnerClient(), seqPath + SEPARATOR + SECOND_LOCKS);
     }
 
     public void loadServerID() {
@@ -86,19 +97,29 @@ public class SecondLevelServerID {
     public String getServerID(int storageIndex) {
         Preconditions.checkNotNull(secondMap, "Second Level Server ID is not init!!!");
         String serverID = secondMap.get(storageIndex);
-        if (StringUtils.isEmpty(serverID)) { // 需要对新的SN的进行初始化
+        if (StringUtils.isEmpty(serverID)) {
             try {
-                String node = selfFirstPath + '/' + storageIndex;
-                lock.lock();
-                if (!client.checkExists(node)) {
-                    serverID = secondServerIDOpt.genLevelID();
-                    client.createPersistent(node, true, serverID.getBytes());
-                } else {
-                    serverID = new String(client.getData(node));
+                if (lock.acquire(10, TimeUnit.SECONDS)) {
+                    serverID = secondMap.get(storageIndex);
+                    if (StringUtils.isEmpty(serverID)) {
+                        String node = selfFirstPath + '/' + storageIndex;
+                        if (!client.checkExists(node)) {
+                            serverID = secondServerIDOpt.genLevelID();
+                            client.createPersistent(node, true, serverID.getBytes());
+                        } else {
+                            serverID = new String(client.getData(node));
+                        }
+                        secondMap.put(storageIndex, serverID);
+                    }
                 }
-                secondMap.put(storageIndex, serverID);
+            } catch (Exception e) {
+                LOG.error("acquire lock error!!!", e);
             } finally {
-                lock.unlock();
+                try {
+                    lock.release();
+                } catch (Exception e) {
+                    LOG.error("release lock error!!!", e);
+                }
             }
         }
         return serverID;
