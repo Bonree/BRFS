@@ -547,22 +547,25 @@ public class TaskDispatcher implements Closeable {
          */
 
         // 检测是否能进行数据恢复。
-        ChangeSummary cs = changeSummaries.get(0);
-        if (cs.getChangeType().equals(ChangeType.REMOVE)) {
-            List<String> aliveFirstIDs = getAliveServices();
-            List<String> joinerFirstIDs = cs.getCurrentServers();
-            boolean canRecover = isCanRecover(cs, joinerFirstIDs, aliveFirstIDs);
-            if (canRecover) {
-                List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
-                List<String> joinerSecondIDs = joinerFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
-                // 构建任务
-                BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangeServer(), aliveSecondIDs, joinerSecondIDs, normalDelay);
-                // 发布任务
-                dispatchTask(taskSummary);
-                // 加入正在执行的任务的缓存中
-                setRunTask(taskSummary.getStorageIndex(), taskSummary);
-            } else {
-                LOG.info("because current server is not enough,normal recover can't create.change:{}", changeSummaries);
+        Iterator<ChangeSummary> it=changeSummaries.iterator();
+        while(it.hasNext()) {
+            ChangeSummary cs = it.next();
+            if (cs.getChangeType().equals(ChangeType.REMOVE)) {
+                List<String> aliveFirstIDs = getAliveServices();
+                List<String> joinerFirstIDs = cs.getCurrentServers();
+                boolean canRecover = isCanRecover(cs, joinerFirstIDs, aliveFirstIDs);
+                if (canRecover) {
+                    List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
+                    List<String> joinerSecondIDs = joinerFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
+                    // 构建任务
+                    BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangeServer(), aliveSecondIDs, joinerSecondIDs, normalDelay);
+                    // 发布任务
+                    dispatchTask(taskSummary);
+                    // 加入正在执行的任务的缓存中
+                    setRunTask(taskSummary.getStorageIndex(), taskSummary);
+                } else {
+                    LOG.info("because current server is not enough,normal recover can't create.change:{}", changeSummaries);
+                }
             }
         }
         return true;

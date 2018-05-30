@@ -105,10 +105,18 @@ public class MultiRecover implements DataRecover {
             if (client.checkExists(taskNode)) {
                 byte[] data = client.getData(taskNode);
                 BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
-                TaskStatus stats = bts.getTaskStatus();
-                // 更新缓存
-                status.set(stats);
-                LOG.info("stats:" + stats);
+                String newChangeID = bts.getChangeID();
+                String oldChangeID = balanceSummary.getChangeID();
+                if (newChangeID.equals(oldChangeID)) {
+                    TaskStatus stats = bts.getTaskStatus();
+                    // 更新缓存
+                    status.set(stats);
+                    LOG.info("stats:" + stats);
+                } else {
+                    LOG.info("newChangeID:{} not match oldChangeID:{}", newChangeID, oldChangeID);
+                    LOG.info("cancel multirecover:{}", balanceSummary);
+                    status.set(TaskStatus.CANCEL);
+                }
             }
         }
 
@@ -185,7 +193,7 @@ public class MultiRecover implements DataRecover {
         }
 
         LOG.info("begin normal recover");
-        
+
         detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
         // 注册节点
         LOG.info("create:" + selfNode + "-------------" + detail);
@@ -195,7 +203,6 @@ public class MultiRecover implements DataRecover {
         detail.setStatus(ExecutionStatus.RECOVER);
         LOG.info("update:" + selfNode + "-------------" + detail);
         updateDetail(selfNode, detail);
-        
 
         String snDataDir = dataDir + FileUtils.FILE_SEPARATOR + storageName;
         if (!FileUtils.isExist(snDataDir)) {
@@ -212,7 +219,7 @@ public class MultiRecover implements DataRecover {
         // 启动消费队列
         Thread cosumerThread = new Thread(consumerQueue());
         cosumerThread.start();
-        
+
         detail.setTotalDirectories(timeFileCounts);
         updateDetail(selfNode, detail);
 
@@ -477,7 +484,7 @@ public class MultiRecover implements DataRecover {
     public boolean secureCopyTo(Service service, String localPath, String remoteDir, String fileName) {
         boolean success = true;
         try {
-            if(!FileUtils.isExist(localPath+".rd")){
+            if (!FileUtils.isExist(localPath + ".rd")) {
                 fileClient.sendFile(service.getHost(), service.getPort() + 20, localPath, remoteDir, fileName);
             }
         } catch (Exception e) {

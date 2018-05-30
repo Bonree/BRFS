@@ -118,6 +118,8 @@ public class ServerMain {
 
             // 副本平衡模块
             sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
+           
+            @SuppressWarnings("resource")
             RebalanceManager rebalanceServer = new RebalanceManager(serverConfig, zookeeperPaths, idManager, snManager, sm);
             rebalanceServer.start();
 
