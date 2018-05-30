@@ -158,10 +158,6 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName(),dataPath);
 				}
 				if(TaskType.USER_DELETE.equals(taskType)){
-					if(task.getCreateTime() -System.currentTimeMillis() < 3600000){
-						LOG.info("task {} need delay 1 hour !! there is not task to do ",TaskType.USER_DELETE.name());
-						continue;
-					}
 					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), UserDeleteJob.class.getCanonicalName(),dataPath);
 				}
 				
