@@ -1,14 +1,8 @@
 package com.bonree.brfs.duplication.datastream.file;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
@@ -17,8 +11,8 @@ import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
+import com.bonree.brfs.duplication.recovery.FileSynchronizeCallback;
 import com.bonree.brfs.duplication.recovery.FileSynchronizer;
-import com.bonree.brfs.duplication.recovery.FileRecoveryListener;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class FileLimiterCloser implements FileCloseListener {
@@ -29,12 +23,6 @@ public class FileLimiterCloser implements FileCloseListener {
 	private FileCoordinator fileCoordinator;
 	private ServerIDManager idManager;
 	
-	private ServiceManager serviceManager;
-	
-	private ExecutorService executor = Executors.newSingleThreadExecutor();
-	
-	private List<FileLimiter> delayedCloseFileList = new LinkedList<FileLimiter>();
-	
 	public FileLimiterCloser(FileSynchronizer fileRecovery,
 			DiskNodeConnectionPool connectionPool,
 			FileCoordinator fileCoordinator,
@@ -43,16 +31,15 @@ public class FileLimiterCloser implements FileCloseListener {
 		this.fileRecovery = fileRecovery;
 		this.connectionPool = connectionPool;
 		this.fileCoordinator = fileCoordinator;
-		this.serviceManager = serviceManager;
 		this.idManager = idManager;
 	}
 	
 	@Override
 	public void close(FileLimiter file) throws Exception {
-		fileRecovery.recover(file.getFileNode(), new FileCloseConditionChecker(file));
+		fileRecovery.synchronize(file.getFileNode(), new FileCloseConditionChecker(file));
 	}
 	
-	private class FileCloseConditionChecker implements FileRecoveryListener {
+	private class FileCloseConditionChecker implements FileSynchronizeCallback {
 		private FileLimiter file;
 		
 		public FileCloseConditionChecker(FileLimiter file) {
@@ -86,20 +73,12 @@ public class FileLimiterCloser implements FileCloseListener {
 		@Override
 		public void error(Throwable cause) {
 			cause.printStackTrace();
-			delayedCloseFileList.add(file);
-		}
-		
-	}
-	
-	private class FileCloseTask implements Runnable {
-		private Service service;
-		
-		public FileCloseTask(Service service) {
-			this.service = service;
-		}
-
-		@Override
-		public void run() {
+			try {
+				//对于没办法处理的文件，只能放弃了
+				fileCoordinator.delete(file.getFileNode());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 	}

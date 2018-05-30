@@ -14,8 +14,6 @@ public final class ZkFileCoordinatorPaths {
 	public static final String COORDINATOR_SINK = "fileSink";
 	//Leader选举路径
 	public static final String COORDINATOR_LEADER = "leader";
-	//未恢复文件列表节点
-	public static final String COORDINATOR_RECOVERY = "recoveryStore";
 	
 	//保存Sink节点的容器路径
 	public static String sinkContainerPath() {

@@ -111,16 +111,15 @@ public class BootStrap {
 		connectionPool.addFactory(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP, new VirtualDiskNodeConnectionPool());
 		connectionPool.addFactory(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new HttpDiskNodeConnectionPool(serviceManager));
 		
-		FileNodeStorer recoveryStorer = new ZkFileNodeStorer(client, ZkFileCoordinatorPaths.COORDINATOR_RECOVERY);
-		FileSynchronizer fileRecovery = new DefaultFileSynchronier(connectionPool, recoveryStorer, idManager);
-		fileRecovery.start();
+		FileSynchronizer fileSynchronizer = new DefaultFileSynchronier(connectionPool, serviceManager, idManager);
+		fileSynchronizer.start();
 		
 		DuplicationNodeSelector nodeSelector = new VirtualDuplicationNodeSelector(serviceManager, idManager);
 		
-		FileLimiterCloser fileLimiterCloser = new FileLimiterCloser(fileRecovery, connectionPool, fileCoordinator, serviceManager, idManager);
+		FileLimiterCloser fileLimiterCloser = new FileLimiterCloser(fileSynchronizer, connectionPool, fileCoordinator, serviceManager, idManager);
 		
 		FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool);
-		DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileRecovery, idManager, connectionPool, fileLimiterCloser);
+		DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser);
 		
 		HttpConfig config = new HttpConfig(serverConfig.getPort());
 		config.setKeepAlive(true);

@@ -37,7 +37,7 @@ import com.bonree.brfs.duplication.datastream.file.FileLoungeCleaner;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.tasks.MultiDataWriteTask;
 import com.bonree.brfs.duplication.recovery.FileSynchronizer;
-import com.bonree.brfs.duplication.recovery.FileRecoveryListener;
+import com.bonree.brfs.duplication.recovery.FileSynchronizeCallback;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class DuplicateWriter {
@@ -209,7 +209,7 @@ public class DuplicateWriter {
 			FileLounge fileLounge = getFileLoungeByStorageId(fileNode.getStorageId());
 
 			LOG.info("received transferred file--[{}]", fileNode.getName());
-			fileRecovery.recover(fileNode, new FileRecoveryListener() {
+			fileRecovery.synchronize(fileNode, new FileSynchronizeCallback() {
 				
 				@Override
 				public void complete(FileNode fileNode) {
@@ -246,8 +246,13 @@ public class DuplicateWriter {
 
 				@Override
 				public void error(Throwable cause) {
-					//TODO unhandled
 					cause.printStackTrace();
+					try {
+						//对于没办法处理的文件，只能删除节点，不再重用
+						fileCoordinator.delete(fileNode);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			});
 		}

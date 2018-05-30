@@ -15,7 +15,19 @@ public final class TimeUtils {
 	public static String timeInterval(long now, long interval) {
 		StringBuilder builder = new StringBuilder();
 		long last = (now - now % interval);
-		builder.append(new DateTime(last).toString(TIME_FORMAT)).append('_').append(new DateTime(last + interval).toString(TIME_FORMAT));
+		builder.append(formatTimeStamp(last)).append('_').append(formatTimeStamp(last + interval));
 		return builder.toString();
+	}
+	
+	/**
+	 * 格式化时间戳为时间字符串
+	 * 
+	 * 比如 2018-03-12T13-34-45.234
+	 * 
+	 * @param time
+	 * @return
+	 */
+	public static String formatTimeStamp(long time) {
+		return new DateTime(time).toString(TIME_FORMAT);
 	}
 }

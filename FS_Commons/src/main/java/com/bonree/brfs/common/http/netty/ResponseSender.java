@@ -1,8 +1,5 @@
 package com.bonree.brfs.common.http.netty;
 
-import com.bonree.brfs.common.utils.BrStringUtils;
-
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
@@ -11,6 +8,8 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+
+import com.bonree.brfs.common.utils.BrStringUtils;
 
 /**
  * 基于Netty的Http响应发送类
