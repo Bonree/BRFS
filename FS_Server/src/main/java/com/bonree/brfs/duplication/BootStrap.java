@@ -70,9 +70,9 @@ public class BootStrap {
 		client.start();
 		client.blockUntilConnected();
 		
-		client = client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1));
-		
 		SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client);
+		
+		client = client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1));
 		
 		Service service = new Service(idManager.getFirstServerID(), ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, serverConfig.getHost(), serverConfig.getPort());
 		ServiceManager serviceManager = new DefaultServiceManager(client);
