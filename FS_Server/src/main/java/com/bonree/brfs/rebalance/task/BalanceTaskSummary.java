@@ -13,6 +13,8 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
  * @Description: 用户进行副本平衡的model类
  ******************************************************************************/
 public class BalanceTaskSummary {
+    
+    private String id;
 
     /**
      *和每个change进行关联
@@ -147,11 +149,17 @@ public class BalanceTaskSummary {
         this.interval = interval;
     }
 
-    @Override
-    public String toString() {
-        return "BalanceTaskSummary [changeID=" + changeID + ", serverId=" + serverId + ", storageIndex=" + storageIndex + ", taskType=" + taskType + ", taskStatus=" + taskStatus + ", outputServers=" + outputServers + ", inputServers=" + inputServers + ", aliveServer=" + aliveServer + ", delayTime=" + delayTime + ", interval=" + interval + "]";
+    public String getId() {
+        return id;
     }
 
-   
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public String toString() {
+        return "BalanceTaskSummary [id=" + id + ", changeID=" + changeID + ", serverId=" + serverId + ", storageIndex=" + storageIndex + ", taskType=" + taskType + ", taskStatus=" + taskStatus + ", outputServers=" + outputServers + ", inputServers=" + inputServers + ", aliveServer=" + aliveServer + ", delayTime=" + delayTime + ", interval=" + interval + "]";
+    }
 
 }
