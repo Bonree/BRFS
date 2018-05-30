@@ -55,6 +55,7 @@ public class TasksUtils {
 		 		return false;
 		 	}
 	    	TaskModel task = TasksUtils.createUserDelete(sn, TaskType.USER_DELETE, "", startTime, endTime);
+	    	
 	    	if(task == null){
 	    		return false;
 	    	}
