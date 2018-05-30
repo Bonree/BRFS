@@ -25,7 +25,6 @@ import com.bonree.brfs.duplication.coordinator.FileNodeSink;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkManager;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkSelector;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
-import com.bonree.brfs.duplication.recovery.DelayedRecoveryHandler;
 
 public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 	private static final Logger LOG = LoggerFactory.getLogger(ZkFileNodeSinkManager.class);
@@ -42,8 +41,6 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 	private FileNodeDistributor distributor;
 	private static final String DISTRIBUTOR_THREAD_NAME = "file_distributor";
 	private ExecutorService threadPool = Executors.newFixedThreadPool(2, new PooledThreadFactory(DISTRIBUTOR_THREAD_NAME));
-	
-	private DelayedRecoveryHandler recoveryHandler;
 
 	public ZkFileNodeSinkManager(CuratorFramework client,
 			ServiceManager serviceManager,
@@ -110,7 +107,6 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 			
 			try {
 				threadPool.submit(distributor);
-				threadPool.submit(recoveryHandler);
 				
 				synchronized (isLeader) {
 					if(isLeader.get()) {
