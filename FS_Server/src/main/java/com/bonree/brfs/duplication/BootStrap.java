@@ -38,8 +38,8 @@ import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.ReadDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.WriteDataMessageHandler;
-import com.bonree.brfs.duplication.recovery.DefaultFileRecovery;
-import com.bonree.brfs.duplication.recovery.FileRecovery;
+import com.bonree.brfs.duplication.recovery.DefaultFileSynchronier;
+import com.bonree.brfs.duplication.recovery.FileSynchronizer;
 import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.ZkStorageIdBuilder;
@@ -106,7 +106,7 @@ public class BootStrap {
 		connectionPool.addFactory(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new HttpDiskNodeConnectionPool(serviceManager));
 		
 		FileNodeStorer recoveryStorer = new ZkFileNodeStorer(client, ZkFileCoordinatorPaths.COORDINATOR_RECOVERY);
-		FileRecovery fileRecovery = new DefaultFileRecovery(connectionPool, recoveryStorer, idManager);
+		FileSynchronizer fileRecovery = new DefaultFileSynchronier(connectionPool, recoveryStorer, idManager);
 		fileRecovery.start();
 		
 		DuplicationNodeSelector nodeSelector = new VirtualDuplicationNodeSelector(serviceManager, idManager);

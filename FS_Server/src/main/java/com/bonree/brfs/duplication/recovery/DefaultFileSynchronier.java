@@ -13,9 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BitSetUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.AvailableSequenceInfo;
+import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.RecoverInfo;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
@@ -26,8 +25,8 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
-public class DefaultFileRecovery implements FileRecovery {
-	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileRecovery.class);
+public class DefaultFileSynchronier implements FileSynchronizer {
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSynchronier.class);
 	
 	private static final int DEFAULT_THREAD_NUM = 1;
 	private ExecutorService threadPool;
@@ -37,11 +36,11 @@ public class DefaultFileRecovery implements FileRecovery {
 	
 	private ServerIDManager idManager;
 	
-	public DefaultFileRecovery(DiskNodeConnectionPool connectionPool, FileNodeStorer recoveryStorer, ServerIDManager idManager) {
+	public DefaultFileSynchronier(DiskNodeConnectionPool connectionPool, FileNodeStorer recoveryStorer, ServerIDManager idManager) {
 		this(DEFAULT_THREAD_NUM, connectionPool, recoveryStorer, idManager);
 	}
 	
-	public DefaultFileRecovery(int threadNum, DiskNodeConnectionPool connectionPool, FileNodeStorer recoveryStorer, ServerIDManager idManager) {
+	public DefaultFileSynchronier(int threadNum, DiskNodeConnectionPool connectionPool, FileNodeStorer recoveryStorer, ServerIDManager idManager) {
 		this.connectionPool = connectionPool;
 		this.recoveryStorer = recoveryStorer;
 		this.idManager = idManager;
@@ -85,7 +84,8 @@ public class DefaultFileRecovery implements FileRecovery {
 			List<DuplicateNodeSequence> seqNumberList = getAllDuplicateNodeSequence();
 			
 			if(seqNumberList.size() != target.getDuplicateNodes().length) {
-				//TODO 不相等的情况需要考虑一下是否要继续
+				//不相等的情况不能再继续恢复了，我们选择等待
+				
 			}
 			
 			if(seqNumberList.isEmpty()) {

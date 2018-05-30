@@ -17,14 +17,14 @@ import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
-import com.bonree.brfs.duplication.recovery.FileRecovery;
+import com.bonree.brfs.duplication.recovery.FileSynchronizer;
 import com.bonree.brfs.duplication.recovery.FileRecoveryListener;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class FileLimiterCloser implements FileCloseListener {
 	private static final Logger LOG = LoggerFactory.getLogger(FileLimiterCloser.class);
 	
-	private FileRecovery fileRecovery;
+	private FileSynchronizer fileRecovery;
 	private DiskNodeConnectionPool connectionPool;
 	private FileCoordinator fileCoordinator;
 	private ServerIDManager idManager;
@@ -35,7 +35,7 @@ public class FileLimiterCloser implements FileCloseListener {
 	
 	private List<FileLimiter> delayedCloseFileList = new LinkedList<FileLimiter>();
 	
-	public FileLimiterCloser(FileRecovery fileRecovery,
+	public FileLimiterCloser(FileSynchronizer fileRecovery,
 			DiskNodeConnectionPool connectionPool,
 			FileCoordinator fileCoordinator,
 			ServiceManager serviceManager,
