@@ -23,14 +23,6 @@
 					<artifactId>quartz</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>io.protostuff</groupId>
-					<artifactId>protostuff-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>io.protostuff</groupId>
-					<artifactId>protostuff-runtime</artifactId>
-				</exclusion>
-				<exclusion>
 					<groupId>org.fusesource</groupId>
 					<artifactId>sigar</artifactId>
 				</exclusion>
