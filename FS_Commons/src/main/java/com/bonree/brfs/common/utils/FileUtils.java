@@ -26,7 +26,7 @@ public class FileUtils {
 
     private final static Logger LOG = LoggerFactory.getLogger(FileUtils.class);
 
-//    public final static String FILE_SEPARATOR = File.separator;
+    // public final static String FILE_SEPARATOR = File.separator;
     public final static String FILE_SEPARATOR = "/";
 
     /** 概述：创建目录
@@ -158,15 +158,15 @@ public class FileUtils {
 
     public static List<String> listFileNames(String dir) {
         File file = new File(dir);
-        if(file.list() == null|| file.list().length == 0){
-        	return null;
+        String[] files = file.list();
+        if (files == null || files.length == 0) {
+            return new ArrayList<String>();
         }
         return Arrays.stream(file.list()).collect(Collectors.toList());
     }
 
-    public static List<String> listFileNames(String dir,final String filterEndStr) {
+    public static List<String> listFileNames(String dir, final String filterEndStr) {
         FilenameFilter filter = new FilenameFilter() {
-
             @Override
             public boolean accept(File dir, String name) {
                 if (name.toLowerCase().endsWith(filterEndStr)) {
@@ -177,16 +177,28 @@ public class FileUtils {
         };
 
         File file = new File(dir);
+        String[] files = file.list(filter);
+        if (files == null || files.length == 0) {
+            return new ArrayList<String>();
+        }
         return Arrays.stream(file.list(filter)).collect(Collectors.toList());
     }
 
     public static List<String> listFilePaths(String dir) {
         File file = new File(dir);
+        File[] files = file.listFiles();
+        if (files == null || files.length == 0) {
+            return new ArrayList<String>();
+        }
         return Arrays.stream(file.listFiles()).map(File::getPath).collect(Collectors.toList());
     }
 
     public static List<File> listFiles(String dir) {
         File file = new File(dir);
+        File[] files = file.listFiles();
+        if (files == null || files.length == 0) {
+            return new ArrayList<File>();
+        }
         return Arrays.stream(file.listFiles()).collect(Collectors.toList());
     }
 
@@ -202,10 +214,11 @@ public class FileUtils {
             return true;
         }
         // 资源回收，强制删除
-        
+
         System.gc();
         return file.delete();
     }
+
     /**
      * 概述：删除目录
      * @param dirpath
@@ -214,45 +227,45 @@ public class FileUtils {
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public static boolean deleteDir(String dirpath, boolean recursive) {
-    	File dir = new File(dirpath);
-		Queue<File> fileQueue = new LinkedList<File>();
-		LinkedList<File> deletingDirs = new LinkedList<File>();
-		fileQueue.add(dir);
-		if(!dir.exists()){
-			return true;
-		}
-		
-		if(dir.list().length == 0) {
-			return dir.delete();
-		}
-		
-		if(!recursive) {
-			throw new IllegalStateException("Directory[" + dir.getAbsolutePath() + "] is not empty!");
-		}
-		boolean isSuccess = true;
-		//第一轮先删除普通文件节点
-		while(!fileQueue.isEmpty()) {
-			File file = fileQueue.poll();
-			if(file.isDirectory()) {
-				for(File child : file.listFiles()) {
-					fileQueue.add(child);
-				}
-				
-				deletingDirs.addFirst(file);
-			} else {
-				if(!file.delete()){
-					isSuccess = false;
-				}
-			}
-		}
-		
-		//第二轮删除文件夹节点
-		for(File deleteDir : deletingDirs) {
-			LOG.info("DISK Deleting dir[{}]", deleteDir.getAbsolutePath());
-			if(!deleteDir.delete()){
-				isSuccess = false;
-			}
-		}
-		return isSuccess;
-	}
+        File dir = new File(dirpath);
+        Queue<File> fileQueue = new LinkedList<File>();
+        LinkedList<File> deletingDirs = new LinkedList<File>();
+        fileQueue.add(dir);
+        if (!dir.exists()) {
+            return true;
+        }
+
+        if (dir.list().length == 0) {
+            return dir.delete();
+        }
+
+        if (!recursive) {
+            throw new IllegalStateException("Directory[" + dir.getAbsolutePath() + "] is not empty!");
+        }
+        boolean isSuccess = true;
+        // 第一轮先删除普通文件节点
+        while (!fileQueue.isEmpty()) {
+            File file = fileQueue.poll();
+            if (file.isDirectory()) {
+                for (File child : file.listFiles()) {
+                    fileQueue.add(child);
+                }
+
+                deletingDirs.addFirst(file);
+            } else {
+                if (!file.delete()) {
+                    isSuccess = false;
+                }
+            }
+        }
+
+        // 第二轮删除文件夹节点
+        for (File deleteDir : deletingDirs) {
+            LOG.info("DISK Deleting dir[{}]", deleteDir.getAbsolutePath());
+            if (!deleteDir.delete()) {
+                isSuccess = false;
+            }
+        }
+        return isSuccess;
+    }
 }
