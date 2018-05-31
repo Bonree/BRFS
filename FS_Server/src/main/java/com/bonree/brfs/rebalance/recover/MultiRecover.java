@@ -436,8 +436,8 @@ public class MultiRecover implements DataRecover {
         };
     }
 
-    private List<String> getRecoverRoleList(String serverModel) {
-        return normalRoutes.get(serverModel).getNewSecondIDs();
+    private List<String> getRecoverRoleList(String deadSecondID) {
+        return normalRoutes.get(deadSecondID).getNewSecondIDs();
     }
 
     private List<String> getAliveMultiIds() {
