@@ -19,8 +19,10 @@ public class InitServer {
     public static void main(String[] args) {
         String brfsHome = System.getProperty("path");
         try {
+            System.setProperty("name", "init");
             Configuration conf = Configuration.getInstance();
             conf.parse(brfsHome + "/config/server.properties");
+            conf.initLogback(brfsHome + "/config/logback.xml");
             conf.printConfigDetail();
             ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
             CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
