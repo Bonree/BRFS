@@ -13,6 +13,52 @@
 			<groupId>com.bonree.fs</groupId>
 			<artifactId>FS_Commons</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-all</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.quartz-scheduler</groupId>
+					<artifactId>quartz</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.protostuff</groupId>
+					<artifactId>protostuff-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.protostuff</groupId>
+					<artifactId>protostuff-runtime</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.fusesource</groupId>
+					<artifactId>sigar</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.curator</groupId>
+					<artifactId>curator-x-discovery</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>joda-time</groupId>
+					<artifactId>joda-time</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpclient</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.bonree.fs</groupId>
@@ -37,7 +83,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
