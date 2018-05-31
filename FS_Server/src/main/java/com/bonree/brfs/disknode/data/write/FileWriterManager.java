@@ -105,20 +105,7 @@ public class FileWriterManager implements LifeCycle {
 		File[] snDirList = root.listFiles();
 		for(File snDir : snDirList) {
 			for(File serverDir : snDir.listFiles()) {
-				File[] timeDirList = serverDir.listFiles(new FilenameFilter() {
-					
-					@Override
-					public boolean accept(File dir, String name) {
-						long now = System.currentTimeMillis();
-						long interval = 60 * 60 * 1000;
-						
-						//返回当前时间段和上一个时间段的文件
-						return name.equals(TimeUtils.timeInterval(now, interval))
-								|| name.equals(TimeUtils.timeInterval(now  - interval, interval));
-					}
-				});
-				
-				for(File timeDir : timeDirList) {
+				for(File timeDir : serverDir.listFiles()) {
 					File[] recordFileList = timeDir.listFiles(new FilenameFilter() {
 						
 						@Override
@@ -129,17 +116,10 @@ public class FileWriterManager implements LifeCycle {
 					
 					for(File recordFile : recordFileList) {
 						File dataFile = RecordFileBuilder.reverse(recordFile);
+						
 						LOG.info("reopen file [{}]", dataFile);
 						
-						RecordFileWriter writer = new RecordFileWriter(
-								recorderManager.getRecordCollection(dataFile, true, DEFAULT_RECORD_BUFFER_SIZE, true),
-										new BufferedFileWriter(dataFile, true, new ByteFileBuffer(
-												DEFAULT_FILE_BUFFER_SIZE)));
-
-						Pair<RecordFileWriter, WriteWorker> binding = new Pair<RecordFileWriter, WriteWorker>(
-								writer, workerSelector.select(workerGroup.getWorkerList()));
-						
-						runningWriters.put(dataFile.getAbsolutePath(), binding);
+						rebuildFileWriter(dataFile);
 					}
 				}
 			}
@@ -163,6 +143,18 @@ public class FileWriterManager implements LifeCycle {
 		}
 
 		return buildDiskWriter(path);
+	}
+	
+	public void rebuildFileWriter(File dataFile) throws IOException {
+		RecordFileWriter writer = new RecordFileWriter(
+				recorderManager.getRecordCollection(dataFile, true, DEFAULT_RECORD_BUFFER_SIZE, true),
+						new BufferedFileWriter(dataFile, true, new ByteFileBuffer(
+								DEFAULT_FILE_BUFFER_SIZE)));
+
+		Pair<RecordFileWriter, WriteWorker> binding = new Pair<RecordFileWriter, WriteWorker>(
+				writer, workerSelector.select(workerGroup.getWorkerList()));
+		
+		runningWriters.put(dataFile.getAbsolutePath(), binding);
 	}
 
 	private Pair<RecordFileWriter, WriteWorker> buildDiskWriter(String filePath) {
@@ -202,6 +194,10 @@ public class FileWriterManager implements LifeCycle {
 
 	public void close(String path) {
 		Pair<RecordFileWriter, WriteWorker> binding = runningWriters.remove(path);
+		if(binding == null) {
+			return;
+		}
+		
 		timeoutWheel.remove(binding);
 		CloseUtils.closeQuietly(binding.first());
 	}

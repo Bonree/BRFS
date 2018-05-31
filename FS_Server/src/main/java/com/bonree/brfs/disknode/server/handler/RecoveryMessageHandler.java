@@ -1,5 +1,6 @@
 package com.bonree.brfs.disknode.server.handler;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
@@ -27,10 +28,14 @@ import com.bonree.brfs.disknode.client.AvailableSequenceInfo;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.client.RecoverInfo;
+import com.bonree.brfs.disknode.data.write.BufferedFileWriter;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
+import com.bonree.brfs.disknode.data.write.buf.ByteFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
+import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
+import com.bonree.brfs.disknode.data.write.record.RecordFileBuilder;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.utils.Pair;
 
@@ -40,11 +45,16 @@ public class RecoveryMessageHandler implements MessageHandler {
 	private DiskContext context;
 	private ServiceManager serviceManager;
 	private FileWriterManager writerManager;
+	private RecordCollectionManager recorderManager;
 	
-	public RecoveryMessageHandler(DiskContext context, ServiceManager serviceManager, FileWriterManager writerManager) {
+	public RecoveryMessageHandler(DiskContext context,
+			ServiceManager serviceManager,
+			FileWriterManager writerManager,
+			RecordCollectionManager recorderManager) {
 		this.context = context;
 		this.serviceManager = serviceManager;
 		this.writerManager = writerManager;
+		this.recorderManager = recorderManager;
 	}
 
 	@Override
@@ -128,35 +138,73 @@ public class RecoveryMessageHandler implements MessageHandler {
 			return;
 		}
 		
-		boolean writeOk = writeDatas(filePath, datas);
+		DataFileRewriter rewriter = new DataFileRewriter(filePath, datas);
+		rewriter.rewrite();
+		
 		HandleResult handleResult = new HandleResult();
-		handleResult.setSuccess(writeOk);
+		handleResult.setSuccess(rewriter.success());
 		callback.completed(handleResult);
 	}
 	
-	private boolean writeDatas(String path, SortedMap<Integer, byte[]> datas) {
-		try {
-			writerManager.close(path);
-			
-			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(path, true);
-			if(binding == null) {
-				return false;
-			}
-			
-			RecordFileWriter writer = binding.first();
-			
-			for(Entry<Integer, byte[]> entry : datas.entrySet()) {
-				writer.updateSequence(entry.getKey());
-				writer.write(entry.getValue());
-			}
-			
-			writer.flush();
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
+	private class DataFileRewriter {
+		private static final String REWRITE_SUFFIX = "_rewrite";
+		
+		private String filePath;
+		private SortedMap<Integer, byte[]> datas;
+		
+		private boolean completed = false;
+		
+		public DataFileRewriter(String filePath, SortedMap<Integer, byte[]> datas) {
+			this.filePath = filePath;
+			this.datas = datas;
 		}
 		
-		return false;
+		public boolean success() {
+			return completed;
+		}
+		
+		private File buildRewriteFile(String filePath) {
+			StringBuilder builder = new StringBuilder();
+			builder.append(filePath).append(REWRITE_SUFFIX);
+			
+			return new File(builder.toString());
+		}
+		
+		public void rewrite() {
+			File rewriteFile = buildRewriteFile(filePath);
+			File rewriteFileRd = RecordFileBuilder.buildFrom(rewriteFile);
+			File originFile = new File(filePath);
+			File originFileRd = RecordFileBuilder.buildFrom(originFile);
+			
+			try {
+				RecordFileWriter writer = new RecordFileWriter(
+						recorderManager.getRecordCollection(rewriteFile, false, 8196, false),
+						new BufferedFileWriter(rewriteFile, new ByteFileBuffer(1024 * 1024)));
+				
+				for(Entry<Integer, byte[]> entry : datas.entrySet()) {
+					writer.updateSequence(entry.getKey());
+					writer.write(entry.getValue());
+				}
+				
+				writer.flush();
+				writer.close();
+				
+				writerManager.close(filePath);
+				originFile.delete();
+				
+				rewriteFile.renameTo(originFile);
+				rewriteFileRd.renameTo(originFileRd);
+				
+				writerManager.rebuildFileWriter(originFile);
+				
+				completed = true;
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				writerManager.close(rewriteFile.getAbsolutePath());
+				rewriteFile.delete();
+			}
+		}
 	}
 	
 	@Override
