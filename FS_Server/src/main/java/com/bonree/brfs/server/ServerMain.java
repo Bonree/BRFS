@@ -105,13 +105,13 @@ public class ServerMain {
             // 资源管理模块
             InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
         } catch (ConfigPathException e) {
-            e.printStackTrace();
+            LOG.error("config file not exist!!!",e);
             System.exit(1);
         } catch (ConfigParseException e) {
-            e.printStackTrace();
+            LOG.error("config file parse error!!!",e);
             System.exit(1);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("launch server error!!!",e);
             System.exit(1);
         }
     }

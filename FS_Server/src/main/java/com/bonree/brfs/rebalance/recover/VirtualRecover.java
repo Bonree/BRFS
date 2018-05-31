@@ -1,6 +1,5 @@
 package com.bonree.brfs.rebalance.recover;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,6 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.rebalance.record.BalanceRecord;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
@@ -186,9 +184,9 @@ public class VirtualRecover implements DataRecover {
             for (String timeFileName : timeFileNames) {// 时间文件
                 SimpleRecordWriter simpleWriter = null;
                 String timeFilePath = replicaPath + FileUtils.FILE_SEPARATOR + timeFileName;
-                String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
+//                String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
                 try {
-                    simpleWriter = new SimpleRecordWriter(recordPath);
+//                    simpleWriter = new SimpleRecordWriter(recordPath);
                     List<String> fileNames = FileUtils.listFileNames(timeFilePath, ".rd");
                     for (String fileName : fileNames) {
 
@@ -213,8 +211,6 @@ public class VirtualRecover implements DataRecover {
                             }
                         }
                     }
-                } catch (FileNotFoundException e1) {
-                    e1.printStackTrace();
                 } finally {
                     if (simpleWriter != null) {
                         try {
@@ -294,7 +290,7 @@ public class VirtualRecover implements DataRecover {
                             detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
                             updateDetail(selfNode, detail);
                             if (success) {
-                                BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
+//                                BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
                                 // fileRecover.getSimpleWriter().writeRecord(record.toString());
                             }
                             LOG.info("update:" + selfNode + "-------------" + detail);

@@ -32,7 +32,6 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.rebalance.record.BalanceRecord;
 import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
@@ -279,14 +278,12 @@ public class MultiRecover implements DataRecover {
                 return;
             }
             String timeFilePath = snDataDir + FileUtils.FILE_SEPARATOR + replica + FileUtils.FILE_SEPARATOR + timeFileName;
-            String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
+//            String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
             SimpleRecordWriter simpleWriter = null;
             try {
-                simpleWriter = new SimpleRecordWriter(recordPath);
+//                simpleWriter = new SimpleRecordWriter(recordPath);
                 List<String> fileNames = FileUtils.listFileNames(timeFilePath, ".rd");
                 dealFiles(fileNames, timeFileName, replica, snDataDir, simpleWriter);
-            } catch (IOException e) {
-                LOG.error("write balance record error!", e);
             } finally {
                 if (simpleWriter != null) {
                     try {
@@ -421,7 +418,7 @@ public class MultiRecover implements DataRecover {
                                 detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
                                 updateDetail(selfNode, detail);
                                 if (success) {
-                                    BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
+//                                    BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
                                     // fileRecover.getSimpleWriter().writeRecord(record.toString());
                                 }
                                 LOG.info("update:" + selfNode + "-------------" + detail);
