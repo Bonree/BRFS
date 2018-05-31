@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
-import org.jboss.netty.util.internal.ConcurrentHashMap;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;

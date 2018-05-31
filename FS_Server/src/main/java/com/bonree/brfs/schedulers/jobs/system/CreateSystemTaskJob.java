@@ -1,17 +1,8 @@
 package com.bonree.brfs.schedulers.jobs.system;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.RetrySleeper;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.RetryNTimes;
-import org.eclipse.jetty.io.ssl.ALPNProcessor.Server;
-import org.joda.time.DateTime;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
@@ -20,23 +11,16 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.StorageNameFileUtils;
-import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
-import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
