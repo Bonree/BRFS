@@ -35,9 +35,11 @@ public class ServerMain {
         String brfsHome = System.getProperty("path");
         try {
             Configuration conf = Configuration.getInstance();
+            System.setProperty("name", "disk");
             conf.parse(brfsHome + "/config/server.properties");
             conf.initLogback(brfsHome + "/config/logback.xml");
             conf.printConfigDetail();
+            LOG.info("Startup disk server....");
             ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
             StorageConfig storageConfig = StorageConfig.parse(conf);
             ResourceTaskConfig resourceConfig = ResourceTaskConfig.parse(conf);
