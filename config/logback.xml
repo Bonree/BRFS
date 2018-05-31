@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="false">
 
-	<property name="destination" value="resourceManager" />
+	<!-- 日志目录 -->
+	<property name="destination" value="${log_dir}" />
+	
     <!-- 控制台输出 -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">

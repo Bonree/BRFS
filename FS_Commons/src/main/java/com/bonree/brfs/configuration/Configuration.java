@@ -12,6 +12,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
+
 import com.bonree.brfs.common.utils.VerifyingFileUtils;
 
 /*******************************************************************************
@@ -120,6 +125,25 @@ public class Configuration {
             }
         }
         return configuration;
+    }
+    
+    /**
+     * 概述：初始 logback配置信息
+     * @param path 配置文件完成路径
+     */
+    public void initLogback(String path){
+        try {
+            System.setProperty("log_dir", configMap.get(Configuration.PATH_LOGS));
+            LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+            JoranConfigurator configurator = new JoranConfigurator();  
+            configurator.setContext(lc);  
+            lc.reset();  
+            configurator.doConfigure(path);  
+            StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
+        } catch (JoranException e) {
+            e.printStackTrace();
+            System.exit(0);
+        }
     }
 
     private Configuration() {

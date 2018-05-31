@@ -1,13 +1,14 @@
 @echo off
 
+@rem 设置环境变量
+set JAVA_HOME=C:\Program Files\Java\jdk1.8.0_162
+
 @rem 设置文件目录
 set dirs=brfs\bin,brfs\jar,brfs\config,brfs\logs,brfs\lib
 @rem 设置当前路径
 set baseDir=%~dp0
 set version=%date:~0,4%%date:~5,2%%date:~8,2%
 set keyword="Last Changed Rev"
-for /f "delims=" %%i in ('svn info %baseDir% ^| findstr /C:%keyword%') do set rev=%%i
-set svn_version=%rev:~18%
 
 @rem 设置需要打包的模块
 set modules=FS_Client,FS_Server
@@ -28,7 +29,6 @@ for %%i in (%dirs%) do (
 
 @rem 工程里生成版本号文件
 for %%i in (%modules%) do if exist %%i\src\main\resources\ver_*.txt del /s /q %%i\src\main\resources\ver_*.txt
-for %%i in (%modules%) do echo version: %version%  svn-version: %svn_version% >  %%i\src\main\resources\ver_%version%.txt
 
 @rem maven打包
 call mvn clean package -Dmaven.test.skip=true
