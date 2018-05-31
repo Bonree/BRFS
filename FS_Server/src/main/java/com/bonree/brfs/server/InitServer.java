@@ -17,11 +17,7 @@ import com.bonree.brfs.configuration.Configuration.ConfigPathException;
 public class InitServer {
 
     public static void main(String[] args) {
-        if (args.length < 1) {
-            help();
-            System.exit(1);
-        }
-        String brfsHome = args[0];
+        String brfsHome = System.getProperty("path");
         try {
             Configuration conf = Configuration.getInstance();
             conf.parse(brfsHome + "/config/server.properties");
