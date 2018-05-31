@@ -89,7 +89,7 @@ public class EmptyMain implements LifeCycle {
 		
 		NettyHttpContextHandler recoverHandler = new NettyHttpContextHandler(DiskContext.URI_RECOVER_NODE_ROOT);
 		NettyHttpRequestHandler recoverRequestHandler = new NettyHttpRequestHandler();
-		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(context, serviceManager, writerManager));
+		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(context, serviceManager, writerManager, recorderManager));
 		recoverHandler.setNettyHttpRequestHandler(recoverRequestHandler);
 		server.addContextHandler(recoverHandler);
 		
