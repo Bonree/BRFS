@@ -48,12 +48,6 @@
 									</excludes>
 								</filter>
 							</filters>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.bonree.brfs.server.ServerMain</mainClass>
-								</transformer>
-							</transformers>
 						</configuration>
 					</execution>
 				</executions>

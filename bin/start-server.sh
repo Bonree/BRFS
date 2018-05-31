@@ -11,11 +11,25 @@ GC_PATH='-XX:+PrintGC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xloggc:'$based
 #资源管理lib路径
 RESOURCE_LIB_PATH=$basedir'/lib'
 
-if [ `jps | grep FS_Server.jar | wc -l` -gt 0 ]; then
-   echo "warn: FS_Server is already running, please stop it first"
-   exit -1
-fi
+#副本管理入口
+DUPLICATION_MAIN_CLASS=com.bonree.brfs.duplication.BootStrap
+#磁盘管理入口
+DISK_MAIN_CLASS=com.bonree.brfs.server.ServerMain
 
-nohup java -Dpath=$basedir -Dresource_lib_path=$RESOURCE_LIB_PATH -jar $HEAPSIZE $GC_PATH $SERVER >/dev/null 2>&1 &
-
-echo -e "FS_Server has started.\nThe number of services running on this machine is `jps | grep FS_Server.jar | wc -l`."
+case $1 in
+		###启动副本管理###
+		duplication)
+			nohup java $HEAPSIZE $GC_PATH -Dpath=$basedir -Dresource_lib_path=$RESOURCE_LIB_PATH -cp $SERVER $DUPLICATION_MAIN_CLASS >/dev/null 2>&1 &
+			echo 'Startup duplication server complete!'
+		;;
+		###启动磁盘管理###
+		disk)
+			nohup java $HEAPSIZE $GC_PATH -Dpath=$basedir -Dresource_lib_path=$RESOURCE_LIB_PATH -cp $SERVER $DISK_MAIN_CLASS >/dev/null 2>&1 &
+			echo 'Startup disk server complete!'
+		;;
+		*)
+			sh $0 disk
+			sleep 2
+			sh $0 duplication
+		;;
+esac

@@ -51,97 +51,99 @@ import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class BootStrap {
-	private static final Logger LOG = LoggerFactory.getLogger("Main");
+    private static final Logger LOG = LoggerFactory.getLogger("Main");
 
-	public static void main(String[] args) throws Exception {
-		String brfsHome = System.getProperty("brfs_home");
-		
-		Configuration conf = Configuration.getInstance();
+    public static void main(String[] args) throws Exception {
+        String brfsHome = System.getProperty("path");
+        System.setProperty("name", "duplication");
+        Configuration conf = Configuration.getInstance();
         conf.parse(brfsHome + "/config/server.properties");
+        conf.initLogback(brfsHome + "/config/logback.xml");
         conf.printConfigDetail();
+        LOG.info("Startup duplication server....");
         ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
         StorageConfig storageConfig = StorageConfig.parse(conf);
 
         CuratorCacheFactory.init(serverConfig.getZkHosts());
         ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
         ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
-		
-		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-		CuratorFramework client = CuratorFrameworkFactory.newClient(serverConfig.getZkHosts(), 3000, 15000, retryPolicy);
-		client.start();
-		client.blockUntilConnected();
-		
-		SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client);
-		UserModel model = simpleAuthentication.getUser("root");
-        if(model == null) {
+
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+        CuratorFramework client = CuratorFrameworkFactory.newClient(serverConfig.getZkHosts(), 3000, 15000, retryPolicy);
+        client.start();
+        client.blockUntilConnected();
+
+        SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client);
+        UserModel model = simpleAuthentication.getUser("root");
+        if (model == null) {
             LOG.error("please init server!!!");
             System.exit(1);
         }
-		
-		client = client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1));
-		
-		Service service = new Service(idManager.getFirstServerID(), ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, serverConfig.getHost(), serverConfig.getPort());
-		ServiceManager serviceManager = new DefaultServiceManager(client);
-		serviceManager.start();
-		serviceManager.registerService(service);
-		serviceManager.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServiceStateListener() {
-			
-			@Override
-			public void serviceRemoved(Service service) {
-				LOG.info("service Removed[{}]", service.getServiceId());
-			}
-			
-			@Override
-			public void serviceAdded(Service service) {
-				LOG.info("service Added[{}]", service.getServiceId());
-			}
-			
-		});
-		
-		StorageNameManager storageNameManager = new DefaultStorageNameManager(storageConfig,client, new ZkStorageIdBuilder(serverConfig.getZkHosts(), zookeeperPaths.getBaseSequencesPath()));
-		storageNameManager.start();
-		
-		FileNodeStorer storer = new ZkFileNodeStorer(client, ZkFileCoordinatorPaths.COORDINATOR_FILESTORE);
-		FileNodeSinkManager sinkManager = new ZkFileNodeSinkManager(client, serviceManager, storer, new RandomFileNodeServiceSelector());
-		sinkManager.start();
-		
-		FileCoordinator fileCoordinator = new FileCoordinator(client, storer, sinkManager);
-		
-		FilteredDiskNodeConnectionPool connectionPool = new FilteredDiskNodeConnectionPool();
-		connectionPool.addFactory(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP, new VirtualDiskNodeConnectionPool());
-		connectionPool.addFactory(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new HttpDiskNodeConnectionPool(serviceManager));
-		
-		FileSynchronizer fileSynchronizer = new DefaultFileSynchronier(connectionPool, serviceManager, idManager);
-		fileSynchronizer.start();
-		
-		DuplicationNodeSelector nodeSelector = new VirtualDuplicationNodeSelector(serviceManager, idManager);
-		
-		FileLimiterCloser fileLimiterCloser = new FileLimiterCloser(fileSynchronizer, connectionPool, fileCoordinator, serviceManager, idManager);
-		
-		FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool);
-		DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser);
-		
-		HttpConfig config = new HttpConfig(serverConfig.getPort());
-		config.setKeepAlive(true);
-		NettyHttpServer httpServer = new NettyHttpServer(config);
-		httpServer.addHttpAuthenticator(new SimpleHttpAuthenticator(simpleAuthentication));
-		
-		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
-		requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer,storageNameManager));
-		requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
-		requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(serverConfig,zookeeperPaths,serviceManager, storageNameManager));
-		NettyHttpContextHandler contextHttpHandler = new NettyHttpContextHandler(DuplicationEnvironment.URI_DUPLICATION_NODE_ROOT, requestHandler);
-		httpServer.addContextHandler(contextHttpHandler);
-		
-		NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler();
-		snRequestHandler.addMessageHandler("PUT", new CreateStorageNameMessageHandler(storageNameManager));
-		snRequestHandler.addMessageHandler("POST", new UpdateStorageNameMessageHandler(storageNameManager));
-		snRequestHandler.addMessageHandler("GET", new OpenStorageNameMessageHandler(storageNameManager));
-		snRequestHandler.addMessageHandler("DELETE", new DeleteStorageNameMessageHandler(serverConfig,zookeeperPaths,storageNameManager,serviceManager));
-		NettyHttpContextHandler snContextHandler = new NettyHttpContextHandler(DuplicationEnvironment.URI_STORAGENAME_NODE_ROOT, snRequestHandler);
-		httpServer.addContextHandler(snContextHandler);
-		
-		httpServer.start();
-	}
+
+        client = client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1));
+
+        Service service = new Service(idManager.getFirstServerID(), ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, serverConfig.getHost(), serverConfig.getPort());
+        ServiceManager serviceManager = new DefaultServiceManager(client);
+        serviceManager.start();
+        serviceManager.registerService(service);
+        serviceManager.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServiceStateListener() {
+
+            @Override
+            public void serviceRemoved(Service service) {
+                LOG.info("service Removed[{}]", service.getServiceId());
+            }
+
+            @Override
+            public void serviceAdded(Service service) {
+                LOG.info("service Added[{}]", service.getServiceId());
+            }
+
+        });
+
+        StorageNameManager storageNameManager = new DefaultStorageNameManager(storageConfig, client, new ZkStorageIdBuilder(serverConfig.getZkHosts(), zookeeperPaths.getBaseSequencesPath()));
+        storageNameManager.start();
+
+        FileNodeStorer storer = new ZkFileNodeStorer(client, ZkFileCoordinatorPaths.COORDINATOR_FILESTORE);
+        FileNodeSinkManager sinkManager = new ZkFileNodeSinkManager(client, serviceManager, storer, new RandomFileNodeServiceSelector());
+        sinkManager.start();
+
+        FileCoordinator fileCoordinator = new FileCoordinator(client, storer, sinkManager);
+
+        FilteredDiskNodeConnectionPool connectionPool = new FilteredDiskNodeConnectionPool();
+        connectionPool.addFactory(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP, new VirtualDiskNodeConnectionPool());
+        connectionPool.addFactory(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new HttpDiskNodeConnectionPool(serviceManager));
+
+        FileSynchronizer fileSynchronizer = new DefaultFileSynchronier(connectionPool, serviceManager, idManager);
+        fileSynchronizer.start();
+
+        DuplicationNodeSelector nodeSelector = new VirtualDuplicationNodeSelector(serviceManager, idManager);
+
+        FileLimiterCloser fileLimiterCloser = new FileLimiterCloser(fileSynchronizer, connectionPool, fileCoordinator, serviceManager, idManager);
+
+        FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool);
+        DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser);
+
+        HttpConfig config = new HttpConfig(serverConfig.getPort());
+        config.setKeepAlive(true);
+        NettyHttpServer httpServer = new NettyHttpServer(config);
+        httpServer.addHttpAuthenticator(new SimpleHttpAuthenticator(simpleAuthentication));
+
+        NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
+        requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer, storageNameManager));
+        requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
+        requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(serverConfig, zookeeperPaths, serviceManager, storageNameManager));
+        NettyHttpContextHandler contextHttpHandler = new NettyHttpContextHandler(DuplicationEnvironment.URI_DUPLICATION_NODE_ROOT, requestHandler);
+        httpServer.addContextHandler(contextHttpHandler);
+
+        NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler();
+        snRequestHandler.addMessageHandler("PUT", new CreateStorageNameMessageHandler(storageNameManager));
+        snRequestHandler.addMessageHandler("POST", new UpdateStorageNameMessageHandler(storageNameManager));
+        snRequestHandler.addMessageHandler("GET", new OpenStorageNameMessageHandler(storageNameManager));
+        snRequestHandler.addMessageHandler("DELETE", new DeleteStorageNameMessageHandler(serverConfig, zookeeperPaths, storageNameManager, serviceManager));
+        NettyHttpContextHandler snContextHandler = new NettyHttpContextHandler(DuplicationEnvironment.URI_STORAGENAME_NODE_ROOT, snRequestHandler);
+        httpServer.addContextHandler(snContextHandler);
+
+        httpServer.start();
+    }
 
 }
