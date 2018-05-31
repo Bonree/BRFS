@@ -39,20 +39,8 @@
 					<artifactId>sigar</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>org.apache.curator</groupId>
-					<artifactId>curator-x-discovery</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>joda-time</groupId>
-					<artifactId>joda-time</artifactId>
-				</exclusion>
-				<exclusion>
 					<groupId>org.apache.httpcomponents</groupId>
 					<artifactId>httpclient</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-lang3</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>junit</groupId>
