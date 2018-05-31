@@ -3,11 +3,6 @@ package com.bonree.brfs.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.util.StatusPrinter;
-
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ZookeeperPaths;
@@ -35,30 +30,13 @@ import com.bonree.brfs.server.identification.ServerIDManager;
 public class ServerMain {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerMain.class);
-    static {
-        // 加载 logback配置信息
-        try {
-            LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-            JoranConfigurator configurator = new JoranConfigurator();
-            configurator.setContext(lc);
-            lc.reset();
-            configurator.doConfigure(Configuration.class.getResourceAsStream("/logback.xml"));
-            StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
-        } catch (JoranException e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
-    }
 
     public static void main(String[] args) {
-        if (args.length < 1) {
-            help();
-            System.exit(1);
-        }
-        String brfsHome = args[0];
+        String brfsHome = System.getProperty("path");
         try {
             Configuration conf = Configuration.getInstance();
             conf.parse(brfsHome + "/config/server.properties");
+            conf.initLogback(brfsHome + "/config/logback.xml");
             conf.printConfigDetail();
             ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
             StorageConfig storageConfig = StorageConfig.parse(conf);

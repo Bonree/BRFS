@@ -52,8 +52,8 @@ public class ServerConfig {
         String portStr = config.getProperty(Configuration.NETWORK_PORT, Configuration.NETWORK_PORT_VALUE);
         String diskPortStr = config.getProperty(Configuration.DISK_PORT, Configuration.DISK_PORT_VALUE);
         String zkSessionTimeStr = config.getProperty(Configuration.ZOOKEEPER_SESSION_TIMEOUT, Configuration.ZOOKEEPER_SESSION_TIMEOUT_VALUE);
-        String dataPath = config.getProperty(Configuration.PATH_DATA, Configuration.PATH_DATA_VALUE);
-        String logPath = config.getProperty(Configuration.PATH_LOGS, Configuration.PATH_LOGS_VALUE);
+        String dataPath = BrStringUtils.trimBasePath(config.getProperty(Configuration.PATH_DATA, Configuration.PATH_DATA_VALUE));
+        String logPath = BrStringUtils.trimBasePath(config.getProperty(Configuration.PATH_LOGS, Configuration.PATH_LOGS_VALUE));
         String recoverDelayTimeStr = config.getProperty(Configuration.GLOBAL_REPLICATION_RECOVER_AFTER_TIME, Configuration.GLOBAL_REPLICATION_RECOVER_AFTER_TIME_VALUE);
         String virtualDelayTimeStr = config.getProperty(Configuration.GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME, Configuration.GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME_VALUE);
         try {

@@ -491,7 +491,7 @@ public class TaskDispatcher implements Closeable {
 
         // 当前有任务在执行,则检查是否有影响该任务的change存在
         if (runTask.get(snIndex) != null) {
-            LOG.info("snIndex:{},check task!!!");
+            LOG.info("snIndex:{},check task!!!",snIndex);
             checkTask(snIndex, changeSummaries);
             return;
         }
@@ -714,7 +714,7 @@ public class TaskDispatcher implements Closeable {
                         if (!cs2.getChangeID().equals(runChangeID)) {
                             if (cs2.getChangeType() == ChangeType.REMOVE) {
                                 if (cs1.getChangeServer().equals(cs2.getChangeServer())) {
-                                    LOG.info("change1:{},change2:{},remove change2:{}", cs1, cs2, cs2);
+                                    LOG.info("change1:{},change2:{},remove change2:{}", cs1.toString(), cs2.toString(), cs2.toString());
                                     changeSummaries.remove(cs2);
                                     delChangeSummaryNode(cs2);
                                 }
@@ -731,12 +731,12 @@ public class TaskDispatcher implements Closeable {
             // 找到正在执行的变更
             Optional<ChangeSummary> runChangeOpt = changeSummaries.stream().filter(x -> x.getChangeID().equals(changeID)).findFirst();
             if (!runChangeOpt.isPresent()) {
-                LOG.error("rebalance metadata is error:{}", currentTask);
+                LOG.error("rebalance metadata is error:"+currentTask);
                 return;
             }
             ChangeSummary runChangeSummary = runChangeOpt.get();
 
-            LOG.info("check running change:{}" + runChangeSummary);
+            LOG.info("check running change:"+runChangeSummary);
 
             for (ChangeSummary cs : changeSummaries) {
                 if (!cs.getChangeID().equals(runChangeSummary.getChangeID())) { // 与正在执行的变更不同

@@ -157,6 +157,9 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		ServerModel server = getServerModel();
 		if(server == null){
 			LOG.warn("server model is null !!");
+			server = new ServerModel();
+			BaseMetaServerModel lBase = GatherResource.gatherBase(mcf.getServerId(), dataDir);
+			server.setBase(lBase);
 		}
 		server.setResource(resource);
 		setServerModel(server);
