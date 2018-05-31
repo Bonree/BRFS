@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="true" scanPeriod="60 s">
+<configuration>
 
 	<!-- 日志目录 -->
-	<property name="destination" value="${log_dir}/brfs" />
+	<property name="destination" value="${log_dir}/${name}" />
 	
     <!-- 控制台输出 -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -25,9 +25,7 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
         </encoder>
     </appender>
-	<logger name="dao" level="debug" additivity="false">
-        <appender-ref ref="FILE" />
-    </logger>
+    
     <!-- 日志输出级别 -->
     <root level="INFO">
         <appender-ref ref="STDOUT" />
