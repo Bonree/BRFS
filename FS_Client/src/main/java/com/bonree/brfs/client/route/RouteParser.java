@@ -16,7 +16,7 @@ public class RouteParser {
     private final static Logger LOG = LoggerFactory.getLogger(RouteParser.class);
 
     private RouteRoleCache routeCache;
-    
+
     public RouteParser(RouteRoleCache routeCache) {
         this.routeCache = routeCache;
     }
@@ -35,6 +35,7 @@ public class RouteParser {
             secondID = virtualRoute.getNewSecondID();
         }
         // 说明该secondID存活，不需要路由查找
+        LOG.info("aliveServers : " + aliveServers);
         if (aliveServers.contains(secondID)) {
             return secondID;
         }

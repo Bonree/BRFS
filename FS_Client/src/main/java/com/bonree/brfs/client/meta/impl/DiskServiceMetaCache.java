@@ -7,6 +7,9 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.client.meta.ServiceMetaCache;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.common.service.Service;
@@ -14,6 +17,8 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 public class DiskServiceMetaCache implements ServiceMetaCache {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DiskServiceMetaCache.class);
 
     private static final String SEPARATOR = "/";
 
@@ -38,6 +43,10 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
         this.group = group;
     }
 
+    /** 概述：加载所有关于该SN的2级SID对应的1级SID
+     * @param service
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     public void loadMetaCachae(ServiceManager sm) {
         // 加载元数据信息
         List<Service> diskServices = sm.getServiceListByGroup(group);
@@ -54,23 +63,19 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
         }
     }
 
-    /** 概述：加载所有关于该SN的2级SID对应的1级SID
+    /** 概述：ADD 一个server
      * @param service
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     @Override
     public void addService(Service service) {
         // serverID信息加载
+        LOG.info("addService");
         firstServerCache.put(service.getServiceId(), service);
-        List<String> firstIDs = curatorClient.getChildren(zkServerIDPath);
-        for (String firstID : firstIDs) {
-            String snPath = zkServerIDPath + SEPARATOR + firstID + SEPARATOR + snIndex;
-            if (!curatorClient.checkExists(snPath)) {
-                continue;
-            }
-            String secondID = new String(curatorClient.getData(snPath));
-            secondServerCache.put(secondID, firstID);
-        }
+        String firstID = service.getServiceId();
+        String snPath = zkServerIDPath + SEPARATOR + firstID + SEPARATOR + snIndex;
+        String secondID = new String(curatorClient.getData(snPath));
+        secondServerCache.put(secondID, firstID);
     }
 
     /** 概述：移除该SN对应的2级SID对应的1级SID
