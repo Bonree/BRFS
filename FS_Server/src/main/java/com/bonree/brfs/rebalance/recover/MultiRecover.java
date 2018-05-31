@@ -161,6 +161,7 @@ public class MultiRecover implements DataRecover {
                 }
             }
         }
+        LOG.info("virtual routes:" + virtualRoutes);
 
         // load normal id
         String normalPath = baseRoutesPath + Constants.SEPARATOR + Constants.NORMAL_ROUTE + Constants.SEPARATOR + balanceSummary.getStorageIndex();
@@ -175,6 +176,7 @@ public class MultiRecover implements DataRecover {
                 }
             }
         }
+        LOG.info("normal routes:" + normalRoutes);
     }
 
     @Override
@@ -344,12 +346,14 @@ public class MultiRecover implements DataRecover {
         while (RebalanceUtils.needRecover(fileServerIds, replica, getAliveMultiIds())) {
             for (String deadServer : fileServerIds) {
                 if (!getAliveMultiIds().contains(deadServer)) {
+                    LOG.info("deadServer:" + deadServer);
                     int pot = fileServerIds.indexOf(deadServer);
                     if (!StringUtils.equals(deadServer, balanceSummary.getServerId())) {
                         recoverableServerList = getRecoverRoleList(deadServer);
                     } else {
                         recoverableServerList = balanceSummary.getInputServers();
                     }
+                    LOG.info("recoverableServerList:" + recoverableServerList);
                     exceptionServerIds = new ArrayList<>();
                     exceptionServerIds.addAll(fileServerIds);
                     exceptionServerIds.remove(deadServer);
