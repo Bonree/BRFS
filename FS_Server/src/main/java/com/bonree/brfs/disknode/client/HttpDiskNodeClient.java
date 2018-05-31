@@ -56,7 +56,6 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			HttpResponse response = client.executeGet(uri);
 			return response.isReponseOK();
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 		
 		return false;

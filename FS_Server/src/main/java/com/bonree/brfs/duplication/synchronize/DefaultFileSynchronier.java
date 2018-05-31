@@ -34,7 +34,7 @@ import com.bonree.brfs.server.identification.ServerIDManager;
 public class DefaultFileSynchronier implements FileSynchronizer {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSynchronier.class);
 	
-	private static final int DEFAULT_THREAD_NUM = 4;
+	private static final int DEFAULT_THREAD_NUM = 1;
 	private ExecutorService threadPool;
 	
 	private DiskNodeConnectionPool connectionPool;
@@ -172,10 +172,12 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 		private List<DuplicateNode> getActiveDuplicateNodes(FileNode fileNode) {
 			List<DuplicateNode> nodeList = new ArrayList<DuplicateNode>();
 			for(DuplicateNode node : fileNode.getDuplicateNodes()) {
-				if(!node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+				if(node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
 					LOG.info("virtual server[{}, {}] is ignored to get sequences", node.getGroup(), node.getId());
-					nodeList.add(node);
+					continue;
 				}
+				
+				nodeList.add(node);
 			}
 			
 			return nodeList;
@@ -201,7 +203,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 					continue;
 				}
 				
-				LOG.info("server{} -- {}", serverId, seqNumbers.cardinality());
+				LOG.info("server{} -- {}", node.getId(), seqNumbers.cardinality());
 				
 				DuplicateNodeSequence nodeSequence = new DuplicateNodeSequence();
 				nodeSequence.setNode(node);

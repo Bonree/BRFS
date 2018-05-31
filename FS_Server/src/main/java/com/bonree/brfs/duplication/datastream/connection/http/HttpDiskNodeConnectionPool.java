@@ -88,6 +88,7 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 			List<DuplicateNode> invalidKeys = new ArrayList<DuplicateNode>();
 			for(Entry<DuplicateNode, HttpDiskNodeConnection> entry : connectionCache.entrySet()) {
 				if(!entry.getValue().isValid()) {
+					LOG.info("Connection to node{} is invalid!", entry.getKey());
 					invalidKeys.add(entry.getKey());
 				}
 			}
