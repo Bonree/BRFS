@@ -62,7 +62,7 @@ public class WriteMessageHandler implements MessageHandler {
 				}
 			}
 			
-			binding.second().put(new DataWriteTask(binding.first(), datas, callback));
+			binding.second().put(new DataWriteTask(binding, datas, callback));
 		} catch (Exception e) {
 			LOG.error("EEEERRRRRR", e);
 			HandleResult handleResult = new HandleResult();
@@ -75,11 +75,11 @@ public class WriteMessageHandler implements MessageHandler {
 	private class DataWriteTask extends WriteTask<WriteResult[]> {
 		private WriteData[] dataList;
 		private WriteResult[] results;
-		private RecordFileWriter writer;
+		private Pair<RecordFileWriter, WriteWorker> binding;
 		private HandleResultCallback callback;
 		
-		public DataWriteTask(RecordFileWriter writer, WriteData[] datas, HandleResultCallback callback) {
-			this.writer = writer;
+		public DataWriteTask(Pair<RecordFileWriter, WriteWorker> binding, WriteData[] datas, HandleResultCallback callback) {
+			this.binding = binding;
 			this.dataList = datas;
 			this.results = new WriteResult[datas.length];
 			this.callback = callback;
@@ -88,6 +88,7 @@ public class WriteMessageHandler implements MessageHandler {
 		@Override
 		protected WriteResult[] execute() throws Exception {
 			LOG.info("start writing...");
+			RecordFileWriter writer = binding.first();
 			for(int i = 0; i < dataList.length; i++) {
 				WriteData data = dataList[i];
 				
@@ -98,6 +99,8 @@ public class WriteMessageHandler implements MessageHandler {
 				
 				writer.updateSequence(data.getDiskSequence());
 				writer.write(data.getBytes());
+				
+				writerManager.flushIfNeeded(binding);
 				
 				result.setSize(data.getBytes().length);
 				results[i] = result;

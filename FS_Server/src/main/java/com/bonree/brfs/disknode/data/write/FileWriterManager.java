@@ -26,12 +26,10 @@ import com.bonree.brfs.disknode.data.write.worker.WriteWorkerSelector;
 import com.bonree.brfs.disknode.utils.Pair;
 
 public class FileWriterManager implements LifeCycle {
-	private static final Logger LOG = LoggerFactory
-			.getLogger(FileWriterManager.class);
+	private static final Logger LOG = LoggerFactory.getLogger(FileWriterManager.class);
 
 	// 默认的写Worker线程数量
-	private static final int DEFAULT_WORKER_NUMBER = Runtime.getRuntime()
-			.availableProcessors();
+	private static final int DEFAULT_WORKER_NUMBER = Runtime.getRuntime().availableProcessors();
 	private WriteWorkerGroup workerGroup;
 	private WriteWorkerSelector workerSelector;
 	private RecordCollectionManager recorderManager;
@@ -51,8 +49,7 @@ public class FileWriterManager implements LifeCycle {
 		this(DEFAULT_WORKER_NUMBER, recorderManager, context);
 	}
 
-	public FileWriterManager(int workerNum,
-			RecordCollectionManager recorderManager, DiskContext context) {
+	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager, DiskContext context) {
 		this(workerNum, new RandomWriteWorkerSelector(), recorderManager, context);
 	}
 
@@ -68,13 +65,11 @@ public class FileWriterManager implements LifeCycle {
 	public void start() throws Exception {
 		workerGroup.start();
 
-		timeoutWheel
-				.setTimeout(new Timeout<Pair<RecordFileWriter, WriteWorker>>() {
+		timeoutWheel.setTimeout(new Timeout<Pair<RecordFileWriter, WriteWorker>>() {
 
 					@Override
-					public void timeout(
-							Pair<RecordFileWriter, WriteWorker> target) {
-						LOG.debug("timeout---{}", target.first().getPath());
+					public void timeout(Pair<RecordFileWriter, WriteWorker> target) {
+						LOG.info("Time to flush file[{}]", target.first().getPath());
 
 						target.second().put(new WriteTask<Void>() {
 
@@ -90,19 +85,18 @@ public class FileWriterManager implements LifeCycle {
 
 							@Override
 							protected void onFailed(Throwable e) {
-								LOG.error("flush error {}", target.first()
-										.getPath(), e);
+								LOG.error("flush error {}", target.first().getPath(), e);
 							}
 						});
-						
-						if(runningWriters.containsKey(target.first().getPath())) {
-							timeoutWheel.update(target);
-						}
 					}
 				});
 		timeoutWheel.start();
 		
 		rebuildFileWriters();
+	}
+	
+	public void flushIfNeeded(Pair<RecordFileWriter, WriteWorker> target) {
+		timeoutWheel.update(target);
 	}
 	
 	private void rebuildFileWriters() throws IOException {
@@ -146,7 +140,6 @@ public class FileWriterManager implements LifeCycle {
 								writer, workerSelector.select(workerGroup.getWorkerList()));
 						
 						runningWriters.put(dataFile.getAbsolutePath(), binding);
-						timeoutWheel.update(binding);
 					}
 				}
 			}
@@ -196,7 +189,6 @@ public class FileWriterManager implements LifeCycle {
 								writer, workerSelector.select(workerGroup
 										.getWorkerList()));
 						
-						timeoutWheel.update(binding);
 						runningWriters.put(filePath, binding);
 					} catch (Exception e) {
 						e.printStackTrace();

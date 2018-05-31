@@ -1,9 +1,5 @@
 package com.bonree.brfs.duplication.coordinator.zk;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,7 +14,6 @@ import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.duplication.coordinator.FileNode;
-import com.bonree.brfs.duplication.coordinator.FileNodeFilter;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkSelector;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
 

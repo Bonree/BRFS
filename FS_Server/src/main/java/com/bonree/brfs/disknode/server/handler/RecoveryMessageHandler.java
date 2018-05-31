@@ -59,14 +59,13 @@ public class RecoveryMessageHandler implements MessageHandler {
 		
 		LOG.info("excepted max seq is {}", info.getMaxSeq());
 		SortedMap<Integer, byte[]> datas = new TreeMap<Integer, byte[]>();
-		RecordCollection recordSet = null;
 		RandomAccessFile originFile = null;
 		
 		try {
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
 			if(binding != null) {
 				binding.first().flush();
-				recordSet = binding.first().getRecordCollection();
+				RecordCollection recordSet = binding.first().getRecordCollection();
 				originFile = new RandomAccessFile(filePath, "r");
 				MappedByteBuffer buf = originFile.getChannel().map(MapMode.READ_ONLY, 0, originFile.length());
 				
@@ -117,7 +116,6 @@ public class RecoveryMessageHandler implements MessageHandler {
 			e.printStackTrace();
 		} finally {
 			CloseUtils.closeQuietly(originFile);
-			CloseUtils.closeQuietly(recordSet);
 		}
 		
 		LOG.info("finally lack size = {}", lack.cardinality());

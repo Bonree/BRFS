@@ -16,7 +16,6 @@ import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpServer;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
@@ -85,20 +84,6 @@ public class BootStrap {
         Service service = new Service(idManager.getFirstServerID(), ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, serverConfig.getHost(), serverConfig.getPort());
         ServiceManager serviceManager = new DefaultServiceManager(client);
         serviceManager.start();
-        serviceManager.registerService(service);
-        serviceManager.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServiceStateListener() {
-
-            @Override
-            public void serviceRemoved(Service service) {
-                LOG.info("service Removed[{}]", service.getServiceId());
-            }
-
-            @Override
-            public void serviceAdded(Service service) {
-                LOG.info("service Added[{}]", service.getServiceId());
-            }
-
-        });
 
         StorageNameManager storageNameManager = new DefaultStorageNameManager(storageConfig, client, new ZkStorageIdBuilder(serverConfig.getZkHosts(), zookeeperPaths.getBaseSequencesPath()));
         storageNameManager.start();
@@ -144,6 +129,8 @@ public class BootStrap {
         httpServer.addContextHandler(snContextHandler);
 
         httpServer.start();
+        
+        serviceManager.registerService(service);
     }
 
 }
