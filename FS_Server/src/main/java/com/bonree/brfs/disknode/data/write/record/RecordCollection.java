@@ -11,6 +11,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.disknode.data.write.FileWriter;
@@ -22,6 +25,8 @@ import com.bonree.brfs.disknode.data.write.FileWriter;
  *
  */
 public class RecordCollection implements Closeable, Iterable<RecordElement> {
+	private static final Logger LOG = LoggerFactory.getLogger(RecordCollection.class);
+	
 	private File recordFile;
 	private FileWriter recordWriter;
 	private List<InputStream> openedStreams = new LinkedList<InputStream>();
@@ -94,6 +99,7 @@ public class RecordCollection implements Closeable, Iterable<RecordElement> {
 		}
 		
 		if(deleteOnClose) {
+			LOG.info("It's time to delete record file[{}]", recordFile.getAbsolutePath());
 			recordFile.delete();
 		}
 	}
