@@ -116,7 +116,7 @@ public class DuplicateWriter {
 			
 		});
 		
-		LOG.info("---size=={}", items.length);
+		LOG.debug("---size=={}", items.length);
 		int[] sizes = new int[items.length];
 		for(int i = 0; i < items.length; i++) {
 			sizes[i] = items[i].getBytes().length;

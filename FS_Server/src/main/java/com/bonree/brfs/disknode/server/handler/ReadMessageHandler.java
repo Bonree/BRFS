@@ -35,7 +35,7 @@ public class ReadMessageHandler implements MessageHandler {
 		
 		byte[] data = DataFileReader.readFile(diskContext.getConcreteFilePath(msg.getPath()), offset, length);
 		
-		result.setSuccess(data == null ? false : true);
+		result.setSuccess(data.length == 0 ? false : true);
 		result.setData(data);
 		callback.completed(result);
 	}

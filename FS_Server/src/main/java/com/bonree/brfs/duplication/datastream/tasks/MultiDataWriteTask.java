@@ -16,6 +16,7 @@ import com.bonree.brfs.common.asynctask.AsyncTaskResult;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
+import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.FidBuilder;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
@@ -74,9 +75,14 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 		
 		AsyncTaskGroup<WriteResult[]> taskGroup = new AsyncTaskGroup<WriteResult[]>();
 		for(DuplicateNode node : file.getFileNode().getDuplicateNodes()) {
+			if(node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+				continue;
+			}
+			
 			String serverID = idManager.getOtherSecondID(node.getId(), file.getFileNode().getStorageId());
 			DiskNodeConnection connection = connectionPool.getConnection(node);
 			String filePath = FilePathBuilder.buildPath(file.getFileNode(), serverID);
+			
 			taskGroup.addTask(new DataWriteTask(filePath, connection, datas));
 		}
 		

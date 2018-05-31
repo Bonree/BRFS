@@ -86,8 +86,9 @@ public class RecoveryMessageHandler implements MessageHandler {
 						break;
 					}
 					
-					LOG.info("this loop available size{}, lack size{}", seqInfo.getAvailableSequence().cardinality(), lack.cardinality());
-					BitSet availableSeq = BitSetUtils.intersect(seqInfo.getAvailableSequence(), lack);
+					BitSet seqSet = seqInfo.getAvailableSequence();
+					LOG.info("this loop available size{}, lack size{}", seqSet.cardinality(), lack.cardinality());
+					BitSet availableSeq = BitSetUtils.intersect(seqSet, lack);
 					if(availableSeq.cardinality() != 0) {
 						Service service = serviceManager.getServiceById(seqInfo.getServiceGroup(), seqInfo.getServiceId());
 						

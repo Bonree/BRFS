@@ -94,7 +94,7 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 			
 			byte[] buf;
 			int offset = 0;
-			while((buf = DataFileReader.readFile(localPath, offset, bufferSize)) != null) {
+			while((buf = DataFileReader.readFile(localPath, offset, bufferSize)).length != 0) {
 				client.writeData(remotePath, offset, buf);
 				offset += buf.length;
 			}

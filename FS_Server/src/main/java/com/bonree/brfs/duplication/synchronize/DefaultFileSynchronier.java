@@ -89,6 +89,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 	
 	private void addDelayedTask(FileSynchronizeTask task) {
 		synchronized (delayedFileList) {
+			LOG.info("add to delayed task list for filnode[{}]", task.fileNode().getName());
 			delayedFileList.add(task);
 		}
 	}
@@ -118,10 +119,13 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			 * 文件之间的内容协调是通过写入文件的序列号实现的，只要当前存活的磁盘节点包含
 			 * 所有写入序列号就能保证文件的完整性
 			 */
-			List<DuplicateNodeSequence> seqNumberList = getAllDuplicateNodeSequence();
+			List<DuplicateNode> nodeList = getActiveDuplicateNodes(target);
 			
-			if(seqNumberList.size() != target.getDuplicateNodes().length) {
+			List<DuplicateNodeSequence> seqNumberList = getAllDuplicateNodeSequence(nodeList);
+			
+			if(seqNumberList.size() != nodeList.size()) {
 				//不相等的情况不能再继续恢复了，我们选择等待
+				LOG.info("can not get all sequences of file[{}]", target.getName());
 				addDelayedTask(this);
 				return;
 			}
@@ -134,10 +138,6 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			
 			BitSet[] sets = new BitSet[seqNumberList.size()];
 			for(int i = 0; i < sets.length; i++) {
-				if(seqNumberList.get(i).getNode().getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
-					continue;
-				}
-				
 				sets[i] = seqNumberList.get(i).getSequenceNumbers();
 			}
 			
@@ -152,15 +152,6 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			LOG.info("synchronize Check report union[{}], itersection[{}]", union.cardinality(), intersection.cardinality());
 			if(union.nextSetBit(union.cardinality()) == -1) {
 				//当前存活的所有节点包含了此文件的所有信息，可以进行文件内容同步
-				
-				if(seqNumberList.size() < target.getDuplicateNodes().length) {
-					//到这说明虽然在有部分副本信息没获取成功的前提下，文件的序列号还是连续的，这种情况下，虽然可以对文件进行修补，
-					//但并不能保证文件是完整的，只能保证[0, maxSeq]之间的数据是正确可用的
-					LOG.warn("File sequence numbers of [{}] can not be guaranteed to be full informed, although it seems to be perfect.", target.getName());
-					addDelayedTask(this);
-					return;
-				}
-				
 				if(intersection.cardinality() == union.cardinality()) {
 					//如果交集和并集的数量一样，说明没有文件数据缺失
 					LOG.info("file[{}] is ok!", target.getName());
@@ -178,18 +169,22 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			LOG.info("End synchronize file[{}]", target.getName());
 		}
 		
+		private List<DuplicateNode> getActiveDuplicateNodes(FileNode fileNode) {
+			List<DuplicateNode> nodeList = new ArrayList<DuplicateNode>();
+			for(DuplicateNode node : fileNode.getDuplicateNodes()) {
+				if(!node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+					LOG.info("virtual server[{}, {}] is ignored to get sequences", node.getGroup(), node.getId());
+					nodeList.add(node);
+				}
+			}
+			
+			return nodeList;
+		}
 		
-		private List<DuplicateNodeSequence> getAllDuplicateNodeSequence() {
+		private List<DuplicateNodeSequence> getAllDuplicateNodeSequence(List<DuplicateNode> nodeList) {
 			List<DuplicateNodeSequence> seqNumberList = new ArrayList<DuplicateNodeSequence>();
 			
-			for(DuplicateNode node : target.getDuplicateNodes()) {
-				if(node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
-					DuplicateNodeSequence virtualNode = new DuplicateNodeSequence();
-					virtualNode.setNode(node);
-					virtualNode.setSequenceNumbers(null);
-					continue;
-				}
-				
+			for(DuplicateNode node : nodeList) {
 				DiskNodeConnection connection = connectionPool.getConnection(node);
 				if(connection == null || connection.getClient() == null) {
 					LOG.error("duplication node[{}, {}] of [{}] is not available, that's maybe a trouble!", node.getGroup(), node.getId(), target.getName());
@@ -221,10 +216,6 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 		private void dosynchronize(List<DuplicateNodeSequence> seqNumberList, BitSet union, BitSet intersection) {
 			List<AvailableSequenceInfo> infos = new ArrayList<AvailableSequenceInfo>();
 			for(DuplicateNodeSequence sequence : seqNumberList) {
-				if(sequence.getNode().getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
-					continue;
-				}
-				
 				BitSet iHave = BitSetUtils.minus(sequence.getSequenceNumbers(), intersection);
 				LOG.info("Duplicate node[{}] has available seq num[{}]", sequence.getNode(), iHave.cardinality());
 				
@@ -245,7 +236,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			recoverInfo.setInfoList(infos);
 			for(DuplicateNodeSequence sequence : seqNumberList) {
 				BitSet lack = BitSetUtils.minus(union, sequence.getSequenceNumbers());
-				if(lack.isEmpty() || sequence.getNode().getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+				if(lack.isEmpty()) {
 					//没有空缺内容，不需要恢复
 					continue;
 				}

@@ -67,7 +67,7 @@ public class FileCopyMessageHandler implements MessageHandler {
 				
 				byte[] buf;
 				int offset = 0;
-				while((buf = DataFileReader.readFile(localPath, offset, TO_BUFFER_SIZE)) != null) {
+				while((buf = DataFileReader.readFile(localPath, offset, TO_BUFFER_SIZE)).length != 0) {
 					client.writeData(copyMessage.getRemotePath(), offset, buf);
 					offset += TO_BUFFER_SIZE;
 				}

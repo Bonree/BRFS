@@ -25,7 +25,7 @@ public class DataFileReader {
 			long fileLength = file.length();
 			
 			if(offset >= fileLength) {
-				return null;
+				return new byte[0];
 			}
 			
 			offset = Math.max(0, offset);
@@ -41,6 +41,6 @@ public class DataFileReader {
 			BufferUtils.release(buffer);
 		}
 		
-		return null;
+		return new byte[0];
 	}
 }
