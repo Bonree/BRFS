@@ -118,7 +118,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				}
 				currentTaskName = taskPair.getKey();
 				
-				task = taskPair.getValue();
+				task = TaskStateLifeContral.changeRunTaskModel(taskPair.getValue());
 				// 获取执行策略
 				runPattern = runTask.taskRunnPattern(task);
 				if(runPattern == null){

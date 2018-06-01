@@ -15,10 +15,12 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.common.utils.StorageNameFileUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
+import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
@@ -237,7 +239,62 @@ public class TaskStateLifeContral {
 			server.setRetryCount(server.getRetryCount() + 1);
 			release.updateServerTaskContentNode(serverId, task.getKey(), typeName, server);
 		}
+		
+//		cTask = changeRunTaskModel(cTask);
 		return new Pair<String,TaskModel>(task.getKey(), cTask);
+	}
+	/**
+	 * 概述：将任务分批
+	 * @param message
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static TaskModel changeRunTaskModel(final TaskModel message) {
+		if(message == null) {
+			return null;
+		}
+		TaskModel changeTask = new TaskModel();
+		changeTask.setCreateTime(message.getCreateTime());
+		changeTask.setStartDataTime(message.getStartDataTime());
+		changeTask.setEndDataTime(message.getEndDataTime());
+		changeTask.setRetryCount(message.getRetryCount());
+		changeTask.setTaskState(changeTask.getTaskState());
+		changeTask.setTaskType(message.getTaskType());
+		if(TaskType.SYSTEM_COPY_CHECK.code() == changeTask.getTaskType()) {
+			changeTask.setAtomList(message.getAtomList());
+			return changeTask;
+		}
+		List<AtomTaskModel> atoms = message.getAtomList();
+		AtomTaskModel atom = null;
+		if(atoms == null || atoms.isEmpty()) {
+			return changeTask;
+		}
+		long startTime = 0;
+		long endTime = 0;
+		String snName = null;
+		String dir = null;
+		String tmpDir = null;
+		for(AtomTaskModel aTask : atoms) {
+			startTime = TimeUtils.getMiles(aTask.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
+			endTime = TimeUtils.getMiles(aTask.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
+			dir = aTask.getDirName();
+			snName = aTask.getStorageName();
+			for(long start = startTime; start < endTime; start += 3600000) {
+				if(start +3600000 > endTime) {
+					continue;
+				}
+				atom = new AtomTaskModel();
+				atom.setDataStartTime(TimeUtils.formatTimeStamp(start,TimeUtils.TIME_MILES_FORMATE));
+				atom.setDataStopTime(TimeUtils.formatTimeStamp(start + 3600000,TimeUtils.TIME_MILES_FORMATE));
+				atom.setStorageName(snName);
+				tmpDir = StorageNameFileUtils.createSNDir(snName, dir, start);
+				atom.setDirName(tmpDir);
+				changeTask.addAtom(atom);
+				
+			}
+			
+		}
+		return changeTask;
 	}
 	
 	/**
@@ -271,6 +328,14 @@ public class TaskStateLifeContral {
 		}
 		return sTaskStatuss;
 	}
+	/***
+	 * 概述：获取指定任务的servid任务状态
+	 * @param release
+	 * @param typeName
+	 * @param serverId
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public static List<Pair<String,Pair<Integer,Integer>>> getTaskState(MetaTaskManagerInterface release, String typeName, String serverId){
 		List<String> taskNames = release.getTaskList(typeName);
 		List<Pair<String,Pair<Integer,Integer>>> sTaskStatuss = new ArrayList<Pair<String,Pair<Integer,Integer>>>();

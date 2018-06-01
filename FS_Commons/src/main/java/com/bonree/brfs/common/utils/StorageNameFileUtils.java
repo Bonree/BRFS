@@ -34,4 +34,15 @@ public class StorageNameFileUtils {
 		.append(strTime);
 		return str.toString();
 	}
+	public static String createSNDir(String sn, String copyIndex, final long time){
+		if(BrStringUtils.isEmpty(sn)){
+			return null;
+		}
+		String strTime = TimeUtils.timeInterval(time, 60*60*1000);
+		StringBuilder str = new StringBuilder();
+		str.append(sn).append(File.separator)
+		.append(copyIndex).append(File.separator)
+		.append(strTime);
+		return str.toString();
+	}
 }

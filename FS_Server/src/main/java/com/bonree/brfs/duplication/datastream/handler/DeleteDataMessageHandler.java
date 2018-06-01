@@ -78,23 +78,42 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		List<String> times = Splitter.on("_").omitEmptyStrings().trimResults().splitToList(deleteInfo.get(1));
 		long startTime = DateTime.parse(times.get(0)).getMillis();
 		long endTime = DateTime.parse(times.get(1)).getMillis();
-		if(startTime > endTime) {
+//		if(startTime > endTime) {
+//			result.setSuccess(false);
+//			result.setCause(new IllegalArgumentException("start time must before to end time!"));
+//			callback.completed(result);
+//			return;
+//		}else if(startTime != startTime/1000/60/60*1000*60*60 ){
+//			result.setSuccess(false);
+//			result.setCause(new IllegalArgumentException("startTime : "+ startTime +" is not integral time !!"));
+//			callback.completed(result);
+//			return;
+//		}else if( endTime != endTime/1000/60/60*1000*60*60){
+//			result.setSuccess(false);
+//			result.setCause(new IllegalArgumentException("endTime : "+ endTime +" is not integral time !!"));
+//			callback.completed(result);
+//			return;
+//		}else if(startTime < sn.getCreateTime()){
+//			result.setSuccess(false);
+//			result.setCause(new IllegalArgumentException("start : "+ startTime +" is earlier than storage createTime !!"));
+//			callback.completed(result);
+//			return;
+//		}else if(endTime < sn.getCreateTime()) {
+//			result.setSuccess(false);
+//			result.setCause(new IllegalArgumentException("endTime : "+ endTime +" is earlier than storage createTime !!"));
+//			callback.completed(result);
+//			return;
+//		}
+		if(startTime > endTime 
+				|| startTime != startTime/1000/60/60*1000*60*60
+				|| endTime != endTime/1000/60/60*1000*60*60
+				|| startTime < sn.getCreateTime()
+				|| endTime < sn.getCreateTime()) {
 			result.setSuccess(false);
-			result.setCause(new IllegalArgumentException("start time must before to end time!"));
-			callback.completed(result);
-			return;
-		}else if(startTime != startTime/1000/60/60*1000*60*60 ){
-			result.setSuccess(false);
-			result.setCause(new IllegalArgumentException("startTime : "+ startTime +" is not integral time !!"));
-			callback.completed(result);
-			return;
-		}else if( endTime != endTime/1000/60/60*1000*60*60){
-			result.setSuccess(false);
-			result.setCause(new IllegalArgumentException("startTime : "+ endTime +" is not integral time !!"));
+			result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.USER_DELETE_TIME_ERROR.name()));
 			callback.completed(result);
 			return;
 		}
-		
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
 		
 		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
