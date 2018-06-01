@@ -17,6 +17,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.VerifyingFileUtils;
 
 /*******************************************************************************
@@ -133,7 +134,7 @@ public class Configuration {
      */
     public void initLogback(String path){
         try {
-            System.setProperty("log_dir", configMap.get(Configuration.PATH_LOGS));
+            System.setProperty("log_dir", BrStringUtils.trimBasePath(configMap.get(Configuration.PATH_LOGS)));
             LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
             JoranConfigurator configurator = new JoranConfigurator();  
             configurator.setContext(lc);  
