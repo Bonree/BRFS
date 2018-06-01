@@ -93,9 +93,6 @@ public class ServerMain {
             @SuppressWarnings("resource")
             RebalanceManager rebalanceServer = new RebalanceManager(serverConfig, zookeeperPaths, idManager, snManager, sm);
             rebalanceServer.start();
-
-            // 资源管理模块
-            InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
             
             Service selfService = new Service();
             selfService.setHost(serverConfig.getHost());
@@ -105,6 +102,9 @@ public class ServerMain {
 
             sm.registerService(selfService);
             System.out.println(selfService);
+            
+         // 资源管理模块
+            InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
         } catch (ConfigPathException e) {
             LOG.error("config file not exist!!!",e);
             System.exit(1);
