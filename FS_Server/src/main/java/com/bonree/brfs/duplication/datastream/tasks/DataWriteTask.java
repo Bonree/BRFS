@@ -37,11 +37,11 @@ public class DataWriteTask extends AsyncTask<WriteResult[]> {
 				return null;
 			}
 			
-			LOG.debug("write {} data to {}:{}", filePath, connection.getService().getHost(), connection.getService().getPort());
+			LOG.debug("write {} data to {}:{}", filePath, connection.getRemoteAddress(), connection.getRemotePort());
 			WriteResult[] result = client.writeDatas(filePath, datas);
 			
 			LOG.info("file[{}] write task from {}:{} get result---{}", filePath,
-					connection.getService().getHost(), connection.getService().getPort(), result);
+					connection.getRemoteAddress(), connection.getRemotePort(), result);
 			
 			return result;
 		} finally {

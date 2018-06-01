@@ -29,6 +29,7 @@ public class HttpConfig {
 		this.backlog = DEFAULT_BACKLOG;
 		this.connectTimeoutMillies = DEFAULT_CONNECT_TIMEOUT_MILLIES;
 		this.isKeepAlive = false;
+		this.tcpNoDelay = true;
 		this.acceptWorkerNum = DEFAULT_ACCEPT_WORKER_NUM;
 		this.requestHandleWorkerNum = DEFAULT_REQUEST_HANDLE_WORKER_NUM;
 	}

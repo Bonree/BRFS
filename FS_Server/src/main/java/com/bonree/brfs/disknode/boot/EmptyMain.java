@@ -1,5 +1,7 @@
 package com.bonree.brfs.disknode.boot;
 
+import java.io.File;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,68 +30,71 @@ public class EmptyMain implements LifeCycle {
 	private static final Logger LOG = LoggerFactory.getLogger(EmptyMain.class);
 	
 	private NettyHttpServer server;
+	private HttpConfig httpConfig;
+	
+	private DiskContext diskContext;
+	
 	private FileWriterManager writerManager;
 	private ServiceManager serviceManager;
-	private ServerConfig serverConfig;
 	
 	public EmptyMain(ServerConfig serverConfig, ServiceManager serviceManager) {
-		this.serverConfig = serverConfig;
+		this(serverConfig.getDiskPort(), serverConfig.getDataPath(), serviceManager);
+	}
+	
+	public EmptyMain(int port, String diskContextPath, ServiceManager serviceManager) {
+		this.httpConfig = new HttpConfig(port);
+		this.diskContext = new DiskContext(diskContextPath);
 		this.serviceManager = serviceManager;
 	}
 
 	@Override
 	public void start() throws Exception {
-		LOG.info("Empty Main--port[{}]", serverConfig.getDiskPort());
+		LOG.info("Empty Main--port[{}]", httpConfig.getPort());
 		
-		DiskContext context = new DiskContext(serverConfig.getDataPath());
+		checkDiskContextPath();
 		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
-		
-		HttpConfig config = new HttpConfig(serverConfig.getDiskPort());
-		
-		server = new NettyHttpServer(config);
-		
-		NettyHttpContextHandler contextHandler = new NettyHttpContextHandler(DiskContext.URI_DISK_NODE_ROOT);
-		
-		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
-		writerManager = new FileWriterManager(recorderManager, context);
+		writerManager = new FileWriterManager(recorderManager, diskContext);
 		writerManager.start();
 		
-		requestHandler.addMessageHandler("POST", new WriteMessageHandler(context, writerManager));
-		requestHandler.addMessageHandler("GET", new ReadMessageHandler(context));
-		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(context, writerManager));
-		requestHandler.addMessageHandler("DELETE", new DeleteMessageHandler(context, writerManager));
+		server = new NettyHttpServer(httpConfig);
 		
+		NettyHttpContextHandler contextHandler = new NettyHttpContextHandler(DiskContext.URI_DISK_NODE_ROOT);
+		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
+		requestHandler.addMessageHandler("POST", new WriteMessageHandler(diskContext, writerManager));
+		requestHandler.addMessageHandler("GET", new ReadMessageHandler(diskContext));
+		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(diskContext, writerManager));
+		requestHandler.addMessageHandler("DELETE", new DeleteMessageHandler(diskContext, writerManager));
 		contextHandler.setNettyHttpRequestHandler(requestHandler);
 		server.addContextHandler(contextHandler);
 		
 		NettyHttpContextHandler infoHandler = new NettyHttpContextHandler(DiskContext.URI_INFO_NODE_ROOT);
 		NettyHttpRequestHandler infoRequestHandler = new NettyHttpRequestHandler();
-		infoRequestHandler.addMessageHandler("GET", new WritingInfoMessageHandler(context, writerManager));
+		infoRequestHandler.addMessageHandler("GET", new WritingInfoMessageHandler(diskContext, writerManager));
 		infoHandler.setNettyHttpRequestHandler(infoRequestHandler);
 		server.addContextHandler(infoHandler);
 		
 		NettyHttpContextHandler metaHandler = new NettyHttpContextHandler(DiskContext.URI_META_NODE_ROOT);
 		NettyHttpRequestHandler metaRequestHandler = new NettyHttpRequestHandler();
-		metaRequestHandler.addMessageHandler("GET", new WritingMetaDataMessageHandler(context, writerManager));
+		metaRequestHandler.addMessageHandler("GET", new WritingMetaDataMessageHandler(diskContext, writerManager));
 		metaHandler.setNettyHttpRequestHandler(metaRequestHandler);
 		server.addContextHandler(metaHandler);
 		
 		NettyHttpContextHandler cpHandler = new NettyHttpContextHandler(DiskContext.URI_COPY_NODE_ROOT);
 		NettyHttpRequestHandler cpRequestHandler = new NettyHttpRequestHandler();
-		cpRequestHandler.addMessageHandler("POST", new FileCopyMessageHandler(context));
+		cpRequestHandler.addMessageHandler("POST", new FileCopyMessageHandler(diskContext));
 		cpHandler.setNettyHttpRequestHandler(cpRequestHandler);
 		server.addContextHandler(cpHandler);
 		
 		NettyHttpContextHandler listHandler = new NettyHttpContextHandler(DiskContext.URI_LIST_NODE_ROOT);
 		NettyHttpRequestHandler listRequestHandler = new NettyHttpRequestHandler();
-		listRequestHandler.addMessageHandler("GET", new ListMessageHandler(context));
+		listRequestHandler.addMessageHandler("GET", new ListMessageHandler(diskContext));
 		listHandler.setNettyHttpRequestHandler(listRequestHandler);
 		server.addContextHandler(listHandler);
 		
 		NettyHttpContextHandler recoverHandler = new NettyHttpContextHandler(DiskContext.URI_RECOVER_NODE_ROOT);
 		NettyHttpRequestHandler recoverRequestHandler = new NettyHttpRequestHandler();
-		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(context, serviceManager, writerManager, recorderManager));
+		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(diskContext, serviceManager, writerManager, recorderManager));
 		recoverHandler.setNettyHttpRequestHandler(recoverRequestHandler);
 		server.addContextHandler(recoverHandler);
 		
@@ -101,10 +106,16 @@ public class EmptyMain implements LifeCycle {
 		
 		server.start();
 	}
+	
+	private void checkDiskContextPath() {
+		if(!new File(diskContext.getRootDir()).exists()) {
+			throw new IllegalArgumentException("Disk context path[" + diskContext.getRootDir() + "] is not existed!");
+		}
+	}
 
 	@Override
 	public void stop() throws Exception {
-		writerManager.stop();
 		server.stop();
+		writerManager.stop();
 	}
 }

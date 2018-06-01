@@ -269,11 +269,13 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 
 		@Override
 		public void serviceAdded(Service service) {
+			LOG.info("Disk Node[{}] added", service);
 			taskActivator.putService(service);
 		}
 
 		@Override
 		public void serviceRemoved(Service service) {
+			LOG.info("Disk Node[{}] removed", service);
 		}
 		
 	}

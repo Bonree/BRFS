@@ -2,27 +2,33 @@ package com.bonree.brfs.duplication.datastream.connection.http;
 
 import java.io.IOException;
 
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.google.common.io.Closeables;
 
 public class HttpDiskNodeConnection implements DiskNodeConnection {
-	private Service service;
+	private String address;
+	private int port;
 	private DiskNodeClient client;
 	
-	public HttpDiskNodeConnection(Service service) {
-		this.service = service;
+	public HttpDiskNodeConnection(String address, int port) {
+		this.address = address;
+		this.port = port;
 	}
 	
 	public void connect() {
-		client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+		client = new HttpDiskNodeClient(address, port);
 	}
 
 	@Override
-	public Service getService() {
-		return service;
+	public String getRemoteAddress() {
+		return address;
+	}
+	
+	@Override
+	public int getRemotePort() {
+		return port;
 	}
 
 	@Override

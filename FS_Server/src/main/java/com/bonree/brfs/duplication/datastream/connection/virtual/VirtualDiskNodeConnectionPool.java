@@ -2,7 +2,6 @@ package com.bonree.brfs.duplication.datastream.connection.virtual;
 
 import java.io.IOException;
 
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
@@ -15,7 +14,7 @@ public class VirtualDiskNodeConnectionPool implements DiskNodeConnectionPool {
 
 	@Override
 	public DiskNodeConnection getConnection(DuplicateNode duplicateNode) {
-		return new VirtualDiskNodeConnection(new Service(duplicateNode.getId(), duplicateNode.getGroup(), null, 0));
+		return new VirtualDiskNodeConnection();
 	}
 
 	@Override

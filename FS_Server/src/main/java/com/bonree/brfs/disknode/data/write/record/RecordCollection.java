@@ -80,12 +80,14 @@ public class RecordCollection implements Closeable, Iterable<RecordElement> {
 	public Iterator<RecordElement> iterator() {
 		InputStream input = null;
 		try {
+			LOG.info("start read elements[{}]...", recordFile.getAbsolutePath());
 			input = new BufferedInputStream(new FileInputStream(recordFile));
 			openedStreams.add(input);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 		
+		LOG.info("return a RecordElementIterator[{}]...", recordFile.getAbsolutePath());
 		return new RecordElementIterator(input);
 	}
 

@@ -83,15 +83,6 @@ public class ServerMain {
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
             sm.start();
 
-            Service selfService = new Service();
-            selfService.setHost(serverConfig.getHost());
-            selfService.setPort(serverConfig.getDiskPort());
-            selfService.setServiceGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
-            selfService.setServiceId(idManager.getFirstServerID());
-
-            sm.registerService(selfService);
-            System.out.println(selfService);
-
             // 磁盘管理模块
             EmptyMain diskMain = new EmptyMain(serverConfig, sm);
             diskMain.start();
@@ -105,6 +96,15 @@ public class ServerMain {
 
             // 资源管理模块
             InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
+            
+            Service selfService = new Service();
+            selfService.setHost(serverConfig.getHost());
+            selfService.setPort(serverConfig.getDiskPort());
+            selfService.setServiceGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+            selfService.setServiceId(idManager.getFirstServerID());
+
+            sm.registerService(selfService);
+            System.out.println(selfService);
         } catch (ConfigPathException e) {
             LOG.error("config file not exist!!!",e);
             System.exit(1);

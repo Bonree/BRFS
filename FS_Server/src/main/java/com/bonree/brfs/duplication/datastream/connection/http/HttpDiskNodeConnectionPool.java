@@ -62,7 +62,7 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 				return null;
 			}
 			
-			connection = new HttpDiskNodeConnection(service);
+			connection = new HttpDiskNodeConnection(service.getHost(), service.getPort());
 			connection.connect();
 			connectionCache.put(duplicateNode, connection);
 		}
