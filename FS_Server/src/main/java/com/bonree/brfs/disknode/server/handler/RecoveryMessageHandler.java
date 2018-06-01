@@ -35,6 +35,7 @@ import com.bonree.brfs.disknode.data.write.buf.ByteFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
+import com.bonree.brfs.disknode.data.write.record.RecordElementReader;
 import com.bonree.brfs.disknode.data.write.record.RecordFileBuilder;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.utils.Pair;
@@ -71,6 +72,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 		SortedMap<Integer, byte[]> datas = new TreeMap<Integer, byte[]>();
 		RandomAccessFile originFile = null;
 		
+		RecordElementReader recordreReader = null;
 		try {
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
 			if(binding != null) {
@@ -79,7 +81,8 @@ public class RecoveryMessageHandler implements MessageHandler {
 				originFile = new RandomAccessFile(filePath, "r");
 				MappedByteBuffer buf = originFile.getChannel().map(MapMode.READ_ONLY, 0, originFile.length());
 				
-				for(RecordElement element : recordSet) {
+				recordreReader = recordSet.getRecordElementReader();
+				for(RecordElement element : recordreReader) {
 					byte[] bytes = new byte[element.getSize()];
 					buf.position((int) element.getOffset());
 					buf.get(bytes);
@@ -126,6 +129,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 			e.printStackTrace();
 		} finally {
 			CloseUtils.closeQuietly(originFile);
+			CloseUtils.closeQuietly(recordreReader);
 		}
 		
 		LOG.info("finally lack size = {}", lack.cardinality());

@@ -24,7 +24,7 @@ import com.bonree.brfs.disknode.data.write.FileWriter;
  * @author yupeng
  *
  */
-public class RecordCollection implements Closeable, Iterable<RecordElement> {
+public class RecordCollection implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(RecordCollection.class);
 	
 	private File recordFile;
@@ -76,20 +76,8 @@ public class RecordCollection implements Closeable, Iterable<RecordElement> {
 		recordWriter.flush();
 	}
 	
-	@Override
-	public Iterator<RecordElement> iterator() {
-		InputStream input = null;
-		try {
-			LOG.info("start read elements[{}]...", recordFile.getAbsolutePath());
-			input = new BufferedInputStream(new FileInputStream(recordFile));
-			openedStreams.add(input);
-		} catch (FileNotFoundException e) {
-			LOG.info("open RecordElementIterator[{}] error..", recordFile.getAbsolutePath());
-			e.printStackTrace();
-		}
-		
-		LOG.info("return a RecordElementIterator[{}]...", recordFile.getAbsolutePath());
-		return new RecordElementIterator(input);
+	public RecordElementReader getRecordElementReader() {
+		return new RecordElementReader(recordFile);
 	}
 
 	@Override
@@ -104,39 +92,6 @@ public class RecordCollection implements Closeable, Iterable<RecordElement> {
 		if(deleteOnClose) {
 			LOG.info("It's time to delete record file[{}]", recordFile.getAbsolutePath());
 			recordFile.delete();
-		}
-	}
-	
-	private class RecordElementIterator implements Iterator<RecordElement> {
-		private InputStream recordInput;
-		private RecordElement next;
-		
-		public RecordElementIterator(InputStream recordInput) {
-			this.recordInput = recordInput;
-			readNext();
-		}
-
-		@Override
-		public boolean hasNext() {
-			return next != null;
-		}
-
-		@Override
-		public RecordElement next() {
-			RecordElement result = next;
-			readNext();
-			
-			return result;
-		}
-		
-		private void readNext() {
-			next = ProtoStuffUtils.readFrom(recordInput, RecordElement.class);
-			
-			if(next == null) {
-				//读完即关闭
-				CloseUtils.closeQuietly(recordInput);
-				openedStreams.remove(recordInput);
-			}
 		}
 	}
 }

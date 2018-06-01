@@ -2,6 +2,9 @@ package com.bonree.brfs.disknode.server.handler;
 
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,21 +13,29 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
-import com.bonree.brfs.disknode.data.write.record.RecordFileBuilder;
+import com.bonree.brfs.disknode.data.write.record.RecordElementReader;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.utils.Pair;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 public class WritingInfoMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WritingInfoMessageHandler.class);
 	
 	private DiskContext context;
 	private FileWriterManager nodeManager;
+	
+	private Cache<String, Map<Integer, RecordElement>> recordCache = CacheBuilder.newBuilder()
+			.maximumSize(10)
+			.expireAfterAccess(8, TimeUnit.SECONDS)
+			.build();
 	
 	public WritingInfoMessageHandler(DiskContext context, FileWriterManager nodeManager) {
 		this.context = context;
@@ -49,12 +60,31 @@ public class WritingInfoMessageHandler implements MessageHandler {
 			}
 			
 			binding.first().flush();
-			RecordCollection recordSet = binding.first().getRecordCollection();
+			
+			Map<Integer, RecordElement> recordInfo = recordCache.getIfPresent(filePath);
+			if(recordInfo == null) {
+				RecordCollection recordSet = binding.first().getRecordCollection();
+				RecordElementReader recordReader = null;
+				try {
+					recordReader = recordSet.getRecordElementReader();
+					recordInfo = new HashMap<Integer, RecordElement>();
+					
+					for(RecordElement element : recordReader) {
+						recordInfo.put(element.getSequence(), element);
+					}
+					
+					recordCache.put(filePath, recordInfo);
+				} finally {
+					CloseUtils.closeQuietly(recordReader);
+				}
+			}
+			
 			String seqValue = msg.getParams().get("seq");
 			if(seqValue != null) {
 				LOG.info("get data by sequence[{}] from file[{}]", seqValue, filePath);
 				int seq = Integer.parseInt(seqValue);
-				byte[] bytes = readSequenceData(recordSet, seq);
+				RecordElement element = recordInfo.get(seq);
+				byte[] bytes = DataFileReader.readFile(filePath, (int) element.getOffset(), element.getSize());
 				
 				if(bytes != null) {
 					LOG.info("sequence[{}] get all bytes[{}]", seq, bytes.length);
@@ -64,49 +94,31 @@ public class WritingInfoMessageHandler implements MessageHandler {
 					return;
 				}
 				
+				LOG.info("can not read byte from [{}] with seq[{}]", filePath, seq);
 				result.setSuccess(false);
 				result.setCause(new Exception("Can't read sequence[" + seq + "]"));
 				callback.completed(result);
 				return;
+			} else {
+				//获取所有文件序列号
+				BitSet seqSet = new BitSet();
+				for(Integer seq : recordInfo.keySet()) {
+					seqSet.set(seq);
+				}
+				
+				LOG.info("get all sequence from file[{}] ,total[{}]", filePath, seqSet.cardinality());
+				result.setSuccess(true);
+				result.setData(seqSet.toByteArray());
+				callback.completed(result);
 			}
-			
-			result.setSuccess(true);
-			result.setData(getAllSequence(recordSet).toByteArray());
-			callback.completed(result);
 		} catch (IOException e) {
-			e.printStackTrace();
+			result.setSuccess(false);
+			callback.completed(result);
 		}
 	}
 	
 	@Override
 	public boolean isValidRequest(HttpMessage message) {
 		return true;
-	}
-	
-	private byte[] readSequenceData(RecordCollection records, int seq) {
-		RecordElement element = null;
-		for(RecordElement ele : records) {
-			if(ele.getSequence() == seq) {
-				element = ele;
-				break;
-			}
-		}
-		
-		if(element == null) {
-			return null;
-		}
-		
-		return DataFileReader.readFile(RecordFileBuilder.reverse(records.recordFile()), (int) element.getOffset(), element.getSize());
-	}
-	
-	private BitSet getAllSequence(RecordCollection records) {
-		BitSet seqSet = new BitSet();
-		for(RecordElement element : records) {
-			seqSet.set(element.getSequence());
-		}
-		
-		LOG.info("get all sequence from file[{}] ,total[{}]", records.recordFile().getAbsolutePath(), seqSet.cardinality());
-		
-		return seqSet;
 	}
 }

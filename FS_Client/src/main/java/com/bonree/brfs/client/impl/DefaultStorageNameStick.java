@@ -155,24 +155,30 @@ public class DefaultStorageNameStick implements StorageNameStick {
                     throw new BRFSException("none disknode!!!");
                 }
                 URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_DISK_NODE_ROOT + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot())).addParameter("offset", String.valueOf(fidObj.getOffset())).addParameter("size", String.valueOf(fidObj.getSize())).build();
-                HttpResponse response = client.executeGet(uri, headers);
+                
+                try {
+					final HttpResponse response = client.executeGet(uri, headers);
+					
+					if (response != null && response.isReponseOK()) {
+	                    return new InputItem() {
 
-                if (response.isReponseOK()) {
-                    return new InputItem() {
+	                        @Override
+	                        public byte[] getBytes() {
+	                            try {
+	                                FileContent content = FileDecoder.contents(response.getResponseBody());
+	                                return content.getData().toByteArray();
+	                            } catch (Exception e) {
+	                                e.printStackTrace();
+	                            }
 
-                        @Override
-                        public byte[] getBytes() {
-                            try {
-                                FileContent content = FileDecoder.contents(response.getResponseBody());
-                                return content.getData().toByteArray();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                            return null;
-                        }
-                    };
-                }
+	                            return null;
+	                        }
+	                    };
+	                }
+				} catch (Exception e) {
+					continue;
+				}
+                
                 // 使用选择的server没有读取到数据，需要进行排除
                 excludePot.add(serviceMetaInfo.getReplicatPot());
             }

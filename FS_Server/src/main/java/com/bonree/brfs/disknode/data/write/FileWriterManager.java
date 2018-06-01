@@ -148,8 +148,7 @@ public class FileWriterManager implements LifeCycle {
 	public void rebuildFileWriter(File dataFile) throws IOException {
 		RecordFileWriter writer = new RecordFileWriter(
 				recorderManager.getRecordCollection(dataFile, true, DEFAULT_RECORD_BUFFER_SIZE, true),
-						new BufferedFileWriter(dataFile, true, new ByteFileBuffer(
-								DEFAULT_FILE_BUFFER_SIZE)));
+						new BufferedFileWriter(dataFile, true, new ByteFileBuffer(DEFAULT_FILE_BUFFER_SIZE)));
 
 		Pair<RecordFileWriter, WriteWorker> binding = new Pair<RecordFileWriter, WriteWorker>(
 				writer, workerSelector.select(workerGroup.getWorkerList()));
@@ -171,11 +170,8 @@ public class FileWriterManager implements LifeCycle {
 						}
 						
 						RecordFileWriter writer = new RecordFileWriter(
-								recorderManager.getRecordCollection(filePath, false,
-										DEFAULT_RECORD_BUFFER_SIZE, true),
-								new BufferedFileWriter(filePath,
-										new ByteFileBuffer(
-												DEFAULT_FILE_BUFFER_SIZE)));
+								recorderManager.getRecordCollection(filePath, false, DEFAULT_RECORD_BUFFER_SIZE, true),
+								new BufferedFileWriter(filePath, new ByteFileBuffer(DEFAULT_FILE_BUFFER_SIZE)));
 
 						binding = new Pair<RecordFileWriter, WriteWorker>(
 								writer, workerSelector.select(workerGroup

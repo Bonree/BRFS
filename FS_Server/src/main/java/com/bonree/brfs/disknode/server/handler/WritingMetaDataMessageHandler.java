@@ -11,11 +11,13 @@ import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
+import com.bonree.brfs.disknode.data.write.record.RecordElementReader;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.utils.Pair;
 
@@ -47,12 +49,14 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 			return;
 		}
 		
+		RecordElementReader recordReader = null;
 		try {
 			binding.first().flush();
 			RecordCollection recordSet = binding.first().getRecordCollection();
 			
+			recordReader = recordSet.getRecordElementReader();
 			RecordElement lastEle = new RecordElement(-1, 0);
-			for(RecordElement ele : recordSet) {
+			for(RecordElement ele : recordReader) {
 				if(lastEle.getSequence() < ele.getSequence()) {
 					lastEle = ele;
 				}
@@ -79,6 +83,8 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 			result.setSuccess(false);
 			result.setCause(e);
 			callback.completed(result);
+		} finally {
+			CloseUtils.closeQuietly(recordReader);
 		}
 	}
 	
