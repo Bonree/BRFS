@@ -52,10 +52,12 @@ public class WritingInfoMessageHandler implements MessageHandler {
 			RecordCollection recordSet = binding.first().getRecordCollection();
 			String seqValue = msg.getParams().get("seq");
 			if(seqValue != null) {
+				LOG.info("get data by sequence[{}] from file[{}]", seqValue, filePath);
 				int seq = Integer.parseInt(seqValue);
 				byte[] bytes = readSequenceData(recordSet, seq);
 				
 				if(bytes != null) {
+					LOG.info("sequence[{}] get all bytes[{}]", seq, bytes.length);
 					result.setSuccess(true);
 					result.setData(bytes);
 					callback.completed(result);
@@ -102,6 +104,8 @@ public class WritingInfoMessageHandler implements MessageHandler {
 		for(RecordElement element : records) {
 			seqSet.set(element.getSequence());
 		}
+		
+		LOG.info("get all sequence from file[{}] ,total[{}]", records.recordFile().getAbsolutePath(), seqSet.cardinality());
 		
 		return seqSet;
 	}
