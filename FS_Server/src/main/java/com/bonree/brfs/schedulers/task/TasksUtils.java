@@ -95,11 +95,14 @@ public class TasksUtils {
 		String snName = sn.getName();
 		int count = sn.getReplicateCount();
 		long startHour = 0;
-		long endHour = endTime % 3600000 == 0 ? endTime/1000/60/60*60*60*1000 : endTime/1000/60/60*60*60*1000 + 3600000;
+		long endHour =  endTime/1000/60/60*60*60*1000;
 		if(startTime <=0 || startTime < sn.getCreateTime()){
 			startHour = sn.getCreateTime()/1000/60/60*60*60*1000;
 		}else{
 			startHour = startTime/1000/60/60*60*60*1000;
+		}
+		if(startHour > endHour) {
+			return null;
 		}
 		
 		for(int i = 1; i<=count; i++){
