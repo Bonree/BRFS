@@ -62,7 +62,6 @@ public class ServerMain {
 
             StorageNameManager snManager = new DefaultStorageNameManager(storageConfig, client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);
             snManager.addStorageNameStateListener(new StorageNameStateListener() {
-
                 @Override
                 public void storageNameAdded(StorageNameNode node) {
                     LOG.info("-----------StorageNameAdded--[{}]", node);
@@ -75,6 +74,8 @@ public class ServerMain {
 
                 @Override
                 public void storageNameRemoved(StorageNameNode node) {
+                    LOG.info("-----------StorageNameRemove--[{}]", node);
+                    idManager.deleteSecondServerID(node.getId());
                 }
             });
             snManager.start();

@@ -125,4 +125,25 @@ public class SecondLevelServerID {
         return serverID;
     }
 
+    /** 概述：删除一个2级serverID
+     * @param storageIndex
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public boolean deleteServerID(int storageIndex) {
+        Preconditions.checkNotNull(secondMap, "Second Level Server ID is not init!!!");
+        try {
+            String serverID = secondMap.get(storageIndex);
+            if (!StringUtils.isEmpty(serverID)) {
+                LOG.info("delete 2 level serverid for:" + storageIndex);
+                secondMap.remove(storageIndex);
+                String node = selfFirstPath + '/' + storageIndex;
+                client.checkAndDelte(node, true);
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }

@@ -49,6 +49,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
+import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
@@ -259,7 +260,11 @@ public class TaskDispatcher implements Closeable {
                             System.out.println(isLoad.get());
                             for (Entry<Integer, List<ChangeSummary>> entry : cacheSummaryCache.entrySet()) {
                                 LOG.info("auditTask auditTask auditTask auditTask");
-                                syncAuditTask(entry.getKey(), entry.getValue());
+                                StorageNameNode sn = snManager.findStorageName(entry.getKey());
+                                // 因为sn可能会被删除
+                                if (sn != null) {
+                                    syncAuditTask(entry.getKey(), entry.getValue());
+                                }
                             }
                         }
                     }
@@ -446,20 +451,95 @@ public class TaskDispatcher implements Closeable {
                         LOG.info("delete change path: " + changePath);
                         curatorClient.checkAndDelte(changePath, false);
 
+                        // for (ChangeSummary cs : changeSummaries) {
+                        // if (cs.getChangeID().equals(bts.getChangeID())) {
+                        // changeSummaries.remove(cs);
+                        // }
+                        // }
                         // 清理change cache缓存
-                        for (ChangeSummary cs : changeSummaries) {
-                            if (cs.getChangeID().equals(bts.getChangeID())) {
-                                changeSummaries.remove(cs);
+                        if (changeSummaries != null) {
+                            Iterator<ChangeSummary> it = changeSummaries.iterator();
+                            while (it.hasNext()) {
+                                ChangeSummary cs = it.next();
+                                if (cs.getChangeID().equals(bts.getChangeID())) {
+                                    it.remove();
+                                }
                             }
                         }
-                        // 清理task缓存
-                        removeRunTask(bts.getStorageIndex());
-
                         // 删除zk上的任务节点
-                        delBalanceTask(bts);
+                        if (delBalanceTask(bts)) {
+                            // 清理task缓存
+                            removeRunTask(bts.getStorageIndex());
+                        }
+
                     }
                 }
             }
+        }
+
+    }
+
+    public void fixTaskMeta(BalanceTaskSummary taskSummary) {
+
+        // task路径
+        String parentPath = tasksPath + Constants.SEPARATOR + taskSummary.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
+        // 节点已经删除，则忽略
+        if (!curatorClient.checkExists(parentPath)) {
+            return;
+        }
+        BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(parentPath), BalanceTaskSummary.class);
+
+        // 所有的服务都则发布迁移规则，并清理任务
+        if (bts.getTaskType() == RecoverType.VIRTUAL) {
+            LOG.info("one virtual task finish,detail:" + taskSummary);
+            String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
+            VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
+            LOG.info("add virtual route:" + route);
+            curatorClient.createPersistentSequential(virtualRouteNode, true, JSON.toJSONBytes(route));
+
+            // 因共享节点，所以得将余下的所有virtual server id，注册新迁移的server。不足之处，可能为导致副本数的恢复大于服务数。
+            String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
+            List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
+            if (normalVirtualIDs != null && !normalVirtualIDs.isEmpty()) {
+                for (String virtualID : normalVirtualIDs) {
+                    idManager.registerFirstID(bts.getStorageIndex(), virtualID, firstID);
+                }
+            }
+            // 删除virtual server ID
+            LOG.info("delete the virtual server id:" + bts.getServerId());
+            idManager.deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
+
+        } else if (bts.getTaskType() == RecoverType.NORMAL) {
+            LOG.info("one normal task finish,detail:" + taskSummary);
+
+            String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
+            NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
+            LOG.info("add normal route:" + route);
+            curatorClient.createPersistentSequential(normalRouteNode, true, JSON.toJSONBytes(route));
+        }
+
+        List<ChangeSummary> changeSummaries = cacheSummaryCache.get(bts.getStorageIndex());
+
+        // 清理zk上的变更
+        LOG.info("delete the change:" + bts.getChangeID());
+        String changePath = changesPath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
+        LOG.info("delete change path: " + changePath);
+        curatorClient.checkAndDelte(changePath, false);
+
+        // 清理change cache缓存
+        if (changeSummaries != null) {
+            Iterator<ChangeSummary> it = changeSummaries.iterator();
+            while (it.hasNext()) {
+                ChangeSummary cs = it.next();
+                if (cs.getChangeID().equals(bts.getChangeID())) {
+                    it.remove();
+                }
+            }
+        }
+        // 删除zk上的任务节点
+        if (delBalanceTask(bts)) {
+            // 清理task缓存
+            removeRunTask(bts.getStorageIndex());
         }
 
     }
@@ -491,7 +571,7 @@ public class TaskDispatcher implements Closeable {
 
         // 当前有任务在执行,则检查是否有影响该任务的change存在
         if (runTask.get(snIndex) != null) {
-            LOG.info("snIndex:{},check task!!!",snIndex);
+            LOG.info("snIndex:{},check task!!!", snIndex);
             checkTask(snIndex, changeSummaries);
             return;
         }
@@ -548,8 +628,8 @@ public class TaskDispatcher implements Closeable {
          */
 
         // 检测是否能进行数据恢复。
-        Iterator<ChangeSummary> it=changeSummaries.iterator();
-        while(it.hasNext()) {
+        Iterator<ChangeSummary> it = changeSummaries.iterator();
+        while (it.hasNext()) {
             ChangeSummary cs = it.next();
             if (cs.getChangeType().equals(ChangeType.REMOVE)) {
                 List<String> aliveFirstIDs = getAliveServices();
@@ -731,12 +811,15 @@ public class TaskDispatcher implements Closeable {
             // 找到正在执行的变更
             Optional<ChangeSummary> runChangeOpt = changeSummaries.stream().filter(x -> x.getChangeID().equals(changeID)).findFirst();
             if (!runChangeOpt.isPresent()) {
-                LOG.error("rebalance metadata is error:"+currentTask);
+                LOG.error("rebalance metadata is error:" + currentTask);
+                // 尝试修复下
+                LOG.info("fix the metadata!!!");
+                fixTaskMeta(currentTask);
                 return;
             }
             ChangeSummary runChangeSummary = runChangeOpt.get();
 
-            LOG.info("check running change:"+runChangeSummary);
+            LOG.info("check running change:" + runChangeSummary);
 
             for (ChangeSummary cs : changeSummaries) {
                 if (!cs.getChangeID().equals(runChangeSummary.getChangeID())) { // 与正在执行的变更不同
@@ -873,10 +956,15 @@ public class TaskDispatcher implements Closeable {
         curatorClient.guaranteedDelete(path, false);
     }
 
-    public void delBalanceTask(BalanceTaskSummary task) {
+    public boolean delBalanceTask(BalanceTaskSummary task) {
         LOG.info("delete task:" + task);
         String taskNode = tasksPath + Constants.SEPARATOR + task.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
-        curatorClient.checkAndDelte(taskNode, true);
+        try {
+            curatorClient.checkAndDelte(taskNode, true);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) {
@@ -892,9 +980,9 @@ public class TaskDispatcher implements Closeable {
      */
     public boolean dispatchTask(BalanceTaskSummary taskSummary) {
         int storageIndex = taskSummary.getStorageIndex();
-        //设置唯一任务UUID
+        // 设置唯一任务UUID
         taskSummary.setId(UUID.randomUUID().toString());
-        
+
         String jsonStr = JSON.toJSONString(taskSummary);
         LOG.info("dispatch task:{}", jsonStr);
         // 创建任务

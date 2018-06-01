@@ -1,6 +1,5 @@
 package com.bonree.brfs.rebalance.task;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /*******************************************************************************

@@ -123,6 +123,15 @@ public class ServerIDManager implements Closeable {
         return firstLevelServerID.getSecondLevelServerID().getServerID(storageIndex);
     }
 
+    /** 概述：删除SN的时候，需要删除相应的SN的2级server id
+     * @param storageIndex
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    public boolean deleteSecondServerID(int storageIndex) {
+        return firstLevelServerID.getSecondLevelServerID().deleteServerID(storageIndex);
+    }
+
     /** 概述：获取某个SN的virtual server ID
      * @param storageIndex
      * @param count
@@ -218,8 +227,8 @@ public class ServerIDManager implements Closeable {
                     }
                 }
             }
-            if(secondID!=null) {
-               break; 
+            if (secondID != null) {
+                break;
             }
             try {
                 Thread.sleep(100);
