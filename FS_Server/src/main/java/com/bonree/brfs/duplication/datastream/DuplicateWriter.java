@@ -227,7 +227,8 @@ public class DuplicateWriter {
 						}
 						
 						String serverId = idManager.getOtherSecondID(node.getId(), fileNode.getStorageId());
-						metaInfo = connection.getClient().getWritingFileMetaInfo(FilePathBuilder.buildPath(fileNode, serverId));
+						String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
+						metaInfo = connection.getClient().getWritingFileMetaInfo(filePath);
 						
 						if(metaInfo != null) {
 							break;

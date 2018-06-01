@@ -81,7 +81,8 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 			
 			String serverID = idManager.getOtherSecondID(node.getId(), file.getFileNode().getStorageId());
 			DiskNodeConnection connection = connectionPool.getConnection(node);
-			String filePath = FilePathBuilder.buildPath(file.getFileNode(), serverID);
+			String filePath = FilePathBuilder.buildFilePath(file.getFileNode().getStorageName(),
+					serverID, file.getFileNode().getCreateTime(), file.getFileNode().getName());
 			
 			taskGroup.addTask(new DataWriteTask(filePath, connection, datas));
 		}

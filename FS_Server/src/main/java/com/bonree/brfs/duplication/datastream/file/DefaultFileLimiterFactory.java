@@ -77,7 +77,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 			}
 			
 			String serverId = idManager.getOtherSecondID(node.getId(), storageId);
-			String filePath = FilePathBuilder.buildPath(fileNode, serverId);
+			String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
 			try {
 				byte[] header = fileLimiter.getHeader();
 				WriteResult result = connection.getClient().writeData(filePath, 0, header);
