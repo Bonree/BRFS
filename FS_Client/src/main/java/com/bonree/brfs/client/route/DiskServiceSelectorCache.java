@@ -1,5 +1,7 @@
 package com.bonree.brfs.client.route;
 
+import java.util.List;
+
 import com.bonree.brfs.client.meta.impl.DiskServiceMetaCache;
 import com.bonree.brfs.client.route.impl.RandomServiceSelector;
 import com.bonree.brfs.client.route.impl.ReaderServiceSelector;
@@ -33,8 +35,8 @@ public class DiskServiceSelectorCache {
         return randomServerSelecor.selectService();
     }
 
-    public ServiceMetaInfo readerService(String partFid) {
-        return readServerSelector.selectService(partFid);
+    public ServiceMetaInfo readerService(String partFid,List<Integer> excludePot) {
+        return readServerSelector.selectService(partFid,excludePot);
     }
 
 }

@@ -95,8 +95,6 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
     }
 
     public ServiceMetaInfo getFirstServerCache(String SecondID) {
-        System.out.println(firstServerCache);
-        System.out.println(secondServerCache);
         return new ServiceMetaInfo() {
 
             @Override
@@ -112,6 +110,7 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
             public int getReplicatPot() {
                 return 1;
             }
+
         };
     }
 
