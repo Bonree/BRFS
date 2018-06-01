@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
+import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
@@ -48,24 +49,27 @@ public class FileLimiterCloser implements FileCloseListener {
 
 		@Override
 		public void complete(FileNode fileNode) {
-			DiskNodeConnection[] connections = connectionPool.getConnections(fileNode.getDuplicateNodes());
-			for(int i = 0; i < connections.length; i++) {
-				DiskNodeClient client;
-				if(connections[i] != null && (client = connections[i].getClient()) != null) {
-					String serverId = idManager.getOtherSecondID(fileNode.getDuplicateNodes()[i].getId(), fileNode.getStorageId());
-					String filePath = FilePathBuilder.buildPath(fileNode, serverId);
-					
-					try {
-						LOG.info("file tailer--{}", file.getTailer().length);
-						WriteResult result = client.writeData(filePath, -2, file.getTailer());
-						LOG.info("write file[{}] TAILER result[{}]", filePath, result);
-						if(result != null) {
-							client.closeFile(filePath);
-							fileCoordinator.delete(file.getFileNode());
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
+			LOG.info("start to close file node[{}]", fileNode.getName());
+			for(DuplicateNode node : fileNode.getDuplicateNodes()) {
+				DiskNodeConnection connection = connectionPool.getConnection(node);
+				if(connection == null || connection.getClient() == null) {
+					LOG.info("close error because node[{}] is disconnected!", node);
+				}
+				
+				DiskNodeClient client = connection.getClient();
+				String serverId = idManager.getOtherSecondID(node.getId(), fileNode.getStorageId());
+				String filePath = FilePathBuilder.buildPath(fileNode, serverId);
+				
+				try {
+					LOG.info("file tailer--{}", file.getTailer().length);
+					WriteResult result = client.writeData(filePath, -2, file.getTailer());
+					LOG.info("write file[{}] TAILER result[{}]", filePath, result);
+					if(result != null) {
+						client.closeFile(filePath);
+						fileCoordinator.delete(file.getFileNode());
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}

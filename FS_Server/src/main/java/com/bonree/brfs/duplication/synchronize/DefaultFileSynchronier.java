@@ -162,6 +162,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 				dosynchronize(seqNumberList, union, intersection);
 			} else {
 				//存在文件内容丢失，怎么办，怎么办
+				LOG.info("file[{}] is error!", target.getName());
 				errorRecorder.writeErrorFile(target);
 				callback.error(new Exception("Content of the file[" + target.getName() + "] is deficient!!"));
 			}
@@ -198,7 +199,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 				LOG.info("checking---{}", filePath);
 				BitSet seqNumbers = connection.getClient().getWritingSequence(filePath);
 				
-				if(seqNumbers == null || seqNumbers.cardinality() == 0) {
+				if(seqNumbers == null) {
 					LOG.error("duplication node[{}, {}] of [{}] can not get file sequences, that's maybe a trouble!", node.getGroup(), node.getId(), target.getName());
 					continue;
 				}

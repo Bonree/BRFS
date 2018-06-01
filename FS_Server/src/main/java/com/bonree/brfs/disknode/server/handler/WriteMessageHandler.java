@@ -100,6 +100,10 @@ public class WriteMessageHandler implements MessageHandler {
 				writer.updateSequence(data.getDiskSequence());
 				writer.write(data.getBytes());
 				
+				if(data.getDiskSequence() == 0) {
+					writer.flush();
+				}
+				
 				writerManager.flushIfNeeded(binding);
 				
 				result.setSize(data.getBytes().length);

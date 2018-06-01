@@ -72,6 +72,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		for(DuplicateNode node : nodes) {
 			DiskNodeConnection connection = connectionPool.getConnection(node);
 			if(connection == null || connection.getClient() == null) {
+				LOG.info("can not write header for file[{}] because [{}] is disconnected", fileNode.getName(), node);
 				continue;
 			}
 			
@@ -80,6 +81,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 			try {
 				byte[] header = fileLimiter.getHeader();
 				WriteResult result = connection.getClient().writeData(filePath, 0, header);
+				LOG.info("write header for file[{}] get result[{}]", fileNode.getName(), result);
 				if(result != null && result.getSize() == header.length) {
 					headerWriting = true;
 				}
