@@ -84,6 +84,7 @@ public class RecordCollection implements Closeable, Iterable<RecordElement> {
 			input = new BufferedInputStream(new FileInputStream(recordFile));
 			openedStreams.add(input);
 		} catch (FileNotFoundException e) {
+			LOG.info("open RecordElementIterator[{}] error..", recordFile.getAbsolutePath());
 			e.printStackTrace();
 		}
 		
