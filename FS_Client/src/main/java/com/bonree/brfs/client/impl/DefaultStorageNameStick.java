@@ -35,6 +35,7 @@ import com.bonree.brfs.common.write.data.FidDecoder;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 
 public class DefaultStorageNameStick implements StorageNameStick {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageNameStick.class);
@@ -139,37 +140,41 @@ public class DefaultStorageNameStick implements StorageNameStick {
         for (int serverId : fidObj.getServerIdList()) {
             parts.add(String.valueOf(serverId));
         }
+        List<Integer> excludePot = Lists.newArrayList(16);
 
-        ServiceMetaInfo serviceMetaInfo = selector.readerService(Joiner.on('_').join(parts));
-        Service service = serviceMetaInfo.getFirstServer();
-        LOG.info("read service[{}]", service);
-        if (service == null) {
-            throw new BRFSException("none disknode!!!");
-        }
-        URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_DISK_NODE_ROOT + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot())).addParameter("offset", String.valueOf(fidObj.getOffset())).addParameter("size", String.valueOf(fidObj.getSize())).build();
-
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("username", userName);
+        headers.put("password", passwd);
         try {
-            Map<String, String> headers = new HashMap<String, String>();
-            headers.put("username", userName);
-            headers.put("password", passwd);
+            // 最大尝试副本数个server
+            for (int i = 0; i < parts.size() - 1; i++) {
+                ServiceMetaInfo serviceMetaInfo = selector.readerService(Joiner.on('_').join(parts), excludePot);
+                Service service = serviceMetaInfo.getFirstServer();
+                LOG.info("read service[{}]", service);
+                if (service == null) {
+                    throw new BRFSException("none disknode!!!");
+                }
+                URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_DISK_NODE_ROOT + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot())).addParameter("offset", String.valueOf(fidObj.getOffset())).addParameter("size", String.valueOf(fidObj.getSize())).build();
+                HttpResponse response = client.executeGet(uri, headers);
 
-            HttpResponse response = client.executeGet(uri, headers);
+                if (response.isReponseOK()) {
+                    return new InputItem() {
 
-            if (response.isReponseOK()) {
-                return new InputItem() {
+                        @Override
+                        public byte[] getBytes() {
+                            try {
+                                FileContent content = FileDecoder.contents(response.getResponseBody());
+                                return content.getData().toByteArray();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
 
-                    @Override
-                    public byte[] getBytes() {
-                        try {
-                            FileContent content = FileDecoder.contents(response.getResponseBody());
-                            return content.getData().toByteArray();
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                            return null;
                         }
-
-                        return null;
-                    }
-                };
+                    };
+                }
+                // 使用选择的server没有读取到数据，需要进行排除
+                excludePot.add(serviceMetaInfo.getReplicatPot());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -180,8 +185,8 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
     @Override
     public boolean deleteData(String startTime, String endTime) {
-        LOG.info("start time:"+startTime);
-        LOG.info("end time:"+endTime);
+        LOG.info("start time:" + startTime);
+        LOG.info("end time:" + endTime);
         try {
             List<Service> serviceList = dupSelector.randomServiceList();
             if (serviceList.isEmpty()) {
@@ -215,6 +220,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
                 String code = new String(response.getResponseBody());
                 ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
+                LOG.info("returnCode:" + returnCode);
             }
         } catch (IllegalArgumentException e) {
             LOG.error("time format error!!", e);
