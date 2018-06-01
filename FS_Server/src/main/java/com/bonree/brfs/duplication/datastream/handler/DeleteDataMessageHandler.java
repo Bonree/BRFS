@@ -107,7 +107,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		if(startTime > endTime 
 				|| startTime != startTime/1000/60/60*1000*60*60
 				|| endTime != endTime/1000/60/60*1000*60*60
-				|| startTime < sn.getCreateTime()
+				|| startTime/3600000 < sn.getCreateTime()/3600000
 				|| endTime < sn.getCreateTime()) {
 			result.setSuccess(false);
 			result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.USER_DELETE_TIME_ERROR.name()));
