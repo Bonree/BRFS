@@ -30,9 +30,7 @@ import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskMessageModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskSNMessageModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 
 public class TasksUtils {
@@ -89,37 +87,34 @@ public class TasksUtils {
 		}
 		TaskModel task = new TaskModel();
 		List<AtomTaskModel> storageAtoms = new ArrayList<AtomTaskModel>();
-		if(endTime == 0 || startTime > endTime){
+		if(endTime == 0 || startTime >= endTime){
 			return null;
-		}
+		}	
+		AtomTaskModel atom = null;
+		String dirName = null;
+		String snName = sn.getName();
+		int count = sn.getReplicateCount();
 		long startHour = 0;
+		long endHour = endTime/1000/60/60*60*60*1000 + 3600000;
 		if(startTime <=0 || startTime < sn.getCreateTime()){
 			startHour = sn.getCreateTime()/1000/60/60*60*60*1000;
 		}else{
 			startHour = startTime/1000/60/60*60*60*1000;
 		}
-		long endHour = endTime/1000/60/60*60*60*1000 + 3600000;
 		
-		AtomTaskModel atom = null;
-		String dirName = null;
-		String snName = sn.getName();
-		int count = sn.getReplicateCount();
-		for(long tmpTime = startHour; tmpTime < endHour; tmpTime+= 60*60*1000 ){
-			for(int i = 1; i<=count; i++){
-				atom = new AtomTaskModel();
-				atom.setStorageName(snName);
-				atom.setTaskOperation(opertationContent);
-				dirName = TimeUtils.timeInterval(tmpTime, 60*60*1000);
-				atom.setDirName(snName+File.separator+i+File.separator+dirName);
-				storageAtoms.add(atom);
-			}
+		for(int i = 1; i<=count; i++){
+			atom = new AtomTaskModel();
+			atom.setStorageName(snName);
+			atom.setTaskOperation(opertationContent);
+			atom.setDirName(i+"");
+			atom.setDataStartTime(TimeUtils.formatTimeStamp(startHour, TimeUtils.TIME_MILES_FORMATE));
+			atom.setDataStopTime(TimeUtils.formatTimeStamp(endHour, TimeUtils.TIME_MILES_FORMATE));
+			storageAtoms.add(atom);
 		}
 		task.setAtomList(storageAtoms);
 		task.setTaskState(TaskState.INIT.code());
-		task.setCreateTime(System.currentTimeMillis());
+		task.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
 		task.setTaskType(taskType.code());
-		task.setStartDataTime(startHour);
-		task.setEndDataTime(endHour);
 		return task;
 	}
 	public static TaskServerNodeModel createServerTaskNode(){

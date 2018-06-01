@@ -15,6 +15,7 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -34,20 +35,20 @@ public class TaskStateLifeContral {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static String getcurrentTaskName(MetaTaskManagerInterface release, String prexTaskName,TaskType taskType, String serverId){
-		String typeName = taskType.name();
-		String currentTaskName = null;
-		if(BrStringUtils.isEmpty(prexTaskName)){
-			prexTaskName = release.getLastSuccessTaskIndex(typeName, serverId);
-		}
-		if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
-			currentTaskName = release.getFirstServerTask(typeName, serverId);
-		}else{
-			currentTaskName = release.getNextTaskName(typeName, prexTaskName);
-		}
-		LOG.info("type: {},  prexTaskName :{} , currentTaskName: {}", typeName, prexTaskName, currentTaskName);
-		return currentTaskName;
-	}
+//	public static String getcurrentTaskName(MetaTaskManagerInterface release, String prexTaskName,TaskType taskType, String serverId){
+//		String typeName = taskType.name();
+//		String currentTaskName = null;
+//		if(BrStringUtils.isEmpty(prexTaskName)){
+//			prexTaskName = release.getLastSuccessTaskIndex(typeName, serverId);
+//		}
+//		if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
+//			currentTaskName = release.getFirstServerTask(typeName, serverId);
+//		}else{
+//			currentTaskName = release.getNextTaskName(typeName, prexTaskName);
+//		}
+//		LOG.info("type: {},  prexTaskName :{} , currentTaskName: {}", typeName, prexTaskName, currentTaskName);
+//		return currentTaskName;
+//	}
 	/**
 	 * 概述：获取任务信息
 	 * @param release
@@ -56,14 +57,14 @@ public class TaskStateLifeContral {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Pair<String, TaskModel> getTaskModel(MetaTaskManagerInterface release,TaskType taskType,String prexTaskName, String serviceId){
-		String currentTaskName = getcurrentTaskName(release, prexTaskName, taskType, serviceId);
-		if(BrStringUtils.isEmpty(currentTaskName)){
-			return null;
-		}
-		TaskModel task = release.getTaskContentNodeInfo(taskType.name(), currentTaskName);
-		return new Pair<String,TaskModel>(currentTaskName, task);
-	}
+//	public static Pair<String, TaskModel> getTaskModel(MetaTaskManagerInterface release,TaskType taskType,String prexTaskName, String serviceId){
+//		String currentTaskName = getcurrentTaskName(release, prexTaskName, taskType, serviceId);
+//		if(BrStringUtils.isEmpty(currentTaskName)){
+//			return null;
+//		}
+//		TaskModel task = release.getTaskContentNodeInfo(taskType.name(), currentTaskName);
+//		return new Pair<String,TaskModel>(currentTaskName, task);
+//	}
 	
 	/**
 	 * 概述：更新任务状态
@@ -90,8 +91,12 @@ public class TaskStateLifeContral {
 			LOG.info("server task is null !!! {} {} {}", taskType,taskname, serverId);
 			sTask = new TaskServerNodeModel();
 		}
+		LOG.info("TaskMessage complete  sTask :{}", JsonUtils.toJsonString(sTask));
 		sTask.setResult(taskResult);
-		sTask.setTaskStopTime(System.currentTimeMillis());
+		if(BrStringUtils.isEmpty(sTask.getTaskStartTime())) {
+			sTask.setTaskStartTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
+		}
+		sTask.setTaskStopTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
 		sTask.setTaskState(stat);
 		release.updateServerTaskContentNode(serverId, taskname, taskType, sTask);
 		LOG.info("----> complete server task :{} - {} - {} - {}",taskType, taskname, serverId, TaskState.valueOf(sTask.getTaskState()).name());
@@ -121,7 +126,7 @@ public class TaskStateLifeContral {
 		if(task == null){
 			LOG.info("task is null !!! {} {} {}", taskType,taskname);
 			task = new TaskModel();
-			task.setCreateTime(System.currentTimeMillis());
+			task.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
 		}
 		if(isException){
 			task.setTaskState(TaskState.EXCEPTION.code());
@@ -187,7 +192,8 @@ public class TaskStateLifeContral {
 		if(serverNode == null){
 			serverNode =new TaskServerNodeModel();
 		}
-		serverNode.setTaskStartTime(System.currentTimeMillis());
+		LOG.info("TaskMessage Run  sTask :{}", JsonUtils.toJsonString(serverNode));
+		serverNode.setTaskStartTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
 		serverNode.setTaskState(TaskState.RUN.code());
 		release.updateServerTaskContentNode(serverId, taskname, taskType, serverNode);
 		LOG.info("----> run server task :{} - {} - {} - {}",taskType, taskname, serverId, TaskState.valueOf(serverNode.getTaskState()).name());
@@ -227,6 +233,7 @@ public class TaskStateLifeContral {
 		//更新异常的次数
 		if(task.getValue().getKey() == TaskState.EXCEPTION.code()){
 			TaskServerNodeModel server = release.getTaskServerContentNodeInfo(typeName, task.getKey(), serverId);
+			LOG.info("TaskMessage get  sTask :{}", JsonUtils.toJsonString(server));
 			server.setRetryCount(server.getRetryCount() + 1);
 			release.updateServerTaskContentNode(serverId, task.getKey(), typeName, server);
 		}

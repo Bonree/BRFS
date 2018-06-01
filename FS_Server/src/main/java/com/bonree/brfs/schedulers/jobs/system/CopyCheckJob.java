@@ -69,6 +69,11 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			LOG.warn("rebalance task is running !! skip check copy task");
 			return;
 		}
+		List<StorageNameNode> snList = snm.getStorageNameNodeList();
+		if( snList== null || snList.isEmpty()) {
+			LOG.info("SKIP storagename list is null");
+			return;
+		}
 		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
 		//TODO：判断任务创建的时间若无则创建当前时间的前天的第一小时的
 		long startTime = getStartTime(release,time);
@@ -79,9 +84,9 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 
 		TaskModel newTask = new TaskModel();
 		long currentTime = System.currentTimeMillis();
-		newTask.setCreateTime(currentTime);
-		newTask.setEndDataTime(startTime + 60*60*1000);
-		newTask.setStartDataTime(startTime);
+		newTask.setCreateTime(TimeUtils.formatTimeStamp(currentTime, TimeUtils.TIME_MILES_FORMATE));
+		newTask.setEndDataTime(TimeUtils.formatTimeStamp(startTime + 60*60*1000, TimeUtils.TIME_MILES_FORMATE));
+		newTask.setStartDataTime(TimeUtils.formatTimeStamp(startTime, TimeUtils.TIME_MILES_FORMATE));
 		newTask.setTaskState(TaskState.INIT.code());
 		newTask.setTaskType(TaskType.SYSTEM_COPY_CHECK.code());
 		List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
@@ -172,12 +177,16 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		startTime = startTime - time - 3600000;
 		long currentTime = 0l;
 		long createTime = 0l;
+		String currStr = null;
+		String cTimeStr = null;
 		if(tasks != null && !tasks.isEmpty()){
 			String lasTask = tasks.get(tasks.size() - 1);			
 			TaskModel task = release.getTaskContentNodeInfo(taskType, lasTask);
 			if(task != null){
-				currentTime = task.getEndDataTime();
-				createTime = task.getCreateTime();
+				currStr = task.getEndDataTime();
+				cTimeStr = task.getCreateTime();
+				currentTime = BrStringUtils.isEmpty(currStr) ? 0: TimeUtils.getMiles(currStr, TimeUtils.TIME_MILES_FORMATE);
+				createTime = BrStringUtils.isEmpty(cTimeStr) ? 0 : TimeUtils.getMiles(cTimeStr, TimeUtils.TIME_MILES_FORMATE);
 			}
 		}else{
 			LOG.info("{} task queue is empty !!", taskType);

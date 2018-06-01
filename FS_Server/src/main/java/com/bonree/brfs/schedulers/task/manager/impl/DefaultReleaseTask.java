@@ -18,6 +18,7 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -364,7 +365,12 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return -4;
 			}
 			TaskModel taskInfo = JsonUtils.toObject(data, TaskModel.class);
-			return taskInfo.getCreateTime();
+			String createTime = taskInfo.getCreateTime();
+			if(BrStringUtils.isEmpty(createTime)) {
+				return 0;
+			}else {
+				return TimeUtils.getMiles(createTime, TimeUtils.TIME_MILES_FORMATE);
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();

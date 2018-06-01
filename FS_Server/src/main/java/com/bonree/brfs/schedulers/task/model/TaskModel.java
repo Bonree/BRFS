@@ -15,7 +15,7 @@ public class TaskModel {
 	/**
 	 * 任务创建时间
 	 */
-	private long createTime;
+	private String createTime;
 	/**
 	 * sn执行最小单元
 	 */
@@ -25,9 +25,18 @@ public class TaskModel {
 	 */
 	private TaskResultModel result;
 	private int retryCount = 0;
-	private long startDataTime;
-	private long endDataTime;
-	
+	/**
+	 * 处理数据的开始时间
+	 */
+	private String startDataTime;
+	/**
+	 * 处理数据的结束时间
+	 */
+	private String endDataTime;
+	/**
+	 * 任务操作
+	 */
+	private String taskOperation;
 	public int getTaskType() {
 		return taskType;
 	}
@@ -39,12 +48,6 @@ public class TaskModel {
 	}
 	public void setTaskState(int taskState) {
 		this.taskState = taskState;
-	}
-	public long getCreateTime() {
-		return createTime;
-	}
-	public void setCreateTime(long createTime) {
-		this.createTime = createTime;
 	}
 	public TaskResultModel getResult() {
 		return result;
@@ -64,22 +67,34 @@ public class TaskModel {
 	public void addAtom(AtomTaskModel atom){
 		this.atomList.add(atom);
 	}
-	public long getStartDataTime() {
-		return startDataTime;
-	}
-	public void setStartDataTime(long startDataTime) {
-		this.startDataTime = startDataTime;
-	}
-	public long getEndDataTime() {
-		return endDataTime;
-	}
-	public void setEndDataTime(long endDataTime) {
-		this.endDataTime = endDataTime;
-	}
 	public int getRetryCount() {
 		return retryCount;
 	}
 	public void setRetryCount(int retryCount) {
 		this.retryCount = retryCount;
+	}
+	public String getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+	public String getStartDataTime() {
+		return startDataTime;
+	}
+	public void setStartDataTime(String startDataTime) {
+		this.startDataTime = startDataTime;
+	}
+	public String getEndDataTime() {
+		return endDataTime;
+	}
+	public void setEndDataTime(String endDataTime) {
+		this.endDataTime = endDataTime;
+	}
+	public String getTaskOperation() {
+		return taskOperation;
+	}
+	public void setTaskOperation(String taskOperation) {
+		this.taskOperation = taskOperation;
 	}
 }

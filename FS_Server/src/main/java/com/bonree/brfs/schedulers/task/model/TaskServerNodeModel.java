@@ -15,25 +15,13 @@ import com.bonree.brfs.common.task.TaskState;
  *****************************************************************************
  */
 public class TaskServerNodeModel {
-	private long taskStartTime;
-	private long taskStopTime;
+	private String taskStartTime;
+	private String taskStopTime;
 	private int taskState = TaskState.INIT.code();
 	private int retryCount = 0;
 	private List<AtomTaskModel> sAtoms = new ArrayList<AtomTaskModel>();
 	private TaskResultModel result;
 	
-	public long getTaskStartTime() {
-		return taskStartTime;
-	}
-	public void setTaskStartTime(long taskStartTime) {
-		this.taskStartTime = taskStartTime;
-	}
-	public long getTaskStopTime() {
-		return taskStopTime;
-	}
-	public void setTaskStopTime(long taskStopTime) {
-		this.taskStopTime = taskStopTime;
-	}
 	public TaskResultModel getResult() {
 		return result;
 	}
@@ -69,6 +57,18 @@ public class TaskServerNodeModel {
 	}
 	public void setRetryCount(int retryCount) {
 		this.retryCount = retryCount;
+	}
+	public String getTaskStartTime() {
+		return taskStartTime;
+	}
+	public void setTaskStartTime(String taskStartTime) {
+		this.taskStartTime = taskStartTime;
+	}
+	public String getTaskStopTime() {
+		return taskStopTime;
+	}
+	public void setTaskStopTime(String taskStopTime) {
+		this.taskStopTime = taskStopTime;
 	}
 	
 }

@@ -15,6 +15,7 @@ import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.StorageNameFileUtils;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
@@ -68,6 +69,10 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		// 3.获取storageName
 		StorageNameManager snm = mcf.getSnm();
 		List<StorageNameNode> snList = snm.getStorageNameNodeList();
+		if(snList == null || snList.isEmpty()) {
+			LOG.info("SKIP create system task !!! because storageName is null !!!");
+			return;
+		}
 		List<AtomTaskModel> snAtomTaskList = new ArrayList<AtomTaskModel>();
 		long currentTime = System.currentTimeMillis();
 		TaskModel task = null;
@@ -76,8 +81,12 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		String prexTaskName = null;
 		TaskModel prexTask = null;
 		List<String> taskList = null;
-		long preCreateTime = 0l;
+		String cTimeStr = null;
 		for(TaskType taskType : switchList){
+			if(TaskType.SYSTEM_COPY_CHECK.equals(taskType)||TaskType.USER_DELETE.equals(taskType)) {
+				continue;
+			}
+			long preCreateTime = 0l;
 			//检查创建的时间间隔是否达到一小时
 			taskList = release.getTaskList(taskType.name());
 			if(taskList != null && !taskList.isEmpty()){
@@ -87,10 +96,16 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 				prexTask = release.getTaskContentNodeInfo(taskType.name(), prexTaskName);
 			}
 			if(prexTask != null){
-				preCreateTime = prexTask.getCreateTime();
+				cTimeStr = prexTask.getCreateTime();
+				LOG.info("task createTime :{}",cTimeStr);
+				if(BrStringUtils.isEmpty(cTimeStr)) {
+					preCreateTime = 0;
+				}else {
+					preCreateTime = TimeUtils.getMiles(cTimeStr, TimeUtils.TIME_MILES_FORMATE);
+				}
 			}
 			if(currentTime - preCreateTime <= 60*60*1000 ){
-				LOG.info("skip create {} task", taskType.name());
+				LOG.info("skip create {} current {} prexTime {} ", taskType.name(), currentTime, preCreateTime);
 				continue;
 			}
 			if(TaskType.SYSTEM_DELETE.equals(taskType)){
@@ -138,7 +153,8 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	 */
 	public TaskModel createTaskModel(List<StorageNameNode> snList,TaskType taskType, long currentTime, long globalttl,String taskOperation){
 		TaskModel task = new TaskModel();
-		task.setCreateTime(System.currentTimeMillis());
+		long createTime = System.currentTimeMillis();
+		task.setCreateTime(TimeUtils.formatTimeStamp(createTime, TimeUtils.TIME_MILES_FORMATE));
 		task.setTaskState(TaskState.INIT.code());
 		task.setTaskType(taskType.code());
 		long operationDirTime = 0;
@@ -153,6 +169,8 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 				if(snn.getTtl() < 0){
 					continue;
 				}
+//				TODO 测试时暂时更改
+//				ttl = snn.getTtl()*24*3600*1000;
 				ttl = snn.getTtl()*1000;
 				if(currentTime - creatTime < ttl){
 					LOG.warn("no data is need delete !! del ttl : {}", ttl);
@@ -165,8 +183,8 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 					continue;
 				}
 			}
-			operationDirTime =currentTime - ttl- 60*60*1000;
-			cAtoms = createAtomTaskModel(snn, operationDirTime, taskOperation);
+			operationDirTime =(currentTime - ttl)/3600/1000*3600*1000 - 3600*1000;
+			cAtoms = createAtomTaskModel(snn, operationDirTime, operationDirTime + 3600*1000, taskOperation);
 			if(cAtoms == null || cAtoms.isEmpty()){
 				LOG.warn("{} atom task list is empty", taskType.name());
 				continue;
@@ -174,7 +192,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			atoms.addAll(cAtoms);
 		}
 		if(atoms == null || atoms.isEmpty()){
-			LOG.info("skip create {} Task because is empty",taskType.name());
+			LOG.info("skip create {} Task because it is empty ",taskType.name());
 			return null;
 		}
 		task.setAtomList(atoms);
@@ -190,7 +208,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private List<AtomTaskModel> createAtomTaskModel(StorageNameNode sn, final long time, String taskOperation){
+	private List<AtomTaskModel> createAtomTaskModel(StorageNameNode sn, final long startTime,final long endTime, String taskOperation){
 		List<AtomTaskModel> atomList = new ArrayList<AtomTaskModel>();
 		AtomTaskModel atom = null;
 		int copyCount = sn.getReplicateCount();
@@ -200,12 +218,9 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			atom = new AtomTaskModel();
 			atom.setStorageName(snName);
 			atom.setTaskOperation(taskOperation);
-			path = StorageNameFileUtils.createSNDir(snName, i, time);
-			if(BrStringUtils.isEmpty(path)){
-				LOG.warn("sn {} create dir error !! path is empty !!!", snName);
-				continue;
-			}
-			atom.setDirName(path);
+			atom.setDataStartTime(TimeUtils.formatTimeStamp(startTime, TimeUtils.TIME_MILES_FORMATE));
+			atom.setDataStopTime(TimeUtils.formatTimeStamp(endTime, TimeUtils.TIME_MILES_FORMATE));
+			atom.setDirName(i +"");
 			atomList.add(atom);
 		}
 		return atomList;

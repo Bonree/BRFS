@@ -107,28 +107,6 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					LOG.warn("resource is limit !!! skip {} !!!",typeName);
 					continue;
 				}
-//				if(data.containsKey(typeName)){
-//					prexTaskName = data.getString(typeName);
-//				}
-//				if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
-//					prexTaskName = release.getFirstServerTask(typeName, serverId);
-//					currentTaskName = prexTaskName;
-//				}else{
-//					currentTaskName = release.getNextTaskName(typeName, prexTaskName);
-//				}
-//				LOG.info("type: {},  prexTaskName :{} , currentTaskName: {}", typeName, prexTaskName, currentTaskName);
-//				if(BrStringUtils.isEmpty(currentTaskName)){
-//					LOG.info("taskType :{} queue is empty ,skiping !!!",typeName);
-//					continue;
-//				}
-				
-//				//获取任务信息
-//				task = release.getTaskContentNodeInfo(typeName, currentTaskName);
-//				if(task == null){
-//					LOG.warn("taskType :{} taskName: {} is vaild ,skiping !!!",typeName, currentTaskName);
-//					data.put(typeName, currentTaskName);
-//					continue;
-//				}
 				int retryCount = 3;
 				if(TaskType.SYSTEM_CHECK.equals(taskType)||TaskType.SYSTEM_RECOVERY.equals(taskType)||TaskType.SYSTEM_MERGER.equals(taskType)){
 					retryCount = 0;

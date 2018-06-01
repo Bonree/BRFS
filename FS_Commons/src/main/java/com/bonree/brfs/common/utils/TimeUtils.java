@@ -1,9 +1,12 @@
 package com.bonree.brfs.common.utils;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 public final class TimeUtils {
 	private static final String TIME_FORMAT = "yyyy-MM-dd'T'HH-mm-ss";
+	public static final String TIME_MILES_FORMATE = "yyyy-MM-dd HH:mm:ss.SSS";
 	
 	/**
 	 * 获取指定时间所在的时间区间字符串
@@ -29,5 +32,22 @@ public final class TimeUtils {
 	 */
 	public static String formatTimeStamp(long time) {
 		return new DateTime(time).toString(TIME_FORMAT);
+	}
+	public static String formatTimeStamp(long time, String timeFormate) {
+		return new DateTime(time).toString(timeFormate);
+	}
+	/**
+	 * 概述：时间字符串转换为时间戳
+	 * @param timeStr
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static long getMiles(String timeStr,String timeFormate){
+		DateTimeFormatter format = DateTimeFormat.forPattern(timeFormate);
+		return new DateTime().parse(timeStr, format).getMillis();
+	}
+	
+	public static long getMiles(String timeStr){
+		return getMiles(timeStr, TIME_FORMAT);
 	}
 }

@@ -15,8 +15,8 @@ import java.util.List;
  */
 public class AtomTaskModel {
 	private String storageName;
-	private long dataStartTime;
-	private long dataStopTime;
+	private String dataStartTime;
+	private String dataStopTime;
 	private String dirName;
 	private ArrayList<String> files = new ArrayList<String>();
 	private String taskOperation;
@@ -44,18 +44,6 @@ public class AtomTaskModel {
 	public void setFiles(List<String> files) {
 		this.files.addAll(files);
 	}
-	public long getDataStartTime() {
-		return dataStartTime;
-	}
-	public void setDataStartTime(long dataStartTime) {
-		this.dataStartTime = dataStartTime;
-	}
-	public long getDataStopTime() {
-		return dataStopTime;
-	}
-	public void setDataStopTime(long dataStopTime) {
-		this.dataStopTime = dataStopTime;
-	}
 	public void setFiles(ArrayList<String> files) {
 		this.files = files;
 	}
@@ -64,5 +52,17 @@ public class AtomTaskModel {
 	}
 	public void addFile(String file){
 		this.files.add(file);
+	}
+	public String getDataStartTime() {
+		return dataStartTime;
+	}
+	public void setDataStartTime(String dataStartTime) {
+		this.dataStartTime = dataStartTime;
+	}
+	public String getDataStopTime() {
+		return dataStopTime;
+	}
+	public void setDataStopTime(String dataStopTime) {
+		this.dataStopTime = dataStopTime;
 	}
 }
