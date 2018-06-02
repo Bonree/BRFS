@@ -21,6 +21,7 @@ import com.bonree.brfs.client.route.ServiceSelectorManager;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.exception.BRFSException;
+import com.bonree.brfs.common.http.client.ClientConfig;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
 import com.bonree.brfs.common.http.client.URIBuilder;
@@ -36,7 +37,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
 
     private static final String DEFAULT_SCHEME = "http";
 
-    private HttpClient client = new HttpClient();
+    private HttpClient client =null; 
     private CuratorFramework zkClient;
     private ServiceManager serviceManager;
 
@@ -48,7 +49,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
     private String passwd;
 
     public DefaultBRFileSystem(String zkAddresses, String cluster, String userName, String passwd) throws Exception {
-    	this.userName = userName;
+        client= new HttpClient(ClientConfig.builder().setMaxConnection(300).setMaxConnectionPerRoute(300).build());
+        this.userName = userName;
     	this.passwd = passwd;
     	
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
