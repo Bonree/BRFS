@@ -73,8 +73,6 @@ public class InitTaskManager {
 		managerConfig.printDetail();
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
-		boolean isReboot = !sim.isNewService();
-		LOG.info("DEBUG-------------serverId :{}, isReboot: {} ,isnewServer:{}", serverId,isReboot, sim.isNewService());
 		//TODO:临时代码 工厂类添加serverId与groupName
 		mcf.setServerId(serverId);
 		mcf.setGroupName(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
@@ -126,7 +124,7 @@ public class InitTaskManager {
 			}
 			mcf.setTaskOn(tasks);
 			//3.创建执行任务线程池
-			createOperationPool(serverConfig, managerConfig, tasks, isReboot);
+			createOperationPool(serverConfig, managerConfig, tasks, true);
 		}
 		
 		if(managerConfig.isResourceFrameWorkSwitch()){
