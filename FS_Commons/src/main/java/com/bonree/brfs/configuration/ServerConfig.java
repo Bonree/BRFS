@@ -2,6 +2,7 @@ package com.bonree.brfs.configuration;
 
 import com.bonree.brfs.common.exception.ConfigParseException;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.FileUtils;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -54,6 +55,8 @@ public class ServerConfig {
         String zkSessionTimeStr = config.getProperty(Configuration.ZOOKEEPER_SESSION_TIMEOUT, Configuration.ZOOKEEPER_SESSION_TIMEOUT_VALUE);
         String dataPath = BrStringUtils.trimBasePath(config.getProperty(Configuration.PATH_DATA, Configuration.PATH_DATA_VALUE));
         String logPath = BrStringUtils.trimBasePath(config.getProperty(Configuration.PATH_LOGS, Configuration.PATH_LOGS_VALUE));
+        FileUtils.createDir(dataPath, true);
+        FileUtils.createDir(logPath, true);
         String recoverDelayTimeStr = config.getProperty(Configuration.GLOBAL_REPLICATION_RECOVER_AFTER_TIME, Configuration.GLOBAL_REPLICATION_RECOVER_AFTER_TIME_VALUE);
         String virtualDelayTimeStr = config.getProperty(Configuration.GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME, Configuration.GLOBAL_REPLICATION_VIRTUAL_RECOVER_AFTER_TIME_VALUE);
         try {
