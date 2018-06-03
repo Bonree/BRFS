@@ -189,6 +189,7 @@ public class DuplicateWriter {
 
 		@Override
 		public void invalid() {
+			LOG.warn("File Lounge is going to be cleaned!!");
 			fileLoungeList.clear();
 			for(ScheduledFuture<?> f : fileLoungeCleaners) {
 				f.cancel(false);

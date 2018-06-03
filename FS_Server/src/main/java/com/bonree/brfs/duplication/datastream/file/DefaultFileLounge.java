@@ -120,7 +120,7 @@ public class DefaultFileLounge implements FileLounge, Runnable {
 					throw new RuntimeException("can not create FileLimiter???");
 				}
 				
-				LOG.info("create new FileLimiter--->{}", newFile);
+				LOG.info("create new FileLimiter--->{}", newFile.getFileNode().getName());
 				newFile.lock(requestSizes);
 				newFile.apply(requestSizes[i]);
 				results[i] = newFile;
