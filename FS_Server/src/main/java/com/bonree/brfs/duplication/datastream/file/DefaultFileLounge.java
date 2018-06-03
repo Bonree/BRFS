@@ -1,6 +1,5 @@
 package com.bonree.brfs.duplication.datastream.file;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -143,7 +142,7 @@ public class DefaultFileLounge implements FileLounge, Runnable {
 		
 		for(TimedObject<List<FileLimiter>> obj : timedObjects) {
 			List<FileLimiter> fileList = obj.getObj();
-			LOG.info("FileList[{}] FILE CLEANER---- {} >>> {}", fileList.hashCode(), obj.getTimeInterval(), fileList.size());
+			LOG.info("container[{}] FILE CLEANER---- at {} >>> size[{}]", timedFileContainer, obj.getTimeInterval(), fileList.size());
 			
 			if(obj.getTimeInterval() < currentTimeInterval) {
 				LOG.info("clean historical file list!");

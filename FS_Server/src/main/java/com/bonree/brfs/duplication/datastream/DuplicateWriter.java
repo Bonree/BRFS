@@ -248,7 +248,7 @@ public class DuplicateWriter {
 
 				@Override
 				public void error(Throwable cause) {
-					cause.printStackTrace();
+					LOG.error("reopen file[{}] failed!", fileNode.getName(), cause);
 					try {
 						//对于没办法处理的文件，只能删除节点，不再重用
 						fileCoordinator.delete(fileNode);

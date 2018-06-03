@@ -254,8 +254,8 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 				String serverId = idManager.getOtherSecondID(sequence.getNode().getId(), target.getStorageId());
 				LOG.info("start synchronize file[{}] at duplicate node[{}]", target.getName(), sequence.getNode());
 				if(!client.recover(FilePathBuilder.buildFilePath(target.getStorageName(), serverId, target.getCreateTime(), target.getName()), recoverInfo)) {
-					addDelayedTask(this);
 					LOG.error("can not synchronize file[{}] at duplicate node[{}]", target.getName(), sequence.getNode());
+					addDelayedTask(this);
 					return;
 				}
 				LOG.info("file synchronizition completed successfully!");

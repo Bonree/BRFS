@@ -41,7 +41,7 @@ public class FileWriterManager implements LifeCycle {
 
 	private Map<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new HashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
-	private static final int DEFAULT_TIMEOUT_SECONDS = 5;
+	private static final int DEFAULT_TIMEOUT_SECONDS = 2;
 	private WheelTimer<Pair<RecordFileWriter, WriteWorker>> timeoutWheel = new WheelTimer<Pair<RecordFileWriter, WriteWorker>>(
 			DEFAULT_TIMEOUT_SECONDS);
 

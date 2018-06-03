@@ -74,7 +74,8 @@ public class RecoveryMessageHandler implements MessageHandler {
 		
 		RecordElementReader recordreReader = null;
 		try {
-			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
+			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, true);
+			LOG.info("get binding -->{}", binding);
 			if(binding != null) {
 				binding.first().flush();
 				RecordCollection recordSet = binding.first().getRecordCollection();
@@ -126,7 +127,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("revoery error!", e);
 		} finally {
 			CloseUtils.closeQuietly(originFile);
 			CloseUtils.closeQuietly(recordreReader);
