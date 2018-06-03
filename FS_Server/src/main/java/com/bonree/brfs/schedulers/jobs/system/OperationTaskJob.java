@@ -60,11 +60,6 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		//判断是否有恢复任务，有恢复任务则不进行创建
-		if (WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
-			LOG.warn("rebalance task is running !! skip check copy task");
-			return;
-		}
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
@@ -92,7 +87,10 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		int sumbitSize = 0;
 		String serverId = mcf.getServerId();
 		SumbitTaskInterface sumbitTask = null;
+		//判断是否有恢复任务，有恢复任务则不进行创建
+		boolean rebalanceFlag = WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE);
 		for(TaskType taskType : switchList){
+			sumbitTask = null;
 			String prexTaskName = null;
 			try {
 				if(TaskType.SYSTEM_COPY_CHECK.equals(taskType)){
@@ -138,8 +136,10 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				if(TaskType.USER_DELETE.equals(taskType)){
 					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), UserDeleteJob.class.getCanonicalName(),dataPath);
 				}
-				
-				//
+				if(rebalanceFlag && TaskType.SYSTEM_CHECK.equals(taskType)) {
+					LOG.warn("rebalance task running !! Skip {} sumbit",taskType.name());
+					continue;
+				}
 				boolean isSumbit = schd.addTask(typeName, sumbitTask);
 				LOG.info("sumbit type:{}, taskName :{}, state:{}", typeName, currentTaskName, isSumbit);
 				if(!isSumbit){

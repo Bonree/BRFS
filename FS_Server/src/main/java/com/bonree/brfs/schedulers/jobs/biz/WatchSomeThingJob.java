@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.rebalance.Constants;
@@ -16,13 +18,14 @@ import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 
 public class WatchSomeThingJob extends QuartzOperationStateTask {
+	private static final Logger LOG = LoggerFactory.getLogger("WatchSomeThingJob");
 	private static Map<Integer,Boolean> StateMap = new ConcurrentHashMap<Integer, Boolean>();
 	public static int RECOVERY_STATUSE = 1;
 	private static CuratorClient curatorClient =null;
 	private static String basePath = null;
 	@Override
 	public void caughtException(JobExecutionContext context) {
-
+		LOG.info("watch task error !!!");
 	}
 
 	@Override
@@ -46,12 +49,11 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 				//获取监听的目录
 				ZookeeperPaths zkPaths = mcf.getZkPath();
 				basePath = zkPaths.getBaseRebalancePath();
-			}else{
-				String tasksPath=basePath + Constants.SEPARATOR+Constants.TASKS_NODE;
-				boolean isIt = isRecovery(curatorClient, tasksPath);
-				// 更新map的值
-				this.StateMap.put(RECOVERY_STATUSE, isIt);
 			}
+			String tasksPath=basePath + Constants.SEPARATOR+Constants.TASKS_NODE;
+			boolean isIt = isRecovery(curatorClient, tasksPath);
+			// 更新map的值
+			this.StateMap.put(RECOVERY_STATUSE, isIt);
 		}catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -75,10 +77,16 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 		boolean isRun = false;
 		String snPath = null;
 		List<String> cList = null;
+		String tmpPath = null;
+		byte[]data = null;
 		for(String sn : paths){
 			snPath = path + Constants.SEPARATOR +sn;
 			cList = client.getChildren(snPath);
 			if(cList !=null && !cList.isEmpty()){
+				//TODO 防御日志
+				tmpPath = snPath +"/"+ cList.get(0);
+				data = client.getData(tmpPath);
+				LOG.info("path : {}, data:{}",tmpPath, data == null ? null : new String(data));
 				return true;
 			}
 		}
