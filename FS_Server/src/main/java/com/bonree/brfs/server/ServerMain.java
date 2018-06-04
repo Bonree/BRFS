@@ -42,6 +42,8 @@ public class ServerMain {
             LOG.info("Startup disk server....");
             ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
             StorageConfig storageConfig = StorageConfig.parse(conf);
+            LOG.info("serverConfig:"+serverConfig);
+            LOG.info("storageConfig"+storageConfig);
             ResourceTaskConfig resourceConfig = ResourceTaskConfig.parse(conf);
             
             CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
