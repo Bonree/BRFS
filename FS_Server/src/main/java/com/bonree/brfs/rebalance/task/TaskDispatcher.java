@@ -273,7 +273,7 @@ public class TaskDispatcher implements Closeable {
                 }
 
             }
-        }, 1000, 1000, TimeUnit.MILLISECONDS);
+        }, 3000, 3000, TimeUnit.MILLISECONDS);
 
     }
 
@@ -414,13 +414,16 @@ public class TaskDispatcher implements Closeable {
 
                     // 所有的服务都则发布迁移规则，并清理任务
                     if (finishFlag) {
+                        // 先更新任务状态为finish
+                        updateTaskStatus(bts, TaskStatus.FINISH);
+                        // 发布路由规则
                         if (bts.getTaskType() == RecoverType.VIRTUAL) {
                             LOG.info("one virtual task finish,detail:" + RebalanceUtils.convertEvent(event));
-                            String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
+                            String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
                             VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
                             LOG.info("add virtual route:" + route);
-                            curatorClient.createPersistentSequential(virtualRouteNode, true, JSON.toJSONBytes(route));
-
+                            addRoute(virtualRouteNode,JSON.toJSONBytes(route));
+                            
                             // 因共享节点，所以得将余下的所有virtual server id，注册新迁移的server。不足之处，可能为导致副本数的恢复大于服务数。
                             String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
                             List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
@@ -437,10 +440,10 @@ public class TaskDispatcher implements Closeable {
                         } else if (bts.getTaskType() == RecoverType.NORMAL) {
                             LOG.info("one normal task finish,detail:" + RebalanceUtils.convertEvent(event));
 
-                            String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
+                            String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
                             NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
                             LOG.info("add normal route:" + route);
-                            curatorClient.createPersistentSequential(normalRouteNode, true, JSON.toJSONBytes(route));
+                            addRoute(normalRouteNode, JSON.toJSONBytes(route));
                         }
 
                         List<ChangeSummary> changeSummaries = cacheSummaryCache.get(bts.getStorageIndex());
@@ -479,6 +482,12 @@ public class TaskDispatcher implements Closeable {
 
     }
 
+    private void addRoute(String node, byte[] data) {
+        if (!curatorClient.checkExists(node)) {
+            curatorClient.createPersistent(node, true, data);
+        }
+    }
+
     public void fixTaskMeta(BalanceTaskSummary taskSummary) {
 
         // task路径
@@ -490,32 +499,34 @@ public class TaskDispatcher implements Closeable {
         BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(parentPath), BalanceTaskSummary.class);
 
         // 所有的服务都则发布迁移规则，并清理任务
-        if (bts.getTaskType() == RecoverType.VIRTUAL) {
-            LOG.info("one virtual task finish,detail:" + taskSummary);
-            String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
-            VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
-            LOG.info("add virtual route:" + route);
-            curatorClient.createPersistentSequential(virtualRouteNode, true, JSON.toJSONBytes(route));
-
-            // 因共享节点，所以得将余下的所有virtual server id，注册新迁移的server。不足之处，可能为导致副本数的恢复大于服务数。
-            String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
-            List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
-            if (normalVirtualIDs != null && !normalVirtualIDs.isEmpty()) {
-                for (String virtualID : normalVirtualIDs) {
-                    idManager.registerFirstID(bts.getStorageIndex(), virtualID, firstID);
+        if(bts.getTaskStatus().equals(TaskStatus.FINISH)) {
+            if (bts.getTaskType() == RecoverType.VIRTUAL) {
+                LOG.info("one virtual task finish,detail:" + taskSummary);
+                String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
+                VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
+                LOG.info("add virtual route:" + route);
+                addRoute(virtualRouteNode, JSON.toJSONBytes(route));
+                
+                // 因共享节点，所以得将余下的所有virtual server id，注册新迁移的server。不足之处，可能为导致副本数的恢复大于服务数。
+                String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
+                List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
+                if (normalVirtualIDs != null && !normalVirtualIDs.isEmpty()) {
+                    for (String virtualID : normalVirtualIDs) {
+                        idManager.registerFirstID(bts.getStorageIndex(), virtualID, firstID);
+                    }
                 }
+                // 删除virtual server ID
+                LOG.info("delete the virtual server id:" + bts.getServerId());
+                idManager.deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
+                
+            } else if (bts.getTaskType() == RecoverType.NORMAL) {
+                LOG.info("one normal task finish,detail:" + taskSummary);
+                
+                String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
+                NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
+                LOG.info("add normal route:" + route);
+                addRoute(normalRouteNode, JSON.toJSONBytes(route));
             }
-            // 删除virtual server ID
-            LOG.info("delete the virtual server id:" + bts.getServerId());
-            idManager.deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
-
-        } else if (bts.getTaskType() == RecoverType.NORMAL) {
-            LOG.info("one normal task finish,detail:" + taskSummary);
-
-            String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + Constants.ROUTE_NODE;
-            NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
-            LOG.info("add normal route:" + route);
-            curatorClient.createPersistentSequential(normalRouteNode, true, JSON.toJSONBytes(route));
         }
 
         List<ChangeSummary> changeSummaries = cacheSummaryCache.get(bts.getStorageIndex());

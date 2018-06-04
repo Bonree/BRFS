@@ -200,7 +200,11 @@ public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen 
         if (!client.checkExists(storageSIDPath)) {
             return false;
         }
-        client.createPersistent(storageSIDPath + Constants.SEPARATOR + firstID, false);
+        String registerNode = storageSIDPath + Constants.SEPARATOR + firstID;
+        if (!client.checkExists(registerNode)) {
+
+            client.createPersistent(registerNode, false);
+        }
         return true;
     }
 
