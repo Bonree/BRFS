@@ -40,7 +40,7 @@ public class RouteCacheListener implements TreeCacheListener {
             String path = event.getData().getPath();
             List<String> splitPaths = Lists.newArrayList(Splitter.on(Constants.SEPARATOR).omitEmptyStrings().trimResults().split(path));
             String endStr = splitPaths.get(splitPaths.size() - 1);
-            if (endStr.substring(0, Constants.ROUTE_NODE.length()).equals(Constants.ROUTE_NODE) && splitPaths.size() > 4) {
+            if (endStr.length()>16 && splitPaths.size() > 4) {
                 if (splitPaths.contains(Constants.VIRTUAL_ROUTE)) {
                     VirtualRoute route = JSON.parseObject(event.getData().getData(), VirtualRoute.class);
                     routeRoleCache.getVirtualRouteCache().put(route.getVirtualID(), route);

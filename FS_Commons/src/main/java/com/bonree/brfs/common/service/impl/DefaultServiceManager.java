@@ -16,6 +16,8 @@ import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.details.ServiceCacheListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -31,6 +33,8 @@ import com.google.common.collect.HashMultimap;
  *
  */
 public class DefaultServiceManager implements ServiceManager {
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultServiceManager.class);
+	
 	//服务管理线程池名称
 	private static final String DEFAULT_SERVICE_MANAGER_THREADPOOL_NAME = "serviceManager";
 	//默认的线程池大小
@@ -88,6 +92,7 @@ public class DefaultServiceManager implements ServiceManager {
 
 	@Override
 	public void registerService(Service service) throws Exception {
+		LOG.info("registerService service[{}]", service);
 		ServiceInstance<String> instance = buildFrom(service);
 		
 		serviceDiscovery.registerService(instance);
@@ -95,11 +100,13 @@ public class DefaultServiceManager implements ServiceManager {
 
 	@Override
 	public void unregisterService(Service service) throws Exception {
+		LOG.info("unregisterService service[{}]", service);
 		serviceDiscovery.unregisterService(serviceDiscovery.queryForInstance(service.getServiceGroup(), service.getServiceId()));
 	}
 	
 	@Override
 	public void updateService(String group, String serviceId, String payload) throws Exception {
+		LOG.info("update service payload for service[{}, {}, {}]", group, serviceId, payload);
 		Service service = getServiceById(group, serviceId);
 		if(service == null) {
 			throw new Exception("No service{group=" + group + ", id=" + serviceId + "} is found!");
@@ -129,6 +136,7 @@ public class DefaultServiceManager implements ServiceManager {
 
 	@Override
 	public synchronized void addServiceStateListener(String serviceGroup, ServiceStateListener listener) throws Exception {
+		LOG.info("add service state listener for group[{}]", serviceGroup);
 		stateListeners.put(serviceGroup, listener);
 		
 		ServiceCache<String> serviceCache = getOrBuildServiceCache(serviceGroup);
@@ -141,11 +149,13 @@ public class DefaultServiceManager implements ServiceManager {
 	
 	@Override
 	public synchronized void removeServiceStateListenerByGroup(String group) {
+		LOG.info("remove all service state listeners for group[{}]", group);
 		stateListeners.removeAll(group);
 	}
 	
 	@Override
 	public synchronized void removeServiceStateListener(String serviceGroup, ServiceStateListener listener) {
+		LOG.info("remove service state listener[{}] for group[{}]", listener, serviceGroup);
 		stateListeners.remove(serviceGroup, listener);
 	}
 	
@@ -158,6 +168,7 @@ public class DefaultServiceManager implements ServiceManager {
 
 	@Override
 	public Service getServiceById(String group, String serviceId) {
+		LOG.info("search service with group[{}], id[{}]", group, serviceId);
 		for(Service service : getServiceListByGroup(group)) {
 			if(service.getServiceId().equals(serviceId)) {
 				return service;
@@ -169,6 +180,7 @@ public class DefaultServiceManager implements ServiceManager {
 	
 	@Override
 	public List<Service> getServiceListByGroup(String serviceGroup) {
+		LOG.info("search all services with group[{}]", serviceGroup);
 		ArrayList<Service> serviceList = new ArrayList<Service>();
 		ServiceCache<String> serviceCache = getOrBuildServiceCache(serviceGroup);
 		

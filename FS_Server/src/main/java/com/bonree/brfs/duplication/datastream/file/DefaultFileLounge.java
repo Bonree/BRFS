@@ -120,7 +120,7 @@ public class DefaultFileLounge implements FileLounge, Runnable {
 					throw new RuntimeException("can not create FileLimiter???");
 				}
 				
-				LOG.info("create new FileLimiter--->{}", newFile);
+				LOG.info("create new FileLimiter--->{}", newFile.getFileNode().getName());
 				newFile.lock(requestSizes);
 				newFile.apply(requestSizes[i]);
 				results[i] = newFile;
@@ -143,7 +143,7 @@ public class DefaultFileLounge implements FileLounge, Runnable {
 		
 		for(TimedObject<List<FileLimiter>> obj : timedObjects) {
 			List<FileLimiter> fileList = obj.getObj();
-			LOG.info("{} FILE CLEANER---- {} >>> {}",new Date(), obj.getTimeInterval(), fileList.size());
+			LOG.info("FileList[{}] FILE CLEANER---- {} >>> {}", fileList.hashCode(), obj.getTimeInterval(), fileList.size());
 			
 			if(obj.getTimeInterval() < currentTimeInterval) {
 				LOG.info("clean historical file list!");

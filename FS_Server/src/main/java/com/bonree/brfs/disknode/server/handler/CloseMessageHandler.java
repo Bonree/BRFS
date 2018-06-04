@@ -14,11 +14,11 @@ public class CloseMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(CloseMessageHandler.class);
 	
 	private DiskContext diskContext;
-	private FileWriterManager nodeManager;
+	private FileWriterManager writerManager;
 
 	public CloseMessageHandler(DiskContext context, FileWriterManager nodeManager) {
 		this.diskContext = context;
-		this.nodeManager = nodeManager;
+		this.writerManager = nodeManager;
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public class CloseMessageHandler implements MessageHandler {
 		try {
 			LOG.info("CLOSE [{}]", msg.getPath());
 			
-			nodeManager.close(diskContext.getConcreteFilePath(msg.getPath()));
+			writerManager.close(diskContext.getConcreteFilePath(msg.getPath()));
 			result.setSuccess(true);
 		} finally {
 			callback.completed(result);

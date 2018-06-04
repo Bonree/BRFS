@@ -16,6 +16,7 @@ import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.FileUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
@@ -56,7 +57,7 @@ public class VirtualRecover implements DataRecover {
     private BalanceTaskSummary balanceSummary;
 
     private CuratorNodeCache nodeCache;
-    
+
     private SimpleFileClient fileClient;
 
     private final CuratorClient client;
@@ -89,17 +90,17 @@ public class VirtualRecover implements DataRecover {
                 BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
                 String newID = bts.getId();
                 String oldID = balanceSummary.getId();
-                if (newID.equals(oldID)) { //是同一个任务
+                if (newID.equals(oldID)) { // 是同一个任务
                     TaskStatus stats = bts.getTaskStatus();
                     // 更新缓存
                     status.set(stats);
                     LOG.info("stats:" + stats);
-                } else { //不是同一个任务
+                } else { // 不是同一个任务
                     LOG.info("newID:{} not match oldID:{}", newID, oldID);
                     LOG.info("cancel multirecover:{}", balanceSummary);
                     status.set(TaskStatus.CANCEL);
                 }
-            }else {
+            } else {
                 LOG.info("task is deleted!!,this task will cancel!");
                 status.set(TaskStatus.CANCEL);
             }
@@ -126,13 +127,36 @@ public class VirtualRecover implements DataRecover {
 
     @Override
     public void recover() {
+        LOG.info("begin virtual recover");
+        // 注册节点
+        LOG.info("create:" + selfNode + "-------------" + detail);
+        // 无注册的话，则注册，否则不用注册
+        while (true) {
+            detail = registerNodeDetail(selfNode);
+            if (detail != null) {
+                LOG.info("register " + selfNode + " is successful!!");
+                break;
+            }
+            LOG.error("register " + selfNode + " is error!!");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        // 主任务结束，则直接退出
+        if (balanceSummary.getTaskStatus().equals(TaskStatus.FINISH)) {
+            finishTask();
+            return;
+        }
+
         try {
             for (int i = 0; i < delayTime; i++) {
                 if (status.get().equals(TaskStatus.CANCEL)) {
                     return;
                 }
-                // 已注册任务，则直接退出
-                if (client.checkExists(selfNode)) {
+                // 倒计时完毕，则不需要倒计时
+                if (!detail.getStatus().equals(ExecutionStatus.INIT)) {
                     break;
                 }
                 LOG.info("remain time:" + (delayTime - i) + "s, start task!!!");
@@ -142,13 +166,6 @@ public class VirtualRecover implements DataRecover {
             LOG.error("task back time count interrupt!!", e);
         }
 
-        LOG.info("begin virtual recover");
-        
-        detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
-        // 注册节点
-        LOG.info("create:" + selfNode + "-------------" + detail);
-        // 无注册的话，则注册，否则不用注册
-        registerNode(selfNode, detail);
 
         detail.setStatus(ExecutionStatus.RECOVER);
         LOG.info("update:" + selfNode + "-------------" + detail);
@@ -170,7 +187,7 @@ public class VirtualRecover implements DataRecover {
 
         Thread cosumerThread = new Thread(consumerQueue());
         cosumerThread.start();
-        
+
         detail.setTotalDirectories(timeFileCounts);
         updateDetail(selfNode, detail);
 
@@ -184,9 +201,9 @@ public class VirtualRecover implements DataRecover {
             for (String timeFileName : timeFileNames) {// 时间文件
                 SimpleRecordWriter simpleWriter = null;
                 String timeFilePath = replicaPath + FileUtils.FILE_SEPARATOR + timeFileName;
-//                String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
+                // String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
                 try {
-//                    simpleWriter = new SimpleRecordWriter(recordPath);
+                    // simpleWriter = new SimpleRecordWriter(recordPath);
                     List<String> fileNames = FileUtils.listFileNames(timeFilePath, ".rd");
                     for (String fileName : fileNames) {
 
@@ -278,7 +295,7 @@ public class VirtualRecover implements DataRecover {
                             while (true) {
 
                                 // if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
-                                success = sucureCopyTo(service, localFilePath,remoteDir,fileRecover.getFileName());
+                                success = sucureCopyTo(service, localFilePath, remoteDir, fileRecover.getFileName());
                                 // }
                                 if (success) {
                                     break;
@@ -290,7 +307,7 @@ public class VirtualRecover implements DataRecover {
                             detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
                             updateDetail(selfNode, detail);
                             if (success) {
-//                                BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
+                                // BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
                                 // fileRecover.getSimpleWriter().writeRecord(record.toString());
                             }
                             LOG.info("update:" + selfNode + "-------------" + detail);
@@ -303,11 +320,11 @@ public class VirtualRecover implements DataRecover {
         };
     }
 
-    public boolean sucureCopyTo(Service service, String localPath,String remoteDir, String fileName) {
+    public boolean sucureCopyTo(Service service, String localPath, String remoteDir, String fileName) {
         boolean success = true;
         try {
-            if(!FileUtils.isExist(localPath+".rd")){
-                fileClient.sendFile(service.getHost(), service.getPort()+20, localPath, remoteDir, fileName);
+            if (!FileUtils.isExist(localPath + ".rd")) {
+                fileClient.sendFile(service.getHost(), service.getPort() + 20, localPath, remoteDir, fileName);
             }
         } catch (Exception e) {
             success = false;
@@ -335,10 +352,16 @@ public class VirtualRecover implements DataRecover {
      * @param node
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public void registerNode(String node, TaskDetail detail) {
+    public TaskDetail registerNodeDetail(String node) {
+        TaskDetail detail = null;
         if (!client.checkExists(node)) {
+            detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
             client.createPersistent(node, false, JSON.toJSONString(detail).getBytes());
+        } else {
+            byte[] data = client.getData(node);
+            detail = JsonUtils.toObject(data, TaskDetail.class);
         }
-    }
+        return detail;
 
+    }
 }

@@ -189,6 +189,7 @@ public class DuplicateWriter {
 
 		@Override
 		public void invalid() {
+			LOG.warn("File Lounge is going to be cleaned!!");
 			fileLoungeList.clear();
 			for(ScheduledFuture<?> f : fileLoungeCleaners) {
 				f.cancel(false);
@@ -227,7 +228,8 @@ public class DuplicateWriter {
 						}
 						
 						String serverId = idManager.getOtherSecondID(node.getId(), fileNode.getStorageId());
-						metaInfo = connection.getClient().getWritingFileMetaInfo(FilePathBuilder.buildPath(fileNode, serverId));
+						String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
+						metaInfo = connection.getClient().getWritingFileMetaInfo(filePath);
 						
 						if(metaInfo != null) {
 							break;

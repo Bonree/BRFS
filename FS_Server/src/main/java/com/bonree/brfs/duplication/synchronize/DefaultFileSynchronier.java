@@ -159,7 +159,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 					return;
 				}
 				
-				dosynchronize(seqNumberList, union, intersection);
+				doSynchronize(seqNumberList, union, intersection);
 			} else {
 				//存在文件内容丢失，怎么办，怎么办
 				LOG.info("file[{}] is error!", target.getName());
@@ -195,7 +195,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 				}
 				
 				String serverId = idManager.getOtherSecondID(node.getId(), target.getStorageId());
-				String filePath =FilePathBuilder.buildPath(target, serverId);
+				String filePath =FilePathBuilder.buildFilePath(target.getStorageName(), serverId, target.getCreateTime(), target.getName());
 				LOG.info("checking---{}", filePath);
 				BitSet seqNumbers = connection.getClient().getWritingSequence(filePath);
 				
@@ -216,7 +216,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			return seqNumberList;
 		}
 		
-		private void dosynchronize(List<DuplicateNodeSequence> seqNumberList, BitSet union, BitSet intersection) {
+		private void doSynchronize(List<DuplicateNodeSequence> seqNumberList, BitSet union, BitSet intersection) {
 			List<AvailableSequenceInfo> infos = new ArrayList<AvailableSequenceInfo>();
 			for(DuplicateNodeSequence sequence : seqNumberList) {
 				BitSet iHave = BitSetUtils.minus(sequence.getSequenceNumbers(), intersection);
@@ -228,7 +228,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 				info.setAvailableSequence(iHave);
 				
 				String serverId = idManager.getOtherSecondID(sequence.getNode().getId(), target.getStorageId());
-				info.setFilePath(FilePathBuilder.buildPath(target, serverId));
+				info.setFilePath(FilePathBuilder.buildFilePath(target.getStorageName(), serverId, target.getCreateTime(), target.getName()));
 				
 				infos.add(info);
 			}
@@ -253,7 +253,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 				DiskNodeClient client = connection.getClient();
 				String serverId = idManager.getOtherSecondID(sequence.getNode().getId(), target.getStorageId());
 				LOG.info("start synchronize file[{}] at duplicate node[{}]", target.getName(), sequence.getNode());
-				if(!client.recover(FilePathBuilder.buildPath(target, serverId), recoverInfo)) {
+				if(!client.recover(FilePathBuilder.buildFilePath(target.getStorageName(), serverId, target.getCreateTime(), target.getName()), recoverInfo)) {
 					addDelayedTask(this);
 					LOG.error("can not synchronize file[{}] at duplicate node[{}]", target.getName(), sequence.getNode());
 					return;

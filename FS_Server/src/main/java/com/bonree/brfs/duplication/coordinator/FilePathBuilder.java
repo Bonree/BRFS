@@ -1,15 +1,16 @@
 package com.bonree.brfs.duplication.coordinator;
 
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.google.common.base.Splitter;
 
 public class FilePathBuilder {
 	
 	private static final String PATH_SEPARATOR = "/";
 	
-	public static String buildPath(FileNode file, String serviceId) {
+	public static String buildFilePath(String storageName, String serviceId, long createTime, String fileName) {
 		int index = 0;
-		for(String id : Splitter.on("_").splitToList(file.getName())) {
+		for(String id : Splitter.on("_").splitToList(fileName)) {
 			if(id.equals(serviceId)) {
 				break;
 			}
@@ -19,13 +20,13 @@ public class FilePathBuilder {
 		
 		StringBuilder builder = new StringBuilder();
 		builder.append(PATH_SEPARATOR)
-		.append(file.getStorageName())
+		.append(storageName)
 		.append(PATH_SEPARATOR)
 		.append(index)
 		.append(PATH_SEPARATOR)
-		.append(TimeUtils.timeInterval(file.getCreateTime(), 60 * 60 * 1000))
+		.append(TimeUtils.timeInterval(createTime, DuplicationEnvironment.DEFAULT_FILE_TIME_INTERVAL_MILLIS))
 		.append(PATH_SEPARATOR)
-		.append(file.getName());
+		.append(fileName);
 		
 		return builder.toString();
 	}

@@ -180,13 +180,37 @@ public class MultiRecover implements DataRecover {
 
     @Override
     public void recover() {
+        
+        LOG.info("begin normal recover");
+        // 注册节点
+        LOG.info("create:" + selfNode + "-------------" + detail);
+        // 无注册的话，则注册，否则不用注册
+        while(true) {
+            detail = registerNodeDetail(selfNode);
+            if(detail!=null) {
+                LOG.info("register "+selfNode+" is successful!!");
+                break;
+            }
+            LOG.error("register "+selfNode+" is error!!");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        //主任务结束，则直接退出
+        if(balanceSummary.getTaskStatus().equals(TaskStatus.FINISH)) {
+            finishTask();
+            return;
+        }
+        
         try {
             for (int i = 0; i < delayTime; i++) {
                 if (status.get().equals(TaskStatus.CANCEL)) {
                     return;
                 }
-                // 已注册任务，则直接退出
-                if (client.checkExists(selfNode)) {
+                // 倒计时完毕，则不需要倒计时
+                if (!detail.getStatus().equals(ExecutionStatus.INIT)) {
                     break;
                 }
                 LOG.info("remain time:" + (delayTime - i) + "s, start task!!!");
@@ -196,13 +220,6 @@ public class MultiRecover implements DataRecover {
             LOG.error("task back time count interrupt!!", e);
         }
 
-        LOG.info("begin normal recover");
-
-        detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
-        // 注册节点
-        LOG.info("create:" + selfNode + "-------------" + detail);
-        // 无注册的话，则注册，否则不用注册
-        registerNode(selfNode, detail);
 
         detail.setStatus(ExecutionStatus.RECOVER);
         LOG.info("update:" + selfNode + "-------------" + detail);
@@ -479,10 +496,16 @@ public class MultiRecover implements DataRecover {
      * @param node
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public void registerNode(String node, TaskDetail detail) {
+    public TaskDetail registerNodeDetail(String node) {
+        TaskDetail detail = null;
         if (!client.checkExists(node)) {
+            detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
             client.createPersistent(node, false, JSON.toJSONString(detail).getBytes());
+        }else {
+            byte[] data=client.getData(node);
+            detail = JsonUtils.toObject(data, TaskDetail.class);
         }
+        return detail;
     }
 
     public boolean secureCopyTo(Service service, String localPath, String remoteDir, String fileName) {

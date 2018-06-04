@@ -50,37 +50,39 @@ public class WritingInfoMessageHandler implements MessageHandler {
 		String filePath = context.getConcreteFilePath(msg.getPath());
 		try {
 			Pair<RecordFileWriter, WriteWorker> binding = nodeManager.getBinding(filePath, false);
-			
-			if(binding == null) {
-				LOG.error("Can not find Record File Writer for file[{}]", filePath);
-				result.setSuccess(false);
-				result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
-				callback.completed(result);
-				return;
-			}
-			
-			binding.first().flush();
-			
-			Map<Integer, RecordElement> recordInfo = recordCache.getIfPresent(filePath);
-			if(recordInfo == null) {
-				RecordCollection recordSet = binding.first().getRecordCollection();
-				RecordElementReader recordReader = null;
-				try {
-					recordReader = recordSet.getRecordElementReader();
-					recordInfo = new HashMap<Integer, RecordElement>();
-					
-					for(RecordElement element : recordReader) {
-						recordInfo.put(element.getSequence(), element);
+			Map<Integer, RecordElement> recordInfo = null;
+			if(binding != null) {
+				binding.first().flush();
+				
+				recordInfo = recordCache.getIfPresent(filePath);
+				if(recordInfo == null) {
+					RecordCollection recordSet = binding.first().getRecordCollection();
+					RecordElementReader recordReader = null;
+					try {
+						recordReader = recordSet.getRecordElementReader();
+						recordInfo = new HashMap<Integer, RecordElement>();
+						
+						for(RecordElement element : recordReader) {
+							recordInfo.put(element.getSequence(), element);
+						}
+						
+						recordCache.put(filePath, recordInfo);
+					} finally {
+						CloseUtils.closeQuietly(recordReader);
 					}
-					
-					recordCache.put(filePath, recordInfo);
-				} finally {
-					CloseUtils.closeQuietly(recordReader);
 				}
 			}
 			
 			String seqValue = msg.getParams().get("seq");
 			if(seqValue != null) {
+				if(recordInfo == null) {
+					LOG.error("Can not find Record File Writer for file[{}]", filePath);
+					result.setSuccess(false);
+					result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
+					callback.completed(result);
+					return;
+				}
+				
 				LOG.info("get data by sequence[{}] from file[{}]", seqValue, filePath);
 				int seq = Integer.parseInt(seqValue);
 				RecordElement element = recordInfo.get(seq);
@@ -102,8 +104,10 @@ public class WritingInfoMessageHandler implements MessageHandler {
 			} else {
 				//获取所有文件序列号
 				BitSet seqSet = new BitSet();
-				for(Integer seq : recordInfo.keySet()) {
-					seqSet.set(seq);
+				if(recordInfo != null) {
+					for(Integer seq : recordInfo.keySet()) {
+						seqSet.set(seq);
+					}
 				}
 				
 				LOG.info("get all sequence from file[{}] ,total[{}]", filePath, seqSet.cardinality());

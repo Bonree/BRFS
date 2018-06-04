@@ -70,6 +70,11 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		FileLimiter fileLimiter = new FileLimiter(fileNode, DuplicationEnvironment.DEFAULT_MAX_FILE_SIZE);
 		boolean headerWriting = false;
 		for(DuplicateNode node : nodes) {
+			if(node.getId().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+				LOG.info("Ingore virtual service[{}] to write head for file[{}]", node, fileNode.getName());
+				continue;
+			}
+			
 			DiskNodeConnection connection = connectionPool.getConnection(node);
 			if(connection == null || connection.getClient() == null) {
 				LOG.info("can not write header for file[{}] because [{}] is disconnected", fileNode.getName(), node);
@@ -77,7 +82,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 			}
 			
 			String serverId = idManager.getOtherSecondID(node.getId(), storageId);
-			String filePath = FilePathBuilder.buildPath(fileNode, serverId);
+			String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
 			try {
 				byte[] header = fileLimiter.getHeader();
 				WriteResult result = connection.getClient().writeData(filePath, 0, header);

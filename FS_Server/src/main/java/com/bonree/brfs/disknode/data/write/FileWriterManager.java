@@ -36,8 +36,8 @@ public class FileWriterManager implements LifeCycle {
 	
 	private DiskContext context;
 
-	private static int DEFAULT_RECORD_BUFFER_SIZE = 512 * 1024;
-	private static int DEFAULT_FILE_BUFFER_SIZE = 1024 * 1024;
+	private static int DEFAULT_RECORD_BUFFER_SIZE = 1024;
+	private static int DEFAULT_FILE_BUFFER_SIZE = 64 * 1024;
 
 	private Map<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new HashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
