@@ -25,7 +25,7 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 	private static String basePath = null;
 	@Override
 	public void caughtException(JobExecutionContext context) {
-
+		LOG.info("watch task error !!!");
 	}
 
 	@Override
@@ -49,12 +49,11 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 				//获取监听的目录
 				ZookeeperPaths zkPaths = mcf.getZkPath();
 				basePath = zkPaths.getBaseRebalancePath();
-			}else{
-				String tasksPath=basePath + Constants.SEPARATOR+Constants.TASKS_NODE;
-				boolean isIt = isRecovery(curatorClient, tasksPath);
-				// 更新map的值
-				this.StateMap.put(RECOVERY_STATUSE, isIt);
 			}
+			String tasksPath=basePath + Constants.SEPARATOR+Constants.TASKS_NODE;
+			boolean isIt = isRecovery(curatorClient, tasksPath);
+			// 更新map的值
+			this.StateMap.put(RECOVERY_STATUSE, isIt);
 		}catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

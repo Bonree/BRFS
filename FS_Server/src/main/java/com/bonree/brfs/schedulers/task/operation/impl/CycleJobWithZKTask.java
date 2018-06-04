@@ -16,6 +16,7 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.BatchTaskFactory;
+import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
@@ -80,6 +81,11 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			isSuccess = false;
 			e.printStackTrace();
 		}finally{
+			//判断是否有恢复任务，有恢复任务则不进行创建
+			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)){
+				LOG.warn("rebalance task is running !! skip check copy task");
+				return;
+			}
 			LOG.info("batch ID :{} {} {} {} {}",batchIndex,taskType,currentTaskName,serverId,stat);
 			if(batchIndex >= 1){
 				LOG.info("------------------- work>>>work");

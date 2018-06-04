@@ -39,12 +39,6 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
 		LOG.info("----------> revise task work");
-		//判断是否有恢复任务，有恢复任务则不进行创建
-		if (WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
-			LOG.warn("rebalance task is running !! skip check copy task");
-			return;
-		}
-		// TODO 确定全局的数据读取key
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		// 任务过期时间 ms
 		String ttlTimeStr = data.getString(JobDataMapConstract.TASK_EXPIRED_TIME);

@@ -240,7 +240,6 @@ public class TaskStateLifeContral {
 			release.updateServerTaskContentNode(serverId, task.getKey(), typeName, server);
 		}
 		
-//		cTask = changeRunTaskModel(cTask);
 		return new Pair<String,TaskModel>(task.getKey(), cTask);
 	}
 	/**
@@ -412,6 +411,6 @@ public class TaskStateLifeContral {
 				
 			}
 		});
-		return eTasks.get(0);
+		return eTasks.get(eTasks.size() -1);
 	}
 }

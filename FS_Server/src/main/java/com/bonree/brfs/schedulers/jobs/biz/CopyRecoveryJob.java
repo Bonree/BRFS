@@ -13,6 +13,7 @@ public class CopyRecoveryJob extends CycleJobWithZKTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
+		
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String zkHosts = data.getString(JobDataMapConstract.ZOOKEEPER_ADDRESS);

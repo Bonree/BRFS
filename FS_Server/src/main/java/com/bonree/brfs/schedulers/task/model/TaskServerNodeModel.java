@@ -70,5 +70,15 @@ public class TaskServerNodeModel {
 	public void setTaskStopTime(String taskStopTime) {
 		this.taskStopTime = taskStopTime;
 	}
+	/**
+	 * 概述：获取初始化对象
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static TaskServerNodeModel getInitInstance() {
+		TaskServerNodeModel task = new TaskServerNodeModel();
+		task.setTaskState(TaskState.INIT.code());
+		return task;
+	}
 	
 }
