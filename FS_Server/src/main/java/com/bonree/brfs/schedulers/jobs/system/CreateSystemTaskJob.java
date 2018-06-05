@@ -47,10 +47,6 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	public void operation(JobExecutionContext context) throws Exception {
 		LOG.info("-------> create system task working");
 		//判断是否有恢复任务，有恢复任务则不进行创建
-		if (WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
-			LOG.warn("rebalance task is running !! skip check copy task");
-			return;
-		}
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL);
 		long gsnTtl = data.getLong(JobDataMapConstract.GLOBAL_SN_DATA_TTL);
