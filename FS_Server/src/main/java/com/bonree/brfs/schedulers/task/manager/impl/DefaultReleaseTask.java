@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import javax.transaction.Synchronization;
 
@@ -24,6 +25,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
+import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultReleaseTask.class);
@@ -801,6 +803,50 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		}
 		taskTypeList = client.getChildren(this.taskRootPath);
 		return taskTypeList;
+	}
+
+	@Override
+	public TaskTypeModel getTaskTypeInfo(String taskType) {
+		if(BrStringUtils.isEmpty(taskType)) {
+			return null;
+		}
+		StringBuilder pathBuilder = new StringBuilder();
+		pathBuilder.append(this.taskRootPath).append("/").append(taskType);
+		String path = pathBuilder.toString();
+		if(!client.checkExists(path)) {
+			System.out.println(path);
+			return null;
+		}
+		byte[] data = client.getData(path);
+		if(data == null || data.length == 0) {
+			System.out.println(data+"null");
+			return null;
+		}
+		TaskTypeModel tModel = JsonUtils.toObject(data, TaskTypeModel.class);
+		return tModel;
+	}
+
+	@Override
+	public boolean setTaskTypeModel(String taskType, TaskTypeModel type) {
+		if(BrStringUtils.isEmpty(taskType)) {
+			return false;
+		}
+		if(type == null) {
+			return false;
+		}
+		byte[] data = JsonUtils.toJsonBytes(type);
+		if(data == null || data.length == 0) {
+			return false;
+		}
+		StringBuilder pathBuilder = new StringBuilder();
+		pathBuilder.append(this.taskRootPath).append("/").append(taskType);
+		String path = pathBuilder.toString();
+		if(client.checkExists(path)) {
+			client.setData(path, data);
+		}else {
+			client.createPersistent(path, true, data);
+		}
+		return true;
 	}
 
 }

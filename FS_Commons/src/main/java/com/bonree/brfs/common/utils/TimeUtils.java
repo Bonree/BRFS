@@ -43,8 +43,15 @@ public final class TimeUtils {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static long getMiles(String timeStr,String timeFormate){
-		DateTimeFormatter format = DateTimeFormat.forPattern(timeFormate);
-		return new DateTime().parse(timeStr, format).getMillis();
+		long time = 0;
+		try {
+			DateTimeFormatter format = DateTimeFormat.forPattern(timeFormate);
+			time = new DateTime().parse(timeStr, format).getMillis();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return time;
 	}
 	
 	public static long getMiles(String timeStr){

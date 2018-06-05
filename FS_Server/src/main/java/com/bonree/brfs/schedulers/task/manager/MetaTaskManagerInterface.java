@@ -2,10 +2,12 @@ package com.bonree.brfs.schedulers.task.manager;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
+import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -205,4 +207,19 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	List<String> getTaskTypeList();
+	/**
+	 * 概述：获取taskType元信息
+	 * @param taskType
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	TaskTypeModel getTaskTypeInfo(String taskType);
+	/**
+	 * 概述：设置taskType元信息
+	 * @param taskType
+	 * @param sn
+	 * @param time
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	boolean setTaskTypeModel(String taskType,TaskTypeModel type);
 }

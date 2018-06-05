@@ -1,7 +1,9 @@
 package com.bonree.brfs.schedulers.jobs.system;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -14,6 +16,7 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.StorageNameFileUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
@@ -25,6 +28,7 @@ import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
+import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 
 public class CreateSystemTaskJob extends QuartzOperationStateTask {
@@ -37,12 +41,16 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
 		LOG.info(" happened Interrupt !!!");
-		
 	}
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
 		LOG.info("-------> create system task working");
+		//判断是否有恢复任务，有恢复任务则不进行创建
+		if (WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
+			LOG.warn("rebalance task is running !! skip check copy task");
+			return;
+		}
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL);
 		long gsnTtl = data.getLong(JobDataMapConstract.GLOBAL_SN_DATA_TTL);
@@ -68,158 +76,60 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			LOG.info("SKIP create system task !!! because storageName is null !!!");
 			return;
 		}
-		List<AtomTaskModel> snAtomTaskList = new ArrayList<AtomTaskModel>();
-		long currentTime = System.currentTimeMillis();
 		TaskModel task = null;
-		byte[] byteData = null;
 		String taskName = null;
-		String prexTaskName = null;
-		TaskModel prexTask = null;
-		List<String> taskList = null;
-		String cTimeStr = null;
+		TaskTypeModel tmodel = null;
+		long ttl = 0;
+		Pair<TaskModel,TaskTypeModel> result = null;
 		for(TaskType taskType : switchList){
 			if(TaskType.SYSTEM_COPY_CHECK.equals(taskType)||TaskType.USER_DELETE.equals(taskType)) {
 				continue;
 			}
-			long preCreateTime = 0l;
-			//检查创建的时间间隔是否达到一小时
-			taskList = release.getTaskList(taskType.name());
-			if(taskList != null && !taskList.isEmpty()){
-				prexTaskName = taskList.get(taskList.size() - 1);
+			if(TaskType.SYSTEM_DELETE.equals(taskType)) {
+				ttl = 0;
+			}else if(TaskType.SYSTEM_CHECK.equals(taskType)) {
+				ttl = checkTtl;
 			}
-			if(!BrStringUtils.isEmpty(prexTaskName)){
-				prexTask = release.getTaskContentNodeInfo(taskType.name(), prexTaskName);
-			}
-			if(prexTask != null){
-				cTimeStr = prexTask.getCreateTime();
-				LOG.info("task createTime :{}",cTimeStr);
-				if(BrStringUtils.isEmpty(cTimeStr)) {
-					preCreateTime = 0;
-				}else {
-					preCreateTime = TimeUtils.getMiles(cTimeStr, TimeUtils.TIME_MILES_FORMATE);
-				}
-			}
-			if(currentTime - preCreateTime <= 60*60*1000 ){
-				LOG.info("skip create {} current {} prexTime {} ", taskType.name(), currentTime, preCreateTime);
+			tmodel = release.getTaskTypeInfo(taskType.name());
+			result = CreateSystemTask.createSystemTask(tmodel,taskType, snList, 3600000, ttl);
+			if(result == null) {
 				continue;
 			}
-			if(TaskType.SYSTEM_DELETE.equals(taskType)){
-				//创建删除任务
-				task = createTaskModel(snList, taskType, currentTime, gsnTtl, "");
-			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
-				task = createTaskModel(snList, taskType, currentTime, checkTtl,"");
-			}else{
-				LOG.info("taskType :{} is no create method!!!",taskType);
-				continue;
+			task = result.getKey();
+			taskName = updateTask(release, task, serverIds, taskType);
+			if(!BrStringUtils.isEmpty(taskName)) {
+				LOG.info("create {} {} task successfull !!!", taskType.name(), taskName);
+				release.setTaskTypeModel(taskType.name(), result.getValue());
 			}
-			// 任务为空，跳过
-			if(task == null){
-				LOG.warn(" task create is null skip ");
-				continue;
-			}
-			taskName = release.updateTaskContentNode(task, taskType.name(), null);
-			if(taskName == null){
-				LOG.warn("create task error : taskName is empty");
-				continue;
-			}
-			TaskServerNodeModel sTask = null;
-			for(String serviceId : serverIds){
-				sTask = createServerNodeModel();
-				release.updateServerTaskContentNode(serviceId, taskName, taskType.name(), sTask);
-				LOG.info("=======>create s task {} - {} - {} - {} ",taskType, taskName,serviceId, TaskState.valueOf(sTask.getTaskState()).name());
-			}
-			LOG.info("=======>create task {} - {} - {} ",taskType, taskName, TaskState.valueOf(task.getTaskState()).name());
 		}
 	}
-	public TaskServerNodeModel createServerNodeModel(){
-		TaskServerNodeModel task = new TaskServerNodeModel();
-		task.setTaskState(TaskState.INIT.code());
-		return task;
-	}
 	/**
-	 * 概述：生成任务信息
-	 * @param snList
+	 * 概述：将任务信息创建到zk
+	 * @param release
+	 * @param task
+	 * @param serverIds
 	 * @param taskType
-	 * @param currentTime
-	 * @param dataPath
-	 * @param taskOperation
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public TaskModel createTaskModel(List<StorageNameNode> snList,TaskType taskType, long currentTime, long globalttl,String taskOperation){
-		TaskModel task = new TaskModel();
-		long createTime = System.currentTimeMillis();
-		task.setCreateTime(TimeUtils.formatTimeStamp(createTime, TimeUtils.TIME_MILES_FORMATE));
-		task.setTaskState(TaskState.INIT.code());
-		task.setTaskType(taskType.code());
-		long operationDirTime = 0;
-		long creatTime = 0;
-		long ttl = 0;
-		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
-		List<AtomTaskModel> cAtoms = null;
-		for(StorageNameNode snn : snList){
-			creatTime = snn.getCreateTime();
-			//系统删除任务判断
-			if(TaskType.SYSTEM_DELETE.equals(taskType)){
-				if(snn.getTtl() < 0){
-					continue;
-				}
-//				TODO 测试时暂时更改
-//				ttl = snn.getTtl()*24*3600*1000;
-				ttl = snn.getTtl()*1000;
-				if(currentTime - creatTime < ttl){
-					LOG.warn("no data is need delete !! del ttl : {}", ttl);
-					continue;
-				}
-			}else if(TaskType.SYSTEM_CHECK.equals(taskType)){
-				ttl = globalttl;
-				if(currentTime - creatTime < ttl){
-					LOG.warn("no data is need check !! checkTTL : {}",ttl);
-					continue;
-				}
-			}
-			operationDirTime =(currentTime - ttl)/3600/1000*3600*1000 - 3600*1000;
-			cAtoms = createAtomTaskModel(snn, operationDirTime, operationDirTime + 3600*1000, taskOperation);
-			if(cAtoms == null || cAtoms.isEmpty()){
-				LOG.warn("{} atom task list is empty", taskType.name());
-				continue;
-			}
-			atoms.addAll(cAtoms);
-		}
-		if(atoms == null || atoms.isEmpty()){
-			LOG.info("skip create {} Task because it is empty ",taskType.name());
+	private String updateTask( MetaTaskManagerInterface release, TaskModel task, List<String> serverIds, TaskType taskType) {
+		if (task == null) {
+			LOG.warn(" task create is null skip ");
 			return null;
 		}
-		task.setAtomList(atoms);
-		return task;
-	}
-		
-	/**
-	 * 概述：生成基本任务信息
-	 * @param sn
-	 * @param dataPath
-	 * @param time
-	 * @param taskOperation
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private List<AtomTaskModel> createAtomTaskModel(StorageNameNode sn, final long startTime,final long endTime, String taskOperation){
-		List<AtomTaskModel> atomList = new ArrayList<AtomTaskModel>();
-		AtomTaskModel atom = null;
-		int copyCount = sn.getReplicateCount();
-		String path = null;
-		String snName = sn.getName();
-		for(int i = 1; i <= copyCount; i++){
-			atom = new AtomTaskModel();
-			atom.setStorageName(snName);
-			atom.setTaskOperation(taskOperation);
-			atom.setDataStartTime(TimeUtils.formatTimeStamp(startTime, TimeUtils.TIME_MILES_FORMATE));
-			atom.setDataStopTime(TimeUtils.formatTimeStamp(endTime, TimeUtils.TIME_MILES_FORMATE));
-			atom.setDirName(i +"");
-			atomList.add(atom);
+		String taskName = release.updateTaskContentNode(task, taskType.name(), null);
+		if (taskName == null) {
+			LOG.warn("create task error : taskName is empty");
+			return null;
 		}
-		return atomList;
+		TaskServerNodeModel sTask = TaskServerNodeModel.getInitInstance();
+		for (String serviceId : serverIds) {
+			release.updateServerTaskContentNode(serviceId, taskName, taskType.name(), sTask);
+		}
+		return taskName;
 	}
+	
+	
 	/***
 	 * 概述：获取存活的serverid
 	 * @param sm
@@ -243,4 +153,5 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		}
 		return sids;
 	}
+	
 }
