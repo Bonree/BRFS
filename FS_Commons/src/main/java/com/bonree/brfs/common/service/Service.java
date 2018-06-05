@@ -15,6 +15,8 @@ public class Service {
 	private String host;
 	//服务进程的开放端口
 	private int port;
+	//注册时间
+	private long registerTime;
 	
 	private String payload;
 	
@@ -22,10 +24,15 @@ public class Service {
 	}
 	
 	public Service(String serviceId, String serviceGroup, String host, int port) {
+		this(serviceId, serviceGroup, host, port, System.currentTimeMillis());
+	}
+	
+	public Service(String serviceId, String serviceGroup, String host, int port, long registerTime) {
 		this.serviceId = serviceId;
 		this.serviceGroup = serviceGroup;
 		this.host = host;
 		this.port = port;
+		this.registerTime = System.currentTimeMillis();
 	}
 
 	public String getServiceId() {
@@ -58,6 +65,14 @@ public class Service {
 
 	public void setPort(int port) {
 		this.port = port;
+	}
+	
+	public long getRegisterTime() {
+		return registerTime;
+	}
+
+	public void setRegisterTime(long registerTime) {
+		this.registerTime = registerTime;
 	}
 	
 	public String getPayload() {

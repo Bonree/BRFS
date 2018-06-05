@@ -75,6 +75,7 @@ public class DefaultServiceManager implements ServiceManager {
 				.id(service.getServiceId())
 				.name(service.getServiceGroup())
 				.port(service.getPort())
+				.registrationTimeUTC(service.getRegisterTime())
 				.payload(service.getPayload())
 				.build();
 	}
@@ -85,6 +86,7 @@ public class DefaultServiceManager implements ServiceManager {
 		service.setServiceGroup(instance.getName());
 		service.setHost(instance.getAddress());
 		service.setPort(instance.getPort());
+		service.setRegisterTime(instance.getRegistrationTimeUTC());
 		service.setPayload(instance.getPayload());
 		
 		return service;

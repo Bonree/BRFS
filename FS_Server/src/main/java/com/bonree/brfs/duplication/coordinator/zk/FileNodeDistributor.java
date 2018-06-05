@@ -61,6 +61,10 @@ class FileNodeDistributor implements Runnable, ServiceStateListener {
 	
 	//检测出所有失效的文件节点，并对其进行转移
 	private void handleInvalidFileNode() {
+		for(Service service : serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP)) {
+			serviceActiveTimes.put(serviceToken(service.getServiceGroup(), service.getServiceId()), service.getRegisterTime());
+		}
+		
 		//任务开始前需要先进行文件扫描，确定需要转移的文件
 		for(FileNode fileNode : fileStorer.listFileNodes(new IdentityFileNodeFilter())) {
 			long serviceAddTime = serviceActiveTimes.getOrDefault(serviceToken(fileNode.getServiceGroup(), fileNode.getServiceId()), Long.MAX_VALUE);
@@ -73,7 +77,7 @@ class FileNodeDistributor implements Runnable, ServiceStateListener {
 	
 	private void transferFileNode(FileNode fileNode) {
 		Service target = serviceSelector.selectWith(fileNode, serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP));
-		LOG.info("transfer to service[{}]", target.getServiceId());
+		LOG.info("transfer fileNode[{}] to service[{}]", fileNode.getName(), target.getServiceId());
 		
 		try {
 			fileNode.setServiceId(target.getServiceId());
@@ -84,6 +88,7 @@ class FileNodeDistributor implements Runnable, ServiceStateListener {
 			client.create().creatingParentsIfNeeded().forPath(ZkFileCoordinatorPaths.buildSinkFileNodePath(fileNode), JsonUtils.toJsonBytes(fileNode));
 		} catch(Exception e) {
 			//TODO 处理转移失败的文件
+			LOG.error("transfer file[{}] error", fileNode.getName());
 		}
 	}
 
@@ -128,7 +133,7 @@ class FileNodeDistributor implements Runnable, ServiceStateListener {
 	@Override
 	public void serviceAdded(Service service) {
 		LOG.info("Service added#######{}", service.getServiceId());
-		serviceActiveTimes.put(serviceToken(service.getServiceGroup(), service.getServiceId()), System.currentTimeMillis());
+		serviceActiveTimes.put(serviceToken(service.getServiceGroup(), service.getServiceId()), service.getRegisterTime());
 	}
 
 	@Override
