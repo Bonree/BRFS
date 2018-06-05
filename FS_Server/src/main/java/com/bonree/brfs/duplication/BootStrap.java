@@ -110,7 +110,7 @@ public class BootStrap {
             FileLimiterCloser fileLimiterCloser = new FileLimiterCloser(fileSynchronizer, connectionPool, fileCoordinator, serviceManager, idManager);
 
             FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool);
-            DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser);
+            DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser, storageNameManager);
 
             HttpConfig config = new HttpConfig(serverConfig.getPort());
             config.setKeepAlive(true);

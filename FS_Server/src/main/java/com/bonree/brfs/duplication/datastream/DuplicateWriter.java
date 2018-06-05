@@ -36,6 +36,10 @@ import com.bonree.brfs.duplication.datastream.file.FileLounge;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeCleaner;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.tasks.MultiDataWriteTask;
+import com.bonree.brfs.duplication.storagename.StorageNameManager;
+import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storagename.StorageNameStateListener;
+import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
 import com.bonree.brfs.duplication.synchronize.FileSynchronizeCallback;
 import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -70,7 +74,7 @@ public class DuplicateWriter {
 	public DuplicateWriter(Service service, FileLoungeFactory fileLoungeFactory,
 			FileCoordinator fileCoordinator, FileSynchronizer fileRecovery,
 			ServerIDManager idManager, DiskNodeConnectionPool connectionPool,
-			FileLimiterCloser fileCloser) {
+			FileLimiterCloser fileCloser, StorageNameManager storageNameManager) {
 		this.service = service;
 		this.fileLoungeFactory = fileLoungeFactory;
 		this.fileRecovery = fileRecovery;
@@ -82,6 +86,8 @@ public class DuplicateWriter {
 		
 		try {
 			fileCoordinator.addFileNodeSink(new DefaultFileNodeSink());
+			
+			storageNameManager.addStorageNameStateListener(new FileLoungeHandler());
 		} catch (Exception e) {
 			throw new RuntimeException("can not register FileNodeSink");
 		}
@@ -94,6 +100,10 @@ public class DuplicateWriter {
 				fileLounge = fileLoungeList.get(storageId);
 				if(fileLounge == null) {
 					fileLounge = fileLoungeFactory.createFileLounge(storageId);
+					if(fileLounge == null) {
+						return null;
+					}
+					
 					fileLounge.setFileCloseListener(fileCloser);
 					fileLoungeList.put(storageId, fileLounge);
 					fileLoungeCleaners.add(timedExecutor.scheduleAtFixedRate(new FileLoungeCleaner(fileLounge), 0, cleanFrequencyMillis, TimeUnit.MILLISECONDS));
@@ -106,6 +116,10 @@ public class DuplicateWriter {
 	
 	public void write(int storageId, DataItem[] items, DataHandleCallback<DataWriteResult> callback) {
 		FileLounge fileLounge = getFileLoungeByStorageId(storageId);
+		if(fileLounge == null) {
+			callback.error(new StorageNameNonexistentException(storageId));
+			return;
+		}
 		
 		Arrays.sort(items, new Comparator<DataItem>() {
 
@@ -193,6 +207,35 @@ public class DuplicateWriter {
 			fileLoungeList.clear();
 			for(ScheduledFuture<?> f : fileLoungeCleaners) {
 				f.cancel(false);
+			}
+		}
+		
+	}
+	
+	private class FileLoungeHandler implements StorageNameStateListener {
+
+		@Override
+		public void storageNameAdded(StorageNameNode node) {
+		}
+
+		@Override
+		public void storageNameUpdated(StorageNameNode node) {
+		}
+
+		@Override
+		public void storageNameRemoved(StorageNameNode node) {
+			FileLounge fileLounge = fileLoungeList.remove(node.getId());
+			if(fileLounge != null) {
+				for(FileLimiter fileLimiter : fileLounge.listFileLimiters()) {
+					FileNode fileNode = fileLimiter.getFileNode();
+					try {
+						fileCloser.closeFileNode(fileNode);
+					} catch (Exception e) {
+						LOG.warn("clean to close file[{}] error", fileNode.getName());
+					}
+				}
+				
+				fileLounge.clean();
 			}
 		}
 		

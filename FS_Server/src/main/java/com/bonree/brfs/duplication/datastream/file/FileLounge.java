@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.datastream.file;
 
+import java.util.List;
+
 /**
  * 
  * 文件节点元数据信息的维护类
@@ -43,6 +45,13 @@ public interface FileLounge {
 	 * 清空当前所有文件节点
 	 */
 	void clean();
+	
+	/**
+	 * 获取当前所有的文件节点
+	 * 
+	 * @return
+	 */
+	List<FileLimiter> listFileLimiters();
 	
 	/**
 	 * 设置文件关闭事件监听接口，当文件关闭时可以做一些额外操作

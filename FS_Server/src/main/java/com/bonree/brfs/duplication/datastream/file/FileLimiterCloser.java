@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
@@ -43,6 +42,37 @@ public class FileLimiterCloser implements FileCloseListener {
 		fileRecovery.synchronize(file.getFileNode(), new FileCloseConditionChecker(file));
 	}
 	
+	public void closeFileNode(FileNode fileNode) {
+		LOG.info("start to close file node[{}]", fileNode.getName());
+		for(DuplicateNode node : fileNode.getDuplicateNodes()) {
+			if(node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+				LOG.info("Ignore virtual duplicate node[{}]", node);
+				continue;
+			}
+			
+			DiskNodeConnection connection = connectionPool.getConnection(node);
+			if(connection == null || connection.getClient() == null) {
+				LOG.info("close error because node[{}] is disconnected!", node);
+				continue;
+			}
+			
+			DiskNodeClient client = connection.getClient();
+			String serverId = idManager.getOtherSecondID(node.getId(), fileNode.getStorageId());
+			String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
+			
+			try {
+				LOG.info("closing file[{}]", filePath);
+				boolean closed = client.closeFile(filePath);
+				LOG.info("close file[{}] result->{}", filePath, closed);
+				if(closed) {
+					fileCoordinator.delete(fileNode);
+				}
+			} catch (Exception e) {
+				LOG.error("close file[{}] error!", filePath);
+			}
+		}
+	}
+	
 	private class FileCloseConditionChecker implements FileSynchronizeCallback {
 		private FileLimiter file;
 		
@@ -52,34 +82,8 @@ public class FileLimiterCloser implements FileCloseListener {
 
 		@Override
 		public void complete(FileNode fileNode) {
-			LOG.info("start to close file node[{}]", fileNode.getName());
-			for(DuplicateNode node : fileNode.getDuplicateNodes()) {
-				if(node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
-					LOG.info("Ignore virtual duplicate node[{}]", node);
-					continue;
-				}
-				
-				DiskNodeConnection connection = connectionPool.getConnection(node);
-				if(connection == null || connection.getClient() == null) {
-					LOG.info("close error because node[{}] is disconnected!", node);
-					continue;
-				}
-				
-				DiskNodeClient client = connection.getClient();
-				String serverId = idManager.getOtherSecondID(node.getId(), fileNode.getStorageId());
-				String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
-				
-				try {
-					LOG.info("closing file[{}]", filePath);
-					boolean closed = client.closeFile(filePath);
-					LOG.info("close file[{}] result->{}", filePath, closed);
-					if(closed) {
-						fileCoordinator.delete(file.getFileNode());
-					}
-				} catch (Exception e) {
-					LOG.error("close file[{}] error!", filePath);
-				}
-			}
+			LOG.info("close file[{}] after sync", fileNode.getName());
+			closeFileNode(fileNode);
 		}
 
 		@Override

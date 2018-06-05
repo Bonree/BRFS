@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.datastream.file;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -25,7 +26,7 @@ import com.bonree.brfs.duplication.utils.TimedObjectCollection.TimedObject;
  * @author chen
  *
  */
-public class DefaultFileLounge implements FileLounge, Runnable {
+public class DefaultFileLounge implements FileLounge {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileLounge.class);
 	
 	//对文件节点进行清理的集合大小阈值
@@ -224,7 +225,15 @@ public class DefaultFileLounge implements FileLounge, Runnable {
 	public void setFileCloseListener(FileCloseListener listener) {
 		this.fileCloseListener = listener;
 	}
-	
+
 	@Override
-	public void run() {}
+	public List<FileLimiter> listFileLimiters() {
+		List<FileLimiter> result = new ArrayList<FileLimiter>();
+		List<TimedObject<List<FileLimiter>>> timedObjects = timedFileContainer.allObjects();
+		for(TimedObject<List<FileLimiter>> obj : timedObjects) {
+			result.addAll(obj.getObj());
+		}
+		
+		return result;
+	}
 }
