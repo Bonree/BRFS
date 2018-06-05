@@ -95,6 +95,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		}
 		
 		FileLimiter fileLimiter = new FileLimiter(fileNode, capacity);
+		fileLimiter.incrementSequenceBy(1);
 		try {
 			coordinator.store(fileNode);
 			//只有把文件信息成功存入文件库中才能使用此文件节点
