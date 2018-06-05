@@ -115,7 +115,7 @@ public class InitTaskManager {
 			// 2.启动任务线程池
 			List<TaskType> tasks = managerConfig.getSwitchOnTaskType();
 			if(tasks == null || tasks.isEmpty()){
-				throw new NullPointerException("switch task on  but task type list is empty !!!");
+				LOG.warn("switch task on  but task type list is empty !!!");
 			}
 			createAndStartThreadPool(manager, managerConfig);
 			if(tasks.contains(TaskType.SYSTEM_COPY_CHECK)){

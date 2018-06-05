@@ -59,7 +59,8 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		// 获取开启的任务名称
 		List<TaskType> switchList = mcf.getTaskOn();
 		if(switchList==null || switchList.isEmpty()){
-			throw new NullPointerException("switch on task is empty !!!");
+			LOG.warn("switch on task is empty !!!");
+			return;
 		}
 		// 获取可用服务
 		String groupName = mcf.getGroupName();

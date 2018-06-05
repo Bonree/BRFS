@@ -69,7 +69,8 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		}
 		List<TaskType> switchList = mcf.getTaskOn();
 		if(switchList == null || switchList.isEmpty()){
-			throw new NullPointerException("MetaTaskManager is empty !!!");
+			LOG.warn("MetaTaskManager is empty !!!");
+			return;
 		}
 		SchedulerManagerInterface schd = mcf.getStm();
 		if(schd == null){
