@@ -17,7 +17,7 @@ public enum ReturnCode {
     STORAGE_OPT_ERROR(4005), // 创建storage name发生错误
     USER_FORBID(3001), // 用户不行
     INVALID_CODE(3002),
-    USER_DELETE_TIME_ERROR(3003);
+    USER_DELETE_ERROR(3003);
 
     // 成员变量
     private int code;
@@ -72,8 +72,8 @@ public enum ReturnCode {
             throw new BRFSException("User is forbidden!!!!");
         } else if (code.equals(ReturnCode.INVALID_CODE)) {
             throw new BRFSException("invalid code!!!");
-        }else if(code.equals(ReturnCode.USER_DELETE_TIME_ERROR)) {
-        	throw new BRFSException(storageName + " delete data time error");
+        }else if(code.equals(ReturnCode.USER_DELETE_ERROR)) {
+        	throw new BRFSException(storageName + " delete data error");
         }
         return code;
     }
