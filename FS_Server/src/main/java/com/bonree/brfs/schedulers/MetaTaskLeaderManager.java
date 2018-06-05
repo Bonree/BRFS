@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
@@ -23,10 +24,12 @@ import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.jobs.system.CreateSystemTaskJob;
 import com.bonree.brfs.schedulers.jobs.system.ManagerMetaTaskJob;
+import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultBaseSchedulers;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
+import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -76,6 +79,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 				return;
 			}
 			LOG.info("Leader create task manager server success !!!");
+			checkSwitchTask();
 			sumbitTask();
 			LOG.info("==========================LEADER FINISH=================================");
 			// 提交任务线程
@@ -104,7 +108,29 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 			e.printStackTrace();
 		}
 	}
-
+	public void checkSwitchTask() {
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		MetaTaskManagerInterface release = mcf.getTm();
+		Map<String,Boolean> switchTask = config.getTaskPoolSwitchMap();
+		TaskTypeModel type = null;
+		String taskTypeName = null;
+		boolean flag = false;
+		for(Map.Entry<String, Boolean> entry : switchTask.entrySet()) {
+			taskTypeName = entry.getKey();
+			flag = entry.getValue();
+			if(BrStringUtils.isEmpty(taskTypeName)) {
+				continue;
+			}
+			type = release.getTaskTypeInfo(taskTypeName);
+			if(type == null) {
+				type = new TaskTypeModel();
+			}else if(type.isSwitchFlag() == flag) {
+				continue;
+			}
+			type.setSwitchFlag(flag);
+			release.setTaskTypeModel(taskTypeName, type);
+		}
+	}
 	/**
 	 * 概述：提交任务
 	 * @throws ParamsErrorException

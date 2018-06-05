@@ -3,6 +3,10 @@ package com.bonree.brfs.schedulers.task.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bonree.brfs.common.task.TaskState;
+import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.common.utils.TimeUtils;
+
 public class TaskModel {
 	/**
 	 * 任务类型taskType
@@ -37,6 +41,15 @@ public class TaskModel {
 	 * 任务操作
 	 */
 	private String taskOperation;
+	
+	public static TaskModel getInitInstance(TaskType taskType, String taskOperation) {
+		TaskModel task = new TaskModel();
+		task.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(),TimeUtils.TIME_MILES_FORMATE));
+		task.setTaskState(TaskState.INIT.code());
+		task.setTaskType(taskType.code());
+		task.setTaskOperation(taskOperation);
+		return task;
+	}
 	public int getTaskType() {
 		return taskType;
 	}
