@@ -81,7 +81,7 @@ class FileNodeDistributor implements Runnable, ServiceStateListener {
 		
 		try {
 			fileNode.setServiceId(target.getServiceId());
-			fileNode.setServiceTime(System.currentTimeMillis());
+			fileNode.setServiceTime(target.getRegisterTime());
 			fileStorer.update(fileNode);
 
 			// 在Sink中放入分配的文件名
