@@ -78,73 +78,25 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		List<String> times = Splitter.on("_").omitEmptyStrings().trimResults().splitToList(deleteInfo.get(1));
 		long startTime = DateTime.parse(times.get(0)).getMillis();
 		long endTime = DateTime.parse(times.get(1)).getMillis();
-//		if(startTime > endTime) {
-//			result.setSuccess(false);
-//			result.setCause(new IllegalArgumentException("start time must before to end time!"));
-//			callback.completed(result);
-//			return;
-//		}else if(startTime != startTime/1000/60/60*1000*60*60 ){
-//			result.setSuccess(false);
-//			result.setCause(new IllegalArgumentException("startTime : "+ startTime +" is not integral time !!"));
-//			callback.completed(result);
-//			return;
-//		}else if( endTime != endTime/1000/60/60*1000*60*60){
-//			result.setSuccess(false);
-//			result.setCause(new IllegalArgumentException("endTime : "+ endTime +" is not integral time !!"));
-//			callback.completed(result);
-//			return;
-//		}else if(startTime < sn.getCreateTime()){
-//			result.setSuccess(false);
-//			result.setCause(new IllegalArgumentException("start : "+ startTime +" is earlier than storage createTime !!"));
-//			callback.completed(result);
-//			return;
-//		}else if(endTime < sn.getCreateTime()) {
-//			result.setSuccess(false);
-//			result.setCause(new IllegalArgumentException("endTime : "+ endTime +" is earlier than storage createTime !!"));
-//			callback.completed(result);
-//			return;
-//		}
-		if(startTime > endTime 
+		if(startTime >= endTime 
 				|| startTime != startTime/1000/60/60*1000*60*60
 				|| endTime != endTime/1000/60/60*1000*60*60
 				|| startTime/3600000 < sn.getCreateTime()/3600000
 				|| endTime < sn.getCreateTime()) {
 			result.setSuccess(false);
-			result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.USER_DELETE_TIME_ERROR.name()));
+			result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.USER_DELETE_ERROR.name()));
 			callback.completed(result);
 			return;
 		}
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
 		
 		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
-//		boolean deleteCompleted = true;
-//		for(Service service : serviceList) {
-//			DiskNodeClient client = null;
-//			try {
-//				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
-//				List<FileInfo> fileList = client.listFiles(path, TIME_INTERVAL_LEVEL);
-//				LOG.info("get file list size={}", fileList.size());
-//				
-//				List<String> deleteList = filterByTime(fileList, startTime, endTime);
-//				if(deleteList.isEmpty()) {
-//					continue;
-//				}
-//				
-//				for(String deletePath : deleteList) {
-//					LOG.info("Deleting----[{}]", deletePath);
-//					deleteCompleted &= client.deleteDir(deletePath, true, true);
-//				}
-//			} catch(Exception e) {
-//				e.printStackTrace();
-//			} finally {
-//				CloseUtils.closeQuietly(client);
-//			}
-//		}
+
         boolean isCreate = TasksUtils.createUserDeleteTask(serviceList, serverConfig, zkPaths, sn, startTime, endTime);
         
 		result.setSuccess(isCreate);
 		if(!isCreate){
-			result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_OPT_ERROR.name()));
+			result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.USER_DELETE_ERROR.name()));
 		}
 		callback.completed(result);
 	}

@@ -32,6 +32,7 @@ import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
+import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 public class TasksUtils {
 	/**
@@ -52,13 +53,17 @@ public class TasksUtils {
 		 	if(sn == null){
 		 		return false;
 		 	}
+		 	MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
+		 	release.setPropreties(serverConfig.getZkHosts(), zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
+	    	TaskTypeModel tmodel = release.getTaskTypeInfo(TaskType.USER_DELETE.name());
+	    	if(!tmodel.isSwitchFlag()) {
+	    		return false;
+	    	}
 	    	TaskModel task = TasksUtils.createUserDelete(sn, TaskType.USER_DELETE, "", startTime, endTime);
-	    	
 	    	if(task == null){
 	    		return false;
 	    	}
-	        MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
-	        release.setPropreties(serverConfig.getZkHosts(), zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
+	        
 	        // 创建任务节点
 	        String taskName = release.updateTaskContentNode(task, TaskType.USER_DELETE.name(), null);
 	        if(BrStringUtils.isEmpty(taskName)){
@@ -101,7 +106,11 @@ public class TasksUtils {
 		}else{
 			startHour = startTime/1000/60/60*60*60*1000;
 		}
-		if(startHour > endHour) {
+		// 若是删除sn时，创建时间与删除时间间隔较短时，结束时间向后退
+		if(startHour == endHour && startTime <=0) {
+			endHour = endHour + 3600000;
+		}
+		if(startHour >= endHour) {
 			return null;
 		}
 		
