@@ -252,8 +252,8 @@ public class VirtualRecover implements DataRecover {
     }
 
     public void finishTask() {
-        // 没有中断
-        if (status.get().equals(TaskStatus.RUNNING)) {
+        // 没有取消任务
+        if (!status.get().equals(TaskStatus.CANCEL)) {
             detail.setStatus(ExecutionStatus.FINISH);
             LOG.info("update:" + selfNode + "-------------" + detail);
             updateDetail(selfNode, detail);

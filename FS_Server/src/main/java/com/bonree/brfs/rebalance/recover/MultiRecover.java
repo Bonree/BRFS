@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -250,6 +251,7 @@ public class MultiRecover implements DataRecover {
         dealReplicas(replicasNames, snDataDir);
 
         overFlag = true;
+        LOG.info("wait cosumer !!");
         try {
             cosumerThread.join();
         } catch (InterruptedException e1) {
@@ -261,8 +263,8 @@ public class MultiRecover implements DataRecover {
     }
 
     public void finishTask() {
-        // 没有中断
-        if (status.get().equals(TaskStatus.RUNNING)) {
+        // 没有取消任务
+        if (!status.get().equals(TaskStatus.CANCEL)) {
             detail.setStatus(ExecutionStatus.FINISH);
             updateDetail(selfNode, detail);
             LOG.info("恢复正常完成！！！！！");
@@ -405,6 +407,7 @@ public class MultiRecover implements DataRecover {
                         if (status.get().equals(TaskStatus.CANCEL)) {
                             break;
                         } else if (status.get().equals(TaskStatus.PAUSE)) {
+                            LOG.info("task pause!!!");
                             Thread.sleep(1000);
                         } else if (status.get().equals(TaskStatus.RUNNING)) {
                             fileRecover = fileRecoverQueue.poll(1, TimeUnit.SECONDS);
@@ -416,6 +419,7 @@ public class MultiRecover implements DataRecover {
                                 boolean success = false;
                                 while (true) {
                                     if (status.get().equals(TaskStatus.PAUSE)) {
+                                        LOG.info("task pause!!!");
                                         Thread.sleep(1000);
                                         continue;
                                     }
