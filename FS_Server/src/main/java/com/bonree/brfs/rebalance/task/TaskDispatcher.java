@@ -465,7 +465,7 @@ public class TaskDispatcher implements Closeable {
                             while (it.hasNext()) {
                                 ChangeSummary cs = it.next();
                                 if (cs.getChangeID().equals(bts.getChangeID())) {
-                                    it.remove();
+                                    changeSummaries.remove(cs);
                                 }
                             }
                         }
@@ -543,7 +543,7 @@ public class TaskDispatcher implements Closeable {
             while (it.hasNext()) {
                 ChangeSummary cs = it.next();
                 if (cs.getChangeID().equals(bts.getChangeID())) {
-                    it.remove();
+                    changeSummaries.remove(cs);
                 }
             }
         }
