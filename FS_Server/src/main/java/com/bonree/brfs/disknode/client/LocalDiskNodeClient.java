@@ -125,4 +125,9 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 		return true;
 	}
 
+	@Override
+	public int openFile(String path, int capacity) {
+		return 0;
+	}
+
 }

@@ -22,6 +22,7 @@ import com.bonree.brfs.disknode.server.handler.data.FileCopyMessage;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
+import com.google.common.primitives.Ints;
 
 public class HttpDiskNodeClient implements DiskNodeClient {
 	private static final Logger LOG = LoggerFactory.getLogger(HttpDiskNodeClient.class);
@@ -56,9 +57,32 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			HttpResponse response = client.executeGet(uri);
 			return response.isReponseOK();
 		} catch (Exception e) {
+			LOG.error("ping to {}:{} error", host, port);
 		}
 		
 		return false;
+	}
+	
+	@Override
+	public int openFile(String path, int capacity) {
+		URI uri = new URIBuilder()
+		.setScheme(DEFAULT_SCHEME)
+		.setHost(host)
+		.setPort(port)
+		.setPath(DiskContext.URI_DISK_NODE_ROOT + path)
+		.addParameter("capacity", String.valueOf(capacity))
+		.build();
+		
+		try {
+			HttpResponse response = client.executePut(uri);
+			if(response.isReponseOK()) {
+				return Ints.fromByteArray(response.getResponseBody());
+			}
+		} catch (Exception e) {
+			LOG.error("open file[{}] at {}:{} error", path, host, port);
+		}
+		
+		return 0;
 	}
 
 	@Override
@@ -101,7 +125,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return resultList.getWriteResults();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("write file[{}] to {}:{} error", path, host, port);
 		}
 		
 		return null;
@@ -126,7 +150,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				result = response.getResponseBody();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("read file[{}] with[offset={},size={}] at {}:{} error", path, offset, size, host, port);
 		}
 		
 		return result;
@@ -145,7 +169,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			HttpResponse response = client.executeClose(uri);
 			return response.isReponseOK();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("close file[{}] at {}:{} error", path, host, port);
 		}
 		
 		return false;
@@ -167,7 +191,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			HttpResponse response = client.executeDelete(builder.build());
 			return response.isReponseOK();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("delete file[{}] at {}:{} error", path, host, port);
 		}
 
 		return false;
@@ -193,7 +217,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			HttpResponse response = client.executeDelete(builder.build());
 			return response.isReponseOK();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("delete dir[{}] at {}:{} error", path, host, port);
 		}
 
 		return false;
@@ -214,7 +238,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return BitSet.valueOf(response.getResponseBody());
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("get sequences of file[{}] at {}:{} error", path, host, port);
 		}
 		
 		return null;
@@ -262,7 +286,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			
 			return response.isReponseOK();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("recover file[{}] at {}:{} error", path, host, port);
 		}
 		
 		return false;
@@ -284,7 +308,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return response.getResponseBody();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("get bytes of file[{}] with seq[{}] at {}:{} error", path, sequence, host, port);
 		}
 		
 		return null;
@@ -318,7 +342,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return result;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("list files of dir[{}] with level[{}] at {}:{} error", path, level, host, port);
 		}
 		
 		return null;
@@ -345,7 +369,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return result;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("get meta info of file[{}] at {}:{} error", path, host, port);
 		}
 		
 		return null;

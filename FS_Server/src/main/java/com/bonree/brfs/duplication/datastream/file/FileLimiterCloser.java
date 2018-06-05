@@ -70,15 +70,14 @@ public class FileLimiterCloser implements FileCloseListener {
 				String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
 				
 				try {
-					LOG.info("file tailer--{}", file.getTailer().length);
-					WriteResult result = client.writeData(filePath, -2, file.getTailer());
-					LOG.info("write file[{}] TAILER result[{}]", filePath, result);
-					if(result != null) {
-						client.closeFile(filePath);
+					LOG.info("closing file[{}]", filePath);
+					boolean closed = client.closeFile(filePath);
+					LOG.info("close file[{}] result->{}", filePath, closed);
+					if(closed) {
 						fileCoordinator.delete(file.getFileNode());
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.error("close file[{}] error!", filePath);
 				}
 			}
 		}

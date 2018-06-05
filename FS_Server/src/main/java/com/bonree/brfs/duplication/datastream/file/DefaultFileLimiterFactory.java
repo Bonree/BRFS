@@ -1,12 +1,9 @@
 package com.bonree.brfs.duplication.datastream.file;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.DuplicationNodeSelector;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
@@ -67,8 +64,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		fileNode.setServiceGroup(service.getServiceGroup());
 		fileNode.setDuplicateNodes(nodes);
 		
-		FileLimiter fileLimiter = new FileLimiter(fileNode, DuplicationEnvironment.DEFAULT_MAX_FILE_SIZE);
-		boolean headerWriting = false;
+		int capacity = 0;
 		for(DuplicateNode node : nodes) {
 			if(node.getId().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
 				LOG.info("Ingore virtual service[{}] to write head for file[{}]", node, fileNode.getName());
@@ -83,32 +79,28 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 			
 			String serverId = idManager.getOtherSecondID(node.getId(), storageId);
 			String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
-			try {
-				byte[] header = fileLimiter.getHeader();
-				WriteResult result = connection.getClient().writeData(filePath, 0, header);
-				LOG.info("write header for file[{}] get result[{}]", fileNode.getName(), result);
-				if(result != null && result.getSize() == header.length) {
-					headerWriting = true;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			
+			int result = connection.getClient().openFile(filePath, DuplicationEnvironment.DEFAULT_MAX_FILE_SIZE);
+			LOG.info("open file[{}] at node[{}] get capacity[{}]", filePath, node, result);
+			
+			if(result > 0) {
+				capacity = result;
 			}
 		}
 		
 		//如果没有一个磁盘节点写入头数据成功，则放弃使用此文件节点
-		if(!headerWriting) {
-			LOG.error("can not write file header to any duplicate node for file[{}]", fileNode.getName());
+		if(capacity == 0) {
+			LOG.error("can not open file at any duplicate node for file[{}]", fileNode.getName());
 			return null;
 		}
 		
-		fileLimiter.setLength(fileLimiter.getHeader().length);
-		fileLimiter.incrementSequenceBy(1);
+		FileLimiter fileLimiter = new FileLimiter(fileNode, capacity);
 		try {
 			coordinator.store(fileNode);
 			//只有把文件信息成功存入文件库中才能使用此文件节点
 			return fileLimiter;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("store file node[{}] error!", fileNode.getName(), e);
 		}
 		
 		return null;

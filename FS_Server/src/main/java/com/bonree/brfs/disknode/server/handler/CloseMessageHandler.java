@@ -1,5 +1,7 @@
 package com.bonree.brfs.disknode.server.handler;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,8 +9,15 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.utils.ByteUtils;
+import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.disknode.DiskContext;
+import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
+import com.bonree.brfs.disknode.data.write.RecordFileWriter;
+import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
+import com.bonree.brfs.disknode.utils.Pair;
+import com.google.common.primitives.Bytes;
 
 public class CloseMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(CloseMessageHandler.class);
@@ -24,11 +33,31 @@ public class CloseMessageHandler implements MessageHandler {
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		HandleResult result = new HandleResult();
+		
+		String filePath = diskContext.getConcreteFilePath(msg.getPath());
+		LOG.info("CLOSE file[{}]", filePath);
 		try {
-			LOG.info("CLOSE [{}]", msg.getPath());
+			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
+			if(binding == null) {
+				LOG.info("no writer is found for file[{}], I treat it as OK!", filePath);
+				result.setSuccess(true);
+				return;
+			}
 			
-			writerManager.close(diskContext.getConcreteFilePath(msg.getPath()));
+			LOG.info("start writing file tailer for {}", filePath);
+			binding.first().flush();
+			long crcCode = ByteUtils.crc(DataFileReader.readFile(filePath, 2, Integer.MAX_VALUE));
+			byte[] tailer = Bytes.concat(FileEncoder.validate(crcCode), FileEncoder.tail());
+			
+			binding.first().write(tailer);
+			binding.first().flush();
+			
+			LOG.info("close over for file[{}]", filePath);
+			writerManager.close(filePath);
 			result.setSuccess(true);
+		} catch (IOException e) {
+			result.setSuccess(false);
+			LOG.error("close file[{}] error!", filePath);
 		} finally {
 			callback.completed(result);
 		}

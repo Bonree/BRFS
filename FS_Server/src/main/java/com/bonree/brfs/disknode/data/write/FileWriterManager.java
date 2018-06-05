@@ -13,7 +13,6 @@ import com.bonree.brfs.common.timer.WheelTimer;
 import com.bonree.brfs.common.timer.WheelTimer.Timeout;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.LifeCycle;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.buf.ByteFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
@@ -41,7 +40,7 @@ public class FileWriterManager implements LifeCycle {
 
 	private Map<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new HashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
-	private static final int DEFAULT_TIMEOUT_SECONDS = 2;
+	private static final int DEFAULT_TIMEOUT_SECONDS = 1;
 	private WheelTimer<Pair<RecordFileWriter, WriteWorker>> timeoutWheel = new WheelTimer<Pair<RecordFileWriter, WriteWorker>>(
 			DEFAULT_TIMEOUT_SECONDS);
 
