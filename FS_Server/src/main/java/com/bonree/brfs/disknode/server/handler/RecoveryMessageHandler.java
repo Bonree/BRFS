@@ -68,14 +68,14 @@ public class RecoveryMessageHandler implements MessageHandler {
 		BitSet lack = new BitSet();
 		lack.set(0, info.getMaxSeq() + 1);
 		
-		LOG.info("excepted max seq is {}", info.getMaxSeq());
+		LOG.info("excepted max seq is {}, seq list size->{}", info.getMaxSeq(), seqInfos.size());
 		SortedMap<Integer, byte[]> datas = new TreeMap<Integer, byte[]>();
-		RandomAccessFile originFile = null;
 		
+		RandomAccessFile originFile = null;
 		RecordElementReader recordreReader = null;
 		try {
-			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, true);
-			LOG.info("get binding -->{}", binding);
+			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
+			LOG.info("get binding for file[{}]-->{}", filePath, binding);
 			if(binding != null) {
 				binding.first().flush();
 				RecordCollection recordSet = binding.first().getRecordCollection();
@@ -91,46 +91,51 @@ public class RecoveryMessageHandler implements MessageHandler {
 					datas.put(element.getSequence(), bytes);
 					lack.set(element.getSequence(), false);
 				}
+			}
+		} catch (Exception e) {
+			LOG.error("search datas at original file[{}] error", filePath);
+		} finally {
+			CloseUtils.closeQuietly(recordreReader);
+		}
+		
+		LOG.info("starting... lack seq number-->{}", lack.cardinality());
+		
+		try {
+			for(AvailableSequenceInfo seqInfo : seqInfos) {
+				if(lack.cardinality() ==  0) {
+					break;
+				}
 				
-				LOG.info("lack seq number-->{}", lack.cardinality());
-				
-				for(AvailableSequenceInfo seqInfo : seqInfos) {
-					if(lack.cardinality() ==  0) {
-						break;
+				BitSet seqSet = seqInfo.getAvailableSequence();
+				LOG.info("this loop available size{}, lack size{}", seqSet.cardinality(), lack.cardinality());
+				BitSet availableSeq = BitSetUtils.intersect(seqSet, lack);
+				if(availableSeq.cardinality() != 0) {
+					Service service = serviceManager.getServiceById(seqInfo.getServiceGroup(), seqInfo.getServiceId());
+					
+					DiskNodeClient client = null;
+					try {
+						LOG.info("get data from{} to recover...", service);
+						client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+						
+						for(int i = availableSeq.nextSetBit(0); i != -1; i = availableSeq.nextSetBit(++i)) {
+							byte[] bytes = client.getBytesBySequence(seqInfo.getFilePath(), i);
+							if(bytes != null) {
+								lack.set(i, false);
+								datas.put(i, bytes);
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						CloseUtils.closeQuietly(client);
 					}
 					
-					BitSet seqSet = seqInfo.getAvailableSequence();
-					LOG.info("this loop available size{}, lack size{}", seqSet.cardinality(), lack.cardinality());
-					BitSet availableSeq = BitSetUtils.intersect(seqSet, lack);
-					if(availableSeq.cardinality() != 0) {
-						Service service = serviceManager.getServiceById(seqInfo.getServiceGroup(), seqInfo.getServiceId());
-						
-						DiskNodeClient client = null;
-						try {
-							LOG.info("get data from{} to recover...", service);
-							client = new HttpDiskNodeClient(service.getHost(), service.getPort());
-							
-							for(int i = availableSeq.nextSetBit(0); i != -1; i = availableSeq.nextSetBit(++i)) {
-								byte[] bytes = client.getBytesBySequence(seqInfo.getFilePath(), i);
-								if(bytes != null) {
-									lack.set(i, false);
-									datas.put(i, bytes);
-								}
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
-						} finally {
-							CloseUtils.closeQuietly(client);
-						}
-						
-					}
 				}
 			}
 		} catch (Exception e) {
-			LOG.error("revoery error!", e);
+			LOG.error("recovery file[{}] error!", filePath, e);
 		} finally {
 			CloseUtils.closeQuietly(originFile);
-			CloseUtils.closeQuietly(recordreReader);
 		}
 		
 		LOG.info("finally lack size = {}", lack.cardinality());
