@@ -41,7 +41,7 @@ public class WriteWorker implements Runnable {
 	@Override
 	public void run() {
 		LOG.info("Woker[{}] started.", id);
-		while(!isQuit) {
+		while(!isQuit && taskQueue.isEmpty()) {
 			Runnable task = null;
 			try {
 				task = taskQueue.take();
