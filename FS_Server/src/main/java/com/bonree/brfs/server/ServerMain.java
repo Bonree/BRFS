@@ -1,5 +1,8 @@
 package com.bonree.brfs.server;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +13,7 @@ import com.bonree.brfs.common.exception.ConfigParseException;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
+import com.bonree.brfs.common.utils.ProcessFinalizer;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
@@ -32,6 +36,8 @@ public class ServerMain {
     private static final Logger LOG = LoggerFactory.getLogger(ServerMain.class);
 
     public static void main(String[] args) {
+    	ProcessFinalizer finalizer = new ProcessFinalizer();
+    	
         String brfsHome = System.getProperty("path");
         try {
             Configuration conf = Configuration.getInstance();
@@ -81,13 +87,19 @@ public class ServerMain {
                 }
             });
             snManager.start();
+            
+            finalizer.add(snManager);
 
             ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
             sm.start();
+            
+            finalizer.add(sm);
 
             // 磁盘管理模块
             EmptyMain diskMain = new EmptyMain(serverConfig, sm);
             diskMain.start();
+            
+            finalizer.add(diskMain);
 
             // 副本平衡模块
             sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
@@ -105,6 +117,18 @@ public class ServerMain {
             sm.registerService(selfService);
             System.out.println(selfService);
             
+            finalizer.add(new Closeable() {
+				
+				@Override
+				public void close() throws IOException {
+					try {
+						sm.unregisterService(selfService);
+					} catch (Exception e) {
+						LOG.error("unregister service[{}] error", selfService, e);
+					}
+				}
+			});
+            
          // 资源管理模块
             InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
         } catch (ConfigPathException e) {
@@ -116,11 +140,8 @@ public class ServerMain {
         } catch (Exception e) {
             LOG.error("launch server error!!!",e);
             System.exit(1);
+        } finally {
+        	Runtime.getRuntime().addShutdownHook(finalizer);
         }
     }
-
-    public static void help() {
-        LOG.error("parameter is error!");
-    }
-
 }
