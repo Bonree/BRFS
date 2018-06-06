@@ -37,7 +37,7 @@ public class DataWriteTask extends AsyncTask<WriteResult[]> {
 				return null;
 			}
 			
-			LOG.debug("write {} data to {}:{}", filePath, connection.getRemoteAddress(), connection.getRemotePort());
+			LOG.info("write {} data to {}:{}", filePath, connection.getRemoteAddress(), connection.getRemotePort());
 			WriteResult[] result = client.writeDatas(filePath, datas);
 			
 			LOG.info("file[{}] write task from {}:{} get result---{}", filePath,
