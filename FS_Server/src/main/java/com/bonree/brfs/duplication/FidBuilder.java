@@ -34,8 +34,7 @@ public class FidBuilder {
 		try {
 			return FidEncoder.build(fid);
 		} catch (Exception e) {
-			e.printStackTrace();
-			LOG.error("error create FID: file[{}], offset[{}], size[{}]", node.getName(), offset, size);
+			LOG.error("error create FID: file[{}], offset[{}], size[{}]", node.getName(), offset, size, e);
 		}
 		
 		return null;

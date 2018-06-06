@@ -296,7 +296,7 @@ public class DuplicateWriter {
 						//对于没办法处理的文件，只能删除节点，不再重用
 						fileCoordinator.delete(fileNode);
 					} catch (Exception e) {
-						e.printStackTrace();
+						LOG.error("delete file node error", e);
 					}
 				}
 			});

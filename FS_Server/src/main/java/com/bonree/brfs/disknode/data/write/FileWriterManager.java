@@ -178,7 +178,7 @@ public class FileWriterManager implements LifeCycle {
 						
 						runningWriters.put(filePath, binding);
 					} catch (Exception e) {
-						e.printStackTrace();
+						LOG.error("build disk writer error", e);
 					}
 				}
 			}

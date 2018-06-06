@@ -161,7 +161,7 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 			try {
 				resultGetter.put(resultItems);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				LOG.error("put result error", e);
 			}
 		}
 	}

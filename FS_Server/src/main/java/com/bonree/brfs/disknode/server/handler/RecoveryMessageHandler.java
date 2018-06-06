@@ -125,7 +125,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 							}
 						}
 					} catch (Exception e) {
-						e.printStackTrace();
+						LOG.error("recover file[{}] error", filePath, e);
 					} finally {
 						CloseUtils.closeQuietly(client);
 					}
@@ -209,7 +209,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 				
 				completed = true;
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOG.error("rewrite file[{}] error", filePath, e);
 			} finally {
 				writerManager.close(rewriteFile.getAbsolutePath());
 				rewriteFile.delete();

@@ -289,7 +289,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			try {
 				serviceQueue.put(service);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				LOG.error("put service error", e);
 			}
 		}
 		
@@ -336,7 +336,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 						LOG.info("skipped synchronize file node[{}]", fileNode.getName());
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.error("task activator error", e);
 				}
 			}
 		}

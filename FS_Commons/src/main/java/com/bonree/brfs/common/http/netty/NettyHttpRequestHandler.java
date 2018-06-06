@@ -57,7 +57,7 @@ public class NettyHttpRequestHandler {
 			
 			handler.handle(message, new DefaultNettyHandleResultCallback(ctx));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("message handle error", e);
 			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toString());
 		}
 	}

@@ -110,7 +110,7 @@ public class WriteMessageHandler implements MessageHandler {
 						resultList.setWriteResults(results);
 						handleResult.setData(ProtoStuffUtils.serialize(resultList));
 					} catch (IOException e) {
-						e.printStackTrace();
+						LOG.error("onPostExecute error", e);
 					}
 					
 					callback.completed(handleResult);
@@ -131,7 +131,7 @@ public class WriteMessageHandler implements MessageHandler {
 						resultList.setWriteResults(results);
 						handleResult.setData(ProtoStuffUtils.serialize(resultList));
 					} catch (IOException e) {
-						e.printStackTrace();
+						LOG.error("onFailed error", e);
 					}
 					
 					callback.completed(handleResult);

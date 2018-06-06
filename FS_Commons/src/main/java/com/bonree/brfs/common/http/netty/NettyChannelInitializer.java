@@ -1,7 +1,10 @@
 package com.bonree.brfs.common.http.netty;
 
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
@@ -42,11 +45,34 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 		pipeline.addLast(new HttpRequestDecoder());
 		pipeline.addLast(new HttpObjectAggregator(DEFAULT_MAX_HTTP_CONTENT_LENGTH));
 		pipeline.addLast(new ChunkedWriteHandler());
+		
+		pipeline.addLast(new ChannelInboundHandlerAdapter() {
+
+			@Override
+			public void channelRead(ChannelHandlerContext ctx, Object msg)
+					throws Exception {
+				System.out.println("final-" + System.currentTimeMillis());
+				ctx.fireChannelRead(msg);
+			}
+			
+		});
+		
 		if(authenticationHandler != null) {
 			pipeline.addLast(authenticationHandler);
 		}
 		
 		contextHandlers.forEach((NettyHttpContextHandler handler) -> pipeline.addLast(handler));
 		pipeline.addLast(defaultHttpRequestHandler);
+		
+		pipeline.addFirst(new ChannelInboundHandlerAdapter() {
+
+			@Override
+			public void channelRead(ChannelHandlerContext ctx, Object msg)
+					throws Exception {
+				System.out.println("first-" + System.currentTimeMillis());
+				super.channelRead(ctx, msg);
+			}
+			
+		});
     }
 }

@@ -122,7 +122,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
             node.setCreateTime(System.currentTimeMillis());
             path = zkClient.create().forPath(storageNamePath, JsonUtils.toJsonBytes(node));
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.warn("create storage name node error", e);
         }
 
         if (path != null) {
@@ -133,7 +133,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
         try {
             storagenNameStat = zkClient.checkExists().forPath(storageNamePath);
         } catch (Exception e) {
-            e.printStackTrace();
+        	LOG.warn("get storage name node stats error", e);
         }
 
         if (storagenNameStat != null) {
@@ -141,7 +141,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
             try {
                 idBytes = zkClient.getData().forPath(storageNamePath);
             } catch (Exception e) {
-                e.printStackTrace();
+            	LOG.warn("get storage name node[{}] data error", storageName, e);
             }
 
             if (idBytes != null) {
@@ -165,7 +165,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
         try {
             zkClient.delete().forPath(buildStorageNamePath(node.getName()));
         } catch (Exception e) {
-            e.printStackTrace();
+        	LOG.warn("delete storage name node id[{}] error", storageId, e);
             return false;
         }
 
@@ -185,7 +185,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
         try {
             zkClient.delete().forPath(buildStorageNamePath(storageName));
         } catch (Exception e) {
-            e.printStackTrace();
+        	LOG.warn("delete storage name node name[{}] error", storageName, e);
             return false;
         }
 
@@ -235,7 +235,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
         try {
             zkClient.setData().forPath(buildStorageNamePath(storageName), JsonUtils.toJsonBytes(node));
         } catch (Exception e) {
-            e.printStackTrace();
+        	LOG.warn("set storage name node[{}] data error", storageName, e);
             return false;
         }
 

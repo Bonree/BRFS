@@ -3,6 +3,9 @@ package com.bonree.brfs.disknode.data.write.record;
 import java.io.File;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.disknode.data.write.BufferedFileWriter;
 import com.bonree.brfs.disknode.data.write.DirectFileWriter;
 import com.bonree.brfs.disknode.data.write.FileWriter;
@@ -15,6 +18,7 @@ import com.bonree.brfs.disknode.data.write.buf.ByteFileBuffer;
  *
  */
 public class RecordCollectionManager {
+	private static final Logger LOG = LoggerFactory.getLogger(RecordCollectionManager.class);
 	
 	/**
 	 * 以只读的方式打开日志记录，这种方式不会创建不存在
@@ -64,7 +68,7 @@ public class RecordCollectionManager {
 			
 			return new RecordCollection(recordFile, writer, deleteOnClose);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.error("getRecordCollection error", e);
 		}
 		
 		return null;

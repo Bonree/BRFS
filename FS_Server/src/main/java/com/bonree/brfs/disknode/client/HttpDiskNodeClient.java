@@ -57,7 +57,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			HttpResponse response = client.executeGet(uri);
 			return response.isReponseOK();
 		} catch (Exception e) {
-			LOG.error("ping to {}:{} error", host, port);
+			LOG.error("ping to {}:{} error", host, port, e);
 		}
 		
 		return false;
@@ -79,7 +79,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return Ints.fromByteArray(response.getResponseBody());
 			}
 		} catch (Exception e) {
-			LOG.error("open file[{}] at {}:{} error", path, host, port);
+			LOG.error("open file[{}] at {}:{} error", path, host, port, e);
 		}
 		
 		return 0;
@@ -125,7 +125,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return resultList.getWriteResults();
 			}
 		} catch (Exception e) {
-			LOG.error("write file[{}] to {}:{} error", path, host, port);
+			LOG.error("write file[{}] to {}:{} error", path, host, port, e);
 		}
 		
 		return null;
@@ -150,7 +150,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				result = response.getResponseBody();
 			}
 		} catch (Exception e) {
-			LOG.error("read file[{}] with[offset={},size={}] at {}:{} error", path, offset, size, host, port);
+			LOG.error("read file[{}] with[offset={},size={}] at {}:{} error", path, offset, size, host, port, e);
 		}
 		
 		return result;
@@ -169,7 +169,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			HttpResponse response = client.executeClose(uri);
 			return response.isReponseOK();
 		} catch (Exception e) {
-			LOG.error("close file[{}] at {}:{} error", path, host, port);
+			LOG.error("close file[{}] at {}:{} error", path, host, port, e);
 		}
 		
 		return false;
@@ -191,7 +191,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			HttpResponse response = client.executeDelete(builder.build());
 			return response.isReponseOK();
 		} catch (Exception e) {
-			LOG.error("delete file[{}] at {}:{} error", path, host, port);
+			LOG.error("delete file[{}] at {}:{} error", path, host, port, e);
 		}
 
 		return false;
@@ -217,7 +217,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			HttpResponse response = client.executeDelete(builder.build());
 			return response.isReponseOK();
 		} catch (Exception e) {
-			LOG.error("delete dir[{}] at {}:{} error", path, host, port);
+			LOG.error("delete dir[{}] at {}:{} error", path, host, port, e);
 		}
 
 		return false;
@@ -238,7 +238,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return BitSet.valueOf(response.getResponseBody());
 			}
 		} catch (Exception e) {
-			LOG.error("get sequences of file[{}] at {}:{} error", path, host, port);
+			LOG.error("get sequences of file[{}] at {}:{} error", path, host, port, e);
 		}
 		
 		return null;
@@ -286,7 +286,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			
 			return response.isReponseOK();
 		} catch (Exception e) {
-			LOG.error("recover file[{}] at {}:{} error", path, host, port);
+			LOG.error("recover file[{}] at {}:{} error", path, host, port, e);
 		}
 		
 		return false;
@@ -308,7 +308,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return response.getResponseBody();
 			}
 		} catch (Exception e) {
-			LOG.error("get bytes of file[{}] with seq[{}] at {}:{} error", path, sequence, host, port);
+			LOG.error("get bytes of file[{}] with seq[{}] at {}:{} error", path, sequence, host, port, e);
 		}
 		
 		return null;
@@ -342,7 +342,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return result;
 			}
 		} catch (Exception e) {
-			LOG.error("list files of dir[{}] with level[{}] at {}:{} error", path, level, host, port);
+			LOG.error("list files of dir[{}] with level[{}] at {}:{} error", path, level, host, port, e);
 		}
 		
 		return null;
@@ -369,7 +369,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 				return result;
 			}
 		} catch (Exception e) {
-			LOG.error("get meta info of file[{}] at {}:{} error", path, host, port);
+			LOG.error("get meta info of file[{}] at {}:{} error", path, host, port, e);
 		}
 		
 		return null;

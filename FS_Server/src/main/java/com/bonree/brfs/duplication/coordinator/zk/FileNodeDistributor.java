@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.coordinator.zk;
 
+import java.io.ObjectOutputStream.PutField;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -114,7 +115,7 @@ class FileNodeDistributor implements Runnable, ServiceStateListener {
 						transferFileNode(node);
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.error("transfer files error", e);
 				}
 			}
 		} finally {
@@ -154,7 +155,7 @@ class FileNodeDistributor implements Runnable, ServiceStateListener {
 		try {
 			downServiceList.put(service);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			LOG.error("put down service error", e);
 		}
 	}
 }

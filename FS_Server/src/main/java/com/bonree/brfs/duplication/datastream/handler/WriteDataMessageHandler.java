@@ -67,7 +67,7 @@ public class WriteDataMessageHandler implements MessageHandler {
 				byte[] bytes = FileEncoder.contents(content);
 				item.setBytes(bytes);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.error("encode file content error", e);
 			}
 		}
 		
