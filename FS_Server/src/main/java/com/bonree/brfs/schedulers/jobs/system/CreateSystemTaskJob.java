@@ -62,9 +62,10 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		String groupName = mcf.getGroupName();
 		ServiceManager sm = mcf.getSm();
 		// 2.设置可用服务
-		List<String> serverIds = getServerIds(sm, groupName);
+		List<String> serverIds = CreateSystemTask.getServerIds(sm, groupName);
 		if(serverIds == null || serverIds.isEmpty()){
-			throw new NullPointerException(groupName + " available server list is null");
+			LOG.warn("{} available server list is null", groupName);
+			return;
 		}
 		// 3.获取storageName
 		StorageNameManager snm = mcf.getSnm();
@@ -93,62 +94,11 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 				continue;
 			}
 			task = result.getKey();
-			taskName = updateTask(release, task, serverIds, taskType);
+			taskName = CreateSystemTask.updateTask(release, task, serverIds, taskType);
 			if(!BrStringUtils.isEmpty(taskName)) {
 				LOG.info("create {} {} task successfull !!!", taskType.name(), taskName);
 				release.setTaskTypeModel(taskType.name(), result.getValue());
 			}
 		}
 	}
-	/**
-	 * 概述：将任务信息创建到zk
-	 * @param release
-	 * @param task
-	 * @param serverIds
-	 * @param taskType
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private String updateTask( MetaTaskManagerInterface release, TaskModel task, List<String> serverIds, TaskType taskType) {
-		if (task == null) {
-			LOG.warn(" task create is null skip ");
-			return null;
-		}
-		String taskName = release.updateTaskContentNode(task, taskType.name(), null);
-		if (taskName == null) {
-			LOG.warn("create task error : taskName is empty");
-			return null;
-		}
-		TaskServerNodeModel sTask = TaskServerNodeModel.getInitInstance();
-		for (String serviceId : serverIds) {
-			release.updateServerTaskContentNode(serviceId, taskName, taskType.name(), sTask);
-		}
-		return taskName;
-	}
-	
-	
-	/***
-	 * 概述：获取存活的serverid
-	 * @param sm
-	 * @param groupName
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private List<String> getServerIds(ServiceManager sm, String groupName){
-		List<String> sids = new ArrayList<>();
-		List<Service> sList = sm.getServiceListByGroup(groupName);
-		if(sList == null || sList.isEmpty()){
-			return sids;
-		}
-		String sid = null;
-		for(Service server : sList){
-			sid = server.getServiceId();
-			if(BrStringUtils.isEmpty(sid)){
-				continue;
-			}
-			sids.add(sid);
-		}
-		return sids;
-	}
-	
 }

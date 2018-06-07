@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.ManagerFactoryParameters;
 
@@ -37,7 +38,10 @@ import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
+import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
+
+import ch.qos.logback.classic.net.SyslogAppender;
 
 public class CopyCheckJob extends QuartzOperationStateTask{
 	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
@@ -69,138 +73,82 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			LOG.warn("rebalance task is running !! skip check copy task");
 			return;
 		}
+		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
+		List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		if(services == null || services.isEmpty()) {
+			LOG.info("SKIP create {} task, because service is empty",taskType);
+			return ;
+		}
 		List<StorageNameNode> snList = snm.getStorageNameNodeList();
 		if( snList== null || snList.isEmpty()) {
 			LOG.info("SKIP storagename list is null");
 			return;
 		}
-		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
-		//TODO：判断任务创建的时间若无则创建当前时间的前天的第一小时的
-		long startTime = getStartTime(release,time);
-		if(startTime < 0){
-			LOG.warn("create inveral time less {} hour", time/1000/60/60);
+		// 1.获取sn创建任务的实际那
+		TaskTypeModel tmodel = release.getTaskTypeInfo(taskType);
+		Map<String,Long> sourceTimes = tmodel.getSnTimes();
+		
+		// 2.过滤不符合副本校验的sn信息
+		List<StorageNameNode> needSns = CopyCountCheck.filterSn(snList, services.size());
+		// 3.针对第一次出现的sn补充时间
+		sourceTimes = repairTime(sourceTimes, needSns, 3600000,3600000);
+		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, 3600000);
+		
+		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, "RECOVERY", 3600000, time);
+		if(pair == null) {
+			LOG.warn("create pair is empty !!!!");
 			return;
 		}
-
-		TaskModel newTask = new TaskModel();
+		TaskModel task = pair.getKey();
+		String taskName = null;
+		if(task != null) {
+			List<String> servers = CreateSystemTask.getServerIds(services);
+			taskName = CreateSystemTask.updateTask(release, task, servers, TaskType.SYSTEM_COPY_CHECK);
+		}
+		if(!BrStringUtils.isEmpty(taskName)) {
+			LOG.info("create {} {} task successfull !!!", taskType, taskName);
+		}
+		sourceTimes = pair.getValue();
+		// 更新sn临界信息
+		tmodel = release.getTaskTypeInfo(taskType);
+		tmodel.putAllSnTimes(sourceTimes);
+		release.setTaskTypeModel(taskType, tmodel);
+		LOG.info("update sn time");
+		
+	}
+	/**
+	 * 概述：添加第一次出现的sn
+	 * @param sourceTimes
+	 * @param needSns
+	 * @param granule
+	 * @param ttl
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageNameNode> needSns, long granule, long ttl){
+		Map<String,Long> repairs = new ConcurrentHashMap<>();
+		repairs.putAll(sourceTimes);
+		if(sourceTimes != null) {
+			repairs.putAll(sourceTimes);
+		}
+		if(needSns == null || needSns.isEmpty()) {
+			return repairs;
+		}
 		long currentTime = System.currentTimeMillis();
-		newTask.setCreateTime(TimeUtils.formatTimeStamp(currentTime, TimeUtils.TIME_MILES_FORMATE));
-		newTask.setEndDataTime(TimeUtils.formatTimeStamp(startTime + 60*60*1000, TimeUtils.TIME_MILES_FORMATE));
-		newTask.setStartDataTime(TimeUtils.formatTimeStamp(startTime, TimeUtils.TIME_MILES_FORMATE));
-		newTask.setTaskState(TaskState.INIT.code());
-		newTask.setTaskType(TaskType.SYSTEM_COPY_CHECK.code());
-		List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
-		String dirName = TimeUtils.timeInterval(startTime, 60*60*1000);
-		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(dirName);
-		if(losers != null && !losers.isEmpty()){
-			List<AtomTaskModel> atoms = createAtoms(losers, dirName);
-			if(atoms != null && !atoms.isEmpty()){
-				newTask.setAtomList(atoms);
+		String snName = null;
+		long startTime = 0L;
+		for(StorageNameNode sn : needSns) {
+			snName = sn.getName();
+			if(repairs.containsKey(snName)) {
+				continue;
 			}
-		}
-		String taskName = release.updateTaskContentNode(newTask, taskType, null);
-		//补充任务节点
-		createServiceNodes(services, release, taskName);
-		LOG.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>create {} task {} success !!",taskType, taskName);
-	}
-	/**
-	 * 概述：创建子任务信息
-	 * @param losers
-	 * @param dirName
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private List<AtomTaskModel> createAtoms(Map<String,List<String>> losers, String dirName){
-		if(losers == null|| losers.isEmpty()){
-			return null;
-		}
-		// 统计副本个数
-		StorageNameNode sn = null;
-		List<String> files = null;
-		Map<String, Integer> snFilesCounts = null;
-		Pair<List<String>, List<String>> result = null;
-		int filterCount = 0;
-		AtomTaskModel atom = null;
-		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
-		for (Map.Entry<String, List<String>> entry : losers.entrySet()) {
-			atom = new AtomTaskModel();
-			atom.setStorageName(entry.getKey());
-			atom.setDirName(dirName);
-			atom.setFiles(entry.getValue());
-			atoms.add(atom);
-		}
-		return atoms;
-	}
-	/**
-	 * 概述：创建服务节点
-	 * @param services
-	 * @param release
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public void createServiceNodes(List<Service> services, MetaTaskManagerInterface release,String taskName){
-		if(services == null || services.isEmpty()){
-			LOG.warn("service list is null");
-			return;
-		}
-		String serverId = null;
-		boolean isSuccess = false;
-		for(Service service : services){
-			serverId = service.getServiceId();
-			isSuccess = release.updateServerTaskContentNode(serverId, taskName, TaskType.SYSTEM_COPY_CHECK.name(), createServerNodeModel());
-			if(!isSuccess){
-				LOG.warn("create server node error {}", serverId);
+			startTime = sn.getCreateTime();
+			if(currentTime - startTime <ttl) {
+				continue;
 			}
+			startTime = startTime - startTime % granule;
+			repairs.put(snName, startTime);
 		}
+		return repairs;
 	}
-	/**
-	 * 概述：创建任务
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public TaskServerNodeModel createServerNodeModel(){
-		TaskServerNodeModel task = new TaskServerNodeModel();
-		task.setTaskState(TaskState.INIT.code());
-		return task;
-	}
-	
-	/**
-	 * 概述：获取任务开始时间
-	 * @param release
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private long getStartTime(MetaTaskManagerInterface release,long time){
-		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
-		//判断任务创建的时间若无则创建当前时间的前天的第一小时的
-		List<String> tasks = release.getTaskList(taskType);
-		long startTime = new Date().getTime()/(1000*60*60) *(1000*60*60);
-		startTime = startTime - time - 3600000;
-		long currentTime = 0l;
-		long createTime = 0l;
-		String currStr = null;
-		String cTimeStr = null;
-		if(tasks != null && !tasks.isEmpty()){
-			String lasTask = tasks.get(tasks.size() - 1);			
-			TaskModel task = release.getTaskContentNodeInfo(taskType, lasTask);
-			if(task != null){
-				currStr = task.getEndDataTime();
-				cTimeStr = task.getCreateTime();
-				currentTime = BrStringUtils.isEmpty(currStr) ? 0: TimeUtils.getMiles(currStr, TimeUtils.TIME_MILES_FORMATE);
-				createTime = BrStringUtils.isEmpty(cTimeStr) ? 0 : TimeUtils.getMiles(cTimeStr, TimeUtils.TIME_MILES_FORMATE);
-			}
-		}else{
-			LOG.info("{} task queue is empty !!", taskType);
-		}
-		//创建时间间隔小于一小时的不进行创建
-		if(System.currentTimeMillis() - createTime <60*60*1000){
-			return  -1;
-		}
-		if(currentTime == 0){
-			return startTime;
-		}else{
-			return currentTime;
-		}
-	}
-	
-
 }
