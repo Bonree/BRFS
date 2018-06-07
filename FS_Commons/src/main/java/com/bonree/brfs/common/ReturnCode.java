@@ -17,7 +17,12 @@ public enum ReturnCode {
     STORAGE_OPT_ERROR(4005), // 创建storage name发生错误
     USER_FORBID(3001), // 用户不行
     INVALID_CODE(3002),
-    USER_DELETE_ERROR(3003);
+    TIME_FORMATE_ERROR(3003),
+    TIME_EARLIER_THAN_CREATE_ERROR(3004),
+    FORBID_DELETE_CURRENT_ERROR(3005),
+	PARAMETER_ERROR(3006),
+	DELETE_DATA_ERROR(3007),
+	FORBID_DELETE_DATA_ERROR(3008);
 
     // 成员变量
     private int code;
@@ -72,9 +77,20 @@ public enum ReturnCode {
             throw new BRFSException("User is forbidden!!!!");
         } else if (code.equals(ReturnCode.INVALID_CODE)) {
             throw new BRFSException("invalid code!!!");
-        }else if(code.equals(ReturnCode.USER_DELETE_ERROR)) {
-        	throw new BRFSException(storageName + " delete data error");
         }
+//		} else if (code.equals(ReturnCode.TIME_FORMATE_ERROR)) {
+//			throw new BRFSException(storageName +" time formate is error");
+//		} else if (code.equals(ReturnCode.TIME_EARLIER_THAN_CREATE_ERROR)) {
+//			throw new BRFSException(storageName + " delete data time earlier than create time error");
+//		} else if (code.equals(ReturnCode.FORBID_DELETE_CURRENT_ERROR)) {
+//			throw new BRFSException(storageName + " forbit delete current time data error");
+//		} else if (code.equals(ReturnCode.PARAMETER_ERROR)) {
+//			throw new BRFSException(storageName + " parameter error");
+//		} else if (code.equals(ReturnCode.DELETE_DATA_ERROR)) {
+//			throw new BRFSException(storageName + " delete data error");
+//		} else if (code.equals(ReturnCode.FORBID_DELETE_DATA_ERROR)) {
+//			throw new BRFSException(storageName + "forbid delete data error");
+//		}
         return code;
     }
 }

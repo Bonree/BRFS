@@ -56,10 +56,10 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
 				callback.completed(result);
 				return;
 			}
-			boolean isCreate = TasksUtils.createUserDeleteTask(services, serverConfig, zkPaths, sn, -1,	System.currentTimeMillis());
-			if (!isCreate) {
+			ReturnCode code = TasksUtils.createUserDeleteTask(services, serverConfig, zkPaths, sn, -1,	System.currentTimeMillis());
+			if (!ReturnCode.SUCCESS.equals(code)) {
 				result.setSuccess(false);
-				result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()));
+				result.setData(BrStringUtils.toUtf8Bytes(code.name()));
 			} else {
 				deleted = storageNameManager.removeStorageName(msg.getName());
 				result.setSuccess(deleted);
