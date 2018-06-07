@@ -83,7 +83,6 @@ public class CreateSystemTask {
 		if(!BrStringUtils.isEmpty(prexTaskName)){
 			prexTask = release.getTaskContentNodeInfo(taskType.name(), prexTaskName);
 		}
-		System.out.println(prexTaskName);
 		return prexTask;
 	}
 	/**
@@ -302,9 +301,6 @@ public class CreateSystemTask {
 			if(ttl > currentTime - cTime) {
 				continue;
 			}
-			System.out.println("ttl : "+ttl);
-			System.out.println("current :" + currentTime);
-			System.out.println("cTime :"+ cTime);
 			filters.add(sn);
 		}
 		return filters;

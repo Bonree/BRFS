@@ -107,7 +107,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					continue;
 				}
 				int retryCount = 3;
-				if(TaskType.SYSTEM_CHECK.equals(taskType)||TaskType.SYSTEM_RECOVERY.equals(taskType)||TaskType.SYSTEM_MERGER.equals(taskType)){
+				if(TaskType.SYSTEM_CHECK.equals(taskType)||TaskType.SYSTEM_RECOVERY.equals(taskType)||TaskType.SYSTEM_MERGER.equals(taskType)|| TaskType.SYSTEM_DELETE.equals(taskType)){
 					retryCount = 0;
 				}
 				Pair<String,TaskModel> taskPair = TaskStateLifeContral.getCurrentOperationTask(release, typeName, serverId, retryCount);
