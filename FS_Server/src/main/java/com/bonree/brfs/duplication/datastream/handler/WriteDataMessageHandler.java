@@ -16,7 +16,7 @@ import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.bonree.brfs.duplication.datastream.DataHandleCallback;
 import com.bonree.brfs.duplication.datastream.DataWriteResult;
 import com.bonree.brfs.duplication.datastream.DuplicateWriter;
-import com.bonree.brfs.duplication.datastream.ResultItem;
+import com.bonree.brfs.duplication.datastream.tasks.ResultItem;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.google.protobuf.ByteString;

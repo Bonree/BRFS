@@ -12,6 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.duplication.DuplicationEnvironment;
+import com.bonree.brfs.duplication.coordinator.FileNode;
+import com.bonree.brfs.duplication.synchronize.FileSynchronizeCallback;
+import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.duplication.utils.TimedObjectCollection;
 import com.bonree.brfs.duplication.utils.TimedObjectCollection.ObjectBuilder;
 import com.bonree.brfs.duplication.utils.TimedObjectCollection.TimedObject;
@@ -41,19 +44,22 @@ public class DefaultFileLounge implements FileLounge {
 	
 	private FileLimiterFactory fileLimiterFactory;
 	
+	private FileSynchronizer fileSynchronizer;
+	
 	private static final long DEFAULT_FILE_PATITION_TIME_INTERVAL = TimeUnit.HOURS.toMillis(1);
 	//默认文件的时间分区间隔为一个小时
 	private final long patitionTimeInterval;
 	
 	private int storageId;
 	
-	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory) {
-		this(storageId, fileLimiterFactory, DEFAULT_FILE_PATITION_TIME_INTERVAL);
+	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, FileSynchronizer fileSynchronizer) {
+		this(storageId, fileLimiterFactory, fileSynchronizer, DEFAULT_FILE_PATITION_TIME_INTERVAL);
 	}
 	
-	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, long timeIntervalMillis) {
+	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, FileSynchronizer fileSynchronizer, long timeIntervalMillis) {
 		this.storageId = storageId;
 		this.fileLimiterFactory = fileLimiterFactory;
+		this.fileSynchronizer = fileSynchronizer;
 		this.patitionTimeInterval = timeIntervalMillis;
 		
 		this.timedFileContainer = new TimedObjectCollection<List<FileLimiter>>(
@@ -96,7 +102,15 @@ public class DefaultFileLounge implements FileLounge {
 			}
 			
 			synchronized (fileList) {
-				for(FileLimiter file : fileList) {
+				Iterator<FileLimiter> iterator = fileList.iterator();
+				while(iterator.hasNext()) {
+					FileLimiter file = iterator.next();
+					if(file.isSync()) {
+						LOG.info("skip selecting file[{}] because it's syncing", file.getFileNode().getName());
+						fileSynchronizer.synchronize(file.getFileNode(), new FileLimiterSyncCallback(file));
+						iterator.remove();
+					}
+					
 					if(!file.lock(requestSizes)) {
 						LOG.debug("can not lock file[{}]", file.getFileNode().getName());
 						continue;
@@ -237,5 +251,26 @@ public class DefaultFileLounge implements FileLounge {
 		}
 		
 		return result;
+	}
+	
+	private class FileLimiterSyncCallback implements FileSynchronizeCallback {
+		private FileLimiter fileLimiter;
+		
+		public FileLimiterSyncCallback(FileLimiter fileLimiter) {
+			this.fileLimiter = fileLimiter;
+		}
+
+		@Override
+		public void complete(FileNode file) {
+			LOG.info("after sync, file Limiter[{}] is back!", file.getName());
+			fileLimiter.setSync(false);
+			addFileLimiter(fileLimiter);
+		}
+
+		@Override
+		public void error(Throwable cause) {
+			LOG.error("file limiter[{}] sync error", fileLimiter.getFileNode().getName(), cause);
+		}
+		
 	}
 }

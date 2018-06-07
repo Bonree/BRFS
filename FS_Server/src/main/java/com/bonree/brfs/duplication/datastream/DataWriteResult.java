@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.datastream;
 
+import com.bonree.brfs.duplication.datastream.tasks.ResultItem;
+
 public class DataWriteResult {
 	private ResultItem[] items;
 

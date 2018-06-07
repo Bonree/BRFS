@@ -19,6 +19,8 @@ public interface DiskNodeClient extends Closeable {
 	
 	WriteResult[] writeDatas(String path, WriteData[] dataList) throws IOException;
 	
+	boolean flush(String file) throws IOException;
+	
 	byte[] readData(String path, int offset, int size) throws IOException;
 	boolean closeFile(String path);
 	List<FileInfo> listFiles(String path, int level);

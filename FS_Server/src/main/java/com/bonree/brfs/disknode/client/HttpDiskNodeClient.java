@@ -74,7 +74,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		.build();
 		
 		try {
+			LOG.info("open file[{}] with capacity[{}] to {}:{}", path, capacity, host, port);
 			HttpResponse response = client.executePut(uri);
+			LOG.info("open file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
 				return Ints.fromByteArray(response.getResponseBody());
 			}
@@ -119,7 +121,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		.build();
 		
 		try {
+			LOG.info("write file[{}] with {} datas to {}:{}", path, dataList.length, host, port);
 			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(datas));
+			LOG.info("write file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
 				WriteResultList resultList = ProtoStuffUtils.deserialize(response.getResponseBody(), WriteResultList.class);
 				return resultList.getWriteResults();
@@ -129,6 +133,27 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		}
 		
 		return null;
+	}
+	
+	@Override
+	public boolean flush(String path) {
+		URI uri = new URIBuilder()
+		.setScheme(DEFAULT_SCHEME)
+		.setHost(host)
+		.setPort(port)
+		.setPath(DiskContext.URI_FLUSH_NODE_ROOT + path)
+		.build();
+		
+		try {
+			LOG.info("flush file[{}] to {}:{}", path, host, port);
+			HttpResponse response = client.executePost(uri);
+			LOG.info("flush file[{}] response[{}]", path, response.getStatusCode());
+			return response.isReponseOK();
+		} catch (Exception e) {
+			LOG.error("write file[{}] to {}:{} error", path, host, port, e);
+		}
+		
+		return false;
 	}
 
 	@Override
@@ -145,7 +170,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 
 		byte[] result = null;
 		try {
+			LOG.info("read file[{}] with offset[{}], size[{}] to {}:{}", path, offset, size, host, port);
 			HttpResponse response = client.executeGet(uri);
+			LOG.info("read file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
 				result = response.getResponseBody();
 			}
@@ -166,7 +193,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	    .build();
 		
 		try {
+			LOG.info("close file[{}] to {}:{}", path, host, port);
 			HttpResponse response = client.executeClose(uri);
+			LOG.info("close file[{}] response[{}]", path, response.getStatusCode());
 			return response.isReponseOK();
 		} catch (Exception e) {
 			LOG.error("close file[{}] at {}:{} error", path, host, port, e);
@@ -188,7 +217,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		}
 
 		try {
+			LOG.info("delete file[{}] force[{}] to {}:{}", path, force, host, port);
 			HttpResponse response = client.executeDelete(builder.build());
+			LOG.info("delete file[{}] response[{}]", path, response.getStatusCode());
 			return response.isReponseOK();
 		} catch (Exception e) {
 			LOG.error("delete file[{}] at {}:{} error", path, host, port, e);
@@ -214,7 +245,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		}
 
 		try {
+			LOG.info("delete dir[{}] force[{}] recursive[{}] to {}:{}", path, force, recursive, host, port);
 			HttpResponse response = client.executeDelete(builder.build());
+			LOG.info("delete dir[{}] response[{}]", path, response.getStatusCode());
 			return response.isReponseOK();
 		} catch (Exception e) {
 			LOG.error("delete dir[{}] at {}:{} error", path, host, port, e);
@@ -233,7 +266,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	    .build();
 		
 		try {
+			LOG.info("get sequences from file[{}] to {}:{}", path, host, port);
 			HttpResponse response = client.executeGet(uri);
+			LOG.info("get sequences from file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
 				return BitSet.valueOf(response.getResponseBody());
 			}
@@ -282,7 +317,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	    .build();
 		
 		try {
+			LOG.info("recover file[{}] response[{}] to {}:{}", path, host, port);
 			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(infos));
+			LOG.info("recover file[{}] response[{}]", path, response.getStatusCode());
 			
 			return response.isReponseOK();
 		} catch (Exception e) {
@@ -303,7 +340,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	    .build();
 		
 		try {
+			LOG.info("get bytes from file[{}] by sequence[{}] to {}:{}", path, sequence, host, port);
 			HttpResponse response = client.executeGet(uri);
+			LOG.info("get bytes from file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
 				return response.getResponseBody();
 			}
@@ -358,7 +397,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	    .build();
 		
 		try {
+			LOG.info("get meta info from file[{}] to {}:{}", path, host, port);
 			HttpResponse response = client.executeGet(uri);
+			LOG.info("get meta info from file[{}] response[{}]", path, response.getStatusCode());
 			
 			if(response.isReponseOK()) {
 				JSONObject json = JSONObject.parseObject(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));

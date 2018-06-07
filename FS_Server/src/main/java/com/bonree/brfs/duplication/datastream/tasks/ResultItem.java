@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.datastream;
+package com.bonree.brfs.duplication.datastream.tasks;
 
 public class ResultItem {
 	private int sequence;

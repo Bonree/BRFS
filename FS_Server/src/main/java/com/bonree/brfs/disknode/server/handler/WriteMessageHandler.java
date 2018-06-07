@@ -88,7 +88,7 @@ public class WriteMessageHandler implements MessageHandler {
 				writer.updateSequence(data.getDiskSequence());
 				writer.write(data.getBytes());
 				
-				writerManager.flushIfNeeded(binding);
+				writerManager.flushIfNeeded(writer.getPath());
 				
 				result.setSize(data.getBytes().length);
 				results[i] = result;

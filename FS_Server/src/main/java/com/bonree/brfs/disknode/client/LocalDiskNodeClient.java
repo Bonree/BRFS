@@ -130,4 +130,9 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 		return 0;
 	}
 
+	@Override
+	public boolean flush(String file) throws IOException {
+		return true;
+	}
+
 }

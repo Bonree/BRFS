@@ -1,6 +1,7 @@
 package com.bonree.brfs.disknode.data.write;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashMap;
@@ -42,7 +43,7 @@ public class FileWriterManager implements LifeCycle {
 	private Map<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new HashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
 	private static final int DEFAULT_TIMEOUT_SECONDS = 2;
-	private WheelTimer<Pair<RecordFileWriter, WriteWorker>> timeoutWheel = new WheelTimer<Pair<RecordFileWriter, WriteWorker>>(
+	private WheelTimer<String> timeoutWheel = new WheelTimer<String>(
 			DEFAULT_TIMEOUT_SECONDS);
 
 	public FileWriterManager(RecordCollectionManager recorderManager, DiskContext context) {
@@ -65,29 +66,17 @@ public class FileWriterManager implements LifeCycle {
 	public void start() throws Exception {
 		workerGroup.start();
 
-		timeoutWheel.setTimeout(new Timeout<Pair<RecordFileWriter, WriteWorker>>() {
+		timeoutWheel.setTimeout(new Timeout<String>() {
 
 					@Override
-					public void timeout(Pair<RecordFileWriter, WriteWorker> target) {
-						LOG.info("Time to flush file[{}]", target.first().getPath());
+					public void timeout(String filePath) {
+						LOG.info("Time to flush file[{}]", filePath);
 
-						target.second().put(new WriteTask<Void>() {
-
-							@Override
-							protected Void execute() throws Exception {
-								target.first().flush();
-								return null;
-							}
-
-							@Override
-							protected void onPostExecute(Void result) {
-							}
-
-							@Override
-							protected void onFailed(Throwable e) {
-								LOG.error("flush error {}", target.first().getPath(), e);
-							}
-						});
+						try {
+							flushFile(filePath);
+						} catch (FileNotFoundException e) {
+							LOG.info("flush file[{}] error", filePath, e);
+						}
 					}
 				});
 		timeoutWheel.start();
@@ -95,8 +84,44 @@ public class FileWriterManager implements LifeCycle {
 		rebuildFileWriters();
 	}
 	
-	public void flushIfNeeded(Pair<RecordFileWriter, WriteWorker> target) {
-		timeoutWheel.update(target);
+	public void flushIfNeeded(String filePath) {
+		timeoutWheel.update(filePath);
+	}
+	
+	public void flushFile(String path) throws FileNotFoundException {
+		Pair<RecordFileWriter, WriteWorker> binding = getBinding(path, false);
+		if(binding == null) {
+			throw new FileNotFoundException(path);
+		}
+		
+		binding.second().put(new WriteTask<Void>() {
+
+			@Override
+			protected Void execute() throws Exception {
+				LOG.info("execute flush for file[{}]", binding.first().getPath());
+				binding.first().flush();
+				return null;
+			}
+
+			@Override
+			protected void onPostExecute(Void result) {
+			}
+
+			@Override
+			protected void onFailed(Throwable e) {
+				LOG.error("flush error {}", path, e);
+			}
+		});
+	}
+	
+	public void flushAll() {
+		for(String filePath : runningWriters.keySet()) {
+			try {
+				flushFile(filePath);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private void rebuildFileWriters() throws IOException {
@@ -201,7 +226,7 @@ public class FileWriterManager implements LifeCycle {
 			return;
 		}
 		
-		timeoutWheel.remove(binding);
+		timeoutWheel.remove(path);
 		CloseUtils.closeQuietly(binding.first());
 	}
 }

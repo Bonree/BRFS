@@ -17,6 +17,7 @@ public class FileLimiter {
 	private volatile long logicLength;
 	private volatile long realLength;
 	private volatile int sequence;
+	private volatile boolean sync;
 	
 	private AtomicReference<Object> lockObject = new AtomicReference<Object>();
 	private Object attached;
@@ -72,6 +73,14 @@ public class FileLimiter {
 	
 	public void unlock() {
 		lockObject.set(null);
+	}
+	
+	public void setSync(boolean isSync) {
+		sync = isSync;
+	}
+	
+	public boolean isSync() {
+		return sync;
 	}
 	
 	public void attach(Object obj) {

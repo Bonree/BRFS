@@ -6,20 +6,23 @@ import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
-import com.bonree.brfs.duplication.storagename.StorageNameStateListener;
+import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class DefaultFileLoungeFactory implements FileLoungeFactory {
 	private FileLimiterFactory fileFactory;
 	private StorageNameManager storageNameManager;
+	private FileSynchronizer fileSynchronizer;
 	
 	public DefaultFileLoungeFactory(Service service,
 			FileCoordinator fileCoordinator,
 			DuplicationNodeSelector nodeSelector,
 			StorageNameManager storageNameManager,
 			ServerIDManager idManager,
-			DiskNodeConnectionPool connectionPool) {
+			DiskNodeConnectionPool connectionPool,
+			FileSynchronizer fileSynchronizer) {
 		this.storageNameManager = storageNameManager;
+		this.fileSynchronizer = fileSynchronizer;
 		this.fileFactory = new DefaultFileLimiterFactory(fileCoordinator, nodeSelector, storageNameManager, service, idManager, connectionPool);
 	}
 
@@ -30,7 +33,7 @@ public class DefaultFileLoungeFactory implements FileLoungeFactory {
 			return null;
 		}
 		
-		FileLounge fileLounge = new DefaultFileLounge(storageId, fileFactory);
+		FileLounge fileLounge = new DefaultFileLounge(storageId, fileFactory, fileSynchronizer);
 		
 		return fileLounge;
 	}

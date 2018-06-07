@@ -9,7 +9,9 @@ import com.bonree.brfs.common.http.HttpConfig;
 import com.bonree.brfs.common.http.netty.NettyHttpContextHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpServer;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.DiskContext;
@@ -18,6 +20,7 @@ import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.server.handler.CloseMessageHandler;
 import com.bonree.brfs.disknode.server.handler.DeleteMessageHandler;
 import com.bonree.brfs.disknode.server.handler.FileCopyMessageHandler;
+import com.bonree.brfs.disknode.server.handler.FlushMessageHandler;
 import com.bonree.brfs.disknode.server.handler.ListMessageHandler;
 import com.bonree.brfs.disknode.server.handler.OpenMessageHandler;
 import com.bonree.brfs.disknode.server.handler.PingPongRequestHandler;
@@ -58,6 +61,19 @@ public class EmptyMain implements LifeCycle {
 		writerManager = new FileWriterManager(recorderManager, diskContext);
 		writerManager.start();
 		
+		serviceManager.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServiceStateListener() {
+			
+			@Override
+			public void serviceRemoved(Service service) {
+				LOG.info("service[{}] removed, time to flush all files", service);
+				writerManager.flushAll();
+			}
+			
+			@Override
+			public void serviceAdded(Service service) {
+			}
+		});
+		
 		server = new NettyHttpServer(httpConfig);
 		
 		NettyHttpContextHandler contextHandler = new NettyHttpContextHandler(DiskContext.URI_DISK_NODE_ROOT);
@@ -69,6 +85,12 @@ public class EmptyMain implements LifeCycle {
 		requestHandler.addMessageHandler("DELETE", new DeleteMessageHandler(diskContext, writerManager));
 		contextHandler.setNettyHttpRequestHandler(requestHandler);
 		server.addContextHandler(contextHandler);
+		
+		NettyHttpContextHandler flushHandler = new NettyHttpContextHandler(DiskContext.URI_FLUSH_NODE_ROOT);
+		NettyHttpRequestHandler flushRequestHandler = new NettyHttpRequestHandler();
+		flushRequestHandler.addMessageHandler("POST", new FlushMessageHandler(diskContext, writerManager));
+		flushHandler.setNettyHttpRequestHandler(flushRequestHandler);
+		server.addContextHandler(flushHandler);
 		
 		NettyHttpContextHandler infoHandler = new NettyHttpContextHandler(DiskContext.URI_INFO_NODE_ROOT);
 		NettyHttpRequestHandler infoRequestHandler = new NettyHttpRequestHandler();

@@ -20,7 +20,6 @@ import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.FidBuilder;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
-import com.bonree.brfs.duplication.datastream.ResultItem;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.FileLimiter;
@@ -87,18 +86,13 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 			taskGroup.addTask(new DataWriteTask(filePath, connection, datas));
 		}
 		
-		DataWriteResultCallback callback = new DataWriteResultCallback(file);
+		DataWriteResultCallback callback = new DataWriteResultCallback();
 		taskRunner.submit(taskGroup, callback, resultHandleExecutor);
 		
 		return resultGetter.take();
 	}
 	
 	private class DataWriteResultCallback implements AsyncTaskGroupCallback<WriteResult[]> {
-		private FileLimiter file;
-		
-		public DataWriteResultCallback(FileLimiter file) {
-			this.file = file;
-		}
 
 		@Override
 		public void completed(AsyncTaskResult<WriteResult[]>[] results) {
@@ -116,23 +110,24 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 				int validIndex = -1;
 				for(AsyncTaskResult<WriteResult[]> taskResult : results) {
 					//每个taskResult对象代表一个磁盘节点的数据写入结果
-					if(taskResult.getError() != null) {
+					if(taskResult.getError() != null || taskResult.getResult() == null) {
 						//如果有异常，说明某个磁盘节点写入数据失败
 						LOG.warn("writing task is failed--{}", taskResult.getError());
+						
+						LOG.info("set file[{}] to sync", file.getFileNode().getName());
+						file.setSync(true);
 						continue;
 					}
 					
 					//磁盘节点写入结果正常返回
 					WriteResult[] writeResults = taskResult.getResult();
-					if(writeResults != null) {
-						for(int i = 0; i < writeResults.length; i++) {
-							//遍历每条数据的返回结果，如果结果中的size大于0，说明写入成功
-							WriteResult writeResult = writeResults[i];
-							if(writeResult != null && writeResult.getSize() > 0) {
-								//写入成功的数据都是连续的（磁盘节点保证这一点），所以
-								//只要记录最大的有效索引即可
-								validIndex = Math.max(validIndex, i);
-							}
+					for(int i = 0; i < writeResults.length; i++) {
+						//遍历每条数据的返回结果，如果结果中的size大于0，说明写入成功
+						WriteResult writeResult = writeResults[i];
+						if(writeResult != null && writeResult.getSize() > 0) {
+							//写入成功的数据都是连续的（磁盘节点保证这一点），所以
+							//只要记录最大的有效索引即可
+							validIndex = Math.max(validIndex, i);
 						}
 					}
 				}

@@ -36,6 +36,7 @@ import com.bonree.brfs.duplication.datastream.file.FileLounge;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeCleaner;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.tasks.MultiDataWriteTask;
+import com.bonree.brfs.duplication.datastream.tasks.ResultItem;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.duplication.storagename.StorageNameStateListener;

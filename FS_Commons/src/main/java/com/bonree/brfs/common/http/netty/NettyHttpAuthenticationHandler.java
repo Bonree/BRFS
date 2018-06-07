@@ -29,13 +29,13 @@ public class NettyHttpAuthenticationHandler extends SimpleChannelInboundHandler<
 		String passwd = headers.get("password");
 		LOG.info("get user info[{}, {}]", userName, passwd);
 		
-//		int checkResult = httpAuthenticator.check(userName, passwd);
-//		if(checkResult != 0) {
-//			LOG.error("Illegal user info!");
-//			ReferenceCountUtil.release(request);
-//			ResponseSender.sendError(ctx, HttpResponseStatus.FORBIDDEN, String.valueOf(checkResult));
-//			return;
-//		}
+		int checkResult = httpAuthenticator.check(userName, passwd);
+		if(checkResult != 0) {
+			LOG.error("Illegal user info!");
+			ReferenceCountUtil.release(request);
+			ResponseSender.sendError(ctx, HttpResponseStatus.FORBIDDEN, String.valueOf(checkResult));
+			return;
+		}
 		
 		LOG.debug("OKKK user info!");
 		ctx.fireChannelRead(request);
