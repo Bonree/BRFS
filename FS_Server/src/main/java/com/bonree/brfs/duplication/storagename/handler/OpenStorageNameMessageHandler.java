@@ -37,7 +37,7 @@ public class OpenStorageNameMessageHandler extends StorageNameMessageHandler {
 			try {
 				nodeBytes = ProtoStuffUtils.serialize(node);
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOG.error("serialize storage node error", e);
 			}
 			result.setData(BrStringUtils.toUtf8Bytes(String.valueOf(node.getId())));
 		}

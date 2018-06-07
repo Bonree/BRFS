@@ -4,7 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
@@ -12,6 +13,7 @@ import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 
 public class SynchronierErrorRecorder {
+	private static final Logger LOG = LoggerFactory.getLogger(SynchronierErrorRecorder.class);
 	private static final String FIELD_SEPARATOR = " ";
 	
 	private final File errorFile;
@@ -32,7 +34,7 @@ public class SynchronierErrorRecorder {
 			
 			output.write(BrStringUtils.toUtf8Bytes(builder.toString()));
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.error("writeErrorFile[{}] error", fileNode.getName(), e);
 		} finally {
 			CloseUtils.closeQuietly(output);
 		}

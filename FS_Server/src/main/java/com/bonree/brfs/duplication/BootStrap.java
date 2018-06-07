@@ -1,5 +1,8 @@
 package com.bonree.brfs.duplication;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -18,11 +21,12 @@ import com.bonree.brfs.common.http.netty.NettyHttpServer;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
+import com.bonree.brfs.common.utils.ProcessFinalizer;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configuration;
+import com.bonree.brfs.configuration.Configuration.ConfigPathException;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.configuration.StorageConfig;
-import com.bonree.brfs.configuration.Configuration.ConfigPathException;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkManager;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
@@ -55,9 +59,10 @@ public class BootStrap {
     private static final Logger LOG = LoggerFactory.getLogger(BootStrap.class);
 
     public static void main(String[] args) {
-        String brfsHome = System.getProperty("path");
+    	ProcessFinalizer finalizer = new ProcessFinalizer();
+        
         try {
-
+        	String brfsHome = System.getProperty("path");
             System.setProperty("name", "duplication");
             Configuration conf = Configuration.getInstance();
             conf.parse(brfsHome + "/config/server.properties");
@@ -70,11 +75,14 @@ public class BootStrap {
             CuratorCacheFactory.init(serverConfig.getZkHosts());
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
             ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
-
+            finalizer.add(idManager);
+            
             RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
             CuratorFramework client = CuratorFrameworkFactory.newClient(serverConfig.getZkHosts(), 3000, 15000, retryPolicy);
             client.start();
             client.blockUntilConnected();
+            
+            finalizer.add(client);
 
             SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client);
             UserModel model = simpleAuthentication.getUser("root");
@@ -88,22 +96,31 @@ public class BootStrap {
             Service service = new Service(idManager.getFirstServerID(), ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, serverConfig.getHost(), serverConfig.getPort());
             ServiceManager serviceManager = new DefaultServiceManager(client);
             serviceManager.start();
+            
+            finalizer.add(serviceManager);
 
             StorageNameManager storageNameManager = new DefaultStorageNameManager(storageConfig, client, new ZkStorageIdBuilder(serverConfig.getZkHosts(), zookeeperPaths.getBaseSequencesPath()));
             storageNameManager.start();
+            
+            finalizer.add(storageNameManager);
 
             FileNodeStorer storer = new ZkFileNodeStorer(client, ZkFileCoordinatorPaths.COORDINATOR_FILESTORE);
             FileNodeSinkManager sinkManager = new ZkFileNodeSinkManager(client, serviceManager, storer, new RandomFileNodeServiceSelector());
             sinkManager.start();
+            
+            finalizer.add(sinkManager);
 
             FileCoordinator fileCoordinator = new FileCoordinator(client, storer, sinkManager);
 
             FilteredDiskNodeConnectionPool connectionPool = new FilteredDiskNodeConnectionPool();
             connectionPool.addFactory(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP, new VirtualDiskNodeConnectionPool());
             connectionPool.addFactory(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new HttpDiskNodeConnectionPool(serviceManager));
+            finalizer.add(connectionPool);
 
             FileSynchronizer fileSynchronizer = new DefaultFileSynchronier(connectionPool, serviceManager, idManager);
             fileSynchronizer.start();
+            
+            finalizer.add(fileSynchronizer);
 
             DuplicationNodeSelector nodeSelector = new VirtualDuplicationNodeSelector(serviceManager, idManager);
 
@@ -111,7 +128,7 @@ public class BootStrap {
 
             FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool);
             DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser, storageNameManager);
-
+            
             HttpConfig config = new HttpConfig(serverConfig.getPort());
             config.setKeepAlive(true);
             NettyHttpServer httpServer = new NettyHttpServer(config);
@@ -133,8 +150,22 @@ public class BootStrap {
             httpServer.addContextHandler(snContextHandler);
 
             httpServer.start();
+            
+            finalizer.add(httpServer);
 
             serviceManager.registerService(service);
+            
+            finalizer.add(new Closeable() {
+				
+				@Override
+				public void close() throws IOException {
+					try {
+						serviceManager.unregisterService(service);
+					} catch (Exception e) {
+						LOG.error("unregister service[{}] error", service, e);
+					}
+				}
+			});
         } catch (ConfigPathException e) {
             LOG.error("config file not exist!!!", e);
             System.exit(1);
@@ -144,6 +175,8 @@ public class BootStrap {
         } catch (Exception e) {
             LOG.error("launch server error!!!", e);
             System.exit(1);
+        } finally {
+        	Runtime.getRuntime().addShutdownHook(finalizer);
         }
     }
 

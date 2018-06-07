@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,6 +128,13 @@ public class FileWriterManager implements LifeCycle {
 
 	@Override
 	public void stop() {
+		for(Entry<String,Pair<RecordFileWriter,WriteWorker>> entry : runningWriters.entrySet()) {
+			try {
+				entry.getValue().first().flush();
+			} catch (IOException e) {
+				LOG.error("stop to flush file[{}] error", entry.getKey(), e);
+			}
+		}
 		workerGroup.stop();
 	}
 
@@ -178,7 +186,7 @@ public class FileWriterManager implements LifeCycle {
 						
 						runningWriters.put(filePath, binding);
 					} catch (Exception e) {
-						e.printStackTrace();
+						LOG.error("build disk writer error", e);
 					}
 				}
 			}

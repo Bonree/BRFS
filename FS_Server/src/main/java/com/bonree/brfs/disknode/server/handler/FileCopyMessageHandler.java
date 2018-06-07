@@ -77,7 +77,7 @@ public class FileCopyMessageHandler implements MessageHandler {
 				result.setSuccess(true);
 				callback.completed(result);
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOG.error("file copy error", e);
 				result.setSuccess(false);
 				result.setCause(e);
 				callback.completed(result);

@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.coordinator.FileNode;
@@ -12,6 +14,8 @@ import com.bonree.brfs.duplication.coordinator.FileNodeFilter;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
 
 public class ZkFileNodeStorer implements FileNodeStorer {
+	private static final Logger LOG = LoggerFactory.getLogger(ZkFileNodeStorer.class);
+	
 	private CuratorFramework client;
 	private String storePath;
 
@@ -51,7 +55,7 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 			byte[] bytes = client.getData().forPath(fileNodePath);
 			return JsonUtils.toObject(bytes, FileNode.class);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("get file node[{}] error", fileName, e);
 			throw new RuntimeException(e);
 		}
 	}

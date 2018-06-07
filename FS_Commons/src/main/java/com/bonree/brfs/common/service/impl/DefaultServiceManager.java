@@ -129,7 +129,7 @@ public class DefaultServiceManager implements ServiceManager {
 				
 				return serviceCache;
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.error("build service cache error", e);
 			}
 		}
 		
@@ -218,7 +218,9 @@ public class DefaultServiceManager implements ServiceManager {
 			for(ServiceStateListener listener : getServiceStateListener(group)) {
 				try {
 					listener.serviceAdded(service);
-				} catch (Exception e) {}
+				} catch (Exception e) {
+					LOG.error("notify service added error", e);
+				}
 			}
 		}
 		
@@ -226,14 +228,16 @@ public class DefaultServiceManager implements ServiceManager {
 			for(ServiceStateListener listener : getServiceStateListener(group)) {
 				try {
 					listener.serviceRemoved(service);
-				} catch (Exception e) {}
+				} catch (Exception e) {
+					LOG.error("notify service removed error", e);
+				}
 			}
 		}
 
 		@Override
 		public void stateChanged(CuratorFramework client, ConnectionState newState) {
 			//nothing to do!
-			System.out.println("InnerServiceListener --" + newState.toString());
+			LOG.info("InnerServiceListener -> {}", newState);
 		}
 
 		@Override

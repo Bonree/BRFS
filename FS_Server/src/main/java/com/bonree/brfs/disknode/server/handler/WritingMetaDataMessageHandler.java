@@ -78,7 +78,7 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 			result.setData(BrStringUtils.toUtf8Bytes(json.toJSONString()));
 			callback.completed(result);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.error("get meta data error", e);
 			
 			result.setSuccess(false);
 			result.setCause(e);

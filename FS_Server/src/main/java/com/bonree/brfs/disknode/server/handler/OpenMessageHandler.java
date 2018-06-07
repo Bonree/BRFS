@@ -46,7 +46,7 @@ public class OpenMessageHandler implements MessageHandler {
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		String realPath = diskContext.getConcreteFilePath(msg.getPath());
 		int capacity = Integer.parseInt(msg.getParams().getOrDefault("capacity", String.valueOf(DEFAULT_FILE_CAPACITY)));
-		LOG.info("open file [{}]", realPath);
+		LOG.info("open file [{}] with capacity[{}]", realPath, capacity);
 		
 		Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
 		if(binding == null) {

@@ -88,12 +88,12 @@ public class FileLimiterCloser implements FileCloseListener {
 
 		@Override
 		public void error(Throwable cause) {
-			cause.printStackTrace();
+			LOG.error("sync file to close error", cause);
 			try {
 				//对于没办法处理的文件，只能放弃了
 				fileCoordinator.delete(file.getFileNode());
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.error("delete file node error", e);
 			}
 		}
 		

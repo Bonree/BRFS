@@ -213,7 +213,9 @@ public class DefaultFileLounge implements FileLounge {
 		Iterator<FileLimiter> iterator = removedFileList.iterator();
 		while(iterator.hasNext()) {
 			try {
-				fileCloseListener.close(iterator.next());
+				FileLimiter file = iterator.next();
+				LOG.info("scaning closing file-->{}", file.getFileNode().getName());
+				fileCloseListener.close(file);
 				
 				iterator.remove();
 			} catch (Exception e) {

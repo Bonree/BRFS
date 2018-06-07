@@ -30,7 +30,7 @@ public class WriteWorker implements Runnable {
 		try {
 			taskQueue.put(task);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			LOG.error("put task error", e);
 		}
 	}
 	
@@ -41,12 +41,12 @@ public class WriteWorker implements Runnable {
 	@Override
 	public void run() {
 		LOG.info("Woker[{}] started.", id);
-		while(!isQuit) {
+		while(!isQuit && taskQueue.isEmpty()) {
 			Runnable task = null;
 			try {
 				task = taskQueue.take();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				LOG.error("take task error", e);
 			}
 			
 			if(task == null) {
@@ -56,7 +56,7 @@ public class WriteWorker implements Runnable {
 			try {
 				task.run();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.error("task running error", e);
 			}
 		}
 		LOG.info("Woker[{}] quit.", id);
