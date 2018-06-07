@@ -22,6 +22,7 @@ import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
+import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.jobs.system.CreateSystemTaskJob;
 import com.bonree.brfs.schedulers.jobs.system.ManagerMetaTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -139,13 +140,13 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 	private void sumbitTask() throws ParamsErrorException {
 		Map<String, String> createDataMap = JobDataMapConstract.createCreateDataMap(serverConfig, config);
 		SumbitTaskInterface createJob = QuartzSimpleInfo.createCycleTaskInfo("CREATE_SYSTEM_TASK",
-			config.getCreateTaskIntervalTime(), -1, createDataMap, CreateSystemTaskJob.class);
+			config.getCreateTaskIntervalTime(), 60000, createDataMap, CreateSystemTaskJob.class);
 		Map<String, String> metaDataMap = JobDataMapConstract.createMetaDataMap(config);
 		SumbitTaskInterface metaJob = QuartzSimpleInfo.createCycleTaskInfo("META_MANAGER_TASK",
-			config.getCreateTaskIntervalTime(), -1, metaDataMap, ManagerMetaTaskJob.class);
+			config.getCreateTaskIntervalTime(), 60000, metaDataMap, ManagerMetaTaskJob.class);
 		Map<String,String> copyJobMap = JobDataMapConstract.createCopyCheckMap(config);
 		SumbitTaskInterface checkJob = QuartzSimpleInfo.createCycleTaskInfo("COPY_CHECK_TASK",
-			config.getCreateCheckJobTaskervalTime(), -1, copyJobMap, CopyCheckJob.class);
+			config.getCreateCheckJobTaskervalTime(), 60000, copyJobMap, CopyCheckJob.class);
 		
 
 		boolean isSuccess = false;

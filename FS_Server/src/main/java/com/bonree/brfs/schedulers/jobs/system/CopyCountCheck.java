@@ -38,26 +38,13 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
  *****************************************************************************
  */
 public class CopyCountCheck {
-	private static final Logger LOG = LoggerFactory.getLogger(CopyCountCheck.class);
+	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
 	
-	public static Map<String,List<String>> collectLossFile(String dirName){
-		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		ServiceManager sm = mcf.getSm();
-		StorageNameManager snm = mcf.getSnm();
-		List<Service> services = sm.getServiceListByGroup(mcf.getGroupName());
-		if(services == null || services.isEmpty()){
-			LOG.warn("service list is empty");
+	public static Map<String,List<String>> collectLossFile(List<StorageNameNode> storageNames, List<Service> services, Map<String,Long> snTimes, long granule){
+		Map<StorageNameNode, List<String>> snFiles = collectionSnFiles(services, storageNames,snTimes,granule);
+		if(snFiles == null|| snFiles.isEmpty()) {
 			return null;
 		}
-		int size = services.size();
-		//判断过滤sn，若sn为单副本的过滤掉，只针对多副本的
-		List<StorageNameNode> snList = filterSn(snm.getStorageNameNodeList(), size);
-		if(snList == null || snList.isEmpty()){
-			LOG.warn("storageName is null");
-			return null;
-		}
-		
-		Map<StorageNameNode, List<String>> snFiles = collectionSnFiles(services, snList, dirName);
 		Map<StorageNameNode,Pair<List<String>, List<String>>> copyMap = calcCopyCount(snFiles);
 		if(copyMap == null|| copyMap.isEmpty()){
 			LOG.info("cluster data is normal !!!");
@@ -137,6 +124,7 @@ public class CopyCountCheck {
 		}
 		return copyMap;
 	}
+		
 	/**
 	 * 概述：获取集群对应目录的文件
 	 * @param services
@@ -146,33 +134,35 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<StorageNameNode, List<String>> collectionSnFiles(List<Service> services, List<StorageNameNode> snList, String dirName){
+	public static Map<StorageNameNode, List<String>> collectionSnFiles(List<Service> services, List<StorageNameNode> snList,final Map<String,Long> snTimes, long granule){
 		Map<StorageNameNode,List<String>> snMap = new HashMap<>();
 		DiskNodeClient client = null;
 		int reCount = 0;
 		String snName = null;
 		String path = null;
-		List<FileInfo> files = null;
 		List<String> strs = null;
+		long time = 0;
+		String dirName = null;
 		for(Service service : services){
 			try {
 				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
 				for(StorageNameNode sn : snList){
 					reCount = sn.getReplicateCount();
 					snName = sn.getName();
+					if(!snTimes.containsKey(snName)) {
+						continue;
+					}
+					time = snTimes.get(snName);
+					dirName = TimeUtils.timeInterval(time, granule);
 					for(int i = 1; i <=reCount; i++){
-						//TODO 错误假死
 						path = File.separator+snName+File.separator+i+File.separator+dirName;
-						files =client.listFiles(path, 1);
-						LOG.info(">>>>> after {}",path);
-						if(files == null){
-							LOG.info("the list file of {} is null ", service.getServiceId());
+						strs = getFileList(client, path);
+						if(strs == null || strs.isEmpty()) {
 							continue;
 						}
 						if(!snMap.containsKey(sn)){
 							snMap.put(sn, new ArrayList<String>());
 						}
-						strs = converToStringList(files, path);
 						snMap.get(sn).addAll(strs);
 					}
 				}
@@ -191,6 +181,24 @@ public class CopyCountCheck {
 			
 		}
 		return snMap;
+	}
+	/**
+	 * 概述：获取文件名列表
+	 * @param client
+	 * @param path
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static List<String> getFileList(DiskNodeClient client, String path){
+		if(client == null || BrStringUtils.isEmpty(path)) {
+			return null;
+		}
+		List<FileInfo> files =client.listFiles(path, 1);
+		if(files == null || files.isEmpty()) {
+			return null;
+		}
+		List<String> fileNames = converToStringList(files, path);
+		return fileNames;
 	}
 	 /**
 	 * 概述：转换集合为str集合
@@ -262,17 +270,21 @@ public class CopyCountCheck {
 			return filters;
 		}
 		int count = 0;
+		String snName = null;
 		for(StorageNameNode sn : sns){
 			count = sn.getReplicateCount();
+			snName = sn.getName();
 			if(count == 1){
+				LOG.info("==== sn {} {} skip",snName,count);
 				continue;
 			}
 			if(count >size){
+				LOG.info("==== sn {} {} {} skip",snName,count, size);
 				continue;
 			}
 			filters.add(sn);
 		}
-		return sns;
+		return filters;
 		
 	}
 	/**

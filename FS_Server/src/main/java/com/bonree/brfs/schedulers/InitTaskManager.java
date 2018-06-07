@@ -184,7 +184,7 @@ public class InitTaskManager {
 			LOG.info("========================================================================================");
 		}
 		dataMap = JobDataMapConstract.createRebootTaskOpertionDataMap(server.getDataPath(), switchMap);
-		SumbitTaskInterface task = QuartzSimpleInfo.createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), -1, dataMap, OperationTaskJob.class);
+		SumbitTaskInterface task = QuartzSimpleInfo.createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, dataMap, OperationTaskJob.class);
 		boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
 		if(sumbitFlag){
 			LOG.info("operation task sumbit complete !!!");

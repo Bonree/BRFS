@@ -34,7 +34,7 @@ public class AtomTaskModel {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static AtomTaskModel getInstance(ArrayList<String> atomFiles, String snName, String taskOperation,String dir, long startTime, long endTime) {
+	public static AtomTaskModel getInstance(Collection<String> atomFiles, String snName, String taskOperation,String dir, long startTime, long endTime) {
 		AtomTaskModel atom = new AtomTaskModel();
 		if(atomFiles != null) {
 			atom.addAllFiles(atomFiles);
@@ -46,6 +46,7 @@ public class AtomTaskModel {
 		atom.setDirName(dir);
 		return atom;
 	}
+	
 	/**
 	 * 概述：创建原子任务list 无文件
 	 * @param snName
@@ -92,7 +93,7 @@ public class AtomTaskModel {
 	public void setFiles(ArrayList<String> files) {
 		this.files = files;
 	}
-	public void addAllFiles(ArrayList<String> files){
+	public void addAllFiles(Collection<String> files){
 		this.files.addAll(files);
 	}
 	public void addFile(String file){
