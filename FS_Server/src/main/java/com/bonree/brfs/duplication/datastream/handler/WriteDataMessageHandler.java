@@ -34,6 +34,7 @@ public class WriteDataMessageHandler implements MessageHandler {
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
+		LOG.info("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww");
 		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
 		StorageNameNode node = snManager.findStorageName(writeMsg.getStorageNameId());
 		
