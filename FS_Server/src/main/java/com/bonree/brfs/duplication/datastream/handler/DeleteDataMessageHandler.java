@@ -33,6 +33,8 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.google.common.base.Splitter;
 
+import ch.qos.logback.classic.net.SyslogAppender;
+
 public class DeleteDataMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(DeleteDataMessageHandler.class);
 	
@@ -72,33 +74,59 @@ public class DeleteDataMessageHandler implements MessageHandler {
 			result.setSuccess(false);
 			result.setCause(new StorageNameNonexistentException(storageId));
 			callback.completed(result);
+			LOG.info("storage[{}] is null", storageId);
 			return;
 		}
 		
 		List<String> times = Splitter.on("_").omitEmptyStrings().trimResults().splitToList(deleteInfo.get(1));
 		long startTime = DateTime.parse(times.get(0)).getMillis();
 		long endTime = DateTime.parse(times.get(1)).getMillis();
-		if(startTime >= endTime 
-				|| startTime != startTime/1000/60/60*1000*60*60
-				|| endTime != endTime/1000/60/60*1000*60*60
-				|| startTime/3600000 < sn.getCreateTime()/3600000
-				|| endTime < sn.getCreateTime()) {
+		ReturnCode code = checkTime(startTime, endTime, sn.getCreateTime(), 3600000);
+		if(!ReturnCode.SUCCESS.equals(code)) {
 			result.setSuccess(false);
-			result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.USER_DELETE_ERROR.name()));
+			result.setData(BrStringUtils.toUtf8Bytes(code.name()));
 			callback.completed(result);
+			LOG.info("DELETE DATE Fail storage[{}] reason : {}", storageId, code.name());
 			return;
 		}
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
 		
 		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
 
-        boolean isCreate = TasksUtils.createUserDeleteTask(serviceList, serverConfig, zkPaths, sn, startTime, endTime);
+        code = TasksUtils.createUserDeleteTask(serviceList, serverConfig, zkPaths, sn, startTime, endTime);
         
-		result.setSuccess(isCreate);
-		if(!isCreate){
-			result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.USER_DELETE_ERROR.name()));
-		}
+		result.setSuccess(ReturnCode.SUCCESS.equals(code));
+		result.setData(BrStringUtils.toUtf8Bytes(code.name()));
 		callback.completed(result);
+	}
+	/***
+	 * 检查时间
+	 */
+	private ReturnCode checkTime(long startTime, long endTime, long cTime, long granule) {
+		// 1，时间格式不对
+		if(startTime != (startTime - startTime%granule)
+				|| endTime !=(endTime - endTime%granule)) {
+			return ReturnCode.TIME_FORMATE_ERROR;
+		}
+		long currentTime = System.currentTimeMillis();
+		long cuGra = currentTime - currentTime%granule;
+		long sGra = startTime - startTime%granule;
+		long eGra = endTime - endTime%granule;
+		long cGra = cTime - cTime%granule;
+		// 2.开始时间等于结束世界
+		if(sGra >= eGra) {
+			return ReturnCode.PARAMETER_ERROR;
+		}
+		// 3.开始时间，结束时间小于创建时间
+		if(cGra >sGra ||cGra >eGra) {
+			return ReturnCode.TIME_EARLIER_THAN_CREATE_ERROR;
+		}
+		// 4.当前时间
+		if(cuGra <= sGra || cuGra<eGra) {
+			return ReturnCode.FORBID_DELETE_CURRENT_ERROR;
+		}
+		// 若成功则返回null
+		return ReturnCode.SUCCESS;
 	}
 
 	private String getPathByStorageNameId(int storageId) {
