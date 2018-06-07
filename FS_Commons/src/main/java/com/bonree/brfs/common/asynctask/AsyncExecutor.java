@@ -3,6 +3,7 @@ package com.bonree.brfs.common.asynctask;
 import java.lang.reflect.Array;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import com.bonree.brfs.common.utils.ThreadPoolUtil;
 import com.google.common.util.concurrent.Futures;
@@ -23,8 +24,8 @@ public class AsyncExecutor {
 	 * 
 	 * @param threadNum 线程池的线程数
 	 */
-	public AsyncExecutor(int threadNum) {
-		workerThreadPool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threadNum));
+	public AsyncExecutor(int threadNum, ThreadFactory factory) {
+		workerThreadPool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threadNum, factory));
 	}
 	
 	/**

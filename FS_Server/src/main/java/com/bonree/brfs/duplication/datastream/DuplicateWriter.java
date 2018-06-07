@@ -49,11 +49,11 @@ public class DuplicateWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(DuplicateWriter.class);
 	
 	private static final int DEFAULT_MULTI_TASK_THREAD_NUM = 5;
-	private AsyncExecutor multiTaskExecutor = new AsyncExecutor(DEFAULT_MULTI_TASK_THREAD_NUM);
+	private AsyncExecutor multiTaskExecutor = new AsyncExecutor(DEFAULT_MULTI_TASK_THREAD_NUM, new PooledThreadFactory("multi_task"));
 	private static final int DEFAULT_DATA_WRITE_THREAD_NUM = 10;
-	private AsyncExecutor writeTaskExecutor = new AsyncExecutor(DEFAULT_DATA_WRITE_THREAD_NUM);
+	private AsyncExecutor writeTaskExecutor = new AsyncExecutor(DEFAULT_DATA_WRITE_THREAD_NUM, new PooledThreadFactory("write_task"));
 	private static final int DEFAULT_RESULT_HANDLE_THREAD_NUM = 8;
-	private ExecutorService resultExecutor = Executors.newFixedThreadPool(DEFAULT_RESULT_HANDLE_THREAD_NUM);
+	private ExecutorService resultExecutor = Executors.newFixedThreadPool(DEFAULT_RESULT_HANDLE_THREAD_NUM, new PooledThreadFactory("write_result"));
 	private ScheduledExecutorService timedExecutor = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("File_Cleaner"));
 	
 	private static final long DEFAULT_CLEAN_FREQUENCY_MILLIS = TimeUnit.MINUTES.toMillis(1);
@@ -160,6 +160,7 @@ public class DuplicateWriter {
 			task.addDataItem(items[i]);
 		}
 		
+		LOG.info("submit multi task---");
 		multiTaskExecutor.submit(taskGroup, new FileWriteCallback(callback));
 	}
 	

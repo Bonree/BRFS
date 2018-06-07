@@ -33,7 +33,7 @@ public class ProcessFinalizer extends Thread {
 	@Override
 	public void run() {
 		LOG.info("shutting down service...");
-		for(int i = closeables.size() - 1; i >=0; i++) {
+		for(int i = closeables.size() - 1; i >= 0; i--) {
 			CloseUtils.closeQuietly(closeables.get(i));
 		}
 	}
