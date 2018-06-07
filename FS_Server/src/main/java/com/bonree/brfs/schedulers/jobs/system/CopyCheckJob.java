@@ -41,6 +41,8 @@ import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 
+import ch.qos.logback.classic.net.SyslogAppender;
+
 public class CopyCheckJob extends QuartzOperationStateTask{
 	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
 	@Override
@@ -89,7 +91,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		// 2.过滤不符合副本校验的sn信息
 		List<StorageNameNode> needSns = CopyCountCheck.filterSn(snList, services.size());
 		// 3.针对第一次出现的sn补充时间
-		sourceTimes = repairTime(sourceTimes, needSns, 3600000);
+		sourceTimes = repairTime(sourceTimes, needSns, 3600000,3600000);
 		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, 3600000);
 		
 		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, "RECOVERY", 3600000, time);
@@ -114,7 +116,16 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		LOG.info("update sn time");
 		
 	}
-	private Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageNameNode> needSns, long granule){
+	/**
+	 * 概述：添加第一次出现的sn
+	 * @param sourceTimes
+	 * @param needSns
+	 * @param granule
+	 * @param ttl
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageNameNode> needSns, long granule, long ttl){
 		Map<String,Long> repairs = new ConcurrentHashMap<>();
 		repairs.putAll(sourceTimes);
 		if(sourceTimes != null) {
@@ -123,6 +134,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		if(needSns == null || needSns.isEmpty()) {
 			return repairs;
 		}
+		long currentTime = System.currentTimeMillis();
 		String snName = null;
 		long startTime = 0L;
 		for(StorageNameNode sn : needSns) {
@@ -131,6 +143,9 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 				continue;
 			}
 			startTime = sn.getCreateTime();
+			if(currentTime - startTime <ttl) {
+				continue;
+			}
 			startTime = startTime - startTime % granule;
 			repairs.put(snName, startTime);
 		}
