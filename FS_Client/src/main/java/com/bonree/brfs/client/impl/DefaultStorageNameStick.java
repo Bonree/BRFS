@@ -80,6 +80,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
         try {
             List<Service> serviceList = dupSelector.randomServiceList();
+            System.out.println("write data get service count " + serviceList.size());
             if (serviceList.isEmpty()) {
                 throw new BRFSException("none disknode!!!");
             }
@@ -93,8 +94,11 @@ public class DefaultStorageNameStick implements StorageNameStick {
                     headers.put("username", userName);
                     headers.put("password", passwd);
 
+                    System.out.println("client -> " + uri.toString());
                     response = client.executePost(uri, headers, ProtoStuffUtils.serialize(dataMessage));
+                    System.out.println("client response " + response.getStatusCode());
                 } catch (Exception e) {
+                	e.printStackTrace();
                     continue;
                 }
 
