@@ -109,6 +109,7 @@ public class DefaultFileLounge implements FileLounge {
 						LOG.info("skip selecting file[{}] because it's syncing", file.getFileNode().getName());
 						fileSynchronizer.synchronize(file.getFileNode(), new FileLimiterSyncCallback(file));
 						iterator.remove();
+						continue;
 					}
 					
 					if(!file.lock(requestSizes)) {
