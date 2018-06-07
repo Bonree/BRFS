@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -210,10 +209,19 @@ public class MultiRecover implements DataRecover {
                 if (status.get().equals(TaskStatus.CANCEL)) {
                     return;
                 }
+                //暂时用循环控制，后期重构改成wait notify机制
+                while(true) {
+                    if(!status.get().equals(TaskStatus.PAUSE)) {
+                        break;
+                    }
+                    Thread.sleep(1000);
+                }
+                
                 // 倒计时完毕，则不需要倒计时
                 if (!detail.getStatus().equals(ExecutionStatus.INIT)) {
                     break;
                 }
+                
                 LOG.info("remain time:" + (delayTime - i) + "s, start task!!!");
                 Thread.sleep(1000);
             }
