@@ -273,11 +273,13 @@ public class TaskStateLifeContral {
 		String snName = null;
 		String dir = null;
 		String tmpDir = null;
+		String operation = null;
 		for(AtomTaskModel aTask : atoms) {
 			startTime = TimeUtils.getMiles(aTask.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 			endTime = TimeUtils.getMiles(aTask.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
 			dir = aTask.getDirName();
 			snName = aTask.getStorageName();
+			operation = aTask.getTaskOperation();
 			for(long start = startTime; start < endTime; start += 3600000) {
 				if(start +3600000 > endTime) {
 					continue;
@@ -288,6 +290,7 @@ public class TaskStateLifeContral {
 				atom.setStorageName(snName);
 				tmpDir = StorageNameFileUtils.createSNDir(snName, dir, start);
 				atom.setDirName(tmpDir);
+				atom.setTaskOperation(operation);
 				changeTask.addAtom(atom);
 				
 			}
@@ -386,8 +389,6 @@ public class TaskStateLifeContral {
 				}else{
 					return task;
 				}
-			}else{
-				LOG.info("{} is not seclect ", task);
 			}
 		}
 		if(eTasks == null || eTasks.isEmpty()|| limtCount <= 0){

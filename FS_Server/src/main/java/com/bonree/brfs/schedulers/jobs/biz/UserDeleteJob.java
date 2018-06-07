@@ -36,6 +36,8 @@ import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
  *****************************************************************************
  */
 public class UserDeleteJob extends QuartzOperationStateWithZKTask {
+	public static final String DELETE_SN_ALL = "0";
+	public static final String DELETE_PART = "1";
 	private static final Logger LOG = LoggerFactory.getLogger(UserDeleteJob.class);
 	@Override
 	public void caughtException(JobExecutionContext context) {
@@ -75,10 +77,19 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		TaskResultModel result = new TaskResultModel();
 		TaskResultModel batchResult = null;
 		AtomTaskResultModel usrResult = null;
-		String path = null;
+		List<String> dSns = new ArrayList<String>();
+		String operation = null;
 		for(AtomTaskModel atom : atoms){
 			snName = atom.getStorageName();
 			dirName = atom.getDirName();
+			if("1".equals(currentIndex)) {
+				operation = atom.getTaskOperation();
+				LOG.info("task operation {} source:{}",operation ,DELETE_SN_ALL);
+				if(DELETE_SN_ALL.equals(operation)) {
+					dSns.add(snName);
+				}
+			}
+			
 			if(BrStringUtils.isEmpty(snName)){
 				LOG.warn("sn is empty !!!");
 				continue;
@@ -87,7 +98,6 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 				LOG.warn("dir is empty !!!");
 				continue;
 			}
-			path = dataPath + File.separator+ dirName;
 			usrResult = deleteFiles(snName, dirName, dataPath);
 			if (usrResult == null) {
 				continue;
@@ -97,6 +107,15 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 			}
 			result.add(usrResult);
 			
+		}
+		if("1".equals(currentIndex)) {
+			for(String sn : dSns) {
+				if(FileUtils.deleteDir(dataPath+"/"+sn, true)) {
+					LOG.info("deltete {} successfull", sn);
+				}else {
+					result.setSuccess(false);
+				}
+			}
 		}
 		//更新任务状态
 		TaskStateLifeContral.updateMapTaskMessage(context, result);

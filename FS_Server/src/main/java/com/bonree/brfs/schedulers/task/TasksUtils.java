@@ -27,6 +27,7 @@ import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
 import com.bonree.brfs.schedulers.jobs.system.CreateSystemTask;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
@@ -99,8 +100,11 @@ public class TasksUtils {
 		int count = sn.getReplicateCount();
 		long startHour = 0;
 		long endHour =  endTime/1000/60/60*60*60*1000;
-		if(startTime <=0 || startTime < sn.getCreateTime()){
+		boolean isDeleteSN = false;
+		// 删除sn
+		if(startTime <=0){
 			startHour = sn.getCreateTime()/1000/60/60*60*60*1000;
+			isDeleteSN = true;
 		}else{
 			startHour = startTime/1000/60/60*60*60*1000;
 		}
@@ -119,6 +123,7 @@ public class TasksUtils {
 			atom.setDirName(i+"");
 			atom.setDataStartTime(TimeUtils.formatTimeStamp(startHour, TimeUtils.TIME_MILES_FORMATE));
 			atom.setDataStopTime(TimeUtils.formatTimeStamp(endHour, TimeUtils.TIME_MILES_FORMATE));
+			atom.setTaskOperation(isDeleteSN ? UserDeleteJob.DELETE_SN_ALL:UserDeleteJob.DELETE_PART);
 			storageAtoms.add(atom);
 		}
 		task.setAtomList(storageAtoms);
