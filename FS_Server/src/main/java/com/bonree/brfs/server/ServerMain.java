@@ -112,10 +112,18 @@ public class ServerMain {
             selfService.setHost(serverConfig.getHost());
             selfService.setPort(serverConfig.getDiskPort());
             selfService.setServiceGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
-            selfService.setServiceId(idManager.getFirstServerID());
-
-            sm.registerService(selfService);
-            System.out.println(selfService);
+            String serviceId = idManager.getFirstServerID();
+            selfService.setServiceId(serviceId);
+            Service checkService = sm.getServiceById(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, serviceId);
+            if(checkService == null) {
+            	sm.registerService(selfService);
+            	System.out.println(selfService);
+            }else {
+            	LOG.error("serviceId : {} is exists, system will exit!!!",serviceId);
+            	snManager.stop();
+            	sm.stop();
+            	System.exit(1);
+            }
             
             finalizer.add(new Closeable() {
 				
