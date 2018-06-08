@@ -4,9 +4,8 @@ basedir=$(dirname `pwd`)
 #程序jar全路径
 SERVER=$basedir'/jar/FS_Server/FS_Server.jar' 
 
-HEAPSIZE='-Xms512m -Xmx1024m'
-
-GC_PATH='-XX:+PrintGC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xloggc:'$basedir'/logs/gc_server.log'
+HEAPSIZE='-Xms512m -Xmx1024m'=
+GC_PATH='-XX:+UseParNewGC -XX:+UseConcMarkSweepGC  -XX:+PrintGC -XX:CMSInitiatingOccupancyFraction=50 -XX:CMSMaxAbortablePrecleanTime=500 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xloggc:'$basedir'/logs/gc_server.log'
 
 #资源管理lib路径
 RESOURCE_LIB_PATH=$basedir'/lib'
