@@ -2,6 +2,7 @@ package com.bonree.brfs.duplication.datastream.connection.http;
 
 import java.io.IOException;
 
+import com.bonree.brfs.common.http.client.ClientConfig;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
@@ -18,7 +19,7 @@ public class HttpDiskNodeConnection implements DiskNodeConnection {
 	}
 	
 	public void connect() {
-		client = new HttpDiskNodeClient(address, port);
+		client = new HttpDiskNodeClient(address, port, ClientConfig.builder().setResponseTimeout(3000).build());
 	}
 
 	@Override
