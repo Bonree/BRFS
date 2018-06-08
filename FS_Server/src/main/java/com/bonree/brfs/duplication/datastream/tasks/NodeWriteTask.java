@@ -9,14 +9,14 @@ import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 
-public class DataWriteTask extends AsyncTask<WriteResult[]> {
-	private static final Logger LOG = LoggerFactory.getLogger(DataWriteTask.class);
+public class NodeWriteTask extends AsyncTask<WriteResult[]> {
+	private static final Logger LOG = LoggerFactory.getLogger(NodeWriteTask.class);
 	
 	private DiskNodeConnection connection;
 	private String filePath;
 	private WriteData[] datas;
 	
-	public DataWriteTask(String path, DiskNodeConnection connection, WriteData[] datas) {
+	public NodeWriteTask(String path, DiskNodeConnection connection, WriteData[] datas) {
 		this.connection = connection;
 		this.filePath = path;
 		this.datas = datas;

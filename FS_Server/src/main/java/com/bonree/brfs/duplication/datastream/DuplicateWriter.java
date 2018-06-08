@@ -35,7 +35,7 @@ import com.bonree.brfs.duplication.datastream.file.FileLimiterCloser;
 import com.bonree.brfs.duplication.datastream.file.FileLounge;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeCleaner;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
-import com.bonree.brfs.duplication.datastream.tasks.MultiDataWriteTask;
+import com.bonree.brfs.duplication.datastream.tasks.FileWriteTask;
 import com.bonree.brfs.duplication.datastream.tasks.ResultItem;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
@@ -150,9 +150,9 @@ public class DuplicateWriter {
 				continue;
 			}
 			
-			MultiDataWriteTask task = (MultiDataWriteTask) file.attach();
+			FileWriteTask task = (FileWriteTask) file.attach();
 			if(task == null) {
-				task = new MultiDataWriteTask(file, idManager, connectionPool, writeTaskExecutor, resultExecutor);
+				task = new FileWriteTask(file, idManager, connectionPool, writeTaskExecutor, resultExecutor);
 				file.attach(task);
 				taskGroup.addTask(task);
 			}

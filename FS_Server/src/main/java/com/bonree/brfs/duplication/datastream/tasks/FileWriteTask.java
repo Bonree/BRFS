@@ -25,8 +25,8 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.FileLimiter;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
-public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
-	private static Logger LOG = LoggerFactory.getLogger(MultiDataWriteTask.class);
+public class FileWriteTask extends AsyncTask<ResultItem[]> {
+	private static Logger LOG = LoggerFactory.getLogger(FileWriteTask.class);
 	
 	private FileLimiter file;
 	private List<DataItem> dataList = new ArrayList<DataItem>();
@@ -38,7 +38,7 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 	
 	private ArrayBlockingQueue<ResultItem[]> resultGetter = new ArrayBlockingQueue<ResultItem[]>(1);
 	
-	public MultiDataWriteTask(FileLimiter file,
+	public FileWriteTask(FileLimiter file,
 			ServerIDManager idManager,
 			DiskNodeConnectionPool connectionPool,
 			AsyncExecutor executor,
@@ -83,7 +83,7 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 			String filePath = FilePathBuilder.buildFilePath(file.getFileNode().getStorageName(),
 					serverID, file.getFileNode().getCreateTime(), file.getFileNode().getName());
 			
-			taskGroup.addTask(new DataWriteTask(filePath, connection, datas));
+			taskGroup.addTask(new NodeWriteTask(filePath, connection, datas));
 		}
 		
 		DataWriteResultCallback callback = new DataWriteResultCallback();
@@ -97,7 +97,6 @@ public class MultiDataWriteTask extends AsyncTask<ResultItem[]> {
 		@Override
 		public void completed(AsyncTaskResult<WriteResult[]>[] results) {
 			LOG.debug("handle Writing result for file[{}]", file.getFileNode().getName());
-			//先释放文件的锁定状态
 			
 			ResultItem[] resultItems = new ResultItem[dataList.size()];
 			try {
