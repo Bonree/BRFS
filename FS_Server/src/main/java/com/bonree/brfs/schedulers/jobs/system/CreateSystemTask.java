@@ -128,22 +128,24 @@ public class CreateSystemTask {
 			endTime = startTime + granule;
 			// 当ttl小于等于0 的sn 跳过
 			if(ttl <= 0) {
-				LOG.info("sn {} don't to create task !!!",snName);
+				LOG.debug("sn {} don't to create task !!!",snName);
 				continue;
 			}
 			// 当未达到过期的跳过
 			if(cGraTime - startTime < ttl || cGraTime - endTime < ttl ) {
+				LOG.debug("it's not time to check {}",snName);
 				continue;
 			}
 			// 当前粒度不允许操作
 			if(cGraTime == startTime) {
+				LOG.debug("current time is forbid to check !!!");
 				continue;
 			}
 			// 当无文件不操作
 			if(snFiles != null) {
 				files = snFiles.get(snName);
 			}
-			if(files != null && files.isEmpty()) {
+			if(files != null && !files.isEmpty()) {
 				dir = TimeUtils.timeInterval(startTime, granule);
 				atom = AtomTaskModel.getInstance(files, snName, taskOperation, dir, startTime, endTime);
 				sumAtoms.add(atom);

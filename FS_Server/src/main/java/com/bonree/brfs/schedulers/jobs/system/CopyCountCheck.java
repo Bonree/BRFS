@@ -43,6 +43,7 @@ public class CopyCountCheck {
 	public static Map<String,List<String>> collectLossFile(List<StorageNameNode> storageNames, List<Service> services, Map<String,Long> snTimes, long granule){
 		Map<StorageNameNode, List<String>> snFiles = collectionSnFiles(services, storageNames,snTimes,granule);
 		if(snFiles == null|| snFiles.isEmpty()) {
+			LOG.debug("<collectLossFile> collection files is empty");
 			return null;
 		}
 		Map<StorageNameNode,Pair<List<String>, List<String>>> copyMap = calcCopyCount(snFiles);
@@ -112,7 +113,6 @@ public class CopyCountCheck {
 				continue;
 			}
 			fileCopyCount = calcFileCount(files);
-			LOG.info("copycount {}",fileCopyCount);
 			if(fileCopyCount == null || fileCopyCount.isEmpty()){
 				continue;
 			}
@@ -150,16 +150,20 @@ public class CopyCountCheck {
 					reCount = sn.getReplicateCount();
 					snName = sn.getName();
 					if(!snTimes.containsKey(snName)) {
+						LOG.debug("<collectionSnFiles> sntime don't contain {}", snName);
 						continue;
 					}
 					time = snTimes.get(snName);
 					dirName = TimeUtils.timeInterval(time, granule);
 					for(int i = 1; i <=reCount; i++){
-						path = File.separator+snName+File.separator+i+File.separator+dirName;
+						path = "/"+snName+"/"+i+"/"+dirName;
+						LOG.debug("<collectionSnFiles> path :{}",path);
 						strs = getFileList(client, path);
 						if(strs == null || strs.isEmpty()) {
+							LOG.warn("<collectionSnFiles> files is empty {}", dirName);
 							continue;
 						}
+						LOG.debug("Collection dirName :{},{} size :{}",dirName,path, strs.size());
 						if(!snMap.containsKey(sn)){
 							snMap.put(sn, new ArrayList<String>());
 						}
@@ -195,8 +199,10 @@ public class CopyCountCheck {
 		}
 		List<FileInfo> files =client.listFiles(path, 1);
 		if(files == null || files.isEmpty()) {
+			LOG.debug("<getFileList> file size :{}",0);
 			return null;
 		}
+		LOG.debug("<getFileList> file size :{}",files.size());
 		List<String> fileNames = converToStringList(files, path);
 		return fileNames;
 	}
@@ -275,11 +281,11 @@ public class CopyCountCheck {
 			count = sn.getReplicateCount();
 			snName = sn.getName();
 			if(count == 1){
-				LOG.info("==== sn {} {} skip",snName,count);
+				LOG.debug("<filterSn> sn {} {} skip",snName,count);
 				continue;
 			}
 			if(count >size){
-				LOG.info("==== sn {} {} {} skip",snName,count, size);
+				LOG.debug("<filterSn> sn {} {} {} skip",snName,count, size);
 				continue;
 			}
 			filters.add(sn);

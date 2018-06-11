@@ -86,12 +86,17 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		}
 		// 1.获取sn创建任务的实际那
 		TaskTypeModel tmodel = release.getTaskTypeInfo(taskType);
+		if(tmodel == null) {
+			tmodel = new TaskTypeModel();
+			tmodel.setSwitchFlag(true);
+			release.setTaskTypeModel(taskType, tmodel);
+		}
 		Map<String,Long> sourceTimes = tmodel.getSnTimes();
 		
 		// 2.过滤不符合副本校验的sn信息
 		List<StorageNameNode> needSns = CopyCountCheck.filterSn(snList, services.size());
 		// 3.针对第一次出现的sn补充时间
-		sourceTimes = repairTime(sourceTimes, needSns, 3600000,3600000);
+		sourceTimes = repairTime(sourceTimes, needSns, 3600000,time);
 		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, 3600000);
 		
 		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, "RECOVERY", 3600000, time);
