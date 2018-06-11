@@ -1,6 +1,7 @@
 package com.bonree.brfs.common.http.netty;
 
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -28,6 +29,6 @@ public class ResponseSender {
 	}
 	
 	public static void sendResponse(ChannelHandlerContext ctx, HttpResponse response) {
-		ctx.writeAndFlush(response);
+		ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 	}
 }
