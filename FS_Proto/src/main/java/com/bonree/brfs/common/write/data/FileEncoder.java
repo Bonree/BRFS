@@ -65,50 +65,111 @@ public class FileEncoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static byte[] contents(FileContent file) throws Exception {
+        byte[] content = file.getData().toByteArray();
+        if (content == null || content.length == 0) {
+            return new byte[0];
+        }
+        int dataLength = 0;
         byte[] describeByte = null;
-        byte[] describeLengthByte = null;
         int compressFlag = file.getCompress();
         String description = file.getDescription();
-        byte[] content = file.getData().toByteArray();
         // 1.压缩
-        int compress =  compressFlag << 6;
+        int compress = compressFlag << 6;
 
-        byte[] validateByte = null;
-        // 1.检验码
-        int crcFlag = 0; // 标识校验码开关
-        if (file.getCrcFlag()) {
-            validateByte = FSCode.moreFlagEncoder(file.getCrcCheckCode(), 7);
-            crcFlag = 1 << 5; // 标识校验码开关
-        }
         // 2.描述
         if (description == null) {
-            describeLengthByte = new byte[] { (byte) compress };
+            describeByte = new byte[0];
         } else {
             describeByte = description.getBytes("utf-8");
         }
-        byte[] contentByte = null;
-        byte[] contentLengthByte = null;
+
         // 3.内容
-        if (content != null) {
-            contentByte = content;
-            contentLengthByte = FSCode.moreFlagEncoder(contentByte.length, 7);
-        }
+        byte[] contentByte = content;
         if (compressFlag == 1) {        // gzip压缩
             describeByte = GZipUtils.compress(describeByte);
-            contentByte = GZipUtils.compress(contentByte);
+            contentByte = GZipUtils.compress(content);
         } else if (compressFlag == 2) { // snappy压缩
             // describeByte =
             // contentByte =
         }
+        dataLength = describeByte.length + contentByte.length;
 
-        describeLengthByte = FSCode.moreFlagEncoder(describeByte.length, 4);
+        byte[] describeLengthByte = FSCode.moreFlagEncoder(describeByte.length, 4);
+        dataLength += describeLengthByte.length;
+        byte[] contentLengthByte = FSCode.moreFlagEncoder(contentByte.length, 7);
+        dataLength += contentLengthByte.length;
+
+        // 4.检验码
+        byte[] validateByte = null;
+        int crcFlag = 0; // 标识校验码开关
+        if (file.getCrcFlag()) {
+            validateByte = FSCode.moreFlagEncoder(file.getCrcCheckCode(), 7);
+            crcFlag = 1 << 5; // 标识校验码开关
+            dataLength += validateByte.length;
+        }
         int describeLength = describeLengthByte[0] & 0xFF;
         describeLengthByte[0] = (byte) (compress | crcFlag | describeLength);
         
-        if (contentByte != null) {
-            contentLengthByte = FSCode.moreFlagEncoder(contentByte.length, 7);
+        byte[] dataLengthByte = FSCode.moreFlagEncoder(dataLength, 7);
+
+        return FSCode.addBytes(dataLengthByte, describeLengthByte, describeByte, contentLengthByte, contentByte, validateByte);
+    }
+    
+    /**
+     * 概述：编码一条消息
+     * @param file 消息内容
+     * @return
+     * @throws Exception
+     * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
+     */
+    public static byte[] contents1(FileContent file) throws Exception {
+        byte[] content = file.getData().toByteArray();
+        if (content == null || content.length == 0) {
+            return new byte[0];
+        }
+        int dataLength = 0;
+        byte[] describeByte = null;
+        int compressFlag = file.getCompress();
+        String description = file.getDescription();
+        // 1.压缩
+        int compress = compressFlag << 6;
+
+        // 2.描述
+        if (description == null) {
+            describeByte = new byte[0];
+        } else {
+            describeByte = description.getBytes("utf-8");
         }
 
-        return FSCode.addBytes(describeLengthByte, describeByte, contentLengthByte, contentByte, validateByte);
+        // 3.内容
+        byte[] contentByte = content;
+        if (compressFlag == 1) {        // gzip压缩
+            describeByte = GZipUtils.compress(describeByte);
+            contentByte = GZipUtils.compress(content);
+        } else if (compressFlag == 2) { // snappy压缩
+            // describeByte =
+            // contentByte =
+        }
+        dataLength = describeByte.length + contentByte.length;
+
+        byte[] describeLengthByte = FSCode.moreFlagEncoder(describeByte.length, 4);
+        dataLength += describeLengthByte.length;
+        byte[] contentLengthByte = FSCode.moreFlagEncoder(contentByte.length, 7);
+        dataLength += contentLengthByte.length;
+
+        // 4.检验码
+        byte[] validateByte = null;
+        int crcFlag = 0; // 标识校验码开关
+        if (file.getCrcFlag()) {
+            validateByte = FSCode.moreFlagEncoder(file.getCrcCheckCode(), 7);
+            crcFlag = 1 << 5; // 标识校验码开关
+            dataLength += validateByte.length;
+        }
+        int describeLength = describeLengthByte[0] & 0xFF;
+        describeLengthByte[0] = (byte) (compress | crcFlag | describeLength);
+        
+        byte[] dataLengthByte = FSCode.moreFlagEncoder(dataLength, 7);
+
+        return FSCode.addBytes(dataLengthByte, describeLengthByte, describeByte, contentLengthByte, contentByte, validateByte);
     }
 }

@@ -1,5 +1,8 @@
 package com.bonree.brfs.common.write.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.bonree.brfs.common.data.utils.GZipUtils;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.google.protobuf.ByteString;
@@ -48,18 +51,23 @@ public class FileDecoder {
     public static FileContent contents(byte[] bytes) throws Exception {
         FileContent.Builder file = FileContent.newBuilder();
 
-        // 1.获取压缩标识
-        int compressFlag = (bytes[0] & 0xFF) >> 6;
+        // 获取一条消息
+        int dataLength = (int) FSCode.moreFlagDecoder(bytes, 7, 0); // 一条数据的长度
+        int dataMoreFlagLength = FSCode.moreFlagLength(dataLength, 7) + 1;  // 扩展次数加上moreFlag所在的一个字节.
+        byte[] dataBytes = FSCode.subBytes(bytes, dataMoreFlagLength, dataLength);
 
-        int describeLength = (int) FSCode.moreFlagDecoder(bytes, 4);// 描述信息的长度
+        // 1.获取压缩标识
+        int compressFlag = (dataBytes[0] & 0xFF) >> 6;
+
+        int describeLength = (int) FSCode.moreFlagDecoder(dataBytes, 4);// 描述信息的长度
         int describeMoreFlagLength = FSCode.moreFlagLength(describeLength, 4) + 1;// 扩展次数加上moreFlag所在的一个字节.
-        byte[] destResult = FSCode.subBytes(bytes, describeMoreFlagLength, describeLength);
+        byte[] destResult = FSCode.subBytes(dataBytes, describeMoreFlagLength, describeLength);
 
         int contestStart = describeLength + describeMoreFlagLength; // 内容的开始位置(包含moreflag)
-        int contentLength = (int) FSCode.moreFlagDecoder(bytes, 7, contestStart); // 内容的长度
+        int contentLength = (int) FSCode.moreFlagDecoder(dataBytes, 7, contestStart); // 内容的长度
         int contentMoreFlagLength = FSCode.moreFlagLength(contentLength, 7) + 1;  // 扩展次数加上moreFlag所在的一个字节.
         contestStart += contentMoreFlagLength;      // 内容的开始位置
-        byte[] data = FSCode.subBytes(bytes, contestStart, contentLength);
+        byte[] data = FSCode.subBytes(dataBytes, contestStart, contentLength);
 
         if (compressFlag == 1) {        // gzip解压
             destResult = GZipUtils.decompress(destResult);
@@ -69,22 +77,22 @@ public class FileDecoder {
             // data =
         }
         file.setCompress(compressFlag);
-        
+
         // 2.封装描述信息
         if (destResult != null && destResult.length != 0) {
             file.setDescription(new String(destResult));
         }
-        
+
         // 3.封装数据内容
         if (data != null && data.length != 0) {
             file.setData(ByteString.copyFrom(data));
         }
 
         // 4.校验码标识
-        int crcFlag = (bytes[0] & 0xFF) >> 5;
+        int crcFlag = (dataBytes[0] & 0x3F) >> 5;
         if (crcFlag == 1) {
             int crcStart = contestStart + contentLength;
-            long crcCode = FSCode.moreFlagDecoder(bytes, 7, crcStart);
+            long crcCode = FSCode.moreFlagDecoder(dataBytes, 7, crcStart);
             file.setCrcCheckCode(crcCode);
             file.setCrcFlag(true);
         }
@@ -100,6 +108,72 @@ public class FileDecoder {
      */
     public static long validate(byte[] bytes, int pos) {
         return FSCode.byteToLong(bytes, pos, 8);
+    }
+
+    /**
+     * 概述：获取文件offset偏移量
+     * @param index 开始位置
+     * @param bytes 文件内容
+     * @return
+     */
+    public static int getOffsets(int index, byte[] bytes) {
+        int size = 0;
+        try {
+            int dataLength = (int) FSCode.moreFlagDecoder(bytes, 7, index); // 一条数据的长度
+            if (dataLength == 0) {
+                return 0;
+            }
+            int dataMoreFlagLength = FSCode.moreFlagLength(dataLength, 7) + 1;  // moreFlag扩展的次数,加上moreFlag所在的一个字节.
+            byte[] dataBytes = FSCode.subBytes(bytes, dataMoreFlagLength + index, dataLength);
+
+            int describeLength = (int) FSCode.moreFlagDecoder(dataBytes, 4);// 描述信息的长度
+            int describeMoreFlagLength = FSCode.moreFlagLength(describeLength, 4) + 1;// moreFlag扩展的次数,加上moreFlag所在的一个字节.
+
+            int totalLength = describeLength + describeMoreFlagLength; // 内容的开始位置(包含moreflag)
+            int contentLength = (int) FSCode.moreFlagDecoder(dataBytes, 7, totalLength); // 内容的长度
+            int contentMoreFlagLength = FSCode.moreFlagLength(contentLength, 7) + 1;  // moreFlag扩展的次数,加上moreFlag所在的一个字节.
+            totalLength += contentMoreFlagLength;      // 内容的开始位置
+
+            // 校验码标识
+            int crcFlag = (dataBytes[0] & 0x3F) >> 5;
+            if (crcFlag == 1) {
+                totalLength += contentLength;
+                long crcCode = FSCode.moreFlagDecoder(dataBytes, 7, totalLength);
+                int crcMoreFlagLength = FSCode.moreFlagLength(crcCode, 7) + 1;
+                totalLength += crcMoreFlagLength;
+            }
+            totalLength += dataMoreFlagLength;
+            size = dataLength + dataMoreFlagLength;
+
+            if (totalLength != size) {
+                return 0;
+            }
+        } catch (Exception ex) {
+        }
+        return size;
+    }
+
+    /**
+     * 概述：获取文件offset列表
+     * @param bytes 文件内容
+     * @return
+     */
+    public static List<String> getOffsets(byte[] bytes) {
+        List<String> offsetList = new ArrayList<>();
+        int begin = 2;
+        while (begin < bytes.length) {
+            try {
+                int size = getOffsets(begin, bytes);
+                if (size == 0) {
+                    break;
+                }
+                offsetList.add(begin + "|" + size);
+                begin += size;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return offsetList;
     }
 
 }
