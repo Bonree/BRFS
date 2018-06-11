@@ -116,7 +116,7 @@ public class FileDecoder {
      * @param bytes 文件内容
      * @return
      */
-    public static int getOffsets(int index, byte[] bytes) {
+    private static int getOffsets(int index, byte[] bytes) {
         int size = 0;
         try {
             int dataLength = (int) FSCode.moreFlagDecoder(bytes, 7, index); // 一条数据的长度
