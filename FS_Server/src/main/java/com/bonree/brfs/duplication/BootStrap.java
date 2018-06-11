@@ -124,7 +124,7 @@ public class BootStrap {
 
             DuplicationNodeSelector nodeSelector = new VirtualDuplicationNodeSelector(serviceManager, idManager);
 
-            FileLimiterCloser fileLimiterCloser = new FileLimiterCloser(fileSynchronizer, connectionPool, fileCoordinator, serviceManager, idManager);
+            FileLimiterCloser fileLimiterCloser = new FileLimiterCloser(fileSynchronizer, connectionPool, fileCoordinator, idManager);
 
             FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool, fileSynchronizer);
             DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser, storageNameManager);

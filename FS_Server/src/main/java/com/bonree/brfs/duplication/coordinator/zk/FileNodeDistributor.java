@@ -1,6 +1,5 @@
 package com.bonree.brfs.duplication.coordinator.zk;
 
-import java.io.ObjectOutputStream.PutField;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;

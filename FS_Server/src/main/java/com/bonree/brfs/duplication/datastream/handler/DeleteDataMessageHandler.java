@@ -16,24 +16,14 @@ import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
 import com.bonree.brfs.schedulers.task.TasksUtils;
-import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
-import com.bonree.brfs.schedulers.task.model.TaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.google.common.base.Splitter;
-
-import ch.qos.logback.classic.net.SyslogAppender;
 
 public class DeleteDataMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(DeleteDataMessageHandler.class);

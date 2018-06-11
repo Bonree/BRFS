@@ -3,7 +3,6 @@ package com.bonree.brfs.duplication.datastream.file;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
@@ -19,31 +18,29 @@ import com.bonree.brfs.server.identification.ServerIDManager;
 public class FileLimiterCloser implements FileCloseListener {
 	private static final Logger LOG = LoggerFactory.getLogger(FileLimiterCloser.class);
 	
-	private FileSynchronizer fileRecovery;
+	private FileSynchronizer fileSynchronizer;
 	private DiskNodeConnectionPool connectionPool;
 	private FileCoordinator fileCoordinator;
 	private ServerIDManager idManager;
-	private ServiceManager serviceManager;
 	
 	public FileLimiterCloser(FileSynchronizer fileRecovery,
 			DiskNodeConnectionPool connectionPool,
 			FileCoordinator fileCoordinator,
-			ServiceManager serviceManager,
 			ServerIDManager idManager) {
-		this.fileRecovery = fileRecovery;
+		this.fileSynchronizer = fileRecovery;
 		this.connectionPool = connectionPool;
 		this.fileCoordinator = fileCoordinator;
-		this.serviceManager = serviceManager;
 		this.idManager = idManager;
 	}
 	
 	@Override
 	public void close(FileLimiter file) throws Exception {
-		fileRecovery.synchronize(file.getFileNode(), new FileCloseConditionChecker(file));
+		fileSynchronizer.synchronize(file.getFileNode(), new FileCloseConditionChecker(file.getFileNode()));
 	}
 	
 	public void closeFileNode(FileNode fileNode) {
 		LOG.info("start to close file node[{}]", fileNode.getName());
+		boolean closeCompleted = true;
 		for(DuplicateNode node : fileNode.getDuplicateNodes()) {
 			if(node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
 				LOG.info("Ignore virtual duplicate node[{}]", node);
@@ -53,6 +50,7 @@ public class FileLimiterCloser implements FileCloseListener {
 			DiskNodeConnection connection = connectionPool.getConnection(node);
 			if(connection == null || connection.getClient() == null) {
 				LOG.info("close error because node[{}] is disconnected!", node);
+				closeCompleted = false;
 				continue;
 			}
 			
@@ -60,23 +58,28 @@ public class FileLimiterCloser implements FileCloseListener {
 			String serverId = idManager.getOtherSecondID(node.getId(), fileNode.getStorageId());
 			String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
 			
+			LOG.info("closing file[{}]", filePath);
+			boolean closed = client.closeFile(filePath);
+			LOG.info("close file[{}] result->{}", filePath, closed);
+			
+			closeCompleted &= closed;
+		}
+		
+		if(closeCompleted) {
 			try {
-				LOG.info("closing file[{}]", filePath);
-				boolean closed = client.closeFile(filePath);
-				LOG.info("close file[{}] result->{}", filePath, closed);
-				if(closed) {
-					fileCoordinator.delete(fileNode);
-				}
+				fileCoordinator.delete(fileNode);
 			} catch (Exception e) {
-				LOG.error("close file[{}] error!", filePath);
+				LOG.error("delete file[{}] from file coordinator failed", fileNode.getName());
 			}
+		} else {
+			fileSynchronizer.synchronize(fileNode, new FileCloseConditionChecker(fileNode));
 		}
 	}
 	
 	private class FileCloseConditionChecker implements FileSynchronizeCallback {
-		private FileLimiter file;
+		private FileNode file;
 		
-		public FileCloseConditionChecker(FileLimiter file) {
+		public FileCloseConditionChecker(FileNode file) {
 			this.file = file;
 		}
 
@@ -91,7 +94,7 @@ public class FileLimiterCloser implements FileCloseListener {
 			LOG.error("sync file to close error", cause);
 			try {
 				//对于没办法处理的文件，只能放弃了
-				fileCoordinator.delete(file.getFileNode());
+				fileCoordinator.delete(file);
 			} catch (Exception e) {
 				LOG.error("delete file node error", e);
 			}

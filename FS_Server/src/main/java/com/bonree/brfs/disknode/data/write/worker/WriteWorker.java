@@ -41,6 +41,7 @@ public class WriteWorker implements Runnable {
 	@Override
 	public void run() {
 		LOG.info("Woker[{}] started.", id);
+		//只有当退出标志被设置并且任务队列为空时线程才能结束
 		while(!isQuit || !taskQueue.isEmpty()) {
 			Runnable task = null;
 			try {

@@ -1,8 +1,10 @@
 package com.bonree.brfs.disknode.server.handler;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -14,6 +16,7 @@ import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.utils.CloseUtils;
+import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
@@ -23,6 +26,7 @@ import com.bonree.brfs.disknode.data.write.record.RecordElement;
 import com.bonree.brfs.disknode.data.write.record.RecordElementReader;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.utils.Pair;
+import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -49,26 +53,49 @@ public class WritingInfoMessageHandler implements MessageHandler {
 		LOG.info("GET INFO [{}]", msg.getPath());
 		String filePath = context.getConcreteFilePath(msg.getPath());
 		try {
-			Pair<RecordFileWriter, WriteWorker> binding = nodeManager.getBinding(filePath, false);
-			Map<Integer, RecordElement> recordInfo = null;
-			if(binding != null) {
-				binding.first().flush();
-				
-				recordInfo = recordCache.getIfPresent(filePath);
-				if(recordInfo == null) {
-					RecordCollection recordSet = binding.first().getRecordCollection();
-					RecordElementReader recordReader = null;
-					try {
-						recordReader = recordSet.getRecordElementReader();
-						recordInfo = new HashMap<Integer, RecordElement>();
-						
-						for(RecordElement element : recordReader) {
-							recordInfo.put(element.getSequence(), element);
+			Map<Integer, RecordElement> recordInfo = recordCache.getIfPresent(filePath);
+			if(recordInfo == null) {
+				Pair<RecordFileWriter, WriteWorker> binding = nodeManager.getBinding(filePath, false);
+				if(binding != null) {
+					binding.first().flush();
+					
+					recordInfo = recordCache.getIfPresent(filePath);
+					if(recordInfo == null) {
+						RecordCollection recordSet = binding.first().getRecordCollection();
+						RecordElementReader recordReader = null;
+						try {
+							recordReader = recordSet.getRecordElementReader();
+							recordInfo = new HashMap<Integer, RecordElement>();
+							
+							for(RecordElement element : recordReader) {
+								recordInfo.put(element.getSequence(), element);
+							}
+							
+							recordCache.put(filePath, recordInfo);
+						} finally {
+							CloseUtils.closeQuietly(recordReader);
 						}
-						
-						recordCache.put(filePath, recordInfo);
-					} finally {
-						CloseUtils.closeQuietly(recordReader);
+					}
+				} else {
+					File dataFile = new File(filePath);
+					if(dataFile.exists()) {
+						byte[] bytes = DataFileReader.readFile(dataFile, 0, Integer.MAX_VALUE);
+						if(bytes[0] == 0xAC && bytes[1] == 0) {
+							recordInfo = new HashMap<Integer, RecordElement>();
+							recordInfo.put(0, new RecordElement(0, 0, 2, 0));
+							
+							List<String> offsetInfos = FileDecoder.getOffsets(bytes);
+							int index = 1;
+							for(String info : offsetInfos) {
+								List<String> parts = Splitter.on('|').splitToList(info);
+								int offset = Integer.parseInt(parts.get(0));
+								int size = Integer.parseInt(parts.get(1));
+								recordInfo.put(index, new RecordElement(index, offset, size, 0));
+								index++;
+							}
+							
+							recordCache.put(filePath, recordInfo);
+						}
 					}
 				}
 			}

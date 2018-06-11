@@ -98,13 +98,14 @@ public class FileWriterManager implements LifeCycle {
 
 			@Override
 			protected Void execute() throws Exception {
-				LOG.info("execute flush for file[{}]", binding.first().getPath());
+				LOG.info("execute flush for file[{}] BEGIN", binding.first().getPath());
 				binding.first().flush();
 				return null;
 			}
 
 			@Override
 			protected void onPostExecute(Void result) {
+				LOG.info("execute flush for file[{}] OVER", binding.first().getPath());
 			}
 
 			@Override

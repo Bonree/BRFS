@@ -37,8 +37,10 @@ public class DefaultFileLounge implements FileLounge {
 	private static final int FILE_SET_SIZE_CLEAN_THRESHOLD = Integer.parseInt(System.getProperty(KEY_FILE_SET_SIZE_CLEAN, "3"));
 	private static final String KEY_FILE_USAGE_RATIO = "file_usage_ratio";
 	private static final double FILE_USAGE_RATIO_THRESHOLD = Double.parseDouble(System.getProperty(KEY_FILE_USAGE_RATIO, "0.99"));
-	private TimedObjectCollection<List<FileLimiter>> timedFileContainer;
+	private TimedObjectCollection<List<FileLimiter>> timedWritableFileContainer;
 	private LinkedList<FileLimiter> removedFileList = new LinkedList<FileLimiter>();
+	
+	private TimedObjectCollection<List<FileLimiter>> suspendFileContainer;
 
 	private FileCloseListener fileCloseListener;
 	
@@ -62,7 +64,17 @@ public class DefaultFileLounge implements FileLounge {
 		this.fileSynchronizer = fileSynchronizer;
 		this.patitionTimeInterval = timeIntervalMillis;
 		
-		this.timedFileContainer = new TimedObjectCollection<List<FileLimiter>>(
+		this.timedWritableFileContainer = new TimedObjectCollection<List<FileLimiter>>(
+				patitionTimeInterval, TimeUnit.MILLISECONDS, new ObjectBuilder<List<FileLimiter>>() {
+
+					@Override
+					public List<FileLimiter> build() {
+						return new LinkedList<FileLimiter>();
+					}
+					
+				});
+		
+		this.suspendFileContainer = new TimedObjectCollection<List<FileLimiter>>(
 				patitionTimeInterval, TimeUnit.MILLISECONDS, new ObjectBuilder<List<FileLimiter>>() {
 
 					@Override
@@ -73,12 +85,15 @@ public class DefaultFileLounge implements FileLounge {
 				});
 	}
 	
+	private void addFileLimiter(List<FileLimiter> list, FileLimiter file) {
+		synchronized (list) {
+			list.add(file);
+		}
+	}
+	
 	@Override
 	public void addFileLimiter(FileLimiter file) {
-		List<FileLimiter> fileList = timedFileContainer.get(file.getFileNode().getCreateTime());
-		synchronized (fileList) {
-			fileList.add(file);
-		}
+		addFileLimiter(timedWritableFileContainer.get(file.getFileNode().getCreateTime()), file);
 	}
 
 	@Override
@@ -92,7 +107,7 @@ public class DefaultFileLounge implements FileLounge {
 		
 		long currentTime = System.currentTimeMillis();
 		Set<FileLimiter> selected = new HashSet<FileLimiter>();
-		List<FileLimiter> fileList = timedFileContainer.get(currentTime);
+		List<FileLimiter> fileList = timedWritableFileContainer.get(currentTime);
 		for(int i = 0; i < requestSizes.length; i++) {
 			if(requestSizes[i] > DuplicationEnvironment.DEFAULT_MAX_AVAILABLE_FILE_SPACE) {
 				LOG.error("####request size[{}] is bigger than MAX_AVAILABLE_SIZE[{}]",
@@ -109,6 +124,8 @@ public class DefaultFileLounge implements FileLounge {
 						LOG.info("skip selecting file[{}] because it's syncing", file.getFileNode().getName());
 						fileSynchronizer.synchronize(file.getFileNode(), new FileLimiterSyncCallback(file));
 						iterator.remove();
+						
+						addFileLimiter(suspendFileContainer.get(file.getFileNode().getCreateTime()), file);
 						continue;
 					}
 					
@@ -141,10 +158,7 @@ public class DefaultFileLounge implements FileLounge {
 				results[i] = newFile;
 				
 				//不直接使用上面获取fileContainer是为了防止因为FileCleaner清理导致的fileContainer为null
-				List<FileLimiter> tempFileList = timedFileContainer.get(currentTime);
-				synchronized (tempFileList) {
-					tempFileList.add(newFile);
-				}
+				addFileLimiter(timedWritableFileContainer.get(currentTime), newFile);
 			}
 		}
 		
@@ -153,12 +167,31 @@ public class DefaultFileLounge implements FileLounge {
 	
 	@Override
 	public void clean() {
-		List<TimedObject<List<FileLimiter>>> timedObjects = timedFileContainer.allObjects();
-		long currentTimeInterval = timedFileContainer.getTimeInterval(System.currentTimeMillis());
+		List<TimedObject<List<FileLimiter>>> timedObjects = timedWritableFileContainer.allObjects();
+		long currentTimeInterval = timedWritableFileContainer.getTimeInterval(System.currentTimeMillis());
+		
+		List<TimedObject<List<FileLimiter>>> syncingFiles = suspendFileContainer.allObjects();
+		for(TimedObject<List<FileLimiter>> obj : syncingFiles) {
+			//移除所有在同步状态的文件
+			if(obj.getTimeInterval() < currentTimeInterval) {
+				List<FileLimiter> fileList = obj.getObj();
+				synchronized(fileList) {
+					Iterator<FileLimiter> iterator = fileList.iterator();
+					while(iterator.hasNext()) {
+						FileLimiter file = iterator.next();
+						
+						LOG.info("cancel file limiter sync file[{}]", file.getFileNode().getName());
+						fileSynchronizer.cancel(file.getFileNode());
+						removedFileList.add(file);
+						iterator.remove();
+					}
+				}
+			}
+		}
 		
 		for(TimedObject<List<FileLimiter>> obj : timedObjects) {
 			List<FileLimiter> fileList = obj.getObj();
-			LOG.info("container[{}] FILE CLEANER---- at {} >>> size[{}]", timedFileContainer, obj.getTimeInterval(), fileList.size());
+			LOG.info("container[{}] FILE CLEANER---- at {} >>> size[{}]", timedWritableFileContainer, obj.getTimeInterval(), fileList.size());
 			
 			if(obj.getTimeInterval() < currentTimeInterval) {
 				LOG.info("clean historical file list!");
@@ -179,7 +212,7 @@ public class DefaultFileLounge implements FileLounge {
 				}
 				
 				if(fileList.isEmpty()) {
-					timedFileContainer.remove(obj.getTimeInterval());
+					timedWritableFileContainer.remove(obj.getTimeInterval());
 				}
 			} else {
 				//当前时刻的文件集合，只对有clean标记的文件做处理
@@ -246,7 +279,7 @@ public class DefaultFileLounge implements FileLounge {
 	@Override
 	public List<FileLimiter> listFileLimiters() {
 		List<FileLimiter> result = new ArrayList<FileLimiter>();
-		List<TimedObject<List<FileLimiter>>> timedObjects = timedFileContainer.allObjects();
+		List<TimedObject<List<FileLimiter>>> timedObjects = timedWritableFileContainer.allObjects();
 		for(TimedObject<List<FileLimiter>> obj : timedObjects) {
 			result.addAll(obj.getObj());
 		}
@@ -264,8 +297,13 @@ public class DefaultFileLounge implements FileLounge {
 		@Override
 		public void complete(FileNode file) {
 			LOG.info("after sync, file Limiter[{}] is back!", file.getName());
-			fileLimiter.setSync(false);
-			addFileLimiter(fileLimiter);
+			long currentTime = timedWritableFileContainer.getTimeInterval(System.currentTimeMillis());
+			long fileTime = timedWritableFileContainer.getTimeInterval(file.getCreateTime());
+			if(currentTime == fileTime) {
+				//只有处于当前时刻的文件才需要回归到写入列表
+				fileLimiter.setSync(false);
+				addFileLimiter(fileLimiter);
+			}
 		}
 
 		@Override

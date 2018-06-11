@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 
