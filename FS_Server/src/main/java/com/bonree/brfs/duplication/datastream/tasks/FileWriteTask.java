@@ -131,7 +131,7 @@ public class FileWriteTask extends AsyncTask<ResultItem[]> {
 					}
 				}
 				
-				LOG.debug("result valid index = {}", validIndex);
+				LOG.info("file[{}] result valid index = {}", file.getFileNode().getName(), validIndex);
 				//有效索引范围内的数据才能生存FID
 				for(int i = 0; i < validIndex + 1; i++) {
 					//文件所在的文件偏移量和数据大小都是通过FileLimiter中的信息计算的
