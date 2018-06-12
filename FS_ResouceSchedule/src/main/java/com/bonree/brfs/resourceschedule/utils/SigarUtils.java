@@ -117,12 +117,12 @@ public enum SigarUtils {
     		tmpIp = netConfig.getAddress();    	
     		// 1.过滤非法的ip
     		if(NetUtils.filterIp(tmpIp)){
-    			LOG.warn("valid ip {} ", tmpIp);
+    			LOG.debug("valid ip {} ", tmpIp);
     			continue;
     		}
     		// 2.过滤网卡不存在的
     		if(((netConfig.getFlags() & 1L) <= 0L)){
-    			LOG.warn("ip {} is not exists", tmpIp);
+    			LOG.debug("ip {} is not exists", tmpIp);
     			continue;
     		}
     		if(ipSet.contains(tmpIp)){
@@ -155,7 +155,7 @@ public enum SigarUtils {
     		devName = netConfig.getName();
     		// 1.过滤网卡不存在的
     		if(((netConfig.getFlags() & 1L) <= 0L)){
-    			LOG.warn("ip {} is not exists", tmpIp);
+    			LOG.debug("ip {} is not exists", tmpIp);
     			continue;
     		}
     		
@@ -179,12 +179,12 @@ public enum SigarUtils {
     		tmpIp = netConfig.getAddress();    	
     		// 1.过滤非法的ip
     		if(NetUtils.filterIp(tmpIp)){
-    			LOG.warn("valid ip {} ", tmpIp);
+    			LOG.debug("valid ip {} ", tmpIp);
     			continue;
     		}
     		// 2.过滤网卡不存在的
     		if(((netConfig.getFlags() & 1L) <= 0L)){
-    			LOG.warn("ip {} is not exists", tmpIp);
+    			LOG.debug("ip {} is not exists", tmpIp);
     			continue;
     		}
     		if(ip.equals(tmpIp)){

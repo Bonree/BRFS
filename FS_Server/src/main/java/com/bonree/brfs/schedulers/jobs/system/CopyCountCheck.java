@@ -316,7 +316,7 @@ public class CopyCountCheck {
 		
 	}
 	/**
-	 * 概述：统计副本的个数
+	 * 概述：统计副本的个数 
 	 * @param files
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
