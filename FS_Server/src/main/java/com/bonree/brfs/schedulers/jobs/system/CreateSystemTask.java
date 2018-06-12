@@ -127,7 +127,7 @@ public class CreateSystemTask {
 			ttl = getTTL(sn, taskType, globalTTL);
 			endTime = startTime + granule;
 			// 当ttl小于等于0 的sn 跳过
-			if(ttl <= 0) {
+			if(ttl < 0) {
 				LOG.debug("sn {} don't to create task !!!",snName);
 				continue;
 			}

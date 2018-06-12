@@ -60,7 +60,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		LOG.info("----------- > createCheck Copy Job working");	
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String timestr = data.getString(JobDataMapConstract.CHECK_TTL);
-		long time = 1;
+		long time = 0;
 //		if(!BrStringUtils.isEmpty(timestr)){
 //			time = data.getLong(JobDataMapConstract.CHECK_TTL);
 //		}
