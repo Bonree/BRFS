@@ -58,8 +58,7 @@
 		<logback_version>1.2.3</logback_version>
 		<curator_version>4.0.0</curator_version>
 		<zookeeper_version>3.4.6</zookeeper_version>
-		<httpclient_version>4.5.2</httpclient_version>
-		<httpasyncclient_version>4.1.2</httpasyncclient_version>
+		<httpasyncclient_version>4.1.3</httpasyncclient_version>
 		<sigar_version>1.6.4</sigar_version>
 		<quartz_version>2.0.2</quartz_version>
 		<fastjson_version>1.2.3</fastjson_version>
@@ -153,11 +152,6 @@
 				      <artifactId>netty</artifactId>
 				</exclusion>
 			</exclusions>  
-			</dependency>
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpclient</artifactId>
-				<version>${httpclient_version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
