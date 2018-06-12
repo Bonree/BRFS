@@ -75,11 +75,10 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 				operation(context);
 			}
 		}catch (Exception e) {
-			LOG.info("------------- Exception");
+			LOG.info("happend Exception :{}",e);
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
 			isSuccess = false;
-			e.printStackTrace();
 		}finally{
 			//判断是否有恢复任务，有恢复任务则不进行创建
 			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)){
@@ -88,14 +87,12 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			}
 			LOG.info("batch ID :{} {} {} {} {}",batchIndex,taskType,currentTaskName,serverId,stat);
 			if(batchIndex >= 1){
-				LOG.info("------------------- work>>>work");
 				TaskResultModel resultTask = new TaskResultModel();
 				resultTask.setSuccess(isSuccess);
 				TaskStateLifeContral.updateMapTaskMessage(context, resultTask);
 			}
 			//最后一次执行更新任务状态并处理任务
 			if(batchIndex == 1){
-				LOG.info("------------------- work>>>work");
 				String result = data.getString(JobDataMapConstract.TASK_RESULT);
 				stat = data.getInt(JobDataMapConstract.TASK_MAP_STAT);
 				TaskStateLifeContral.updateTaskStatusByCompelete(serverId, currentTaskName, taskType.name(), result, stat);
