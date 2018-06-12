@@ -41,8 +41,7 @@ public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHtt
 	}
 
 	@Override
-	protected void channelRead0(ChannelHandlerContext ctx,
-			FullHttpRequest request) throws Exception {
+	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
 		if(!request.decoderResult().isSuccess()) {
 			//请求解析失败
 			ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST, HttpResponseStatus.BAD_REQUEST.reasonPhrase());

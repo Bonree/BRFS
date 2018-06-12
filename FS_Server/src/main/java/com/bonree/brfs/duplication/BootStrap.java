@@ -130,7 +130,7 @@ public class BootStrap {
             DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser, storageNameManager);
             
             HttpConfig config = new HttpConfig(serverConfig.getPort());
-            config.setKeepAlive(true);
+            config.setBacklog(1024);
             NettyHttpServer httpServer = new NettyHttpServer(config);
             httpServer.addHttpAuthenticator(new SimpleHttpAuthenticator(simpleAuthentication));
 

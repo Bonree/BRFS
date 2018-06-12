@@ -18,12 +18,15 @@ import java.util.List;
  *
  */
 public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
-	private static final int DEFAULT_MAX_HTTP_CONTENT_LENGTH = 65 * 1024 * 1024;
-	
 	private List<NettyHttpContextHandler> contextHandlers = new ArrayList<NettyHttpContextHandler>();
 	
 	private DefaultHttpRequestHandler defaultHttpRequestHandler = new DefaultHttpRequestHandler();
 	private NettyHttpAuthenticationHandler authenticationHandler;
+	private final int maxHttpContentLength;
+	
+	NettyChannelInitializer(int maxHttpContentLength) {
+		this.maxHttpContentLength = maxHttpContentLength;
+	}
 	
 	public void addAuthenticationHandler(NettyHttpAuthenticationHandler authenticationHandler) {
 		this.authenticationHandler = authenticationHandler;
@@ -40,7 +43,7 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 		pipeline.addLast(new HttpResponseEncoder());
         // server端接收到的是httpRequest，所以要使用HttpRequestDecoder进行解码
 		pipeline.addLast(new HttpRequestDecoder());
-		pipeline.addLast(new HttpObjectAggregator(DEFAULT_MAX_HTTP_CONTENT_LENGTH));
+		pipeline.addLast(new HttpObjectAggregator(maxHttpContentLength));
 		pipeline.addLast(new ChunkedWriteHandler());
 		
 		if(authenticationHandler != null) {

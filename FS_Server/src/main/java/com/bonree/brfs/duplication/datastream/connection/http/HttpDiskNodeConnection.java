@@ -19,7 +19,15 @@ public class HttpDiskNodeConnection implements DiskNodeConnection {
 	}
 	
 	public void connect() {
-		client = new HttpDiskNodeClient(address, port, ClientConfig.builder().setResponseTimeout(3000).build());
+		int defaultMaxConnectionPerRoute = Math.max(4, Runtime.getRuntime().availableProcessors() / 4);
+		
+		ClientConfig clientConfig = ClientConfig.builder()
+				.setResponseTimeout(3000)
+				.setMaxConnectionPerRoute(defaultMaxConnectionPerRoute)
+				.setMaxConnection(defaultMaxConnectionPerRoute * 3)
+				.build();
+		
+		client = new HttpDiskNodeClient(address, port, clientConfig);
 	}
 
 	@Override
