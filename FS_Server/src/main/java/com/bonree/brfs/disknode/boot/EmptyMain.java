@@ -74,6 +74,7 @@ public class EmptyMain implements LifeCycle {
 			}
 		});
 		
+		httpConfig.setBacklog(1024);
 		server = new NettyHttpServer(httpConfig);
 		
 		NettyHttpContextHandler contextHandler = new NettyHttpContextHandler(DiskContext.URI_DISK_NODE_ROOT);

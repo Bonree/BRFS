@@ -19,6 +19,9 @@ public class HttpConfig {
 	private static final int DEFAULT_REQUEST_HANDLE_WORKER_NUM = 6;
 	private int requestHandleWorkerNum;
 	
+	private static final int DEFAULT_MAX_HTTP_CONTENT_LENGTH = 65 * 1024 * 1024;
+	private int maxHttpContentLength;
+	
 	public HttpConfig(int port) {
 		this(null, port);
 	}
@@ -32,6 +35,7 @@ public class HttpConfig {
 		this.tcpNoDelay = true;
 		this.acceptWorkerNum = DEFAULT_ACCEPT_WORKER_NUM;
 		this.requestHandleWorkerNum = DEFAULT_REQUEST_HANDLE_WORKER_NUM;
+		this.maxHttpContentLength = DEFAULT_MAX_HTTP_CONTENT_LENGTH;
 	}
 
 	public String getHost() {
@@ -96,6 +100,14 @@ public class HttpConfig {
 
 	public void setRequestHandleWorkerNum(int requestHandleWorkerNum) {
 		this.requestHandleWorkerNum = requestHandleWorkerNum;
+	}
+
+	public int getMaxHttpContentLength() {
+		return maxHttpContentLength;
+	}
+
+	public void setMaxHttpContentLength(int maxHttpContentLength) {
+		this.maxHttpContentLength = maxHttpContentLength;
 	}
 
 }
