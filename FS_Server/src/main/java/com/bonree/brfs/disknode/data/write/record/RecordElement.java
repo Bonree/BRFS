@@ -14,6 +14,8 @@ public class RecordElement {
 	private int size;
 	//写入数据的CRC码
 	private long crc;
+	
+	private long time;
 
 	public RecordElement() {
 		this(0, 0);
@@ -28,6 +30,7 @@ public class RecordElement {
 	}
 	
 	public RecordElement(int seq, long offset, int size, long crc) {
+		this.time = System.currentTimeMillis();
 		this.sequence = seq;
 		this.offset = offset;
 		this.size = size;
@@ -69,7 +72,8 @@ public class RecordElement {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("[").append(offset)
+		builder.append("[").append(sequence)
+		       .append(", ").append(offset)
 		       .append(", ").append(size)
 		       .append(", ").append(crc)
 		       .append("]");
@@ -87,5 +91,13 @@ public class RecordElement {
 		return offset == other.offset
 				&& size == other.size
 				&& crc == other.crc;
+	}
+
+	public long getTime() {
+		return time;
+	}
+
+	public void setTime(long time) {
+		this.time = time;
 	}
 }
