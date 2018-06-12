@@ -398,7 +398,7 @@ public class CopyCountCheck {
 				LOG.info("skip {} create copy check task!! because forbid check current time ",snName);
 				continue;
 			}
-			repairs.put(snName, startTime);
+			repairs.put(snName, sGra);
 		}
 		return repairs;
 	}
