@@ -47,8 +47,8 @@ public class NettyHttpServer implements LifeCycle {
 		serverStart.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,httpConfig.getConnectTimeoutMillies());//连接超时时间(毫秒)
 		serverStart.childOption(ChannelOption.SO_KEEPALIVE, httpConfig.isKeepAlive());//保持连接
 		serverStart.childOption(ChannelOption.TCP_NODELAY, httpConfig.isTcpNoDelay());
-//		serverStart.childOption(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator());
-//		serverStart.childOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
+		serverStart.childOption(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator());
+		serverStart.childOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
 		
 		InetSocketAddress address = (httpConfig.getHost() == null ?
 				new InetSocketAddress(httpConfig.getPort()) : new InetSocketAddress(httpConfig.getHost(), httpConfig.getPort()));

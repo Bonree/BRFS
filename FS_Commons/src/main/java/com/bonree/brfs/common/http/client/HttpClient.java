@@ -48,16 +48,16 @@ public class HttpClient implements Closeable {
                 .build();
 		
 		IOReactorConfig ioConfig = IOReactorConfig.custom()
-				.setSoKeepAlive(true)
+				.setSoKeepAlive(false)
 				.setConnectTimeout(clientConfig.getConnectTimeout())
 				.setSndBufSize(clientConfig.getSocketSendBufferSize())
 				.setRcvBufSize(clientConfig.getSocketRecvBufferSize())
 				.setIoThreadCount(clientConfig.getIOThreadNum())
-				.setTcpNoDelay(false)
+				.setTcpNoDelay(true)
 				.build();
 		
 		List<Header> defaultHeaders = new ArrayList<Header>();
-		defaultHeaders.add(new BasicHeader("Connection", "keep-alive"));
+//		defaultHeaders.add(new BasicHeader("Connection", "keep-alive"));
 		
 		client = HttpAsyncClientBuilder.create()
 		           .setMaxConnPerRoute(clientConfig.getMaxConnectionPerRoute())
@@ -68,7 +68,7 @@ public class HttpClient implements Closeable {
 
 					@Override
 					public boolean keepAlive(org.apache.http.HttpResponse response, HttpContext context) {
-						return true;
+						return false;
 					}
 					
 				})
