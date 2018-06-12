@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,15 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
  */
 public class CopyCountCheck {
 	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
-	
+	/***
+	 * 概述：获取文件缺失的sn
+	 * @param storageNames
+	 * @param services
+	 * @param snTimes
+	 * @param granule
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public static Map<String,List<String>> collectLossFile(List<StorageNameNode> storageNames, List<Service> services, Map<String,Long> snTimes, long granule){
 		Map<StorageNameNode, List<String>> snFiles = collectionSnFiles(services, storageNames,snTimes,granule);
 		if(snFiles == null|| snFiles.isEmpty()) {
@@ -234,6 +243,13 @@ public class CopyCountCheck {
 		}
 		return filterRd(strs, filterRd);
 	}
+	/**
+	 * 概述：过滤rd文件
+	 * @param files
+	 * @param rds
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public static List<String> filterRd(final List<String> files, final List<String> rds){
 		List<String> rFiles = new ArrayList<>();
 		if(files == null || files.isEmpty()){
@@ -252,6 +268,12 @@ public class CopyCountCheck {
 		return rFiles;
 		
 	}
+	/***
+	 * 概述：获取文件名
+	 * @param path
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public static String getFileName(String path){
 		int lastIndex = 0;
 		lastIndex = path.lastIndexOf("/");
@@ -337,5 +359,47 @@ public class CopyCountCheck {
 		result.setKey(filterLitterResult);
 		result.setValue(filterBiggestResult);
 		return result;
+	}
+	
+	/**
+	 * 概述：添加第一次出现的sn
+	 * @param sourceTimes
+	 * @param needSns
+	 * @param granule
+	 * @param ttl
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageNameNode> needSns, long granule, long ttl){
+		Map<String,Long> repairs = new ConcurrentHashMap<>();
+		repairs.putAll(sourceTimes);
+		if(sourceTimes != null) {
+			repairs.putAll(sourceTimes);
+		}
+		if(needSns == null || needSns.isEmpty()) {
+			return repairs;
+		}
+		long currentTime = System.currentTimeMillis();
+		long cGra = currentTime - currentTime%granule;
+		String snName = null;
+		long startTime = 0L;
+		long sGra = 0L;
+		for(StorageNameNode sn : needSns) {
+			snName = sn.getName();
+			if(repairs.containsKey(snName)) {
+				continue;
+			}
+			startTime = sn.getCreateTime();
+			if(currentTime - startTime <ttl) {
+				continue;
+			}
+			sGra = startTime - startTime % granule;
+			if(sGra == cGra) {
+				LOG.info("skip {} create copy check task!! because forbid check current time ",snName);
+				continue;
+			}
+			repairs.put(snName, startTime);
+		}
+		return repairs;
 	}
 }

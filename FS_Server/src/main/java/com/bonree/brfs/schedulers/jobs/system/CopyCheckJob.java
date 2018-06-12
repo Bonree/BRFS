@@ -60,10 +60,10 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		LOG.info("----------- > createCheck Copy Job working");	
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String timestr = data.getString(JobDataMapConstract.CHECK_TTL);
-		long time = 3600000;
-		if(!BrStringUtils.isEmpty(timestr)){
-			time = data.getLong(JobDataMapConstract.CHECK_TTL);
-		}
+		long time = 1;
+//		if(!BrStringUtils.isEmpty(timestr)){
+//			time = data.getLong(JobDataMapConstract.CHECK_TTL);
+//		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		StorageNameManager snm = mcf.getSnm();
@@ -96,7 +96,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		// 2.过滤不符合副本校验的sn信息
 		List<StorageNameNode> needSns = CopyCountCheck.filterSn(snList, services.size());
 		// 3.针对第一次出现的sn补充时间
-		sourceTimes = repairTime(sourceTimes, needSns, 3600000,time);
+		sourceTimes = CopyCountCheck.repairTime(sourceTimes, needSns, 3600000,time);
 		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, 3600000);
 		
 		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, "RECOVERY", 3600000, time);
@@ -121,39 +121,5 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		LOG.info("update sn time");
 		
 	}
-	/**
-	 * 概述：添加第一次出现的sn
-	 * @param sourceTimes
-	 * @param needSns
-	 * @param granule
-	 * @param ttl
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageNameNode> needSns, long granule, long ttl){
-		Map<String,Long> repairs = new ConcurrentHashMap<>();
-		repairs.putAll(sourceTimes);
-		if(sourceTimes != null) {
-			repairs.putAll(sourceTimes);
-		}
-		if(needSns == null || needSns.isEmpty()) {
-			return repairs;
-		}
-		long currentTime = System.currentTimeMillis();
-		String snName = null;
-		long startTime = 0L;
-		for(StorageNameNode sn : needSns) {
-			snName = sn.getName();
-			if(repairs.containsKey(snName)) {
-				continue;
-			}
-			startTime = sn.getCreateTime();
-			if(currentTime - startTime <ttl) {
-				continue;
-			}
-			startTime = startTime - startTime % granule;
-			repairs.put(snName, startTime);
-		}
-		return repairs;
-	}
+	
 }
