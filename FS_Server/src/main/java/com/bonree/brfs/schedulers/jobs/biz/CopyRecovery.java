@@ -44,11 +44,13 @@ public class CopyRecovery {
 		BatchAtomModel batch = converStringToBatch(content);
 		if(batch == null){
 			result.setSuccess(false);
+			LOG.info("<recoveryDirs> batch is empty");
 			return result;
 		}
 		List<AtomTaskModel> atoms = batch.getAtoms();
 		if(atoms == null|| atoms.isEmpty()){
 			result.setSuccess(true);
+			LOG.info("<recoveryDirs> file is empty");
 			return result;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
@@ -77,6 +79,7 @@ public class CopyRecovery {
 				atomR.setSuccess(false);
 				result.setSuccess(false);
 				result.add(atomR);
+				LOG.info("<recoveryDirs> sn == null snName :{}",snName);
 				continue;
 			}
 			snId = sn.getId();
@@ -86,6 +89,7 @@ public class CopyRecovery {
 			errors = recoveryFiles(sm, sim, parser, sn, atom,dataPath);
 			if(errors == null || errors.isEmpty()){
 				result.add(atomR);
+				LOG.info("<recoveryDirs> result is empty snName:{}", snName);
 				continue;
 			}
 			atomR.addAll(errors);
@@ -130,9 +134,11 @@ public class CopyRecovery {
 		String dirName = atom.getDirName();
 		List<String> fileNames = atom.getFiles();
 		if (fileNames == null || fileNames.isEmpty()) {
+			LOG.info("<recoverFiles> {} files name is empyt", snName);
 			return null;
 		}
 		if (snNode == null) {
+			LOG.info("<recoverFiles> {} sn node is empty", snName);
 			return null;
 		}
 		boolean isSuccess = false;
@@ -143,7 +149,7 @@ public class CopyRecovery {
 				errors.add(fileName);
 			}
 		}
-		return null;
+		return errors;
 	}
 	/**
 	 * 概述：恢复单个文件
@@ -171,14 +177,17 @@ public class CopyRecovery {
 		int snId = snNode.getId();
 		sss = parser.getAliveSecondID(fileName);
 		if (sss == null) {
+			LOG.info("<recoveryFile> alive second Ids is empty");
 			return false;
 		}
 		String secondId = sim.getSecondServerID(snId);
 		if (BrStringUtils.isEmpty(secondId)) {
+			LOG.info("<recoveryFile> {} {} secondid is empty ",snName, snId);
 			return false;
 		}
 		localIndex = isContain(sss, secondId);
 		if (-1 == localIndex) {
+			LOG.info("<recoveryFile> {} {} {} is not mine !! skip",secondId, snName, fileName );
 			return false;
 		}
 		
@@ -186,6 +195,7 @@ public class CopyRecovery {
 		
 		File file = new File(dataPath + "/"+localPath);
 		if(file.exists()){
+			LOG.info("<recoveryFile> {} {} is exists, skip",snName, fileName);
 			return true;
 		}
 		remoteIndex = 0;
@@ -193,18 +203,22 @@ public class CopyRecovery {
 			//排除自己
 			if (secondId.equals(snsid)) {
 				remoteIndex++;
+				LOG.info("<recoveryFile> kill myself {} {} {}",fileName, secondId,snsid);
 				continue;
 			}
 			remoteName = sim.getOtherFirstID(secondId, snId);
 			if(BrStringUtils.isEmpty(remoteName)){
+				LOG.info("<recoveryFile> remote name is empty");
 				continue;
 			}
 			remoteService = sm.getServiceById(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, remoteName);
 			if(remoteService == null){
+				LOG.info("<recoveryFile> remote service is empty");
 				continue;
 			}
 			remotePath = snName + "/" + remoteIndex + "/" + dirName + "/" + fileName;
 			isSuccess = recoveryFile(remoteService, localPath, remotePath);
+			LOG.info("<recoveryFile> recovery file stat {}", isSuccess);
 			if(isSuccess){
 				return true;
 			}
@@ -223,7 +237,7 @@ public class CopyRecovery {
 	 */
 	public static boolean recoveryFile(Service service, String localPath, String remotePath) {
 		// 文件恢复线程
-		DiskNodeClient client = null;
+		DiskNodeClient client = new LocalDiskNodeClient();
 		boolean isSuccess = false;
 		try {
 			client.copyFrom(service.getHost(), service.getPort(), remotePath, localPath);
