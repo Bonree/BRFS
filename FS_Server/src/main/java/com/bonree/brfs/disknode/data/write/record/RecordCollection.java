@@ -65,7 +65,8 @@ public class RecordCollection implements Closeable {
 	 */
 	public void put(RecordElement element) throws IOException {
 		if(element.getSequence() < 0) {
-			throw new RuntimeException("put record element with sequence[" + element.getSequence() + "]");
+			LOG.error("put record element with sequence[{}]", element.getSequence());
+			return;
 		}
 		
 		recordWriter.write(ProtoStuffUtils.serialize(element));

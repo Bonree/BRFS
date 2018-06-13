@@ -15,7 +15,7 @@ import com.bonree.brfs.disknode.data.write.record.RecordElement;
 public class RecordFileWriter implements FileWriter {
 	private FileWriter delegate;
 	private RecordCollection recorder;
-	private int sequence;
+	private volatile int sequence;
 	
 	public RecordFileWriter(RecordCollection recorder, FileWriter delegate) {
 		this.recorder = recorder;
