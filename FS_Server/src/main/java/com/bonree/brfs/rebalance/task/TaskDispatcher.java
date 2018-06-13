@@ -422,8 +422,8 @@ public class TaskDispatcher implements Closeable {
                             String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
                             VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
                             LOG.info("add virtual route:" + route);
-                            addRoute(virtualRouteNode,JSON.toJSONBytes(route));
-                            
+                            addRoute(virtualRouteNode, JSON.toJSONBytes(route));
+
                             // 因共享节点，所以得将余下的所有virtual server id，注册新迁移的server。不足之处，可能为导致副本数的恢复大于服务数。
                             String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
                             List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
@@ -499,14 +499,14 @@ public class TaskDispatcher implements Closeable {
         BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(parentPath), BalanceTaskSummary.class);
 
         // 所有的服务都则发布迁移规则，并清理任务
-        if(bts.getTaskStatus().equals(TaskStatus.FINISH)) {
+        if (bts.getTaskStatus().equals(TaskStatus.FINISH)) {
             if (bts.getTaskType() == RecoverType.VIRTUAL) {
                 LOG.info("one virtual task finish,detail:" + taskSummary);
                 String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
                 VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
                 LOG.info("add virtual route:" + route);
                 addRoute(virtualRouteNode, JSON.toJSONBytes(route));
-                
+
                 // 因共享节点，所以得将余下的所有virtual server id，注册新迁移的server。不足之处，可能为导致副本数的恢复大于服务数。
                 String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
                 List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
@@ -518,10 +518,10 @@ public class TaskDispatcher implements Closeable {
                 // 删除virtual server ID
                 LOG.info("delete the virtual server id:" + bts.getServerId());
                 idManager.deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
-                
+
             } else if (bts.getTaskType() == RecoverType.NORMAL) {
                 LOG.info("one normal task finish,detail:" + taskSummary);
-                
+
                 String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
                 NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
                 LOG.info("add normal route:" + route);
@@ -645,10 +645,19 @@ public class TaskDispatcher implements Closeable {
             if (cs.getChangeType().equals(ChangeType.REMOVE)) {
                 List<String> aliveFirstIDs = getAliveServices();
                 List<String> joinerFirstIDs = cs.getCurrentServers();
+
                 boolean canRecover = isCanRecover(cs, joinerFirstIDs, aliveFirstIDs);
                 if (canRecover) {
                     List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
                     List<String> joinerSecondIDs = joinerFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
+                    //挂掉的机器不能做生存者和参与者，此处进行再次过滤，防止其他情况
+                    if (aliveSecondIDs.contains(cs.getChangeServer())) {
+                        aliveSecondIDs.remove(cs.getChangeServer());
+                    }
+                    if (joinerSecondIDs.contains(cs.getChangeServer())) {
+                        joinerSecondIDs.remove(cs.getChangeServer());
+                    }
+
                     // 构建任务
                     BalanceTaskSummary taskSummary = taskGenerator.genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangeServer(), aliveSecondIDs, joinerSecondIDs, normalDelay);
                     // 发布任务
