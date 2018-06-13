@@ -93,7 +93,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 				}
 			}
 		} catch (Exception e) {
-			LOG.error("search datas at original file[{}] error", filePath);
+			LOG.error("search datas at original file[{}] error", filePath, e);
 		} finally {
 			CloseUtils.closeQuietly(recordreReader);
 		}
@@ -138,7 +138,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 			CloseUtils.closeQuietly(originFile);
 		}
 		
-		LOG.info("finally lack size = {}", lack.cardinality());
+		LOG.info("finally file[{}] lack size = {}", filePath, lack.cardinality());
 		
 		if(lack.cardinality() != 0) {
 			HandleResult handleResult = new HandleResult();
@@ -207,6 +207,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 				
 				writerManager.rebuildFileWriter(originFile);
 				
+				LOG.info("rewrite file[{}] success", filePath);
 				completed = true;
 			} catch (IOException e) {
 				LOG.error("rewrite file[{}] error", filePath, e);
