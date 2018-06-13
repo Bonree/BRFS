@@ -23,18 +23,18 @@ public class ByteFileBuffer implements FileBuffer {
 	}
 	
 	@Override
-	public int size() {
+	public int readableSize() {
 		return buffer.position();
 	}
 	
 	@Override
-	public int remaining() {
+	public int writableSize() {
 		return buffer.remaining();
 	}
 	
 	@Override
 	public void write(byte[] bytes) {
-		write(bytes);
+		write(bytes, 0, bytes.length);
 	}
 	
 	@Override

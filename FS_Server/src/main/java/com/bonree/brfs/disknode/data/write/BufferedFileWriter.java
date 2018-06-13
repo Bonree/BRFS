@@ -69,7 +69,7 @@ public class BufferedFileWriter implements FileWriter {
 	
 	@Override
 	public void write(byte[] bytes, int offset, int length) throws IOException {
-		if(length > buffer.remaining() && buffer.size() > 0) {
+		if(length > buffer.writableSize() && buffer.readableSize() > 0) {
 			flush();
 		}
 		

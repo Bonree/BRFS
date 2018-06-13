@@ -15,7 +15,7 @@ public interface FileBuffer {
 	 * 
 	 * @return
 	 */
-	int size();
+	int readableSize();
 	
 	/**
 	 * 当前buffer的数据容量大小
@@ -29,7 +29,7 @@ public interface FileBuffer {
 	 * 
 	 * @return 可写入字节数
 	 */
-	int remaining();
+	int writableSize();
 	
 	/**
 	 * 写入指定字节数组中的所有数据

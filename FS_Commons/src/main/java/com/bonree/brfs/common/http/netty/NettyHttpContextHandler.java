@@ -1,5 +1,8 @@
 package com.bonree.brfs.common.http.netty;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -12,6 +15,8 @@ import com.google.common.base.Splitter;
 
 @Sharable
 public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+	private static final Logger LOG = LoggerFactory.getLogger(NettyHttpContextHandler.class);
+	
 	private String contextPath;
 	private NettyHttpRequestHandler requestHandler;
 	
@@ -43,12 +48,14 @@ public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHtt
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
 		if(!request.decoderResult().isSuccess()) {
+			LOG.error("Exception context[{}] http request decode error", ctx.toString());
 			//请求解析失败
 			ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST, HttpResponseStatus.BAD_REQUEST.reasonPhrase());
 			return;
 		}
 		
 		if (!isValidUri(request.uri())) {
+			LOG.error("Exception context[{}] invalid uri[{}]", ctx.toString(), request.uri());
 			//请求URI无效
 			ctx.fireChannelRead(request);
 			return;
@@ -74,6 +81,7 @@ public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHtt
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
+		LOG.error("context[{}]", ctx.toString(), cause);
 		if (ctx.channel().isActive()) {
 			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, cause.toString());
 		}

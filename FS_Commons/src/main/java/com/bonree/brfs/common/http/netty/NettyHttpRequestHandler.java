@@ -35,6 +35,7 @@ public class NettyHttpRequestHandler {
 		
 		MessageHandler handler = methodToOps.get(request.method());
 		if(handler == null) {
+			LOG.error("Exception context[{}] method[{}] is unknown", ctx.toString(), request.method());
 			ResponseSender.sendError(ctx, HttpResponseStatus.METHOD_NOT_ALLOWED, HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase());
 			return;
 		}
@@ -51,6 +52,7 @@ public class NettyHttpRequestHandler {
 		
 		try {
 			if(!handler.isValidRequest(message)) {
+				LOG.error("Exception context[{}] method[{}] invalid request message[{}]", ctx.toString(), message.getPath());
 				ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST, HttpResponseStatus.BAD_REQUEST.reasonPhrase());
 				return;
 			}
