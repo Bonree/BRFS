@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.http.HttpConfig;
-import com.bonree.brfs.common.http.netty.NettyHttpContextHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpServer;
 import com.bonree.brfs.common.service.Service;
@@ -77,57 +76,41 @@ public class EmptyMain implements LifeCycle {
 		httpConfig.setBacklog(1024);
 		server = new NettyHttpServer(httpConfig);
 		
-		NettyHttpContextHandler contextHandler = new NettyHttpContextHandler(DiskContext.URI_DISK_NODE_ROOT);
 		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
 		requestHandler.addMessageHandler("PUT", new OpenMessageHandler(diskContext, writerManager));
 		requestHandler.addMessageHandler("POST", new WriteMessageHandler(diskContext, writerManager));
 		requestHandler.addMessageHandler("GET", new ReadMessageHandler(diskContext));
 		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(diskContext, writerManager));
 		requestHandler.addMessageHandler("DELETE", new DeleteMessageHandler(diskContext, writerManager));
-		contextHandler.setNettyHttpRequestHandler(requestHandler);
-		server.addContextHandler(contextHandler);
+		server.addContextHandler(DiskContext.URI_DISK_NODE_ROOT, requestHandler);
 		
-		NettyHttpContextHandler flushHandler = new NettyHttpContextHandler(DiskContext.URI_FLUSH_NODE_ROOT);
 		NettyHttpRequestHandler flushRequestHandler = new NettyHttpRequestHandler();
 		flushRequestHandler.addMessageHandler("POST", new FlushMessageHandler(diskContext, writerManager));
-		flushHandler.setNettyHttpRequestHandler(flushRequestHandler);
-		server.addContextHandler(flushHandler);
+		server.addContextHandler(DiskContext.URI_FLUSH_NODE_ROOT, flushRequestHandler);
 		
-		NettyHttpContextHandler infoHandler = new NettyHttpContextHandler(DiskContext.URI_INFO_NODE_ROOT);
 		NettyHttpRequestHandler infoRequestHandler = new NettyHttpRequestHandler();
 		infoRequestHandler.addMessageHandler("GET", new WritingInfoMessageHandler(diskContext, writerManager));
-		infoHandler.setNettyHttpRequestHandler(infoRequestHandler);
-		server.addContextHandler(infoHandler);
+		server.addContextHandler(DiskContext.URI_INFO_NODE_ROOT, infoRequestHandler);
 		
-		NettyHttpContextHandler metaHandler = new NettyHttpContextHandler(DiskContext.URI_META_NODE_ROOT);
 		NettyHttpRequestHandler metaRequestHandler = new NettyHttpRequestHandler();
 		metaRequestHandler.addMessageHandler("GET", new WritingMetaDataMessageHandler(diskContext, writerManager));
-		metaHandler.setNettyHttpRequestHandler(metaRequestHandler);
-		server.addContextHandler(metaHandler);
+		server.addContextHandler(DiskContext.URI_META_NODE_ROOT, metaRequestHandler);
 		
-		NettyHttpContextHandler cpHandler = new NettyHttpContextHandler(DiskContext.URI_COPY_NODE_ROOT);
 		NettyHttpRequestHandler cpRequestHandler = new NettyHttpRequestHandler();
 		cpRequestHandler.addMessageHandler("POST", new FileCopyMessageHandler(diskContext));
-		cpHandler.setNettyHttpRequestHandler(cpRequestHandler);
-		server.addContextHandler(cpHandler);
+		server.addContextHandler(DiskContext.URI_COPY_NODE_ROOT, cpRequestHandler);
 		
-		NettyHttpContextHandler listHandler = new NettyHttpContextHandler(DiskContext.URI_LIST_NODE_ROOT);
 		NettyHttpRequestHandler listRequestHandler = new NettyHttpRequestHandler();
 		listRequestHandler.addMessageHandler("GET", new ListMessageHandler(diskContext));
-		listHandler.setNettyHttpRequestHandler(listRequestHandler);
-		server.addContextHandler(listHandler);
+		server.addContextHandler(DiskContext.URI_LIST_NODE_ROOT, listRequestHandler);
 		
-		NettyHttpContextHandler recoverHandler = new NettyHttpContextHandler(DiskContext.URI_RECOVER_NODE_ROOT);
 		NettyHttpRequestHandler recoverRequestHandler = new NettyHttpRequestHandler();
 		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(diskContext, serviceManager, writerManager, recorderManager));
-		recoverHandler.setNettyHttpRequestHandler(recoverRequestHandler);
-		server.addContextHandler(recoverHandler);
+		server.addContextHandler(DiskContext.URI_RECOVER_NODE_ROOT, recoverRequestHandler);
 		
-		NettyHttpContextHandler pingHandler = new NettyHttpContextHandler(DiskContext.URI_PING_PONG_ROOT);
 		NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler();
 		pingRequestHandler.addMessageHandler("GET", new PingPongRequestHandler());
-		pingHandler.setNettyHttpRequestHandler(pingRequestHandler);
-		server.addContextHandler(pingHandler);
+		server.addContextHandler(DiskContext.URI_PING_PONG_ROOT, pingRequestHandler);
 		
 		server.start();
 	}

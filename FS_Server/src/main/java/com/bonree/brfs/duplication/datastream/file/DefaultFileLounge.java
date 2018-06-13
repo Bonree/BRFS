@@ -180,8 +180,7 @@ public class DefaultFileLounge implements FileLounge {
 					while(iterator.hasNext()) {
 						FileLimiter file = iterator.next();
 						
-						LOG.info("cancel file limiter sync file[{}]", file.getFileNode().getName());
-						fileSynchronizer.cancel(file.getFileNode());
+						LOG.info("close suspended file[{}]", file.getFileNode().getName());
 						removedFileList.add(file);
 						iterator.remove();
 					}
@@ -303,6 +302,18 @@ public class DefaultFileLounge implements FileLounge {
 				//只有处于当前时刻的文件才需要回归到写入列表
 				fileLimiter.setSync(false);
 				addFileLimiter(fileLimiter);
+				
+				List<FileLimiter> suspendFileList = suspendFileContainer.get(file.getCreateTime());
+				synchronized (suspendFileList) {
+					Iterator<FileLimiter> iterator = suspendFileList.iterator();
+					while(iterator.hasNext()) {
+						FileLimiter next = iterator.next();
+						if(next.getFileNode().getName().equals(file.getName())) {
+							iterator.remove();
+							break;
+						}
+					}
+				}
 			}
 		}
 

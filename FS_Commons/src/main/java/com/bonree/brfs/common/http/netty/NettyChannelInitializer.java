@@ -8,9 +8,6 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Netty的Handler初始化类
  * 
@@ -18,9 +15,8 @@ import java.util.List;
  *
  */
 public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
-	private List<NettyHttpContextHandler> contextHandlers = new ArrayList<NettyHttpContextHandler>();
+	private NettyHttpContextHandler contextHandler = new NettyHttpContextHandler();
 	
-	private DefaultHttpRequestHandler defaultHttpRequestHandler = new DefaultHttpRequestHandler();
 	private NettyHttpAuthenticationHandler authenticationHandler;
 	private final int maxHttpContentLength;
 	
@@ -31,9 +27,9 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 	public void addAuthenticationHandler(NettyHttpAuthenticationHandler authenticationHandler) {
 		this.authenticationHandler = authenticationHandler;
 	}
-
-	public void addContextHandler(NettyHttpContextHandler handler) {
-		contextHandlers.add(handler);
+	
+	public void addRequestHandler(String root, NettyHttpRequestHandler handler) {
+		contextHandler.add(root, handler);
 	}
 
 	@Override
@@ -50,7 +46,6 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
 			pipeline.addLast(authenticationHandler);
 		}
 		
-		contextHandlers.forEach((NettyHttpContextHandler handler) -> pipeline.addLast(handler));
-		pipeline.addLast(defaultHttpRequestHandler);	
+		pipeline.addLast(contextHandler);	
     }
 }

@@ -1,14 +1,16 @@
 package com.bonree.brfs.common.http.netty;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.util.ReferenceCountUtil;
+
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -17,17 +19,10 @@ import com.google.common.base.Splitter;
 public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 	private static final Logger LOG = LoggerFactory.getLogger(NettyHttpContextHandler.class);
 	
-	private String contextPath;
-	private NettyHttpRequestHandler requestHandler;
+	private Map<String, NettyHttpRequestHandler> requestHandlers = new TreeMap<String, NettyHttpRequestHandler>();
 	
-	public NettyHttpContextHandler(String uriRoot) {
-		this(uriRoot, null);
-	}
-
-	public NettyHttpContextHandler(String uriRoot, NettyHttpRequestHandler handler) {
-		super(false);
-		this.contextPath = normalizeRootDir(uriRoot);
-		this.requestHandler = handler;
+	public void add(String uriRoot, NettyHttpRequestHandler handler) {
+		requestHandlers.put(normalizeRootDir(uriRoot), handler);
 	}
 	
 	private String normalizeRootDir(String root) {
@@ -37,12 +32,14 @@ public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHtt
 		return builder.append('/').append(Joiner.on('/').skipNulls().join(iter)).append('/').toString();
 	}
 	
-	public String getContextPath() {
-		return contextPath;
-	}
-	
-	public void setNettyHttpRequestHandler(NettyHttpRequestHandler handler) {
-		this.requestHandler = handler;
+	private String match(String uri) {
+		for(String root : requestHandlers.keySet()) {
+			if(uri.startsWith(root)) {
+				return root;
+			}
+		}
+		
+		return null;
 	}
 
 	@Override
@@ -54,28 +51,18 @@ public class NettyHttpContextHandler extends SimpleChannelInboundHandler<FullHtt
 			return;
 		}
 		
-		if (!isValidUri(request.uri())) {
+		String matchedUri = match(request.uri());
+		if(matchedUri == null) {
 			LOG.error("Exception context[{}] invalid uri[{}]", ctx.toString(), request.uri());
-			//请求URI无效
-			ctx.fireChannelRead(request);
+			ResponseSender.sendError(ctx, HttpResponseStatus.NOT_ACCEPTABLE, HttpResponseStatus.NOT_ACCEPTABLE.reasonPhrase());
 			return;
 		}
+		
+		NettyHttpRequestHandler requestHandler = requestHandlers.get(matchedUri);
 
 		//删除context path，后续的handler可以更便捷的处理uri
-		try {
-			request.setUri(subUriPath(request.uri()));
-			requestHandler.requestReceived(ctx, request);
-		} finally {
-			ReferenceCountUtil.release(request);
-		}
-	}
-	
-	private String subUriPath(String uri) {
-		return uri.substring(contextPath.length() - 1);
-	}
-
-	private boolean isValidUri(String uri) {
-		return uri.startsWith(contextPath);
+		request.setUri(request.uri().substring(matchedUri.length() - 1));
+		requestHandler.requestReceived(ctx, request);
 	}
 
 	@Override

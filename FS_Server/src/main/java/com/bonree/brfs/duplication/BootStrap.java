@@ -15,7 +15,6 @@ import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.exception.ConfigParseException;
 import com.bonree.brfs.common.http.HttpConfig;
-import com.bonree.brfs.common.http.netty.NettyHttpContextHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.http.netty.NettyHttpServer;
 import com.bonree.brfs.common.service.Service;
@@ -138,16 +137,14 @@ public class BootStrap {
             requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer, storageNameManager));
             requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
             requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(serverConfig, zookeeperPaths, serviceManager, storageNameManager));
-            NettyHttpContextHandler contextHttpHandler = new NettyHttpContextHandler(DuplicationEnvironment.URI_DUPLICATION_NODE_ROOT, requestHandler);
-            httpServer.addContextHandler(contextHttpHandler);
+            httpServer.addContextHandler(DuplicationEnvironment.URI_DUPLICATION_NODE_ROOT, requestHandler);
 
             NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler();
             snRequestHandler.addMessageHandler("PUT", new CreateStorageNameMessageHandler(storageNameManager));
             snRequestHandler.addMessageHandler("POST", new UpdateStorageNameMessageHandler(storageNameManager));
             snRequestHandler.addMessageHandler("GET", new OpenStorageNameMessageHandler(storageNameManager));
             snRequestHandler.addMessageHandler("DELETE", new DeleteStorageNameMessageHandler(serverConfig, zookeeperPaths, storageNameManager, serviceManager));
-            NettyHttpContextHandler snContextHandler = new NettyHttpContextHandler(DuplicationEnvironment.URI_STORAGENAME_NODE_ROOT, snRequestHandler);
-            httpServer.addContextHandler(snContextHandler);
+            httpServer.addContextHandler(DuplicationEnvironment.URI_STORAGENAME_NODE_ROOT, snRequestHandler);
 
             httpServer.start();
             

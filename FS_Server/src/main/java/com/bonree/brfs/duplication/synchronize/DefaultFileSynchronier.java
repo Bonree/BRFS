@@ -3,9 +3,12 @@ package com.bonree.brfs.duplication.synchronize;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -30,8 +33,6 @@ import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.server.identification.ServerIDManager;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 
 public class DefaultFileSynchronier implements FileSynchronizer {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSynchronier.class);
@@ -49,7 +50,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 	private DelayTaskActivator taskActivator;
 	private List<Runnable> delayedTaskList = new ArrayList<Runnable>();
 	
-	private ListMultimap<String, FileSynchronizeCallback> syncCallbacks = ArrayListMultimap.create();
+	private Map<String, Future<?>> syncTasks = new HashMap<String, Future<?>>();
 	
 	private static final String ERROR_FILE = "error_records";                         
 	private SynchronierErrorRecorder errorRecorder;
@@ -87,30 +88,14 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 	}
 
 	@Override
-	public void synchronize(FileNode fileNode, FileSynchronizeCallback listener) {
-		FileSynchronizeTask task = new FileSynchronizeTask(fileNode);
-		synchronized(syncCallbacks) {
-			syncCallbacks.put(fileNode.getName(), listener);
-		}
-		
-		threadPool.submit(task);
-	}
-	
-	private FileSynchronizeCallback[] getCallbacks(FileNode fileNode) {
-		FileSynchronizeCallback[] callbacks = null;
-		synchronized(syncCallbacks) {
-			List<FileSynchronizeCallback> callbackList = syncCallbacks.get(fileNode.getName());
-			callbacks = new FileSynchronizeCallback[callbackList.size()];
-			callbackList.toArray(callbacks);
-		}
-		
-		return callbacks;
-	}
-	
-	@Override
-	public void cancel(FileNode fileNode) {
-		synchronized(syncCallbacks) {
-			syncCallbacks.removeAll(fileNode.getName());
+	public void synchronize(FileNode fileNode, FileSynchronizeCallback callback) {
+		synchronized(syncTasks) {
+			Future<?> taskFuture = syncTasks.get(fileNode.getName());
+			if(taskFuture != null) {
+				taskFuture.cancel(false);
+			}
+			
+			syncTasks.put(fileNode.getName(), threadPool.submit(new FileSynchronizeTask(fileNode, callback)));
 		}
 	}
 	
@@ -121,9 +106,11 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 	
 	public class FileSynchronizeTask implements Runnable {
 		private final FileNode target;
+		private final FileSynchronizeCallback callback;
 		
-		public FileSynchronizeTask(FileNode fileNode) {
+		public FileSynchronizeTask(FileNode fileNode, FileSynchronizeCallback callback) {
 			this.target = fileNode;
+			this.callback = callback;
 		}
 		
 		public FileNode fileNode() {
@@ -131,19 +118,19 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 		}
 		
 		private void triggerCallbackComplete() {
-			for(FileSynchronizeCallback callback : getCallbacks(target)) {
-				callback.complete(target);
-			}
+			callback.complete(target);
 		}
 		
 		private void triggerCallbackError(Throwable cause) {
-			for(FileSynchronizeCallback callback : getCallbacks(target)) {
-				callback.error(cause);
-			}
+			callback.error(cause);
 		}
 
 		@Override
 		public void run() {
+			// 运行任务前先删除对应的future，因为任务开始执行后，它就没有留在Map中的理由了
+			synchronized(syncTasks) {
+				syncTasks.remove(target.getName());
+			}
 			LOG.info("start synchronize file[{}]", target.getName());
 			
 			/**
