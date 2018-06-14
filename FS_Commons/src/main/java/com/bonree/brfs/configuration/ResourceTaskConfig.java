@@ -296,7 +296,7 @@ public class ResourceTaskConfig {
 	    if ((iHour < 0) || (iHour >= 24) || (iMin < 0) || (iMin >= 60)) {
 	      throw new ConfigParseException("cycle.check.copy.count.time : " + content + " is error!! please check it");
 	    }
-	    String cronStr = iMin + " " + iHour + " * * * ?";
+	    String cronStr = "0 "+iMin + " " + iHour + " * * ?";
 	    conf.setCheckCronStr(cronStr);
 
 	    String dayStr = config.getProperty("cycle.check.copy.count.time.range", "7");

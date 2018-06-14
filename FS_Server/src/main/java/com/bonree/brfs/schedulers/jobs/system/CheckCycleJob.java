@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CheckCycleJob extends QuartzOperationStateTask {
-	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
+	private static final Logger LOG = LoggerFactory.getLogger("CycleCheckJob");
 	@Override
 	public void caughtException(JobExecutionContext context) {
 		LOG.error("Create Task error !! {}", TaskType.SYSTEM_COPY_CHECK.name());
@@ -40,7 +40,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		ServiceManager sm = mcf.getSm();
 
 		if (WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
-			LOG.warn("rebalance task is running !! skip check copy task");
+			LOG.warn("rebalance task is running !! skip check copy task ,wait next time to check");
 			return;
 		}
 		List services = sm.getServiceListByGroup("disk_group");
@@ -70,7 +70,13 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			}
 		}
 	}
-
+	/**
+	 * 概述：填补时间
+	 * @param snList
+	 * @param startTime
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public Map<String, Long> fixTimes(List<StorageNameNode> snList, long startTime) {
 		if ((snList == null) || (startTime <= 0L)) {
 			return null;
@@ -87,7 +93,16 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		}
 		return fixMap;
 	}
-
+	/**
+	 * 概述：创建单个任务
+	 * @param release
+	 * @param needSns
+	 * @param services
+	 * @param taskType
+	 * @param sourceTimes
+	 * @param granule
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public void createSingleTask(MetaTaskManagerInterface release, List<StorageNameNode> needSns,
 			List<Service> services, TaskType taskType, Map<String, Long> sourceTimes, long granule) {
 		Map losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, granule);
