@@ -79,4 +79,16 @@ public class QuartzCronInfo implements SumbitTaskInterface {
 	public void setCronTime(String cronTime) {
 		this.cronTime = cronTime;
 	}
+	
+	 public static QuartzCronInfo getInstance(String taskName, String group, String cronStr, Map<String, String> cronMap, Class<?> clazz) {
+		    QuartzCronInfo cron = new QuartzCronInfo();
+		    cron.setTaskName(taskName);
+		    cron.setTaskGroupName(group);
+		    cron.setCronTime(cronStr);
+		    cron.setClassInstanceName(clazz.getCanonicalName());
+		    if ((cronMap != null) && (cronMap.isEmpty())) {
+		      cron.setTaskContent(cronMap);
+		    }
+		    return cron;
+		  }
 }
