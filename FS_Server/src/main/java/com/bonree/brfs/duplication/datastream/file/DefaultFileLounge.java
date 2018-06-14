@@ -12,7 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.duplication.DuplicationEnvironment;
+import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileNode;
+import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
+import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.synchronize.FileSynchronizeCallback;
 import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.duplication.utils.TimedObjectCollection;
@@ -47,6 +50,7 @@ public class DefaultFileLounge implements FileLounge {
 	private FileLimiterFactory fileLimiterFactory;
 	
 	private FileSynchronizer fileSynchronizer;
+	private FileLimiterStateRebuilder fileRebuilder;
 	
 	private static final long DEFAULT_FILE_PATITION_TIME_INTERVAL = TimeUnit.HOURS.toMillis(1);
 	//默认文件的时间分区间隔为一个小时
@@ -54,14 +58,15 @@ public class DefaultFileLounge implements FileLounge {
 	
 	private int storageId;
 	
-	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, FileSynchronizer fileSynchronizer) {
-		this(storageId, fileLimiterFactory, fileSynchronizer, DEFAULT_FILE_PATITION_TIME_INTERVAL);
+	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, FileSynchronizer fileSynchronizer, FileLimiterStateRebuilder fileRebuilder) {
+		this(storageId, fileLimiterFactory, fileSynchronizer, fileRebuilder, DEFAULT_FILE_PATITION_TIME_INTERVAL);
 	}
 	
-	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, FileSynchronizer fileSynchronizer, long timeIntervalMillis) {
+	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, FileSynchronizer fileSynchronizer, FileLimiterStateRebuilder fileRebuilder, long timeIntervalMillis) {
 		this.storageId = storageId;
 		this.fileLimiterFactory = fileLimiterFactory;
 		this.fileSynchronizer = fileSynchronizer;
+		this.fileRebuilder = fileRebuilder;
 		this.patitionTimeInterval = timeIntervalMillis;
 		
 		this.timedWritableFileContainer = new TimedObjectCollection<List<FileLimiter>>(
@@ -299,6 +304,12 @@ public class DefaultFileLounge implements FileLounge {
 			long currentTime = timedWritableFileContainer.getTimeInterval(System.currentTimeMillis());
 			long fileTime = timedWritableFileContainer.getTimeInterval(file.getCreateTime());
 			if(currentTime == fileTime) {
+				FileLimiter tempFile = fileRebuilder.rebuild(fileLimiter);
+				if(tempFile == null) {
+					LOG.error("can not rebuild file state of [{}] after sync", file.getName());
+					return;
+				}
+				
 				//只有处于当前时刻的文件才需要回归到写入列表
 				fileLimiter.setSync(false);
 				addFileLimiter(fileLimiter);

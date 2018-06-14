@@ -25,6 +25,15 @@ public interface FileWriter extends Closeable {
 	long position();
 	
 	/**
+	 * 设置文件写入偏移量，下次写入就从这个
+	 * 位置开始
+	 * 
+	 * @param pos
+	 * @throws IOException 
+	 */
+	void position(long pos) throws IOException;
+	
+	/**
 	 * 写入指定字节数据到文件
 	 * 
 	 * @param bytes

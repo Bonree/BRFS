@@ -36,11 +36,8 @@ public class BufferedFileWriter implements FileWriter {
 	public BufferedFileWriter(File file, long position, FileBuffer buffer) throws IOException {
 		this.file = new RandomAccessFile(file, "rw");
 		this.filePath = file.getAbsolutePath();
-		this.fileLength = position < 0 ? 0 : position;
-		this.position = fileLength;
-		this.file.setLength(fileLength);
-		this.file.seek(fileLength);
 		this.buffer = buffer;
+		position(position);
 	}
 	
 	public BufferedFileWriter(String filePath, boolean append, FileBuffer buffer) throws IOException {
@@ -50,11 +47,8 @@ public class BufferedFileWriter implements FileWriter {
 	public BufferedFileWriter(File file, boolean append, FileBuffer buffer) throws IOException {
 		this.file = new RandomAccessFile(file, "rw");
 		this.filePath = file.getAbsolutePath();
-		this.fileLength = append ? this.file.length() : 0;
-		this.position = fileLength;
-		this.file.setLength(fileLength);
-		this.file.seek(fileLength);
 		this.buffer = buffer;
+		position(append ? this.file.length() : 0);
 	}
 	
 	@Override
@@ -120,5 +114,14 @@ public class BufferedFileWriter implements FileWriter {
 	@Override
 	public long position() {
 		return position;
+	}
+
+	@Override
+	public void position(long pos) throws IOException {
+		buffer.clear();
+		fileLength = pos < 0 ? 0 : pos;
+		position = fileLength;
+		file.setLength(fileLength);
+		file.seek(fileLength);
 	}
 }

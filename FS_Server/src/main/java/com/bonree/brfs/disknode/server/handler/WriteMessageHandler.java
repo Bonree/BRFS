@@ -44,8 +44,9 @@ public class WriteMessageHandler implements MessageHandler {
 			}
 			
 			WriteDataList dataList = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataList.class);
-			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
+			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, false);
 			if(binding == null) {
+				//运行到这，可能时打开文件时失败，导致写数据节点找不到writer
 				throw new IllegalStateException("File Writer is null");
 			}
 			

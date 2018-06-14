@@ -72,6 +72,11 @@ public class RecordCollection implements Closeable {
 		recordWriter.write(ProtoStuffUtils.serialize(element));
 	}
 	
+	public void clear() throws IOException {
+		recordWriter.flush();
+		recordWriter.position(0);
+	}
+	
 	/**
 	 * 同步数据到文件
 	 * 

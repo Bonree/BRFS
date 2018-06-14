@@ -32,9 +32,7 @@ public class DirectFileWriter implements FileWriter {
 	public DirectFileWriter(File file, long position) throws IOException {
 		this.file = new RandomAccessFile(file, "rw");
 		this.filePath = file.getAbsolutePath();
-		this.fileLength = position < 0 ? 0 : position;
-		this.file.setLength(fileLength);
-		this.file.seek(fileLength);
+		position(position);
 	}
 	
 	public DirectFileWriter(String filePath, boolean append) throws IOException {
@@ -44,9 +42,7 @@ public class DirectFileWriter implements FileWriter {
 	public DirectFileWriter(File file, boolean append) throws IOException {
 		this.file = new RandomAccessFile(file, "rw");
 		this.filePath = file.getAbsolutePath();
-		this.fileLength = append ? this.file.length() : 0;
-		this.file.setLength(fileLength);
-		this.file.seek(fileLength);
+		position(append ? this.file.length() : 0);
 	}
 	
 	@Override
@@ -86,6 +82,13 @@ public class DirectFileWriter implements FileWriter {
 	@Override
 	public long position() {
 		return fileLength;
+	}
+
+	@Override
+	public void position(long pos) throws IOException {
+		this.fileLength = pos < 0 ? 0 : pos;
+		this.file.setLength(fileLength);
+		this.file.seek(fileLength);
 	}
 
 }

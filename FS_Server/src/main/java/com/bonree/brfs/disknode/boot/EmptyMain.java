@@ -25,9 +25,11 @@ import com.bonree.brfs.disknode.server.handler.OpenMessageHandler;
 import com.bonree.brfs.disknode.server.handler.PingPongRequestHandler;
 import com.bonree.brfs.disknode.server.handler.ReadMessageHandler;
 import com.bonree.brfs.disknode.server.handler.RecoveryMessageHandler;
+import com.bonree.brfs.disknode.server.handler.SequenceNumberCache;
 import com.bonree.brfs.disknode.server.handler.WriteMessageHandler;
-import com.bonree.brfs.disknode.server.handler.WritingInfoMessageHandler;
+import com.bonree.brfs.disknode.server.handler.WritingBytesMessageHandler;
 import com.bonree.brfs.disknode.server.handler.WritingMetaDataMessageHandler;
+import com.bonree.brfs.disknode.server.handler.WritingSequenceMessageHandler;
 
 public class EmptyMain implements LifeCycle {
 	private static final Logger LOG = LoggerFactory.getLogger(EmptyMain.class);
@@ -88,9 +90,15 @@ public class EmptyMain implements LifeCycle {
 		flushRequestHandler.addMessageHandler("POST", new FlushMessageHandler(diskContext, writerManager));
 		server.addContextHandler(DiskContext.URI_FLUSH_NODE_ROOT, flushRequestHandler);
 		
-		NettyHttpRequestHandler infoRequestHandler = new NettyHttpRequestHandler();
-		infoRequestHandler.addMessageHandler("GET", new WritingInfoMessageHandler(diskContext, writerManager));
-		server.addContextHandler(DiskContext.URI_INFO_NODE_ROOT, infoRequestHandler);
+		SequenceNumberCache cache = new SequenceNumberCache(writerManager);
+		
+		NettyHttpRequestHandler sequenceRequestHandler = new NettyHttpRequestHandler();
+		sequenceRequestHandler.addMessageHandler("GET", new WritingSequenceMessageHandler(diskContext, cache));
+		server.addContextHandler(DiskContext.URI_SEQUENCE_NODE_ROOT, sequenceRequestHandler);
+		
+		NettyHttpRequestHandler bytesRequestHandler = new NettyHttpRequestHandler();
+		bytesRequestHandler.addMessageHandler("GET", new WritingBytesMessageHandler(diskContext, cache));
+		server.addContextHandler(DiskContext.URI_SEQ_BYTE_NODE_ROOT, bytesRequestHandler);
 		
 		NettyHttpRequestHandler metaRequestHandler = new NettyHttpRequestHandler();
 		metaRequestHandler.addMessageHandler("GET", new WritingMetaDataMessageHandler(diskContext, writerManager));

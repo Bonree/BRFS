@@ -39,6 +39,7 @@ import com.bonree.brfs.duplication.datastream.connection.http.HttpDiskNodeConnec
 import com.bonree.brfs.duplication.datastream.connection.virtual.VirtualDiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.DefaultFileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.file.FileLimiterCloser;
+import com.bonree.brfs.duplication.datastream.file.FileLimiterStateRebuilder;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.ReadDataMessageHandler;
@@ -124,9 +125,11 @@ public class BootStrap {
             DuplicationNodeSelector nodeSelector = new VirtualDuplicationNodeSelector(serviceManager, idManager);
 
             FileLimiterCloser fileLimiterCloser = new FileLimiterCloser(fileSynchronizer, connectionPool, fileCoordinator, idManager);
+            
+            FileLimiterStateRebuilder fileRebuilder = new FileLimiterStateRebuilder(connectionPool, idManager);
 
-            FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool, fileSynchronizer);
-            DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser, storageNameManager);
+            FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool, fileSynchronizer, fileRebuilder);
+            DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser, storageNameManager, fileRebuilder);
             
             HttpConfig config = new HttpConfig(serverConfig.getPort());
             config.setBacklog(1024);

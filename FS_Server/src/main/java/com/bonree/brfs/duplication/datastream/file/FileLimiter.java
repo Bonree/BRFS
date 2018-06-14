@@ -42,6 +42,10 @@ public class FileLimiter {
 		return capacity;
 	}
 	
+	void updateSequence(int seq) {
+		sequence = seq;
+	}
+	
 	public void incrementSequenceBy(int incs) {
 		sequence += incs;
 	}

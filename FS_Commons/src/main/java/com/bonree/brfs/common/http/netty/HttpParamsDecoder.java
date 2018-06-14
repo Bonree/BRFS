@@ -24,7 +24,7 @@ public class HttpParamsDecoder {
         Map<String, String> params = new HashMap<>();
 
         params.putAll(decodeFromUri(request.uri()));
-        params.putAll(decodeFromBody(request));
+//        params.putAll(decodeFromBody(request));
         
         return params;
     }

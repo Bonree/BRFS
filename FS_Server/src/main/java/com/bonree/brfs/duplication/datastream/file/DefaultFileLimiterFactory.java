@@ -65,6 +65,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		fileNode.setDuplicateNodes(nodes);
 		
 		int capacity = 0;
+		boolean allNodeOpened = true;
 		for(DuplicateNode node : nodes) {
 			LOG.info("start init node[{}] for file[{}]", node, fileNode.getName());
 			if(node.getId().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
@@ -75,6 +76,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 			DiskNodeConnection connection = connectionPool.getConnection(node);
 			if(connection == null || connection.getClient() == null) {
 				LOG.info("can not write header for file[{}] because [{}] is disconnected", fileNode.getName(), node);
+				allNodeOpened = false;
 				continue;
 			}
 			
@@ -84,7 +86,9 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 			int result = connection.getClient().openFile(filePath, DuplicationEnvironment.DEFAULT_MAX_FILE_SIZE);
 			LOG.info("open file[{}] at node[{}] get capacity[{}]", filePath, node, result);
 			
-			if(result > 0) {
+			if(result < 0) {
+				allNodeOpened = false;
+			} else {
 				capacity = result;
 			}
 		}
@@ -97,6 +101,13 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		
 		FileLimiter fileLimiter = new FileLimiter(fileNode, capacity);
 		fileLimiter.incrementSequenceBy(1);
+		
+		if(!allNodeOpened) {
+			//因为有部分磁盘节点的打开操作失败，所有文件需要设置为同步状态，这样在
+			//写完第一批数据的时候，文件会进入同步状态
+			fileLimiter.setSync(true);
+		}
+		
 		try {
 			coordinator.store(fileNode);
 			//只有把文件信息成功存入文件库中才能使用此文件节点

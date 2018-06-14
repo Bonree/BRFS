@@ -32,6 +32,7 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.FileLimiter;
 import com.bonree.brfs.duplication.datastream.file.FileLimiterCloser;
+import com.bonree.brfs.duplication.datastream.file.FileLimiterStateRebuilder;
 import com.bonree.brfs.duplication.datastream.file.FileLounge;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeCleaner;
 import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
@@ -69,13 +70,15 @@ public class DuplicateWriter {
 	
 	private FileSynchronizer fileRecovery;
 	private ServerIDManager idManager;
+	private FileLimiterStateRebuilder fileRebuilder;
 	
 	private FileLimiterCloser fileCloser;
 	
 	public DuplicateWriter(Service service, FileLoungeFactory fileLoungeFactory,
 			FileCoordinator fileCoordinator, FileSynchronizer fileRecovery,
 			ServerIDManager idManager, DiskNodeConnectionPool connectionPool,
-			FileLimiterCloser fileCloser, StorageNameManager storageNameManager) {
+			FileLimiterCloser fileCloser, StorageNameManager storageNameManager,
+			FileLimiterStateRebuilder fileRebuilder) {
 		this.service = service;
 		this.fileLoungeFactory = fileLoungeFactory;
 		this.fileRecovery = fileRecovery;
@@ -83,6 +86,7 @@ public class DuplicateWriter {
 		this.connectionPool = connectionPool;
 		this.fileCloser = fileCloser;
 		this.fileCoordinator = fileCoordinator;
+		this.fileRebuilder = fileRebuilder;
 		this.fileCoordinator.setFileNodeCleanListener(new FileInvalidator());
 		
 		try {
@@ -262,33 +266,14 @@ public class DuplicateWriter {
 					//同步不同副本之间的文件内容，然后获取正确的文件大小和文件序列号
 					LOG.info("start rebuild file[{}]", fileNode.getName());
 					
-					int[] metaInfo = null;
-					DuplicateNode[] nodes = fileNode.getDuplicateNodes();
-					for(DuplicateNode node : nodes) {
-						DiskNodeConnection connection = connectionPool.getConnection(node);
-						
-						LOG.info("connection ==" + connection);
-						if(connection == null || connection.getClient() == null) {
-							continue;
-						}
-						
-						String serverId = idManager.getOtherSecondID(node.getId(), fileNode.getStorageId());
-						String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
-						metaInfo = connection.getClient().getWritingFileMetaInfo(filePath);
-						
-						if(metaInfo != null) {
-							break;
-						}
-					}
-					
-					if(metaInfo == null) {
-						LOG.error("Can not get Metadata of file[{}]", fileNode.getName());
+					FileLimiter fileLimiter = fileRebuilder.rebuild(fileNode);
+					if(fileLimiter == null) {
+						LOG.error("Can not rebuild file[{}] from sink", fileNode.getName());
 						return;
 					}
 					
-					LOG.info("rebuild file[{}] with length[{}], sequence[{}]", fileNode.getName(), metaInfo[1], metaInfo[0] + 1);
-					FileLimiter file = new FileLimiter(fileNode, DuplicationEnvironment.DEFAULT_MAX_FILE_SIZE, metaInfo[1]/*文件大小*/, metaInfo[0] + 1/*文件序列号*/);
-					fileLounge.addFileLimiter(file);
+					LOG.info("add file[{}] to file lounge", fileNode.getName());
+					fileLounge.addFileLimiter(fileLimiter);
 				}
 
 				@Override

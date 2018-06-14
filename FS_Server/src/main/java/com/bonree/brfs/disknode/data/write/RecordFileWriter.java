@@ -71,4 +71,9 @@ public class RecordFileWriter implements FileWriter {
 		recorder.close();
 	}
 
+	@Override
+	public void position(long pos) throws IOException {
+		delegate.position(pos);
+	}
+
 }

@@ -98,7 +98,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 			CloseUtils.closeQuietly(recordreReader);
 		}
 		
-		LOG.info("starting... lack seq number-->{}", lack.cardinality());
+		LOG.info("starting... file[{}] lack seq number-->{}", filePath, lack.cardinality());
 		
 		try {
 			for(AvailableSequenceInfo seqInfo : seqInfos) {

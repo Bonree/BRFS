@@ -17,6 +17,14 @@ public class DataFileReader {
 		return readFile(file.getAbsolutePath(), offset, size);
 	}
 	
+	public static byte[] readFile(File file, int offset) {
+		return readFile(file, offset, Integer.MAX_VALUE);
+	}
+	
+	public static byte[] readFile(String filePath, int offset) {
+		return readFile(filePath, offset, Integer.MAX_VALUE);
+	}
+	
 	public static byte[] readFile(String filePath, int offset, int size) {
 		RandomAccessFile file = null;
 		MappedByteBuffer buffer = null;

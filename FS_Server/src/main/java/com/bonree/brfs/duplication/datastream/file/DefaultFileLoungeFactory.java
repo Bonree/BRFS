@@ -13,6 +13,7 @@ public class DefaultFileLoungeFactory implements FileLoungeFactory {
 	private FileLimiterFactory fileFactory;
 	private StorageNameManager storageNameManager;
 	private FileSynchronizer fileSynchronizer;
+	private FileLimiterStateRebuilder fileRebuilder;
 	
 	public DefaultFileLoungeFactory(Service service,
 			FileCoordinator fileCoordinator,
@@ -20,10 +21,12 @@ public class DefaultFileLoungeFactory implements FileLoungeFactory {
 			StorageNameManager storageNameManager,
 			ServerIDManager idManager,
 			DiskNodeConnectionPool connectionPool,
-			FileSynchronizer fileSynchronizer) {
+			FileSynchronizer fileSynchronizer,
+			FileLimiterStateRebuilder fileRebuilder) {
 		this.storageNameManager = storageNameManager;
 		this.fileSynchronizer = fileSynchronizer;
 		this.fileFactory = new DefaultFileLimiterFactory(fileCoordinator, nodeSelector, storageNameManager, service, idManager, connectionPool);
+		this.fileRebuilder = fileRebuilder;
 	}
 
 	@Override
@@ -33,7 +36,7 @@ public class DefaultFileLoungeFactory implements FileLoungeFactory {
 			return null;
 		}
 		
-		FileLounge fileLounge = new DefaultFileLounge(storageId, fileFactory, fileSynchronizer);
+		FileLounge fileLounge = new DefaultFileLounge(storageId, fileFactory, fileSynchronizer, fileRebuilder);
 		
 		return fileLounge;
 	}

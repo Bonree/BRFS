@@ -84,7 +84,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			LOG.error("open file[{}] at {}:{} error", path, host, port, e);
 		}
 		
-		return 0;
+		return -1;
 	}
 
 	@Override
@@ -262,7 +262,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(host)
 	    .setPort(port)
-	    .setPath(DiskContext.URI_INFO_NODE_ROOT + path)
+	    .setPath(DiskContext.URI_SEQUENCE_NODE_ROOT + path)
 	    .build();
 		
 		try {
@@ -335,7 +335,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(host)
 	    .setPort(port)
-	    .setPath(DiskContext.URI_INFO_NODE_ROOT + path)
+	    .setPath(DiskContext.URI_SEQ_BYTE_NODE_ROOT + path)
 	    .addParameter("seq", String.valueOf(sequence))
 	    .build();
 		
