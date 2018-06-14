@@ -170,6 +170,38 @@ public class BrStringUtils {
         }
         return true;
     }
+    
+    /**
+	 * 概述：验证字符串是否为数字
+	 * 
+	 * @Title: isNumeric
+	 * @param cs
+	 * @return boolean
+	 * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
+	 */
+	public static final boolean isNumeric(final String cs) {
+		if (isEmpty(cs)) {
+			return false;
+		}
+		int n = 0;
+		final int sz = cs.length();
+		for (int i = 0; i < sz; i++) {
+			char chars = cs.charAt(i);
+			if(chars == '-' && i == 0){
+				continue;
+			}
+			if (chars == '.') {
+				n++;
+			}
+			if (n >= 2) {
+				return false;
+			}
+			if (Character.isDigit(chars) == false && chars != '.') {
+				return false;
+			}
+		}
+		return true;
+	}
 
     /** 概述：字符串转数字
      * @param numStr

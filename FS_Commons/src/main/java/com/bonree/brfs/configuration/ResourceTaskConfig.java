@@ -1,3 +1,4 @@
+
 package com.bonree.brfs.configuration;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.exception.ConfigParseException;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 
@@ -31,7 +33,7 @@ public class ResourceTaskConfig {
 	 * 任务过期时间
 	 */
 	public final static String TASK_EXPIRED_TIME = "task.expired.time";
-	
+
 	/**
 	 * 任务服务创建任务检查的时间间隔单位ms
 	 */
@@ -40,7 +42,7 @@ public class ResourceTaskConfig {
 	 * 执行任务管理定时提交执行任务的间隔 单位ms
 	 */
 	public final static String EXECUTE_TASK_INTERVAL_TIME = "execute.task.inverval.time";
-	
+
 	/**
 	 * 系统删除任务开关标识
 	 */
@@ -89,7 +91,7 @@ public class ResourceTaskConfig {
 	 * 系统副本校验任务开关标识
 	 */
 	public final static String SYSTEM_COPY_CHECK_POOL_SIZE = "system.copy.pool.size";
-	
+
 	/**
 	 * 资源采集开关标识
 	 */
@@ -113,8 +115,8 @@ public class ResourceTaskConfig {
 	/**
 	 * 副本过多久进行数据校验
 	 */
-    public final static String CHECK_DATA_TIME_TTL = "system.check.data.ttl";
-	
+	public final static String CHECK_DATA_TIME_TTL = "system.check.data.ttl";
+
 	/**
 	 * 资源限制配置
 	 */
@@ -125,7 +127,9 @@ public class ResourceTaskConfig {
 	public final static String LIMIT_RESOURCE_VALUE_DISK_WRITE = "limit.resource.value.diskwritespeedrate";
 	public final static String LIMIT_RESOURCE_VALUE_NET_TX = "limit.resource.value.nettspeedrate";
 	public final static String LIMIT_RESOURCE_VALUE_NET_RX = "limit.resource.value.netrspeedrate";
-	
+
+	public static final String CYCLE_CHECK_COPY_COUNT_TIME = "cycle.check.copy.count.time";
+	public static final String CYCLE_CHECK_COPY_COUNT_TIME_RANGE_DAY = "cycle.check.copy.count.time.range";
 	/**
 	 * 任务开关
 	 */
@@ -134,12 +138,13 @@ public class ResourceTaskConfig {
 	 * 任务线程池大小
 	 */
 	Map<String, Integer> taskPoolSizeMap = new ConcurrentHashMap<String, Integer>();
-	
+
+
 	//创建任务执行的时间间隔s
 	private long createTaskIntervalTime = 60;
 	private long executeTaskIntervalTime = 60;
 	private long gatherResourceInveralTime = 60;
-	private long taskExpiredTime = 7*24*60*60;
+	private long taskExpiredTime = 7 * 24 * 60 * 60;
 	private int calcResourceValueCount = 2;
 	private boolean taskFrameWorkSwitch = true;
 	private boolean resourceFrameWorkSwitch = true;
@@ -152,16 +157,19 @@ public class ResourceTaskConfig {
 	private double limitNetTxRate = 0.9;
 	private double limitNetRxRate = 0.9;
 	private long createCheckJobTaskervalTime = 60;
-	private long checkTtl = 24*60*60;
-	private long globalSnTtl = 24*60*60;
+	private long checkTtl = 24 * 60 * 60;
+	private long globalSnTtl = 24 * 60 * 60;
 	
-	
-	private ResourceTaskConfig(){
-		
+	private String checkCronStr = "0 2 * * * ?";
+	  private int checkTimeRange = 7;
+
+	private ResourceTaskConfig() {
+
 	}
-	public static ResourceTaskConfig parse(Configuration config) throws NullPointerException{
+
+	public static ResourceTaskConfig parse(Configuration config) throws NullPointerException, ConfigParseException {
 		ResourceTaskConfig conf = new ResourceTaskConfig();
-		if(config == null){
+		if (config == null) {
 			throw new NullPointerException("configuration is empty !!");
 		}
 		Map configMap = conf.getTaskPoolSwitchMap();
@@ -170,20 +178,20 @@ public class ResourceTaskConfig {
 		String sysCheckSwitch = config.getProperty(SYSTEM_CHECK_SWITCH, "false");
 		String sysRecoverySwitch = config.getProperty(SYSTEM_RECOVERY_SWITCH, "false");
 		String userDelSwitch = config.getProperty(USER_DELETE_SWITCH, "true");
-		String sysCopySwitch = config.getProperty(SYSTEM_COPY_CHECK_SWITCH,"false");
+		String sysCopySwitch = config.getProperty(SYSTEM_COPY_CHECK_SWITCH, "false");
 		boolean sysDelFlag = Boolean.valueOf(sysDelSwitch);
 		boolean sysMergeFlag = Boolean.valueOf(sysMergeSwitch);
-		boolean sysCheckFlag =  Boolean.valueOf(sysCheckSwitch);
-		boolean sysRecoveryFlag =  Boolean.valueOf(sysRecoverySwitch);
-		boolean userDelFlag =  Boolean.valueOf(userDelSwitch);
+		boolean sysCheckFlag = Boolean.valueOf(sysCheckSwitch);
+		boolean sysRecoveryFlag = Boolean.valueOf(sysRecoverySwitch);
+		boolean userDelFlag = Boolean.valueOf(userDelSwitch);
 		boolean sysCopyFlag = Boolean.valueOf(sysCopySwitch);
-		configMap.put(TaskType.SYSTEM_DELETE.name(), sysDelFlag );
-		configMap.put(TaskType.SYSTEM_MERGER.name(), sysMergeFlag );
+		configMap.put(TaskType.SYSTEM_DELETE.name(), sysDelFlag);
+		configMap.put(TaskType.SYSTEM_MERGER.name(), sysMergeFlag);
 		configMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckFlag);
 		configMap.put(TaskType.SYSTEM_RECOVERY.name(), sysRecoveryFlag);
 		configMap.put(TaskType.USER_DELETE.name(), userDelFlag);
 		configMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyFlag);
-		
+
 		Map poolMap = conf.getTaskPoolSizeMap();
 
 		String sysDelPoolSize = config.getProperty(SYSTEM_DELETE_POOL_SIZE, "1");
@@ -193,260 +201,341 @@ public class ResourceTaskConfig {
 		String userDelPoolSize = config.getProperty(USER_DELETE_POOL_SIZE, "1");
 		String sysCopyPoolSize = config.getProperty(SYSTEM_COPY_CHECK_POOL_SIZE, "1");
 
-		int sysDelPool = Integer.valueOf(sysDelPoolSize); 
-		int sysMergePool = Integer.valueOf(sysMergePoolSize); 
+		int sysDelPool = Integer.valueOf(sysDelPoolSize);
+		int sysMergePool = Integer.valueOf(sysMergePoolSize);
 		int sysCheckPool = Integer.valueOf(sysCheckPoolSize);
-		int sysRecoveryPool = Integer.valueOf(sysRecoveryPoolSize); 
+		int sysRecoveryPool = Integer.valueOf(sysRecoveryPoolSize);
 		int userDelPool = Integer.valueOf(userDelPoolSize);
 		int sysCopyPool = Integer.valueOf(sysCopyPoolSize);
 
-		poolMap.put(TaskType.SYSTEM_DELETE.name(), sysDelPool );
-		poolMap.put(TaskType.SYSTEM_MERGER.name(), sysMergePool );
-		poolMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckPool );
-		poolMap.put(TaskType.SYSTEM_RECOVERY.name(),sysRecoveryPool ); 
-		poolMap.put(TaskType.USER_DELETE.name(), userDelPool );
-		poolMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool );
-
+		poolMap.put(TaskType.SYSTEM_DELETE.name(), sysDelPool);
+		poolMap.put(TaskType.SYSTEM_MERGER.name(), sysMergePool);
+		poolMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckPool);
+		poolMap.put(TaskType.SYSTEM_RECOVERY.name(), sysRecoveryPool);
+		poolMap.put(TaskType.USER_DELETE.name(), userDelPool);
+		poolMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool);
 
 		String createInveral = config.getProperty(CREATE_TASK_INTERVAL_TIME, "60");
-		long createTaskInveral = Long.valueOf(createInveral)*1000;
+		long createTaskInveral = Long.valueOf(createInveral) * 1000;
 		conf.setCreateTaskIntervalTime(createTaskInveral);
 		String createCopyTime = config.getProperty(SYSTEM_COPY_INTERVAL_TIME, "60");
-		long createCopytTimems = Long.valueOf(createCopyTime)*1000;
+		long createCopytTimems = Long.valueOf(createCopyTime) * 1000;
 		conf.setCreateCheckJobTaskervalTime(createCopytTimems);
-		
+
 		String executeInveral = config.getProperty(EXECUTE_TASK_INTERVAL_TIME, "60");
-		long executeTaskInveral = Long.valueOf(executeInveral)*1000;
+		long executeTaskInveral = Long.valueOf(executeInveral) * 1000;
 		conf.setExecuteTaskIntervalTime(executeTaskInveral);
-		
+
 		String gatherInveral = config.getProperty(GATHER_RESOURCE_INVERAL_TIME, "60");
-		long gatherResourceInveral = Long.valueOf(gatherInveral)*1000;
+		long gatherResourceInveral = Long.valueOf(gatherInveral) * 1000;
 		conf.setGatherResourceInveralTime(gatherResourceInveral);
-		
+
 		String calcCount = config.getProperty(CALC_RESOURCE_VALUE_COUNT, "5");
 		int calcResourceCount = Integer.valueOf(calcCount);
 		conf.setCalcResourceValueCount(calcResourceCount);
-		String taskFrameWork = config.getProperty(TASK_FRAMEWORK_SWITCH,"true");
+		String taskFrameWork = config.getProperty(TASK_FRAMEWORK_SWITCH, "true");
 		boolean taskFrameWorkSwitch = Boolean.valueOf(taskFrameWork);
 		conf.setTaskFrameWorkSwitch(taskFrameWorkSwitch);
-		
+
 		String resourceFrameWork = config.getProperty(RESOURCE_FRAMEWORK_SWITCH, "true");
 		boolean resourceFrameWorkSwitch = Boolean.valueOf(resourceFrameWork);
 		conf.setResourceFrameWorkSwitch(resourceFrameWorkSwitch);
-		
+
 		String libPath = System.getProperty(RESOURCE_LIB_PATH);
-		if(BrStringUtils.isEmpty(libPath)){
-			throw new NullPointerException(RESOURCE_LIB_PATH +" is empty");
+		if (BrStringUtils.isEmpty(libPath)) {
+			throw new NullPointerException(RESOURCE_LIB_PATH + " is empty");
 		}
 		conf.setLibPath(libPath);
 		String expiredTime = config.getProperty(TASK_EXPIRED_TIME, "680400");
-		long expiredTaskTime = Long.valueOf(expiredTime) *1000;
+		long expiredTaskTime = Long.valueOf(expiredTime) * 1000;
 		conf.setTaskExpiredTime(expiredTaskTime);
-		
-		String limtCpuRateStr = config.getProperty(LIMIT_RESOURCE_VALUE_CPU,"0.9");
+
+		String limtCpuRateStr = config.getProperty(LIMIT_RESOURCE_VALUE_CPU, "0.9");
 		double limtCpuRate = Double.valueOf(limtCpuRateStr);
 		conf.setLimitCpuRate(limtCpuRate);
-		
-		String limtMemoryRateStr = config.getProperty(LIMIT_RESOURCE_VALUE_MEMORY,"0.9");
+
+		String limtMemoryRateStr = config.getProperty(LIMIT_RESOURCE_VALUE_MEMORY, "0.9");
 		double limtMemoryRate = Double.valueOf(limtMemoryRateStr);
 		conf.setLimitMemoryRate(limtMemoryRate);
-		
-		String limtDiskRemainStr = config.getProperty(LIMIT_RESOURCE_VALUE_DISK_REMAIN,"0.01");
+
+		String limtDiskRemainStr = config.getProperty(LIMIT_RESOURCE_VALUE_DISK_REMAIN, "0.01");
 		double limtDiskRemain = Double.valueOf(limtDiskRemainStr);
 		conf.setLimitDiskRemaintRate(limtDiskRemain);
-		
-		String limtDiskWriteStr = config.getProperty(LIMIT_RESOURCE_VALUE_DISK_WRITE,"0.9");
+
+		String limtDiskWriteStr = config.getProperty(LIMIT_RESOURCE_VALUE_DISK_WRITE, "0.9");
 		double limtDiskWrite = Double.valueOf(limtDiskWriteStr);
 		conf.setLimitDiskWriteRate(limtDiskWrite);
 
-		String limtDiskReadStr = config.getProperty(LIMIT_RESOURCE_VALUE_DISK_READ,"0.9");
+		String limtDiskReadStr = config.getProperty(LIMIT_RESOURCE_VALUE_DISK_READ, "0.9");
 		double limtDiskRead = Double.valueOf(limtDiskReadStr);
 		conf.setLimitDiskReadRate(limtDiskRead);
-		
-		String limitNetTxStr = config.getProperty(LIMIT_RESOURCE_VALUE_NET_TX,"0.9");
+
+		String limitNetTxStr = config.getProperty(LIMIT_RESOURCE_VALUE_NET_TX, "0.9");
 		double limitNetTx = Double.valueOf(limitNetTxStr);
 		conf.setLimitNetTxRate(limitNetTx);
-		
-		String limitNetRxStr = config.getProperty(LIMIT_RESOURCE_VALUE_NET_RX,"0.9");
+
+		String limitNetRxStr = config.getProperty(LIMIT_RESOURCE_VALUE_NET_RX, "0.9");
 		double limitNetRx = Double.valueOf(limitNetRxStr);
 		conf.setLimitNetRxRate(limitNetRx);
 		//TODO 测试阶段，改字段改为s
 		String checkTtlStr = config.getProperty(CHECK_DATA_TIME_TTL, "3600");
-		long checkTtl = Long.valueOf(checkTtlStr)*1000;
+		long checkTtl = Long.valueOf(checkTtlStr) * 1000;
 		conf.setCheckTtl(checkTtl);
-		
+
 		String snttlstr = config.getProperty(Configuration.STORAGE_DATA_TTL, "1");
 		long snttl = Long.valueOf(snttlstr);
-		conf.setGlobalSnTtl(snttl*24*60*60);
+		conf.setGlobalSnTtl(snttl * 24 * 60 * 60);
 		
+		String content = config.getProperty("cycle.check.copy.count.time", "2:30");
+	    String[] times = BrStringUtils.getSplit(content, ":");
+	    if ((times == null) || (times.length != 2) || (!BrStringUtils.isNumeric(times[0])) || (!BrStringUtils.isNumeric(times[1]))) {
+	      throw new ConfigParseException("cycle.check.copy.count.time : " + content + " is error!! please check it");
+	    }
+	    int iHour = Integer.valueOf(times[0]).intValue();
+	    int iMin = Integer.valueOf(times[1]).intValue();
+	    if ((iHour < 0) || (iHour >= 24) || (iMin < 0) || (iMin >= 60)) {
+	      throw new ConfigParseException("cycle.check.copy.count.time : " + content + " is error!! please check it");
+	    }
+	    String cronStr = "0 "+iMin + " " + iHour + " * * ?";
+	    conf.setCheckCronStr(cronStr);
+
+	    String dayStr = config.getProperty("cycle.check.copy.count.time.range", "7");
+	    if (!BrStringUtils.isNumeric(dayStr)) {
+	      throw new ConfigParseException("cycle.check.copy.count.time.range : " + dayStr + " is error!! please check it");
+	    }
+	    int day = Integer.parseInt(dayStr);
+	    if (day <= 0) {
+	      throw new ConfigParseException("cycle.check.copy.count.time.range : " + dayStr + " is error!! please check it");
+	    }
+	    conf.setCheckTimeRange(day);
+
 		return conf;
 	}
-	
-	public void printDetail(){
-		LOG.info("{} :{} ",SYSTEM_DELETE_SWITCH, this.taskPoolSwitchMap.get(TaskType.SYSTEM_DELETE.name()));
-		LOG.info("{} :{} ",SYSTEM_CHECK_SWITCH, this.taskPoolSwitchMap.get(TaskType.SYSTEM_CHECK.name()));
-		LOG.info("{} :{} ",SYSTEM_COPY_CHECK_SWITCH, this.taskPoolSwitchMap.get(TaskType.SYSTEM_COPY_CHECK.name()));
-		LOG.info("{} :{} ",USER_DELETE_SWITCH, this.taskPoolSwitchMap.get(TaskType.USER_DELETE.name()));
-		
-		LOG.info("{} :{} ",SYSTEM_DELETE_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.SYSTEM_DELETE.name()));
-		LOG.info("{} :{} ",SYSTEM_CHECK_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.SYSTEM_CHECK.name()));
-		LOG.info("{} :{} ",SYSTEM_COPY_CHECK_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.SYSTEM_COPY_CHECK.name()));
-		LOG.info("{} :{} ",USER_DELETE_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.USER_DELETE.name()));
-		LOG.info("{}:{}",CALC_RESOURCE_VALUE_COUNT, this.calcResourceValueCount);
-		LOG.info("{}:{} ms",CHECK_DATA_TIME_TTL, this.checkTtl);
-		LOG.info("{}:{} ms",SYSTEM_COPY_INTERVAL_TIME, this.createCheckJobTaskervalTime);
-		LOG.info("{}:{} ms",EXECUTE_TASK_INTERVAL_TIME, this.executeTaskIntervalTime);
-		LOG.info("{}:{} ms",CREATE_TASK_INTERVAL_TIME,this.createTaskIntervalTime);
-		LOG.info("{}:{} ms",GATHER_RESOURCE_INVERAL_TIME,this.gatherResourceInveralTime);
-		LOG.info("{}:{} d",TASK_EXPIRED_TIME, this.taskExpiredTime/1000/60/60/24);
-		LOG.info("{}:{} s",Configuration.STORAGE_DATA_TTL, this.globalSnTtl);
-		LOG.info("{}:{}",RESOURCE_LIB_PATH,this.libPath);
-		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_NET_RX,this.limitNetRxRate);
-		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_NET_TX,this.limitNetTxRate);
-		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_CPU,this.limitCpuRate);
-		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_DISK_READ,this.limitDiskReadRate);
-		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_DISK_REMAIN,this.limitDiskRemaintRate);
-		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_DISK_WRITE,this.limitDiskWriteRate);
-		LOG.info("{}:{}",LIMIT_RESOURCE_VALUE_MEMORY,this.limitMemoryRate);
-		LOG.info("{}:{}",RESOURCE_FRAMEWORK_SWITCH, this.resourceFrameWorkSwitch);
-		LOG.info("{}:{}",TASK_FRAMEWORK_SWITCH,this.taskFrameWorkSwitch);
+
+	public void printDetail() {
+		LOG.info("{} :{} ", SYSTEM_DELETE_SWITCH, this.taskPoolSwitchMap.get(TaskType.SYSTEM_DELETE.name()));
+		LOG.info("{} :{} ", SYSTEM_CHECK_SWITCH, this.taskPoolSwitchMap.get(TaskType.SYSTEM_CHECK.name()));
+		LOG.info("{} :{} ", SYSTEM_COPY_CHECK_SWITCH, this.taskPoolSwitchMap.get(TaskType.SYSTEM_COPY_CHECK.name()));
+		LOG.info("{} :{} ", USER_DELETE_SWITCH, this.taskPoolSwitchMap.get(TaskType.USER_DELETE.name()));
+
+		LOG.info("{} :{} ", SYSTEM_DELETE_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.SYSTEM_DELETE.name()));
+		LOG.info("{} :{} ", SYSTEM_CHECK_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.SYSTEM_CHECK.name()));
+		LOG.info("{} :{} ", SYSTEM_COPY_CHECK_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.SYSTEM_COPY_CHECK.name()));
+		LOG.info("{} :{} ", USER_DELETE_POOL_SIZE, this.taskPoolSizeMap.get(TaskType.USER_DELETE.name()));
+		LOG.info("{}:{}", CALC_RESOURCE_VALUE_COUNT, this.calcResourceValueCount);
+		LOG.info("{}:{} ms", CHECK_DATA_TIME_TTL, this.checkTtl);
+		LOG.info("{}:{} ms", SYSTEM_COPY_INTERVAL_TIME, this.createCheckJobTaskervalTime);
+		LOG.info("{}:{} ms", EXECUTE_TASK_INTERVAL_TIME, this.executeTaskIntervalTime);
+		LOG.info("{}:{} ms", CREATE_TASK_INTERVAL_TIME, this.createTaskIntervalTime);
+		LOG.info("{}:{} ms", GATHER_RESOURCE_INVERAL_TIME, this.gatherResourceInveralTime);
+		LOG.info("{}:{} d", TASK_EXPIRED_TIME, this.taskExpiredTime / 1000 / 60 / 60 / 24);
+		LOG.info("{}:{} s", Configuration.STORAGE_DATA_TTL, this.globalSnTtl);
+		LOG.info("{}:{}", RESOURCE_LIB_PATH, this.libPath);
+		LOG.info("{}:{}", LIMIT_RESOURCE_VALUE_NET_RX, this.limitNetRxRate);
+		LOG.info("{}:{}", LIMIT_RESOURCE_VALUE_NET_TX, this.limitNetTxRate);
+		LOG.info("{}:{}", LIMIT_RESOURCE_VALUE_CPU, this.limitCpuRate);
+		LOG.info("{}:{}", LIMIT_RESOURCE_VALUE_DISK_READ, this.limitDiskReadRate);
+		LOG.info("{}:{}", LIMIT_RESOURCE_VALUE_DISK_REMAIN, this.limitDiskRemaintRate);
+		LOG.info("{}:{}", LIMIT_RESOURCE_VALUE_DISK_WRITE, this.limitDiskWriteRate);
+		LOG.info("{}:{}", LIMIT_RESOURCE_VALUE_MEMORY, this.limitMemoryRate);
+		LOG.info("{}:{}", RESOURCE_FRAMEWORK_SWITCH, this.resourceFrameWorkSwitch);
+		LOG.info("{}:{}", TASK_FRAMEWORK_SWITCH, this.taskFrameWorkSwitch);
+		LOG.info("{}:{}", CYCLE_CHECK_COPY_COUNT_TIME, this.checkCronStr);
+		LOG.info("{}:{}", CYCLE_CHECK_COPY_COUNT_TIME_RANGE_DAY, this.checkTimeRange);
 	}
+
 	public Map<String, Boolean> getTaskPoolSwitchMap() {
 		return taskPoolSwitchMap;
 	}
-	public List<TaskType> getSwitchOnTaskType(){
+
+	public List<TaskType> getSwitchOnTaskType() {
 		List<TaskType> collect = new ArrayList<TaskType>();
-		if(taskPoolSwitchMap == null || taskPoolSwitchMap.isEmpty()){
+		if (taskPoolSwitchMap == null || taskPoolSwitchMap.isEmpty()) {
 			return null;
 		}
 		String task = null;
 		TaskType taskType = null;
-		for(Map.Entry<String, Boolean> entry : this.taskPoolSwitchMap.entrySet()){
+		for (Map.Entry<String, Boolean> entry : this.taskPoolSwitchMap.entrySet()) {
 			task = entry.getKey();
-			if(entry.getValue() && !BrStringUtils.isEmpty(task)){
+			if (entry.getValue() && !BrStringUtils.isEmpty(task)) {
 				taskType = TaskType.valueOf(task);
-				if(taskType != null){
+				if (taskType != null) {
 					collect.add(taskType);
 				}
 			}
 		}
 		return collect;
 	}
+
 	public void setTaskPoolSwitchMap(Map<String, Boolean> taskPoolSwitchMap) {
 		this.taskPoolSwitchMap = taskPoolSwitchMap;
 	}
+
 	public Map<String, Integer> getTaskPoolSizeMap() {
 		return taskPoolSizeMap;
 	}
+
 	public void setTaskPoolSizeMap(Map<String, Integer> taskPoolSizeMap) {
 		this.taskPoolSizeMap = taskPoolSizeMap;
 	}
+
 	public long getCreateTaskIntervalTime() {
 		return createTaskIntervalTime;
 	}
+
 	public void setCreateTaskIntervalTime(long createTaskIntervalTime) {
 		this.createTaskIntervalTime = createTaskIntervalTime;
 	}
+
 	public long getExecuteTaskIntervalTime() {
 		return executeTaskIntervalTime;
 	}
+
 	public void setExecuteTaskIntervalTime(long executeTaskIntervalTime) {
 		this.executeTaskIntervalTime = executeTaskIntervalTime;
 	}
+
 	public long getGatherResourceInveralTime() {
 		return gatherResourceInveralTime;
 	}
+
 	public void setGatherResourceInveralTime(long gatherResourceInveralTime) {
 		this.gatherResourceInveralTime = gatherResourceInveralTime;
 	}
+
 	public int getCalcResourceValueCount() {
 		return calcResourceValueCount;
 	}
+
 	public void setCalcResourceValueCount(int calcResourceValueCount) {
 		this.calcResourceValueCount = calcResourceValueCount;
 	}
+
 	public boolean isTaskFrameWorkSwitch() {
 		return taskFrameWorkSwitch;
 	}
+
 	public void setTaskFrameWorkSwitch(boolean taskFrameWorkSwitch) {
 		this.taskFrameWorkSwitch = taskFrameWorkSwitch;
 	}
+
 	public boolean isResourceFrameWorkSwitch() {
 		return resourceFrameWorkSwitch;
 	}
+
 	public void setResourceFrameWorkSwitch(boolean resourceFrameWorkSwitch) {
 		this.resourceFrameWorkSwitch = resourceFrameWorkSwitch;
 	}
+
 	public String getLibPath() {
 		return libPath;
 	}
+
 	public void setLibPath(String libPath) {
 		this.libPath = libPath;
 	}
+
 	public long getTaskExpiredTime() {
 		return taskExpiredTime;
 	}
+
 	public void setTaskExpiredTime(long taskExpiredTime) {
 		this.taskExpiredTime = taskExpiredTime;
 	}
+
 	public double getLimitCpuRate() {
 		return limitCpuRate;
 	}
+
 	public void setLimitCpuRate(double limitCpuRate) {
 		this.limitCpuRate = limitCpuRate;
 	}
+
 	public double getLimitMemoryRate() {
 		return limitMemoryRate;
 	}
+
 	public void setLimitMemoryRate(double limitMemoryRate) {
 		this.limitMemoryRate = limitMemoryRate;
 	}
+
 	public double getLimitDiskRemaintRate() {
 		return limitDiskRemaintRate;
 	}
+
 	public void setLimitDiskRemaintRate(double limitDiskRemaintRate) {
 		this.limitDiskRemaintRate = limitDiskRemaintRate;
 	}
+
 	public double getLimitDiskReadRate() {
 		return limitDiskReadRate;
 	}
+
 	public void setLimitDiskReadRate(double limitDiskReadRate) {
 		this.limitDiskReadRate = limitDiskReadRate;
 	}
+
 	public double getLimitDiskWriteRate() {
 		return limitDiskWriteRate;
 	}
+
 	public void setLimitDiskWriteRate(double limitDiskWriteRate) {
 		this.limitDiskWriteRate = limitDiskWriteRate;
 	}
+
 	public double getLimitNetTxRate() {
 		return limitNetTxRate;
 	}
+
 	public void setLimitNetTxRate(double limitNetTxRate) {
 		this.limitNetTxRate = limitNetTxRate;
 	}
+
 	public double getLimitNetRxRate() {
 		return limitNetRxRate;
 	}
+
 	public void setLimitNetRxRate(double limitNetRxRate) {
 		this.limitNetRxRate = limitNetRxRate;
 	}
+
 	public long getCreateCheckJobTaskervalTime() {
 		return createCheckJobTaskervalTime;
 	}
+
 	public void setCreateCheckJobTaskervalTime(long createCheckJobTaskervalTime) {
 		this.createCheckJobTaskervalTime = createCheckJobTaskervalTime;
 	}
+
 	public long getCheckTtl() {
 		return checkTtl;
 	}
+
 	public void setCheckTtl(long checkTtl) {
 		this.checkTtl = checkTtl;
 	}
+
 	public long getGlobalSnTtl() {
 		return globalSnTtl;
 	}
+
 	public void setGlobalSnTtl(long globalSnTtl) {
 		this.globalSnTtl = globalSnTtl;
-	}	 
+	}
+
+	public String getCheckCronStr() {
+		return checkCronStr;
+	}
+
+	public void setCheckCronStr(String checkCronStr) {
+		this.checkCronStr = checkCronStr;
+	}
+
+	public int getCheckTimeRange() {
+		return checkTimeRange;
+	}
+
+	public void setCheckTimeRange(int checkTimeRange) {
+		this.checkTimeRange = checkTimeRange;
+	}
 }

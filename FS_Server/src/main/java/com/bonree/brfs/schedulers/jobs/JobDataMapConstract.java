@@ -209,4 +209,9 @@ public class JobDataMapConstract {
 		
 		return dataMap;
 	}
+	public static Map<String, String> createCylcCheckDataMap(int day) {
+	    Map dataMap = new HashMap();
+	    dataMap.put("CHECK_TIME_RANGE", day + "");
+	    return dataMap;
+	  }
 }
