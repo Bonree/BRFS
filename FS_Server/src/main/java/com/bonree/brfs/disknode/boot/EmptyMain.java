@@ -62,7 +62,7 @@ public class EmptyMain implements LifeCycle {
 		writerManager = new FileWriterManager(recorderManager);
 		writerManager.start();
 		
-		writerManager.rebuildFileWriterFromRoot(diskContext.getRootDir());
+		writerManager.rebuildFileWriterbyDir(diskContext.getRootDir());
 		
 		serviceManager.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServiceStateListener() {
 			

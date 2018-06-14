@@ -26,7 +26,6 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.nio.client.util.HttpAsyncClientUtils;
 import org.apache.http.protocol.HttpContext;
 
@@ -324,6 +323,10 @@ public class HttpClient implements Closeable {
 	}
 	
 	private HttpResponse executeInner(HttpUriRequest request) throws Exception {
+		return executeInner(request, clientConfig.getResponseTimeout(), TimeUnit.MILLISECONDS);
+	}
+	
+	private HttpResponse executeInner(HttpUriRequest request, long timeout, TimeUnit unit) throws Exception {
 		Future<org.apache.http.HttpResponse> future = client.execute(request, new FutureCallback<org.apache.http.HttpResponse>() {
 
 			@Override
@@ -339,7 +342,7 @@ public class HttpClient implements Closeable {
 			}
 		});
 		
-		return new HttpResponseProxy(future.get(clientConfig.getResponseTimeout(), TimeUnit.MILLISECONDS));
+		return new HttpResponseProxy(future.get(timeout, unit));
 	}
 	
 	private void executeInner(HttpUriRequest request, ResponseHandler handler) {

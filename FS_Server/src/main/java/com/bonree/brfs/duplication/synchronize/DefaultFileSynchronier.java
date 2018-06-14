@@ -301,6 +301,8 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 	private class DelayTaskActivator extends Thread {
 		private BlockingQueue<Service> serviceQueue = new LinkedBlockingQueue<Service>();
 		
+		private static final int POLL_TIMEOUT_MILLIS = 30 * 1000;
+		
 		private volatile boolean isQuit = false;
 		
 		public void putService(Service service) {
@@ -311,6 +313,13 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			}
 		}
 		
+		private String nodeToken(DuplicateNode node) {
+			StringBuilder builder = new StringBuilder();
+			builder.append(node.getGroup()).append("_").append(node.getId());
+			
+			return builder.toString();
+		}
+		
 		public void quit() {
 			isQuit = true;
 		}
@@ -319,11 +328,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 		public void run() {
 			while(!isQuit) {
 				try {
-					Service service = serviceQueue.take();
-					if(service == null) {
-						continue;
-					}
-					LOG.info("Service[{}] found to active tasks", service);
+					serviceQueue.poll(POLL_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
 					
 					FileSynchronizeTask[] tasks;
 					synchronized (delayedTaskList) {
@@ -332,21 +337,33 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 						delayedTaskList.clear();
 					}
 					
+					LOG.info("start to check vadility of {} delayed tasks", tasks.length);
+					if(tasks.length == 0) {
+						continue;
+					}
+					
+					Map<String, Boolean> serviceStates = new HashMap<String, Boolean>();
 					for(FileSynchronizeTask task : tasks) {
 						FileNode fileNode = task.fileNode();
 						
-						boolean submitted = false;
+						boolean canBeSubmitted = true;
 						for(DuplicateNode node : fileNode.getDuplicateNodes()) {
-							if(node.getGroup().equals(service.getServiceGroup())
-									&& node.getId().equals(service.getServiceId())) {
-								LOG.info("restart task for fileNode[{}]", fileNode.getName());
-								threadPool.submit(task);
-								submitted = true;
-								continue;
+							String nodeToken = nodeToken(node);
+							Boolean exist = serviceStates.get(nodeToken);
+							if(exist == null) {
+								exist = serviceManager.getServiceById(node.getGroup(), node.getId()) != null;
+								serviceStates.put(nodeToken, exist);
+							}
+							
+							if(!exist) {
+								canBeSubmitted = false;
+								break;
 							}
 						}
 						
-						if(submitted) {
+						if(canBeSubmitted) {
+							LOG.info("restart task for fileNode[{}]", fileNode.getName());
+							threadPool.submit(task);
 							continue;
 						}
 						

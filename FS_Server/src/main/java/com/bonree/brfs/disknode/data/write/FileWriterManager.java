@@ -128,7 +128,7 @@ public class FileWriterManager implements LifeCycle {
 		}
 	}
 	
-	public void rebuildFileWriterFromRoot(String dataDirPath) throws IOException {
+	public void rebuildFileWriterbyDir(String dataDirPath) throws IOException {
 		File dataDir = new File(dataDirPath);
 		File[] snDirList = dataDir.listFiles();
 		for(File snDir : snDirList) {

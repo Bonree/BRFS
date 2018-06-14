@@ -9,6 +9,9 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.google.common.io.Closeables;
 
 public class HttpDiskNodeConnection implements DiskNodeConnection {
+	
+	private static final int DEFAULT_RESPONSE_TIMEOUT_MILLIS = 15 * 1000;
+	
 	private String address;
 	private int port;
 	private DiskNodeClient client;
@@ -22,7 +25,7 @@ public class HttpDiskNodeConnection implements DiskNodeConnection {
 		int defaultMaxConnectionPerRoute = Math.max(4, Runtime.getRuntime().availableProcessors() / 4);
 		
 		ClientConfig clientConfig = ClientConfig.builder()
-				.setResponseTimeout(3000)
+				.setResponseTimeout(DEFAULT_RESPONSE_TIMEOUT_MILLIS)
 				.setMaxConnectionPerRoute(defaultMaxConnectionPerRoute)
 				.setMaxConnection(defaultMaxConnectionPerRoute * 3)
 				.build();
