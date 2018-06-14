@@ -2,10 +2,6 @@ package com.bonree.brfs.common.http.netty;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
-import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
-import io.netty.handler.codec.http.multipart.InterfaceHttpData;
-import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.util.CharsetUtil;
 
 import java.util.HashMap;
@@ -24,7 +20,6 @@ public class HttpParamsDecoder {
         Map<String, String> params = new HashMap<>();
 
         params.putAll(decodeFromUri(request.uri()));
-//        params.putAll(decodeFromBody(request));
         
         return params;
     }
@@ -46,37 +41,6 @@ public class HttpParamsDecoder {
             }
         }
         
-        return params;
-	}
-	
-	/**
-	 * 获取Form类型传递的参数
-	 * 
-	 * @param request
-	 * @return
-	 */
-	private static Map<String, String> decodeFromBody(FullHttpRequest request) {
-		Map<String, String> params = new HashMap<String, String>();
-		
-		HttpPostRequestDecoder decoder = null;
-		try {
-			decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), request, CharsetUtil.UTF_8);
-			
-			List<InterfaceHttpData> postList = decoder.getBodyHttpDatas();
-	        for (InterfaceHttpData data : postList) {
-	            if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-	                MemoryAttribute attribute = (MemoryAttribute) data;
-	                params.put(attribute.getName(), attribute.getValue());
-	            }
-	        }
-		} catch (Exception ignore){
-		} finally {
-			if(decoder != null) {
-				//必须释放，不然会导致内存泄漏
-				decoder.destroy();
-			}
-		}
-		
         return params;
 	}
 }

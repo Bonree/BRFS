@@ -133,11 +133,11 @@ public class FileDecoder {
             int contentLength = (int) FSCode.moreFlagDecoder(dataBytes, 7, totalLength); // 内容的长度
             int contentMoreFlagLength = FSCode.moreFlagLength(contentLength, 7) + 1;  // moreFlag扩展的次数,加上moreFlag所在的一个字节.
             totalLength += contentMoreFlagLength;      // 内容的开始位置
+            totalLength += contentLength;
 
             // 校验码标识
             int crcFlag = (dataBytes[0] & 0x3F) >> 5;
             if (crcFlag == 1) {
-                totalLength += contentLength;
                 long crcCode = FSCode.moreFlagDecoder(dataBytes, 7, totalLength);
                 int crcMoreFlagLength = FSCode.moreFlagLength(crcCode, 7) + 1;
                 totalLength += crcMoreFlagLength;

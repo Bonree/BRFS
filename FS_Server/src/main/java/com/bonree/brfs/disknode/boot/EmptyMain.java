@@ -59,8 +59,10 @@ public class EmptyMain implements LifeCycle {
 		checkDiskContextPath();
 		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
-		writerManager = new FileWriterManager(recorderManager, diskContext);
+		writerManager = new FileWriterManager(recorderManager);
 		writerManager.start();
+		
+		writerManager.rebuildFileWriterFromRoot(diskContext.getRootDir());
 		
 		serviceManager.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServiceStateListener() {
 			

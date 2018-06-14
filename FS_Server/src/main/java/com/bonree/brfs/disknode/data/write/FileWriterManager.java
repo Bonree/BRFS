@@ -20,7 +20,6 @@ import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.common.write.data.FileDecoder;
-import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.buf.ByteFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
@@ -43,8 +42,6 @@ public class FileWriterManager implements LifeCycle {
 	private WriteWorkerGroup workerGroup;
 	private WriteWorkerSelector workerSelector;
 	private RecordCollectionManager recorderManager;
-	
-	private DiskContext context;
 
 	private static int DEFAULT_RECORD_BUFFER_SIZE = 1024;
 	private static int DEFAULT_FILE_BUFFER_SIZE = 64 * 1024;
@@ -55,20 +52,19 @@ public class FileWriterManager implements LifeCycle {
 	private WheelTimer<String> timeoutWheel = new WheelTimer<String>(
 			DEFAULT_TIMEOUT_SECONDS);
 
-	public FileWriterManager(RecordCollectionManager recorderManager, DiskContext context) {
-		this(DEFAULT_WORKER_NUMBER, recorderManager, context);
+	public FileWriterManager(RecordCollectionManager recorderManager) {
+		this(DEFAULT_WORKER_NUMBER, recorderManager);
 	}
 
-	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager, DiskContext context) {
-		this(workerNum, new RandomWriteWorkerSelector(), recorderManager, context);
+	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager) {
+		this(workerNum, new RandomWriteWorkerSelector(), recorderManager);
 	}
 
 	public FileWriterManager(int workerNum, WriteWorkerSelector selector,
-			RecordCollectionManager recorderManager, DiskContext context) {
+			RecordCollectionManager recorderManager) {
 		this.workerGroup = new WriteWorkerGroup(workerNum);
 		this.workerSelector = selector;
 		this.recorderManager = recorderManager;
-		this.context = context;
 	}
 
 	@Override
@@ -89,8 +85,6 @@ public class FileWriterManager implements LifeCycle {
 					}
 				});
 		timeoutWheel.start();
-		
-		rebuildFileWriters();
 	}
 	
 	public void flushIfNeeded(String filePath) {
@@ -134,10 +128,9 @@ public class FileWriterManager implements LifeCycle {
 		}
 	}
 	
-	private void rebuildFileWriters() throws IOException {
-		File root = new File(context.getRootDir());
-		
-		File[] snDirList = root.listFiles();
+	public void rebuildFileWriterFromRoot(String dataDirPath) throws IOException {
+		File dataDir = new File(dataDirPath);
+		File[] snDirList = dataDir.listFiles();
 		for(File snDir : snDirList) {
 			for(File serverDir : snDir.listFiles()) {
 				for(File timeDir : serverDir.listFiles()) {
