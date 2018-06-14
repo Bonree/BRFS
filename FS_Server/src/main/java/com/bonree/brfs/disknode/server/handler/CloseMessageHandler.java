@@ -47,6 +47,8 @@ public class CloseMessageHandler implements MessageHandler {
 			LOG.info("start writing file tailer for {}", filePath);
 			binding.first().flush();
 			long crcCode = ByteUtils.crc(DataFileReader.readFile(filePath, 2, Integer.MAX_VALUE));
+			LOG.info("final crc code[{}] of file[{}]", crcCode, filePath);
+			
 			byte[] tailer = Bytes.concat(FileEncoder.validate(crcCode), FileEncoder.tail());
 			
 			binding.first().write(tailer);
