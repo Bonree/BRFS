@@ -68,7 +68,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		boolean allNodeOpened = true;
 		for(DuplicateNode node : nodes) {
 			LOG.info("start init node[{}] for file[{}]", node, fileNode.getName());
-			if(node.getId().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+			if(node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
 				LOG.info("Ingore virtual service[{}] to write head for file[{}]", node, fileNode.getName());
 				continue;
 			}
