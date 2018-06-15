@@ -43,7 +43,7 @@ public class FileWriterManager implements LifeCycle {
 	private WriteWorkerSelector workerSelector;
 	private RecordCollectionManager recorderManager;
 
-	private static int DEFAULT_RECORD_BUFFER_SIZE = 1234;
+	private static int DEFAULT_RECORD_BUFFER_SIZE = 1024;
 	private static int DEFAULT_FILE_BUFFER_SIZE = 64 * 1024;
 
 	private Map<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new HashMap<String, Pair<RecordFileWriter, WriteWorker>>();
