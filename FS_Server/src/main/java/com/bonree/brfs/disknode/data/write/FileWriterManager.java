@@ -224,65 +224,59 @@ public class FileWriterManager implements LifeCycle {
 	}
 	
 	//获取缺失或多余的日志记录信息
-	private List<RecordElement> adjustElements(RecordFileWriter writer) {
-		byte[] bytes = DataFileReader.readFile(writer.getPath(), 0);
+	private List<RecordElement> validElements(String filepath, List<RecordElement> originElements) {
+		byte[] bytes = DataFileReader.readFile(filepath, 0);
 		List<String> offsets = FileDecoder.getOffsets(bytes);
 		
-		List<RecordElement> elements = new ArrayList<RecordElement>();
-		RecordElementReader reader = null;
-		try {
-			reader = writer.getRecordCollection().getRecordElementReader();
-			Iterator<RecordElement> iterator = reader.iterator();
-			RecordElement element = null;
-			if(!iterator.hasNext() || (element = iterator.next()).getSequence() != 0) {
-				//没有文件头的日志记录，不应该发生的
-				throw new IllegalStateException("no header record in file[" + writer.getPath() + "]");
-			}
-			
-			elements.add(element);
-			int index = 0;
-			for(index = 0; index < offsets.size(); index++) {
-				List<String> parts = Splitter.on("|").splitToList(offsets.get(index));
-				int offset = Integer.parseInt(parts.get(0));
-				int size = Integer.parseInt(parts.get(1));
-				long crc = ByteUtils.crc(bytes, offset, size);
-				
-				if(!iterator.hasNext()) {
-					//数据文件还有数据，但日志文件没有记录
-					elements.add(new RecordElement(index + 1, offset, size, crc));
-					continue;
-				}
-				
-				element = iterator.next();
-				if(index + 1 != element.getSequence()) {
-					//序列号不一致，到此中断
-					//因为数据文件里获取的信息不包含文件头的，所以这里需要加上1
-					LOG.warn("excepted sequence number[{}], but get number[{}] for file[{}]", index + 1, element.getSequence(), writer.getPath());
-					break;
-				}
-				
-				if(element.getOffset() != offset) {
-					LOG.warn("excepted offset[{}], but get offset[{}] for file[{}]", offset, element.getOffset(), writer.getPath());
-					break;
-				}
-				
-				if(element.getSize() != size) {
-					LOG.warn("excepted size[{}], but get size[{}] for file[{}]", size, element.getSize(), writer.getPath());
-					break;
-				}
-				
-				if(element.getCrc() != crc) {
-					LOG.warn("excepted crc[{}], but get crc[{}] for file[{}]", crc, element.getCrc(), writer.getPath());
-					break;
-				}
-				
-				elements.add(element);
-			}
-		} finally {
-			CloseUtils.closeQuietly(reader);
+		List<RecordElement> validElmentList = new ArrayList<RecordElement>();
+		RecordElement element = originElements.get(0);
+		if(element.getSequence() != 0) {
+			//没有文件头的日志记录，不应该发生的
+			throw new IllegalStateException("no header record in file[" + filepath + "]");
 		}
 		
-		return elements;
+		validElmentList.add(element);
+		int index = 0;
+		int originSize = originElements.size();
+		for(index = 0; index < offsets.size(); index++) {
+			List<String> parts = Splitter.on("|").splitToList(offsets.get(index));
+			int offset = Integer.parseInt(parts.get(0));
+			int size = Integer.parseInt(parts.get(1));
+			long crc = ByteUtils.crc(bytes, offset, size);
+			
+			if(index + 1 < originSize) {
+				//数据文件还有数据，但日志文件没有记录
+				validElmentList.add(new RecordElement(index + 1, offset, size, crc));
+				continue;
+			}
+			
+			element = originElements.get(index + 1);
+			if(index + 1 != element.getSequence()) {
+				//序列号不一致，到此中断
+				//因为数据文件里获取的信息不包含文件头的，所以这里需要加上1
+				LOG.warn("excepted sequence number[{}], but get number[{}] for file[{}]", index + 1, element.getSequence(), filepath);
+				break;
+			}
+			
+			if(element.getOffset() != offset) {
+				LOG.warn("excepted offset[{}], but get offset[{}] for file[{}]", offset, element.getOffset(), filepath);
+				break;
+			}
+			
+			if(element.getSize() != size) {
+				LOG.warn("excepted size[{}], but get size[{}] for file[{}]", size, element.getSize(), filepath);
+				break;
+			}
+			
+			if(element.getCrc() != crc) {
+				LOG.warn("excepted crc[{}], but get crc[{}] for file[{}]", crc, element.getCrc(), filepath);
+				break;
+			}
+			
+			validElmentList.add(element);
+		}
+		
+		return validElmentList;
 	}
 	
 	public void adjustFileWriter(String filePath) throws IOException {
@@ -291,24 +285,35 @@ public class FileWriterManager implements LifeCycle {
 			throw new IllegalStateException("no writer of " + filePath + " is found for adjust");
 		}
 		
-		List<RecordElement> elements = adjustElements(binding.first());
+		List<RecordElement> originElements = binding.first().getRecordCollection().getRecordElementList();
+		
+		List<RecordElement> elements = validElements(filePath, originElements);
 		LOG.info("adjust file get elements size[{}] for file[{}]", elements.size(), filePath);
 		RecordElement lastElement = elements.get(elements.size() - 1);
 		long validPosition = lastElement.getOffset() + lastElement.getSize();
-		if(validPosition == binding.first().position()) {
-			LOG.info("no need to adjust content for file[{}]", filePath);
-			//数据和日志信息一致，不需要调整
-			return;
+		System.out.println(lastElement);
+		System.out.println(binding.first().position());
+		
+		boolean needFlush = false;
+		if(validPosition != binding.first().position()) {
+			LOG.info("rewrite file content of file[{}]", filePath);
+			//数据文件的内容和日志信息不一致，需要调整数据文件
+			binding.first().position(validPosition);
+			needFlush = true;
 		}
 		
-		LOG.info("rewrite file content for file[{}]", filePath);
-		binding.first().position(validPosition);
-		binding.first().getRecordCollection().clear();
-		for(RecordElement element : elements) {
-			binding.first().getRecordCollection().put(element);
+		if(elements.size() != originElements.size()) {
+			LOG.info("rewrite file records of file[{}]", filePath);
+			binding.first().getRecordCollection().clear();
+			for(RecordElement element : elements) {
+				binding.first().getRecordCollection().put(element);
+			}
+			needFlush = true;
 		}
 		
-		binding.first().flush();
+		if(needFlush) {
+			binding.first().flush();
+		}
 	}
 
 	public void close(String path) {

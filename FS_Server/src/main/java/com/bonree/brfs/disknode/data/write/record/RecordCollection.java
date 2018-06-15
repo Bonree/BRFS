@@ -4,6 +4,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -79,6 +81,22 @@ public class RecordCollection implements Closeable {
 	
 	public RecordElementReader getRecordElementReader() {
 		return new RecordElementReader(recordFile);
+	}
+	
+	public List<RecordElement> getRecordElementList() {
+		List<RecordElement> elements = new ArrayList<RecordElement>();
+		RecordElementReader reader = null;
+		try {
+			reader = getRecordElementReader();
+			Iterator<RecordElement> iterator = reader.iterator();
+			while(iterator.hasNext()) {
+				elements.add(iterator.next());
+			}
+		} finally {
+			CloseUtils.closeQuietly(reader);
+		}
+		
+		return elements;
 	}
 
 	@Override
