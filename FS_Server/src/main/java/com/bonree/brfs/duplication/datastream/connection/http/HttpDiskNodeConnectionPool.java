@@ -97,7 +97,10 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 
 				@Override
 				public void accept(DuplicateNode node) {
-					connectionCache.remove(node);
+					HttpDiskNodeConnection connection = connectionCache.remove(node);
+					if(connection != null) {
+						CloseUtils.closeQuietly(connection);
+					}
 				}
 			});
 		}

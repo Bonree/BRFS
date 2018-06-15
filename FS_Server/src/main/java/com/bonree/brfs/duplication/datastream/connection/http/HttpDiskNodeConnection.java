@@ -1,12 +1,10 @@
 package com.bonree.brfs.duplication.datastream.connection.http;
 
-import java.io.IOException;
-
 import com.bonree.brfs.common.http.client.ClientConfig;
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
-import com.google.common.io.Closeables;
 
 public class HttpDiskNodeConnection implements DiskNodeConnection {
 	
@@ -55,9 +53,7 @@ public class HttpDiskNodeConnection implements DiskNodeConnection {
 
 	@Override
 	public void close() {
-		try {
-			Closeables.close(client, true);
-		} catch (IOException ignore) {}
+		CloseUtils.closeQuietly(client);
 	}
 
 }
