@@ -21,7 +21,7 @@ import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
-import com.bonree.brfs.disknode.data.write.buf.ByteBufferFileBuffer;
+import com.bonree.brfs.disknode.data.write.buf.ByteArrayFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
 import com.bonree.brfs.disknode.data.write.record.RecordElementReader;
@@ -183,7 +183,7 @@ public class FileWriterManager implements LifeCycle {
 	public void rebuildFileWriter(File dataFile) throws IOException {
 		RecordFileWriter writer = new RecordFileWriter(
 				recorderManager.getRecordCollection(dataFile, true, DEFAULT_RECORD_BUFFER_SIZE, true),
-						new BufferedFileWriter(dataFile, true, new ByteBufferFileBuffer(DEFAULT_FILE_BUFFER_SIZE)));
+						new BufferedFileWriter(dataFile, true, new ByteArrayFileBuffer(DEFAULT_FILE_BUFFER_SIZE)));
 
 		Pair<RecordFileWriter, WriteWorker> binding = new Pair<RecordFileWriter, WriteWorker>(
 				writer, workerSelector.select(workerGroup.getWorkerList()));
@@ -206,7 +206,7 @@ public class FileWriterManager implements LifeCycle {
 						
 						RecordFileWriter writer = new RecordFileWriter(
 								recorderManager.getRecordCollection(filePath, false, DEFAULT_RECORD_BUFFER_SIZE, true),
-								new BufferedFileWriter(filePath, new ByteBufferFileBuffer(DEFAULT_FILE_BUFFER_SIZE)));
+								new BufferedFileWriter(filePath, new ByteArrayFileBuffer(DEFAULT_FILE_BUFFER_SIZE)));
 
 						binding = new Pair<RecordFileWriter, WriteWorker>(
 								writer, workerSelector.select(workerGroup

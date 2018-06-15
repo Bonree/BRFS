@@ -9,6 +9,7 @@ import java.nio.channels.FileChannel;
  * 
  * @author yupeng
  *
+ * @deprecated
  */
 public class ByteBufferFileBuffer implements FileBuffer {
 	private ByteBuffer buffer;

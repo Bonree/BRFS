@@ -31,7 +31,7 @@ import com.bonree.brfs.disknode.client.RecoverInfo;
 import com.bonree.brfs.disknode.data.write.BufferedFileWriter;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
-import com.bonree.brfs.disknode.data.write.buf.ByteBufferFileBuffer;
+import com.bonree.brfs.disknode.data.write.buf.ByteArrayFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
@@ -189,7 +189,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 			try {
 				RecordFileWriter writer = new RecordFileWriter(
 						recorderManager.getRecordCollection(rewriteFile, false, 8196, false),
-						new BufferedFileWriter(rewriteFile, new ByteBufferFileBuffer(1024 * 1024)));
+						new BufferedFileWriter(rewriteFile, new ByteArrayFileBuffer(1024 * 1024)));
 				
 				for(Entry<Integer, byte[]> entry : datas.entrySet()) {
 					writer.updateSequence(entry.getKey());
