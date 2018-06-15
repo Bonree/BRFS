@@ -10,6 +10,14 @@ public class HandleResult {
 	private boolean success;
 	private Throwable cause;
 	private byte[] data;
+	
+	public HandleResult() {
+		this(true);
+	}
+	
+	public HandleResult(boolean success) {
+		this.success = success;
+	}
 
 	public boolean isSuccess() {
 		return success;

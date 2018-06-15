@@ -47,7 +47,9 @@ public class WriteMessageHandler implements MessageHandler {
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, false);
 			if(binding == null) {
 				//运行到这，可能时打开文件时失败，导致写数据节点找不到writer
-				throw new IllegalStateException("File Writer is null");
+				LOG.warn("no file writer is found, maybe the file[{}] is not opened.", realPath);
+				callback.completed(new HandleResult(false));
+				return;
 			}
 			
 			WriteData[] datas = dataList.getDatas();

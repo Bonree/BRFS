@@ -1,13 +1,9 @@
 package com.bonree.brfs.disknode.data.write.record;
 
-import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -64,15 +60,12 @@ public class RecordCollection implements Closeable {
 	 * @throws IOException
 	 */
 	public void put(RecordElement element) throws IOException {
-		if(element.getSequence() < 0) {
-			LOG.error("put record element with sequence[{}]", element.getSequence());
-			return;
-		}
-		
+		LOG.info("put element{} of file[{}]", element, recordFile.getAbsolutePath());
 		recordWriter.write(ProtoStuffUtils.serialize(element));
 	}
 	
 	public void clear() throws IOException {
+		LOG.info("clean elements of file[{}]", recordFile.getAbsolutePath());
 		recordWriter.flush();
 		recordWriter.position(0);
 	}
@@ -83,6 +76,7 @@ public class RecordCollection implements Closeable {
 	 * @throws IOException
 	 */
 	public void sync() throws IOException {
+		LOG.info("sync elements of file[{}]", recordFile.getAbsolutePath());
 		recordWriter.flush();
 	}
 	
@@ -94,6 +88,7 @@ public class RecordCollection implements Closeable {
 	public void close() throws IOException {
 		//写入记录关闭的时候说明记录已经不需要了，可以将
 		//其关闭
+		LOG.info("close elements of file[{}]", recordFile.getAbsolutePath());
 		CloseUtils.closeQuietly(recordWriter);
 		for(InputStream input : openedStreams) {
 			CloseUtils.closeQuietly(input);
