@@ -60,8 +60,9 @@ public class RecordCollection implements Closeable {
 	 * @throws IOException
 	 */
 	public void put(RecordElement element) throws IOException {
-		LOG.info("put element{} of file[{}]", element, recordFile.getAbsolutePath());
-		recordWriter.write(ProtoStuffUtils.serialize(element));
+		byte[] bytes = ProtoStuffUtils.serialize(element);
+		LOG.info("put element{} of file[{}], bytes[{}]", element, recordFile.getAbsolutePath(), bytes.length);
+		recordWriter.write(bytes);
 	}
 	
 	public void clear() throws IOException {

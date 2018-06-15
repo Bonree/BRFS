@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.data.write.buf.FileBuffer;
 
@@ -15,6 +18,8 @@ import com.bonree.brfs.disknode.data.write.buf.FileBuffer;
  *
  */
 public class BufferedFileWriter implements FileWriter {
+	private static final Logger LOG = LoggerFactory.getLogger(BufferedFileWriter.class);
+	
 	private RandomAccessFile file;
 	private String filePath;
 	private FileBuffer buffer;
@@ -92,6 +97,9 @@ public class BufferedFileWriter implements FileWriter {
 	@Override
 	public void flush() throws IOException {
 		try {
+			if(filePath.endsWith("rd")) {
+				LOG.info("flush file[{}] with readablesize[{}], writablesize[{}]", filePath, buffer.readableSize(), buffer.writableSize());
+			}
 			buffer.flush(file.getChannel());
 			buffer.clear();
 			
