@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.disknode.data.write.BufferedFileWriter;
 import com.bonree.brfs.disknode.data.write.DirectFileWriter;
 import com.bonree.brfs.disknode.data.write.FileWriter;
-import com.bonree.brfs.disknode.data.write.buf.ByteFileBuffer;
+import com.bonree.brfs.disknode.data.write.buf.ByteArrayFileBuffer;
 
 /**
  * 记录处理器管理类
@@ -63,7 +63,7 @@ public class RecordCollectionManager {
 	public RecordCollection getRecordCollection(String dataFilePath, boolean append, int bufferSize, boolean deleteOnClose) {
 		File recordFile = RecordFileBuilder.buildFrom(dataFilePath);
 		try {
-			FileWriter writer = bufferSize > 0 ? new BufferedFileWriter(recordFile, append, new ByteFileBuffer(bufferSize))
+			FileWriter writer = bufferSize > 0 ? new BufferedFileWriter(recordFile, append, new ByteArrayFileBuffer(bufferSize))
 			                                   : new DirectFileWriter(recordFile, append);
 			
 			return new RecordCollection(recordFile, writer, deleteOnClose);

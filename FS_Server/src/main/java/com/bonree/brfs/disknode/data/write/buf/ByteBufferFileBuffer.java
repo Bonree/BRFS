@@ -10,10 +10,10 @@ import java.nio.channels.FileChannel;
  * @author yupeng
  *
  */
-public class ByteFileBuffer implements FileBuffer {
+public class ByteBufferFileBuffer implements FileBuffer {
 	private ByteBuffer buffer;
 	
-	public ByteFileBuffer(int capacity) {
+	public ByteBufferFileBuffer(int capacity) {
 		this.buffer = ByteBuffer.allocate(capacity);
 	}
 	
