@@ -6,7 +6,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,7 +23,6 @@ import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.buf.ByteArrayFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
-import com.bonree.brfs.disknode.data.write.record.RecordElementReader;
 import com.bonree.brfs.disknode.data.write.record.RecordFileBuilder;
 import com.bonree.brfs.disknode.data.write.worker.RandomWriteWorkerSelector;
 import com.bonree.brfs.disknode.data.write.worker.WriteTask;
@@ -244,7 +242,7 @@ public class FileWriterManager implements LifeCycle {
 			int size = Integer.parseInt(parts.get(1));
 			long crc = ByteUtils.crc(bytes, offset, size);
 			
-			if(index + 1 < originSize) {
+			if(index + 1 >= originSize) {
 				//数据文件还有数据，但日志文件没有记录
 				validElmentList.add(new RecordElement(index + 1, offset, size, crc));
 				continue;
