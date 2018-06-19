@@ -21,7 +21,6 @@ import com.bonree.brfs.client.route.ServiceSelectorManager;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.exception.BRFSException;
-import com.bonree.brfs.common.http.client.ClientConfig;
 import com.bonree.brfs.common.http.client.HttpClient;
 import com.bonree.brfs.common.http.client.HttpResponse;
 import com.bonree.brfs.common.http.client.URIBuilder;
@@ -49,7 +48,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     private String passwd;
 
     public DefaultBRFileSystem(String zkAddresses, String cluster, String userName, String passwd) throws Exception {
-        client= new HttpClient(ClientConfig.builder().setMaxConnection(300).setMaxConnectionPerRoute(300).build());
+        client = new HttpClient();
         this.userName = userName;
     	this.passwd = passwd;
     	

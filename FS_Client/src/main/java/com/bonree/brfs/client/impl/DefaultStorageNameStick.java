@@ -94,7 +94,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
                     headers.put("username", userName);
                     headers.put("password", passwd);
 
-                    System.out.println("client -> " + uri.toString());
+                    System.out.println("client -> " + uri.toString() + ", user " + userName + ", passwd " + passwd);
                     response = client.executePost(uri, headers, ProtoStuffUtils.serialize(dataMessage));
                     System.out.println("client response " + response.getStatusCode());
                 } catch (Exception e) {
@@ -144,12 +144,12 @@ public class DefaultStorageNameStick implements StorageNameStick {
         for (int serverId : fidObj.getServerIdList()) {
             parts.add(String.valueOf(serverId));
         }
-        List<Integer> excludePot = Lists.newArrayList(16);
 
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("username", userName);
         headers.put("password", passwd);
         try {
+        	List<Integer> excludePot = new ArrayList<Integer>();
             // 最大尝试副本数个server
             for (int i = 0; i < parts.size() - 1; i++) {
                 ServiceMetaInfo serviceMetaInfo = selector.readerService(Joiner.on('_').join(parts), excludePot);

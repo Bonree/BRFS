@@ -101,6 +101,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 		
 		FileLimiter fileLimiter = new FileLimiter(fileNode, capacity);
 		fileLimiter.incrementSequenceBy(1);
+		fileLimiter.setLength(2);
 		
 		if(!allNodeOpened) {
 			//因为有部分磁盘节点的打开操作失败，所有文件需要设置为同步状态，这样在
