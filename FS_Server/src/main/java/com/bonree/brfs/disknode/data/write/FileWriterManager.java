@@ -5,10 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,7 @@ public class FileWriterManager implements LifeCycle {
 	private static int DEFAULT_RECORD_BUFFER_SIZE = 1024;
 	private static int DEFAULT_FILE_BUFFER_SIZE = 64 * 1024;
 
-	private Map<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new HashMap<String, Pair<RecordFileWriter, WriteWorker>>();
+	private ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
 	private static final int DEFAULT_TIMEOUT_SECONDS = 2;
 	private WheelTimer<String> timeoutWheel = new WheelTimer<String>(
