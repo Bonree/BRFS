@@ -1,15 +1,21 @@
 package com.bonree.brfs.duplication.coordinator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.google.common.base.Splitter;
 
 public class FilePathBuilder {
+	private static final Logger LOG = LoggerFactory.getLogger(FilePathBuilder.class);
 	
 	private static final String PATH_SEPARATOR = "/";
 	
 	public static String buildFilePath(String storageName, String serviceId, long createTime, String fileName) {
 		int index = 0;
+		
+		LOG.info("build file path with sn[{}], serid[{}], time[{}] filename[{}]", storageName, serviceId, createTime, fileName);
 		for(String id : Splitter.on("_").splitToList(fileName)) {
 			if(id.equals(serviceId)) {
 				break;

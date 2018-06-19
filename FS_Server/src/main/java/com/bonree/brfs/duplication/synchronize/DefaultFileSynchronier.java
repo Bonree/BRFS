@@ -131,6 +131,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 			synchronized(syncTasks) {
 				syncTasks.remove(target.getName());
 			}
+			
 			LOG.info("start synchronize file[{}]", target.getName());
 			
 			/**

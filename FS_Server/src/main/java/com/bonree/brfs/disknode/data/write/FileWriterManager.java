@@ -284,6 +284,10 @@ public class FileWriterManager implements LifeCycle {
 		}
 		
 		List<RecordElement> originElements = binding.first().getRecordCollection().getRecordElementList();
+		if(originElements.isEmpty()) {
+			//没有数据写入成功，不需要任何协调
+			return;
+		}
 		
 		List<RecordElement> elements = validElements(filePath, originElements);
 		LOG.info("adjust file get elements size[{}] for file[{}]", elements.size(), filePath);
