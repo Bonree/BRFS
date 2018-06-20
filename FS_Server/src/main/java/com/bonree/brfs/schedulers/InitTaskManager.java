@@ -68,12 +68,10 @@ public class InitTaskManager {
 	 * @throws ParamsErrorException 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	//TODO:临时参数groupName
 	public static void initManager(ServerConfig serverConfig,ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageNameManager snm, ServerIDManager sim) throws Exception {
 		managerConfig.printDetail();
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
-		//TODO:临时代码 工厂类添加serverId与groupName
 		mcf.setServerId(serverId);
 		mcf.setGroupName(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
 		
