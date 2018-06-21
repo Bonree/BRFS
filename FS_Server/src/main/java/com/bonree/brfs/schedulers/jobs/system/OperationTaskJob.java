@@ -127,7 +127,6 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					runPattern.setSleepTime(1000);
 				}
 				// 创建任务提交信息
-				// TODO：根据不同类型的任务在此生成的不一样
 				if(TaskType.SYSTEM_DELETE.equals(taskType)){
 					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemDeleteJob.class.getCanonicalName(),dataPath);
 				}
