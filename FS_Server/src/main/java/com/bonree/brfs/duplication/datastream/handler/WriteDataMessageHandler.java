@@ -37,7 +37,8 @@ public class WriteDataMessageHandler implements MessageHandler {
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		TimeCounter counter = new TimeCounter("WriteDataMessageHandler", TimeUnit.NANOSECONDS);
+		TimeCounter counter = new TimeCounter("WriteDataMessageHandler", TimeUnit.MILLISECONDS);
+		counter.begin();
 		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
 		StorageNameNode node = storageNameManager.findStorageName(writeMsg.getStorageNameId());
 		

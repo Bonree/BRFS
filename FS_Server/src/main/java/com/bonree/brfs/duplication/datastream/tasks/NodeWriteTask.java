@@ -27,8 +27,9 @@ public class NodeWriteTask extends AsyncTask<WriteResult[]> {
 
 	@Override
 	public WriteResult[] run() throws Exception {
-		TimeCounter counter = new TimeCounter("NodeWriteTask", TimeUnit.NANOSECONDS);
+		TimeCounter counter = new TimeCounter("NodeWriteTask", TimeUnit.MILLISECONDS);
 		try {
+			counter.begin();
 			if(connection == null) {
 				LOG.error("file[{}] connection is null!!!", filePath);
 				return null;

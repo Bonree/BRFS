@@ -22,14 +22,10 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.write.data.DataItem;
-import com.bonree.brfs.duplication.DuplicationEnvironment;
-import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FileNodeInvalidListener;
 import com.bonree.brfs.duplication.coordinator.FileNodeSink;
-import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.FileLimiter;
 import com.bonree.brfs.duplication.datastream.file.FileLimiterCloser;
@@ -121,7 +117,8 @@ public class DuplicateWriter {
 	}
 	
 	public void write(int storageId, DataItem[] items, DataHandleCallback<DataWriteResult> callback) {
-		TimeCounter counter = new TimeCounter("DuplicateWriter", TimeUnit.NANOSECONDS);
+		TimeCounter counter = new TimeCounter("DuplicateWriter", TimeUnit.MILLISECONDS);
+		counter.begin();
 		FileLounge fileLounge = getFileLoungeByStorageId(storageId);
 		if(fileLounge == null) {
 			callback.error(new StorageNameNonexistentException(storageId));

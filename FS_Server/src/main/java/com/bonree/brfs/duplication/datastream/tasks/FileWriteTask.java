@@ -66,7 +66,8 @@ public class FileWriteTask extends AsyncTask<ResultItem[]> {
 
 	@Override
 	public ResultItem[] run() throws Exception {
-		TimeCounter counter = new TimeCounter("FileWriteTask", TimeUnit.NANOSECONDS);
+		TimeCounter counter = new TimeCounter("FileWriteTask", TimeUnit.MILLISECONDS);
+		counter.begin();
 		WriteData[] datas = new WriteData[dataList.size()];
 		int sequence = file.getSequence();
 		for(int i = 0; i < datas.length; i++) {

@@ -17,7 +17,7 @@ public class TimeCounter {
 	}
 	
 	private long elapsedTime() {
-		return TimeUnit.NANOSECONDS.convert(System.nanoTime() - startTime, unit);
+		return unit.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
 	}
 	
 	public String report(int index) {
