@@ -8,10 +8,16 @@ import java.nio.channels.FileChannel;
 public class ByteArrayFileBuffer implements FileBuffer {
 	private byte[] byteArray;
 	private volatile int position;
+	private final boolean forceWhenFlush;
 	
 	public ByteArrayFileBuffer(int capacity) {
+		this(capacity, false);
+	}
+	
+	public ByteArrayFileBuffer(int capacity, boolean forceWhenFlush) {
 		this.byteArray = new byte[capacity];
 		this.position = 0;
+		this.forceWhenFlush = forceWhenFlush;
 	}
 
 	@Override
@@ -52,7 +58,10 @@ public class ByteArrayFileBuffer implements FileBuffer {
 	@Override
 	public void flush(FileChannel channel) throws IOException {
 		channel.write(ByteBuffer.wrap(byteArray, 0, position));
-		channel.force(false);
+		
+		if(forceWhenFlush) {
+			channel.force(false);
+		}
 	}
 
 }

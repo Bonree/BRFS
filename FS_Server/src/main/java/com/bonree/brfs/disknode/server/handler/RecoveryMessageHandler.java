@@ -14,10 +14,10 @@ import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.http.HandleResult;
-import com.bonree.brfs.common.http.HandleResultCallback;
-import com.bonree.brfs.common.http.HttpMessage;
-import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.net.http.HandleResult;
+import com.bonree.brfs.common.net.http.HandleResultCallback;
+import com.bonree.brfs.common.net.http.HttpMessage;
+import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BitSetUtils;

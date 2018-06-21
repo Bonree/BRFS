@@ -5,9 +5,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.http.HandleResultCallback;
-import com.bonree.brfs.common.http.HttpMessage;
-import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.net.http.HandleResultCallback;
+import com.bonree.brfs.common.net.http.HttpMessage;
+import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.google.common.base.Splitter;
 

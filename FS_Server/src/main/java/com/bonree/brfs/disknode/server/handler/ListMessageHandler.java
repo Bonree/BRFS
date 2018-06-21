@@ -7,10 +7,10 @@ import java.util.LinkedList;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.common.http.HandleResult;
-import com.bonree.brfs.common.http.HandleResultCallback;
-import com.bonree.brfs.common.http.HttpMessage;
-import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.net.http.HandleResult;
+import com.bonree.brfs.common.net.http.HandleResultCallback;
+import com.bonree.brfs.common.net.http.HttpMessage;
+import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;

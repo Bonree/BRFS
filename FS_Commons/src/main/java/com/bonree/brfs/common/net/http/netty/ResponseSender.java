@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http.netty;
+package com.bonree.brfs.common.net.http.netty;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;

@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http.netty;
+package com.bonree.brfs.common.net.http.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -9,8 +9,8 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
-import com.bonree.brfs.common.http.HandleResult;
-import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.net.http.HandleResult;
+import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.google.common.primitives.Bytes;
 

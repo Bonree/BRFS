@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bonree.brfs.common.http.client.ClientConfig;
-import com.bonree.brfs.common.http.client.HttpClient;
-import com.bonree.brfs.common.http.client.HttpResponse;
-import com.bonree.brfs.common.http.client.URIBuilder;
+import com.bonree.brfs.common.net.http.client.ClientConfig;
+import com.bonree.brfs.common.net.http.client.HttpClient;
+import com.bonree.brfs.common.net.http.client.HttpResponse;
+import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.disknode.DiskContext;

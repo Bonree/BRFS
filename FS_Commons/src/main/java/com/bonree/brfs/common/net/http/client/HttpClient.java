@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http.client;
+package com.bonree.brfs.common.net.http.client;
 
 import java.io.Closeable;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http.netty;
+package com.bonree.brfs.common.net.http.netty;
 
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;

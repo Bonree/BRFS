@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http.netty;
+package com.bonree.brfs.common.net.http.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -11,7 +11,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
 
-import com.bonree.brfs.common.http.HttpConfig;
+import com.bonree.brfs.common.net.http.HttpConfig;
 import com.bonree.brfs.common.utils.LifeCycle;
 
 /**

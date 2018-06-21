@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http;
+package com.bonree.brfs.common.net.http;
 
 /**
  * {@link MessageHandler}的处理结果对象

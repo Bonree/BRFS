@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http;
+package com.bonree.brfs.common.net.http;
 
 /**
  * {@link MessageHandler}通知结果数据的接口
