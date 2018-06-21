@@ -1,6 +1,7 @@
 package com.bonree.brfs.disknode.server.handler;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import com.bonree.brfs.common.http.HandleResult;
 import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.ThreadPoolUtil;
 import com.bonree.brfs.disknode.DiskContext;
@@ -69,6 +71,8 @@ public class WriteMessageHandler implements MessageHandler {
 		private Pair<RecordFileWriter, WriteWorker> binding;
 		private HandleResultCallback callback;
 		
+		private TimeCounter counter = new TimeCounter("DataWriteTask", TimeUnit.MILLISECONDS);
+		
 		public DataWriteTask(Pair<RecordFileWriter, WriteWorker> binding, WriteData[] datas, HandleResultCallback callback) {
 			this.binding = binding;
 			this.dataList = datas;
@@ -79,6 +83,9 @@ public class WriteMessageHandler implements MessageHandler {
 		@Override
 		protected WriteResult[] execute() throws Exception {
 			LOG.info("start writing...");
+			
+			counter.begin();
+			
 			RecordFileWriter writer = binding.first();
 			for(int i = 0; i < dataList.length; i++) {
 				WriteData data = dataList[i];
@@ -102,6 +109,10 @@ public class WriteMessageHandler implements MessageHandler {
 
 		@Override
 		protected void onPostExecute(WriteResult[] result) {
+			LOG.info(counter.report(0));
+			
+			TimeCounter runCounter = new TimeCounter("postResult", TimeUnit.MILLISECONDS);
+			runCounter.begin();
 			ThreadPoolUtil.commonPool().execute(new Runnable() {
 				
 				@Override
@@ -117,12 +128,17 @@ public class WriteMessageHandler implements MessageHandler {
 					}
 					
 					callback.completed(handleResult);
+					LOG.info(runCounter.report(0));
 				}
 			});
 		}
 
 		@Override
 		protected void onFailed(Throwable e) {
+			LOG.info(counter.report(1));
+			TimeCounter runCounter = new TimeCounter("postFailed", TimeUnit.MILLISECONDS);
+			runCounter.begin();
+			
 			ThreadPoolUtil.commonPool().execute(new Runnable() {
 				
 				@Override
@@ -138,6 +154,7 @@ public class WriteMessageHandler implements MessageHandler {
 					}
 					
 					callback.completed(handleResult);
+					LOG.info(runCounter.report(0));
 				}
 			});
 		}

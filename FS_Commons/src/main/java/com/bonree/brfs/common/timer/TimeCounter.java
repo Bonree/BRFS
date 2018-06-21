@@ -22,7 +22,8 @@ public class TimeCounter {
 	
 	public String report(int index) {
 		StringBuilder builder = new StringBuilder();
-		builder.append("TimeCounter[").append(name).append("] at index[").append(index).append("] take time-->[")
+		builder.append("TimeCounter[").append(name).append("] at index[")
+		.append(index).append("] take time(").append(unit).append(")-->[")
 		.append(elapsedTime()).append("]");
 		
 		return builder.toString();
