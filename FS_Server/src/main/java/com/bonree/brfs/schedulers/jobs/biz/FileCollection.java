@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
@@ -23,6 +26,7 @@ import com.bonree.brfs.server.identification.ServerIDManager;
  *****************************************************************************
  */
 public class FileCollection {
+	private static final Logger LOG = LoggerFactory.getLogger("FileCollection");
 	/**
 	 * 概述：根据路径收集文件名
 	 * @param path
@@ -31,9 +35,11 @@ public class FileCollection {
 	 */
 	public static Map<String,List<String>> collFiles(String path, long limitTime, long granule){
 		if(!FileUtils.isExist(path)) {
+			LOG.info("<collFiles> file path is not exists {}",path);
 			return null;
 		}
 		if(!FileUtils.isDirectory(path)) {
+			LOG.info("<collFiles> file path is not directory {}",path);
 			return null;
 		}
 		String limitStr = limitTime <= 0 ? "END" : TimeUtils.timeInterval(limitTime, granule);
@@ -45,8 +51,6 @@ public class FileCollection {
 				return o1.compareTo(o2);
 			}
 		});
-		System.out.println(dirs);
-		System.out.println(limitStr);
 		Map<String,List<String>> dirFiles = new ConcurrentHashMap<String,List<String>>();
 		List<String> parts = null;
 		String tmpPath = null;
@@ -113,7 +117,7 @@ public class FileCollection {
 	 */
 	public static boolean crimeFile(List<String> aliveSnIds, String secondLocalId) {
 		if(aliveSnIds == null || aliveSnIds.isEmpty() || BrStringUtils.isEmpty(secondLocalId)) {
-			return false;
+			return true;
 		}
 		return !aliveSnIds.contains(secondLocalId);		
 	}

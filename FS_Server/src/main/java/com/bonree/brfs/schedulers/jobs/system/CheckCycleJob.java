@@ -10,6 +10,7 @@ import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
+import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -17,6 +18,8 @@ import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
@@ -34,6 +37,11 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
 		LOG.info("cycle check job work !!!");
+		JobDataMap data = context.getJobDetail().getJobDataMap();
+		int day = data.getInt(JobDataMapConstract.CHECK_TIME_RANGE);
+		if(day <=0) {
+			return;
+		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		StorageNameManager snm = mcf.getSnm();
@@ -56,7 +64,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		long granule = 3600000L;
 		long currentTime = System.currentTimeMillis();
 		long lGraDay = currentTime - currentTime % 86400000L;
-		long sGraDay = lGraDay - 604800000L;
+		long sGraDay = lGraDay - day * 604800000L;
 
 		List needSns = CopyCountCheck.filterSn(snList, services.size());
 

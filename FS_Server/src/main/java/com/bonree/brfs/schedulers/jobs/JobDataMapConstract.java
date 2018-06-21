@@ -79,6 +79,7 @@ public class JobDataMapConstract {
 	public static final String GLOBAL_SN_DATA_TTL = "GLOBAL_SN_DATA_TTL";
 	public static final String PREX_TASK_NAME = "PREX_TASK_NAME";
 	public static final String CURRENT_TASK_NAME = "CURRENT_TASK_NAME";
+	public static final String CHECK_TIME_RANGE = "CHECK_TIME_RANGE";
 	
 	
 	/**
@@ -88,10 +89,8 @@ public class JobDataMapConstract {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	//TODO: 存在临时参数，需要确认serverId在启动时哪里获取到
 	public static Map<String,String> createGatherResourceDataMap(ServerConfig server, ResourceTaskConfig resource, String serverId){
 		Map<String, String>  dataMap = new HashMap<>();
-		//TODO: 存在临时参数，需要确认serverId在启动时哪里获取到
 		dataMap.put(DATA_PATH, server.getDataPath());
 		dataMap.put(IP, server.getHost());
 		dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
@@ -211,7 +210,14 @@ public class JobDataMapConstract {
 	}
 	public static Map<String, String> createCylcCheckDataMap(int day) {
 	    Map dataMap = new HashMap();
-	    dataMap.put("CHECK_TIME_RANGE", day + "");
+	    dataMap.put(CHECK_TIME_RANGE, day + "");
 	    return dataMap;
 	  }
+	public static Map<String, String> createWatchDogDataMap(String zkHost, String path,String dataPath){
+		Map<String, String> dataMap = new HashMap<>();
+		dataMap.put(ZOOKEEPER_ADDRESS, zkHost);
+		dataMap.put(BASE_ROUTE_PATH, path);
+		dataMap.put(DATA_PATH, dataPath);
+		return dataMap;
+	}
 }

@@ -130,6 +130,9 @@ public class ResourceTaskConfig {
 
 	public static final String CYCLE_CHECK_COPY_COUNT_TIME = "cycle.check.copy.count.time";
 	public static final String CYCLE_CHECK_COPY_COUNT_TIME_RANGE_DAY = "cycle.check.copy.count.time.range";
+	public static final String WATCH_DOG_TRIGGER_TIME = "watchdog.trigger.time";
+	public static final String WATCH_DOG_TRIGGER_INTERVAL = "watch.dog.trigger.interval";
+	
 	/**
 	 * 任务开关
 	 */
@@ -160,8 +163,10 @@ public class ResourceTaskConfig {
 	private long checkTtl = 24 * 60 * 60;
 	private long globalSnTtl = 24 * 60 * 60;
 	
-	private String checkCronStr = "0 2 * * * ?";
-	  private int checkTimeRange = 7;
+	private String checkCronStr = "0 30 2 * * ?";
+	private int checkTimeRange = 7;
+	
+	private String watchDogCron = "0 30 2 */7 * ?";
 
 	private ResourceTaskConfig() {
 
@@ -287,16 +292,8 @@ public class ResourceTaskConfig {
 		conf.setGlobalSnTtl(snttl * 24 * 60 * 60);
 		
 		String content = config.getProperty("cycle.check.copy.count.time", "2:30");
-	    String[] times = BrStringUtils.getSplit(content, ":");
-	    if ((times == null) || (times.length != 2) || (!BrStringUtils.isNumeric(times[0])) || (!BrStringUtils.isNumeric(times[1]))) {
-	      throw new ConfigParseException("cycle.check.copy.count.time : " + content + " is error!! please check it");
-	    }
-	    int iHour = Integer.valueOf(times[0]).intValue();
-	    int iMin = Integer.valueOf(times[1]).intValue();
-	    if ((iHour < 0) || (iHour >= 24) || (iMin < 0) || (iMin >= 60)) {
-	      throw new ConfigParseException("cycle.check.copy.count.time : " + content + " is error!! please check it");
-	    }
-	    String cronStr = "0 "+iMin + " " + iHour + " * * ?";
+	    
+	    String cronStr = analyseCronStr(content, 0);
 	    conf.setCheckCronStr(cronStr);
 
 	    String dayStr = config.getProperty("cycle.check.copy.count.time.range", "7");
@@ -308,8 +305,32 @@ public class ResourceTaskConfig {
 	      throw new ConfigParseException("cycle.check.copy.count.time.range : " + dayStr + " is error!! please check it");
 	    }
 	    conf.setCheckTimeRange(day);
-
+	    String watchTime = config.getProperty(WATCH_DOG_TRIGGER_TIME,"2:30");
+	    String watchInterval = config.getProperty(WATCH_DOG_TRIGGER_INTERVAL,"7");
+	    if (!BrStringUtils.isNumeric(dayStr)) {
+		      throw new ConfigParseException("watch.dog.trigger.interval : " + dayStr + " is error!! please check it");
+		    }
+	   int watchInt = Integer.valueOf(watchInterval);
+	   String watchCron = analyseCronStr(watchTime, watchInt);
+	   conf.setWatchDogCron(watchCron);
 		return conf;
+	}
+	
+	private static String analyseCronStr(String content,int interval) throws ConfigParseException {
+		String[] times = BrStringUtils.getSplit(content, ":");
+	    if ((times == null) || (times.length != 2) || (!BrStringUtils.isNumeric(times[0])) || (!BrStringUtils.isNumeric(times[1]))) {
+	      throw new ConfigParseException("cycle.check.copy.count.time : " + content + " is error!! please check it");
+	    }
+	    int iHour = Integer.valueOf(times[0]).intValue();
+	    int iMin = Integer.valueOf(times[1]).intValue();
+	    if ((iHour < 0) || (iHour >= 24) || (iMin < 0) || (iMin >= 60)) {
+	      throw new ConfigParseException("cycle.check.copy.count.time : " + content + " is error!! please check it");
+	    }
+	    if(interval <=0) {
+	    	return "0 "+iMin + " " + iHour + " * * ?";
+	    }else {
+	    	return "0 "+iMin + " " + iHour + " */"+interval+" * ?";
+	    }
 	}
 
 	public void printDetail() {
@@ -342,6 +363,7 @@ public class ResourceTaskConfig {
 		LOG.info("{}:{}", TASK_FRAMEWORK_SWITCH, this.taskFrameWorkSwitch);
 		LOG.info("{}:{}", CYCLE_CHECK_COPY_COUNT_TIME, this.checkCronStr);
 		LOG.info("{}:{}", CYCLE_CHECK_COPY_COUNT_TIME_RANGE_DAY, this.checkTimeRange);
+		LOG.info("{}:{}", WATCH_DOG_TRIGGER_TIME, this.watchDogCron);
 	}
 
 	public Map<String, Boolean> getTaskPoolSwitchMap() {
@@ -537,5 +559,13 @@ public class ResourceTaskConfig {
 
 	public void setCheckTimeRange(int checkTimeRange) {
 		this.checkTimeRange = checkTimeRange;
+	}
+
+	public String getWatchDogCron() {
+		return watchDogCron;
+	}
+
+	public void setWatchDogCron(String watchDogCron) {
+		this.watchDogCron = watchDogCron;
 	}
 }
