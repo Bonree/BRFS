@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http.client;
+package com.bonree.brfs.common.net.http.client;
 
 /**
  * Http响应处理接口

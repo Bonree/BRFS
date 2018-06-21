@@ -1,6 +1,6 @@
 package com.bonree.brfs.duplication.datastream.connection.http;
 
-import com.bonree.brfs.common.http.client.ClientConfig;
+import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;

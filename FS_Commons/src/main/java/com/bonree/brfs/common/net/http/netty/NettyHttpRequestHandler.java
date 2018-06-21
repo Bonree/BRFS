@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http.netty;
+package com.bonree.brfs.common.net.http.netty;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -13,8 +13,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.http.HttpMessage;
-import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.net.http.HttpMessage;
+import com.bonree.brfs.common.net.http.MessageHandler;
 
 /**
  * Netty实现的Http请求处理接口

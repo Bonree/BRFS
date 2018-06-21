@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http.client;
+package com.bonree.brfs.common.net.http.client;
 
 public class ClientConfig {
 	private static final int DEFAULT_MAX_CONNECTION = 4;

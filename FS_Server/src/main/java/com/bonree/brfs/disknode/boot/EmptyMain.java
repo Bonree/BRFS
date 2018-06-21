@@ -5,9 +5,9 @@ import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.http.HttpConfig;
-import com.bonree.brfs.common.http.netty.NettyHttpRequestHandler;
-import com.bonree.brfs.common.http.netty.NettyHttpServer;
+import com.bonree.brfs.common.net.http.HttpConfig;
+import com.bonree.brfs.common.net.http.netty.NettyHttpRequestHandler;
+import com.bonree.brfs.common.net.http.netty.NettyHttpServer;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;

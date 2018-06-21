@@ -1,8 +1,8 @@
 package com.bonree.brfs.duplication.datastream.handler;
 
-import com.bonree.brfs.common.http.HandleResultCallback;
-import com.bonree.brfs.common.http.HttpMessage;
-import com.bonree.brfs.common.http.MessageHandler;
+import com.bonree.brfs.common.net.http.HandleResultCallback;
+import com.bonree.brfs.common.net.http.HttpMessage;
+import com.bonree.brfs.common.net.http.MessageHandler;
 
 public class ReadDataMessageHandler implements MessageHandler {
 

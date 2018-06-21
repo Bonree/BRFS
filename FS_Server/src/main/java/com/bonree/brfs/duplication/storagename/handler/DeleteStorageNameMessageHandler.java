@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
-import com.bonree.brfs.common.http.HandleResult;
-import com.bonree.brfs.common.http.HandleResultCallback;
+import com.bonree.brfs.common.net.http.HandleResult;
+import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;

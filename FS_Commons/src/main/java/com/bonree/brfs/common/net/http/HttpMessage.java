@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.http;
+package com.bonree.brfs.common.net.http;
 
 import java.util.Map;
 
