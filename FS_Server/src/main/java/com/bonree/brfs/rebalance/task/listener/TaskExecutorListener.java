@@ -4,23 +4,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
-import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskOperation;
 
-public class TaskExecutorListener extends AbstractTreeCacheListener {
+public class TaskExecutorListener implements TreeCacheListener {
 
     private final static Logger LOG = LoggerFactory.getLogger(TaskExecutorListener.class);
 
     private TaskOperation opt;
 
-    public TaskExecutorListener(String listenName, TaskOperation opt) {
-        super(listenName);
+    public TaskExecutorListener(TaskOperation opt) {
         this.opt = opt;
     }
 

@@ -16,9 +16,6 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
  ******************************************************************************/
 public class TaskMonitor {
 
-    public TaskMonitor() {
-    }
-
     /** 概述：获取某个任务的进度
      * @param client
      * @param taskPath

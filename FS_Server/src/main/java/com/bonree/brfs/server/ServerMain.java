@@ -22,10 +22,10 @@ import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.configuration.StorageConfig;
 import com.bonree.brfs.disknode.boot.EmptyMain;
-import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.duplication.storagename.StorageNameStateListener;
+import com.bonree.brfs.duplication.storagename.impl.DefaultStorageNameManager;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.schedulers.InitTaskManager;
@@ -65,7 +65,7 @@ public class ServerMain {
                 System.exit(1);
             }
             
-            ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
+            ServerIDManager idManager = new ServerIDManager(client.getInnerClient(), serverConfig, zookeeperPaths);
             idManager.getFirstServerID();
 
             StorageNameManager snManager = new DefaultStorageNameManager(storageConfig, client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);

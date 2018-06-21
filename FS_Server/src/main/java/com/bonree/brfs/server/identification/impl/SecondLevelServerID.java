@@ -1,13 +1,12 @@
 package com.bonree.brfs.server.identification.impl;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.recipes.locks.InterProcessLock;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,9 +14,7 @@ import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.server.identification.LevelServerIDGen;
-import com.google.common.base.Preconditions;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -33,117 +30,145 @@ public class SecondLevelServerID {
     private static final Logger LOG = LoggerFactory.getLogger(SecondLevelServerID.class);
     private LevelServerIDGen secondServerIDOpt;
 
-    private CuratorClient client;
+    private CuratorFramework client;
 
     private String selfFirstPath;
 
     private String baseRoutes;
 
-    private Map<Integer, String> secondMap;
+    private ConcurrentHashMap<Integer, String> secondMap = new ConcurrentHashMap<Integer, String>();
 
-    private final static String SECOND_LOCKS = "second_locks";
-
-    private final static String SEPARATOR = "/";
-
-    // private static Lock lock = new ReentrantLock();
-    private InterProcessLock lock;
-
-    public SecondLevelServerID(CuratorClient client, String selfFirstPath, String seqPath, String baseRoutes) {
+    public SecondLevelServerID(CuratorFramework client, String selfFirstPath, String seqPath, String baseRoutes) {
         this.client = client;
         this.selfFirstPath = selfFirstPath;
         this.secondServerIDOpt = new SecondServerIDGenImpl(client, seqPath);
         this.baseRoutes = baseRoutes;
-        secondMap = new ConcurrentHashMap<>();
-        lock = new InterProcessMutex(client.getInnerClient(), seqPath + SEPARATOR + SECOND_LOCKS);
     }
 
     public void loadServerID() {
-        List<String> storageIndeies = client.getChildren(selfFirstPath);
-        // 此处需要进行判断是否过期
-        for (String si : storageIndeies) {
-            String node = selfFirstPath + '/' + si;
-            String serverID = new String(client.getData(node));
-            if (isExpire(client, si, serverID)) { // 判断secondServerID是否过期，过期需要重新生成
-                serverID = secondServerIDOpt.genLevelID();
-                client.setData(node, serverID.getBytes()); // 覆盖以前的second server ID
-            }
-            secondMap.put(BrStringUtils.parseNumber(si, Integer.class), serverID);
-        }
-
+    	Map<String, String> expiredIds = scanExpiredServerIds();
+    	
+    	try {
+			List<String> storageIdList = client.getChildren().forPath(selfFirstPath);
+			
+			if(storageIdList != null) {
+				for(String storageId : storageIdList) {
+					String idNodePath = ZKPaths.makePath(selfFirstPath, storageId);
+					
+					byte[] bytes = client.getData().forPath(idNodePath);
+					if(bytes == null) {
+						throw new IllegalStateException("server id node" + storageId + " can not get data");
+					}
+					
+					String serverId = BrStringUtils.fromUtf8Bytes(bytes);
+					if(expiredIds.remove(serverId, storageId)) {
+						client.delete().forPath(idNodePath);
+						continue;
+					}
+					
+					secondMap.put(Integer.parseInt(storageId), BrStringUtils.fromUtf8Bytes(bytes));
+				}
+			}
+		} catch (Exception e) {
+			LOG.error("can not get server id list from zk", e);
+			
+			throw new RuntimeException(e);
+		}
+    }
+    
+    private Map<String, String> scanExpiredServerIds() {
+    	Map<String, String> expiredIds = new HashMap<String, String>();
+    	
+    	try {
+    		String normalRoutePath = ZKPaths.makePath(baseRoutes, Constants.NORMAL_ROUTE);
+    		
+			List<String> storageIdList = client.getChildren().forPath(normalRoutePath);
+			if(storageIdList != null) {
+				for(String storageId : storageIdList) {
+					String idNodePath = ZKPaths.makePath(normalRoutePath, storageId);
+					
+					try {
+						List<String> routeList = client.getChildren().forPath(idNodePath);
+						if(routeList == null) {
+							continue;
+						}
+						
+						for(String route : routeList) {
+							try {
+								byte[] bytes = client.getData().forPath(ZKPaths.makePath(idNodePath, route));
+								if(bytes == null) {
+									continue;
+								}
+								
+								NormalRoute routeNode = JsonUtils.toObject(bytes, NormalRoute.class);
+								expiredIds.put(routeNode.getSecondID(), storageId);
+							} catch (Exception e) {
+								LOG.error("get route data of [{}] error", route, e);
+							}
+						}
+					} catch (Exception e) {
+						LOG.error("get route list[{}] error", idNodePath, e);
+					}
+				}
+			}
+		} catch (Exception e) {
+			LOG.warn("get expired id list error", e);
+		}
+    	
+    	return expiredIds;
     }
 
-    private boolean isExpire(CuratorClient client, String si, String secondServerID) {
-        String normalPath = baseRoutes + Constants.SEPARATOR + Constants.NORMAL_ROUTE;
-        String siPath = normalPath + Constants.SEPARATOR + si;
-        if (client.checkExists(normalPath) && client.checkExists(siPath)) {
-            List<String> routeNodes = client.getChildren(siPath);
-            for (String routeNode : routeNodes) {
-                String routePath = siPath + Constants.SEPARATOR + routeNode;
-                byte[] data = client.getData(routePath);
-                NormalRoute normalRoute = JsonUtils.toObject(data, NormalRoute.class);
-                if (normalRoute.getSecondID().equals(secondServerID)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /** 概述：若缓存里没有，则为新建的SN，需要重新为该SN初始化second server ID
-     * @param storageIndex
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
     public String getServerID(int storageIndex) {
-        Preconditions.checkNotNull(secondMap, "Second Level Server ID is not init!!!");
         String serverID = secondMap.get(storageIndex);
-        if (StringUtils.isEmpty(serverID)) {
-            try {
-                if (lock.acquire(10, TimeUnit.SECONDS)) {
-                    serverID = secondMap.get(storageIndex);
-                    if (StringUtils.isEmpty(serverID)) {
-                        String node = selfFirstPath + '/' + storageIndex;
-                        if (!client.checkExists(node)) {
-                            serverID = secondServerIDOpt.genLevelID();
-                            client.createPersistent(node, true, serverID.getBytes());
-                        } else {
-                            serverID = new String(client.getData(node));
-                        }
-                        secondMap.put(storageIndex, serverID);
-                    }
-                }
-            } catch (Exception e) {
-                LOG.error("acquire lock error!!!", e);
-            } finally {
-                try {
-                    lock.release();
-                } catch (Exception e) {
-                    LOG.error("release lock error!!!", e);
-                }
-            }
+        if (serverID == null) {
+        	String node = ZKPaths.makePath(selfFirstPath, String.valueOf(storageIndex));
+        	serverID = secondServerIDOpt.genLevelID();
+        	
+        	String nodePath = null;
+        	try {
+				nodePath = client.create()
+				.creatingParentContainersIfNeeded()
+				.forPath(node, BrStringUtils.toUtf8Bytes(serverID));
+			} catch (Exception ignore) {}
+        	
+        	if(nodePath == null) {
+        		serverID = null;
+        		try {
+					byte[] bytes = client.getData().forPath(node);
+					
+					if(bytes != null) {
+						serverID = BrStringUtils.fromUtf8Bytes(bytes);
+					}
+				} catch (Exception e) {
+					LOG.error("get server id data error", e);
+				}
+        	}
+        	
+        	if(serverID == null) {
+        		throw new RuntimeException("can not get second server id");
+        	}
+        	
+        	secondMap.put(storageIndex, serverID);
         }
+        
         return serverID;
     }
 
-    /** 概述：删除一个2级serverID
-     * @param storageIndex
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
     public boolean deleteServerID(int storageIndex) {
-        Preconditions.checkNotNull(secondMap, "Second Level Server ID is not init!!!");
-        try {
-            String serverID = secondMap.get(storageIndex);
-            if (!StringUtils.isEmpty(serverID)) {
-                LOG.info("delete 2 level serverid for:" + storageIndex);
-                secondMap.remove(storageIndex);
-                String node = selfFirstPath + '/' + storageIndex;
-                client.checkAndDelte(node, true);
-            }
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    	String serverId = secondMap.remove(storageIndex);
+    	if(serverId == null) {
+    		return true;
+    	}
+    	
+    	try {
+			client.delete().quietly().forPath(ZKPaths.makePath(selfFirstPath, String.valueOf(storageIndex)));
+			
+			return true;
+		} catch (Exception e) {
+			LOG.error("can not delete second server id node", e);
+		}
+    	
+    	return false;
     }
 
 }

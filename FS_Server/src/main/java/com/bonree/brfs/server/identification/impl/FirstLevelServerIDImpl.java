@@ -1,13 +1,17 @@
 package com.bonree.brfs.server.identification.impl;
 
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
 
-import com.bonree.brfs.common.utils.FileUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.CreateMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.server.identification.LevelServerIDGen;
-import com.bonree.brfs.server.identification.LevelServerID;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -17,31 +21,23 @@ import com.google.common.collect.Lists;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 1级serverID实例
  ******************************************************************************/
-public class FirstLevelServerIDImpl implements LevelServerID {
+public class FirstLevelServerIDImpl {
+	private static final Logger LOG = LoggerFactory.getLogger(FirstLevelServerIDImpl.class);
 
     private LevelServerIDGen firstServerIDGen;
 
-    private String firstServerID;
-
     private String firstServerIDFile;
 
-    private CuratorClient client;
+    private CuratorFramework client;
 
     private String firstZKPath;
 
-    private SecondLevelServerID secondServerID;
-
-    private boolean newServer = true;
-
-    public FirstLevelServerIDImpl(CuratorClient client, String firstZKPath, String firstServerIDFile, String seqPath, String baseRoutesPath) {
+    public FirstLevelServerIDImpl(CuratorFramework client, String firstZKPath, String firstServerIDFile, String seqPath) {
         this.client = client;
         this.firstZKPath = firstZKPath;
         this.firstServerIDFile = firstServerIDFile;
         firstServerIDGen = new FirstServerIDGenImpl(client, seqPath);
         initOrLoadServerID();
-
-        secondServerID = new SecondLevelServerID(client, firstZKPath + '/' + firstServerID, seqPath, baseRoutesPath);
-        secondServerID.loadServerID();
     }
 
     /** 概述：加载一级ServerID
@@ -50,56 +46,44 @@ public class FirstLevelServerIDImpl implements LevelServerID {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public void initOrLoadServerID() {
-        // 文件不存在，则说明为新的服务，需要生成serverID，并保存
-        if (!FileUtils.isExist(firstServerIDFile)) {
-            FileUtils.createFile(firstServerIDFile, true);
-            firstServerID = firstServerIDGen.genLevelID();
-            List<String> contents = Lists.newArrayList(firstServerID);
-            FileUtils.writeFileFromList(firstServerIDFile, contents);
-        } else {
-            List<String> contents = FileUtils.readFileByLine(firstServerIDFile);
-            if (contents.isEmpty()) {
-                firstServerID = firstServerIDGen.genLevelID();
-                contents = Lists.newArrayList(firstServerID);
-                FileUtils.writeFileFromList(firstServerIDFile, contents);
-            } else {
-                newServer = false;
-                firstServerID = contents.get(0);
-            }
-
-        }
-        // 检查zk上是否一致
-        String firstIDNode = firstZKPath + '/' + firstServerID;
-        if (!client.checkExists(firstIDNode)) {
-            client.createPersistent(firstIDNode, false);
-        }
+    public String initOrLoadServerID() {
+    	String firstServerID = null;
+    	
+    	File idFile = new File(firstServerIDFile);
+    	if(idFile.exists()) {
+    		try {
+    			firstServerID = Files.asCharSource(idFile, Charsets.UTF_8).readFirstLine();
+			} catch (IOException e) {
+				LOG.error("read server id file[{}] error", idFile.getAbsolutePath(), e);
+			}
+    		
+    		if(firstServerID == null) {
+    			throw new RuntimeException("can not load server id from local file[" + idFile.getAbsolutePath() + "]");
+    		}
+    		
+    		LOG.info("load server id from local file : {}", firstServerID);
+    		return firstServerID;
+    	}
+    	
+    	firstServerID = firstServerIDGen.genLevelID();
+    	if(firstServerID == null) {
+			throw new RuntimeException("can not get server id[" + idFile.getAbsolutePath() + "]");
+		}
+		
+		try {
+			client.create()
+			.creatingParentContainersIfNeeded()
+			.withMode(CreateMode.PERSISTENT)
+			.forPath(ZKPaths.makePath(firstZKPath, firstServerID));
+			
+			Files.createParentDirs(idFile);
+			Files.asCharSink(idFile, Charsets.UTF_8).write(firstServerID);
+		} catch (Exception e) {
+			LOG.error("can not persist server id[{}]", idFile.getAbsolutePath(), e);
+			
+			throw new RuntimeException("can not persist server id", e);
+		}
+		
+		return firstServerID;
     }
-
-    /** 概述：从缓存中返回本服务的一级ServerID
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
-    @Override
-    public String getServerID() {
-        if (firstServerID != null) {
-            return firstServerID;
-        } else {
-            throw new IllegalStateException("first Server ID not init or occur a excrption!!");
-        }
-    }
-
-    /** 概述：在加载一级ServerID的时候，可以判断是否为newServer
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
-    @Deprecated
-    public boolean isNewServer() {
-        return newServer;
-    }
-
-    public SecondLevelServerID getSecondLevelServerID() {
-        return Preconditions.checkNotNull(secondServerID, "second Server ID load fail!!!");
-    }
-
 }

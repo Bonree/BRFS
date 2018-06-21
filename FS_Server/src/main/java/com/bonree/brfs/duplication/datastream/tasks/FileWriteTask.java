@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import com.bonree.brfs.common.asynctask.AsyncTask;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroup;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroupCallback;
 import com.bonree.brfs.common.asynctask.AsyncTaskResult;
+import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
@@ -64,6 +66,8 @@ public class FileWriteTask extends AsyncTask<ResultItem[]> {
 
 	@Override
 	public ResultItem[] run() throws Exception {
+		TimeCounter counter = new TimeCounter("FileWriteTask", TimeUnit.MILLISECONDS);
+		counter.begin();
 		WriteData[] datas = new WriteData[dataList.size()];
 		int sequence = file.getSequence();
 		for(int i = 0; i < datas.length; i++) {
@@ -89,7 +93,10 @@ public class FileWriteTask extends AsyncTask<ResultItem[]> {
 		DataWriteResultCallback callback = new DataWriteResultCallback();
 		taskRunner.submit(taskGroup, callback, resultHandleExecutor);
 		
-		return resultGetter.take();
+		LOG.info(counter.report(0));
+		ResultItem[] result = resultGetter.take();
+		LOG.info(counter.report(1));
+		return result;
 	}
 	
 	private class DataWriteResultCallback implements AsyncTaskGroupCallback<WriteResult[]> {

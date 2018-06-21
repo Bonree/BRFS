@@ -44,13 +44,14 @@ import com.bonree.brfs.duplication.datastream.file.FileLoungeFactory;
 import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.ReadDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.WriteDataMessageHandler;
-import com.bonree.brfs.duplication.storagename.DefaultStorageNameManager;
+import com.bonree.brfs.duplication.storagename.StorageIdBuilder;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.ZkStorageIdBuilder;
 import com.bonree.brfs.duplication.storagename.handler.CreateStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.DeleteStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.OpenStorageNameMessageHandler;
 import com.bonree.brfs.duplication.storagename.handler.UpdateStorageNameMessageHandler;
+import com.bonree.brfs.duplication.storagename.impl.DefaultStorageNameManager;
+import com.bonree.brfs.duplication.storagename.impl.ZkStorageIdBuilder;
 import com.bonree.brfs.duplication.synchronize.DefaultFileSynchronier;
 import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -71,11 +72,6 @@ public class BootStrap {
             LOG.info("Startup duplication server....");
             ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
             StorageConfig storageConfig = StorageConfig.parse(conf);
-
-            CuratorCacheFactory.init(serverConfig.getZkHosts());
-            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
-            ServerIDManager idManager = new ServerIDManager(serverConfig, zookeeperPaths);
-            finalizer.add(idManager);
             
             RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
             CuratorFramework client = CuratorFrameworkFactory.newClient(serverConfig.getZkHosts(), 3000, 15000, retryPolicy);
@@ -84,6 +80,10 @@ public class BootStrap {
             
             finalizer.add(client);
 
+            CuratorCacheFactory.init(serverConfig.getZkHosts());
+            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
+            ServerIDManager idManager = new ServerIDManager(client, serverConfig, zookeeperPaths);
+
             SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client);
             UserModel model = simpleAuthentication.getUser("root");
             if (model == null) {
@@ -91,26 +91,25 @@ public class BootStrap {
                 System.exit(1);
             }
 
-            client = client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1));
-
             Service service = new Service(idManager.getFirstServerID(), ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, serverConfig.getHost(), serverConfig.getPort());
-            ServiceManager serviceManager = new DefaultServiceManager(client);
+            ServiceManager serviceManager = new DefaultServiceManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
             serviceManager.start();
             
             finalizer.add(serviceManager);
 
-            StorageNameManager storageNameManager = new DefaultStorageNameManager(storageConfig, client, new ZkStorageIdBuilder(serverConfig.getZkHosts(), zookeeperPaths.getBaseSequencesPath()));
+            StorageIdBuilder storageIdBuilder = new ZkStorageIdBuilder(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
+            StorageNameManager storageNameManager = new DefaultStorageNameManager(storageConfig, client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), storageIdBuilder);
             storageNameManager.start();
             
             finalizer.add(storageNameManager);
 
-            FileNodeStorer storer = new ZkFileNodeStorer(client, ZkFileCoordinatorPaths.COORDINATOR_FILESTORE);
-            FileNodeSinkManager sinkManager = new ZkFileNodeSinkManager(client, serviceManager, storer, new RandomFileNodeServiceSelector());
+            FileNodeStorer storer = new ZkFileNodeStorer(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), ZkFileCoordinatorPaths.COORDINATOR_FILESTORE);
+            FileNodeSinkManager sinkManager = new ZkFileNodeSinkManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), serviceManager, storer, new RandomFileNodeServiceSelector());
             sinkManager.start();
             
             finalizer.add(sinkManager);
 
-            FileCoordinator fileCoordinator = new FileCoordinator(client, storer, sinkManager);
+            FileCoordinator fileCoordinator = new FileCoordinator(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), storer, sinkManager);
 
             FilteredDiskNodeConnectionPool connectionPool = new FilteredDiskNodeConnectionPool();
             connectionPool.addFactory(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP, new VirtualDiskNodeConnectionPool());

@@ -32,7 +32,6 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
@@ -306,35 +305,26 @@ public class MultiRecover implements DataRecover {
             }
             String timeFilePath = snDataDir + FileUtils.FILE_SEPARATOR + replica + FileUtils.FILE_SEPARATOR + timeFileName;
 //            String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
-            SimpleRecordWriter simpleWriter = null;
             try {
 //                simpleWriter = new SimpleRecordWriter(recordPath);
                 List<String> fileNames = FileUtils.listFileNames(timeFilePath, ".rd");
-                dealFiles(fileNames, timeFileName, replica, snDataDir, simpleWriter);
-            } finally {
-                if (simpleWriter != null) {
-                    try {
-                        simpleWriter.close();
-                    } catch (IOException e) {
-                        LOG.error("close simpleWriter error!", e);
-                    }
-                }
-            }
+                dealFiles(fileNames, timeFileName, replica, snDataDir);
+            } finally {}
         }
 
     }
 
-    private void dealFiles(List<String> fileNames, String timeFileName, int replica, String snDataDir, SimpleRecordWriter simpleWriter) {
+    private void dealFiles(List<String> fileNames, String timeFileName, int replica, String snDataDir) {
         for (String fileName : fileNames) {
             if (status.get().equals(TaskStatus.CANCEL)) {
                 return;
             }
             String filePath = snDataDir + FileUtils.FILE_SEPARATOR + replica + FileUtils.FILE_SEPARATOR + timeFileName + FileUtils.FILE_SEPARATOR + fileName;
-            dealFile(filePath, fileName, timeFileName, replica, simpleWriter);
+            dealFile(filePath, fileName, timeFileName, replica);
         }
     }
 
-    private void dealFile(String perFile, String fileName, String timeFileName, int replica, SimpleRecordWriter simpleWriter) {
+    private void dealFile(String perFile, String fileName, String timeFileName, int replica) {
 
         // 对文件名进行分割处理
         String[] metaArr = fileName.split(NAME_SEPARATOR);
@@ -391,7 +381,7 @@ public class MultiRecover implements DataRecover {
                         // 判断选取的新节点是否为本节点
                         if (!idManager.getSecondServerID(balanceSummary.getStorageIndex()).equals(selectMultiId)) {
                             String firstID = idManager.getOtherFirstID(selectMultiId, balanceSummary.getStorageIndex());
-                            FileRecoverMeta fileMeta = new FileRecoverMeta(fileName, selectMultiId, timeFileName, replica, pot + 1, firstID, simpleWriter);
+                            FileRecoverMeta fileMeta = new FileRecoverMeta(fileName, selectMultiId, timeFileName, replica, pot + 1, firstID);
                             try {
                                 fileRecoverQueue.put(fileMeta);
                             } catch (InterruptedException e) {

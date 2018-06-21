@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.datastream.handler;
 
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,6 +10,7 @@ import com.bonree.brfs.common.http.HandleResultCallback;
 import com.bonree.brfs.common.http.HttpMessage;
 import com.bonree.brfs.common.http.MessageHandler;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
+import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.write.data.DataItem;
@@ -25,23 +28,22 @@ public class WriteDataMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteDataMessageHandler.class);
 	
 	private DuplicateWriter duplicateWriter;
-	private StorageNameManager snManager;
+	private StorageNameManager storageNameManager;
 	
 	public WriteDataMessageHandler(DuplicateWriter duplicateWriter,StorageNameManager snManager) {
 		this.duplicateWriter = duplicateWriter;
-		this.snManager = snManager;
+		this.storageNameManager = snManager;
 	}
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		LOG.info("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww");
+		TimeCounter counter = new TimeCounter("WriteDataMessageHandler", TimeUnit.MILLISECONDS);
+		counter.begin();
 		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
-		StorageNameNode node = snManager.findStorageName(writeMsg.getStorageNameId());
+		StorageNameNode node = storageNameManager.findStorageName(writeMsg.getStorageNameId());
 		
 		if(node == null || !node.isEnable()) {
-		    HandleResult result = new HandleResult();
-            result.setSuccess(false);
-            callback.completed(result);
+            callback.completed(new HandleResult(false));
             return;
 		}
 		
@@ -49,9 +51,7 @@ public class WriteDataMessageHandler implements MessageHandler {
 		LOG.info("Writing DataItem[{}]", items.length);
 		
 		if(items == null || items.length == 0) {
-			HandleResult result = new HandleResult();
-			result.setSuccess(true);
-			callback.completed(result);
+			callback.completed(new HandleResult(true));
 			return;
 		}
 		
@@ -72,6 +72,7 @@ public class WriteDataMessageHandler implements MessageHandler {
 			}
 		}
 		
+		LOG.info(counter.report(0));
 		duplicateWriter.write(writeMsg.getStorageNameId(), items, new DataWriteCallback(callback));
 	}
 

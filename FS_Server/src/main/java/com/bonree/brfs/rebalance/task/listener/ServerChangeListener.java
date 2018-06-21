@@ -2,10 +2,11 @@ package com.bonree.brfs.rebalance.task.listener;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
 import com.bonree.brfs.rebalance.task.TaskDispatcher;
 import com.bonree.brfs.rebalance.task.TaskDispatcher.ChangeDetail;
 
@@ -18,14 +19,13 @@ import com.bonree.brfs.rebalance.task.TaskDispatcher.ChangeDetail;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 监听Server变更，以便生成任务
  ******************************************************************************/
-public class ServerChangeListener extends AbstractTreeCacheListener {
+public class ServerChangeListener implements TreeCacheListener {
 
     private final static Logger LOG = LoggerFactory.getLogger(ServerChangeListener.class);
 
     private TaskDispatcher dispatcher;
 
-    public ServerChangeListener(String listenName, TaskDispatcher dispatcher) {
-        super(listenName);
+    public ServerChangeListener(TaskDispatcher dispatcher) {
         this.dispatcher = dispatcher;
     }
 
@@ -35,8 +35,8 @@ public class ServerChangeListener extends AbstractTreeCacheListener {
         LOG.info("server change event detail:" + event.getType());
         if (dispatcher.getLeaderLatch().hasLeadership()) {
             // 检查event是否有数据
-            if (!dispatcher.isRemovedNode(event)) { // 不是remove的事件，则需要处理
-                if (event.getData() != null && !dispatcher.isEmptyByte(event.getData().getData())) {
+            if (event.getType() != Type.NODE_REMOVED) { // 不是remove的事件，则需要处理
+                if (event.getData() != null && event.getData().getData() != null) {
 
                     // 需要进行检查，在切换leader的时候，变更记录需要加载进来。
                     if (!dispatcher.isLoad().get()) {

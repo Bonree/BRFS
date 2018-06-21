@@ -10,10 +10,6 @@ package com.bonree.brfs.server.identification;
  * @Description: 服务标识接口
  ******************************************************************************/
 public interface LevelServerIDGen {
-
-    public final static int FIRST_ID = 1;
-    public final static int SECOND_ID = 2;
-
     /** 概述：生成级别ServerID
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>

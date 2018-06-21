@@ -3,8 +3,8 @@ package com.bonree.brfs.rebalance.task.listener;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 
-import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
 import com.bonree.brfs.rebalance.task.TaskDispatcher;
 
 /*******************************************************************************
@@ -15,12 +15,11 @@ import com.bonree.brfs.rebalance.task.TaskDispatcher;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 监听任务是否完成，以便进行通知
  ******************************************************************************/
-public class TaskStatusListener extends AbstractTreeCacheListener {
+public class TaskStatusListener implements TreeCacheListener {
 
     TaskDispatcher dispatch;
 
-    public TaskStatusListener(String listenName, TaskDispatcher dispatch) {
-        super(listenName);
+    public TaskStatusListener(TaskDispatcher dispatch) {
         this.dispatch = dispatch;
     }
 

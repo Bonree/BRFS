@@ -19,16 +19,13 @@ import com.bonree.brfs.common.asynctask.AsyncTaskGroup;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroupCallback;
 import com.bonree.brfs.common.asynctask.AsyncTaskResult;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.write.data.DataItem;
-import com.bonree.brfs.duplication.DuplicationEnvironment;
-import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FileNodeInvalidListener;
 import com.bonree.brfs.duplication.coordinator.FileNodeSink;
-import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.FileLimiter;
 import com.bonree.brfs.duplication.datastream.file.FileLimiterCloser;
@@ -49,11 +46,11 @@ import com.bonree.brfs.server.identification.ServerIDManager;
 public class DuplicateWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(DuplicateWriter.class);
 	
-	private static final int DEFAULT_MULTI_TASK_THREAD_NUM = 5;
+	private static final int DEFAULT_MULTI_TASK_THREAD_NUM = 10;
 	private AsyncExecutor multiTaskExecutor = new AsyncExecutor(DEFAULT_MULTI_TASK_THREAD_NUM, new PooledThreadFactory("multi_task"));
-	private static final int DEFAULT_DATA_WRITE_THREAD_NUM = 10;
+	private static final int DEFAULT_DATA_WRITE_THREAD_NUM = 20;
 	private AsyncExecutor writeTaskExecutor = new AsyncExecutor(DEFAULT_DATA_WRITE_THREAD_NUM, new PooledThreadFactory("write_task"));
-	private static final int DEFAULT_RESULT_HANDLE_THREAD_NUM = 8;
+	private static final int DEFAULT_RESULT_HANDLE_THREAD_NUM = 20;
 	private ExecutorService resultExecutor = Executors.newFixedThreadPool(DEFAULT_RESULT_HANDLE_THREAD_NUM, new PooledThreadFactory("write_result"));
 	private ScheduledExecutorService timedExecutor = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("File_Cleaner"));
 	
@@ -120,11 +117,15 @@ public class DuplicateWriter {
 	}
 	
 	public void write(int storageId, DataItem[] items, DataHandleCallback<DataWriteResult> callback) {
+		TimeCounter counter = new TimeCounter("DuplicateWriter", TimeUnit.MILLISECONDS);
+		counter.begin();
 		FileLounge fileLounge = getFileLoungeByStorageId(storageId);
 		if(fileLounge == null) {
 			callback.error(new StorageNameNonexistentException(storageId));
 			return;
 		}
+		
+		LOG.info(counter.report(0));
 		
 		Arrays.sort(items, new Comparator<DataItem>() {
 
@@ -141,7 +142,12 @@ public class DuplicateWriter {
 			sizes[i] = items[i].getBytes().length;
 		}
 		
+		LOG.info(counter.report(1));
+		
 		FileLimiter[] fileList = fileLounge.getFileLimiterList(sizes);
+		
+		LOG.info(counter.report(2));
+		
 		AsyncTaskGroup<ResultItem[]> taskGroup = new AsyncTaskGroup<ResultItem[]>();
 		FileWriteCallback taskCallback = new FileWriteCallback(callback);
 		for(int i = 0; i < fileList.length; i++) {
@@ -166,6 +172,7 @@ public class DuplicateWriter {
 		
 		LOG.info("submit multi task---");
 		multiTaskExecutor.submit(taskGroup, new FileWriteCallback(callback));
+		LOG.info(counter.report(3));
 	}
 	
 	private class FileWriteCallback implements AsyncTaskGroupCallback<ResultItem[]> {

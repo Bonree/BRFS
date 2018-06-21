@@ -149,35 +149,6 @@ public class TaskDispatcher implements Closeable {
 
     }
 
-    public boolean isEmptyByte(byte[] bytes) {
-        if (bytes == null || bytes.length == 0) {
-            return true;
-        }
-        return false;
-    }
-
-    public boolean isRemovedNode(TreeCacheEvent event) {
-        if (event.getType() == Type.NODE_REMOVED) {
-            return true;
-        }
-        return false;
-    }
-
-    public boolean isUpdatedNode(TreeCacheEvent event) {
-        if (event.getType() == Type.NODE_UPDATED) {
-            return true;
-        }
-        return false;
-    }
-
-    @SuppressWarnings("unused")
-    private boolean isAddedNode(TreeCacheEvent event) {
-        if (event.getType() == Type.NODE_ADDED) {
-            return true;
-        }
-        return false;
-    }
-
     /** 概述：
      * @param client
      * @param event
@@ -234,10 +205,10 @@ public class TaskDispatcher implements Closeable {
         leaderLath.start();
 
         LOG.info("changeMonitorPath:" + changesPath);
-        treeCache.addListener(changesPath, new ServerChangeListener("server_change", this));
+        treeCache.addListener(changesPath, new ServerChangeListener(this));
 
         LOG.info("tasksPath:" + tasksPath);
-        treeCache.addListener(tasksPath, new TaskStatusListener("task_status", this));
+        treeCache.addListener(tasksPath, new TaskStatusListener(this));
 
         singleServer.execute(new Runnable() {
             @Override
@@ -379,7 +350,7 @@ public class TaskDispatcher implements Closeable {
             LOG.info("leaderLath:" + getLeaderLatch().hasLeadership());
             LOG.info("task Dispatch event detail:" + RebalanceUtils.convertEvent(event));
 
-            if (isUpdatedNode(event)) {
+            if (event.getType() == Type.NODE_UPDATED) {
                 if (event.getData() != null && event.getData().getData() != null) {
                     // 此处会检测任务是否完成
                     String eventPath = event.getData().getPath();

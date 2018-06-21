@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.storagename;
+package com.bonree.brfs.duplication.storagename.impl;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,10 +18,13 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.utils.Attributes;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.StorageConfig;
+import com.bonree.brfs.duplication.storagename.StorageIdBuilder;
+import com.bonree.brfs.duplication.storagename.StorageNameManager;
+import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storagename.StorageNameStateListener;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameExistException;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameRemoveException;
@@ -44,11 +47,8 @@ import com.google.common.cache.LoadingCache;
  */
 public class DefaultStorageNameManager implements StorageNameManager {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageNameManager.class);
-
-    private static final String DEFAULT_STORAGE_NAME_ROOT = ZookeeperPaths.STORAGE_NAMES;
-
-//    private static final int DEFAULT_STORAGE_NAME_REPLICATIONS = 2;
-//    private static final int DEFAULT_STORAGE_NAME_TTL = 100;
+    
+    public static final String DEFAULT_PATH_STORAGE_NAME_NODES = "nodes";
 
     private static final int DEFAULT_MAX_CACHE_SIZE = 100;
     private LoadingCache<String, Optional<StorageNameNode>> storageNameCache;
@@ -68,12 +68,14 @@ public class DefaultStorageNameManager implements StorageNameManager {
         this.zkClient = client;
         this.idBuilder = idBuilder;
         this.storageNameCache = CacheBuilder.newBuilder().maximumSize(DEFAULT_MAX_CACHE_SIZE).build(new StorageNameNodeLoader());
-        this.childrenCache = new PathChildrenCache(client, ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, null), false);
+        this.childrenCache = new PathChildrenCache(client,
+        		ZKPaths.makePath(StorageNameZkPaths.DEFAULT_PATH_STORAGE_NAME_ROOT, DEFAULT_PATH_STORAGE_NAME_NODES),
+        		false);
     }
 
     @Override
     public void start() throws Exception {
-        zkClient.createContainers(ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, null));
+        zkClient.createContainers(ZKPaths.makePath(StorageNameZkPaths.DEFAULT_PATH_STORAGE_NAME_ROOT, DEFAULT_PATH_STORAGE_NAME_NODES));
         childrenCache.getListenable().addListener(new InnerStorageNameStateListener());
         childrenCache.start();
     }
@@ -105,7 +107,7 @@ public class DefaultStorageNameManager implements StorageNameManager {
     }
 
     private static String buildStorageNamePath(String storageName) {
-        return ZKPaths.makePath(DEFAULT_STORAGE_NAME_ROOT, storageName);
+        return ZKPaths.makePath(StorageNameZkPaths.DEFAULT_PATH_STORAGE_NAME_ROOT, DEFAULT_PATH_STORAGE_NAME_NODES, storageName);
     }
 
     @Override
@@ -114,7 +116,12 @@ public class DefaultStorageNameManager implements StorageNameManager {
             throw new StorageNameExistException(storageName);
         }
         
-        StorageNameNode node = new StorageNameNode(storageName, idBuilder.createStorageId(), attrs.getInt(StorageNameNode.ATTR_REPLICATION, storageConfig.getReplication()), attrs.getInt(StorageNameNode.ATTR_TTL, storageConfig.getDataTtl()));
+        int storageId = idBuilder.createStorageId();
+        if(storageId < 0) {
+        	return null;
+        }
+        
+        StorageNameNode node = new StorageNameNode(storageName, storageId, attrs.getInt(StorageNameNode.ATTR_REPLICATION, storageConfig.getReplication()), attrs.getInt(StorageNameNode.ATTR_TTL, storageConfig.getDataTtl()));
         String storageNamePath = buildStorageNamePath(storageName);
 
         String path = null;

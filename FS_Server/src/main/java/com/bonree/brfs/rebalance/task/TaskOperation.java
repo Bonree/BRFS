@@ -65,7 +65,7 @@ public class TaskOperation implements Closeable {
 
     public void start() {
         LOG.info("add tree cache:" + tasksPath);
-        treeCache.addListener(tasksPath, new TaskExecutorListener("task_executor", this));
+        treeCache.addListener(tasksPath, new TaskExecutorListener(this));
     }
 
     public void launchDelayTaskExecutor(BalanceTaskSummary taskSummary, String taskPath) {
