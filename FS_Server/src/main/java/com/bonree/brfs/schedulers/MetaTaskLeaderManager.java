@@ -179,8 +179,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 		}
 
 		Map content = JobDataMapConstract.createCylcCheckDataMap(this.config.getCheckTimeRange());
-		SumbitTaskInterface sumbit = QuartzCronInfo.getInstance("CYCLE_CHECK_JOB", "CYCLE_CHECK_JOB",
-			this.config.getCheckCronStr(), content, CheckCycleJob.class);
+		SumbitTaskInterface sumbit = QuartzCronInfo.getInstance("CYCLE_CHECK_JOB", "CYCLE_CHECK_JOB", this.config.getCheckCronStr(), content, CheckCycleJob.class);
 		cFlag = this.manager.addTask("COPY_CYCLE_POOL", sumbit);
 		LOG.info("sumbit Cycle task :{}", Boolean.valueOf(cFlag));
 	}
