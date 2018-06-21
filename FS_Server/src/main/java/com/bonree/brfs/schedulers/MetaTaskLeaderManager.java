@@ -1,12 +1,9 @@
 
 package com.bonree.brfs.schedulers;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,15 +11,11 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
-import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
-import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.system.CheckCycleJob;
-import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.jobs.system.CreateSystemTaskJob;
 import com.bonree.brfs.schedulers.jobs.system.ManagerMetaTaskJob;

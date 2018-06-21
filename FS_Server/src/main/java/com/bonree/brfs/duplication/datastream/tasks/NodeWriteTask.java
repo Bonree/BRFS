@@ -1,9 +1,12 @@
 package com.bonree.brfs.duplication.datastream.tasks;
 
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.asynctask.AsyncTask;
+import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
@@ -24,7 +27,7 @@ public class NodeWriteTask extends AsyncTask<WriteResult[]> {
 
 	@Override
 	public WriteResult[] run() throws Exception {
-		long start = System.nanoTime();
+		TimeCounter counter = new TimeCounter("NodeWriteTask", TimeUnit.NANOSECONDS);
 		try {
 			if(connection == null) {
 				LOG.error("file[{}] connection is null!!!", filePath);
@@ -45,7 +48,7 @@ public class NodeWriteTask extends AsyncTask<WriteResult[]> {
 			
 			return result;
 		} finally {
-			LOG.info("take##############{}", (System.nanoTime() - start) / 1000000d);
+			LOG.info(counter.report(0));
 		}
 	}
 	

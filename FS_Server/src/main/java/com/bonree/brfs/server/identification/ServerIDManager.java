@@ -1,7 +1,5 @@
 package com.bonree.brfs.server.identification;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,14 +8,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.utils.ZKPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.ZookeeperPaths;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.common.zookeeper.curator.cache.AbstractTreeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.server.identification.impl.FirstLevelServerIDImpl;
+import com.bonree.brfs.server.identification.impl.SecondLevelServerID;
 import com.bonree.brfs.server.identification.impl.VirtualServerIDImpl;
 
 /*******************************************************************************
@@ -28,9 +29,13 @@ import com.bonree.brfs.server.identification.impl.VirtualServerIDImpl;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 管理Identification
  ******************************************************************************/
-public class ServerIDManager implements Closeable {
-
+public class ServerIDManager {
+	private static final Logger LOG = LoggerFactory.getLogger(ServerIDManager.class);
+	
     private FirstLevelServerIDImpl firstLevelServerID;
+    private final String firstServerId;
+    
+    private SecondLevelServerID secondServerID;
 
     private VirtualServerID virtualServerID;
 
@@ -41,13 +46,8 @@ public class ServerIDManager implements Closeable {
     private Map<String, String> otherServerIDCache = null;
 
     private final static String SEPARATOR = ":";
-    private CuratorClient curatorClient;
 
-    private class SecondIDCacheListener extends AbstractTreeCacheListener {
-
-        public SecondIDCacheListener(String listenName) {
-            super(listenName);
-        }
+    private class SecondIDCacheListener implements TreeCacheListener {
 
         @Override
         public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
@@ -71,30 +71,45 @@ public class ServerIDManager implements Closeable {
 
     }
 
-    public ServerIDManager(ServerConfig config, ZookeeperPaths zkBasePaths) {
-        curatorClient = CuratorClient.getClientInstance(config.getZkHosts());
-        firstLevelServerID = new FirstLevelServerIDImpl(curatorClient, zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath(), zkBasePaths.getBaseRoutePath());
-        virtualServerID = new VirtualServerIDImpl(curatorClient, zkBasePaths.getBaseServerIdSeqPath());
+    public ServerIDManager(CuratorFramework client, ServerConfig config, ZookeeperPaths zkBasePaths) {
+        firstLevelServerID = new FirstLevelServerIDImpl(client, zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath());
+        virtualServerID = new VirtualServerIDImpl(client, zkBasePaths.getBaseServerIdSeqPath());
         otherServerIDCache = new ConcurrentHashMap<>();
-        loadSecondServerIDCache(curatorClient, zkBasePaths.getBaseServerIdPath());
+        loadSecondServerIDCache(client, zkBasePaths.getBaseServerIdPath());
         secondIDCache = CuratorCacheFactory.getTreeCache();
-        secondIDCache.addListener(zkBasePaths.getBaseServerIdPath(), new SecondIDCacheListener("second_server_id_cache"));
+        secondIDCache.addListener(zkBasePaths.getBaseServerIdPath(), new SecondIDCacheListener());
+        
+        firstServerId = firstLevelServerID.initOrLoadServerID();
+        
+        secondServerID = new SecondLevelServerID(client, zkBasePaths.getBaseServerIdPath() + '/' + firstServerId, zkBasePaths.getBaseServerIdSeqPath(), zkBasePaths.getBaseRoutePath());
+        secondServerID.loadServerID();
     }
 
-    private void loadSecondServerIDCache(CuratorClient client, String serverIDsPath) {
-        List<String> firstServerIDs = client.getChildren(serverIDsPath);
-        if (firstServerIDs != null && !firstServerIDs.isEmpty()) {
-
-            for (String firstServerID : firstServerIDs) {
-                List<String> sns = client.getChildren(serverIDsPath + "/" + firstServerID);
-                if (sns != null && !sns.isEmpty()) {
-                    for (String sn : sns) {
-                        byte[] secondServerID = client.getData(serverIDsPath + '/' + firstServerID + '/' + sn);
-                        otherServerIDCache.put(sn + SEPARATOR + new String(secondServerID), firstServerID);
-                    }
+    private void loadSecondServerIDCache(CuratorFramework client, String serverIDsPath) {
+    	try {
+    		List<String> firstServerIDs = client.getChildren().forPath(serverIDsPath);
+            if (firstServerIDs != null) {
+                for (String firstServerID : firstServerIDs) {
+                	try {
+                		List<String> sns = client.getChildren().forPath(ZKPaths.makePath(serverIDsPath, firstServerID));
+                        if (sns != null) {
+                            for (String sn : sns) {
+                            	try {
+                            		byte[] secondServerID = client.getData().forPath(ZKPaths.makePath(serverIDsPath, firstServerID, sn));
+                                    otherServerIDCache.put(sn + SEPARATOR + new String(secondServerID), firstServerID);
+								} catch (Exception e) {
+									LOG.error("get second server id error", e);
+								}
+                            }
+                        }
+					} catch (Exception e) {
+						LOG.error("get sn list error", e);
+					}
                 }
             }
-        }
+		} catch (Exception e) {
+			LOG.error("get server id list error", e);
+		}
     }
 
     /** 概述：获取本服务的1级serverID
@@ -102,16 +117,7 @@ public class ServerIDManager implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public String getFirstServerID() {
-        return firstLevelServerID.getServerID();
-    }
-
-    /** 概述：判断是否为新服务
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
-    @Deprecated
-    public boolean isNewService() {
-        return firstLevelServerID.isNewServer();
+        return firstServerId;
     }
 
     /** 概述：获取本服务的某个SN的2级serverID
@@ -120,7 +126,7 @@ public class ServerIDManager implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public String getSecondServerID(int storageIndex) {
-        return firstLevelServerID.getSecondLevelServerID().getServerID(storageIndex);
+        return secondServerID.getServerID(storageIndex);
     }
 
     /** 概述：删除SN的时候，需要删除相应的SN的2级server id
@@ -129,7 +135,7 @@ public class ServerIDManager implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public boolean deleteSecondServerID(int storageIndex) {
-        return firstLevelServerID.getSecondLevelServerID().deleteServerID(storageIndex);
+        return secondServerID.deleteServerID(storageIndex);
     }
 
     /** 概述：获取某个SN的virtual server ID
@@ -139,7 +145,7 @@ public class ServerIDManager implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public List<String> getVirtualServerID(int storageIndex, int count) {
-        return virtualServerID.getVirtualID(storageIndex, count, getFirstServerID());
+        return virtualServerID.getVirtualID(storageIndex, count);
     }
 
     /** 概述：将一个virtual server ID置为无效
@@ -149,7 +155,7 @@ public class ServerIDManager implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public boolean invalidVirtualID(int storageIndex, String id) {
-        return virtualServerID.invalidVirtualIden(storageIndex, id);
+        return virtualServerID.invalidVirtualId(storageIndex, id);
     }
 
     /** 概述：将一个virtual server ID恢复正常
@@ -159,7 +165,7 @@ public class ServerIDManager implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public boolean normalVirtualID(int storageIndex, String id) {
-        return virtualServerID.normalVirtualIden(storageIndex, id);
+        return virtualServerID.validVirtualId(storageIndex, id);
     }
 
     /** 概述：删除一个virtual server ID
@@ -169,7 +175,7 @@ public class ServerIDManager implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public boolean deleteVirtualID(int storageIndex, String id) {
-        return virtualServerID.deleteVirtualIden(storageIndex, id);
+        return virtualServerID.deleteVirtualId(storageIndex, id);
     }
 
     /** 概述：列出某个SN所有正常的virtual server ID
@@ -178,16 +184,7 @@ public class ServerIDManager implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public List<String> listNormalVirtualID(int storageIndex) {
-        return virtualServerID.listNormalVirtualID(storageIndex);
-    }
-
-    /** 概述：列出某个sn所有的virtual server ID
-     * @param storageIndex
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
-    public List<String> listAllVirtualID(int storageIndex) {
-        return virtualServerID.listAllVirtualID(storageIndex);
+        return virtualServerID.listValidVirtualIds(storageIndex);
     }
 
     /** 概述：列出某个SN所有的无效的virtual server ID
@@ -196,7 +193,7 @@ public class ServerIDManager implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public List<String> listInvalidVirtualID(int storageIndex) {
-        return virtualServerID.listInvalidVirtualID(storageIndex);
+        return virtualServerID.listInvalidVirtualIds(storageIndex);
     }
 
     /** 概述：获取其他服务的1级serverID
@@ -244,7 +241,7 @@ public class ServerIDManager implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public String getVirtualServersPath() {
-        return virtualServerID.getVirtualServersPath();
+        return virtualServerID.getVirtualIdContainerPath();
     }
 
     /** 概述：将某个服务注册到virtual server中
@@ -254,15 +251,8 @@ public class ServerIDManager implements Closeable {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean registerFirstID(int storageIndex, String virtualID, String firstID) {
-        return virtualServerID.registerFirstID(storageIndex, virtualID, firstID);
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (curatorClient != null) {
-            curatorClient.close();
-        }
+    public void registerFirstID(int storageIndex, String virtualID, String firstId) {
+        virtualServerID.addFirstId(storageIndex, virtualID, firstId);
     }
 
 }

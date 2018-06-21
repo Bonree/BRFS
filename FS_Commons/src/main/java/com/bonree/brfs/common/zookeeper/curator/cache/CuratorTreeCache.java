@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,7 @@ public class CuratorTreeCache {
         cacheMap = new ConcurrentHashMap<String, TreeCache>();
     }
 
-    public void addListener(String path, AbstractTreeCacheListener listener) {
+    public void addListener(String path, TreeCacheListener listener) {
         LOG.info("add listener for tree:" + path);
         TreeCache cache = cacheMap.get(path);
         if (cache == null) {
@@ -33,7 +34,7 @@ public class CuratorTreeCache {
         cache.getListenable().addListener(listener);
     }
 
-    public void removeListener(String path, AbstractTreeCacheListener listener) {
+    public void removeListener(String path, TreeCacheListener listener) {
         LOG.info("remove listener for tree:" + path);
         TreeCache cache = cacheMap.get(path);
         if (cache != null) {

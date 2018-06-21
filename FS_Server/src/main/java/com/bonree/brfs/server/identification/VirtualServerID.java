@@ -11,34 +11,27 @@ public interface VirtualServerID {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> getVirtualID(int storageIndex, int count, String selfFirstID);
+    public List<String> getVirtualID(int storageIndex, int count);
 
     /** 概述：列出使用的virtualID
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> listNormalVirtualID(int storageIndex);
+    public List<String> listValidVirtualIds(int storageIndex);
 
     /** 概述：列出无效的VirtualID
      * @param storageIndex
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> listInvalidVirtualID(int storageIndex);
-
-    /** 概述：列出所有的virtual server ID
-     * @param storageIndex
-     * @return
-     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
-     */
-    public List<String> listAllVirtualID(int storageIndex);
+    public List<String> listInvalidVirtualIds(int storageIndex);
 
     /** 概述：无效化虚拟ID
      * @param id
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean invalidVirtualIden(int storageIndex, String id);
+    public boolean invalidVirtualId(int storageIndex, String id);
     
     /** 概述：
      * @param storageIndex
@@ -46,21 +39,21 @@ public interface VirtualServerID {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean normalVirtualIden(int storageIndex, String id);
+    public boolean validVirtualId(int storageIndex, String id);
 
     /** 概述：删除虚拟ID
      * @param id
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean deleteVirtualIden(int storageIndex, String id);
+    public boolean deleteVirtualId(int storageIndex, String id);
     
     
     /** 概述：获取virtual servers path
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public String getVirtualServersPath();
+    public String getVirtualIdContainerPath();
     
     /** 概述：为虚拟ID注册一个1级ID，标识该机器参与过virtual恢复,下次不能选择该server
      * @param storageIndex
@@ -68,5 +61,5 @@ public interface VirtualServerID {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean registerFirstID(int storageIndex,String virtualID,String firstID);
+    public void addFirstId(int storageIndex,String virtualID, String firstId);
 }

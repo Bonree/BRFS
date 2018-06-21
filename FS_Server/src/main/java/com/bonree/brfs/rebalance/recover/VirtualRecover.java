@@ -23,7 +23,6 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.rebalance.record.SimpleRecordWriter;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
@@ -199,7 +198,6 @@ public class VirtualRecover implements DataRecover {
             String replicaPath = snDataDir + FileUtils.FILE_SEPARATOR + replicasName;
             List<String> timeFileNames = FileUtils.listFileNames(replicaPath);
             for (String timeFileName : timeFileNames) {// 时间文件
-                SimpleRecordWriter simpleWriter = null;
                 String timeFilePath = replicaPath + FileUtils.FILE_SEPARATOR + timeFileName;
                 // String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
                 try {
@@ -220,7 +218,7 @@ public class VirtualRecover implements DataRecover {
                         if (fileServerIds.contains(virtualID)) {
                             // 此处位置需要加1，副本数从1开始
                             replicaPot = fileServerIds.indexOf(virtualID) + 1;
-                            FileRecoverMeta fileMeta = new FileRecoverMeta(fileName, storageName, timeFileName, Integer.parseInt(replicasName), replicaPot, remoteFirstID, simpleWriter);
+                            FileRecoverMeta fileMeta = new FileRecoverMeta(fileName, storageName, timeFileName, Integer.parseInt(replicasName), replicaPot, remoteFirstID);
                             try {
                                 fileRecoverQueue.put(fileMeta);
                             } catch (InterruptedException e) {
@@ -228,15 +226,7 @@ public class VirtualRecover implements DataRecover {
                             }
                         }
                     }
-                } finally {
-                    if (simpleWriter != null) {
-                        try {
-                            simpleWriter.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+                } finally {}
             }
         }
 

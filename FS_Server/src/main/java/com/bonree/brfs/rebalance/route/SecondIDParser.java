@@ -98,12 +98,5 @@ public class SecondIDParser {
             throw new IllegalStateException("parse partFid error!!",e);
         }
     }
-    
-    public static void main(String[] args) {
-        CuratorClient client =CuratorClient.getClientInstance("192.168.111.13:2181");
-        SecondIDParser parser= new SecondIDParser(client, 0, "/brfs/bytest/routes");
-        parser.updateRoute();
-        parser.getAliveSecondID("f255abc796ea4da698b2e6b77f09c1cd_20_21_22");
-    }
 
 }

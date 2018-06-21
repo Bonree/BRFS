@@ -30,7 +30,7 @@ public class ZookeeperPaths {
 
     public final static String LOCKS = "locks";
 
-    public final static String STORAGE_NAMES = "storage_names";
+    public final static String STORAGE_NAME = "storage_name";
 
     public final static String REBALANCE = "rebalance";
 
@@ -184,7 +184,7 @@ public class ZookeeperPaths {
         setBaseServerIdSeqPath(baseClusterName + SEPARATOR + SERVER_ID_SEQUENCES);
         setBaseLocksPath(baseClusterName + SEPARATOR + LOCKS);
         setBaseSequencesPath(baseClusterName + SEPARATOR + SEQUENCES);
-        setBaseStorageNamePath(baseClusterName + SEPARATOR + STORAGE_NAMES);
+        setBaseStorageNamePath(baseClusterName + SEPARATOR + STORAGE_NAME);
         setBaseRebalancePath(baseClusterName + SEPARATOR + REBALANCE);
         setBaseRoutePath(baseClusterName + SEPARATOR + ROUTES);
         setBaseUserPath(baseClusterName + SEPARATOR + USERS);

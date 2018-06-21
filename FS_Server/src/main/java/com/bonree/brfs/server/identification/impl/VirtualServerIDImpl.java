@@ -1,21 +1,19 @@
 package com.bonree.brfs.server.identification.impl;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.rebalance.Constants;
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.common.zookeeper.curator.locking.CuratorLocksClient;
-import com.bonree.brfs.common.zookeeper.curator.locking.Executor;
-import com.bonree.brfs.server.identification.IncreServerID;
+import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
+import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
 import com.bonree.brfs.server.identification.VirtualServerID;
-import com.bonree.brfs.server.identification.VirtualServerIDGen;
+import com.google.common.primitives.Ints;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -25,199 +23,173 @@ import com.bonree.brfs.server.identification.VirtualServerIDGen;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: virtual serverID 管理，此处可能需要进行缓存
  ******************************************************************************/
-public class VirtualServerIDImpl implements VirtualServerID, VirtualServerIDGen {
-
+public class VirtualServerIDImpl implements VirtualServerID {
     private static final Logger LOG = LoggerFactory.getLogger(VirtualServerIDImpl.class);
 
-    private final String basePath;
+    private final static int STATE_INVALID = 1;
+    private final static int STATE_VALID = 2;
 
-    private CuratorClient client;
+    private final static String VIRTUAL_ID_INDEX_NODE = "virtualIdIndex";
+    public final static int VIRTUAL_ID_PREFIX = 3;
 
-    private final static String NORMAL_DATA = "normal";
+    private final static String VIRTUAL_ID_CONTAINER = "virtualIdContainer";
 
-    private final static String INVALID_DATA = "invalid";
+    private CuratorFramework client;
+    private final String virtualIdContainer;
 
-    private final static String VIRTUAL_NODE = "virtual";
+    private SequenceNumberBuilder virtualServerIDCreator;
 
-    private final static String LOCKS_PATH_PART = "locks";
-
-    private final static String VIRTUAL_SERVERS = "virtual_servers";
-
-    private final String virtualServersPath;
-
-    private IncreServerID<String> increServerID = new SimpleIncreServerID();
-
-    private final static String SEPARATOR = "/";
-
-    private final String lockPath;
-
-    private class VirtualGen implements Executor<String> {
-        private final String dataNode;
-        private final int storageIndex;
-
-        public VirtualGen(String dataNode, int storageIndex) {
-            this.dataNode = dataNode;
-            this.storageIndex = storageIndex;
-        }
-
-        @Override
-        public String execute(CuratorClient client) {
-            String virtualServerId = VIRTUAL_ID + VirtualServerIDImpl.this.increServerID.increServerID(client, dataNode);
-            String virtualServerNode = VirtualServerIDImpl.this.virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + virtualServerId;
-            client.createPersistent(virtualServerNode, true, NORMAL_DATA.getBytes()); // 初始化的时候需要指定该节点为正常
-            return virtualServerId;
-        }
-    }
-
-    public VirtualServerIDImpl(CuratorClient client, String baseServerIDSeq) {
+    public VirtualServerIDImpl(CuratorFramework client, String basePath) {
         this.client = client;
-        this.basePath = BrStringUtils.trimBasePath(baseServerIDSeq);
-        this.lockPath = basePath + SEPARATOR + LOCKS_PATH_PART;
-        this.virtualServersPath = basePath + SEPARATOR + VIRTUAL_SERVERS;
+        this.virtualServerIDCreator = new ZkSequenceNumberBuilder(client, ZKPaths.makePath(basePath, VIRTUAL_ID_INDEX_NODE));
+        this.virtualIdContainer = ZKPaths.makePath(basePath, VIRTUAL_ID_CONTAINER);
     }
-
-    public String getBasePath() {
-        return basePath;
-    }
-
+    
     @Override
-    public synchronized String genVirtualID(int storageIndex) {
-        String serverId = null;
-        String virtualNode = basePath + SEPARATOR + VIRTUAL_NODE;
-        VirtualGen genExecutor = new VirtualGen(virtualNode, storageIndex);
-        CuratorLocksClient<String> lockClient = new CuratorLocksClient<String>(client, lockPath, genExecutor, "genVirtualIdentification");
+    public String getVirtualIdContainerPath() {
+        return virtualIdContainer;
+    }
+
+    private String createVirtualId(int storageId) {
+    	int uniqueId = virtualServerIDCreator.nextSequenceNumber();
+    	if(uniqueId < 0) {
+    		return null;
+    	}
+    	
+    	StringBuilder idBuilder = new StringBuilder();
+    	idBuilder.append(VIRTUAL_ID_PREFIX).append(uniqueId);
+    	
+    	String virtualId = idBuilder.toString();
         try {
-            serverId = lockClient.execute();
-        } catch (Exception e) {
-            LOG.error("getVirtureIdentification error!", e);
-        }
-        return serverId;
+			String nodePath = client.create()
+			.creatingParentsIfNeeded()
+			.withMode(CreateMode.PERSISTENT)
+			.forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), virtualId),
+					Ints.toByteArray(STATE_VALID));
+			
+			if(nodePath != null) {
+				return virtualId;
+			}
+		} catch (Exception e) {
+			LOG.error("create virtual id node error", e);
+		}
+        
+        return null;
     }
 
     @Override
-    public synchronized List<String> getVirtualID(int storageIndex, int count, String selfFirstID) {
+    public List<String> getVirtualID(int storageIndex, int count) {
         List<String> resultVirtualIds = new ArrayList<String>(count);
-        String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
-        List<String> virtualIds = client.getChildren(storageSIDPath);
-        // 排除无效的虚拟ID
-        virtualIds = filterVirtualId(client, storageIndex, virtualIds, INVALID_DATA);
-        if (virtualIds == null) {
-            for (int i = 0; i < count; i++) {
-                String tmp = genVirtualID(storageIndex);
-                resultVirtualIds.add(tmp);
-            }
-        } else {
-            if (virtualIds.size() < count) {
-                resultVirtualIds.addAll(virtualIds);
-                int distinct = count - virtualIds.size();
-                for (int i = 0; i < distinct; i++) {
-                    String tmp = genVirtualID(storageIndex);
-                    resultVirtualIds.add(tmp);
-                }
-            } else {
-                for (int i = 0; i < count; i++) {
-                    resultVirtualIds.add(virtualIds.get(i));
-                }
-            }
+        List<String> virtualIds = listValidVirtualIds(storageIndex);
+        
+        int index = 0;
+        for(int i = 0; index < count && i < virtualIds.size(); i++, index++) {
+        	resultVirtualIds.add(virtualIds.get(i));
         }
-        for (String virtualID : resultVirtualIds) {
-            String node = storageSIDPath + SEPARATOR + virtualID + SEPARATOR + selfFirstID;
-            if (!client.checkExists(node)) {
-                client.createPersistent(node, true);
-            }
+        
+        for(; index < count; index++) {
+        	resultVirtualIds.add(createVirtualId(storageIndex));
         }
+        
         return resultVirtualIds;
     }
-
-    @Override
-    public boolean invalidVirtualIden(int storageIndex, String id) {
-        String node = virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + id;
+    
+    private boolean updateVirutalIdState(int storageId, String virtualId, int state) {
+    	String node = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), virtualId);
+        
         try {
-            client.setData(node, INVALID_DATA.getBytes());
-            return true;
-        } catch (Exception e) {
-            LOG.error("set node :" + node + "  error!", e);
-        }
+			Stat stat = client.setData().forPath(node, Ints.toByteArray(STATE_INVALID));
+			
+			return stat != null;
+		} catch (Exception e) {
+			LOG.error("invalid virtual id[{}:{}] error", storageId, virtualId, e);
+		}
+        
         return false;
     }
+    
+    @Override
+    public boolean validVirtualId(int storageIndex, String virtualId) {
+        return updateVirutalIdState(storageIndex, virtualId, STATE_VALID);
+    }
 
     @Override
-    public boolean deleteVirtualIden(int storageIndex, String id) {
-        String node = virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + id;
+    public boolean invalidVirtualId(int storageIndex, String virtualId) {
+        return updateVirutalIdState(storageIndex, virtualId, STATE_INVALID);
+    }
+
+    @Override
+    public boolean deleteVirtualId(int storageIndex, String virtualId) {
         try {
-            client.guaranteedDelete(node, true);
-            return true;
-        } catch (Exception e) {
-            LOG.error("delete the node: " + node + "  error!", e);
-        }
+			client.delete().guaranteed().forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId));
+			
+			return true;
+		} catch (Exception e) {
+			LOG.error("delete virtual id node[{}:{}] error", storageIndex, virtualId, e);
+		}
+        
         return false;
     }
-
-    @Override
-    public List<String> listNormalVirtualID(int storageIndex) {
-        String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
-        List<String> virtualIds = client.getChildren(storageSIDPath);
-        // 过滤掉正在恢复的虚拟ID。
-        return filterVirtualId(client, storageIndex, virtualIds, INVALID_DATA);
+    
+    private List<String> getVirtualIdListByStorageId(int storageId, int state) {
+    	List<String> result = new ArrayList<String>();
+    	try {
+    		List<String> nodeList = client.getChildren().forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId)));
+    		if(nodeList != null) {
+    			for(String node : nodeList) {
+    				String nodePath = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), node);
+    				try {
+    					byte[] data = client.getData().forPath(nodePath);
+    					if(data == null) {
+    						continue;
+    					}
+    					
+    	                if ((Ints.fromByteArray(data) & state) > 0) {
+    	                    result.add(node);
+    	                }
+					} catch (Exception e) {
+						LOG.error("get data of node[{}] error", nodePath, e);
+					}
+	        	}
+    		}
+    		
+		} catch (Exception e) {
+			LOG.error("get virtual id by sn[{}] node error", storageId, e);
+		}
+    	
+    	return result;
     }
 
     @Override
-    public List<String> listInvalidVirtualID(int storageIndex) {
-        String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
-        List<String> virtualIds = client.getChildren(storageSIDPath);
-        return filterVirtualId(client, storageIndex, virtualIds, NORMAL_DATA);
-
+    public List<String> listValidVirtualIds(int storageIndex) {
+    	return getVirtualIdListByStorageId(storageIndex, STATE_VALID);
     }
 
     @Override
-    public List<String> listAllVirtualID(int storageIndex) {
-        String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex;
-        return client.getChildren(storageSIDPath);
+    public List<String> listInvalidVirtualIds(int storageIndex) {
+    	return getVirtualIdListByStorageId(storageIndex, STATE_INVALID);
     }
 
-    private List<String> filterVirtualId(CuratorClient client, int storageIndex, List<String> virtualIds, String type) {
-        if (virtualIds != null && !virtualIds.isEmpty()) {
-            Iterator<String> it = virtualIds.iterator();
-            while (it.hasNext()) {
-                String node = it.next();
-                byte[] data = client.getData(virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + node);
-                if (StringUtils.equals(new String(data), type)) {
-                    it.remove();
-                }
-            }
+    @Override
+    public void addFirstId(int storageIndex, String virtualId, String firstId) {
+    	String virtualIdNodePath = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId);
+    	
+        Stat nodeStat = null;
+		try {
+			nodeStat = client.checkExists().forPath(virtualIdNodePath);
+		} catch (Exception e) {
+			LOG.error("check virtual id[{}:{}] vadility error", storageIndex, virtualId, e);
+		}
+        
+        if(nodeStat == null) {
+        	return;
         }
-        return virtualIds;
-    }
-
-    @Override
-    public String getVirtualServersPath() {
-        return virtualServersPath;
-    }
-
-    @Override
-    public boolean registerFirstID(int storageIndex, String virtualID, String firstID) {
-        String storageSIDPath = virtualServersPath + SEPARATOR + storageIndex + Constants.SEPARATOR + virtualID;
-        if (!client.checkExists(storageSIDPath)) {
-            return false;
-        }
-        String registerNode = storageSIDPath + Constants.SEPARATOR + firstID;
-        if (!client.checkExists(registerNode)) {
-
-            client.createPersistent(registerNode, false);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean normalVirtualIden(int storageIndex, String id) {
-        String node = virtualServersPath + SEPARATOR + storageIndex + SEPARATOR + id;
+        
         try {
-            client.setData(node, NORMAL_DATA.getBytes());
-            return true;
-        } catch (Exception e) {
-            LOG.error("set node :" + node + "  error!", e);
-        }
-        return false;
+			client.create().withMode(CreateMode.PERSISTENT).forPath(ZKPaths.makePath(virtualIdNodePath, firstId));
+		} catch (Exception e) {
+			LOG.error("add first id error", e);
+		}
     }
 
 }

@@ -1,13 +1,10 @@
 package com.bonree.brfs.server.identification.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
 
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.common.zookeeper.curator.locking.CuratorLocksClient;
-import com.bonree.brfs.common.zookeeper.curator.locking.Executor;
-import com.bonree.brfs.server.identification.IncreServerID;
+import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
+import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
 import com.bonree.brfs.server.identification.LevelServerIDGen;
 
 /*******************************************************************************
@@ -20,60 +17,26 @@ import com.bonree.brfs.server.identification.LevelServerIDGen;
  * 为了安全性，此处的方法，不需要太高的效率，故使用synchronized字段,该实例为单例模式
  ******************************************************************************/
 public class FirstServerIDGenImpl implements LevelServerIDGen {
+    private final static String FIRST_ID_INDEX_NODE = "firstIdIndex";
+    public final static int FIRST_ID_PREFIX = 1;
 
-    private static final Logger LOG = LoggerFactory.getLogger(FirstServerIDGenImpl.class);
+    private SequenceNumberBuilder firstServerIDCreator;
 
-    private final String basePath;
-
-    private final CuratorClient client;
-
-    private final static String FIRST_NODE = "firstID";
-
-    private final static String LOCKS_PATH_PART = "locks";
-
-    private final static String SEPARATOR = "/";
-
-    private IncreServerID<String> increServerID = new SimpleIncreServerID();
-
-    private final String lockPath;
-
-    private class FirstGen implements Executor<String> {
-
-        private final String dataNode;
-
-        public FirstGen(String dataNode) {
-            this.dataNode = dataNode;
-        }
-
-        @Override
-        public String execute(CuratorClient client) {
-            return FIRST_ID + FirstServerIDGenImpl.this.increServerID.increServerID(client, dataNode);
-        }
-
-    }
-
-    public FirstServerIDGenImpl(CuratorClient client, String basePath) {
-        this.client = client;
-        this.basePath = BrStringUtils.trimBasePath(basePath);
-        this.lockPath = basePath + SEPARATOR + LOCKS_PATH_PART;
-    }
-
-    public String getBasePath() {
-        return basePath;
+    public FirstServerIDGenImpl(CuratorFramework client, String basePath) {
+        this.firstServerIDCreator = new ZkSequenceNumberBuilder(client, ZKPaths.makePath(basePath, FIRST_ID_INDEX_NODE));
     }
 
     @Override
-    public synchronized String genLevelID() {
-        String serverId = null;
-        String singleNode = basePath + SEPARATOR + FIRST_NODE;
-        FirstGen genExecutor = new FirstGen(singleNode);
-        CuratorLocksClient<String> lockClient = new CuratorLocksClient<String>(client, lockPath, genExecutor, "genSingleIdentification");
-        try {
-            serverId = lockClient.execute();
-        } catch (Exception e) {
-            LOG.error("getSingleIdentification error!", e);
-        }
-        return serverId;
+    public String genLevelID() {
+    	int uniqueId = firstServerIDCreator.nextSequenceNumber();
+    	if(uniqueId < 0) {
+    		return null;
+    	}
+    	
+    	StringBuilder idBuilder = new StringBuilder();
+    	idBuilder.append(FIRST_ID_PREFIX).append(uniqueId);
+    	
+    	return idBuilder.toString();
     }
 
 }
