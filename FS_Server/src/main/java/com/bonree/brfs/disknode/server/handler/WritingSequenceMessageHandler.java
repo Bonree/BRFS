@@ -12,6 +12,7 @@ import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
+import com.bonree.brfs.disknode.server.handler.SequenceNumberCache.CacheCallback;
 
 public class WritingSequenceMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WritingSequenceMessageHandler.class);
@@ -26,31 +27,35 @@ public class WritingSequenceMessageHandler implements MessageHandler {
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		HandleResult result = new HandleResult();
+		
 		
 		LOG.info("GET sequences of file[{}]", msg.getPath());
 		String filePath = context.getConcreteFilePath(msg.getPath());
 		
-		Map<Integer, RecordElement> recordInfo = cache.get(filePath, true);
-		if(recordInfo == null) {
-			LOG.info("can not get record elements of file[{}]", filePath);
-			result.setSuccess(false);
-			callback.completed(result);
-			return;
-		}
-		
-		//获取所有文件序列号
-		BitSet seqSet = new BitSet();
-		if(recordInfo != null) {
-			for(Integer seq : recordInfo.keySet()) {
-				seqSet.set(seq);
+		cache.get(filePath, true, new CacheCallback() {
+			
+			@Override
+			public void elementReceived(Map<Integer, RecordElement> recordInfo) {
+				if(recordInfo == null) {
+					LOG.info("can not get record elements of file[{}]", filePath);
+					callback.completed(new HandleResult(false));
+					return;
+				}
+				
+				//获取所有文件序列号
+				BitSet seqSet = new BitSet();
+				if(recordInfo != null) {
+					for(Integer seq : recordInfo.keySet()) {
+						seqSet.set(seq);
+					}
+				}
+				
+				LOG.info("get all sequence from file[{}] ,total[{}]", filePath, seqSet.cardinality());
+				HandleResult result = new HandleResult(true);
+				result.setData(seqSet.toByteArray());
+				callback.completed(result);
 			}
-		}
-		
-		LOG.info("get all sequence from file[{}] ,total[{}]", filePath, seqSet.cardinality());
-		result.setSuccess(true);
-		result.setData(seqSet.toByteArray());
-		callback.completed(result);
+		});
 	}
 	
 	@Override

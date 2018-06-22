@@ -12,6 +12,7 @@ import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
+import com.bonree.brfs.disknode.server.handler.SequenceNumberCache.CacheCallback;
 
 public class WritingBytesMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WritingBytesMessageHandler.class);
@@ -47,31 +48,36 @@ public class WritingBytesMessageHandler implements MessageHandler {
 		int sequenceNumber = getSequenceNumber(msg);
 		
 		String filePath = context.getConcreteFilePath(msg.getPath());
-		Map<Integer, RecordElement> recordInfo = cache.get(filePath);
-		if(recordInfo == null) {
-			LOG.error("Can not get record elements for file[{}]", filePath);
-			result.setSuccess(false);
-			result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
-			callback.completed(result);
-			return;
-		}
-		
-		LOG.info("get data by sequence[{}] from file[{}]", sequenceNumber, filePath);
-		RecordElement element = recordInfo.get(sequenceNumber);
-		byte[] bytes = DataFileReader.readFile(filePath, (int) element.getOffset(), element.getSize());
-		
-		if(bytes != null) {
-			LOG.info("sequence[{}] get all bytes[{}]", sequenceNumber, bytes.length);
-			result.setSuccess(true);
-			result.setData(bytes);
-			callback.completed(result);
-			return;
-		}
-		
-		LOG.info("can not read byte from [{}] with seq[{}]", filePath, sequenceNumber);
-		result.setSuccess(false);
-		result.setCause(new Exception("Can't read sequence[" + sequenceNumber + "]"));
-		callback.completed(result);
+		cache.get(filePath, new CacheCallback() {
+			
+			@Override
+			public void elementReceived(Map<Integer, RecordElement> recordInfo) {
+				if(recordInfo == null) {
+					LOG.error("Can not get record elements for file[{}]", filePath);
+					result.setSuccess(false);
+					result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
+					callback.completed(result);
+					return;
+				}
+				
+				LOG.info("get data by sequence[{}] from file[{}]", sequenceNumber, filePath);
+				RecordElement element = recordInfo.get(sequenceNumber);
+				byte[] bytes = DataFileReader.readFile(filePath, (int) element.getOffset(), element.getSize());
+				
+				if(bytes != null) {
+					LOG.info("sequence[{}] get all bytes[{}]", sequenceNumber, bytes.length);
+					result.setSuccess(true);
+					result.setData(bytes);
+					callback.completed(result);
+					return;
+				}
+				
+				LOG.info("can not read byte from [{}] with seq[{}]", filePath, sequenceNumber);
+				result.setSuccess(false);
+				result.setCause(new Exception("Can't read sequence[" + sequenceNumber + "]"));
+				callback.completed(result);
+			}
+		});
 	}
 	
 	@Override

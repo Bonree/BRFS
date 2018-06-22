@@ -1,16 +1,21 @@
 package com.bonree.brfs.disknode.server.handler;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.CloseUtils;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
@@ -26,9 +31,16 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-public class SequenceNumberCache {
+public class SequenceNumberCache implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(SequenceNumberCache.class);
 	private FileWriterManager writerManager;
+	
+	private static final int DEFAULT_POOL_SIZE = 3;
+	private ExecutorService threadPool = Executors.newFixedThreadPool(DEFAULT_POOL_SIZE, new PooledThreadFactory("sequence_cache"));
+	
+	public interface CacheCallback {
+		void elementReceived(Map<Integer, RecordElement> elements);
+	}
 	
 	private LoadingCache<String, Optional<Map<Integer, RecordElement>>> recordCache = CacheBuilder.newBuilder()
 			.maximumSize(10)
@@ -55,16 +67,22 @@ public class SequenceNumberCache {
 		return null;
 	}
 	
-	public Map<Integer, RecordElement> get(String filePath) {
-		return get(filePath, false);
+	public void get(String filePath, CacheCallback callback) {
+		get(filePath, false, callback);
 	}
 	
-	public Map<Integer, RecordElement> get(String filePath, boolean refresh) {
-		if(refresh) {
-			recordCache.invalidate(filePath);
-		}
-		
-		return getInner(filePath);
+	public void get(String filePath, boolean refresh, CacheCallback callback) {
+		threadPool.submit(new Runnable() {
+			
+			@Override
+			public void run() {
+				if(refresh) {
+					recordCache.invalidate(filePath);
+				}
+				
+				callback.elementReceived(getInner(filePath));
+			}
+		});
 	}
 	
 	private class SequenceLoader extends CacheLoader<String, Optional<Map<Integer, RecordElement>>> {
@@ -122,5 +140,10 @@ public class SequenceNumberCache {
 			return Optional.fromNullable(recordInfo);
 		}
 		
+	}
+
+	@Override
+	public void close() throws IOException {
+		threadPool.shutdown();
 	}
 }
