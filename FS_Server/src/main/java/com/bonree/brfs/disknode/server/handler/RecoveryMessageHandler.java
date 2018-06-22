@@ -8,6 +8,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -47,113 +48,122 @@ public class RecoveryMessageHandler implements MessageHandler {
 	private ServiceManager serviceManager;
 	private FileWriterManager writerManager;
 	private RecordCollectionManager recorderManager;
+	private ExecutorService threadPool;
 	
 	public RecoveryMessageHandler(DiskContext context,
 			ServiceManager serviceManager,
 			FileWriterManager writerManager,
-			RecordCollectionManager recorderManager) {
+			RecordCollectionManager recorderManager,
+			ExecutorService threadPool) {
 		this.context = context;
 		this.serviceManager = serviceManager;
 		this.writerManager = writerManager;
 		this.recorderManager = recorderManager;
+		this.threadPool = threadPool;
 	}
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		String filePath = context.getConcreteFilePath(msg.getPath());
-		LOG.info("starting recover file[{}]", filePath);
-		
-		RecoverInfo info = ProtoStuffUtils.deserialize(msg.getContent(), RecoverInfo.class);
-		List<AvailableSequenceInfo> seqInfos = info.getInfoList();
-		BitSet lack = new BitSet();
-		lack.set(0, info.getMaxSeq() + 1);
-		
-		LOG.info("excepted max seq is {}, seq list size->{}", info.getMaxSeq(), seqInfos.size());
-		SortedMap<Integer, byte[]> datas = new TreeMap<Integer, byte[]>();
-		
-		RandomAccessFile originFile = null;
-		RecordElementReader recordreReader = null;
-		try {
-			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
-			LOG.info("get binding for file[{}]-->{}", filePath, binding);
-			if(binding != null) {
-				binding.first().flush();
-				RecordCollection recordSet = binding.first().getRecordCollection();
-				originFile = new RandomAccessFile(filePath, "r");
-				MappedByteBuffer buf = originFile.getChannel().map(MapMode.READ_ONLY, 0, originFile.length());
+		threadPool.submit(new Runnable() {
+			
+			@Override
+			public void run() {
+				String filePath = context.getConcreteFilePath(msg.getPath());
+				LOG.info("starting recover file[{}]", filePath);
 				
-				recordreReader = recordSet.getRecordElementReader();
-				for(RecordElement element : recordreReader) {
-					byte[] bytes = new byte[element.getSize()];
-					buf.position((int) element.getOffset());
-					buf.get(bytes);
-					
-					datas.put(element.getSequence(), bytes);
-					lack.set(element.getSequence(), false);
-				}
-			}
-		} catch (Exception e) {
-			LOG.error("search datas at original file[{}] error", filePath, e);
-		} finally {
-			CloseUtils.closeQuietly(recordreReader);
-		}
-		
-		LOG.info("starting... file[{}] lack seq number-->{}", filePath, lack.cardinality());
-		
-		try {
-			for(AvailableSequenceInfo seqInfo : seqInfos) {
-				if(lack.cardinality() ==  0) {
-					break;
-				}
+				RecoverInfo info = ProtoStuffUtils.deserialize(msg.getContent(), RecoverInfo.class);
+				List<AvailableSequenceInfo> seqInfos = info.getInfoList();
+				BitSet lack = new BitSet();
+				lack.set(0, info.getMaxSeq() + 1);
 				
-				BitSet seqSet = seqInfo.getAvailableSequence();
-				LOG.info("this loop available size{}, lack size{}", seqSet.cardinality(), lack.cardinality());
-				BitSet availableSeq = BitSetUtils.intersect(seqSet, lack);
-				if(availableSeq.cardinality() != 0) {
-					Service service = serviceManager.getServiceById(seqInfo.getServiceGroup(), seqInfo.getServiceId());
-					
-					DiskNodeClient client = null;
-					try {
-						LOG.info("get data from{} to recover...", service);
-						client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+				LOG.info("excepted max seq is {}, seq list size->{}", info.getMaxSeq(), seqInfos.size());
+				SortedMap<Integer, byte[]> datas = new TreeMap<Integer, byte[]>();
+				
+				RandomAccessFile originFile = null;
+				RecordElementReader recordreReader = null;
+				try {
+					Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
+					LOG.info("get binding for file[{}]-->{}", filePath, binding);
+					if(binding != null) {
+						binding.first().flush();
+						RecordCollection recordSet = binding.first().getRecordCollection();
+						originFile = new RandomAccessFile(filePath, "r");
+						MappedByteBuffer buf = originFile.getChannel().map(MapMode.READ_ONLY, 0, originFile.length());
 						
-						for(int i = availableSeq.nextSetBit(0); i != -1; i = availableSeq.nextSetBit(++i)) {
-							byte[] bytes = client.getBytesBySequence(seqInfo.getFilePath(), i);
-							if(bytes != null) {
-								lack.set(i, false);
-								datas.put(i, bytes);
-							}
+						recordreReader = recordSet.getRecordElementReader();
+						for(RecordElement element : recordreReader) {
+							byte[] bytes = new byte[element.getSize()];
+							buf.position((int) element.getOffset());
+							buf.get(bytes);
+							
+							datas.put(element.getSequence(), bytes);
+							lack.set(element.getSequence(), false);
 						}
-					} catch (Exception e) {
-						LOG.error("recover file[{}] error", filePath, e);
-					} finally {
-						CloseUtils.closeQuietly(client);
 					}
-					
+				} catch (Exception e) {
+					LOG.error("search datas at original file[{}] error", filePath, e);
+				} finally {
+					CloseUtils.closeQuietly(recordreReader);
 				}
+				
+				LOG.info("starting... file[{}] lack seq number-->{}", filePath, lack.cardinality());
+				
+				try {
+					for(AvailableSequenceInfo seqInfo : seqInfos) {
+						if(lack.cardinality() ==  0) {
+							break;
+						}
+						
+						BitSet seqSet = seqInfo.getAvailableSequence();
+						LOG.info("this loop available size{}, lack size{}", seqSet.cardinality(), lack.cardinality());
+						BitSet availableSeq = BitSetUtils.intersect(seqSet, lack);
+						if(availableSeq.cardinality() != 0) {
+							Service service = serviceManager.getServiceById(seqInfo.getServiceGroup(), seqInfo.getServiceId());
+							
+							DiskNodeClient client = null;
+							try {
+								LOG.info("get data from{} to recover...", service);
+								client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+								
+								for(int i = availableSeq.nextSetBit(0); i != -1; i = availableSeq.nextSetBit(++i)) {
+									byte[] bytes = client.getBytesBySequence(seqInfo.getFilePath(), i);
+									if(bytes != null) {
+										lack.set(i, false);
+										datas.put(i, bytes);
+									}
+								}
+							} catch (Exception e) {
+								LOG.error("recover file[{}] error", filePath, e);
+							} finally {
+								CloseUtils.closeQuietly(client);
+							}
+							
+						}
+					}
+				} catch (Exception e) {
+					LOG.error("recovery file[{}] error!", filePath, e);
+				} finally {
+					CloseUtils.closeQuietly(originFile);
+				}
+				
+				LOG.info("finally file[{}] lack size = {}", filePath, lack.cardinality());
+				
+				if(lack.cardinality() != 0) {
+					HandleResult handleResult = new HandleResult();
+					handleResult.setSuccess(false);
+					handleResult.setCause(new Exception("can not get all data to recover file!"));
+					callback.completed(handleResult);
+					return;
+				}
+				
+				DataFileRewriter rewriter = new DataFileRewriter(filePath, datas);
+				rewriter.rewrite();
+				
+				HandleResult handleResult = new HandleResult();
+				handleResult.setSuccess(rewriter.success());
+				callback.completed(handleResult);
 			}
-		} catch (Exception e) {
-			LOG.error("recovery file[{}] error!", filePath, e);
-		} finally {
-			CloseUtils.closeQuietly(originFile);
-		}
-		
-		LOG.info("finally file[{}] lack size = {}", filePath, lack.cardinality());
-		
-		if(lack.cardinality() != 0) {
-			HandleResult handleResult = new HandleResult();
-			handleResult.setSuccess(false);
-			handleResult.setCause(new Exception("can not get all data to recover file!"));
-			callback.completed(handleResult);
-			return;
-		}
-		
-		DataFileRewriter rewriter = new DataFileRewriter(filePath, datas);
-		rewriter.rewrite();
-		
-		HandleResult handleResult = new HandleResult();
-		handleResult.setSuccess(rewriter.success());
-		callback.completed(handleResult);
+		});
 	}
 	
 	private class DataFileRewriter {
