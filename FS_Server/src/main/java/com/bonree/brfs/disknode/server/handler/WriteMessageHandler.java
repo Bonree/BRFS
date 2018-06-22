@@ -41,11 +41,6 @@ public class WriteMessageHandler implements MessageHandler {
 			String realPath = diskContext.getConcreteFilePath(msg.getPath());
 			LOG.debug("writing to file [{}]", realPath);
 			
-			if(msg.getContent().length == 0) {
-				throw new IllegalArgumentException("Writing data is Empty!!");
-			}
-			
-			WriteDataList dataList = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataList.class);
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, false);
 			if(binding == null) {
 				//运行到这，可能时打开文件时失败，导致写数据节点找不到writer
@@ -54,8 +49,22 @@ public class WriteMessageHandler implements MessageHandler {
 				return;
 			}
 			
+			TimeCounter counter = new TimeCounter("write_data", TimeUnit.MILLISECONDS);
+			counter.begin();
+			
+			if(msg.getContent().length == 0) {
+				throw new IllegalArgumentException("Writing data is Empty!!");
+			}
+			
+			LOG.info(counter.report(0));
+			WriteDataList dataList = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataList.class);
+			
+			LOG.info(counter.report(1));
+			
 			WriteData[] datas = dataList.getDatas();
 			binding.second().put(new DataWriteTask(binding, datas, callback));
+			
+			LOG.info(counter.report(2));
 		} catch (Exception e) {
 			LOG.error("EEEERRRRRR", e);
 			HandleResult handleResult = new HandleResult();

@@ -44,35 +44,39 @@ public class NettyHttpRequestHandler {
 		
 		QueryStringDecoder decoder = new QueryStringDecoder(request.uri(), CharsetUtil.UTF_8, true);
 		
-		HttpMessage message = new HttpMessage();
-		message.setPath(decoder.path());
-		message.setParams(HttpParamsDecoder.decode(request));
-		
-		TimeCounter counter = new TimeCounter("read_bytes", TimeUnit.MILLISECONDS);
-		counter.begin();
-		byte[] data = new byte[request.content().readableBytes()];
-		
-		LOG.info("request[{}] uri[{}] -- {}",request.method(), request.uri(), counter.report(0));
-		
-		request.content().readBytes(data);
-		LOG.info("request[{}] uri[{}] -- {}",request.method(), request.uri(), counter.report(1));
-		
-		message.setContent(data);
-		LOG.info("request[{}] uri[{}] -- {}",request.method(), request.uri(), counter.report(2));
+		HttpMessage message = new HttpMessage() {
+			private byte[] content;
+
+			@Override
+			public String getPath() {
+				return decoder.path();
+			}
+
+			@Override
+			public Map<String, String> getParams() {
+				return HttpParamsDecoder.decode(request);
+			}
+
+			@Override
+			public byte[] getContent() {
+				if(content == null) {
+					content = new byte[request.content().readableBytes()];
+					request.content().readBytes(content);
+				}
+				
+				return content;
+			}
+			
+		};
 		
 		try {
-			TimeCounter counter2 = new TimeCounter("request_handle", TimeUnit.MILLISECONDS);
-			counter2.begin();
 			if(!handler.isValidRequest(message)) {
 				LOG.error("Exception context[{}] method[{}] invalid request message[{}]", ctx.toString(), message.getPath());
 				ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST, HttpResponseStatus.BAD_REQUEST.reasonPhrase());
 				return;
 			}
-			LOG.info("request[{}] uri[{}] -- {}",request.method(), request.uri(), counter2.report(0));
 			
 			handler.handle(message, new DefaultNettyHandleResultCallback(ctx));
-			
-			LOG.info("request[{}] uri[{}] -- {}",request.method(), request.uri(), counter2.report(1));
 		} catch (Exception e) {
 			LOG.error("message handle error", e);
 			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toString());
