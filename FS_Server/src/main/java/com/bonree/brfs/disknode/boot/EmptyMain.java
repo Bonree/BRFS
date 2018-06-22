@@ -1,6 +1,8 @@
 package com.bonree.brfs.disknode.boot;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.utils.LifeCycle;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
@@ -41,6 +44,8 @@ public class EmptyMain implements LifeCycle {
 	
 	private FileWriterManager writerManager;
 	private ServiceManager serviceManager;
+	
+	private ExecutorService requestHandlerExecutor;
 	
 	public EmptyMain(ServerConfig serverConfig, ServiceManager serviceManager) {
 		this(serverConfig.getDiskPort(), serverConfig.getDataPath(), serviceManager);
@@ -80,11 +85,13 @@ public class EmptyMain implements LifeCycle {
 		httpConfig.setBacklog(1024);
 		server = new NettyHttpServer(httpConfig);
 		
+		requestHandlerExecutor = Executors.newFixedThreadPool(10, new PooledThreadFactory("request_common"));
+		
 		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
 		requestHandler.addMessageHandler("PUT", new OpenMessageHandler(diskContext, writerManager));
 		requestHandler.addMessageHandler("POST", new WriteMessageHandler(diskContext, writerManager));
 		requestHandler.addMessageHandler("GET", new ReadMessageHandler(diskContext));
-		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(diskContext, writerManager));
+		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(diskContext, writerManager, requestHandlerExecutor));
 		requestHandler.addMessageHandler("DELETE", new DeleteMessageHandler(diskContext, writerManager));
 		server.addContextHandler(DiskContext.URI_DISK_NODE_ROOT, requestHandler);
 		
@@ -135,5 +142,9 @@ public class EmptyMain implements LifeCycle {
 	public void stop() throws Exception {
 		server.stop();
 		writerManager.stop();
+		
+		if(requestHandlerExecutor != null) {
+			requestHandlerExecutor.shutdown();
+		}
 	}
 }
