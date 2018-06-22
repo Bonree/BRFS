@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileNode;
@@ -42,6 +43,9 @@ public class DefaultFileLounge implements FileLounge {
 	private static final double FILE_USAGE_RATIO_THRESHOLD = Double.parseDouble(System.getProperty(KEY_FILE_USAGE_RATIO, "0.99"));
 	private TimedObjectCollection<List<FileLimiter>> timedWritableFileContainer;
 	private LinkedList<FileLimiter> removedFileList = new LinkedList<FileLimiter>();
+	
+	private static final int DEFAULT_MAX_FILE_COUNT = 20;
+	private int maxFileCount = Integer.parseInt(System.getProperty("max_file_count", String.valueOf(DEFAULT_MAX_FILE_COUNT)));
 	
 	private TimedObjectCollection<List<FileLimiter>> suspendFileContainer;
 
@@ -113,6 +117,7 @@ public class DefaultFileLounge implements FileLounge {
 		long currentTime = System.currentTimeMillis();
 		Set<FileLimiter> selected = new HashSet<FileLimiter>();
 		List<FileLimiter> fileList = timedWritableFileContainer.get(currentTime);
+		
 		for(int i = 0; i < requestSizes.length; i++) {
 			if(requestSizes[i] > DuplicationEnvironment.DEFAULT_MAX_AVAILABLE_FILE_SPACE) {
 				LOG.error("####request size[{}] is bigger than MAX_AVAILABLE_SIZE[{}]",
@@ -175,6 +180,8 @@ public class DefaultFileLounge implements FileLounge {
 		List<TimedObject<List<FileLimiter>>> timedObjects = timedWritableFileContainer.allObjects();
 		long currentTimeInterval = timedWritableFileContainer.getTimeInterval(System.currentTimeMillis());
 		
+		TimeCounter counter = new TimeCounter("FileClean", TimeUnit.MILLISECONDS);
+		counter.begin();
 		List<TimedObject<List<FileLimiter>>> syncingFiles = suspendFileContainer.allObjects();
 		for(TimedObject<List<FileLimiter>> obj : syncingFiles) {
 			//移除所有在同步状态的文件
@@ -192,6 +199,8 @@ public class DefaultFileLounge implements FileLounge {
 				}
 			}
 		}
+		
+		LOG.info(counter.report(0));
 		
 		for(TimedObject<List<FileLimiter>> obj : timedObjects) {
 			List<FileLimiter> fileList = obj.getObj();
@@ -256,6 +265,8 @@ public class DefaultFileLounge implements FileLounge {
 				}
 			}
 		}
+		
+		LOG.info(counter.report(1));
 		
 		if(fileCloseListener == null) {
 			removedFileList.clear();

@@ -17,10 +17,7 @@ public class PingPongRequestHandler implements MessageHandler {
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		HandleResult result = new HandleResult();
-		result.setSuccess(true);
-		
-		callback.completed(result);
+		callback.completed(new HandleResult(true));
 	}
 
 }

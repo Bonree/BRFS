@@ -349,6 +349,10 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 						
 						boolean canBeSubmitted = true;
 						for(DuplicateNode node : fileNode.getDuplicateNodes()) {
+							if(node.getGroup().equals(DuplicationEnvironment.VIRTUAL_SERVICE_GROUP)) {
+								continue;
+							}
+							
 							String nodeToken = nodeToken(node);
 							Boolean exist = serviceStates.get(nodeToken);
 							if(exist == null) {
