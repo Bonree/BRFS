@@ -72,30 +72,6 @@ public class BatchTaskFactory {
 	
 	public static List<AtomTaskModel> convernTaskModel(TaskModel task){
 		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
-		boolean isException = TaskState.EXCEPTION.code() == task.getTaskState();
-//		if(isException){
-//			TaskResultModel result = task.getResult();
-//			if(result == null){
-//				atoms.addAll(task.getAtomList());
-//				return atoms;
-//			}
-//			List<AtomTaskResultModel> atomRs = result.getAtoms();
-//			if(atomRs == null || atomRs.isEmpty()){
-//				atoms.addAll(task.getAtomList());
-//				return atoms;
-//			}
-//			AtomTaskModel atomT = null;
-//			for(AtomTaskResultModel atomR : atomRs){
-//				if(atomR.getFiles() == null || atomR.getFiles().isEmpty()){
-//					continue;
-//				}
-//				atomT = new AtomTaskModel();
-//				atomT.setFiles(atomR.getFiles());
-//				atomT.setStorageName(atomR.getSn());
-//				atoms.add(atomT);
-//			}
-//			return atoms;
-//		}
 		List<AtomTaskModel> tasks = task.getAtomList();
 		if(tasks == null || tasks.isEmpty()){
 			return atoms;

@@ -46,7 +46,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return pool.addTask(task);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 	}
@@ -62,7 +62,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.pauseTask(task);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -79,7 +79,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.resumeTask(task);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -96,7 +96,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.deleteTask(task);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -145,7 +145,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.start();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -166,7 +166,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.reStart();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -188,7 +188,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.PausePool();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -210,7 +210,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.resumePool();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -329,7 +329,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			this.taskPoolMap.remove(taskpoolKey);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -350,7 +350,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.close(isWaitTaskCompleted);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -371,7 +371,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.pauseAllTask();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -392,7 +392,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.resumeAllTask();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return false;
 		}
 		return true;
@@ -416,7 +416,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return pool.getSumbitTaskCount();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return 0;
 		}
 	}
@@ -438,7 +438,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		try {
 			return pool.getPoolSize();
 		}catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			return 0;
 		}
 	}

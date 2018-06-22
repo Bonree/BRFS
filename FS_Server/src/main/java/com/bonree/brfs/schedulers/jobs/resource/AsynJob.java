@@ -46,13 +46,11 @@ public class AsynJob extends QuartzOperationStateTask {
 	private static final String INVERAL_TIME = "INVERAL_TIME";
 	@Override
 	public void caughtException(JobExecutionContext context) {
-		// TODO Auto-generated method stub
 		LOG.info("Exception : {}",context.get("ExceptionMessage"));
 	}
 
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
-		// TODO Auto-generated method stub
 		LOG.info("Interrupt job :", this.getClass().getName());
 	}
 
@@ -113,8 +111,7 @@ public class AsynJob extends QuartzOperationStateTask {
 			
 		}
 		catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return resources;
 	}

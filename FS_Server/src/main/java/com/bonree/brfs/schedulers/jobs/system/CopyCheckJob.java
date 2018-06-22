@@ -57,13 +57,15 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("----------- > createCheck Copy Job working");	
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String timestr = data.getString(JobDataMapConstract.CHECK_TTL);
 		long time = 0;
-//		if(!BrStringUtils.isEmpty(timestr)){
-//			time = data.getLong(JobDataMapConstract.CHECK_TTL);
-//		}
+		long currentTime = System.currentTimeMillis();
+		long min = (currentTime%3600000)/60000;
+		if(min < 10) {
+			return;
+		}
+		LOG.info("createCheck Copy Job working");	
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		StorageNameManager snm = mcf.getSnm();
@@ -92,7 +94,6 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			release.setTaskTypeModel(taskType, tmodel);
 		}
 		Map<String,Long> sourceTimes = tmodel.getSnTimes();
-		
 		// 2.过滤不符合副本校验的sn信息
 		List<StorageNameNode> needSns = CopyCountCheck.filterSn(snList, services.size());
 		// 3.针对第一次出现的sn补充时间

@@ -86,7 +86,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 			LOG.info("loss the leader !!!");
 		}
 		catch (ParamsErrorException | InterruptedException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 	}
 
@@ -103,7 +103,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 			LOG.info("loss the leader !!!");
 		}
 		catch (ParamsErrorException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 	}
 

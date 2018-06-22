@@ -69,10 +69,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			this.poolSize = Integer.valueOf(prop.getProperty("org.quartz.threadPool.threadCount"));
 		}
 		catch (NumberFormatException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 	}
 
@@ -167,16 +167,16 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (NumberFormatException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		catch (ParseException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -194,7 +194,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		}
 		catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOG.error("{}",e);
 			throw new RuntimeException(this.instanceName + " start fail !!!");
 		}
 	}
@@ -212,7 +212,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			this.pausePoolFlag = false;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			throw new RuntimeException(this.instanceName + " close fail !!!");
 		}
 
@@ -233,7 +233,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return scheduler.isStarted();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -248,7 +248,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return scheduler.isShutdown();
 		}
 		catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -284,10 +284,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (UnableToInterruptJobException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -321,10 +321,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (UnableToInterruptJobException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -352,7 +352,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -378,10 +378,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (UnableToInterruptJobException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -400,7 +400,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -474,7 +474,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			}
 		}
 		catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			throw new ParamsErrorException(e.getLocalizedMessage());
 		}
 
@@ -511,7 +511,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return count;
 		}
 		catch (SchedulerException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return -1;
 	}
@@ -540,8 +540,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (SchedulerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}

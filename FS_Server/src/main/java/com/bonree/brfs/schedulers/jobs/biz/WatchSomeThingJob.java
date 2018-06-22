@@ -59,8 +59,7 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 				WatchDog.abandonFoods();
 			}
 		}catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 	}
 	/**

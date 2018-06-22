@@ -83,7 +83,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return nodes[nodes.length - 1];
 			}
 		}catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return pathNode;
 	}
@@ -98,7 +98,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return taskInfos.get(taskInfos.size() - 1);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return null;
 	}
@@ -126,7 +126,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			TaskModel tmp = JsonUtils.toObject(data, TaskModel.class);
 			return tmp.getTaskState();
 		}catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return -5;
 	}
@@ -163,7 +163,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return true;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -186,7 +186,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return true;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -211,7 +211,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return true;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -251,7 +251,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return null;
 	}
@@ -300,7 +300,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return true;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
@@ -342,7 +342,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return count;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return -1;
 	}
@@ -375,7 +375,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return -5;
 	}
@@ -410,7 +410,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			client = CuratorClient.getClientInstance(this.zkUrl);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 	}
 
@@ -437,7 +437,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			counts.setValue(reviseCount);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return counts;
 	}
@@ -512,7 +512,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				}
 			}
 		}catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return count;
 	}
@@ -568,7 +568,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return count;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return 0;
 	}
@@ -622,7 +622,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			taskContent = JsonUtils.toObject(data, TaskModel.class);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return taskContent;
 	}
@@ -650,7 +650,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			taskServerNode = JsonUtils.toObject(data, TaskServerNodeModel.class);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return taskServerNode;
 	}
@@ -720,7 +720,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return true;
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		return false;
 	}
