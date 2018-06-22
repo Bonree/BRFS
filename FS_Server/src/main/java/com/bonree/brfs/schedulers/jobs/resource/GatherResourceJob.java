@@ -120,20 +120,6 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if(sum == null){
 			return;
 		}
-		//打印资源信息
-		LOG.info("cpu rate {}",sum.getCpuRate());
-		LOG.info("cpu core {}",sum.getCpuCoreCount());
-		LOG.info("memorya rate {}",sum.getMemoryRate());
-		LOG.info("memory Size {}",sum.getMemorySize());
-		LOG.info("Disk size {}",sum.getTotalDiskSize());
-		LOG.info("Disk remain Size {}",sum.getRemainDiskSize());
-		LOG.info("disk sn remain {}",sum.getPartitionRemainSizeMap());
-		LOG.info("net rx {}",sum.getNetRSpeedMap());
-		LOG.info("net tx {}", sum.getNetTSpeedMap());
-		LOG.info("disk sn w map {}", sum.getPartitionWriteSpeedMap());
-		LOG.info("disk sn r map {}", sum.getPartitionReadSpeedMap());
-		LOG.info("disk sn total map {}", sum.getPartitionTotalSizeMap());
-		LOG.info("sn to disk map :{}",sum.getStorageNameOnPartitionMap());
 		// 更新任务可执行接口资源信息
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		mcf.getRt().update(sum);
@@ -165,6 +151,11 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		setServerModel(server);
 		LOG.info("update zookeeper complete");
 	}
+	/**
+	 * 概述：获取本机local信息
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public ServerModel getlocalServerModel(){
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String groupName = mcf.getGroupName();

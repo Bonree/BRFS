@@ -39,7 +39,7 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
  *****************************************************************************
  */
 public class CopyCountCheck {
-	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
+	private static final Logger LOG = LoggerFactory.getLogger("CopyCountCheck");
 	/***
 	 * 概述：获取文件缺失的sn
 	 * @param storageNames
@@ -169,7 +169,7 @@ public class CopyCountCheck {
 						LOG.debug("<collectionSnFiles> path :{}",path);
 						strs = getFileList(client, path);
 						if(strs == null || strs.isEmpty()) {
-							LOG.warn("<collectionSnFiles> files is empty {}", dirName);
+							LOG.warn("<collectionSnFiles> files is empty {}", path);
 							continue;
 						}
 						LOG.debug("Collection dirName :{},{} size :{}",dirName,path, strs.size());
@@ -180,14 +180,14 @@ public class CopyCountCheck {
 					}
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.error("{}",e);
 			}finally{
 				if(client != null){
 					try {
 						client.close();
 					}
 					catch (IOException e) {
-						e.printStackTrace();
+						LOG.error("{}",e);
 					}
 				}
 			}
@@ -372,21 +372,20 @@ public class CopyCountCheck {
 	 */
 	public static Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageNameNode> needSns, long granule, long ttl){
 		Map<String,Long> repairs = new ConcurrentHashMap<>();
-		repairs.putAll(sourceTimes);
-		if(sourceTimes != null) {
-			repairs.putAll(sourceTimes);
-		}
 		if(needSns == null || needSns.isEmpty()) {
 			return repairs;
 		}
 		long currentTime = System.currentTimeMillis();
 		long cGra = currentTime - currentTime%granule;
+		if(sourceTimes != null) {
+			repairs.putAll(filterCurrentTime(sourceTimes,cGra));
+		}
 		String snName = null;
 		long startTime = 0L;
 		long sGra = 0L;
 		for(StorageNameNode sn : needSns) {
 			snName = sn.getName();
-			if(repairs.containsKey(snName)) {
+			if(sourceTimes!=null && sourceTimes.containsKey(snName)) {
 				continue;
 			}
 			startTime = sn.getCreateTime();
@@ -401,5 +400,30 @@ public class CopyCountCheck {
 			repairs.put(snName, sGra);
 		}
 		return repairs;
+	}
+	/**
+	 * 概述：过滤当前时间的sn
+	 * @param sourceTimes
+	 * @param cGra
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private static Map<String,Long> filterCurrentTime(final Map<String,Long> sourceTimes, final long cGra){
+		Map<String,Long> collMap = new HashMap<String,Long>();
+		if(sourceTimes == null || sourceTimes.isEmpty()) {
+			return collMap;
+		}
+		String sn = null;
+		long cTime = 0;
+		for(Map.Entry<String, Long> entry : sourceTimes.entrySet()) {
+			sn = entry.getKey();
+			cTime = entry.getValue();
+			if(cTime == cGra) {
+				continue;
+			}
+			collMap.put(sn, cTime);
+		}
+		return collMap;
+		
 	}
 }

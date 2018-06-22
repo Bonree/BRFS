@@ -95,7 +95,7 @@ public class CreateSystemTask {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static Pair<TaskModel,Map<String,Long>> creatTaskWithFiles(final Map<String,Long> snTimes, final Map<String,List<String>> snFiles,List<StorageNameNode> needSn, TaskType taskType, String taskOperation, long granule, long globalTTL) {
-		if(needSn == null) {
+		if(needSn == null || snTimes == null) {
 			return null;
 		}
 		String snName = null;
@@ -118,10 +118,10 @@ public class CreateSystemTask {
 			snName = sn.getName();
 			cTime = sn.getCreateTime();
 			// 获取开始时间
-			if(snTimes != null && snTimes.containsKey(snName)) {
+			if(snTimes.containsKey(snName)) {
 				startTime = snTimes.get(snName);
 			}else{
-				startTime = cTime - cTime%granule;
+				continue;
 			}
 			// 获取有效的过期时间
 			ttl = getTTL(sn, taskType, globalTTL);

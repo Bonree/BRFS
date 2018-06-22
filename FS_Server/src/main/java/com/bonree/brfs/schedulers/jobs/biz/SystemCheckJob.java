@@ -181,7 +181,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 				return true;
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		} finally {
 			CloseUtils.closeQuietly(file);
 		}

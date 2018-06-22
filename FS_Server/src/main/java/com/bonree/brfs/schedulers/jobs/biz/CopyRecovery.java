@@ -80,7 +80,7 @@ public class CopyRecovery {
 				atomR.setSuccess(false);
 				result.setSuccess(false);
 				result.add(atomR);
-				LOG.warn("<recoveryDirs> sn == null snName :{}",snName);
+				LOG.debug("<recoveryDirs> sn == null snName :{}",snName);
 				continue;
 			}
 			snId = sn.getId();
@@ -90,7 +90,7 @@ public class CopyRecovery {
 			errors = recoveryFiles(sm, sim, parser, sn, atom,dataPath);
 			if(errors == null || errors.isEmpty()){
 				result.add(atomR);
-				LOG.warn("<recoveryDirs> result is empty snName:{}", snName);
+				LOG.debug("<recoveryDirs> result is empty snName:{}", snName);
 				continue;
 			}
 			atomR.addAll(errors);
@@ -135,7 +135,7 @@ public class CopyRecovery {
 		String dirName = atom.getDirName();
 		List<String> fileNames = atom.getFiles();
 		if (fileNames == null || fileNames.isEmpty()) {
-			LOG.warn("<recoverFiles> {} files name is empyt", snName);
+			LOG.warn("<recoverFiles> {} files name is empty", snName);
 			return null;
 		}
 		if (snNode == null) {
@@ -198,7 +198,7 @@ public class CopyRecovery {
 		File dir = new File(dataPath + localDir);
 		if(!dir.exists()) {
 			boolean createFlag = dir.mkdirs();
-			LOG.warn("<recoveryFile> create dir :{}, stat:{}",localDir,createFlag);
+			LOG.debug("<recoveryFile> create dir :{}, stat:{}",localDir,createFlag);
 		}
 		
 		File file = new File(dataPath + localPath);
@@ -211,23 +211,23 @@ public class CopyRecovery {
 			remoteIndex ++;
 			//排除自己
 			if (secondId.equals(snsid)) {
-				LOG.warn("<recoveryFile> my sum is right,not need to do {} {} {}",fileName, secondId,snsid);
+				LOG.debug("<recoveryFile> my sum is right,not need to do {} {} {}",fileName, secondId,snsid);
 				continue;
 			}
 			
 			remoteName = sim.getOtherFirstID(snsid, snId);
 			if(BrStringUtils.isEmpty(remoteName)){
-				LOG.warn("<recoveryFile> remote name is empty");
+				LOG.debug("<recoveryFile> remote name is empty");
 				continue;
 			}
 			remoteService = sm.getServiceById(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, remoteName);
 			if(remoteService == null){
-				LOG.warn("<recoveryFile> remote service is empty");
+				LOG.debug("<recoveryFile> remote service is empty");
 				continue;
 			}
 			remotePath = "/"+snName + "/" + remoteIndex + "/" + dirName + "/" + fileName;
 			isSuccess = recoveryFile(remoteService, dataPath + localPath, remotePath);
-			LOG.warn("<recoveryFile> recovery file sn:{},localsnId {}, remoteIndex:{}, fileName :{},stat {}", snName,snsid,remoteIndex,fileName,isSuccess);
+			LOG.debug("<recoveryFile> recovery file sn:{},localsnId {}, remoteIndex:{}, fileName :{},stat {}", snName,snsid,remoteIndex,fileName,isSuccess);
 			if(isSuccess){
 				return true;
 			}
@@ -251,7 +251,7 @@ public class CopyRecovery {
 			client.copyFrom(service.getHost(), service.getPort(), remotePath, localPath);
 			isSuccess =  true;
 		}catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 			isSuccess =  false;
 		}finally {
 			if(client != null){
@@ -259,7 +259,7 @@ public class CopyRecovery {
 					client.close();
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					LOG.error("{}",e);
 				}
 			}
 			LOG.info("remote address {}:{}, remote {}, local {}, stat {}",service.getHost(),service.getPort(), remotePath, localPath,isSuccess ? "success" :"fail");

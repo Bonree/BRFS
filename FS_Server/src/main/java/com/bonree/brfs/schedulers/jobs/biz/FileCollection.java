@@ -35,11 +35,11 @@ public class FileCollection {
 	 */
 	public static Map<String,List<String>> collFiles(String path, long limitTime, long granule){
 		if(!FileUtils.isExist(path)) {
-			LOG.info("<collFiles> file path is not exists {}",path);
+			LOG.debug("<collFiles> file path is not exists {}",path);
 			return null;
 		}
 		if(!FileUtils.isDirectory(path)) {
-			LOG.info("<collFiles> file path is not directory {}",path);
+			LOG.debug("<collFiles> file path is not directory {}",path);
 			return null;
 		}
 		String limitStr = limitTime <= 0 ? "END" : TimeUtils.timeInterval(limitTime, granule);

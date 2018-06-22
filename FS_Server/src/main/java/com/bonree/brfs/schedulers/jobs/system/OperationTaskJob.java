@@ -151,8 +151,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				data.put(typeName, currentTaskName);
 			}
 			catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.error("{}",e);
 			}
 		}
 	}

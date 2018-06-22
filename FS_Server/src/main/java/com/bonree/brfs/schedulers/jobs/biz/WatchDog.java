@@ -108,7 +108,7 @@ public class WatchDog{
 								Thread.sleep(1000l);
 							}
 						}catch (Exception e) {
-							e.printStackTrace();
+							LOG.error("{}",e);
 						}
 					}
 					isRun = false;

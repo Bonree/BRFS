@@ -66,9 +66,9 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		long lGraDay = currentTime - currentTime % 86400000L;
 		long sGraDay = lGraDay - day * 604800000L;
 
-		List needSns = CopyCountCheck.filterSn(snList, services.size());
-
-		Map sourceTimes = null;
+		List<StorageNameNode> needSns = CopyCountCheck.filterSn(snList, services.size());
+		//修复时间
+		Map sourceTimes = CopyCountCheck.repairTime(null, needSns, granule, 0);
 		for (long startTime = sGraDay; startTime <= lGraDay; startTime += granule) {
 			sourceTimes = fixTimes(snList, startTime);
 			if ((sourceTimes != null) && (!sourceTimes.isEmpty())) {
@@ -111,8 +111,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 	 * @param granule
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void createSingleTask(MetaTaskManagerInterface release, List<StorageNameNode> needSns,
-			List<Service> services, TaskType taskType, Map<String, Long> sourceTimes, long granule) {
+	public void createSingleTask(MetaTaskManagerInterface release, List<StorageNameNode> needSns, List<Service> services, TaskType taskType, Map<String, Long> sourceTimes, long granule) {
 		Map losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, granule);
 		Pair pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, taskType, "0", granule, 0L);
 		if (pair == null) {
