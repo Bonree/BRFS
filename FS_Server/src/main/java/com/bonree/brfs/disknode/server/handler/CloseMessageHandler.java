@@ -52,10 +52,11 @@ public class CloseMessageHandler implements MessageHandler {
 					}
 					
 					LOG.info("start writing file tailer for {}", filePath);
-					binding.first().flush();
-					byte[] fileBytes = DataFileReader.readFile(filePath, 2);
-					long crcCode = ByteUtils.crc(fileBytes);
-					LOG.info("final crc code[{}] by bytes[{}] of file[{}]", crcCode, fileBytes.length, filePath);
+//					binding.first().flush();
+//					byte[] fileBytes = DataFileReader.readFile(filePath, 2);
+//					long crcCode = ByteUtils.crc(fileBytes);
+					long crcCode = 0;
+//					LOG.info("final crc code[{}] by bytes[{}] of file[{}]", crcCode, fileBytes.length, filePath);
 					
 					byte[] tailer = Bytes.concat(FileEncoder.validate(crcCode), FileEncoder.tail());
 					
