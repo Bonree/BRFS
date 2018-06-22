@@ -28,6 +28,7 @@ public class WriteWorker implements Runnable {
 	
 	public <R> void put(WriteTask<R> task) {
 		try {
+			LOG.info("now queue size -> {}", taskQueue.size());
 			taskQueue.put(task);
 		} catch (InterruptedException e) {
 			LOG.error("put task error", e);

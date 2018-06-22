@@ -49,18 +49,7 @@ public class WriteMessageHandler implements MessageHandler {
 				return;
 			}
 			
-			TimeCounter counter = new TimeCounter("write_data", TimeUnit.MILLISECONDS);
-			counter.begin();
-			
-			if(msg.getContent().length == 0) {
-				throw new IllegalArgumentException("Writing data is Empty!!");
-			}
-			
-			LOG.info(counter.report(2));
-			
 			binding.second().put(new DataWriteTask(binding, msg, callback));
-			
-			LOG.info(counter.report(1));
 		} catch (Exception e) {
 			LOG.error("EEEERRRRRR", e);
 			HandleResult handleResult = new HandleResult();
@@ -87,6 +76,9 @@ public class WriteMessageHandler implements MessageHandler {
 		@Override
 		protected WriteResult[] execute() throws Exception {
 			LOG.info("start writing...");
+			TimeCounter counter = new TimeCounter("write_data", TimeUnit.MILLISECONDS);
+			counter.begin();
+			
 			WriteDataList dataList = ProtoStuffUtils.deserialize(message.getContent(), WriteDataList.class);
 			WriteData[] datas = dataList.getDatas();
 			
@@ -109,6 +101,8 @@ public class WriteMessageHandler implements MessageHandler {
 				result.setSize(data.getBytes().length);
 				results[i] = result;
 			}
+			
+			LOG.info(counter.report(0));
 			
 			return results;
 		}
@@ -169,6 +163,6 @@ public class WriteMessageHandler implements MessageHandler {
 
 	@Override
 	public boolean isValidRequest(HttpMessage message) {
-		return true;
+		return message.getContent().length != 0;
 	}
 }
