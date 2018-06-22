@@ -9,12 +9,14 @@ import io.netty.util.CharsetUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
+import com.bonree.brfs.common.timer.TimeCounter;
 
 /**
  * Netty实现的Http请求处理接口
@@ -33,6 +35,8 @@ public class NettyHttpRequestHandler {
 	public void requestReceived(ChannelHandlerContext ctx, FullHttpRequest request) {
 		LOG.debug("handle request[{}:{}]", request.method(), request.uri());
 		
+		TimeCounter counter = new TimeCounter("http_request", TimeUnit.MILLISECONDS);
+		counter.begin();
 		MessageHandler handler = methodToOps.get(request.method());
 		if(handler == null) {
 			LOG.error("Exception context[{}] method[{}] is unknown", ctx.toString(), request.method());
@@ -58,6 +62,8 @@ public class NettyHttpRequestHandler {
 			}
 			
 			handler.handle(message, new DefaultNettyHandleResultCallback(ctx));
+			
+			LOG.info("request[{}] uri[{}] -- {}",request.method(), request.uri(), counter.report(0));
 		} catch (Exception e) {
 			LOG.error("message handle error", e);
 			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toString());
