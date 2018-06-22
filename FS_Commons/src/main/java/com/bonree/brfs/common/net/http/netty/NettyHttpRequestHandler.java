@@ -50,9 +50,13 @@ public class NettyHttpRequestHandler {
 		message.setPath(decoder.path());
 		message.setParams(HttpParamsDecoder.decode(request));
 		
+		LOG.info("request[{}] uri[{}] -- {}",request.method(), request.uri(), counter.report(0));
+		
 		byte[] data = new byte[request.content().readableBytes()];
 		request.content().readBytes(data);
 		message.setContent(data);
+		
+		LOG.info("request[{}] uri[{}] -- {}",request.method(), request.uri(), counter.report(1));
 		
 		try {
 			if(!handler.isValidRequest(message)) {
@@ -63,7 +67,7 @@ public class NettyHttpRequestHandler {
 			
 			handler.handle(message, new DefaultNettyHandleResultCallback(ctx));
 			
-			LOG.info("request[{}] uri[{}] -- {}",request.method(), request.uri(), counter.report(0));
+			LOG.info("request[{}] uri[{}] -- {}",request.method(), request.uri(), counter.report(2));
 		} catch (Exception e) {
 			LOG.error("message handle error", e);
 			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toString());
