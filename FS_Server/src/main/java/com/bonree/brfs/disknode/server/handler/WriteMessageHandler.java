@@ -56,15 +56,11 @@ public class WriteMessageHandler implements MessageHandler {
 				throw new IllegalArgumentException("Writing data is Empty!!");
 			}
 			
-			LOG.info(counter.report(0));
-			WriteDataList dataList = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataList.class);
+			LOG.info(counter.report(2));
+			
+			binding.second().put(new DataWriteTask(binding, msg, callback));
 			
 			LOG.info(counter.report(1));
-			
-			WriteData[] datas = dataList.getDatas();
-			binding.second().put(new DataWriteTask(binding, datas, callback));
-			
-			LOG.info(counter.report(2));
 		} catch (Exception e) {
 			LOG.error("EEEERRRRRR", e);
 			HandleResult handleResult = new HandleResult();
@@ -75,29 +71,30 @@ public class WriteMessageHandler implements MessageHandler {
 	}
 	
 	private class DataWriteTask extends WriteTask<WriteResult[]> {
-		private WriteData[] dataList;
+		private HttpMessage message;
 		private WriteResult[] results;
 		private Pair<RecordFileWriter, WriteWorker> binding;
 		private HandleResultCallback callback;
 		
 		private TimeCounter counter = new TimeCounter("DataWriteTask", TimeUnit.MILLISECONDS);
 		
-		public DataWriteTask(Pair<RecordFileWriter, WriteWorker> binding, WriteData[] datas, HandleResultCallback callback) {
+		public DataWriteTask(Pair<RecordFileWriter, WriteWorker> binding, HttpMessage message, HandleResultCallback callback) {
 			this.binding = binding;
-			this.dataList = datas;
-			this.results = new WriteResult[datas.length];
+			this.message = message;
 			this.callback = callback;
 		}
 
 		@Override
 		protected WriteResult[] execute() throws Exception {
 			LOG.info("start writing...");
+			WriteDataList dataList = ProtoStuffUtils.deserialize(message.getContent(), WriteDataList.class);
+			WriteData[] datas = dataList.getDatas();
 			
-			counter.begin();
+			results = new WriteResult[datas.length];
 			
 			RecordFileWriter writer = binding.first();
-			for(int i = 0; i < dataList.length; i++) {
-				WriteData data = dataList[i];
+			for(int i = 0; i < datas.length; i++) {
+				WriteData data = datas[i];
 				
 				LOG.info("writing file[{}] with data seq[{}], size[{}]", writer.getPath(), data.getDiskSequence(), data.getBytes().length);
 				
