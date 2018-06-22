@@ -54,6 +54,10 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 			boolean isIt = isRecovery(curatorClient, tasksPath);
 			// 更新map的值
 			this.StateMap.put(RECOVERY_STATUSE, isIt);
+			//发生副本迁移就删除数据
+			if(isIt) {
+				WatchDog.abandonFoods();
+			}
 		}catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

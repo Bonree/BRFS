@@ -1,7 +1,7 @@
 @echo off
 
 @rem 设置环境变量
-set JAVA_HOME=C:\Program Files\Java\jdk1.8.0_162
+set JAVA_HOME=%JAVA_HOME%
 
 @rem 设置文件目录
 set dirs=brfs\bin,brfs\jar,brfs\config,brfs\logs,brfs\lib

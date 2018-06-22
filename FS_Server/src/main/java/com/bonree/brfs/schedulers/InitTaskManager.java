@@ -33,6 +33,7 @@ import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
+import com.bonree.brfs.schedulers.jobs.biz.WatchDogJob;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.jobs.resource.AsynJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
@@ -46,6 +47,7 @@ import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultRunnableTask;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultSchedulersManager;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
+import com.bonree.brfs.schedulers.task.meta.impl.QuartzCronInfo;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -122,7 +124,7 @@ public class InitTaskManager {
 			}
 			mcf.setTaskOn(tasks);
 			//3.创建执行任务线程池
-			createOperationPool(serverConfig, managerConfig, tasks, true);
+			createOperationPool(serverConfig, managerConfig,zkPath, tasks, true);
 		}
 		
 		if(managerConfig.isResourceFrameWorkSwitch()){
@@ -156,13 +158,13 @@ public class InitTaskManager {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static void createOperationPool(ServerConfig server, ResourceTaskConfig confg, List<TaskType> switchList, boolean isReboot) throws Exception{
+	private static void createOperationPool(ServerConfig server, ResourceTaskConfig confg, ZookeeperPaths zkPath, List<TaskType> switchList, boolean isReboot) throws Exception{
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		SchedulerManagerInterface manager = mcf.getStm();
 		MetaTaskManagerInterface release = mcf.getTm();
 		String serverId = mcf.getServerId();
 		
-		Properties prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);
+		Properties prop = DefaultBaseSchedulers.createSimplePrope(3, 1000);
 		boolean createFlag = manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
 		if(!createFlag){
 			LOG.error("create task operation error !!!");
@@ -192,6 +194,16 @@ public class InitTaskManager {
 		sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, watchJob);
 		if(sumbitFlag){
 			LOG.info("watch task sumbit complete !!!");
+		}
+		Map<String,String> watchDogMap = JobDataMapConstract.createWatchDogDataMap(server.getZkHosts(), zkPath.getBaseRoutePath(), server.getDataPath());
+		LOG.info("watch dog map {}",watchDogMap);
+		if(watchDogMap == null|| watchDogMap.isEmpty()) {
+			System.exit(1);
+		}
+		SumbitTaskInterface watchDogTask = QuartzCronInfo.getInstance("WATCH_DOG", "WATCH_DOG", confg.getWatchDogCron(), watchDogMap, WatchDogJob.class);
+		sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, watchDogTask);
+		if(sumbitFlag){
+			LOG.info("watch dog task sumbit complete !!!");
 		}
 	}
 	/**

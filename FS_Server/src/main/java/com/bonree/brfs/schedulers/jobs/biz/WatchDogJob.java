@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
@@ -32,18 +34,25 @@ public class WatchDogJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
+		LOG.info("watch dog do it >>>>>>>>>>>>>>");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
-		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String zkHosts = data.getString(JobDataMapConstract.ZOOKEEPER_ADDRESS);
 		String baseRoutPath = data.getString(JobDataMapConstract.BASE_ROUTE_PATH);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
+		if(BrStringUtils.isEmpty(dataPath) || BrStringUtils.isEmpty(baseRoutPath)|| BrStringUtils.isEmpty(zkHosts)) {
+			LOG.warn("config is empty !! skip watchdog");
+			return;
+		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		ServerIDManager sim = mcf.getSim();
 		ServiceManager sm = mcf.getSm();
 		Service localServer = sm.getServiceById(mcf.getGroupName(), mcf.getServerId());
 		StorageNameManager snm = mcf.getSnm();
 		List<StorageNameNode> sns = snm.getStorageNameNodeList();
-		WatchDog.searchPreys(sim, sns, zkHosts, dataPath, dataPath, -1, 3600000);
+		long preTime = System.currentTimeMillis();
+		preTime = preTime - preTime%3600000 - 3600000;
+		LOG.info("Scan {} below data !!!",TimeUtils.formatTimeStamp(preTime));
+		WatchDog.searchPreys(sim, sns, zkHosts, dataPath, dataPath, preTime, 3600000);
 	}
 
 }
