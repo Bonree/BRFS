@@ -23,9 +23,9 @@ import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.client.utils.FilePathBuilder;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.exception.BRFSException;
-import com.bonree.brfs.common.http.client.HttpClient;
-import com.bonree.brfs.common.http.client.HttpResponse;
-import com.bonree.brfs.common.http.client.URIBuilder;
+import com.bonree.brfs.common.net.http.client.HttpClient;
+import com.bonree.brfs.common.net.http.client.HttpResponse;
+import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.service.Service;
@@ -35,7 +35,6 @@ import com.bonree.brfs.common.write.data.FidDecoder;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
 public class DefaultStorageNameStick implements StorageNameStick {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageNameStick.class);
@@ -94,9 +93,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
                     headers.put("username", userName);
                     headers.put("password", passwd);
 
-                    System.out.println("client -> " + uri.toString() + ", user " + userName + ", passwd " + passwd);
                     response = client.executePost(uri, headers, ProtoStuffUtils.serialize(dataMessage));
-                    System.out.println("client response " + response.getStatusCode());
                 } catch (Exception e) {
                 	e.printStackTrace();
                     continue;

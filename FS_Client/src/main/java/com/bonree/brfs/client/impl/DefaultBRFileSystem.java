@@ -21,9 +21,9 @@ import com.bonree.brfs.client.route.ServiceSelectorManager;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.exception.BRFSException;
-import com.bonree.brfs.common.http.client.HttpClient;
-import com.bonree.brfs.common.http.client.HttpResponse;
-import com.bonree.brfs.common.http.client.URIBuilder;
+import com.bonree.brfs.common.net.http.client.HttpClient;
+import com.bonree.brfs.common.net.http.client.HttpResponse;
+import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
@@ -48,6 +48,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     private String passwd;
 
     public DefaultBRFileSystem(String zkAddresses, String cluster, String userName, String passwd) throws Exception {
+    	System.out.println("#################################start");
         client = new HttpClient();
         this.userName = userName;
     	this.passwd = passwd;
@@ -249,13 +250,13 @@ public class DefaultBRFileSystem implements BRFileSystem {
 
     @Override
     public void close() throws IOException {
-        CloseUtils.closeQuietly(client);
-        CloseUtils.closeQuietly(zkClient);
-        CloseUtils.closeQuietly(serviceSelectorManager);
-        
         for(StorageNameStick stick : stickContainer.values()) {
-        	CloseUtils.closeQuietly(stick);
+        	stick.close();
         }
+        
+        CloseUtils.closeQuietly(serviceSelectorManager);
+        CloseUtils.closeQuietly(zkClient);
+        CloseUtils.closeQuietly(client);
         
         try {
             if (serviceManager != null) {
