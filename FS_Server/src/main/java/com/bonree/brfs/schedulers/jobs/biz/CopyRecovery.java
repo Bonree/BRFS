@@ -97,6 +97,7 @@ public class CopyRecovery {
 			atomR.setSuccess(false);
 			result.setSuccess(false);
 		}
+		curatorClient.close();
 		return result;
 	}
 	/**
