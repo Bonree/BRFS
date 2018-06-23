@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 public class WriteWorker implements Runnable {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteWorker.class);
 	
-	private LinkedBlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>(64);
+	private LinkedBlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>(128);
 	
 	private volatile boolean isQuit = false;
 	
