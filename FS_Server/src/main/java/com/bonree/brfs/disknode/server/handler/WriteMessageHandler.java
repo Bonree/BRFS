@@ -94,16 +94,25 @@ public class WriteMessageHandler implements MessageHandler {
 				WriteResult result = new WriteResult();
 				result.setSequence(data.getDiskSequence());
 				
+				LOG.info(counter.report(1));
+				counter.begin();
+				
 				writer.updateSequence(data.getDiskSequence());
 				writer.write(data.getBytes());
 				
+				LOG.info(counter.report(2));
+				counter.begin();
+				
 				writerManager.flushIfNeeded(writer.getPath());
+				
+				LOG.info(counter.report(3));
+				counter.begin();
 				
 				result.setSize(data.getBytes().length);
 				results[i] = result;
 			}
 			
-			LOG.info(counter.report(1));
+			LOG.info(counter.report(4));
 			
 			return results;
 		}
