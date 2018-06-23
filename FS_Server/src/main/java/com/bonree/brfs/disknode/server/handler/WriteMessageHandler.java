@@ -65,8 +65,6 @@ public class WriteMessageHandler implements MessageHandler {
 		private Pair<RecordFileWriter, WriteWorker> binding;
 		private HandleResultCallback callback;
 		
-		private TimeCounter counter = new TimeCounter("DataWriteTask", TimeUnit.MILLISECONDS);
-		
 		public DataWriteTask(Pair<RecordFileWriter, WriteWorker> binding, HttpMessage message, HandleResultCallback callback) {
 			this.binding = binding;
 			this.message = message;
@@ -81,6 +79,9 @@ public class WriteMessageHandler implements MessageHandler {
 			
 			WriteDataList dataList = ProtoStuffUtils.deserialize(message.getContent(), WriteDataList.class);
 			WriteData[] datas = dataList.getDatas();
+			
+			LOG.info(counter.report(0));
+			counter.begin();
 			
 			results = new WriteResult[datas.length];
 			
@@ -102,15 +103,13 @@ public class WriteMessageHandler implements MessageHandler {
 				results[i] = result;
 			}
 			
-			LOG.info(counter.report(0));
+			LOG.info(counter.report(1));
 			
 			return results;
 		}
 
 		@Override
 		protected void onPostExecute(WriteResult[] result) {
-			LOG.info(counter.report(0));
-			
 			TimeCounter runCounter = new TimeCounter("postResult", TimeUnit.MILLISECONDS);
 			runCounter.begin();
 			ThreadPoolUtil.commonPool().execute(new Runnable() {
@@ -135,7 +134,6 @@ public class WriteMessageHandler implements MessageHandler {
 
 		@Override
 		protected void onFailed(Throwable e) {
-			LOG.info(counter.report(1));
 			TimeCounter runCounter = new TimeCounter("postFailed", TimeUnit.MILLISECONDS);
 			runCounter.begin();
 			

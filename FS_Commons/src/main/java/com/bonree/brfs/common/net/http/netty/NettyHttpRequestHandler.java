@@ -9,12 +9,14 @@ import io.netty.util.CharsetUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
+import com.bonree.brfs.common.timer.TimeCounter;
 
 /**
  * Netty实现的Http请求处理接口
@@ -39,6 +41,9 @@ public class NettyHttpRequestHandler {
 			ResponseSender.sendError(ctx, HttpResponseStatus.METHOD_NOT_ALLOWED, HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase());
 			return;
 		}
+		
+		TimeCounter counter = new TimeCounter("request_handle_" + handler.getClass().getName(), TimeUnit.MILLISECONDS);
+		counter.begin();
 		
 		QueryStringDecoder decoder = new QueryStringDecoder(request.uri(), CharsetUtil.UTF_8, true);
 		
@@ -68,13 +73,21 @@ public class NettyHttpRequestHandler {
 		};
 		
 		try {
+			LOG.info(counter.report(0));
+			counter.begin();
 			if(!handler.isValidRequest(message)) {
 				LOG.error("Exception context[{}] method[{}] invalid request message[{}]", ctx.toString(), message.getPath());
 				ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST, HttpResponseStatus.BAD_REQUEST.reasonPhrase());
 				return;
 			}
 			
+			LOG.info(counter.report(1));
+			counter.begin();
+			
 			handler.handle(message, new DefaultNettyHandleResultCallback(ctx));
+			
+			LOG.info(counter.report(0));
+			counter.begin();
 		} catch (Exception e) {
 			LOG.error("message handle error", e);
 			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toString());
