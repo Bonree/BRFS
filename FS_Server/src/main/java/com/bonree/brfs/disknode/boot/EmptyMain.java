@@ -85,7 +85,7 @@ public class EmptyMain implements LifeCycle {
 		httpConfig.setBacklog(1024);
 		server = new NettyHttpServer(httpConfig);
 		
-		requestHandlerExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new PooledThreadFactory("request_common"));
+		requestHandlerExecutor = Executors.newFixedThreadPool(1, new PooledThreadFactory("request_common"));
 		
 		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
 		requestHandler.addMessageHandler("PUT", new OpenMessageHandler(diskContext, writerManager, requestHandlerExecutor));
