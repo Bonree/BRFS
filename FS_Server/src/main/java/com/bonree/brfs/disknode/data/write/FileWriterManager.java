@@ -41,7 +41,7 @@ public class FileWriterManager implements LifeCycle {
 	private RecordCollectionManager recorderManager;
 
 	private static int DEFAULT_RECORD_BUFFER_SIZE = 1024;
-	private static int DEFAULT_FILE_BUFFER_SIZE = 512 * 1024;
+	private static int DEFAULT_FILE_BUFFER_SIZE = 64 * 1024;
 
 	private ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
