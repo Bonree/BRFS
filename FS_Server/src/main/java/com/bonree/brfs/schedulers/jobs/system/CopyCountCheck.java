@@ -303,11 +303,11 @@ public class CopyCountCheck {
 			count = sn.getReplicateCount();
 			snName = sn.getName();
 			if(count == 1){
-				LOG.debug("<filterSn> sn {} {} skip",snName,count);
+				LOG.info("<filterSn> sn {} {} skip",snName,count);
 				continue;
 			}
 			if(count >size){
-				LOG.debug("<filterSn> sn {} {} {} skip",snName,count, size);
+				LOG.info("<filterSn> sn {} {} {} skip",snName,count, size);
 				continue;
 			}
 			filters.add(sn);
