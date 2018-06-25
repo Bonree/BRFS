@@ -65,8 +65,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		long granule = 3600000L;
 		long currentTime = System.currentTimeMillis();
 		long lGraDay = currentTime - currentTime % 86400000L;
-		long sGraDay = lGraDay - day * 604800000L;
-
+		long sGraDay = lGraDay - day * 86400000L;
 		List<StorageNameNode> needSns = CopyCountCheck.filterSn(snList, services.size());
 		if(needSns == null|| needSns.isEmpty()) {
 			LOG.warn("no storagename need check copy count ! ");
@@ -74,6 +73,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		}
 		//修复时间
 		Map sourceTimes = CopyCountCheck.repairTime(null, needSns, granule, 0);
+		LOG.info("scan time begin :{}, end :{}, day:{}",TimeUtils.formatTimeStamp(sGraDay),TimeUtils.formatTimeStamp(lGraDay),day);
 		for (long startTime = sGraDay; startTime <= lGraDay; startTime += granule) {
 			sourceTimes = fixTimes(snList, startTime,granule);
 			if(sourceTimes == null|| sourceTimes.isEmpty()) {
@@ -118,7 +118,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 	 */
 	public void createSingleTask(MetaTaskManagerInterface release, List<StorageNameNode> needSns, List<Service> services, TaskType taskType, Map<String, Long> sourceTimes, long granule) {
 		Map losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, granule);
-		Pair pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, taskType, "0", granule, 0L);
+		Pair pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, taskType, CopyCheckJob.RECOVERY_NUM, granule, 0L);
 		if (pair == null) {
 			LOG.warn("create pair is empty !!!!");
 			return;

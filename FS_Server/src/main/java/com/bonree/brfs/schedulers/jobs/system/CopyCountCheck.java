@@ -169,7 +169,7 @@ public class CopyCountCheck {
 						LOG.debug("<collectionSnFiles> path :{}",path);
 						strs = getFileList(client, path);
 						if(strs == null || strs.isEmpty()) {
-							LOG.warn("<collectionSnFiles> files is empty {}", path);
+							LOG.debug("<collectionSnFiles> files is empty {}", path);
 							continue;
 						}
 						LOG.debug("Collection dirName :{},{} size :{}",dirName,path, strs.size());

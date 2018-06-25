@@ -155,7 +155,7 @@ public class CreateSystemTask {
 		if(sumAtoms == null || sumAtoms.isEmpty()) {
 			return new Pair<TaskModel,Map<String,Long>>(null, lastSnTimes);
 		}
-		TaskModel task = TaskModel.getInitInstance(taskType, "");
+		TaskModel task = TaskModel.getInitInstance(taskType, "1");
 		task.putAtom(sumAtoms);
 		return new Pair<TaskModel,Map<String,Long>>(task,lastSnTimes);
 	}

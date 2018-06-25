@@ -45,6 +45,8 @@ import ch.qos.logback.classic.net.SyslogAppender;
 
 public class CopyCheckJob extends QuartzOperationStateTask{
 	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
+	public static final String RECOVERY_NUM = "1";
+	public static final String RECOVERY_CRC = "0";
 	@Override
 	public void caughtException(JobExecutionContext context) {
 		LOG.error("Create Task error !! {}",TaskType.SYSTEM_COPY_CHECK.name());
@@ -100,7 +102,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		sourceTimes = CopyCountCheck.repairTime(sourceTimes, needSns, 3600000,time);
 		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, 3600000);
 		
-		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, "RECOVERY", 3600000, time);
+		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, RECOVERY_NUM, 3600000, time);
 		if(pair == null) {
 			LOG.warn("create pair is empty !!!!");
 			return;
@@ -155,7 +157,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		sourceTimes = CopyCountCheck.repairTime(sourceTimes, needSns, 3600000,time);
 		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, 3600000);
 		
-		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, "RECOVERY", 3600000, time);
+		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, RECOVERY_NUM, 3600000, time);
 		if(pair == null) {
 			LOG.warn("create pair is empty !!!!");
 			return null;
