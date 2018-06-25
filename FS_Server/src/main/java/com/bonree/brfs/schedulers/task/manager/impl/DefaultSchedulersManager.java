@@ -46,7 +46,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return pool.addTask(task);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("{},{},{}",taskpoolkey,task.getClassInstanceName(),e);
 			return false;
 		}
 	}
