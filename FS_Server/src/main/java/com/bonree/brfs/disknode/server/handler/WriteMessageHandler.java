@@ -74,14 +74,9 @@ public class WriteMessageHandler implements MessageHandler {
 		@Override
 		protected WriteResult[] execute() throws Exception {
 			LOG.info("start writing...");
-			TimeCounter counter = new TimeCounter("write_data", TimeUnit.MILLISECONDS);
-			counter.begin();
 			
 			WriteDataList dataList = ProtoStuffUtils.deserialize(message.getContent(), WriteDataList.class);
 			WriteData[] datas = dataList.getDatas();
-			
-			LOG.info(counter.report(0));
-			counter.begin();
 			
 			results = new WriteResult[datas.length];
 			
@@ -94,33 +89,20 @@ public class WriteMessageHandler implements MessageHandler {
 				WriteResult result = new WriteResult();
 				result.setSequence(data.getDiskSequence());
 				
-				LOG.info(counter.report(1));
-				counter.begin();
-				
 				writer.updateSequence(data.getDiskSequence());
 				writer.write(data.getBytes());
 				
-				LOG.info(counter.report(2));
-				counter.begin();
-				
 				writerManager.flushIfNeeded(writer.getPath());
-				
-				LOG.info(counter.report(3));
-				counter.begin();
 				
 				result.setSize(data.getBytes().length);
 				results[i] = result;
 			}
-			
-			LOG.info(counter.report(4));
 			
 			return results;
 		}
 
 		@Override
 		protected void onPostExecute(WriteResult[] result) {
-			TimeCounter runCounter = new TimeCounter("postResult", TimeUnit.MILLISECONDS);
-			runCounter.begin();
 			ThreadPoolUtil.commonPool().execute(new Runnable() {
 				
 				@Override
@@ -136,16 +118,12 @@ public class WriteMessageHandler implements MessageHandler {
 					}
 					
 					callback.completed(handleResult);
-					LOG.info(runCounter.report(0));
 				}
 			});
 		}
 
 		@Override
 		protected void onFailed(Throwable e) {
-			TimeCounter runCounter = new TimeCounter("postFailed", TimeUnit.MILLISECONDS);
-			runCounter.begin();
-			
 			ThreadPoolUtil.commonPool().execute(new Runnable() {
 				
 				@Override
@@ -161,7 +139,6 @@ public class WriteMessageHandler implements MessageHandler {
 					}
 					
 					callback.completed(handleResult);
-					LOG.info(runCounter.report(0));
 				}
 			});
 		}
