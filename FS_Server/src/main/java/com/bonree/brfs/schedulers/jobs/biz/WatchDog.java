@@ -1,5 +1,6 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
+import com.bonree.brfs.schedulers.jobs.system.CopyCountCheck;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*****************************************************************************
@@ -66,12 +68,13 @@ public class WatchDog{
 				LOG.info("<searchPreys> SKip search data because there is one");
 				return;
 			}
+			snId = sn.getId();
+			LOG.info(" watch dog eat {} :{}", sn.getName(),sn.getId());
 			parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
 			// 单个副本的不做检查
 			if(sn.getReplicateCount()<=1) {
 				continue;
 			}
-			snId = sn.getId();
 			// 收集sn文件信息
 			files = collectFood(dataPath, sn, limitTime, granule);
 			// 找到多余的文件 猎物
@@ -154,5 +157,5 @@ public class WatchDog{
 			foods.putAll(part);
 		}
 		return foods;
-	}	
+	}
 }

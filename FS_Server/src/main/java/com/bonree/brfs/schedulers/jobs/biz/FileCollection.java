@@ -15,6 +15,7 @@ import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
+import com.bonree.brfs.schedulers.jobs.system.CopyCountCheck;
 import com.bonree.brfs.server.identification.ServerIDManager;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -66,6 +67,7 @@ public class FileCollection {
 				continue;
 			}
 			parts = FileUtils.listFileNames(tmpPath);
+			parts = filterRD(parts);
 			if(parts == null || parts.isEmpty()) {
 				continue;
 			}
@@ -91,6 +93,7 @@ public class FileCollection {
 		List<String> secondIds = null;
 		List<String> files = null;
 		String path = null;
+		LOG.debug("watch dog eat {} second id{}",snId,secondLocalId);
 		for(Map.Entry<String, List<String>> entry : dirFiles.entrySet()) {
 			path = entry.getKey();
 			files = entry.getValue();
@@ -101,6 +104,7 @@ public class FileCollection {
 			for(String file : files) {
 				// 1.解析文件名对应目前的二级serverId
 				secondIds = analyseServices(file, parser);
+				LOG.debug("watch dog eat file:{}, secondId :{},alive:{} ",file, secondLocalId,secondIds);
 				if(crimeFile(secondIds, secondLocalId)) {
 					crimers.add(path + "/" +file);
 				}
@@ -136,9 +140,31 @@ public class FileCollection {
 		if(tmps == null || tmps.length <= 1) {
 			return snIds;
 		}
-		for(int i = 1 ; i < tmps.length; i++) {
+		for(int i = 0 ; i < tmps.length; i++) {
 			snIds.add(tmps[i]);
 		}
 		return snIds;
+	}
+	/***
+	 * 概述：过滤rd文件
+	 * @param part
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	private static List<String> filterRD(final List<String> part){
+		List<String> filters = new ArrayList<String>();
+		if(part == null || part.isEmpty()) {
+			return null;
+		}
+		String fileName = null;
+		for(String file : part) {
+			if(file.indexOf(".rd") < 0) {
+				continue;
+			}
+			fileName = file.substring(0, file.indexOf(".rd"));
+			filters.add(fileName);
+		}
+		
+		return CopyCountCheck.filterRd(part, filters);
 	}
 }

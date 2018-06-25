@@ -37,7 +37,7 @@ import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
  *****************************************************************************
  */
 public class SystemCheckJob extends QuartzOperationStateWithZKTask {
-	private static final Logger LOG = LoggerFactory.getLogger("SystemDeleteJob");
+	private static final Logger LOG = LoggerFactory.getLogger("SystemCheckJob");
 	@Override
 	public void caughtException(JobExecutionContext context) {
 		LOG.info("Error ......   ");
@@ -157,7 +157,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		result.add(atomR);
 		return result;
 	}
-	private boolean checkCompleted(String path) {
+	public static boolean checkCompleted(String path) {
 		CRC32 crc32 = new CRC32();
 		
 		RandomAccessFile file = null;
@@ -167,7 +167,11 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 			file.skipBytes(2);
 		
 			int length = (int) (file.length() - 9);
-			
+			System.out.println(length);
+			if(length <0) {
+				return false;
+			}
+			System.out.println(file.getFilePointer());
 			byte[] buf = new byte[8096];
 			int read = -1;
 			while((read = file.read(buf, 0, length)) != -1) {
