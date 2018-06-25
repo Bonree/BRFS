@@ -161,7 +161,6 @@ public class ResourceTaskConfig {
 	private double limitNetRxRate = 0.9;
 	private long createCheckJobTaskervalTime = 60;
 	private long checkTtl = 24 * 60 * 60;
-	private long globalSnTtl = 24 * 60 * 60;
 	
 	private String checkCronStr = "0 30 2 * * ?";
 	private int checkTimeRange = 7;
@@ -287,10 +286,6 @@ public class ResourceTaskConfig {
 		long checkTtl = Long.valueOf(checkTtlStr) * 1000;
 		conf.setCheckTtl(checkTtl);
 
-		String snttlstr = config.getProperty(Configuration.STORAGE_DATA_TTL, "1");
-		long snttl = Long.valueOf(snttlstr);
-		conf.setGlobalSnTtl(snttl * 24 * 60 * 60);
-		
 		String content = config.getProperty("cycle.check.copy.count.time", "2:30");
 	    
 	    String cronStr = analyseCronStr(content, 0);
@@ -350,7 +345,6 @@ public class ResourceTaskConfig {
 		LOG.info("{}:{} ms", CREATE_TASK_INTERVAL_TIME, this.createTaskIntervalTime);
 		LOG.info("{}:{} ms", GATHER_RESOURCE_INVERAL_TIME, this.gatherResourceInveralTime);
 		LOG.info("{}:{} d", TASK_EXPIRED_TIME, this.taskExpiredTime / 1000 / 60 / 60 / 24);
-		LOG.info("{}:{} s", Configuration.STORAGE_DATA_TTL, this.globalSnTtl);
 		LOG.info("{}:{}", RESOURCE_LIB_PATH, this.libPath);
 		LOG.info("{}:{}", LIMIT_RESOURCE_VALUE_NET_RX, this.limitNetRxRate);
 		LOG.info("{}:{}", LIMIT_RESOURCE_VALUE_NET_TX, this.limitNetTxRate);
@@ -535,14 +529,6 @@ public class ResourceTaskConfig {
 
 	public void setCheckTtl(long checkTtl) {
 		this.checkTtl = checkTtl;
-	}
-
-	public long getGlobalSnTtl() {
-		return globalSnTtl;
-	}
-
-	public void setGlobalSnTtl(long globalSnTtl) {
-		this.globalSnTtl = globalSnTtl;
 	}
 
 	public String getCheckCronStr() {

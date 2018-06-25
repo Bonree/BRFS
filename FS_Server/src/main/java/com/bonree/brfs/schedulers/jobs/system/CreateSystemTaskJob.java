@@ -49,7 +49,6 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		//判断是否有恢复任务，有恢复任务则不进行创建
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL);
-		long gsnTtl = data.getLong(JobDataMapConstract.GLOBAL_SN_DATA_TTL);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		// 获取开启的任务名称
