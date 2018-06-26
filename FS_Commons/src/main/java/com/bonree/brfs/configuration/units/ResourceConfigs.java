@@ -40,10 +40,10 @@ public final class ResourceConfigs {
 			ConfigUnit.ofInt("user.delete.pool.size", 1);
 	
 	public static final ConfigUnit<Long> CONFIG_TASK_CREATE_INTERVAL =
-			ConfigUnit.ofLong("system.create.task.inverval.time", 60l);
+			ConfigUnit.ofLong("system.create.task.inverval.time", 60);
 	
 	public static final ConfigUnit<Long> CONFIG_COPY_CHECK_CREATE_INTERVAL =
-			ConfigUnit.ofLong("system.copy.check.create.inveratal.time", 60l);
+			ConfigUnit.ofLong("system.copy.check.create.inveratal.time", 60);
 	
 	public static final ConfigUnit<Long> CONFIG_TASK_EXECUTE_INTERVAL =
 			ConfigUnit.ofLong("execute.task.inverval.time", 60l);
@@ -85,7 +85,7 @@ public final class ResourceConfigs {
 			ConfigUnit.ofDouble("limit.resource.value.netrspeedrate", 0.9);
 	
 	public static final ConfigUnit<Long> CONFIG_DATA_CHECK_TTL =
-			ConfigUnit.ofLong("system.check.data.ttl", 3600l);
+			ConfigUnit.ofLong("system.check.data.ttl", 3600);
 	
 	public static final ConfigUnit<String> CONFIG_SCHED_COPY_CHECK_CLOCK =
 			ConfigUnit.ofString("cycle.check.copy.count.time", "2:30");

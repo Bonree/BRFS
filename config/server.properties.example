@@ -1,0 +1,215 @@
+###############################################
+#############Common config#####################
+###############################################
+
+# 机器集群名
+cluster.name = cluster_name
+
+# Zookeeper地址
+zookeeper.addresses = ip1:2181,ip2:2181
+
+###############################################
+##############副本节点 Config###################
+###############################################
+
+# 副本节点服务地址
+duplicatenode.service.host = localhost
+
+# 副本节点服务端口
+duplicatenode.service.port = 8880
+
+# 副本节点服务群组名
+#duplicatenode.service.group = duplicate_group
+
+# 虚拟服务所属组名
+#duplicatenode.virtual.service.group = virtual_group
+
+# 副本节点日志文件夹
+duplicatenode.log.dir = /var/brfs/duplicatenode
+
+# 磁盘文件的容量（字节）
+#duplicatenode.file.capacity = 6815744
+
+# 文件清理程序的执行周期（秒）
+#duplicatenode.file.clean.interval.seconds = 30
+
+# 需要进行文件清理的文件个数
+# 副本节点中维护的文件数量超过此值，文件清理程序
+# 才会进行文件清理
+#duplicatenode.file.clean.count = 10
+
+# 文件可以被清理的字节下限
+# 文件清理程序只会清理文件空间使用比率大于此值的文件
+#duplicatenode.file.clean.usage.rate = 0.99
+
+# 文件会被按照时间存储到不同的文件夹下，每个文件夹会包含此值
+# 所指定的时间间隔内的所有文件
+# 单位（分钟）
+#duplicatenode.file.patition.interval.minutes = 60
+
+# 副本节点能同时写文件的个数
+# 这个值不是限定副本节点中管理的文件个数，而是同一时刻
+# 能同时对多少个文件进行写入操作
+# 程序默认值为机器的CPU核数
+#duplicatenode.writer.concurrent.file.num = 8
+
+# 副本节点向磁盘节点写数据的线程数
+#duplicatenode.writer.worker.num = 24
+
+# 副本节点中写数据时处理磁盘节点返回结果的线程数
+#duplicatenode.writer.result.handler.num = 5
+
+###############################################
+##############磁盘节点 Config###################
+###############################################
+# 磁盘节点的服务地址
+disknode.service.host = localhost
+
+# 磁盘节点的服务端口
+disknode.service.port = 8881
+
+# 磁盘节点服务所在的服务组
+disknode.service.group = disk_group
+
+# 磁盘节点保存数据文件的目录路径
+disknode.data.root = /data
+
+# 磁盘节点处理数据写入的线程数
+# 默认为机器CPU核数
+disknode.writer.worker.num = 8
+
+# 数据文件的写入缓存
+# 单位（字节）
+disknode.writer.data.cache = 524288
+
+# 数据写入记录的缓存大小
+disknode.writer.record.cache = 65536
+
+# 文件的空闲时间
+# 如果文件空闲时间超过此值，则会把缓存中的内容刷入磁盘
+disknode.file.idle.timeout.seconds = 3
+
+###############################################
+##############文件平衡模块 Config################
+###############################################
+# 虚拟服务文件的迁移触发时间（秒）
+# -1为立即触发
+#rebalance.virtual.recover.time = 3600
+
+# 磁盘节点异常的迁移触发时间（秒）
+# -1为立即触发
+#rebalance.serverdown.recover.time = 3600
+
+###############################################
+##############Storage Config###################
+###############################################
+# Storage中文件的有效期
+# 单位（天）
+# -1为有效期无穷大
+#storage.data.ttl = 30
+
+# Storage中文件的副本数
+#storage.replicate.count = 2
+
+###############################################
+##############资源管理模块 Config################
+###############################################
+# 任务开关 true 开  false 关，当为false时，将不会创建相应的线程池
+# 系统删除任务开关
+#system.delete.pool.switch = true
+
+# 任务线程池大小设置，当任务开关为true，但是设置的值小于0 则为默认值
+# 系统删除任务线程池设置
+#system.delete.pool.size = 1
+
+# 系统归并任务开关
+#system.merge.pool.switch = false
+
+# 系统归并任务线程池设置
+#system.merge.pool.size = 1
+
+# 系统校验任务开关
+#system.check.pool.switch = false
+
+# 系统校验任务线程池设置
+#system.check.pool.size = 1
+
+# 系统副本恢复任务开关
+#system.recovery.pool.switch = false
+
+# 系统副本恢复任务线程池设置
+#system.recovery.pool.size = 1
+
+# 副本校验任务开关
+#system.copy.pool.switch = false
+
+# 副本校验线程池大小
+#system.copy.pool.size = 1
+
+# 用户删除任务开关
+#user.delete.pool.switch = true
+
+# 用户删除任务线程池设置
+#user.delete.pool.size = 1
+
+# 系统任务创建时间间隔 单位s
+#system.create.task.inverval.time = 60
+
+#副本校验任务执行的时间间隔 单位s
+#system.copy.check.create.inveratal.time = 60
+
+# 执行任务的时间间隔 单位s
+#execute.task.inverval.time = 60
+
+# 资源采集的时间间隔 单位s
+#gather.resource.inveral.time = 60
+
+# 当有N个采样点时，计算资源值，最小值为2
+#calc.resource.value.count = 5
+
+# 任务管理信息
+# 任务总体控制开关
+#task.framework.switch = true
+
+#资源采集功能控制开关
+#resource.framework.switch = true
+
+# 任务信息保留时长，单位s
+#task.expired.time = 680400
+
+#资源限制
+#资源限制 cpu使用率
+#limit.resource.value.cpurate = 0.9
+
+#资源限制 内存使用率
+#limit.resource.value.memoryrate = 0.9
+
+#资源限制 磁盘剩余率
+#limit.resource.value.disakremainrate = 0.01
+
+#资源限制 磁盘写入率
+#limit.resource.value.diskwritespeedrate = 0.9
+
+#资源限制 磁盘读取率
+#limit.resource.value.diskreadspeedrate = 0.9
+
+#资源限制 网卡发送率
+#limit.resource.value.nettspeedrate = 0.9
+
+#资源限制 网卡接收率
+#limit.resource.value.netrspeedrate = 0.9
+
+# 对过多久的数据检查 单位s
+#system.check.data.ttl = 3600
+
+# 周期检查副本数的触发时刻，格式为24小时格式 HH:MM 默认为 02:30
+#cycle.check.copy.count.time = 2:30
+
+# 周期检查副本数的时间范围，单位天
+#cycle.check.copy.count.time.range = 7
+
+# 周期清理多余文件的触发时刻，格式为24小时格式 HH:MM 默认为 02:30
+#watchdog.trigger.time = 2:30
+
+# 周期清理多余文件的时间间隔，单位天
+#watch.dog.trigger.interval = 7
