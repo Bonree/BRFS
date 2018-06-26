@@ -27,8 +27,6 @@ do
   CP=$CP:$BRFS_HOME/libs/$file
 done
 
-echo $CP
-
 ###################配置文件信息########################
 #日志配置文件
 LOG_CONFIG=$BRFS_HOME/config/logback.xml
@@ -56,13 +54,6 @@ JVM_PARAMS=`cat $BRFS_HOME/config/jvm.config`
 
 #资源管理lib路径
 RESOURCE_LIB_PATH=$BRFS_HOME/lib
-
-#副本管理入口
-DUPLICATION_MAIN_CLASS=com.bonree.brfs.duplication.BootStrap
-#磁盘管理入口
-DISK_MAIN_CLASS=com.bonree.brfs.server.ServerMain
-
-set -x
 
 case $1 in
 		###启动副本管理###
