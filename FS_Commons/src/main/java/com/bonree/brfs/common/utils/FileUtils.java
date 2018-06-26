@@ -118,44 +118,6 @@ public class FileUtils {
         return lines;
     }
 
-    public static void writeFileFromList(String fileName, List<String> contents) {
-        File file = new File(fileName);
-        if (file.isDirectory()) {
-            throw new IllegalArgumentException("fileName not is directory");
-        }
-        OutputStreamWriter writer = null;
-        BufferedWriter bw = null;
-        try {
-            writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
-            bw = new BufferedWriter(writer);
-            for (String record : contents) {
-                bw.write(record + "\n");
-            }
-            bw.flush();
-        } catch (UnsupportedEncodingException e) {
-            LOG.error("not supported Encoding:", e);
-        } catch (FileNotFoundException e) {
-            LOG.error("file not found:", e);
-        } catch (IOException e) {
-            LOG.error("write error:", e);
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
-                    LOG.error("close bw error:", e);
-                }
-            }
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    LOG.error("close writer error:", e);
-                }
-            }
-        }
-    }
-
     public static List<String> listFileNames(String dir) {
         File file = new File(dir);
         String[] files = file.list();

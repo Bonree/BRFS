@@ -17,7 +17,8 @@ import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
@@ -32,11 +33,9 @@ public class DeleteDataMessageHandler implements MessageHandler {
 	
 	private ServiceManager serviceManager;
 	private StorageNameManager storageNameManager;
-	private ServerConfig serverConfig;
 	private ZookeeperPaths zkPaths;
 	
-	public DeleteDataMessageHandler(ServerConfig serverConfig,ZookeeperPaths zkPaths,ServiceManager serviceManager, StorageNameManager storageNameManager) {
-		this.serverConfig = serverConfig;
+	public DeleteDataMessageHandler(ZookeeperPaths zkPaths,ServiceManager serviceManager, StorageNameManager storageNameManager) {
 		this.zkPaths = zkPaths;
 	    this.serviceManager = serviceManager;
 		this.storageNameManager = storageNameManager;
@@ -81,9 +80,9 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		}
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
 		
-		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
 
-        code = TasksUtils.createUserDeleteTask(serviceList, serverConfig, zkPaths, sn, startTime, endTime);
+        code = TasksUtils.createUserDeleteTask(serviceList, zkPaths, sn, startTime, endTime);
         
 		result.setSuccess(ReturnCode.SUCCESS.equals(code));
 		result.setData(BrStringUtils.toUtf8Bytes(code.name()));

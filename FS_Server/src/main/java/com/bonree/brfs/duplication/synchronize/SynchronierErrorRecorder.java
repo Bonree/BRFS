@@ -30,7 +30,7 @@ public class SynchronierErrorRecorder {
 			StringBuilder builder = new StringBuilder();
 			builder.append(TimeUtils.formatTimeStamp(fileNode.getCreateTime())).append(FIELD_SEPARATOR)
 			       .append(fileNode.getStorageName()).append(FIELD_SEPARATOR)
-			       .append(fileNode.getName()).append("\n");
+			       .append(fileNode.getName()).append(System.getProperty("line.separator"));
 			
 			output.write(BrStringUtils.toUtf8Bytes(builder.toString()));
 		} catch (IOException e) {

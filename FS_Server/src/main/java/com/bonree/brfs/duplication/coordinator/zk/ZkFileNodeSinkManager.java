@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FileNodeSink;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkManager;
@@ -61,13 +62,13 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 
 		// 监听副本管理服务的状态
 		serviceManager.addServiceStateListener(
-				ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, distributor);
+				Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_SERVICE_GROUP_NAME), distributor);
 	}
 
 	@Override
 	public void stop() throws Exception {
 		serviceManager.removeServiceStateListener(
-				ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, distributor);
+				Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_SERVICE_GROUP_NAME), distributor);
 		selector.close();
 		threadPool.shutdown();
 	}

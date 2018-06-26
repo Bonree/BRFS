@@ -21,7 +21,8 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
@@ -281,7 +282,7 @@ public class VirtualRecover implements DataRecover {
                             boolean success = false;
                             LOG.info("transfer :" + fileRecover);
                             String firstID = fileRecover.getFirstServerID();
-                            Service service = serviceManager.getServiceById(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, firstID);
+                            Service service = serviceManager.getServiceById(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), firstID);
                             while (true) {
 
                                 // if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {

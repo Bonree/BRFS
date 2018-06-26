@@ -21,8 +21,10 @@ import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
@@ -37,7 +39,6 @@ import com.bonree.brfs.schedulers.jobs.biz.WatchDogJob;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.jobs.resource.AsynJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
-import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.jobs.system.OperationTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
@@ -50,8 +51,6 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzCronInfo;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
-import com.bonree.brfs.schedulers.task.model.TaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
@@ -70,12 +69,11 @@ public class InitTaskManager {
 	 * @throws ParamsErrorException 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void initManager(ServerConfig serverConfig,ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageNameManager snm, ServerIDManager sim) throws Exception {
-		managerConfig.printDetail();
+	public static void initManager(ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageNameManager snm, ServerIDManager sim) throws Exception {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
 		mcf.setServerId(serverId);
-		mcf.setGroupName(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		mcf.setGroupName(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
 		
 		// 工厂类添加服务管理
 		mcf.setSm(sm);
@@ -93,7 +91,8 @@ public class InitTaskManager {
 		
 		// 工厂类添加发布接口
 		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
-		release.setPropreties(serverConfig.getZkHosts(), zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
+		String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+		release.setPropreties(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
 		mcf.setTm(release);
 		// 工厂类添加任务可执行接口
 		RunnableTaskInterface run = DefaultRunnableTask.getInstance();
@@ -111,7 +110,7 @@ public class InitTaskManager {
 		// 创建任务线程池
 		if (managerConfig.isTaskFrameWorkSwitch()) {
 			// 1.创建任务管理服务
-			createMetaTaskManager(manager, zkPath, managerConfig, serverConfig, serverId);
+			createMetaTaskManager(manager, zkPath, managerConfig, serverId);
 			// 2.启动任务线程池
 			List<TaskType> tasks = managerConfig.getSwitchOnTaskType();
 			if(tasks == null || tasks.isEmpty()){
@@ -119,17 +118,21 @@ public class InitTaskManager {
 			}
 			createAndStartThreadPool(manager, managerConfig);
 			if(tasks.contains(TaskType.SYSTEM_COPY_CHECK)){
-				SumbitTaskInterface copyJob = createCopySimpleTask(managerConfig.getExecuteTaskIntervalTime(), TaskType.SYSTEM_COPY_CHECK.name(), serverId, CopyRecoveryJob.class.getCanonicalName(), serverConfig.getZkHosts(), zkPath.getBaseRoutePath(),serverConfig.getDataPath());
+				SumbitTaskInterface copyJob = createCopySimpleTask(managerConfig.getExecuteTaskIntervalTime(),
+						TaskType.SYSTEM_COPY_CHECK.name(), serverId,
+						CopyRecoveryJob.class.getCanonicalName(), zkAddresses,
+						zkPath.getBaseRoutePath(),
+						Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
 				manager.addTask(TaskType.SYSTEM_COPY_CHECK.name(), copyJob);
 			}
 			mcf.setTaskOn(tasks);
 			//3.创建执行任务线程池
-			createOperationPool(serverConfig, managerConfig,zkPath, tasks, true);
+			createOperationPool(managerConfig,zkPath, tasks, true);
 		}
 		
 		if(managerConfig.isResourceFrameWorkSwitch()){
 			// 创建资源调度服务
-			createResourceManager(manager, zkPath, managerConfig, serverConfig);
+			createResourceManager(manager, zkPath, managerConfig);
 		}
 	}
 	/**
@@ -141,10 +144,11 @@ public class InitTaskManager {
 	 * @throws Exception 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config, ServerConfig serverConfig,String serverId) throws Exception{
-		MetaTaskLeaderManager leader = new MetaTaskLeaderManager(manager, config,serverConfig);
+	public static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config,String serverId) throws Exception{
+		MetaTaskLeaderManager leader = new MetaTaskLeaderManager(manager, config);
 		RetryPolicy retryPolicy = new RetryNTimes(3, 1000);
-		CuratorFramework client = CuratorFrameworkFactory.newClient(serverConfig.getZkHosts(), retryPolicy);
+		String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+		CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddresses, retryPolicy);
 		client.start();
 		leaderLatch = new LeaderLatch(client, zkPaths.getBaseLocksPath() + "/TaskManager/MetaTaskLeaderLock", serverId);
 		leaderLatch.addListener(leader);
@@ -158,7 +162,7 @@ public class InitTaskManager {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static void createOperationPool(ServerConfig server, ResourceTaskConfig confg, ZookeeperPaths zkPath, List<TaskType> switchList, boolean isReboot) throws Exception{
+	private static void createOperationPool(ResourceTaskConfig confg, ZookeeperPaths zkPath, List<TaskType> switchList, boolean isReboot) throws Exception{
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		SchedulerManagerInterface manager = mcf.getStm();
 		MetaTaskManagerInterface release = mcf.getTm();
@@ -183,19 +187,22 @@ public class InitTaskManager {
 			switchMap = recoveryTask(switchList, release, serverId);
 			LOG.info("========================================================================================");
 		}
-		dataMap = JobDataMapConstract.createRebootTaskOpertionDataMap(server.getDataPath(), switchMap);
+		dataMap = JobDataMapConstract.createRebootTaskOpertionDataMap(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT), switchMap);
 		SumbitTaskInterface task = QuartzSimpleInfo.createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, dataMap, OperationTaskJob.class);
 		boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
 		if(sumbitFlag){
 			LOG.info("operation task sumbit complete !!!");
 		}
-		Map<String,String>watchMap = JobDataMapConstract.createWatchJobMap(server.getZkHosts());
+		
+		String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+		Map<String,String>watchMap = JobDataMapConstract.createWatchJobMap(zkAddresses);
 		SumbitTaskInterface watchJob = QuartzSimpleInfo.createCycleTaskInfo("WATCH_TASK", 5000, -1, watchMap, WatchSomeThingJob.class);
 		sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, watchJob);
 		if(sumbitFlag){
 			LOG.info("watch task sumbit complete !!!");
 		}
-		Map<String,String> watchDogMap = JobDataMapConstract.createWatchDogDataMap(server.getZkHosts(), zkPath.getBaseRoutePath(), server.getDataPath());
+		Map<String,String> watchDogMap = JobDataMapConstract.createWatchDogDataMap(zkAddresses, zkPath.getBaseRoutePath(),
+				Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
 		LOG.info("watch dog map {}",watchDogMap);
 		if(watchDogMap == null|| watchDogMap.isEmpty()) {
 			System.exit(1);
@@ -291,17 +298,17 @@ public class InitTaskManager {
 	 * @throws Exception 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static void createResourceManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config, ServerConfig serverConfig) throws Exception{
+	private static void createResourceManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config) throws Exception{
 		// 1.引入第三方lib库，资源采集时需要用到
 		LibUtils.loadLibraryPath(config.getLibPath());
 		// 2.采集基本信息上传到 zk
 		ServiceManager sm = ManagerContralFactory.getInstance().getSm();
 		String serverId = ManagerContralFactory.getInstance().getServerId();
-		BaseMetaServerModel base = GatherResource.gatherBase(serverId, serverConfig.getDataPath());
+		BaseMetaServerModel base = GatherResource.gatherBase(serverId, Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
 		ServerModel smodel = new ServerModel();
 		smodel.setBase(base);
 		String str = JsonUtils.toJsonString(smodel);
-		sm.updateService(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, serverId, str);
+		sm.updateService(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), serverId, str);
 		
 		// 3.创建资源采集线程池
 		Properties  prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);
@@ -311,14 +318,14 @@ public class InitTaskManager {
 			LOG.error("{} start fail !!!", RESOURCE_MANAGER);
 		}
 		// 4.创建采集任务信息
-		Map<String, String> gatherMap = JobDataMapConstract.createGatherResourceDataMap(serverConfig, config, serverId);
+		Map<String, String> gatherMap = JobDataMapConstract.createGatherResourceDataMap(config, serverId);
 		SumbitTaskInterface gatherInterface = QuartzSimpleInfo.createCycleTaskInfo(GatherResourceJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, gatherMap, GatherResourceJob.class);
 		boolean taskFlag = manager.addTask(RESOURCE_MANAGER, gatherInterface);
 		if(!taskFlag){
 			LOG.error("sumbit gather job fail !!!");
 		}
 		// 2.创建同步信息
-		Map<String,String> syncMap = JobDataMapConstract.createAsynResourceDataMap(serverConfig, config);
+		Map<String,String> syncMap = JobDataMapConstract.createAsynResourceDataMap(config);
 		SumbitTaskInterface syncInterface = QuartzSimpleInfo.createCycleTaskInfo(AsynJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, syncMap, AsynJob.class);
 		taskFlag = manager.addTask(RESOURCE_MANAGER, syncInterface);
 		if(!taskFlag){
@@ -334,7 +341,7 @@ public class InitTaskManager {
 	 * @throws ParamsErrorException
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void createTaskOperationManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config, ServerConfig serverConfig) throws ParamsErrorException{
+	public static void createTaskOperationManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config) throws ParamsErrorException{
 		// 1.创建执行线程池
 		Properties  prop = DefaultBaseSchedulers.createSimplePrope(1, 1000);
 		manager.createTaskPool(TASK_OPERATION_MANAGER, prop);

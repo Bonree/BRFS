@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bonree.brfs.common.net.http.HandleResult;
@@ -17,6 +20,8 @@ import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 
 public class ListMessageHandler implements MessageHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(ListMessageHandler.class);
+	
 	private DiskContext context;
 	private ExecutorService threadPool;
 	
@@ -33,40 +38,42 @@ public class ListMessageHandler implements MessageHandler {
 			
 			@Override
 			public void run() {
-				String dirPath = context.getConcreteFilePath(msg.getPath());
-				int level = Integer.parseInt(msg.getParams().getOrDefault("level", "1"));
-				
-				File dir = new File(dirPath);
-				if(!dir.exists()) {
-					HandleResult result = new HandleResult();
-					result.setSuccess(false);
-					result.setCause(new FileNotFoundException(msg.getPath()));
-					callback.completed(result);
-					return;
-				}
-				
-				if(!dir.isDirectory()) {
-					HandleResult result = new HandleResult();
-					result.setSuccess(false);
-					result.setCause(new IllegalAccessException("[" + msg.getPath() + "] is not directory"));
-					callback.completed(result);
-					return;
-				}
-				
-				FileInfo dirInfo = new FileInfo();
-				dirInfo.setLevel(0);
-				dirInfo.setType(FileInfo.TYPE_DIR);
-				dirInfo.setPath(dirPath);
-				fileList.addLast(dirInfo);
-				
-				ArrayList<FileInfo> fileInfoList = new ArrayList<FileInfo>();
-				traverse(level, fileInfoList);
-				
 				HandleResult result = new HandleResult();
-				result.setSuccess(true);
-				result.setData(BrStringUtils.toUtf8Bytes(toJson(fileInfoList)));
+				String dirPath = null;
+				try {
+					dirPath = context.getConcreteFilePath(msg.getPath());
+					int level = Integer.parseInt(msg.getParams().getOrDefault("level", "1"));
+					
+					File dir = new File(dirPath);
+					if(!dir.exists()) {
+						result.setSuccess(false);
+						result.setCause(new FileNotFoundException(msg.getPath()));
+						return;
+					}
+					
+					if(!dir.isDirectory()) {
+						result.setSuccess(false);
+						result.setCause(new IllegalAccessException("[" + msg.getPath() + "] is not directory"));
+						return;
+					}
+					
+					FileInfo dirInfo = new FileInfo();
+					dirInfo.setLevel(0);
+					dirInfo.setType(FileInfo.TYPE_DIR);
+					dirInfo.setPath(dirPath);
+					fileList.addLast(dirInfo);
+					
+					ArrayList<FileInfo> fileInfoList = new ArrayList<FileInfo>();
+					traverse(level, fileInfoList);
+					result.setSuccess(true);
+					result.setData(BrStringUtils.toUtf8Bytes(toJson(fileInfoList)));
+				} catch (Exception e) {
+					LOG.error("list dir[{}] error", dirPath, e);
+					result.setSuccess(false);
+				} finally {
+					callback.completed(result);
+				}
 				
-				callback.completed(result);
 			}
 		});
 	}

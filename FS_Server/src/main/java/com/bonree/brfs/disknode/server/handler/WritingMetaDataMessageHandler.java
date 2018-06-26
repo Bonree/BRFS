@@ -42,22 +42,21 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 			@Override
 			public void run() {
 				HandleResult result = new HandleResult();
-				
-				LOG.info("GET META DATA [{}]", msg.getPath());
-				String filePath = context.getConcreteFilePath(msg.getPath());
-				
-				Pair<RecordFileWriter, WriteWorker> binding = nodeManager.getBinding(filePath, false);
-				
-				if(binding == null) {
-					LOG.error("Can not find Record File Writer for file[{}]", filePath);
-					result.setSuccess(false);
-					result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
-					callback.completed(result);
-					return;
-				}
-				
+				String filePath = null;
 				RecordElementReader recordReader = null;
 				try {
+					LOG.info("GET META DATA [{}]", msg.getPath());
+					filePath = context.getConcreteFilePath(msg.getPath());
+					
+					Pair<RecordFileWriter, WriteWorker> binding = nodeManager.getBinding(filePath, false);
+					
+					if(binding == null) {
+						LOG.error("Can not find Record File Writer for file[{}]", filePath);
+						result.setSuccess(false);
+						result.setCause(new IllegalStateException("The record file of {" + filePath + "} is not existed"));
+						return;
+					}
+					
 					binding.first().flush();
 					RecordCollection recordSet = binding.first().getRecordCollection();
 					
@@ -73,7 +72,6 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 						LOG.error("No record elements exists about file[{}]", filePath);
 						result.setSuccess(false);
 						result.setCause(new Exception("no record element exists!"));
-						callback.completed(result);
 						return;
 					}
 					
@@ -83,15 +81,13 @@ public class WritingMetaDataMessageHandler implements MessageHandler {
 					
 					result.setSuccess(true);
 					result.setData(BrStringUtils.toUtf8Bytes(json.toJSONString()));
-					callback.completed(result);
 				} catch (IOException e) {
 					LOG.error("get meta data error", e);
-					
 					result.setSuccess(false);
 					result.setCause(e);
-					callback.completed(result);
 				} finally {
 					CloseUtils.closeQuietly(recordReader);
+					callback.completed(result);
 				}
 			}
 		});

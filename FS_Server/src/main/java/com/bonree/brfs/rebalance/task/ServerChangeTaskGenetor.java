@@ -17,7 +17,8 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -82,9 +83,9 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
     private void genChangeSummary(Service service, ChangeType type) {
         String firstID = service.getServiceId();
-        List<StorageNameNode> snList = getStorageCache(snManager);
+        List<StorageNameNode> snList = snManager.getStorageNameNodeList();
         for (StorageNameNode snModel : snList) {
-            if (snModel.getReplicateCount() > 1 && true) { // TODO 此处需要判断是否配置了sn恢复
+            if (snModel.getReplicateCount() > 1) { // TODO 此处需要判断是否配置了sn恢复
                 List<String> currentServers = getCurrentServers(serverManager);
                 String secondID = idManager.getOtherSecondID(firstID, snModel.getId());
                 if (!StringUtils.isEmpty(secondID)) { // 如果没数据，该sn的secondID会为null
@@ -102,12 +103,8 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
         return (Calendar.getInstance().getTimeInMillis() / 1000) + UUID.randomUUID().toString();
     }
 
-    private List<StorageNameNode> getStorageCache(StorageNameManager snManager) {
-        return snManager.getStorageNameNodeList();
-    }
-
     private List<String> getCurrentServers(ServiceManager serviceManager) {
-        List<Service> servers = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+        List<Service> servers = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
         List<String> serverIDs = servers.stream().map(Service::getServiceId).collect(Collectors.toList());
         return serverIDs;
     }

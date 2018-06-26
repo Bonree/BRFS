@@ -1,40 +1,24 @@
 package com.bonree.brfs.schedulers.task;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.RetryNTimes;
-import org.quartz.JobDataMap;
 
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.server.handler.data.FileInfo;
-import com.bonree.brfs.duplication.coordinator.FileNode;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
 import com.bonree.brfs.schedulers.jobs.system.CreateSystemTask;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
-import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 public class TasksUtils {
@@ -49,16 +33,18 @@ public class TasksUtils {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	 public static ReturnCode createUserDeleteTask(List<Service> services,ServerConfig serverConfig, ZookeeperPaths zkPaths, StorageNameNode sn, long startTime, long endTime){
+	 public static ReturnCode createUserDeleteTask(List<Service> services, ZookeeperPaths zkPaths, StorageNameNode sn, long startTime, long endTime){
 		 	if(services == null || services.isEmpty()){
 		 		return ReturnCode.DELETE_DATA_ERROR;
 		 	}
 		 	if(sn == null){
 		 		return ReturnCode.STORAGE_NONEXIST_ERROR;
 		 	}
+		 	
+		 	String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
 		 	ReturnCode code = checkTime(startTime, endTime, sn.getCreateTime(), 3600000);
 		 	MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
-		 	release.setPropreties(serverConfig.getZkHosts(), zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
+		 	release.setPropreties(zkAddresses, zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
 	    	TaskTypeModel tmodel = release.getTaskTypeInfo(TaskType.USER_DELETE.name());
 	    	if(!tmodel.isSwitchFlag()) {
 	    		return ReturnCode.FORBID_DELETE_DATA_ERROR;

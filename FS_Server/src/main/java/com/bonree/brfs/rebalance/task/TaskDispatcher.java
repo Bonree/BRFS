@@ -47,7 +47,8 @@ import com.bonree.brfs.common.utils.RebalanceUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
@@ -644,7 +645,7 @@ public class TaskDispatcher implements Closeable {
     }
 
     private List<String> getAliveServices() {
-        return serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP).stream().map(Service::getServiceId).collect(Collectors.toList());
+        return serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME)).stream().map(Service::getServiceId).collect(Collectors.toList());
     }
 
     private boolean isCanRecover(ChangeSummary cs, List<String> joinerFirstIDs, List<String> aliveFirstIDs) {

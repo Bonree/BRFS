@@ -18,6 +18,8 @@ import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.common.write.data.FileDecoder;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.buf.ByteArrayFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
@@ -35,22 +37,20 @@ public class FileWriterManager implements LifeCycle {
 	private static final Logger LOG = LoggerFactory.getLogger(FileWriterManager.class);
 
 	// 默认的写Worker线程数量
-	private static final int DEFAULT_WORKER_NUMBER = Runtime.getRuntime().availableProcessors();
 	private WriteWorkerGroup workerGroup;
 	private WriteWorkerSelector workerSelector;
 	private RecordCollectionManager recorderManager;
 
-	private static int DEFAULT_RECORD_BUFFER_SIZE = 64 * 1024;
-	private static int DEFAULT_FILE_BUFFER_SIZE = 512 * 1024;
+	private static int recordCacheSize = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_WRITER_RECORD_CACHE_SIZE);
+	private static int dataCacheSize = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_WRITER_DATA_CACHE_SIZE);
 
 	private ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
-	private static final int DEFAULT_TIMEOUT_SECONDS = 2;
 	private WheelTimer<String> timeoutWheel = new WheelTimer<String>(
-			DEFAULT_TIMEOUT_SECONDS);
+			Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_FILE_FLUSH_TIMEOUT));
 
 	public FileWriterManager(RecordCollectionManager recorderManager) {
-		this(DEFAULT_WORKER_NUMBER, recorderManager);
+		this(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager);
 	}
 
 	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager) {
@@ -179,8 +179,8 @@ public class FileWriterManager implements LifeCycle {
 	
 	public void rebuildFileWriter(File dataFile) throws IOException {
 		RecordFileWriter writer = new RecordFileWriter(
-				recorderManager.getRecordCollection(dataFile, true, DEFAULT_RECORD_BUFFER_SIZE, true),
-						new BufferedFileWriter(dataFile, true, new ByteArrayFileBuffer(DEFAULT_FILE_BUFFER_SIZE)));
+				recorderManager.getRecordCollection(dataFile, true, recordCacheSize, true),
+						new BufferedFileWriter(dataFile, true, new ByteArrayFileBuffer(dataCacheSize)));
 
 		Pair<RecordFileWriter, WriteWorker> binding = new Pair<RecordFileWriter, WriteWorker>(
 				writer, workerSelector.select(workerGroup.getWorkerList()));
@@ -202,8 +202,8 @@ public class FileWriterManager implements LifeCycle {
 						}
 						
 						RecordFileWriter writer = new RecordFileWriter(
-								recorderManager.getRecordCollection(filePath, false, DEFAULT_RECORD_BUFFER_SIZE, true),
-								new BufferedFileWriter(filePath, new ByteArrayFileBuffer(DEFAULT_FILE_BUFFER_SIZE)));
+								recorderManager.getRecordCollection(filePath, false, recordCacheSize, true),
+								new BufferedFileWriter(filePath, new ByteArrayFileBuffer(dataCacheSize)));
 
 						binding = new Pair<RecordFileWriter, WriteWorker>(
 								writer, workerSelector.select(workerGroup

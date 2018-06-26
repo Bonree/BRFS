@@ -35,15 +35,15 @@ public class CloseMessageHandler implements MessageHandler {
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		HandleResult result = new HandleResult();
-		
-		String filePath = diskContext.getConcreteFilePath(msg.getPath());
 		threadPool.submit(new Runnable() {
 			
 			@Override
 			public void run() {
-				LOG.info("CLOSE file[{}]", filePath);
+				HandleResult result = new HandleResult();
+				String filePath = null;
 				try {
+					filePath = diskContext.getConcreteFilePath(msg.getPath());
+					LOG.info("CLOSE file[{}]", filePath);
 					Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
 					if(binding == null) {
 						LOG.info("no writer is found for file[{}], I treat it as OK!", filePath);

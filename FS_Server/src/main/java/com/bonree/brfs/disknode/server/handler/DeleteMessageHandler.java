@@ -70,6 +70,9 @@ public class DeleteMessageHandler implements MessageHandler {
 							return;
 						}
 					}
+				} catch(Exception e) {
+					LOG.error("delete message error", e);
+					result.setSuccess(false);
 				} finally {
 					callback.completed(result);
 				}

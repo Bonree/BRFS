@@ -32,12 +32,9 @@ public class AsyncExecutor {
 	 * 提交一组异步任务，通过Callback的方式回收执行结果，所有任务完成时才会调用callback
 	 * 
 	 * @param group 任务组
-	 * @param callback
+	 * @param callback 任务组运行完毕后触发的回调接口
+	 * @param executor 运行callback的线程池
 	 */
-	public <V> void submit(AsyncTaskGroup<V> group, AsyncTaskGroupCallback<V> callback) {
-		submit(group, callback, ThreadPoolUtil.commonPool());
-	}
-	
 	public <V> void submit(AsyncTaskGroup<V> group, AsyncTaskGroupCallback<V> callback, ExecutorService executor) {
 		if(group.isEmpty()) {
 			executor.submit(new Runnable() {

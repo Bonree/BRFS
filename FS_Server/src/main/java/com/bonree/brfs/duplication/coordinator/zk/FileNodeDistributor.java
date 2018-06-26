@@ -12,7 +12,8 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FileNodeSinkSelector;
 import com.bonree.brfs.duplication.coordinator.FileNodeStorer;
@@ -61,7 +62,7 @@ class FileNodeDistributor implements Runnable, ServiceStateListener {
 	
 	//检测出所有失效的文件节点，并对其进行转移
 	private void handleInvalidFileNode() {
-		for(Service service : serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP)) {
+		for(Service service : serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_SERVICE_GROUP_NAME))) {
 			serviceActiveTimes.put(serviceToken(service.getServiceGroup(), service.getServiceId()), service.getRegisterTime());
 		}
 		
@@ -76,7 +77,8 @@ class FileNodeDistributor implements Runnable, ServiceStateListener {
 	}
 	
 	private void transferFileNode(FileNode fileNode) {
-		Service target = serviceSelector.selectWith(fileNode, serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP));
+		Service target = serviceSelector.selectWith(fileNode,
+				serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_SERVICE_GROUP_NAME)));
 		LOG.info("transfer fileNode[{}] to service[{}]", fileNode.getName(), target.getServiceId());
 		
 		try {

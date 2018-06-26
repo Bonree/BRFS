@@ -1,6 +1,5 @@
 package com.bonree.brfs.disknode.server.handler;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
@@ -24,8 +23,6 @@ public class OpenMessageHandler implements MessageHandler {
 	
 	private static final int DEFAULT_HEADER_VERSION = 0;
 	private static final int DEFAULT_HEADER_TYPE = 0;
-	
-	private static final int DEFAULT_FILE_CAPACITY = 64 * 1024 * 1024;
 	
 	private static final int DEFAULT_HEADER_SIZE = 2;
 	private static final int DEFAULT_TAILER_SIZE = 9;
@@ -51,36 +48,33 @@ public class OpenMessageHandler implements MessageHandler {
 			
 			@Override
 			public void run() {
-				String realPath = diskContext.getConcreteFilePath(msg.getPath());
-				int capacity = Integer.parseInt(msg.getParams().getOrDefault("capacity", String.valueOf(DEFAULT_FILE_CAPACITY)));
-				LOG.info("open file [{}] with capacity[{}]", realPath, capacity);
-				
-				Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
-				if(binding == null) {
-					LOG.error("get file writer for file[{}] error!", realPath);
-					HandleResult result = new HandleResult();
-					result.setSuccess(false);
-					callback.completed(result);
-					return;
-				}
-				
+				HandleResult result = new HandleResult();
+				String realPath = null;
 				try {
+					realPath = diskContext.getConcreteFilePath(msg.getPath());
+					int capacity = Integer.parseInt(msg.getParams().get("capacity"));
+					LOG.info("open file [{}] with capacity[{}]", realPath, capacity);
+					
+					Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
+					if(binding == null) {
+						LOG.error("get file writer for file[{}] error!", realPath);
+						result.setSuccess(false);
+						return;
+					}
+					
 					byte[] header = Bytes.concat(FileEncoder.start(), FileEncoder.header(DEFAULT_HEADER_VERSION, DEFAULT_HEADER_TYPE));
 					binding.first().updateSequence(0);
 					binding.first().write(header);
 					binding.first().flush();
 					
-					HandleResult result = new HandleResult();
 					result.setSuccess(true);
 					result.setData(Ints.toByteArray(capacity - DEFAULT_HEADER_SIZE - DEFAULT_TAILER_SIZE));
-					callback.completed(result);
-				} catch (IOException e) {
+				} catch (Exception e) {
 					LOG.error("write header to file[{}] error!", realPath);
+					result.setSuccess(false);
+				} finally {
+					callback.completed(result);
 				}
-				
-				HandleResult result = new HandleResult();
-				result.setSuccess(false);
-				callback.completed(result);
 			}
 		});
 	}

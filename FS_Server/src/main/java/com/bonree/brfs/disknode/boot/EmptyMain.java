@@ -15,7 +15,8 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
@@ -47,13 +48,8 @@ public class EmptyMain implements LifeCycle {
 	
 	private ExecutorService requestHandlerExecutor;
 	
-	public EmptyMain(ServerConfig serverConfig, ServiceManager serviceManager) {
-		this(serverConfig.getDiskPort(), serverConfig.getDataPath(), serviceManager);
-	}
-	
-	public EmptyMain(int port, String diskContextPath, ServiceManager serviceManager) {
-		this.httpConfig = new HttpConfig(port);
-		this.diskContext = new DiskContext(diskContextPath);
+	public EmptyMain(ServiceManager serviceManager) {
+		this.diskContext = new DiskContext(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
 		this.serviceManager = serviceManager;
 	}
 
@@ -69,7 +65,7 @@ public class EmptyMain implements LifeCycle {
 		
 		writerManager.rebuildFileWriterbyDir(diskContext.getRootDir());
 		
-		serviceManager.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServiceStateListener() {
+		serviceManager.addServiceStateListener(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), new ServiceStateListener() {
 			
 			@Override
 			public void serviceRemoved(Service service) {
@@ -82,6 +78,8 @@ public class EmptyMain implements LifeCycle {
 			}
 		});
 		
+		httpConfig = new HttpConfig(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_HOST),
+				Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT));
 		httpConfig.setBacklog(1024);
 		server = new NettyHttpServer(httpConfig);
 		

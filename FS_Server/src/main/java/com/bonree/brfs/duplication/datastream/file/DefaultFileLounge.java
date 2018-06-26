@@ -12,11 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.timer.TimeCounter;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
-import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.coordinator.FileNode;
-import com.bonree.brfs.duplication.coordinator.FilePathBuilder;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.synchronize.FileSynchronizeCallback;
 import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.duplication.utils.TimedObjectCollection;
@@ -37,15 +36,11 @@ public class DefaultFileLounge implements FileLounge {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileLounge.class);
 	
 	//对文件节点进行清理的集合大小阈值
-	private static final String KEY_FILE_SET_SIZE_CLEAN = "file_clean_size";
-	private static final int FILE_SET_SIZE_CLEAN_THRESHOLD = Integer.parseInt(System.getProperty(KEY_FILE_SET_SIZE_CLEAN, "3"));
-	private static final String KEY_FILE_USAGE_RATIO = "file_usage_ratio";
-	private static final double FILE_USAGE_RATIO_THRESHOLD = Double.parseDouble(System.getProperty(KEY_FILE_USAGE_RATIO, "0.99"));
+	private static final int FILE_SET_SIZE_CLEAN_THRESHOLD = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_FILE_CLEAN_COUNT);
+	private static final double FILE_USAGE_RATIO_THRESHOLD = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_FILE_CLEAN_USAGE_RATE);
+	
 	private TimedObjectCollection<List<FileLimiter>> timedWritableFileContainer;
 	private LinkedList<FileLimiter> removedFileList = new LinkedList<FileLimiter>();
-	
-	private static final int DEFAULT_MAX_FILE_COUNT = 20;
-	private int maxFileCount = Integer.parseInt(System.getProperty("max_file_count", String.valueOf(DEFAULT_MAX_FILE_COUNT)));
 	
 	private TimedObjectCollection<List<FileLimiter>> suspendFileContainer;
 
@@ -56,14 +51,14 @@ public class DefaultFileLounge implements FileLounge {
 	private FileSynchronizer fileSynchronizer;
 	private FileLimiterStateRebuilder fileRebuilder;
 	
-	private static final long DEFAULT_FILE_PATITION_TIME_INTERVAL = TimeUnit.HOURS.toMillis(1);
 	//默认文件的时间分区间隔为一个小时
 	private final long patitionTimeInterval;
 	
 	private int storageId;
 	
 	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, FileSynchronizer fileSynchronizer, FileLimiterStateRebuilder fileRebuilder) {
-		this(storageId, fileLimiterFactory, fileSynchronizer, fileRebuilder, DEFAULT_FILE_PATITION_TIME_INTERVAL);
+		this(storageId, fileLimiterFactory, fileSynchronizer, fileRebuilder,
+				TimeUnit.MINUTES.toMillis(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_FILE_PATITION_INTERVAL_MINUTES)));
 	}
 	
 	public DefaultFileLounge(int storageId, FileLimiterFactory fileLimiterFactory, FileSynchronizer fileSynchronizer, FileLimiterStateRebuilder fileRebuilder, long timeIntervalMillis) {

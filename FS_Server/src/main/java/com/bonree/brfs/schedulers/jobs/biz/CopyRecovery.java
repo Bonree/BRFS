@@ -12,13 +12,12 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
-import com.bonree.brfs.duplication.datastream.connection.http.HttpDiskNodeConnection;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
@@ -221,7 +220,7 @@ public class CopyRecovery {
 				LOG.debug("<recoveryFile> remote name is empty");
 				continue;
 			}
-			remoteService = sm.getServiceById(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, remoteName);
+			remoteService = sm.getServiceById(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), remoteName);
 			if(remoteService == null){
 				LOG.debug("<recoveryFile> remote service is empty");
 				continue;

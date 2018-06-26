@@ -12,7 +12,6 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
-import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.system.CheckCycleJob;
@@ -41,16 +40,11 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 	public static final String META_TASK_MANAGER = "META_TASK_MANAGER";
 	public static final String COPY_CYCLE_POOL = "COPY_CYCLE_POOL";
 	private SchedulerManagerInterface manager;
-	private ZookeeperPaths zkPaths;
 	private ResourceTaskConfig config;
-	private ServerConfig serverConfig;
 
-	public MetaTaskLeaderManager(SchedulerManagerInterface manager, ResourceTaskConfig config,
-			ServerConfig serverConfig) {
+	public MetaTaskLeaderManager(SchedulerManagerInterface manager, ResourceTaskConfig config) {
 		this.manager = manager;
-		this.zkPaths = zkPaths;
 		this.config = config;
-		this.serverConfig = serverConfig;
 	}
 
 	@Override
@@ -138,7 +132,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	private void sumbitTask() throws ParamsErrorException {
-		Map<String, String> createDataMap = JobDataMapConstract.createCreateDataMap(serverConfig, config);
+		Map<String, String> createDataMap = JobDataMapConstract.createCreateDataMap(config);
 		SumbitTaskInterface createJob = QuartzSimpleInfo.createCycleTaskInfo("CREATE_SYSTEM_TASK",
 			config.getCreateTaskIntervalTime(), 60000, createDataMap, CreateSystemTaskJob.class);
 		Map<String, String> metaDataMap = JobDataMapConstract.createMetaDataMap(config);

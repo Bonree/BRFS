@@ -22,6 +22,8 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.write.data.DataItem;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.duplication.coordinator.FileCoordinator;
 import com.bonree.brfs.duplication.coordinator.FileNode;
 import com.bonree.brfs.duplication.coordinator.FileNodeInvalidListener;
@@ -46,16 +48,18 @@ import com.bonree.brfs.server.identification.ServerIDManager;
 public class DuplicateWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(DuplicateWriter.class);
 	
-	private static final int DEFAULT_MULTI_TASK_THREAD_NUM = 10;
-	private AsyncExecutor multiTaskExecutor = new AsyncExecutor(DEFAULT_MULTI_TASK_THREAD_NUM, new PooledThreadFactory("multi_task"));
-	private static final int DEFAULT_DATA_WRITE_THREAD_NUM = 20;
-	private AsyncExecutor writeTaskExecutor = new AsyncExecutor(DEFAULT_DATA_WRITE_THREAD_NUM, new PooledThreadFactory("write_task"));
-	private static final int DEFAULT_RESULT_HANDLE_THREAD_NUM = 20;
-	private ExecutorService resultExecutor = Executors.newFixedThreadPool(DEFAULT_RESULT_HANDLE_THREAD_NUM, new PooledThreadFactory("write_result"));
-	private ScheduledExecutorService timedExecutor = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("File_Cleaner"));
+	private AsyncExecutor multiTaskExecutor = new AsyncExecutor(
+			Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_WRITER_CONCURRENT_FILE_NUM),
+			new PooledThreadFactory("writer_files"));
+	private AsyncExecutor writeTaskExecutor = new AsyncExecutor(
+			Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_WRITER_WORKER_NUM),
+			new PooledThreadFactory("write_workers"));
+	private ExecutorService resultExecutor = Executors.newFixedThreadPool(
+			Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_WRITER_RESULT_HANDLER_NUM),
+			new PooledThreadFactory("write_result"));
 	
-	private static final long DEFAULT_CLEAN_FREQUENCY_MILLIS = TimeUnit.MINUTES.toMillis(1);
-	private final long cleanFrequencyMillis = DEFAULT_CLEAN_FREQUENCY_MILLIS;
+	private ScheduledExecutorService timedExecutor = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("File_Cleaner"));
+	private final long cleanFrequencySeconds = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_FILE_CLEAN_INTERVAL_SECONDS);
 	
 	private FileCoordinator fileCoordinator;
 	private Service service;
@@ -108,7 +112,8 @@ public class DuplicateWriter {
 					
 					fileLounge.setFileCloseListener(fileCloser);
 					fileLoungeList.put(storageId, fileLounge);
-					fileLoungeCleaners.add(timedExecutor.scheduleAtFixedRate(new FileLoungeCleaner(fileLounge), 0, cleanFrequencyMillis, TimeUnit.MILLISECONDS));
+					fileLoungeCleaners.add(timedExecutor.scheduleAtFixedRate(new FileLoungeCleaner(fileLounge),
+							0, cleanFrequencySeconds, TimeUnit.SECONDS));
 				}
 			}
 		}
@@ -171,7 +176,7 @@ public class DuplicateWriter {
 		}
 		
 		LOG.info("submit multi task---");
-		multiTaskExecutor.submit(taskGroup, new FileWriteCallback(callback));
+		multiTaskExecutor.submit(taskGroup, new FileWriteCallback(callback), resultExecutor);
 		LOG.info(counter.report(3));
 	}
 	

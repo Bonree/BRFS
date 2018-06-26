@@ -1,5 +1,6 @@
 package com.bonree.brfs.server.identification;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.server.identification.impl.FirstLevelServerIDImpl;
 import com.bonree.brfs.server.identification.impl.SecondLevelServerID;
 import com.bonree.brfs.server.identification.impl.VirtualServerIDImpl;
@@ -41,7 +42,7 @@ public class ServerIDManager {
 
     private CuratorTreeCache secondIDCache = null;
 
-    private final static String SINGLE_FILE_DIR = "/id/server_id";
+    private final static String SINGLE_FILE_DIR = new File(System.getProperty(SystemProperties.PROP_SERVER_ID_DIR), "server_id").getAbsolutePath();
 
     private Map<String, String> otherServerIDCache = null;
 
@@ -71,8 +72,8 @@ public class ServerIDManager {
 
     }
 
-    public ServerIDManager(CuratorFramework client, ServerConfig config, ZookeeperPaths zkBasePaths) {
-        firstLevelServerID = new FirstLevelServerIDImpl(client, zkBasePaths.getBaseServerIdPath(), config.getHomePath() + SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath());
+    public ServerIDManager(CuratorFramework client, ZookeeperPaths zkBasePaths) {
+        firstLevelServerID = new FirstLevelServerIDImpl(client, zkBasePaths.getBaseServerIdPath(), SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath());
         virtualServerID = new VirtualServerIDImpl(client, zkBasePaths.getBaseServerIdSeqPath());
         otherServerIDCache = new ConcurrentHashMap<>();
         loadSecondServerIDCache(client, zkBasePaths.getBaseServerIdPath());

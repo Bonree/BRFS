@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
@@ -25,7 +26,7 @@ public class VirtualDuplicationNodeSelector implements DuplicationNodeSelector {
 
 	@Override
 	public DuplicateNode[] getDuplicationNodes(int storageId, int nums) {
-		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
 		int serviceCount = serviceList.size();
 		if(serviceCount == 0) {
 			return new DuplicateNode[0];

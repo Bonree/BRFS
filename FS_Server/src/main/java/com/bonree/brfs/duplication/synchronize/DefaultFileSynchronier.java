@@ -21,8 +21,9 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.utils.BitSetUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.disknode.client.AvailableSequenceInfo;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.RecoverInfo;
@@ -65,7 +66,8 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 		this.serviceManager = serviceManager;
 		this.serviceStateListener = new DiskNodeServiceStateListener();
 		this.taskActivator = new DelayTaskActivator();
-		this.errorRecorder = new SynchronierErrorRecorder(new File(Configuration.getInstance().getProperty(Configuration.PATH_LOGS), ERROR_FILE));
+		this.errorRecorder = new SynchronierErrorRecorder(
+				new File(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_LOG_DIR_PATH), ERROR_FILE));
 		this.threadPool = new ThreadPoolExecutor(threadNum, threadNum,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(),
@@ -76,12 +78,12 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 	@Override
 	public void start() throws Exception {
 		taskActivator.start();
-		serviceManager.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, serviceStateListener);
+		serviceManager.addServiceStateListener(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), serviceStateListener);
 	}
 
 	@Override
 	public void stop() throws Exception {
-		serviceManager.removeServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, serviceStateListener);
+		serviceManager.removeServiceStateListener(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), serviceStateListener);
 		taskActivator.quit();
 		taskActivator.interrupt();
 		threadPool.shutdown();

@@ -11,7 +11,10 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.RebalanceConfigs;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.rebalance.task.TaskDispatcher;
 import com.bonree.brfs.rebalance.task.TaskOperation;
@@ -28,12 +31,22 @@ public class RebalanceManager implements Closeable {
     ExecutorService simpleFileServer = Executors.newSingleThreadExecutor();
     private CuratorClient curatorClient = null;
 
-    public RebalanceManager(ServerConfig serverConfig, ZookeeperPaths zkPaths, ServerIDManager idManager, StorageNameManager snManager, ServiceManager serviceManager) {
-        curatorClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 500, 500);
-        dispatch = new TaskDispatcher(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager, serviceManager, snManager, serverConfig.getVirtualDelay(), serverConfig.getNormalDelay());
-        opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager, serverConfig.getDataPath(), snManager, serviceManager);
+    public RebalanceManager(ZookeeperPaths zkPaths, ServerIDManager idManager, StorageNameManager snManager, ServiceManager serviceManager) {
+    	String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+        curatorClient = CuratorClient.getClientInstance(zkAddresses, 500, 500);
+        dispatch = new TaskDispatcher(curatorClient, zkPaths.getBaseRebalancePath(),
+        		zkPaths.getBaseRoutePath(), idManager,
+        		serviceManager, snManager,
+        		Configs.getConfiguration().GetConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
+        		Configs.getConfiguration().GetConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY));
+        
+        String dataPath = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT);
+        opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager,
+        		dataPath, snManager, serviceManager);
+        
+		int port = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT);
         try {
-            fileServer = new SimpleFileServer(serverConfig.getDiskPort() + 20, serverConfig.getDataPath(), 10);
+            fileServer = new SimpleFileServer(port + 20, dataPath, 10);
         } catch (IOException e) {
             LOG.info("fileServer launch error!!!", e);
         }

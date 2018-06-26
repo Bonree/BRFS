@@ -53,7 +53,7 @@ public class FileLimiterStateRebuilder {
 		}
 		
 		LOG.info("rebuild fileNode[{}] with length[{}], sequence[{}]", fileNode.getName(), metaInfo[1], metaInfo[0] + 1);
-		FileLimiter file = new FileLimiter(fileNode, DuplicationEnvironment.DEFAULT_MAX_FILE_SIZE, metaInfo[1]/*文件大小*/, metaInfo[0] + 1/*文件序列号*/);
+		FileLimiter file = new FileLimiter(fileNode, DuplicationEnvironment.DEFAULT_MAX_AVAILABLE_FILE_SPACE, metaInfo[1]/*文件大小*/, metaInfo[0] + 1/*文件序列号*/);
 		
 		return file;
 	}

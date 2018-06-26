@@ -34,18 +34,25 @@ public class ReadMessageHandler implements MessageHandler {
 			public void run() {
 				HandleResult result = new HandleResult();
 				
-				String offsetParam = msg.getParams().get(PARAM_READ_OFFSET);
-				String lengthParam = msg.getParams().get(PARAM_READ_LENGTH);
-				int offset = offsetParam == null ? 0 : Integer.parseInt(offsetParam);
-				int length = lengthParam == null ? Integer.MAX_VALUE : Integer.parseInt(lengthParam);
+				try {
+					String offsetParam = msg.getParams().get(PARAM_READ_OFFSET);
+					String lengthParam = msg.getParams().get(PARAM_READ_LENGTH);
+					int offset = offsetParam == null ? 0 : Integer.parseInt(offsetParam);
+					int length = lengthParam == null ? Integer.MAX_VALUE : Integer.parseInt(lengthParam);
+					
+					LOG.info("read data offset[{}], size[{}]", offset, length);
+					
+					byte[] data = DataFileReader.readFile(diskContext.getConcreteFilePath(msg.getPath()), offset, length);
+					
+					result.setSuccess(data.length == 0 ? false : true);
+					result.setData(data);
+				} catch (Exception e) {
+					LOG.error("read message error", e);
+					result.setSuccess(false);
+				} finally {
+					callback.completed(result);
+				}
 				
-				LOG.info("read data offset[{}], size[{}]", offset, length);
-				
-				byte[] data = DataFileReader.readFile(diskContext.getConcreteFilePath(msg.getPath()), offset, length);
-				
-				result.setSuccess(data.length == 0 ? false : true);
-				result.setData(data);
-				callback.completed(result);
 			}
 		});
 	}

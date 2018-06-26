@@ -16,11 +16,10 @@ import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.utils.ProcessFinalizer;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
-import com.bonree.brfs.configuration.Configuration;
-import com.bonree.brfs.configuration.Configuration.ConfigPathException;
+import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
-import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.configuration.StorageConfig;
+import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.boot.EmptyMain;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
@@ -38,25 +37,16 @@ public class ServerMain {
     public static void main(String[] args) {
     	ProcessFinalizer finalizer = new ProcessFinalizer();
     	
-        String brfsHome = System.getProperty("path");
         try {
-            Configuration conf = Configuration.getInstance();
             System.setProperty("name", "disk");
-            conf.parse(brfsHome + "/config/server.properties");
-            conf.initLogback(brfsHome + "/config/logback.xml");
-            conf.printConfigDetail();
-            LOG.info("Startup disk server....");
-            ServerConfig serverConfig = ServerConfig.parse(conf, brfsHome);
-            StorageConfig storageConfig = StorageConfig.parse(conf);
-            LOG.info("serverConfig:"+serverConfig);
-            LOG.info("storageConfig"+storageConfig);
-            ResourceTaskConfig resourceConfig = ResourceTaskConfig.parse(conf);
+            ResourceTaskConfig resourceConfig = ResourceTaskConfig.parse();
             
-            CuratorClient leaderClient = CuratorClient.getClientInstance(serverConfig.getZkHosts(), 1000, 1000);
-            CuratorClient client = CuratorClient.getClientInstance(serverConfig.getZkHosts());
+            String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+            CuratorClient leaderClient = CuratorClient.getClientInstance(zkAddresses, 1000, 1000);
+            CuratorClient client = CuratorClient.getClientInstance(zkAddresses);
 
-            CuratorCacheFactory.init(serverConfig.getZkHosts());
-            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(serverConfig.getClusterName(), serverConfig.getZkHosts());
+            CuratorCacheFactory.init(zkAddresses);
+            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME), zkAddresses);
             
             SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client.getInnerClient());
             UserModel model = authentication.getUser("root");
@@ -65,10 +55,10 @@ public class ServerMain {
                 System.exit(1);
             }
             
-            ServerIDManager idManager = new ServerIDManager(client.getInnerClient(), serverConfig, zookeeperPaths);
+            ServerIDManager idManager = new ServerIDManager(client.getInnerClient(), zookeeperPaths);
             idManager.getFirstServerID();
 
-            StorageNameManager snManager = new DefaultStorageNameManager(storageConfig, client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);
+            StorageNameManager snManager = new DefaultStorageNameManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);
             snManager.addStorageNameStateListener(new StorageNameStateListener() {
                 @Override
                 public void storageNameAdded(StorageNameNode node) {
@@ -96,25 +86,28 @@ public class ServerMain {
             finalizer.add(sm);
 
             // 磁盘管理模块
-            EmptyMain diskMain = new EmptyMain(serverConfig, sm);
+            EmptyMain diskMain = new EmptyMain(sm);
             diskMain.start();
             
             finalizer.add(diskMain);
 
             // 副本平衡模块
-            sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
+            sm.addServiceStateListener(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME),
+            		new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
            
             @SuppressWarnings("resource")
-            RebalanceManager rebalanceServer = new RebalanceManager(serverConfig, zookeeperPaths, idManager, snManager, sm);
+            RebalanceManager rebalanceServer = new RebalanceManager(zookeeperPaths, idManager, snManager, sm);
             rebalanceServer.start();
             
+            String host = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_HOST);
+    		int port = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT);
             Service selfService = new Service();
-            selfService.setHost(serverConfig.getHost());
-            selfService.setPort(serverConfig.getDiskPort());
-            selfService.setServiceGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+            selfService.setHost(host);
+            selfService.setPort(port);
+            selfService.setServiceGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
             String serviceId = idManager.getFirstServerID();
             selfService.setServiceId(serviceId);
-            Service checkService = sm.getServiceById(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, serviceId);
+            Service checkService = sm.getServiceById(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), serviceId);
             if(checkService == null) {
             	sm.registerService(selfService);
             	System.out.println(selfService);
@@ -138,13 +131,7 @@ public class ServerMain {
 			});
             
          // 资源管理模块
-            InitTaskManager.initManager(serverConfig, resourceConfig, zookeeperPaths, sm, snManager, idManager);
-        } catch (ConfigPathException e) {
-            LOG.error("config file not exist!!!",e);
-            System.exit(1);
-        } catch (ConfigParseException e) {
-            LOG.error("config file parse error!!!",e);
-            System.exit(1);
+            InitTaskManager.initManager(resourceConfig, zookeeperPaths, sm, snManager, idManager);
         } catch (Exception e) {
             LOG.error("launch server error!!!",e);
             System.exit(1);

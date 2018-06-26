@@ -7,12 +7,12 @@ import java.util.Map;
 
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
-import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -88,10 +88,11 @@ public class JobDataMapConstract {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,String> createGatherResourceDataMap(ServerConfig server, ResourceTaskConfig resource, String serverId){
+	public static Map<String,String> createGatherResourceDataMap(ResourceTaskConfig resource, String serverId){
 		Map<String, String>  dataMap = new HashMap<>();
-		dataMap.put(DATA_PATH, server.getDataPath());
-		dataMap.put(IP, server.getHost());
+		dataMap.put(DATA_PATH, Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
+		String host = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_HOST);
+		dataMap.put(IP, host);
 		dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
 		dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");
 		return dataMap;
@@ -103,7 +104,7 @@ public class JobDataMapConstract {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,String> createAsynResourceDataMap(ServerConfig server, ResourceTaskConfig resource){
+	public static Map<String,String> createAsynResourceDataMap(ResourceTaskConfig resource){
 		Map<String, String>  dataMap = new HashMap<>();
 		dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
 		dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");
@@ -128,7 +129,7 @@ public class JobDataMapConstract {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,String> createCreateDataMap(ServerConfig server, ResourceTaskConfig resource){
+	public static Map<String,String> createCreateDataMap(ResourceTaskConfig resource){
 		Map<String, String> dataMap = new HashMap<>();
 		dataMap.put(CHECK_TTL, resource.getCheckTtl()+"");
 		return dataMap;

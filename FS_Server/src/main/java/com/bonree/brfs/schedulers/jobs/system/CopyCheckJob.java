@@ -1,16 +1,8 @@
 package com.bonree.brfs.schedulers.jobs.system;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.net.ssl.ManagerFactoryParameters;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -20,28 +12,20 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.configuration.ServerConfig;
-import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
-import com.bonree.brfs.disknode.server.handler.data.FileInfo;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
-
-import ch.qos.logback.classic.net.SyslogAppender;
 
 public class CopyCheckJob extends QuartzOperationStateTask{
 	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
@@ -78,7 +62,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			return;
 		}
 		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
-		List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		List<Service> services = sm.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
 		if(services == null || services.isEmpty()) {
 			LOG.info("SKIP create {} task, because service is empty",taskType);
 			return ;
@@ -136,7 +120,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static Map<String,Long> createCopyTask(MetaTaskManagerInterface release,	StorageNameManager snm,	ServiceManager sm ,final Map<String,Long> initMap,String taskType, long time) {
-		List<Service> services = sm.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		List<Service> services = sm.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
 		if(services == null || services.isEmpty()) {
 			LOG.info("SKIP create {} task, because service is empty",taskType);
 			return null;

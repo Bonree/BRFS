@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.DuplicationNodeSelector;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
@@ -26,6 +28,8 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 	private Service service;
 	private ServerIDManager idManager;
 	private DiskNodeConnectionPool connectionPool;
+	
+	private static final int FILE_CAPACITY = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_FILE_CAPACITY);
 	
 	public DefaultFileLimiterFactory(FileCoordinator coordinator,
 			DuplicationNodeSelector duplicationNodeSelector,
@@ -83,7 +87,7 @@ public class DefaultFileLimiterFactory implements FileLimiterFactory {
 			String serverId = idManager.getOtherSecondID(node.getId(), storageId);
 			String filePath = FilePathBuilder.buildFilePath(fileNode.getStorageName(), serverId, fileNode.getCreateTime(), fileNode.getName());
 			
-			int result = connection.getClient().openFile(filePath, DuplicationEnvironment.DEFAULT_MAX_FILE_SIZE);
+			int result = connection.getClient().openFile(filePath, FILE_CAPACITY);
 			LOG.info("open file[{}] at node[{}] get capacity[{}]", filePath, node, result);
 			
 			if(result < 0) {

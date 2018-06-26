@@ -13,7 +13,9 @@ import com.bonree.brfs.client.meta.impl.DuplicaServiceMetaCache;
 import com.bonree.brfs.client.route.listener.RouteCacheListener;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 
 public class ServiceSelectorManager implements Closeable {
 
@@ -45,9 +47,10 @@ public class ServiceSelectorManager implements Closeable {
             return diskServiceSelectorCache;
         }
 
-        DiskServiceMetaCache diskServiceMetaCache = new DiskServiceMetaCache(curatorClient, zkServerIDPath, snIndex, ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+        DiskServiceMetaCache diskServiceMetaCache = new DiskServiceMetaCache(curatorClient, zkServerIDPath, snIndex,
+        		Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
         ServiceMetaListener diskListener = new ServiceMetaListener(diskServiceMetaCache);
-        sm.addServiceStateListener(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP, diskListener);
+        sm.addServiceStateListener(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), diskListener);
         
         diskServiceMetaCache.loadMetaCachae(sm);
 
@@ -69,11 +72,11 @@ public class ServiceSelectorManager implements Closeable {
             return duplicaServiceSelector;
         }
 
-        DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP);
+        DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
 
         // 监听duplicaServiceCachecache
         ServiceMetaListener listener = new ServiceMetaListener(duplicaServiceMetaCache);
-        sm.addServiceStateListener(ServerConfig.DEFAULT_DUPLICATION_SERVICE_GROUP, listener);
+        sm.addServiceStateListener(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_SERVICE_GROUP_NAME), listener);
 
         duplicaServiceMetaCache.loadMetaCachae(sm);
 

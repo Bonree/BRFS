@@ -37,10 +37,10 @@ public class FlushMessageHandler implements MessageHandler {
 			
 			@Override
 			public void run() {
-				String filePath = diskContext.getConcreteFilePath(msg.getPath());
-				
 				HandleResult result = new HandleResult();
+				String filePath = null;
 				try {
+					filePath = diskContext.getConcreteFilePath(msg.getPath());
 					LOG.info("flush file[{}]", filePath);
 					writerManager.flushFile(filePath);
 					

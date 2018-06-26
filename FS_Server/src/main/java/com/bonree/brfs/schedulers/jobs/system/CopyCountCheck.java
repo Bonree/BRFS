@@ -1,6 +1,5 @@
 package com.bonree.brfs.schedulers.jobs.system;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,21 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.task.TaskState;
-import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.configuration.ServerConfig;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
-import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskModel;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

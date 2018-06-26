@@ -5,7 +5,8 @@ import java.util.Random;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.configuration.ServerConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 
 public class DefaultDuplicationNodeSelector implements DuplicationNodeSelector {
@@ -18,7 +19,7 @@ public class DefaultDuplicationNodeSelector implements DuplicationNodeSelector {
 
 	@Override
 	public DuplicateNode[] getDuplicationNodes(int storageId, int nums) {
-		List<Service> serviceList = serviceManager.getServiceListByGroup(ServerConfig.DEFAULT_DISK_NODE_SERVICE_GROUP);
+		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
 		if(serviceList.isEmpty()) {
 			return new DuplicateNode[0];
 		}

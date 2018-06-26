@@ -20,7 +20,8 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.Attributes;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.configuration.StorageConfig;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.StorageConfigs;
 import com.bonree.brfs.duplication.storagename.StorageIdBuilder;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
@@ -56,15 +57,12 @@ public class DefaultStorageNameManager implements StorageNameManager {
 
     private CuratorFramework zkClient;
     private PathChildrenCache childrenCache;
-    
-    private StorageConfig storageConfig;
 
     private CopyOnWriteArrayList<StorageNameStateListener> listeners = new CopyOnWriteArrayList<StorageNameStateListener>();
 
     private StorageIdBuilder idBuilder;
 
-    public DefaultStorageNameManager(StorageConfig storageConfig,CuratorFramework client, StorageIdBuilder idBuilder) {
-        this.storageConfig = storageConfig;
+    public DefaultStorageNameManager(CuratorFramework client, StorageIdBuilder idBuilder) {
         this.zkClient = client;
         this.idBuilder = idBuilder;
         this.storageNameCache = CacheBuilder.newBuilder().maximumSize(DEFAULT_MAX_CACHE_SIZE).build(new StorageNameNodeLoader());
@@ -109,6 +107,14 @@ public class DefaultStorageNameManager implements StorageNameManager {
     private static String buildStorageNamePath(String storageName) {
         return ZKPaths.makePath(StorageNameZkPaths.DEFAULT_PATH_STORAGE_NAME_ROOT, DEFAULT_PATH_STORAGE_NAME_NODES, storageName);
     }
+    
+    private int getDefaultStorageDataTtl() {
+    	return Configs.getConfiguration().GetConfig(StorageConfigs.CONFIG_STORAGE_DATA_TTL);
+    }
+    
+    public int getDefaultStorageReplicateCount() {
+    	return Configs.getConfiguration().GetConfig(StorageConfigs.CONFIG_STORAGE_REPLICATE_COUNT);
+    }
 
     @Override
     public StorageNameNode createStorageName(String storageName, Attributes attrs) throws StorageNameExistException {
@@ -121,7 +127,9 @@ public class DefaultStorageNameManager implements StorageNameManager {
         	return null;
         }
         
-        StorageNameNode node = new StorageNameNode(storageName, storageId, attrs.getInt(StorageNameNode.ATTR_REPLICATION, storageConfig.getReplication()), attrs.getInt(StorageNameNode.ATTR_TTL, storageConfig.getDataTtl()));
+        int replicateCount = attrs.getInt(StorageNameNode.ATTR_REPLICATION, getDefaultStorageDataTtl());
+        int dataTtl = attrs.getInt(StorageNameNode.ATTR_TTL, getDefaultStorageReplicateCount());
+        StorageNameNode node = new StorageNameNode(storageName, storageId, replicateCount, dataTtl);
         String storageNamePath = buildStorageNamePath(storageName);
 
         String path = null;
