@@ -149,7 +149,7 @@ public class WatchDog{
 		Map<String,List<String>> part = null;
 		for(int i = 1; i<=copyCount; i++) {
 			dirPath = datapath + "/" + snName + "/" + i;
-			part = FileCollection.collFiles(dirPath, limitTime, granule);
+			part = FileCollection.collectLocalFiles(dirPath, limitTime, granule);
 			if(part == null || part.isEmpty()) {
 				LOG.info("<collectFood> part is empty !!!");
 				continue;

@@ -1,11 +1,18 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.CRC32;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.common.write.data.FSCode;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.jobs.system.CopyCountCheck;
@@ -34,7 +42,7 @@ public class FileCollection {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,List<String>> collFiles(String path, long limitTime, long granule){
+	public static Map<String,List<String>> collectLocalFiles(String path, long limitTime, long granule){
 		if(!FileUtils.isExist(path)) {
 			LOG.debug("<collFiles> file path is not exists {}",path);
 			return null;
@@ -67,7 +75,7 @@ public class FileCollection {
 				continue;
 			}
 			parts = FileUtils.listFileNames(tmpPath);
-			parts = filterRD(parts);
+			parts = filterUnlaw(parts);
 			if(parts == null || parts.isEmpty()) {
 				continue;
 			}
@@ -151,20 +159,136 @@ public class FileCollection {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static List<String> filterRD(final List<String> part){
+	private static List<String> filterUnlaw(final List<String> part){
 		List<String> filters = new ArrayList<String>();
 		if(part == null || part.isEmpty()) {
 			return null;
 		}
 		String fileName = null;
+		String checks[] = null;
 		for(String file : part) {
-			if(file.indexOf(".rd") < 0) {
+			if(file.indexOf(".rd") >= 0) {
+				fileName = file.substring(0, file.indexOf(".rd"));
+				filters.add(fileName);
 				continue;
 			}
-			fileName = file.substring(0, file.indexOf(".rd"));
-			filters.add(fileName);
+			checks = BrStringUtils.getSplit(file, "_");
+			if(checks == null|| checks.length <=1) {
+				filters.add(fileName);
+				continue;
+			}
+			
 		}
-		
 		return CopyCountCheck.filterRd(part, filters);
 	}
+	/**
+	 * 概述：收集crc校验错误的文件
+	 * @param dirPath
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+    public static List<String> checkDirs(String dirPath){
+		if(BrStringUtils.isEmpty(dirPath)) {
+			return null;
+		}
+		
+		if(!FileUtils.isExist(dirPath) || !FileUtils.isDirectory(dirPath)) {
+			return null;
+		}
+		List<String> cFileNames = FileUtils.listFileNames(dirPath);
+		cFileNames = filterUnlaw(cFileNames);
+		if(cFileNames == null || cFileNames.isEmpty()) {
+			return null;
+		}
+		List<String> errors = new ArrayList<String>();
+		String cPath = null;
+		for(String cName : cFileNames) {
+			cPath = dirPath + "/"+cName;
+			if(check(cPath)) {
+				continue;
+			}
+			errors.add(cName);
+		}
+		return errors;
+	}
+	/**
+	 * 概述：检查单个文件
+	 * @param path
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static boolean check(String path) {
+		if(BrStringUtils.isEmpty(path)) {
+			return false;
+		}
+		File file = new File(path);
+		return check(file);
+	}
+	/**
+	 * 概述：校验文件crc
+	 * @param file
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static boolean check(File file) {
+		RandomAccessFile raf = null;
+		MappedByteBuffer buffer = null;
+		String fileName = file.getName();
+		try {
+			if (!file.exists()) {
+				LOG.warn("{}: not found!!", fileName);
+				return false;
+			}
+			raf = new RandomAccessFile(file, "r");
+			if(raf.length() <=0) {
+				LOG.warn("{} : is empty",fileName);
+				return false;
+			}
+			if (raf.readUnsignedByte() != 172) {
+				LOG.warn("{}: Header byte is error!", fileName);
+				return false;
+			}
+			if (raf.readUnsignedByte() != 0) {
+				LOG.warn("{}: Header version is error!", fileName);
+				return false;
+			}
+			CRC32 crc = new CRC32();
+			raf.seek(0L);
+			long size = raf.length() - 9L - 2L;
+
+			if (size <= 0L) {
+				LOG.warn("{}: No Content", fileName);
+				return false;
+			}
+			buffer = raf.getChannel().map(FileChannel.MapMode.READ_ONLY, 2L, size);
+			crc.update(buffer);
+			raf.seek(raf.length() - 9L);
+			byte[] crcBytes = new byte[8];
+			raf.read(crcBytes);
+			LOG.debug("calc crc32 code :{}, save crc32 code :{}", crc.getValue(), FSCode.byteToLong(crcBytes));
+			if (FSCode.byteToLong(crcBytes) != crc.getValue()) {
+				LOG.warn("{}: Tailer CRC is error!", fileName);
+				return false;
+			}
+			if (raf.readUnsignedByte() != 218) {
+				LOG.warn("{}: Tailer byte is error!", fileName);
+				return false;
+			}
+			return true;
+		}
+		catch (Exception e) {
+			LOG.error("{}:{}",fileName,e);
+		}finally {
+			if (raf != null) {
+				try {
+					raf.close();
+				}
+				catch (IOException e) {
+					LOG.error("close {}:{}",fileName,e);
+				}
+			}
+		}
+		return false;
+	}
+	
 }
