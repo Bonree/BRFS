@@ -1,8 +1,11 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.zip.CRC32;
 
@@ -17,6 +20,7 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.write.data.FSCode;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.disknode.utils.CheckUtils;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
@@ -67,7 +71,6 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 			LOG.warn("batch data is empty !!!");
 			return;
 		}
-		
 		List<AtomTaskModel> atoms = batch.getAtoms();
 		if(atoms == null || atoms.isEmpty()){
 			LOG.warn("atom task is empty !!!");
@@ -76,10 +79,8 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		String snName = null;
 		String dirName = null;
 		TaskResultModel result = new TaskResultModel();
-		AtomTaskResultModel atomR = null;
 		TaskResultModel batchResult = null;
 		boolean isException = false;
-		String path = null;
 		for(AtomTaskModel atom : atoms){
 			snName = atom.getStorageName();
 			dirName = atom.getDirName();
@@ -89,15 +90,6 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 			}
 			if(BrStringUtils.isEmpty(dirName)){
 				LOG.warn("dir is empty !!!");
-				continue;
-			}
-			//调用俞朋的接口
-			atomR = new AtomTaskResultModel();
-			atomR.setSn(snName);
-			atomR.setDir(dirName);
-			path = dirName+File.separator + dirName;
-			if(!FileUtils.isExist(path)){
-				LOG.warn("{} is not exists !!");
 				continue;
 			}
 			batchResult = checkFiles(snName, dirName, dataPath);
@@ -121,74 +113,21 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 	 */
 	private TaskResultModel checkFiles(String snName, String dirName, String dataPath){
 		String path = dataPath + File.separator + dirName;
-		if(!FileUtils.isExist(path)){
-			LOG.warn("{} is not exists !!",dirName);
-			return null;
-		}
 		TaskResultModel result = new TaskResultModel();
 		AtomTaskResultModel atomR = new AtomTaskResultModel();
-		boolean isSuccess = false;
-		if(!FileUtils.isDirectory(dirName)){
-			LOG.warn("{} is not a directory !! ", dirName);
-			atomR.setSuccess(false);
-			atomR.setSn(snName);
-			atomR.setDir(dirName);
-			result.add(atomR);
-			result.setSuccess(false);
-			return result;
-		}
-		List<String> files = FileUtils.listFilePaths(path);
-		atomR.setSn(snName);
 		atomR.setDir(dirName);
-		int deleteCount = 0;
-		if(files != null){
-			for(String file : files){
-				boolean isCheckSuccess = checkCompleted(file);
-				if(isCheckSuccess){
-					deleteCount ++;
-				}else{
-					atomR.add(file);
-					atomR.setSuccess(false);
-					result.setSuccess(false);
-				}
-			}
+		atomR.setSn(snName);
+		List<String> errors = FileCollection.checkDirs(path);
+		if(errors == null || errors.isEmpty()) {
+			atomR.setSuccess(true);
+			result.setSuccess(true);
+		}else {
+			atomR.setSuccess(false);
+			result.setSuccess(false);
+			atomR.addAll(errors);
 		}
-		atomR.setOperationFileCount(deleteCount);
 		result.add(atomR);
 		return result;
 	}
-	public static boolean checkCompleted(String path) {
-		CRC32 crc32 = new CRC32();
-		
-		RandomAccessFile file = null;
-		try {
-			file = new RandomAccessFile(path, "r");
-			//跳过2字节的头部
-			file.skipBytes(2);
-		
-			int length = (int) (file.length() - 9);
-			System.out.println(length);
-			if(length <0) {
-				return false;
-			}
-			System.out.println(file.getFilePointer());
-			byte[] buf = new byte[8096];
-			int read = -1;
-			while((read = file.read(buf, 0, length)) != -1) {
-				crc32.update(buf, 0, read);
-				length -= read;
-			}
-			byte[] crcKeys = new byte[8];
-			file.read(crcKeys, 0, 8);
-			long crcNum = FileDecoder.validate(crcKeys);
-			if(crcNum == crc32.getValue()){
-				return true;
-			}
-		} catch (IOException e) {
-			LOG.error("{}",e);
-		} finally {
-			CloseUtils.closeQuietly(file);
-		}
-		return false;
-	}
+	
 }

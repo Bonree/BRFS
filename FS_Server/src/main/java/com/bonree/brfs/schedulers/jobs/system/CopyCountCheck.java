@@ -219,14 +219,22 @@ public class CopyCountCheck {
 		int lastIndex = 0;
 		String dirName = getFileName(dir); 
 		List<String> filterRd = new ArrayList<>();
+		String[] checks = null; 
 		for(FileInfo file : files){
 			path = file.getPath();
 			fileName = getFileName(path);
 			if(dirName.equals(fileName)){
 				continue;
 			}
+			// 排除rd文件
 			if(fileName.indexOf(".rd") > 0){
 				fileName = fileName.substring(0, fileName.indexOf(".rd"));
+				filterRd.add(fileName);
+				continue;
+			}
+			// 排除非法数据
+			checks = BrStringUtils.getSplit(fileName, "_");
+			if(checks == null|| checks.length<=1) {
 				filterRd.add(fileName);
 				continue;
 			}
