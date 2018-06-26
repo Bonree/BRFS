@@ -69,25 +69,25 @@ disknode.service.host = localhost
 disknode.service.port = 8881
 
 # 磁盘节点服务所在的服务组
-disknode.service.group = disk_group
+#disknode.service.group = disk_group
 
 # 磁盘节点保存数据文件的目录路径
 disknode.data.root = /data
 
 # 磁盘节点处理数据写入的线程数
 # 默认为机器CPU核数
-disknode.writer.worker.num = 8
+#disknode.writer.worker.num = 8
 
 # 数据文件的写入缓存
 # 单位（字节）
-disknode.writer.data.cache = 524288
+#disknode.writer.data.cache = 524288
 
 # 数据写入记录的缓存大小
-disknode.writer.record.cache = 65536
+#disknode.writer.record.cache = 65536
 
 # 文件的空闲时间
 # 如果文件空闲时间超过此值，则会把缓存中的内容刷入磁盘
-disknode.file.idle.timeout.seconds = 3
+#disknode.file.idle.timeout.seconds = 3
 
 ###############################################
 ##############文件平衡模块 Config################

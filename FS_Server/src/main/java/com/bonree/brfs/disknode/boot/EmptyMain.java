@@ -55,6 +55,9 @@ public class EmptyMain implements LifeCycle {
 
 	@Override
 	public void start() throws Exception {
+		httpConfig = new HttpConfig(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_HOST),
+				Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT));
+		
 		LOG.info("Empty Main--port[{}]", httpConfig.getPort());
 		
 		checkDiskContextPath();
@@ -78,8 +81,6 @@ public class EmptyMain implements LifeCycle {
 			}
 		});
 		
-		httpConfig = new HttpConfig(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_HOST),
-				Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT));
 		httpConfig.setBacklog(1024);
 		server = new NettyHttpServer(httpConfig);
 		

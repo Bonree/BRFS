@@ -42,7 +42,7 @@ public class ServerIDManager {
 
     private CuratorTreeCache secondIDCache = null;
 
-    private final static String SINGLE_FILE_DIR = new File(System.getProperty(SystemProperties.PROP_SERVER_ID_DIR), "server_id").getAbsolutePath();
+    private final static String SINGLE_FILE_DIR = new File(System.getProperty(SystemProperties.PROP_SERVER_ID_DIR), "disknode_id").getAbsolutePath();
 
     private Map<String, String> otherServerIDCache = null;
 

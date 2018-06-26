@@ -1,6 +1,8 @@
 package com.bonree.brfs.duplication;
 
 import java.io.Closeable;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 
 import org.apache.curator.RetryPolicy;
@@ -22,6 +24,7 @@ import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.utils.ProcessFinalizer;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
@@ -54,6 +57,9 @@ import com.bonree.brfs.duplication.storagename.impl.ZkStorageIdBuilder;
 import com.bonree.brfs.duplication.synchronize.DefaultFileSynchronier;
 import com.bonree.brfs.duplication.synchronize.FileSynchronizer;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import com.google.common.base.Charsets;
+import com.google.common.io.CharSource;
+import com.google.common.io.Files;
 
 public class BootStrap {
     private static final Logger LOG = LoggerFactory.getLogger(BootStrap.class);
@@ -88,7 +94,9 @@ public class BootStrap {
 
             String host = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_HOST);
     		int port = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_PORT);
-            Service service = new Service(idManager.getFirstServerID(),
+    		
+    		CharSource idSource = Files.asCharSource(new File(System.getProperty(SystemProperties.PROP_SERVER_ID_DIR), "duplicatenode_id"), Charsets.UTF_8);
+    		Service service = new Service(idSource.readFirstLine(),
             		Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_SERVICE_GROUP_NAME),
             		host, port);
             ServiceManager serviceManager = new DefaultServiceManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
