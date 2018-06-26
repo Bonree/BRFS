@@ -72,12 +72,14 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			return ;
 		}
 		//修复时间
-		Map sourceTimes = CopyCountCheck.repairTime(null, needSns, granule, 0);
+//		Map<String,Long> sourceTimes = CopyCountCheck.repairTime(null, needSns, granule, 0);
+		Map<String,Long> sourceTimes = null;
 		LOG.info("scan time begin :{}, end :{}, day:{}",TimeUtils.formatTimeStamp(sGraDay),TimeUtils.formatTimeStamp(lGraDay),day);
 		for (long startTime = sGraDay; startTime <= lGraDay; startTime += granule) {
-			sourceTimes = fixTimes(snList, startTime,granule);
+			sourceTimes = fixTimes(needSns, startTime,granule);
 			if(sourceTimes == null|| sourceTimes.isEmpty()) {
 				LOG.warn("skip collection {} data to check copy count!! because time is empty",	TimeUtils.formatTimeStamp(startTime, "yyyy-MM-dd HH:mm:ss.SSS"));
+				continue;
 			}
 			LOG.info("collection {} data to check copy count", TimeUtils.formatTimeStamp(startTime, "yyyy-MM-dd HH:mm:ss.SSS"));
 			createSingleTask(release, needSns, services, TaskType.SYSTEM_COPY_CHECK, sourceTimes, granule);
@@ -95,12 +97,13 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			return null;
 		}
 		Map<String,Long> fixMap = new HashMap<String,Long>();
-		long createTime = 0L;
+		long crGra = 0L;
 		String snName = null;
 		for (StorageNameNode sn : snList) {
-			createTime = sn.getCreateTime() - sn.getCreateTime()%granule;
+			crGra = sn.getCreateTime() - sn.getCreateTime()%granule;
 			snName = sn.getName();
-			if (createTime <= startTime) {
+			LOG.info("<fixTimes> sn {}, cTime:{}, time:{}", snName,crGra,startTime);
+			if (crGra <= startTime) {
 				fixMap.put(snName, Long.valueOf(startTime));
 			}
 		}
