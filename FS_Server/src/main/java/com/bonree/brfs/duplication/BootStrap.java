@@ -71,6 +71,8 @@ public class BootStrap {
         
         try {
             String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+            String host = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_HOST);
+    		int port = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_PORT);
             
             RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
             CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddresses, 3000, 15000, retryPolicy);
@@ -91,9 +93,6 @@ public class BootStrap {
                 LOG.error("please init server!!!");
                 System.exit(1);
             }
-
-            String host = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_HOST);
-    		int port = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_PORT);
     		
     		CharSource idSource = Files.asCharSource(new File(System.getProperty(SystemProperties.PROP_SERVER_ID_DIR), "duplicatenode_id"), Charsets.UTF_8);
     		Service service = new Service(idSource.readFirstLine(),
@@ -140,8 +139,8 @@ public class BootStrap {
             int workerThreadNum = Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_IO_WORKER_NUM,
     				String.valueOf(Runtime.getRuntime().availableProcessors())));
             HttpConfig httpConfig = HttpConfig.newBuilder()
-    				.setHost(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_HOST))
-    				.setPort(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT))
+    				.setHost(host)
+    				.setPort(port)
     				.setAcceptWorkerNum(1)
     				.setRequestHandleWorkerNum(workerThreadNum)
     				.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")))
