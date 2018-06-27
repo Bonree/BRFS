@@ -47,26 +47,25 @@ public class NettyHttpRequestHandler {
 			return;
 		}
 		
+		String path = new QueryStringDecoder(request.uri(), CharsetUtil.UTF_8, true).path();
+		String uri = request.uri();
+		byte[] content = new byte[request.content().readableBytes()];
+		request.content().readBytes(content);
+		
 		HttpMessage message = new HttpMessage() {
-			private byte[] content;
 
 			@Override
 			public String getPath() {
-				return new QueryStringDecoder(request.uri(), CharsetUtil.UTF_8, true).path();
+				return path;
 			}
 
 			@Override
 			public Map<String, String> getParams() {
-				return HttpParamsDecoder.decode(request);
+				return HttpParamsDecoder.decodeFromUri(uri);
 			}
 
 			@Override
 			public byte[] getContent() {
-				if(content == null) {
-					content = new byte[request.content().readableBytes()];
-					request.content().readBytes(content);
-				}
-				
 				return content;
 			}
 			

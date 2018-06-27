@@ -30,7 +30,7 @@ public class HttpParamsDecoder {
 	 * @param uri
 	 * @return
 	 */
-	private static Map<String, String> decodeFromUri(String uri) {
+	public static Map<String, String> decodeFromUri(String uri) {
 		Map<String, String> params = new HashMap<String, String>();
 		
 		QueryStringDecoder decoder = new QueryStringDecoder(uri, CharsetUtil.UTF_8, true);
