@@ -12,27 +12,36 @@ import com.bonree.brfs.client.meta.impl.DiskServiceMetaCache;
 import com.bonree.brfs.client.meta.impl.DuplicaServiceMetaCache;
 import com.bonree.brfs.client.route.listener.RouteCacheListener;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
-import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 
 public class ServiceSelectorManager implements Closeable {
 
     private String zkServerIDPath;
     private String baseRoutePath;
-    private ServiceManager sm;
+    private ServiceManager serviceManager;
     private Map<Integer, DiskServiceSelectorCache> diskServiceSelectorCachaMap = new ConcurrentHashMap<>();
     private DuplicaServiceSelector duplicaServiceSelector = null;
     private CuratorClient curatorClient;
     private TreeCache treeCache;
+    
+    private final String duplicateServiceGroup;
+    private final String diskServiceGroup;
 
-    public ServiceSelectorManager(final ServiceManager sm, final CuratorFramework client, final String zkServerIDPath, final String baseRoutePath) {
+    public ServiceSelectorManager(final CuratorFramework client, String nameSpace, final String zkServerIDPath,
+    		final String baseRoutePath,
+    		String duplicateServiceGroup,
+    		String diskServiceGroup) throws Exception {
         this.zkServerIDPath = zkServerIDPath;
         this.baseRoutePath = baseRoutePath;
-        this.sm = sm;
         this.curatorClient = CuratorClient.wrapClient(client);
         treeCache = new TreeCache(client, baseRoutePath);
+        
+        serviceManager = new DefaultServiceManager(client.usingNamespace(nameSpace));
+        serviceManager.start();
+        
+        this.duplicateServiceGroup = duplicateServiceGroup;
+        this.diskServiceGroup = diskServiceGroup;
     }
 
     /** 概述：选择相应的selector缓存
@@ -48,11 +57,11 @@ public class ServiceSelectorManager implements Closeable {
         }
 
         DiskServiceMetaCache diskServiceMetaCache = new DiskServiceMetaCache(curatorClient, zkServerIDPath, snIndex,
-        		Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
+        		diskServiceGroup);
         ServiceMetaListener diskListener = new ServiceMetaListener(diskServiceMetaCache);
-        sm.addServiceStateListener(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), diskListener);
+        serviceManager.addServiceStateListener(diskServiceGroup, diskListener);
         
-        diskServiceMetaCache.loadMetaCachae(sm);
+        diskServiceMetaCache.loadMetaCachae(serviceManager);
 
         RouteRoleCache routeCache = new RouteRoleCache(curatorClient, snIndex, baseRoutePath);
         RouteParser routeParser = new RouteParser(routeCache);
@@ -72,13 +81,13 @@ public class ServiceSelectorManager implements Closeable {
             return duplicaServiceSelector;
         }
 
-        DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
+        DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(duplicateServiceGroup);
 
         // 监听duplicaServiceCachecache
         ServiceMetaListener listener = new ServiceMetaListener(duplicaServiceMetaCache);
-        sm.addServiceStateListener(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_SERVICE_GROUP_NAME), listener);
+        serviceManager.addServiceStateListener(duplicateServiceGroup, listener);
 
-        duplicaServiceMetaCache.loadMetaCachae(sm);
+        duplicaServiceMetaCache.loadMetaCachae(serviceManager);
 
         duplicaServiceSelector = new DuplicaServiceSelector(duplicaServiceMetaCache);
         return duplicaServiceSelector;
@@ -88,6 +97,14 @@ public class ServiceSelectorManager implements Closeable {
     public void close() {
         if (treeCache != null) {
             treeCache.close();
+        }
+        
+        if(serviceManager != null) {
+        	try {
+				serviceManager.stop();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
         }
     }
 

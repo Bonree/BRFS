@@ -39,29 +39,28 @@ import com.google.common.base.Joiner;
 public class DefaultStorageNameStick implements StorageNameStick {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageNameStick.class);
 
-    private static final String URI_DATA_ROOT = "/duplication/";
-    private static final String URI_DISK_NODE_ROOT = "/disk";
-
-    private static final String DEFAULT_SCHEME = "http";
-
-    private String storageName;
-    private int storageId;
+    private final String storageName;
+    private final int storageId;
 
     private DiskServiceSelectorCache selector;
     private DuplicaServiceSelector dupSelector;
     private HttpClient client;
+    
+    private FileSystemConfig config;
+    private Map<String, String> defaultHeaders = new HashMap<String, String>();
 
-    private String userName;
-    private String passwd;
-
-    public DefaultStorageNameStick(String storageName, int storageId, HttpClient client, DiskServiceSelectorCache selector, DuplicaServiceSelector dupSelector, String username, String passwd) {
+    public DefaultStorageNameStick(String storageName, int storageId,
+    		HttpClient client, DiskServiceSelectorCache selector,
+    		DuplicaServiceSelector dupSelector, FileSystemConfig config) {
         this.storageName = storageName;
         this.storageId = storageId;
         this.client = client;
         this.selector = selector;
         this.dupSelector = dupSelector;
-        this.userName = username;
-        this.passwd = passwd;
+        
+        this.config = config;
+        this.defaultHeaders.put("username", config.getName());
+        this.defaultHeaders.put("password", config.getPasswd());
     }
 
     @Override
@@ -79,23 +78,20 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
         try {
             List<Service> serviceList = dupSelector.randomServiceList();
-            System.out.println("write data get service count " + serviceList.size());
             if (serviceList.isEmpty()) {
                 throw new BRFSException("none disknode!!!");
             }
 
             for (Service service : serviceList) {
-                URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_DATA_ROOT).build();
+                URI uri = new URIBuilder().setScheme(config.getUrlSchema())
+                		.setHost(service.getHost()).setPort(service.getPort())
+                		.setPath(config.getDuplicateUrlRoot() + "/").build();
 
                 HttpResponse response = null;
                 try {
-                    Map<String, String> headers = new HashMap<String, String>();
-                    headers.put("username", userName);
-                    headers.put("password", passwd);
-
-                    response = client.executePost(uri, headers, ProtoStuffUtils.serialize(dataMessage));
+                    response = client.executePost(uri, defaultHeaders, ProtoStuffUtils.serialize(dataMessage));
                 } catch (Exception e) {
-                	e.printStackTrace();
+                	LOG.warn("write data http request failed", e);
                     continue;
                 }
 
@@ -113,7 +109,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("write data error", e);
         }
 
         return null;
@@ -141,10 +137,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
         for (int serverId : fidObj.getServerIdList()) {
             parts.add(String.valueOf(serverId));
         }
-
-        Map<String, String> headers = new HashMap<String, String>();
-        headers.put("username", userName);
-        headers.put("password", passwd);
+        
         try {
         	List<Integer> excludePot = new ArrayList<Integer>();
             // 最大尝试副本数个server
@@ -155,10 +148,12 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 if (service == null) {
                     throw new BRFSException("none disknode!!!");
                 }
-                URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_DISK_NODE_ROOT + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot())).addParameter("offset", String.valueOf(fidObj.getOffset())).addParameter("size", String.valueOf(fidObj.getSize())).build();
+                URI uri = new URIBuilder().setScheme(config.getUrlSchema())
+                		.setHost(service.getHost()).setPort(service.getPort())
+                		.setPath(config.getDiskUrlRoot() + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot())).addParameter("offset", String.valueOf(fidObj.getOffset())).addParameter("size", String.valueOf(fidObj.getSize())).build();
                 
                 try {
-					final HttpResponse response = client.executeGet(uri, headers);
+					final HttpResponse response = client.executeGet(uri, defaultHeaders);
 					
 					if (response != null && response.isReponseOK()) {
 	                    return new InputItem() {
@@ -202,18 +197,17 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
             for (Service service : serviceList) {
                 StringBuilder pathBuilder = new StringBuilder();
-                pathBuilder.append(URI_DATA_ROOT).append(storageId).append("/").append(startTime).append("_").append(endTime);
+                pathBuilder.append(config.getDuplicateUrlRoot()).append("/").append(storageId).append("/").append(startTime).append("_").append(endTime);
 
-                URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(pathBuilder.toString()).build();
+                URI uri = new URIBuilder().setScheme(config.getUrlSchema())
+                		.setHost(service.getHost()).setPort(service.getPort())
+                		.setPath(pathBuilder.toString()).build();
 
                 HttpResponse response = null;
                 try {
-                    Map<String, String> headers = new HashMap<String, String>();
-                    headers.put("username", userName);
-                    headers.put("password", passwd);
-
-                    response = client.executeDelete(uri, headers);
+                    response = client.executeDelete(uri, defaultHeaders);
                 } catch (Exception e) {
+                	LOG.warn("delete data http request failed", e);
                     continue;
                 }
 
@@ -229,10 +223,8 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
                 LOG.info("returnCode:" + returnCode);
             }
-        } catch (IllegalArgumentException e) {
-            LOG.error("time format error!!", e);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("delete data error", e);
         }
 
         return false;

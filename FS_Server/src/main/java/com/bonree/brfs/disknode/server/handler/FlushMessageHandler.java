@@ -1,7 +1,6 @@
 package com.bonree.brfs.disknode.server.handler;
 
 import java.io.FileNotFoundException;
-import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,12 +17,10 @@ public class FlushMessageHandler implements MessageHandler {
 	
 	private DiskContext diskContext;
 	private FileWriterManager writerManager;
-	private ExecutorService threadPool;
 	
-	public FlushMessageHandler(DiskContext diskContext, FileWriterManager nodeManager, ExecutorService threadPool) {
+	public FlushMessageHandler(DiskContext diskContext, FileWriterManager nodeManager) {
 		this.diskContext = diskContext;
 		this.writerManager = nodeManager;
-		this.threadPool = threadPool;
 	}
 
 	@Override
@@ -33,25 +30,19 @@ public class FlushMessageHandler implements MessageHandler {
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		threadPool.submit(new Runnable() {
+		HandleResult result = new HandleResult();
+		String filePath = null;
+		try {
+			filePath = diskContext.getConcreteFilePath(msg.getPath());
+			LOG.info("flush file[{}]", filePath);
+			writerManager.flushFile(filePath);
 			
-			@Override
-			public void run() {
-				HandleResult result = new HandleResult();
-				String filePath = null;
-				try {
-					filePath = diskContext.getConcreteFilePath(msg.getPath());
-					LOG.info("flush file[{}]", filePath);
-					writerManager.flushFile(filePath);
-					
-					result.setSuccess(true);
-				} catch (FileNotFoundException e) {
-					result.setSuccess(false);
-				} finally {
-					callback.completed(result);
-				}
-			}
-		});
+			result.setSuccess(true);
+		} catch (FileNotFoundException e) {
+			result.setSuccess(false);
+		} finally {
+			callback.completed(result);
+		}
 	}
 
 }

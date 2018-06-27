@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.utils;
+package com.bonree.brfs.common.process;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bonree.brfs.common.utils.CloseUtils;
 
 public class ProcessFinalizer extends Thread {
 	private static final Logger LOG = LoggerFactory.getLogger(ProcessFinalizer.class);

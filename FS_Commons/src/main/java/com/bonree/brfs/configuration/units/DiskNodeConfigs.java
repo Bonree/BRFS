@@ -30,6 +30,9 @@ public final class DiskNodeConfigs {
 	
 	public static final ConfigUnit<Integer> CONFIG_FILE_FLUSH_TIMEOUT =
 			ConfigUnit.ofInt("disknode.file.idle.timeout.seconds", 3);
+	
+	public static final ConfigUnit<Integer> CONFIG_REQUEST_HANDLER_NUM =
+			ConfigUnit.ofInt("disknode.request.handler.num", Runtime.getRuntime().availableProcessors());
 
 	private DiskNodeConfigs() {}
 }

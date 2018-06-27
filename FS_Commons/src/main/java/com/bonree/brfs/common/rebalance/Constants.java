@@ -2,8 +2,6 @@ package com.bonree.brfs.common.rebalance;
 
 public class Constants {
 
-    public final static String zkUrl = "192.168.101.86:2181";
-
     public final static String SEPARATOR = "/";
 
     public final static String CHANGES_NODE = "changes";

@@ -9,14 +9,13 @@ import io.netty.util.CharsetUtil;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
-import com.bonree.brfs.common.timer.TimeCounter;
 
 /**
  * Netty实现的Http请求处理接口
@@ -27,6 +26,12 @@ import com.bonree.brfs.common.timer.TimeCounter;
 public class NettyHttpRequestHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(NettyHttpRequestHandler.class);
 	private Map<HttpMethod, MessageHandler> methodToOps = new HashMap<HttpMethod, MessageHandler>();
+	
+	private ExecutorService executors;
+	
+	public NettyHttpRequestHandler(ExecutorService executors) {
+		this.executors = executors;
+	}
 
 	public void addMessageHandler(String method, MessageHandler handler) {
 		methodToOps.put(HttpMethod.valueOf(method), handler);
@@ -42,14 +47,12 @@ public class NettyHttpRequestHandler {
 			return;
 		}
 		
-		QueryStringDecoder decoder = new QueryStringDecoder(request.uri(), CharsetUtil.UTF_8, true);
-		
 		HttpMessage message = new HttpMessage() {
 			private byte[] content;
 
 			@Override
 			public String getPath() {
-				return decoder.path();
+				return new QueryStringDecoder(request.uri(), CharsetUtil.UTF_8, true).path();
 			}
 
 			@Override
@@ -69,17 +72,23 @@ public class NettyHttpRequestHandler {
 			
 		};
 		
-		try {
-			if(!handler.isValidRequest(message)) {
-				LOG.error("Exception context[{}] method[{}] invalid request message[{}]", ctx.toString(), message.getPath());
-				ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST, HttpResponseStatus.BAD_REQUEST.reasonPhrase());
-				return;
-			}
+		executors.submit(new Runnable() {
 			
-			handler.handle(message, new DefaultNettyHandleResultCallback(ctx));
-		} catch (Exception e) {
-			LOG.error("message handle error", e);
-			ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toString());
-		}
+			@Override
+			public void run() {
+				try {
+					if(!handler.isValidRequest(message)) {
+						LOG.error("Exception context[{}] method[{}] invalid request message[{}]", ctx.toString(), message.getPath());
+						ResponseSender.sendError(ctx, HttpResponseStatus.BAD_REQUEST, HttpResponseStatus.BAD_REQUEST.reasonPhrase());
+						return;
+					}
+					
+					handler.handle(message, new DefaultNettyHandleResultCallback(ctx));
+				} catch (Exception e) {
+					LOG.error("message handle error", e);
+					ResponseSender.sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, e.toString());
+				}
+			}
+		});
 	}
 }

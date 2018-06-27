@@ -9,11 +9,10 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ZookeeperPaths;
-import com.bonree.brfs.common.exception.ConfigParseException;
+import com.bonree.brfs.common.process.ProcessFinalizer;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
-import com.bonree.brfs.common.utils.ProcessFinalizer;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
@@ -38,7 +37,6 @@ public class ServerMain {
     	ProcessFinalizer finalizer = new ProcessFinalizer();
     	
         try {
-            System.setProperty("name", "disk");
             ResourceTaskConfig resourceConfig = ResourceTaskConfig.parse();
             
             String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);

@@ -12,7 +12,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import java.net.InetSocketAddress;
 
 import com.bonree.brfs.common.net.http.HttpConfig;
-import com.bonree.brfs.common.utils.LifeCycle;
+import com.bonree.brfs.common.process.LifeCycle;
 
 /**
  * Netty实现的Http Server启动类

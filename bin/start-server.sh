@@ -55,6 +55,12 @@ JVM_PARAMS=`cat $BRFS_HOME/config/jvm.config`
 #资源管理lib路径
 RESOURCE_LIB_PATH=$BRFS_HOME/lib
 
+#网络参数设置
+DISK_NET_BACKLOG=2048
+DISK_IO_THREADS=16
+DUPLICATE_NET_BACKLOG=2048
+DUPLICATE_IO_THREADS=16
+
 case $1 in
 		###启动副本管理###
 		duplication)
@@ -65,6 +71,8 @@ case $1 in
 			-Dlog.file.name='duplicatenode' \
 			-Dconfiguration.file=$SERVER_CONFIG \
 			-Dlogback.configurationFile=$LOG_CONFIG \
+			-Dnet.backlog=$DUPLICATE_NET_BACKLOG \
+			-Dnet.io.threads=$DUPLICATE_IO_THREADS \
 			-Dresource_lib_path=$RESOURCE_LIB_PATH \
 			-cp $CP "com.bonree.brfs.duplication.BootStrap" \
 			> $LOG_DUPLICATE_OUT 2>&1 &
@@ -79,6 +87,8 @@ case $1 in
 			-Dserver.ids=$SERVER_ID_PATH \
 			-Dconfiguration.file=$SERVER_CONFIG \
 			-Dlogback.configurationFile=$LOG_CONFIG \
+			-Dnet.backlog=$DISK_NET_BACKLOG \
+			-Dnet.io.threads=$DISK_IO_THREADS \
 			-Dresource.lib.path=$RESOURCE_LIB_PATH \
 			-cp $CP "com.bonree.brfs.server.ServerMain" \
 			> $LOG_DISK_OUT 2>&1 &

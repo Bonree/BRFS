@@ -1,5 +1,8 @@
 package com.bonree.brfs.common;
 
+import java.net.URI;
+
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

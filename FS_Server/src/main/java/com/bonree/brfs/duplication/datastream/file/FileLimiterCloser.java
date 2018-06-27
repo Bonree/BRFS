@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.utils.ThreadPoolUtil;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
 import com.bonree.brfs.duplication.coordinator.DuplicateNode;
@@ -77,14 +76,7 @@ public class FileLimiterCloser implements FileCloseListener {
 				LOG.error("delete file[{}] from file coordinator failed", fileNode.getName());
 			}
 		} else {
-			ThreadPoolUtil.schedule(new Runnable() {
-				
-				@Override
-				public void run() {
-					fileSynchronizer.synchronize(fileNode, new FileCloseConditionChecker(fileNode));
-				}
-				
-			}, DEFAULT_FILE_CLOSE_RETRY_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+			fileSynchronizer.synchronize(fileNode, new FileCloseConditionChecker(fileNode), DEFAULT_FILE_CLOSE_RETRY_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
 		}
 	}
 	

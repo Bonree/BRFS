@@ -10,12 +10,13 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.net.http.HttpConfig;
 import com.bonree.brfs.common.net.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.net.http.netty.NettyHttpServer;
+import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
-import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
@@ -51,13 +52,20 @@ public class EmptyMain implements LifeCycle {
 	public EmptyMain(ServiceManager serviceManager) {
 		this.diskContext = new DiskContext(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
 		this.serviceManager = serviceManager;
+		
+		int workerThreadNum = Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_IO_WORKER_NUM,
+				String.valueOf(Runtime.getRuntime().availableProcessors())));
+		this.httpConfig = HttpConfig.newBuilder()
+				.setHost(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_HOST))
+				.setPort(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT))
+				.setAcceptWorkerNum(1)
+				.setRequestHandleWorkerNum(workerThreadNum)
+				.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")))
+				.build();
 	}
 
 	@Override
 	public void start() throws Exception {
-		httpConfig = new HttpConfig(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_HOST),
-				Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT));
-		
 		LOG.info("Empty Main--port[{}]", httpConfig.getPort());
 		
 		checkDiskContextPath();
@@ -81,50 +89,50 @@ public class EmptyMain implements LifeCycle {
 			}
 		});
 		
-		httpConfig.setBacklog(1024);
 		server = new NettyHttpServer(httpConfig);
+		requestHandlerExecutor = Executors.newFixedThreadPool(
+				Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),
+				new PooledThreadFactory("request_handler"));
 		
-		requestHandlerExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new PooledThreadFactory("request_common"));
-		
-		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
-		requestHandler.addMessageHandler("PUT", new OpenMessageHandler(diskContext, writerManager, requestHandlerExecutor));
+		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+		requestHandler.addMessageHandler("PUT", new OpenMessageHandler(diskContext, writerManager));
 		requestHandler.addMessageHandler("POST", new WriteMessageHandler(diskContext, writerManager));
-		requestHandler.addMessageHandler("GET", new ReadMessageHandler(diskContext, requestHandlerExecutor));
-		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(diskContext, writerManager, requestHandlerExecutor));
-		requestHandler.addMessageHandler("DELETE", new DeleteMessageHandler(diskContext, writerManager, requestHandlerExecutor));
+		requestHandler.addMessageHandler("GET", new ReadMessageHandler(diskContext));
+		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(diskContext, writerManager));
+		requestHandler.addMessageHandler("DELETE", new DeleteMessageHandler(diskContext, writerManager));
 		server.addContextHandler(DiskContext.URI_DISK_NODE_ROOT, requestHandler);
 		
-		NettyHttpRequestHandler flushRequestHandler = new NettyHttpRequestHandler();
-		flushRequestHandler.addMessageHandler("POST", new FlushMessageHandler(diskContext, writerManager, requestHandlerExecutor));
+		NettyHttpRequestHandler flushRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+		flushRequestHandler.addMessageHandler("POST", new FlushMessageHandler(diskContext, writerManager));
 		server.addContextHandler(DiskContext.URI_FLUSH_NODE_ROOT, flushRequestHandler);
 		
 		SequenceNumberCache cache = new SequenceNumberCache(writerManager);
 		
-		NettyHttpRequestHandler sequenceRequestHandler = new NettyHttpRequestHandler();
+		NettyHttpRequestHandler sequenceRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 		sequenceRequestHandler.addMessageHandler("GET", new WritingSequenceMessageHandler(diskContext, cache));
 		server.addContextHandler(DiskContext.URI_SEQUENCE_NODE_ROOT, sequenceRequestHandler);
 		
-		NettyHttpRequestHandler bytesRequestHandler = new NettyHttpRequestHandler();
+		NettyHttpRequestHandler bytesRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 		bytesRequestHandler.addMessageHandler("GET", new WritingBytesMessageHandler(diskContext, cache));
 		server.addContextHandler(DiskContext.URI_SEQ_BYTE_NODE_ROOT, bytesRequestHandler);
 		
-		NettyHttpRequestHandler metaRequestHandler = new NettyHttpRequestHandler();
-		metaRequestHandler.addMessageHandler("GET", new WritingMetaDataMessageHandler(diskContext, writerManager, requestHandlerExecutor));
+		NettyHttpRequestHandler metaRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+		metaRequestHandler.addMessageHandler("GET", new WritingMetaDataMessageHandler(diskContext, writerManager));
 		server.addContextHandler(DiskContext.URI_META_NODE_ROOT, metaRequestHandler);
 		
-		NettyHttpRequestHandler cpRequestHandler = new NettyHttpRequestHandler();
+		NettyHttpRequestHandler cpRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 		cpRequestHandler.addMessageHandler("POST", new FileCopyMessageHandler(diskContext));
 		server.addContextHandler(DiskContext.URI_COPY_NODE_ROOT, cpRequestHandler);
 		
-		NettyHttpRequestHandler listRequestHandler = new NettyHttpRequestHandler();
-		listRequestHandler.addMessageHandler("GET", new ListMessageHandler(diskContext, requestHandlerExecutor));
+		NettyHttpRequestHandler listRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+		listRequestHandler.addMessageHandler("GET", new ListMessageHandler(diskContext));
 		server.addContextHandler(DiskContext.URI_LIST_NODE_ROOT, listRequestHandler);
 		
-		NettyHttpRequestHandler recoverRequestHandler = new NettyHttpRequestHandler();
-		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(diskContext, serviceManager, writerManager, recorderManager, requestHandlerExecutor));
+		NettyHttpRequestHandler recoverRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(diskContext, serviceManager, writerManager, recorderManager));
 		server.addContextHandler(DiskContext.URI_RECOVER_NODE_ROOT, recoverRequestHandler);
 		
-		NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler();
+		NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 		pingRequestHandler.addMessageHandler("GET", new PingPongRequestHandler());
 		server.addContextHandler(DiskContext.URI_PING_PONG_ROOT, pingRequestHandler);
 		

@@ -2,7 +2,7 @@ package com.bonree.brfs.common.service;
 
 import java.util.List;
 
-import com.bonree.brfs.common.utils.LifeCycle;
+import com.bonree.brfs.common.process.LifeCycle;
 
 /**
  * 服务管理接口

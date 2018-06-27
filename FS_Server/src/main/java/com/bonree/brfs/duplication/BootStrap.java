@@ -2,8 +2,9 @@ package com.bonree.brfs.duplication;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -18,10 +19,11 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.net.http.HttpConfig;
 import com.bonree.brfs.common.net.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.net.http.netty.NettyHttpServer;
+import com.bonree.brfs.common.process.ProcessFinalizer;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
-import com.bonree.brfs.common.utils.ProcessFinalizer;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
@@ -68,8 +70,6 @@ public class BootStrap {
     	ProcessFinalizer finalizer = new ProcessFinalizer();
         
         try {
-            System.setProperty("name", "duplication");
-            
             String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
             
             RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
@@ -137,18 +137,37 @@ public class BootStrap {
             FileLoungeFactory fileLoungeFactory = new DefaultFileLoungeFactory(service, fileCoordinator, nodeSelector, storageNameManager, idManager, connectionPool, fileSynchronizer, fileRebuilder);
             DuplicateWriter writer = new DuplicateWriter(service, fileLoungeFactory, fileCoordinator, fileSynchronizer, idManager, connectionPool, fileLimiterCloser, storageNameManager, fileRebuilder);
             
-            HttpConfig config = new HttpConfig(port);
-            config.setBacklog(1024);
-            NettyHttpServer httpServer = new NettyHttpServer(config);
+            int workerThreadNum = Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_IO_WORKER_NUM,
+    				String.valueOf(Runtime.getRuntime().availableProcessors())));
+            HttpConfig httpConfig = HttpConfig.newBuilder()
+    				.setHost(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_HOST))
+    				.setPort(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT))
+    				.setAcceptWorkerNum(1)
+    				.setRequestHandleWorkerNum(workerThreadNum)
+    				.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")))
+    				.build();
+            NettyHttpServer httpServer = new NettyHttpServer(httpConfig);
             httpServer.addHttpAuthenticator(new SimpleHttpAuthenticator(simpleAuthentication));
 
-            NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler();
+            ExecutorService requestHandlerExecutor = Executors.newFixedThreadPool(
+            		Math.max(4, Runtime.getRuntime().availableProcessors() / 4),
+    				new PooledThreadFactory("request_handler"));
+            
+            finalizer.add(new Closeable() {
+				
+				@Override
+				public void close() throws IOException {
+					requestHandlerExecutor.shutdown();
+				}
+			});
+            
+            NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
             requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer, storageNameManager));
             requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
             requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(zookeeperPaths, serviceManager, storageNameManager));
             httpServer.addContextHandler(DuplicationEnvironment.URI_DUPLICATION_NODE_ROOT, requestHandler);
 
-            NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler();
+            NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
             snRequestHandler.addMessageHandler("PUT", new CreateStorageNameMessageHandler(storageNameManager));
             snRequestHandler.addMessageHandler("POST", new UpdateStorageNameMessageHandler(storageNameManager));
             snRequestHandler.addMessageHandler("GET", new OpenStorageNameMessageHandler(storageNameManager));

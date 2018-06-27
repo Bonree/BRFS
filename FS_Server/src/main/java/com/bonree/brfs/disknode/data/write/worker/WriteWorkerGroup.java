@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import com.bonree.brfs.common.utils.LifeCycle;
+import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 
 public class WriteWorkerGroup implements LifeCycle {

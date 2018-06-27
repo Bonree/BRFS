@@ -21,49 +21,50 @@ import com.bonree.brfs.client.route.ServiceSelectorManager;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.exception.BRFSException;
+import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 
 public class DefaultBRFileSystem implements BRFileSystem {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBRFileSystem.class);
-    private static final String URI_STORAGE_NAME_ROOT = "/storageName/";
-
-    private static final String DEFAULT_SCHEME = "http";
-
-    private HttpClient client =null; 
+    
+    private HttpClient httpClient; 
     private CuratorFramework zkClient;
-    private ServiceManager serviceManager;
 
     private ServiceSelectorManager serviceSelectorManager;
     
     private Map<String, StorageNameStick> stickContainer = new HashMap<String, StorageNameStick>();
     
-    private String userName;
-    private String passwd;
+    private FileSystemConfig config;
+    
+    private Map<String, String> defaultHeaders = new HashMap<String, String>();
 
-    public DefaultBRFileSystem(String zkAddresses, String cluster, String userName, String passwd) throws Exception {
-    	System.out.println("#################################start");
-        client = new HttpClient();
-        this.userName = userName;
-    	this.passwd = passwd;
+    public DefaultBRFileSystem(FileSystemConfig config) throws Exception {
+    	this.config = config;
+        this.httpClient = new HttpClient(ClientConfig.builder()
+        		.setMaxConnection(config.getConnectionPoolSize())
+        		.setMaxConnectionPerRoute(config.getConnectionPoolSize())
+        		.build());
+        
+        this.defaultHeaders.put("username", config.getName());
+        this.defaultHeaders.put("password", config.getPasswd());
     	
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        zkClient = CuratorFrameworkFactory.newClient(zkAddresses, 3000, 15000, retryPolicy);
+        this.zkClient = CuratorFrameworkFactory.newClient(config.getZkAddresses(), 3000, 15000, retryPolicy);
         zkClient.start();
         zkClient.blockUntilConnected();
-        ZookeeperPaths zkPaths = ZookeeperPaths.getBasePath(cluster, zkAddresses);
+        
+        ZookeeperPaths zkPaths = ZookeeperPaths.getBasePath(config.getClusterName(), config.getZkAddresses());
         if(zkClient.checkExists().forPath(zkPaths.getBaseClusterName()) == null) {
             throw new BRFSException("cluster is not exist!!!");
         }
-        serviceManager = new DefaultServiceManager(zkClient.usingNamespace(zkPaths.getBaseClusterName().substring(1)));
-        serviceManager.start();
-        this.serviceSelectorManager = new ServiceSelectorManager(serviceManager, zkClient, zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath());
+        
+        this.serviceSelectorManager = new ServiceSelectorManager(zkClient, zkPaths.getBaseClusterName().substring(1), zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath(),
+        		config.getDuplicateServiceGroup(), config.getDiskServiceGroup());
     }
 
     @Override
@@ -75,7 +76,9 @@ public class DefaultBRFileSystem implements BRFileSystem {
         	}
         	
         	for(Service service : serviceList) {
-        		URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
+        		URIBuilder uriBuilder = new URIBuilder().setScheme(config.getUrlSchema())
+        				.setHost(service.getHost()).setPort(service.getPort())
+        				.setPath(config.getStorageUrlRoot() + "/" + storageName);
 
                 for (Entry<String, Object> attr : attrs.entrySet()) {
                     uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
@@ -83,12 +86,9 @@ public class DefaultBRFileSystem implements BRFileSystem {
             	
                 HttpResponse response = null;
             	try {
-            		Map<String, String> headers = new HashMap<String, String>();
-            		headers.put("username", userName);
-            		headers.put("password", passwd);
-            		
-            		 response = client.executePut(uriBuilder.build(), headers);
+            		 response = httpClient.executePut(uriBuilder.build(), defaultHeaders);
     			} catch (Exception e) {
+    				LOG.warn("createStorageName http request failed", e);
     				continue;
     			}
             	
@@ -104,7 +104,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
                 ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
         	}
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("createStorageName error", e);
         }
 
         return false;
@@ -119,7 +119,9 @@ public class DefaultBRFileSystem implements BRFileSystem {
         	}
         	
         	for(Service service : serviceList) {
-        		URIBuilder uriBuilder = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName);
+        		URIBuilder uriBuilder = new URIBuilder().setScheme(config.getUrlSchema())
+        				.setHost(service.getHost()).setPort(service.getPort())
+        				.setPath(config.getStorageUrlRoot() + "/" + storageName);
 
                 for (Entry<String, Object> attr : attrs.entrySet()) {
                     uriBuilder.addParameter(attr.getKey(), String.valueOf(attr.getValue()));
@@ -128,11 +130,12 @@ public class DefaultBRFileSystem implements BRFileSystem {
                 HttpResponse response = null;
             	try {
             		Map<String, String> headers = new HashMap<String, String>();
-            		headers.put("username", userName);
-            		headers.put("password", passwd);
+            		headers.put("username", config.getName());
+            		headers.put("password", config.getPasswd());
             		
-            		response = client.executePost(uriBuilder.build(), headers);
+            		response = httpClient.executePost(uriBuilder.build(), headers);
     			} catch (Exception e) {
+    				LOG.warn("updateStorageName http request failed", e);
     				continue;
     			}
             	
@@ -148,7 +151,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         		ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
         	}
         } catch (Exception e) {
-            e.printStackTrace();
+        	LOG.error("updateStorageName error", e);
         }
     	
     	return false;
@@ -163,16 +166,15 @@ public class DefaultBRFileSystem implements BRFileSystem {
         	}
         	
         	for(Service service : serviceList) {
-        		URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
+        		URI uri = new URIBuilder().setScheme(config.getUrlSchema())
+        				.setHost(service.getHost()).setPort(service.getPort())
+        				.setPath(config.getStorageUrlRoot() + "/" + storageName).build();
             	
                 HttpResponse response = null;
             	try {
-            		Map<String, String> headers = new HashMap<String, String>();
-            		headers.put("username", userName);
-            		headers.put("password", passwd);
-            		
-            		response = client.executeDelete(uri, headers);
+            		response = httpClient.executeDelete(uri, defaultHeaders);
     			} catch (Exception e) {
+    				LOG.warn("deleteStorageName http request failed", e);
     				continue;
     			}
             	
@@ -188,7 +190,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         		ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
         	}
         } catch (Exception e) {
-            e.printStackTrace();
+        	LOG.error("deleteStorageName error", e);
         }
 
         return false;
@@ -208,16 +210,15 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		        	}
     		        	
     		        	for(Service service : serviceList) {
-    		        		URI uri = new URIBuilder().setScheme(DEFAULT_SCHEME).setHost(service.getHost()).setPort(service.getPort()).setPath(URI_STORAGE_NAME_ROOT + storageName).build();
+    		        		URI uri = new URIBuilder().setScheme(config.getUrlSchema())
+    		        				.setHost(service.getHost()).setPort(service.getPort())
+    		        				.setPath(config.getStorageUrlRoot() + "/" + storageName).build();
     		            	
     		                HttpResponse response = null;
     		            	try {
-    		            		Map<String, String> headers = new HashMap<String, String>();
-    		            		headers.put("username", userName);
-    		            		headers.put("password", passwd);
-    		            		
-    		            		response = client.executeGet(uri, headers);
+    		            		response = httpClient.executeGet(uri, defaultHeaders);
     		    			} catch (Exception e) {
+    		    				LOG.warn("openStorageName http request failed", e);
     		    				continue;
     		    			}
     		            	
@@ -229,7 +230,9 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		            		int storageId = Integer.parseInt(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
     		            		
     		            		DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
-    	    		            stick = new DefaultStorageNameStick(storageName, storageId, client, cache, serviceSelectorManager.useDuplicaSelector(), userName, passwd);
+    	    		            stick = new DefaultStorageNameStick(storageName, storageId,
+    	    		            		httpClient, cache, serviceSelectorManager.useDuplicaSelector(),
+    	    		            		config);
     	    		            stickContainer.put(storageName, stick);
     	    		            
     	    		            return stick;
@@ -239,7 +242,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		        		ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
     		        	}
     		        } catch (Exception e) {
-    		            e.printStackTrace();
+    		        	LOG.error("openStorageName error", e);
     		        }
     			}
 			}
@@ -256,15 +259,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         
         CloseUtils.closeQuietly(serviceSelectorManager);
         CloseUtils.closeQuietly(zkClient);
-        CloseUtils.closeQuietly(client);
-        
-        try {
-            if (serviceManager != null) {
-                serviceManager.stop();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        CloseUtils.closeQuietly(httpClient);
     }
 
 }

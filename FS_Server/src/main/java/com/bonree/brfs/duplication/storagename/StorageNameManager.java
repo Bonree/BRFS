@@ -2,8 +2,8 @@ package com.bonree.brfs.duplication.storagename;
 
 import java.util.List;
 
+import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.Attributes;
-import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameExistException;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameRemoveException;

@@ -1,6 +1,6 @@
 package com.bonree.brfs.duplication.coordinator;
 
-import com.bonree.brfs.common.utils.LifeCycle;
+import com.bonree.brfs.common.process.LifeCycle;
 
 /**
  * 管理{@link FileNodeSink}的接口

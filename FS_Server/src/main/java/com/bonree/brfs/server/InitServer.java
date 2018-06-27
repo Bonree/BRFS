@@ -16,8 +16,6 @@ public class InitServer {
 
     public static void main(String[] args) {
         try {
-            System.setProperty("name", "init");
-            
             String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
             CuratorClient client = CuratorClient.getClientInstance(zkAddresses);
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME), zkAddresses);

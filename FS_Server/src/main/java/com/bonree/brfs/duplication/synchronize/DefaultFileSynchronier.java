@@ -10,6 +10,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -40,6 +42,7 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 	
 	private static final int DEFAULT_THREAD_NUM = 1;
 	private ExecutorService threadPool;
+	private ScheduledExecutorService scheduledPool;
 	
 	private DiskNodeConnectionPool connectionPool;
 	
@@ -72,7 +75,8 @@ public class DefaultFileSynchronier implements FileSynchronizer {
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(),
                 new PooledThreadFactory("file_synchronize"));
-		
+		this.scheduledPool = new ScheduledThreadPoolExecutor(1,
+				new PooledThreadFactory("delayed_file_sync"));
 	}
 
 	@Override
@@ -87,6 +91,18 @@ public class DefaultFileSynchronier implements FileSynchronizer {
 		taskActivator.quit();
 		taskActivator.interrupt();
 		threadPool.shutdown();
+		scheduledPool.shutdown();
+	}
+	
+	@Override
+	public void synchronize(FileNode fileNode, FileSynchronizeCallback callback, long delayedTime, TimeUnit unit) {
+		scheduledPool.schedule(new Runnable() {
+			
+			@Override
+			public void run() {
+				synchronize(fileNode, callback);
+			}
+		}, delayedTime, unit);
 	}
 
 	@Override

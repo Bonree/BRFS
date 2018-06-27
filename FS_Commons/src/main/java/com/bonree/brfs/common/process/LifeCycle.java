@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.utils;
+package com.bonree.brfs.common.process;
 
 /**
  * 模块的生命周期管理接口

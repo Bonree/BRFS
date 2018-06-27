@@ -12,11 +12,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.timer.WheelTimer;
 import com.bonree.brfs.common.timer.WheelTimer.Timeout;
 import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
-import com.bonree.brfs.common.utils.LifeCycle;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;

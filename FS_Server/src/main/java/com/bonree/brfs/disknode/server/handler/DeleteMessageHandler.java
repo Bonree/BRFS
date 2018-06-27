@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,62 +21,54 @@ public class DeleteMessageHandler implements MessageHandler {
 	
 	private DiskContext diskContext;
 	private FileWriterManager writerManager;
-	private ExecutorService threadPool;
 	
-	public DeleteMessageHandler(DiskContext context, FileWriterManager nodeManager, ExecutorService threadPool) {
+	public DeleteMessageHandler(DiskContext context, FileWriterManager nodeManager) {
 		this.diskContext = context;
 		this.writerManager = nodeManager;
-		this.threadPool = threadPool;
 	}
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		threadPool.submit(new Runnable() {
+		HandleResult result = new HandleResult();
+		
+		try {
+			String filePath = diskContext.getConcreteFilePath(msg.getPath());
 			
-			@Override
-			public void run() {
-				HandleResult result = new HandleResult();
-				
+			Map<String, String> params = msg.getParams();
+			LOG.info("delete params--{}", params);
+			
+			DeleteData data = new DeleteData();
+			data.setForceClose(params.containsKey("force") ? true : false);
+			data.setRecursive(params.containsKey("recursive") ? true : false);
+			
+			LOG.info("deleting path[{}], force[{}], recursive[{}]", filePath, data.isForceClose(), data.isRecursive());
+			File targetFile = new File(filePath);
+			if(targetFile.isFile()) {
 				try {
-					String filePath = diskContext.getConcreteFilePath(msg.getPath());
+					closeFile(targetFile, data.isForceClose());
 					
-					Map<String, String> params = msg.getParams();
-					LOG.info("delete params--{}", params);
-					
-					DeleteData data = new DeleteData();
-					data.setForceClose(params.containsKey("force") ? true : false);
-					data.setRecursive(params.containsKey("recursive") ? true : false);
-					
-					LOG.info("deleting path[{}], force[{}], recursive[{}]", filePath, data.isForceClose(), data.isRecursive());
-					File targetFile = new File(filePath);
-					if(targetFile.isFile()) {
-						try {
-							closeFile(targetFile, data.isForceClose());
-							
-							result.setSuccess(true);
-						} catch (Exception e) {
-							result.setSuccess(false);
-							result.setCause(e);
-							return;
-						}
-					} else {
-						try {
-							closeDir(targetFile, data.isRecursive(), data.isForceClose());
-							result.setSuccess(true);
-						} catch (Exception e) {
-							result.setSuccess(false);
-							result.setCause(e);
-							return;
-						}
-					}
-				} catch(Exception e) {
-					LOG.error("delete message error", e);
+					result.setSuccess(true);
+				} catch (Exception e) {
 					result.setSuccess(false);
-				} finally {
-					callback.completed(result);
+					result.setCause(e);
+					return;
+				}
+			} else {
+				try {
+					closeDir(targetFile, data.isRecursive(), data.isForceClose());
+					result.setSuccess(true);
+				} catch (Exception e) {
+					result.setSuccess(false);
+					result.setCause(e);
+					return;
 				}
 			}
-		});
+		} catch(Exception e) {
+			LOG.error("delete message error", e);
+			result.setSuccess(false);
+		} finally {
+			callback.completed(result);
+		}
 	}
 	
 	private void closeFile(File file, boolean forceClose) throws IllegalStateException {

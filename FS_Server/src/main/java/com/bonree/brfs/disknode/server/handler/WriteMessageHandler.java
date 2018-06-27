@@ -1,7 +1,6 @@
 package com.bonree.brfs.disknode.server.handler;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,9 +9,7 @@ import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
-import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
-import com.bonree.brfs.common.utils.ThreadPoolUtil;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.client.WriteDataList;
 import com.bonree.brfs.disknode.client.WriteResultList;
@@ -103,44 +100,32 @@ public class WriteMessageHandler implements MessageHandler {
 
 		@Override
 		protected void onPostExecute(WriteResult[] result) {
-			ThreadPoolUtil.commonPool().execute(new Runnable() {
-				
-				@Override
-				public void run() {
-					HandleResult handleResult = new HandleResult();
-					handleResult.setSuccess(true);
-					try {
-						WriteResultList resultList = new WriteResultList();
-						resultList.setWriteResults(results);
-						handleResult.setData(ProtoStuffUtils.serialize(resultList));
-					} catch (IOException e) {
-						LOG.error("onPostExecute error", e);
-					}
-					
-					callback.completed(handleResult);
-				}
-			});
+			HandleResult handleResult = new HandleResult();
+			handleResult.setSuccess(true);
+			try {
+				WriteResultList resultList = new WriteResultList();
+				resultList.setWriteResults(results);
+				handleResult.setData(ProtoStuffUtils.serialize(resultList));
+			} catch (IOException e) {
+				LOG.error("onPostExecute error", e);
+			}
+			
+			callback.completed(handleResult);
 		}
 
 		@Override
-		protected void onFailed(Throwable e) {
-			ThreadPoolUtil.commonPool().execute(new Runnable() {
-				
-				@Override
-				public void run() {
-					HandleResult handleResult = new HandleResult();
-					handleResult.setSuccess(true);
-					try {
-						WriteResultList resultList = new WriteResultList();
-						resultList.setWriteResults(results);
-						handleResult.setData(ProtoStuffUtils.serialize(resultList));
-					} catch (IOException e) {
-						LOG.error("onFailed error", e);
-					}
-					
-					callback.completed(handleResult);
-				}
-			});
+		protected void onFailed(Throwable cause) {
+			HandleResult handleResult = new HandleResult();
+			handleResult.setSuccess(true);
+			try {
+				WriteResultList resultList = new WriteResultList();
+				resultList.setWriteResults(results);
+				handleResult.setData(ProtoStuffUtils.serialize(resultList));
+			} catch (IOException e) {
+				LOG.error("onFailed error", e);
+			}
+			
+			callback.completed(handleResult);
 		}
 		
 	}
