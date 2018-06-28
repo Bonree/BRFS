@@ -77,7 +77,7 @@ public class FileWriterManager implements LifeCycle {
 						try {
 							flushFile(filePath);
 						} catch (FileNotFoundException e) {
-							LOG.info("flush file[{}] error", filePath, e);
+							LOG.error("flush file[{}] error", filePath, e);
 						}
 					}
 				});

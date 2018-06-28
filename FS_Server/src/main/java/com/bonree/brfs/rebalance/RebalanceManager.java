@@ -26,7 +26,6 @@ public class RebalanceManager implements Closeable {
 
     private TaskDispatcher dispatch = null;
     private TaskOperation opt = null;
-    StorageNameManager snManager;
     SimpleFileServer fileServer = null;
     ExecutorService simpleFileServer = Executors.newSingleThreadExecutor();
     private CuratorClient curatorClient = null;
@@ -69,12 +68,14 @@ public class RebalanceManager implements Closeable {
 
     @Override
     public void close() throws IOException {
+    	simpleFileServer.shutdown();
 
         if (dispatch != null) {
+        	dispatch.close();
         }
 
         if (opt != null) {
-
+        	opt.close();
         }
 
         if (fileServer != null) {

@@ -19,7 +19,6 @@ import com.bonree.brfs.common.asynctask.AsyncTaskGroup;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroupCallback;
 import com.bonree.brfs.common.asynctask.AsyncTaskResult;
 import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.configuration.Configs;
@@ -122,15 +121,11 @@ public class DuplicateWriter {
 	}
 	
 	public void write(int storageId, DataItem[] items, DataHandleCallback<DataWriteResult> callback) {
-		TimeCounter counter = new TimeCounter("DuplicateWriter", TimeUnit.MILLISECONDS);
-		counter.begin();
 		FileLounge fileLounge = getFileLoungeByStorageId(storageId);
 		if(fileLounge == null) {
 			callback.error(new StorageNameNonexistentException(storageId));
 			return;
 		}
-		
-		LOG.info(counter.report(0));
 		
 		Arrays.sort(items, new Comparator<DataItem>() {
 
@@ -147,11 +142,7 @@ public class DuplicateWriter {
 			sizes[i] = items[i].getBytes().length;
 		}
 		
-		LOG.info(counter.report(1));
-		
 		FileLimiter[] fileList = fileLounge.getFileLimiterList(sizes);
-		
-		LOG.info(counter.report(2));
 		
 		AsyncTaskGroup<ResultItem[]> taskGroup = new AsyncTaskGroup<ResultItem[]>();
 		FileWriteCallback taskCallback = new FileWriteCallback(callback);
@@ -175,9 +166,7 @@ public class DuplicateWriter {
 			task.addDataItem(items[i]);
 		}
 		
-		LOG.info("submit multi task---");
 		multiTaskExecutor.submit(taskGroup, new FileWriteCallback(callback), resultExecutor);
-		LOG.info(counter.report(3));
 	}
 	
 	private class FileWriteCallback implements AsyncTaskGroupCallback<ResultItem[]> {

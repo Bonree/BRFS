@@ -111,8 +111,6 @@ public class ServerMain {
             	System.out.println(selfService);
             }else {
             	LOG.error("serviceId : {} is exists, system will exit!!!",serviceId);
-            	snManager.stop();
-            	sm.stop();
             	System.exit(1);
             }
             

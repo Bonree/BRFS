@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.duplication.DuplicationEnvironment;
@@ -175,8 +174,6 @@ public class DefaultFileLounge implements FileLounge {
 		List<TimedObject<List<FileLimiter>>> timedObjects = timedWritableFileContainer.allObjects();
 		long currentTimeInterval = timedWritableFileContainer.getTimeInterval(System.currentTimeMillis());
 		
-		TimeCounter counter = new TimeCounter("FileClean", TimeUnit.MILLISECONDS);
-		counter.begin();
 		List<TimedObject<List<FileLimiter>>> syncingFiles = suspendFileContainer.allObjects();
 		for(TimedObject<List<FileLimiter>> obj : syncingFiles) {
 			//移除所有在同步状态的文件
@@ -194,8 +191,6 @@ public class DefaultFileLounge implements FileLounge {
 				}
 			}
 		}
-		
-		LOG.info(counter.report(0));
 		
 		for(TimedObject<List<FileLimiter>> obj : timedObjects) {
 			List<FileLimiter> fileList = obj.getObj();
@@ -260,8 +255,6 @@ public class DefaultFileLounge implements FileLounge {
 				}
 			}
 		}
-		
-		LOG.info(counter.report(1));
 		
 		if(fileCloseListener == null) {
 			removedFileList.clear();

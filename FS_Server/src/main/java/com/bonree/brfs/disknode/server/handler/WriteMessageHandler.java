@@ -70,8 +70,6 @@ public class WriteMessageHandler implements MessageHandler {
 
 		@Override
 		protected WriteResult[] execute() throws Exception {
-			LOG.info("start writing...");
-			
 			WriteDataList dataList = ProtoStuffUtils.deserialize(message.getContent(), WriteDataList.class);
 			WriteData[] datas = dataList.getDatas();
 			
@@ -81,7 +79,7 @@ public class WriteMessageHandler implements MessageHandler {
 			for(int i = 0; i < datas.length; i++) {
 				WriteData data = datas[i];
 				
-				LOG.info("writing file[{}] with data seq[{}], size[{}]", writer.getPath(), data.getDiskSequence(), data.getBytes().length);
+				LOG.debug("writing file[{}] with data seq[{}], size[{}]", writer.getPath(), data.getDiskSequence(), data.getBytes().length);
 				
 				WriteResult result = new WriteResult();
 				result.setSequence(data.getDiskSequence());

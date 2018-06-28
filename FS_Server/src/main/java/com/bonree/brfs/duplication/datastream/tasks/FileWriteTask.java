@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +13,6 @@ import com.bonree.brfs.common.asynctask.AsyncTask;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroup;
 import com.bonree.brfs.common.asynctask.AsyncTaskGroupCallback;
 import com.bonree.brfs.common.asynctask.AsyncTaskResult;
-import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
@@ -66,8 +64,6 @@ public class FileWriteTask extends AsyncTask<ResultItem[]> {
 
 	@Override
 	public ResultItem[] run() throws Exception {
-		TimeCounter counter = new TimeCounter("FileWriteTask", TimeUnit.MILLISECONDS);
-		counter.begin();
 		WriteData[] datas = new WriteData[dataList.size()];
 		int sequence = file.getSequence();
 		for(int i = 0; i < datas.length; i++) {
@@ -93,9 +89,7 @@ public class FileWriteTask extends AsyncTask<ResultItem[]> {
 		DataWriteResultCallback callback = new DataWriteResultCallback();
 		taskRunner.submit(taskGroup, callback, resultHandleExecutor);
 		
-		LOG.info(counter.report(0));
 		ResultItem[] result = resultGetter.take();
-		LOG.info(counter.report(1));
 		return result;
 	}
 	
@@ -138,7 +132,7 @@ public class FileWriteTask extends AsyncTask<ResultItem[]> {
 					}
 				}
 				
-				LOG.info("file[{}] result valid index = {}", file.getFileNode().getName(), validIndex);
+				LOG.debug("file[{}] result valid index = {}", file.getFileNode().getName(), validIndex);
 				//有效索引范围内的数据才能生存FID
 				for(int i = 0; i < validIndex + 1; i++) {
 					//文件所在的文件偏移量和数据大小都是通过FileLimiter中的信息计算的

@@ -1,7 +1,5 @@
 package com.bonree.brfs.duplication.datastream.handler;
 
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,7 +8,6 @@ import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
-import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.write.data.DataItem;
@@ -46,7 +43,7 @@ public class WriteDataMessageHandler implements MessageHandler {
 		}
 		
 		DataItem[] items = writeMsg.getItems();
-		LOG.info("Writing DataItem[{}]", items.length);
+		LOG.debug("Writing DataItem[{}]", items.length);
 		
 		if(items == null || items.length == 0) {
 			callback.completed(new HandleResult(true));

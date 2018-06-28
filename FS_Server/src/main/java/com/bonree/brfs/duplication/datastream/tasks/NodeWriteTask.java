@@ -1,12 +1,9 @@
 package com.bonree.brfs.duplication.datastream.tasks;
 
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.asynctask.AsyncTask;
-import com.bonree.brfs.common.timer.TimeCounter;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
@@ -27,30 +24,24 @@ public class NodeWriteTask extends AsyncTask<WriteResult[]> {
 
 	@Override
 	public WriteResult[] run() throws Exception {
-		TimeCounter counter = new TimeCounter("NodeWriteTask", TimeUnit.MILLISECONDS);
-		try {
-			counter.begin();
-			if(connection == null) {
-				LOG.error("file[{}] connection is null!!!", filePath);
-				return null;
-			}
-			
-			DiskNodeClient client = connection.getClient();
-			if(client == null) {
-				LOG.error("file[{}] DiskNodeClient is null!!!", filePath);
-				return null;
-			}
-			
-			LOG.info("write {} data to {}:{}", filePath, connection.getRemoteAddress(), connection.getRemotePort());
-			WriteResult[] result = client.writeDatas(filePath, datas);
-			
-			LOG.info("file[{}] write task from {}:{} get result---{}", filePath,
-					connection.getRemoteAddress(), connection.getRemotePort(), result);
-			
-			return result;
-		} finally {
-			LOG.info(counter.report(0));
+		if(connection == null) {
+			LOG.error("file[{}] connection is null!!!", filePath);
+			return null;
 		}
+		
+		DiskNodeClient client = connection.getClient();
+		if(client == null) {
+			LOG.error("file[{}] DiskNodeClient is null!!!", filePath);
+			return null;
+		}
+		
+		LOG.debug("write {} data to {}:{}", filePath, connection.getRemoteAddress(), connection.getRemotePort());
+		WriteResult[] result = client.writeDatas(filePath, datas);
+		
+		LOG.debug("file[{}] write task from {}:{} get result---{}", filePath,
+				connection.getRemoteAddress(), connection.getRemotePort(), result);
+		
+		return result;
 	}
 	
 }

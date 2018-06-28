@@ -29,7 +29,7 @@ import com.google.common.collect.HashMultimap;
  * 服务管理接口的默认实现，借助Zookeeper的功能实现服务的管理流程
  * 和服务事件通知机制。
  * 
- * @author chen
+ * @author yupeng
  *
  */
 public class DefaultServiceManager implements ServiceManager {
