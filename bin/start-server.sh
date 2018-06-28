@@ -50,7 +50,7 @@ then
   mkdir $SERVER_ID_PATH
 fi
 
-JVM_PARAMS=`cat $BRFS_HOME/config/jvm.config`
+JVM_PARAMS=`grep -v "^#.*$" $BRFS_HOME/config/jvm.config | cat`
 
 #资源管理lib路径
 RESOURCE_LIB_PATH=$BRFS_HOME/lib

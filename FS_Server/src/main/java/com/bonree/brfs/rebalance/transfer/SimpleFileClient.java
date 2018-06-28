@@ -69,8 +69,6 @@ public class SimpleFileClient {
         File dir = new File("E:/111");
         File[] files = dir.listFiles();
         for (int i = 0; i < files.length; i++) {
-            System.out.println(files[i].getAbsolutePath());
-            System.out.println(files[i].getName());
             client.sendFile("192.168.4.111", 10007, files[i].getAbsolutePath(), "111", files[i].getName());
         }
 

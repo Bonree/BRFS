@@ -229,7 +229,6 @@ public class TaskDispatcher implements Closeable {
                 try {
                     if (leaderLath.hasLeadership()) {
                         if (isLoad.get()) {
-                            System.out.println(isLoad.get());
                             for (Entry<Integer, List<ChangeSummary>> entry : cacheSummaryCache.entrySet()) {
                                 LOG.info("auditTask auditTask auditTask auditTask");
                                 StorageNameNode sn = snManager.findStorageName(entry.getKey());
@@ -308,7 +307,7 @@ public class TaskDispatcher implements Closeable {
         while (true) {
             cd = detailQueue.take();
             List<ChangeSummary> changeSummaries = addOneCache(cd.getClient(), cd.getEvent());
-            LOG.info("consume:" + changeSummaries);
+            LOG.debug("consume:" + changeSummaries);
         }
     }
 
@@ -637,7 +636,7 @@ public class TaskDispatcher implements Closeable {
                     // 加入正在执行的任务的缓存中
                     setRunTask(taskSummary.getStorageIndex(), taskSummary);
                 } else {
-                    LOG.info("because current server is not enough,normal recover can't create.change:{}", changeSummaries);
+                    LOG.debug("because current server is not enough,normal recover can't create.change:{}", changeSummaries);
                 }
             }
         }

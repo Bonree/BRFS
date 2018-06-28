@@ -5,7 +5,7 @@ case $1 in
 		###启动副本管理###
 		duplication)
 			if [ `jps | grep BootStrap | wc -l` -gt 0 ]; then
-			    jps | awk '{if($2=="BootStrap")print $1}' | xargs kill -9
+			    jps | awk '{if($2=="BootStrap")print $1}' | xargs kill
 			    echo "duplication service has stopped."
 			else
 			    echo "Warn: duplication service is not running!"
@@ -14,7 +14,7 @@ case $1 in
 		###启动磁盘管理###
 		disk)
 			if [ `jps | grep ServerMain | wc -l` -gt 0 ]; then
-			    jps | awk '{if($2=="ServerMain")print $1}' | xargs kill -9
+			    jps | awk '{if($2=="ServerMain")print $1}' | xargs kill
 			    echo "disk service has stopped."
 			else
 			    echo "Warn: disk service is not running!"
