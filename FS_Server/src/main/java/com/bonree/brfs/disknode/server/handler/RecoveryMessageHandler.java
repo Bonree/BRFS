@@ -114,6 +114,10 @@ public class RecoveryMessageHandler implements MessageHandler {
 					BitSet availableSeq = BitSetUtils.intersect(seqSet, lack);
 					if(availableSeq.cardinality() != 0) {
 						Service service = serviceManager.getServiceById(seqInfo.getServiceGroup(), seqInfo.getServiceId());
+						if(service == null) {
+							LOG.error("can not get service with[{}:{}]", seqInfo.getServiceGroup(), seqInfo.getServiceId());
+							continue;
+						}
 						
 						DiskNodeClient client = null;
 						try {
@@ -122,10 +126,12 @@ public class RecoveryMessageHandler implements MessageHandler {
 							
 							for(int i = availableSeq.nextSetBit(0); i != -1; i = availableSeq.nextSetBit(++i)) {
 								byte[] bytes = client.getBytesBySequence(seqInfo.getFilePath(), i);
-								if(bytes != null) {
-									lack.set(i, false);
-									datas.put(i, bytes);
+								if(bytes == null) {
+									break;
 								}
+								
+								lack.set(i, false);
+								datas.put(i, bytes);
 							}
 						} catch (Exception e) {
 							LOG.error("recover file[{}] error", filePath, e);

@@ -49,6 +49,9 @@ public class EmptyMain implements LifeCycle {
 	
 	private ExecutorService requestHandlerExecutor;
 	
+	private static final String DISKNODE_SERVICE_GROUP = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME);
+	private ServiceStateListener serviceStateListener;
+	
 	public EmptyMain(ServiceManager serviceManager) {
 		this.diskContext = new DiskContext(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
 		this.serviceManager = serviceManager;
@@ -62,6 +65,19 @@ public class EmptyMain implements LifeCycle {
 				.setRequestHandleWorkerNum(workerThreadNum)
 				.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")))
 				.build();
+		
+		this.serviceStateListener = new ServiceStateListener() {
+			
+			@Override
+			public void serviceRemoved(Service service) {
+				LOG.info("service[{}] removed, time to flush all files", service);
+				writerManager.flushAll();
+			}
+			
+			@Override
+			public void serviceAdded(Service service) {
+			}
+		};
 	}
 
 	@Override
@@ -76,18 +92,7 @@ public class EmptyMain implements LifeCycle {
 		
 		writerManager.rebuildFileWriterbyDir(diskContext.getRootDir());
 		
-		serviceManager.addServiceStateListener(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), new ServiceStateListener() {
-			
-			@Override
-			public void serviceRemoved(Service service) {
-				LOG.info("service[{}] removed, time to flush all files", service);
-				writerManager.flushAll();
-			}
-			
-			@Override
-			public void serviceAdded(Service service) {
-			}
-		});
+		serviceManager.addServiceStateListener(DISKNODE_SERVICE_GROUP, serviceStateListener);
 		
 		server = new NettyHttpServer(httpConfig);
 		requestHandlerExecutor = Executors.newFixedThreadPool(
@@ -148,6 +153,7 @@ public class EmptyMain implements LifeCycle {
 	@Override
 	public void stop() throws Exception {
 		server.stop();
+		serviceManager.removeServiceStateListener(DISKNODE_SERVICE_GROUP, serviceStateListener);
 		writerManager.stop();
 		
 		if(requestHandlerExecutor != null) {
