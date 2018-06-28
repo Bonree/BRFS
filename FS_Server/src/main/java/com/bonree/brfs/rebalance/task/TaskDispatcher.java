@@ -549,7 +549,7 @@ public class TaskDispatcher implements Closeable {
             return;
         }
 
-        LOG.info("audit snIndex:{},changeSummaries:{}", snIndex, changeSummaries);
+        LOG.debug("audit snIndex:{},changeSummaries:{}", snIndex, changeSummaries);
 
         // 当前有任务在执行,则检查是否有影响该任务的change存在
         if (runTask.get(snIndex) != null) {

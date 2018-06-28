@@ -182,7 +182,7 @@ public class DefaultServiceManager implements ServiceManager {
 	
 	@Override
 	public List<Service> getServiceListByGroup(String serviceGroup) {
-		LOG.info("search all services with group[{}]", serviceGroup);
+		LOG.info("search all services with group[{}], {}", serviceGroup, Thread.currentThread().getStackTrace());
 		ArrayList<Service> serviceList = new ArrayList<Service>();
 		ServiceCache<String> serviceCache = getOrBuildServiceCache(serviceGroup);
 		
