@@ -16,14 +16,12 @@ import com.bonree.brfs.common.service.Service;
  * @Description: 可供查询的sn服务缓存
  ******************************************************************************/
 public class DiskServiceSelectorCache {
-    
+
     private ReaderServiceSelector readServerSelector;
-    
     private RandomServiceSelector randomServerSelecor;
 
     public DiskServiceSelectorCache(DiskServiceMetaCache diskServiceMetaCache, RouteParser routeParser) {
         readServerSelector = new ReaderServiceSelector(diskServiceMetaCache, routeParser);
-        
         randomServerSelecor = new RandomServiceSelector(diskServiceMetaCache);
     }
 
@@ -35,8 +33,8 @@ public class DiskServiceSelectorCache {
         return randomServerSelecor.selectService();
     }
 
-    public ServiceMetaInfo readerService(String partFid,List<Integer> excludePot) {
-        return readServerSelector.selectService(partFid,excludePot);
+    public ServiceMetaInfo readerService(String partFid, List<Integer> excludePot) {
+        return readServerSelector.selectService(partFid, excludePot);
     }
 
 }
