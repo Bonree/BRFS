@@ -1,7 +1,9 @@
 package com.bonree.brfs.schedulers.task;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
@@ -14,11 +16,16 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
+import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
+import com.bonree.brfs.schedulers.jobs.system.CopyCountCheck;
 import com.bonree.brfs.schedulers.jobs.system.CreateSystemTask;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
+import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
+import com.bonree.brfs.schedulers.task.model.TaskResultModel;
+import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 public class TasksUtils {
@@ -153,5 +160,175 @@ public class TasksUtils {
 		}
 		// 若成功则返回null
 		return ReturnCode.SUCCESS;
+	}
+	
+	public static TaskModel getErrorFile(List<TaskServerNodeModel> taskContents, Map<String,Integer> snMap){
+		if(taskContents == null || taskContents.isEmpty()) {
+			return null;
+		}
+		List<AtomTaskResultModel> atomRs = new ArrayList<AtomTaskResultModel>();
+		TaskResultModel tmpR = null;
+		List<AtomTaskResultModel> tmpRs = null;
+		Map<String,Map<String,AtomTaskModel>> rmap = new HashMap<String,Map<String,AtomTaskModel>>();
+		Map<String,AtomTaskModel> emap = null;
+		String snName = null;
+		String key = null;
+		AtomTaskModel atom = null;
+		for(TaskServerNodeModel serverModel : taskContents) {
+			tmpR = serverModel.getResult();
+			if(tmpR == null) {
+				continue;
+			}
+			tmpRs = tmpR.getAtoms();
+			if(tmpRs == null || tmpRs.isEmpty()) {
+				continue;
+			}
+			for(AtomTaskResultModel r : tmpRs) {
+				if(r == null) {
+					continue;
+				}
+				snName = r.getSn();
+				if(!rmap.containsKey(snName)) {
+					rmap.put(snName, new HashMap<String,AtomTaskModel>());
+				}
+				emap = rmap.get(snName);
+				key = r.getDataStartTime() + "_"+r.getDataStopTime();
+				if(!emap.containsKey(key)) {
+					atom = new AtomTaskModel();
+					atom.setDataStartTime(r.getDataStartTime());
+					atom.setDataStopTime(r.getDataStopTime());
+					atom.setStorageName(snName);
+					atom.setTaskOperation(CopyCheckJob.RECOVERY_CRC);
+					emap.put(key, atom);
+				}
+				atom = emap.get(key);
+				atom.addAllFiles(r.getFiles());
+			}
+		}
+		List<AtomTaskModel> tList = filterError(rmap, snMap);
+		if(tList == null|| tList.isEmpty()) {
+			return null;
+		}
+		TaskModel tTask = new TaskModel();
+		tTask.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
+		tTask.setAtomList(tList);
+		tTask.setTaskState(TaskState.INIT.code());
+		tTask.setTaskType(TaskType.SYSTEM_COPY_CHECK.code());
+		tTask.setTaskOperation(CopyCheckJob.RECOVERY_CRC);
+		return  tTask;
+	}
+	
+	/**
+	 * 概述：收集可执行子任务
+	 * @param rmap
+	 * @param snCountMap
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static List<AtomTaskModel> filterError(Map<String,Map<String,AtomTaskModel>> rmap , Map<String,Integer>snCountMap){
+		if(rmap == null || rmap.isEmpty() || snCountMap == null || snCountMap.isEmpty()) {
+			return null;
+		}
+		String snName = null;
+		Map<String,AtomTaskModel> sMap = null;
+		int count = 0;
+		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
+		List<AtomTaskModel> tmp = null;
+		for(Map.Entry<String, Integer> entry : snCountMap.entrySet()) {
+			snName = entry.getKey();
+			count = entry.getValue();
+			if(count == 1) {
+				continue;
+			}
+			if(!rmap.containsKey(snName)) {
+				continue;
+			}
+			sMap = rmap.get(snName);
+			if(sMap == null || sMap.isEmpty()) {
+				continue;
+			}
+			tmp = collectAtoms(sMap, count);
+			if(tmp == null || tmp.isEmpty()) {
+				continue;
+			}
+			atoms.addAll(tmp);
+		}
+		return atoms;
+	}
+	/**
+	 * 概述：收集子任务
+	 * @param sMap
+	 * @param count
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static List<AtomTaskModel> collectAtoms(Map<String,AtomTaskModel> sMap, int count){
+		if(sMap == null || sMap.isEmpty() || count <=1) {
+			return null;
+		}
+		List<String> eFiles = null;
+		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
+		for(AtomTaskModel atom : sMap.values()) {
+			eFiles = atom.getFiles();
+			if(eFiles == null || eFiles.isEmpty()) {
+				continue;
+			}
+			eFiles = collectFiles(eFiles, count);
+			if(eFiles == null|| eFiles.isEmpty()) {
+				continue;
+			}
+			atom.getFiles().clear();
+			atom.setFiles(eFiles);
+			atoms.add(atom);
+		}
+		return atoms;
+	}
+	/**
+	 * 概述：收集可恢复的文件
+	 * @param files
+	 * @param count
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static List<String> collectFiles(List<String> files, int count){
+		if(files == null || files.isEmpty()) {
+			return null;
+		}
+		Map<String,Integer> cMap = new HashMap<String,Integer>();
+		for(String file :files) {
+			if(cMap.containsKey(file)) {
+				cMap.put(file, cMap.get(file) +1);
+			}else {
+				cMap.put(file, 1);
+			}
+		}
+		if(cMap == null || cMap.isEmpty()) {
+			return null;
+		}
+		return collectionFiles(cMap, count);
+	}
+	/**
+	 * 概述：收集可恢复的文件
+	 * @param cmap
+	 * @param replicationCount
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static List<String> collectionFiles(Map<String,Integer> cmap, int replicationCount){
+		if(cmap == null || cmap.isEmpty()) {
+			return null;
+		}
+		String fileName = null;
+		int count = 0;
+		List<String> files = new ArrayList<String>();
+		for(Map.Entry<String, Integer> entry : cmap.entrySet()) {
+			fileName = entry.getKey();
+			count = entry.getValue();
+			if(count >= replicationCount) {
+				continue;
+			}
+			files.add(fileName);
+		}
+		return files;
 	}
 }

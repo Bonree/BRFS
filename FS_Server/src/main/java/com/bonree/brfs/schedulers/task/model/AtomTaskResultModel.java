@@ -6,6 +6,8 @@ import java.util.List;
 public class AtomTaskResultModel {
 	private String sn;
 	private String dir;
+	private String dataStartTime;
+	private String dataStopTime;
 	private boolean isSuccess = true;
 	
 	private List<String> files = new ArrayList<String>();
@@ -53,4 +55,17 @@ public class AtomTaskResultModel {
 	public void setMessage(String message) {
 		this.message = message;
 	}
+	public String getDataStartTime() {
+		return dataStartTime;
+	}
+	public void setDataStartTime(String dataStartTime) {
+		this.dataStartTime = dataStartTime;
+	}
+	public String getDataStopTime() {
+		return dataStopTime;
+	}
+	public void setDataStopTime(String dataStopTime) {
+		this.dataStopTime = dataStopTime;
+	}
+	
 }

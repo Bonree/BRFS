@@ -92,7 +92,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 				LOG.warn("dir is empty !!!");
 				continue;
 			}
-			batchResult = checkFiles(snName, dirName, dataPath);
+			batchResult = checkFiles(snName, dirName, dataPath,atom.getDataStartTime(), atom.getDataStopTime());
 			if(batchResult == null){
 				continue;
 			}
@@ -111,12 +111,14 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private TaskResultModel checkFiles(String snName, String dirName, String dataPath){
+	private TaskResultModel checkFiles(String snName, String dirName, String dataPath,String startTime, String endTime){
 		String path = dataPath + File.separator + dirName;
 		TaskResultModel result = new TaskResultModel();
 		AtomTaskResultModel atomR = new AtomTaskResultModel();
 		atomR.setDir(dirName);
 		atomR.setSn(snName);
+		atomR.setDataStartTime(startTime);
+		atomR.setDataStopTime(endTime);
 		List<String> errors = FileCollection.checkDirs(path);
 		if(errors == null || errors.isEmpty()) {
 			atomR.setSuccess(true);
