@@ -70,6 +70,7 @@ public class InitTaskManager {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static void initManager(ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageNameManager snm, ServerIDManager sim) throws Exception {
+		managerConfig.printDetail();
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
 		mcf.setServerId(serverId);
@@ -93,6 +94,10 @@ public class InitTaskManager {
 		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
 		String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
 		release.setPropreties(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
+		if(release == null) {
+			LOG.error("Meta task is empty");
+			System.exit(1);
+		}
 		mcf.setTm(release);
 		// 工厂类添加任务可执行接口
 		RunnableTaskInterface run = DefaultRunnableTask.getInstance();
@@ -270,14 +275,24 @@ public class InitTaskManager {
 		int size = tasks.size();
 		String taskName = null;
 		List<String> cList = null;
-		TaskServerNodeModel serverNode = new TaskServerNodeModel();
-		serverNode.setTaskState(TaskState.INIT.code());
+		TaskServerNodeModel serverNode =  TaskServerNodeModel.getInitInstance();
+		TaskServerNodeModel change = null;
 		for(int i = index; i < size; i++ ){
 			taskName = tasks.get(i);
 			if(BrStringUtils.isEmpty(taskName)){
 				continue;
 			}
 			cList = release.getTaskServerList(taskType, taskName);
+			if(cList.contains(serverId)) {
+				change = release.getTaskServerContentNodeInfo(taskType, taskName, serverId);
+				if(change == null) {
+					change = TaskServerNodeModel.getInitInstance();
+				}
+				if(change.getTaskState() == TaskState.RUN.code()||change.getTaskState() == TaskState.RERUN.code()) {
+					change.setTaskState(TaskState.INIT.code());
+					release.updateServerTaskContentNode(serverId, taskName, taskType, change);
+				}
+			}
 			
 			if(cList == null || cList.isEmpty() || !cList.contains(serverId)){
 				release.updateServerTaskContentNode(serverId, taskName, taskType, serverNode);

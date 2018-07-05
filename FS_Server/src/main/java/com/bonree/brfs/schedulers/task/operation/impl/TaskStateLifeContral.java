@@ -19,6 +19,7 @@ import com.bonree.brfs.common.utils.StorageNameFileUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -137,6 +138,9 @@ public class TaskStateLifeContral {
 		}
 		release.updateTaskContentNode(task, taskType, taskname);
 		LOG.info("----> complete task :{} - {} - {}",taskType, taskname, TaskState.valueOf(task.getTaskState()).name());
+		if(TaskType.SYSTEM_CHECK.name().equals(taskType)) {
+			TasksUtils.createCopyTask(taskname);
+		}
 	}
 	/**
 	 * 概述：更新任务map的任务状态

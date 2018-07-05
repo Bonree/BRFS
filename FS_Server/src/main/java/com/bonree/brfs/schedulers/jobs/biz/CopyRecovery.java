@@ -13,6 +13,7 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
@@ -22,6 +23,7 @@ import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
+import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
@@ -133,6 +135,12 @@ public class CopyRecovery {
 
 		String snName = atom.getStorageName();
 		String dirName = atom.getDirName();
+		if(BrStringUtils.isEmpty(dirName)) {
+			long start = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
+			long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
+			long granule = endTime -start;
+			dirName = TimeUtils.timeInterval(start, granule);
+		}
 		List<String> fileNames = atom.getFiles();
 		if (fileNames == null || fileNames.isEmpty()) {
 			LOG.warn("<recoverFiles> {} files name is empty", snName);
@@ -145,7 +153,7 @@ public class CopyRecovery {
 		boolean isSuccess = false;
 		List<String> errors = new ArrayList<String>();
 		for (String fileName : fileNames) {
-			isSuccess = recoveryFileByName( sm, sim, parser, snNode, fileName, dirName, dataPath);
+			isSuccess = recoveryFileByName( sm, sim, parser, snNode, fileName, dirName, dataPath,atom.getTaskOperation());
 			if(!isSuccess){
 				errors.add(fileName);
 			}
@@ -164,7 +172,7 @@ public class CopyRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageNameNode snNode, String fileName,String dirName, String dataPath){
+	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageNameNode snNode, String fileName,String dirName, String dataPath,String operation){
 		String[] sss = null;
 		String remoteName = null;
 		Service remoteService = null;
@@ -200,11 +208,18 @@ public class CopyRecovery {
 			boolean createFlag = dir.mkdirs();
 			LOG.debug("<recoveryFile> create dir :{}, stat:{}",localDir,createFlag);
 		}
-		
-		File file = new File(dataPath + localPath);
-		if(file.exists()){
-			LOG.warn("<recoveryFile> {} {} is exists, skip",snName, fileName);
-			return true;
+		if(CopyCheckJob.RECOVERY_CRC.equals(operation)) {
+			boolean flag = FileCollection.check(dataPath + localPath);
+			LOG.warn("locaPath : {}, CRCSTATUS: {}", dataPath+localPath, flag);
+			if(flag) {
+				return true;
+			}
+		}else {
+			File file = new File(dataPath + localPath);
+			if(file.exists()){
+				LOG.warn("<recoveryFile> {} {} is exists, skip",snName, fileName);
+				return true;
+			}
 		}
 		remoteIndex = 0;
 		for (String snsid : sss) {

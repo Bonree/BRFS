@@ -14,7 +14,9 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.jobs.system.CopyCountCheck;
@@ -161,7 +163,61 @@ public class TasksUtils {
 		// 若成功则返回null
 		return ReturnCode.SUCCESS;
 	}
-	
+	public static void createCopyTask(String taskName) {
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		MetaTaskManagerInterface release = mcf.getTm();
+		StorageNameManager snm = mcf.getSnm();
+		List<StorageNameNode> snList = snm.getStorageNameNodeList();
+		if(snList == null || snList.isEmpty()) {
+			return ;
+		}
+		List<String> sNames = release.getTaskServerList(TaskType.SYSTEM_CHECK.name(), taskName);
+		if(sNames == null|| sNames.isEmpty()) {
+			return ;
+		}
+		List<TaskServerNodeModel> sTasks = new ArrayList<TaskServerNodeModel>();
+		Map<String,Integer> copyMap = getReplicationMap(snList);
+		TaskServerNodeModel sTask = null;
+		for(String sName : sNames) {
+			sTask = release.getTaskServerContentNodeInfo(TaskType.SYSTEM_CHECK.name(), taskName, sName);
+			if(sTask == null) {
+				continue;
+			}
+			sTasks.add(sTask);
+		}
+		if(sTasks == null || sTasks.isEmpty()) {
+			return ;
+		}
+		TaskModel task = getErrorFile(sTasks, copyMap);
+		String tName = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
+		if(BrStringUtils.isEmpty(tName)) {
+			return;
+		}
+		for(String sname :sNames) {
+			release.updateServerTaskContentNode(sname, tName, TaskType.SYSTEM_COPY_CHECK.name(), TaskServerNodeModel.getInitInstance());
+		}
+	}
+	private static Map<String,Integer> getReplicationMap(List<StorageNameNode> snList){
+		if(snList == null || snList.isEmpty()) {
+			return null;
+		}
+		Map<String,Integer> map = new HashMap<String,Integer>();
+		String snName = null;
+		int replicationCount = 0;
+		for(StorageNameNode sn : snList) {
+			snName = sn.getName();
+			replicationCount = sn.getReplicateCount();
+			map.put(snName, replicationCount);
+		}
+		return map;
+	}
+	/**
+	 * 概述：生成任务信息
+	 * @param taskContents
+	 * @param snMap
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public static TaskModel getErrorFile(List<TaskServerNodeModel> taskContents, Map<String,Integer> snMap){
 		if(taskContents == null || taskContents.isEmpty()) {
 			return null;

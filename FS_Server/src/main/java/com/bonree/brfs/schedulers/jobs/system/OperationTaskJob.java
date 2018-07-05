@@ -69,7 +69,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		}
 		List<TaskType> switchList = mcf.getTaskOn();
 		if(switchList == null || switchList.isEmpty()){
-			LOG.warn("MetaTaskManager is empty !!!");
+			LOG.warn("switch task is empty !!!");
 			return;
 		}
 		SchedulerManagerInterface schd = mcf.getStm();
@@ -138,6 +138,10 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				}
 				if(rebalanceFlag && TaskType.SYSTEM_CHECK.equals(taskType)) {
 					LOG.warn("rebalance task running !! Skip {} sumbit",taskType.name());
+					continue;
+				}
+				if(sumbitTask == null) {
+					LOG.warn("sumbit type:{}, taskName :{}, taskcontent is null", typeName, currentTaskName);
 					continue;
 				}
 				boolean isSumbit = schd.addTask(typeName, sumbitTask);

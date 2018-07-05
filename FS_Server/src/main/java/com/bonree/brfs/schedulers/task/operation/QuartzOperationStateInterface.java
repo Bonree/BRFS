@@ -16,5 +16,4 @@ import org.quartz.PersistJobDataAfterExecution;
 @DisallowConcurrentExecution
 @PersistJobDataAfterExecution
 public interface QuartzOperationStateInterface extends OperationInterface<JobExecutionContext>, InterruptableJob{
-
 }
