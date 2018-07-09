@@ -197,7 +197,7 @@ public class CopyRecovery {
 		}
 		localIndex = isContain(sss, secondId);
 		if (-1 == localIndex) {
-			LOG.warn("<recoveryFile> {} {} {} is not mine !! skip",secondId, snName, fileName );
+			LOG.info("<recoveryFile> {} {} {} is not mine !! skip",secondId, snName, fileName );
 			return false;
 		}
 		
@@ -217,7 +217,7 @@ public class CopyRecovery {
 		}else {
 			File file = new File(dataPath + localPath);
 			if(file.exists()){
-				LOG.warn("<recoveryFile> {} {} is exists, skip",snName, fileName);
+				LOG.info("<recoveryFile> {} {} is exists, skip",snName, fileName);
 				return true;
 			}
 		}
