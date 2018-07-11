@@ -43,8 +43,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		JobDataMap data = context.getJobDetail().getJobDataMap();
-		String timestr = data.getString(JobDataMapConstract.CHECK_TTL);
+		
 		long time = 0;
 		long currentTime = System.currentTimeMillis();
 		long min = (currentTime%3600000)/60000;
@@ -108,72 +107,4 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		LOG.info("update sn time");
 		
 	}
-	/**
-	 * 概述：创建副本任务
-	 * @param release
-	 * @param snm
-	 * @param sm
-	 * @param initMap
-	 * @param taskType
-	 * @param time
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static Map<String,Long> createCopyTask(MetaTaskManagerInterface release,	StorageNameManager snm,	ServiceManager sm ,final Map<String,Long> initMap,String taskType, long time) {
-		List<Service> services = sm.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
-		if(services == null || services.isEmpty()) {
-			LOG.info("SKIP create {} task, because service is empty",taskType);
-			return null;
-		}
-		// 1.过滤不符合副本校验的sn信息
-		List<StorageNameNode> needSns = getNeedSns(snm, services);
-		if(needSns == null|| needSns.isEmpty()) {
-			LOG.info("SKIP storagename list is null");
-			return null;
-		}
-		
-		// 2.获取sn创建任务的实际那
-		Map<String,Long> sourceTimes = new HashMap<String,Long>();
-		if(initMap != null) {
-			sourceTimes.putAll(initMap);
-		}
-		// 3.针对第一次出现的sn补充时间
-		sourceTimes = CopyCountCheck.repairTime(sourceTimes, needSns, 3600000,time);
-		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, 3600000);
-		
-		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, RECOVERY_NUM, 3600000, time);
-		if(pair == null) {
-			LOG.warn("create pair is empty !!!!");
-			return null;
-		}
-		TaskModel task = pair.getKey();
-		String taskName = null;
-		if(task != null) {
-			List<String> servers = CreateSystemTask.getServerIds(services);
-			taskName = CreateSystemTask.updateTask(release, task, servers, TaskType.SYSTEM_COPY_CHECK);
-		}
-		if(!BrStringUtils.isEmpty(taskName)) {
-			LOG.info("create {} {} task successfull !!!", taskType, taskName);
-		}
-		return pair.getValue();
-	}
-	/***
-	 * 概述：获取需要副本恢复的任务
-	 * @param snm
-	 * @param services
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static List<StorageNameNode> getNeedSns(StorageNameManager snm, List<Service> services){
-		if(services == null || services.isEmpty()) {
-			return null;
-		}
-		List<StorageNameNode> snList = snm.getStorageNameNodeList();
-		if( snList== null || snList.isEmpty()) {
-			LOG.info("SKIP storagename list is null");
-			return null;
-		}
-		return CopyCountCheck.filterSn(snList, services.size());
-	}
-	
 }
