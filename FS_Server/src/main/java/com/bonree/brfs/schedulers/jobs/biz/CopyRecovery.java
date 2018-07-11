@@ -260,11 +260,13 @@ public class CopyRecovery {
 	 */
 	public static boolean recoveryFile(Service service, String localPath, String remotePath) {
 		// 文件恢复线程
-		DiskNodeClient client = new LocalDiskNodeClient();
+		LocalDiskNodeClient client = new LocalDiskNodeClient();
 		boolean isSuccess = false;
 		try {
-			client.copyFrom(service.getHost(), service.getPort(), remotePath, localPath);
-			isSuccess =  true;
+			if(client.isExists(service.getHost(), service.getPort(), remotePath)) {
+				client.copyFrom(service.getHost(), service.getPort(), remotePath, localPath);
+				isSuccess =  true;
+			}
 		}catch (Exception e) {
 			LOG.error("{}",e);
 			isSuccess =  false;
