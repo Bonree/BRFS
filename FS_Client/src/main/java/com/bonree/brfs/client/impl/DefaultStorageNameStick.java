@@ -29,6 +29,7 @@ import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.write.data.FidDecoder;
@@ -187,17 +188,46 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
     @Override
     public boolean deleteData(String startTime, String endTime) {
-        LOG.info("start time:" + startTime);
-        LOG.info("end time:" + endTime);
+        if(BrStringUtils.isEmpty(startTime) || BrStringUtils.isEmpty(endTime)) {
+        	LOG.error("params is empty !!! startTime :{}, endTime :{}",startTime,endTime);
+        	return false;
+        }
+        FastDateFormat fastDateFormat = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
+        try {
+          Date start = fastDateFormat.parse(startTime);
+          Date end = fastDateFormat.parse(endTime);
+          return  deleteData(start,end);
+        }catch (ParseException e) {
+            LOG.error("parse time error!! the formate is yyyy-MM-dd HH:mm:ss !! startTime :{}, endTime :{}",startTime,endTime, e);
+            return false;
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+    }
+
+    @Override
+    public boolean deleteData(long startTime, long endTime) {
+    	Date start = new Date(startTime);
+    	Date end = new Date(endTime);
+        return deleteData(start, end);
+    }
+
+    @Override
+    public boolean deleteData(Date startTime, Date endTime) {
+        DateTime start = new DateTime(startTime.getTime());
+        DateTime end = new DateTime(endTime.getTime());
+        String starTimeStr = start.toString();
+        String endTimeStr = end.toString();
         try {
             List<Service> serviceList = dupSelector.randomServiceList();
             if (serviceList.isEmpty()) {
                 throw new BRFSException("none disknode!!!");
             }
-
             for (Service service : serviceList) {
                 StringBuilder pathBuilder = new StringBuilder();
-                pathBuilder.append(config.getDuplicateUrlRoot()).append("/").append(storageId).append("/").append(startTime).append("_").append(endTime);
+                pathBuilder.append(config.getDuplicateUrlRoot()).append("/").append(storageId).append("/").append(starTimeStr).append("_").append(endTimeStr);
 
                 URI uri = new URIBuilder().setScheme(config.getUrlSchema())
                 		.setHost(service.getHost()).setPort(service.getPort())
@@ -223,45 +253,26 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
                 LOG.info("returnCode:" + returnCode);
             }
-        } catch (Exception e) {
+        }catch (Exception e) {
             LOG.error("delete data error", e);
         }
-
         return false;
     }
 
     @Override
-    public void close() throws IOException {
-    }
-
-    @Override
-    public boolean deleteData(long startTime, long endTime) {
-        DateTime start = new DateTime(startTime);
-        DateTime end = new DateTime(endTime);
-        return deleteData(start.toString(), end.toString());
-    }
-
-    @Override
-    public boolean deleteData(Date startTime, Date endTime) {
-        DateTime start = new DateTime(startTime.getTime());
-        DateTime end = new DateTime(endTime.getTime());
-        return deleteData(start.toString(), end.toString());
-    }
-
-    @Override
     public boolean deleteData(String startTime, String endTime, String dateForamt) {
+    	if(BrStringUtils.isEmpty(startTime)||BrStringUtils.isEmpty(endTime)||BrStringUtils.isEmpty(dateForamt)) {
+    		LOG.error("params is empty !!! startTime :{}, endTime :{}, dateFormat :{}",startTime,endTime,dateForamt);
+    		return false;
+    	}
         FastDateFormat fastDateFormat = FastDateFormat.getInstance(dateForamt);
         try {
             Date startDate = fastDateFormat.parse(startTime);
             Date endDate = fastDateFormat.parse(endTime);
-            DateTime start = new DateTime(startDate.getTime());
-            DateTime end = new DateTime(endDate.getTime());
-            return deleteData(start.toString(), end.toString());
+            return deleteData(startDate, endDate);
         } catch (ParseException e) {
             LOG.error("parse time error!!", e);
             return false;
         }
-
     }
-
 }

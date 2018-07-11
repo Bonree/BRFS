@@ -68,9 +68,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		}
 		
 		List<String> times = Splitter.on("_").omitEmptyStrings().trimResults().splitToList(deleteInfo.get(1));
-		long startTime = DateTime.parse(times.get(0)).getMillis();
-		long endTime = DateTime.parse(times.get(1)).getMillis();
-		ReturnCode code = checkTime(startTime, endTime, sn.getCreateTime(), 3600000);
+		ReturnCode code = checkTime(times.get(0), times.get(1), sn.getCreateTime(), 3600000);
 		if(!ReturnCode.SUCCESS.equals(code)) {
 			result.setSuccess(false);
 			result.setData(BrStringUtils.toUtf8Bytes(code.name()));
@@ -78,6 +76,8 @@ public class DeleteDataMessageHandler implements MessageHandler {
 			LOG.info("DELETE DATE Fail storage[{}] reason : {}", storageId, code.name());
 			return;
 		}
+		long startTime = DateTime.parse(times.get(0)).getMillis();
+		long endTime = DateTime.parse(times.get(1)).getMillis();
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
 		
 		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
@@ -91,7 +91,16 @@ public class DeleteDataMessageHandler implements MessageHandler {
 	/***
 	 * 检查时间
 	 */
-	private ReturnCode checkTime(long startTime, long endTime, long cTime, long granule) {
+	private ReturnCode checkTime(String startTimeStr, String endTimeStr, long cTime, long granule) {
+		long startTime = 0L;
+		long endTime = 0L;
+		try {
+			startTime = DateTime.parse(startTimeStr).getMillis();
+			endTime = DateTime.parse(endTimeStr).getMillis();
+		} catch (Exception e) {
+			LOG.warn("starttime and endTime formate error !!! startTime: {} ,endTime: {}",startTimeStr,endTimeStr);
+			return ReturnCode.TIME_FORMATE_ERROR;
+		}
 		// 1，时间格式不对
 		if(startTime != (startTime - startTime%granule)
 				|| endTime !=(endTime - endTime%granule)) {
