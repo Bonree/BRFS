@@ -116,7 +116,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 			return ReturnCode.PARAMETER_ERROR;
 		}
 		// 3.结束时间小于创建时间
-		if(cGra >eGra) {
+		if(cTime > eGra) {
 			return ReturnCode.TIME_EARLIER_THAN_CREATE_ERROR;
 		}
 		// 4.当前时间
