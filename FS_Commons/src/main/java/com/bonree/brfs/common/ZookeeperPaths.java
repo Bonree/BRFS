@@ -1,8 +1,5 @@
 package com.bonree.brfs.common;
 
-import java.net.URI;
-
-import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,8 +54,6 @@ public class ZookeeperPaths {
 
     private String baseSequencesPath;
 
-    private String baseStorageNamePath;
-
     private String baseRebalancePath;
 
     private String baseRoutePath;
@@ -94,14 +89,6 @@ public class ZookeeperPaths {
 
     public void setBaseLocksPath(String baseLocksPath) {
         this.baseLocksPath = baseLocksPath;
-    }
-
-    public String getBaseStorageNamePath() {
-        return baseStorageNamePath;
-    }
-
-    public void setBaseStorageNamePath(String baseStorageNamePath) {
-        this.baseStorageNamePath = baseStorageNamePath;
     }
 
     public String getBaseRebalancePath() {
@@ -163,7 +150,6 @@ public class ZookeeperPaths {
             createPathIfNotExist(client, baseServerIdPath);
             createPathIfNotExist(client, baseRebalancePath);
             createPathIfNotExist(client, baseRoutePath);
-            createPathIfNotExist(client, baseStorageNamePath);
             createPathIfNotExist(client, baseUserPath);
             createPathIfNotExist(client, baseTaskPath);
         } finally {
@@ -187,7 +173,6 @@ public class ZookeeperPaths {
         setBaseServerIdSeqPath(baseClusterName + SEPARATOR + SERVER_ID_SEQUENCES);
         setBaseLocksPath(baseClusterName + SEPARATOR + LOCKS);
         setBaseSequencesPath(baseClusterName + SEPARATOR + SEQUENCES);
-        setBaseStorageNamePath(baseClusterName + SEPARATOR + STORAGE_NAME);
         setBaseRebalancePath(baseClusterName + SEPARATOR + REBALANCE);
         setBaseRoutePath(baseClusterName + SEPARATOR + ROUTES);
         setBaseUserPath(baseClusterName + SEPARATOR + USERS);
