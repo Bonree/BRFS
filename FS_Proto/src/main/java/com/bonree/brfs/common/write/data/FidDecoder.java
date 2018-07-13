@@ -32,7 +32,6 @@ public class FidDecoder {
         Fid.Builder fid = Fid.newBuilder();
         if (fidStr != null) {
             ByteArrayInputStream input  = new ByteArrayInputStream(Base64.decode(fidStr, Base64.DEFAULT));
-            System.out.println("read : " + input.available());
             byte[] bytes = new byte[16];
             input.read(bytes, 0, 1);
             //跳过开头

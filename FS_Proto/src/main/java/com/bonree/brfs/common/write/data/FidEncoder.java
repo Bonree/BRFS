@@ -44,7 +44,6 @@ public class FidEncoder {
         output.write(new byte[]{0x0});
         output.write(duration(fid.getDuration()));
         // 封装fid
-        System.out.println("bytes : " + output.toByteArray().length);
         return Base64.encodeToString(output.toByteArray(), Base64.DEFAULT).trim();
     }
 

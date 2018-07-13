@@ -287,8 +287,8 @@ public class FileWriterManager implements LifeCycle {
 		LOG.info("adjust file get elements size[{}] for file[{}]", elements.size(), filePath);
 		RecordElement lastElement = elements.get(elements.size() - 1);
 		long validPosition = lastElement.getOffset() + lastElement.getSize();
-		System.out.println(lastElement);
-		System.out.println(binding.first().position());
+		LOG.debug("last element : {}", lastElement);
+		LOG.debug("position : {}", binding.first().position());
 		
 		boolean needFlush = false;
 		if(validPosition != binding.first().position()) {
