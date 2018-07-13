@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,6 +154,8 @@ public class VirtualServerIDImpl implements VirtualServerID {
 	        	}
     		}
     		
+		} catch (NoNodeException e) {
+			//ignore
 		} catch (Exception e) {
 			LOG.error("get virtual id by sn[{}] node error", storageId, e);
 		}

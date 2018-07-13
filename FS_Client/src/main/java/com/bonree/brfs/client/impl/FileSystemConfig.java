@@ -12,10 +12,10 @@ public class FileSystemConfig {
 	private static final String DEFAULT_URL_SCHEMA = "http";
 	private String urlSchema;
 	
-	private static final String DEFAULT_STORAGE_URL_ROOT = "/storageName";
+	private static final String DEFAULT_STORAGE_URL_ROOT = "/sr";
 	private String storageUrlRoot;
 	
-	private static final String DEFAULT_DUPLICATE_URL_ROOT = "/duplication";
+	private static final String DEFAULT_DUPLICATE_URL_ROOT = "/data";
 	private String duplicateUrlRoot;
 	
 	private static final String DEFAULT_DISK_URL_ROOT = "/disk";

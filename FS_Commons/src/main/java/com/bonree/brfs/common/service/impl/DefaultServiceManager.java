@@ -13,7 +13,6 @@ import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.x.discovery.ServiceCache;
 import org.apache.curator.x.discovery.ServiceDiscovery;
-import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.details.ServiceCacheListener;
 import org.slf4j.Logger;
@@ -22,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
+import com.bonree.brfs.common.service.impl.curator.ServiceDiscoveryBuilder;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.google.common.collect.HashMultimap;
 
@@ -67,6 +67,8 @@ public class DefaultServiceManager implements ServiceManager {
 		for(ServiceCache<String> cache : serviceCaches.values()) {
 			CloseableUtils.closeQuietly(cache);
 		}
+		
+		threadPools.shutdown();
 	}
 	
 	private static ServiceInstance<String> buildFrom(Service service) throws Exception {
@@ -95,15 +97,13 @@ public class DefaultServiceManager implements ServiceManager {
 	@Override
 	public void registerService(Service service) throws Exception {
 		LOG.info("registerService service[{}]", service);
-		ServiceInstance<String> instance = buildFrom(service);
-		
-		serviceDiscovery.registerService(instance);
+		serviceDiscovery.registerService(buildFrom(service));
 	}
 
 	@Override
 	public void unregisterService(Service service) throws Exception {
 		LOG.info("unregisterService service[{}]", service);
-		serviceDiscovery.unregisterService(serviceDiscovery.queryForInstance(service.getServiceGroup(), service.getServiceId()));
+		serviceDiscovery.unregisterService(buildFrom(service));
 	}
 	
 	@Override
@@ -182,7 +182,7 @@ public class DefaultServiceManager implements ServiceManager {
 	
 	@Override
 	public List<Service> getServiceListByGroup(String serviceGroup) {
-		LOG.info("search all services with group[{}], {}", serviceGroup, Thread.currentThread().getStackTrace());
+		LOG.info("search all services with group[{}]", serviceGroup);
 		ArrayList<Service> serviceList = new ArrayList<Service>();
 		ServiceCache<String> serviceCache = getOrBuildServiceCache(serviceGroup);
 		
@@ -235,10 +235,7 @@ public class DefaultServiceManager implements ServiceManager {
 		}
 
 		@Override
-		public void stateChanged(CuratorFramework client, ConnectionState newState) {
-			//nothing to do!
-			LOG.info("InnerServiceListener -> {}", newState);
-		}
+		public void stateChanged(CuratorFramework client, ConnectionState newState) {}
 
 		@Override
 		public synchronized  void cacheChanged() {

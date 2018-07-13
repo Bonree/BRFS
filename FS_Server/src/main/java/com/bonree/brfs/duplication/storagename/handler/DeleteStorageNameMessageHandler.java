@@ -13,7 +13,7 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
@@ -41,7 +41,7 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
         boolean deleted;
         HandleResult result = new HandleResult();
         try {
-			List<Service> services = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
+			List<Service> services = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
 			StorageNameNode sn = storageNameManager.findStorageName(msg.getName());
 			if(sn.isEnable()){
 				result.setSuccess(false);

@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.storagename.impl;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -109,11 +110,20 @@ public class DefaultStorageNameManager implements StorageNameManager {
     }
     
     private int getDefaultStorageDataTtl() {
-    	return Configs.getConfiguration().GetConfig(StorageConfigs.CONFIG_STORAGE_DATA_TTL);
+    	Duration duration = Duration.parse(Configs.getConfiguration().GetConfig(StorageConfigs.CONFIG_STORAGE_REGION_DATA_TTL));
+    	return (int) duration.toDays();
+    }
+    
+    private long getDefaultFileCapacity() {
+    	return Configs.getConfiguration().GetConfig(StorageConfigs.CONFIG_STORAGE_REGION_FILE_CAPACITY);
+    }
+    
+    private String getDefaultFilePatitionDuration() {
+    	return Configs.getConfiguration().GetConfig(StorageConfigs.CONFIG_FILE_PATITION_DURATION);
     }
     
     public int getDefaultStorageReplicateCount() {
-    	return Configs.getConfiguration().GetConfig(StorageConfigs.CONFIG_STORAGE_REPLICATE_COUNT);
+    	return Configs.getConfiguration().GetConfig(StorageConfigs.CONFIG_STORAGE_REGION_REPLICATE_COUNT);
     }
 
     @Override
@@ -127,9 +137,11 @@ public class DefaultStorageNameManager implements StorageNameManager {
         	return null;
         }
         
-        int replicateCount = attrs.getInt(StorageNameNode.ATTR_REPLICATION, getDefaultStorageDataTtl());
-        int dataTtl = attrs.getInt(StorageNameNode.ATTR_TTL, getDefaultStorageReplicateCount());
-        StorageNameNode node = new StorageNameNode(storageName, storageId, replicateCount, dataTtl);
+        int replicateCount = attrs.getInt(StorageNameNode.ATTR_REPLICATION, getDefaultStorageReplicateCount());
+        int dataTtl = attrs.getInt(StorageNameNode.ATTR_TTL, getDefaultStorageDataTtl());
+        long fileCapacity = attrs.getLong(StorageNameNode.ATTR_FILE_CAPACITY, getDefaultFileCapacity());
+        String filePatitionDuration = attrs.getString(StorageNameNode.ATTR_FILE_PATITION_DURATION, getDefaultFilePatitionDuration());
+        StorageNameNode node = new StorageNameNode(storageName, storageId, replicateCount, dataTtl, fileCapacity, filePatitionDuration);
         String storageNamePath = buildStorageNamePath(storageName);
 
         String path = null;

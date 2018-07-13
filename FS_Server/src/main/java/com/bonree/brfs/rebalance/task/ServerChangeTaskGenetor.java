@@ -18,6 +18,7 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
@@ -104,7 +105,7 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
     }
 
     private List<String> getCurrentServers(ServiceManager serviceManager) {
-        List<Service> servers = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
+        List<Service> servers = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
         List<String> serverIDs = servers.stream().map(Service::getServiceId).collect(Collectors.toList());
         return serverIDs;
     }

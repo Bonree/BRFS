@@ -1,10 +1,7 @@
 package com.bonree.brfs.duplication.datastream.connection;
 
-import java.io.Closeable;
+import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 
-import com.bonree.brfs.duplication.coordinator.DuplicateNode;
-
-public interface DiskNodeConnectionPool extends Closeable{
+public interface DiskNodeConnectionPool{
 	DiskNodeConnection getConnection(DuplicateNode duplicateNode);
-	DiskNodeConnection[] getConnections(DuplicateNode[] duplicateNodes);
 }

@@ -17,6 +17,7 @@ import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.worker.WriteTask;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
+import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 import com.bonree.brfs.disknode.utils.Pair;
@@ -26,10 +27,12 @@ public class WriteMessageHandler implements MessageHandler {
 	
 	private DiskContext diskContext;
 	private FileWriterManager writerManager;
+	private FileFormater fileFormater;
 	
-	public WriteMessageHandler(DiskContext diskContext, FileWriterManager nodeManager) {
+	public WriteMessageHandler(DiskContext diskContext, FileWriterManager nodeManager, FileFormater fileFormater) {
 		this.diskContext = diskContext;
 		this.writerManager = nodeManager;
+		this.fileFormater = fileFormater;
 	}
 
 	@Override
@@ -79,17 +82,12 @@ public class WriteMessageHandler implements MessageHandler {
 			for(int i = 0; i < datas.length; i++) {
 				WriteData data = datas[i];
 				
-				LOG.debug("writing file[{}] with data seq[{}], size[{}]", writer.getPath(), data.getDiskSequence(), data.getBytes().length);
+				LOG.debug("writing file[{}] with data size[{}]", writer.getPath(), data.getBytes().length);
 				
-				WriteResult result = new WriteResult();
-				result.setSequence(data.getDiskSequence());
-				
-				writer.updateSequence(data.getDiskSequence());
+				WriteResult result = new WriteResult(fileFormater.relativeOffset(writer.position()), data.getBytes().length);
 				writer.write(data.getBytes());
 				
 				writerManager.flushIfNeeded(writer.getPath());
-				
-				result.setSize(data.getBytes().length);
 				results[i] = result;
 			}
 			

@@ -3,7 +3,6 @@ package com.bonree.brfs.disknode.client;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -22,7 +21,8 @@ import com.bonree.brfs.disknode.server.handler.data.FileCopyMessage;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
-import com.google.common.primitives.Ints;
+import com.google.common.base.Joiner;
+import com.google.common.primitives.Longs;
 
 public class HttpDiskNodeClient implements DiskNodeClient {
 	private static final Logger LOG = LoggerFactory.getLogger(HttpDiskNodeClient.class);
@@ -64,7 +64,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	}
 	
 	@Override
-	public int openFile(String path, int capacity) {
+	public long openFile(String path, long capacity) {
 		URI uri = new URIBuilder()
 		.setScheme(DEFAULT_SCHEME)
 		.setHost(host)
@@ -74,23 +74,22 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		.build();
 		
 		try {
-			LOG.info("open file[{}] with capacity[{}] to {}:{}", path, capacity, host, port);
+			LOG.info("open file[{}] @ {}:{}", path, host, port);
 			HttpResponse response = client.executePut(uri);
 			LOG.info("open file[{}] response[{}]", path, response.getStatusCode());
-			if(response.isReponseOK()) {
-				return Ints.fromByteArray(response.getResponseBody());
+			if(response != null && response.isReponseOK()) {
+				return Longs.fromByteArray(response.getResponseBody());
 			}
 		} catch (Exception e) {
 			LOG.error("open file[{}] at {}:{} error", path, host, port, e);
 		}
 		
-		return -1;
+		return -1l;
 	}
 
 	@Override
-	public WriteResult writeData(String path, int sequence, byte[] bytes) throws IOException {
+	public WriteResult writeData(String path, byte[] bytes) throws IOException {
 		WriteData writeItem = new WriteData();
-		writeItem.setDiskSequence(sequence);
 		writeItem.setBytes(bytes);
 		
 		WriteResult[] results = writeDatas(path, new WriteData[] {writeItem});
@@ -99,13 +98,13 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public WriteResult writeData(String path, int sequence, byte[] bytes, int offset, int size)
+	public WriteResult writeData(String path, byte[] bytes, int offset, int size)
 			throws IOException {
 		int length = Math.min(size, bytes.length - offset);
 		byte[] copy = new byte[length];
 		System.arraycopy(bytes, offset, copy, 0, length);
 		
-		return writeData(path, sequence, copy);
+		return writeData(path, copy);
 	}
 	
 	@Override
@@ -155,10 +154,14 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		
 		return false;
 	}
+	
+	@Override
+	public byte[] readData(String path, long offset) throws IOException {
+		return readData(path, offset, Integer.MAX_VALUE);
+	}
 
 	@Override
-	public byte[] readData(String path, int offset, int size)
-			throws IOException {
+	public byte[] readData(String path, long offset, int size) throws IOException {
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(host)
@@ -184,7 +187,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public boolean closeFile(String path) {
+	public long closeFile(String path) {
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(host)
@@ -196,12 +199,14 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			LOG.info("close file[{}] to {}:{}", path, host, port);
 			HttpResponse response = client.executeClose(uri);
 			LOG.info("close file[{}] response[{}]", path, response.getStatusCode());
-			return response.isReponseOK();
+			if(response.isReponseOK()) {
+				return Longs.fromByteArray(response.getResponseBody());
+			}
 		} catch (Exception e) {
 			LOG.error("close file[{}] at {}:{} error", path, host, port, e);
 		}
 		
-		return false;
+		return -1;
 	}
 
 	@Override
@@ -257,26 +262,26 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public BitSet getWritingSequence(String path) {
+	public long getFileLength(String path) {
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(host)
 	    .setPort(port)
-	    .setPath(DiskContext.URI_SEQUENCE_NODE_ROOT + path)
+	    .setPath(DiskContext.URI_LENGTH_NODE_ROOT + path)
 	    .build();
 		
 		try {
-			LOG.info("get sequences from file[{}] to {}:{}", path, host, port);
+			LOG.info("get length from file[{}] to {}:{}", path, host, port);
 			HttpResponse response = client.executeGet(uri);
-			LOG.info("get sequences from file[{}] response[{}]", path, response.getStatusCode());
+			LOG.info("get length from file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
-				return BitSet.valueOf(response.getResponseBody());
+				return Longs.fromByteArray(response.getResponseBody());
 			}
 		} catch (Exception e) {
 			LOG.error("get sequences of file[{}] at {}:{} error", path, host, port, e);
 		}
 		
-		return null;
+		return -1;
 	}
 
 	@Override
@@ -308,17 +313,19 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public boolean recover(String path, RecoverInfo infos) {
+	public boolean recover(String path, long fileLength, List<String> serviceList) {
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(host)
 	    .setPort(port)
 	    .setPath(DiskContext.URI_RECOVER_NODE_ROOT + path)
+	    .addParameter("length", String.valueOf(fileLength))
+	    .addParameter("services", Joiner.on(',').join(serviceList))
 	    .build();
 		
 		try {
 			LOG.info("recover file[{}] response[{}] to {}:{}", path, host, port);
-			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(infos));
+			HttpResponse response = client.executePost(uri);
 			LOG.info("recover file[{}] response[{}]", path, response.getStatusCode());
 			
 			return response.isReponseOK();
@@ -327,30 +334,6 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		}
 		
 		return false;
-	}
-
-	@Override
-	public byte[] getBytesBySequence(String path, int sequence) {
-		URI uri = new URIBuilder()
-	    .setScheme(DEFAULT_SCHEME)
-	    .setHost(host)
-	    .setPort(port)
-	    .setPath(DiskContext.URI_SEQ_BYTE_NODE_ROOT + path)
-	    .addParameter("seq", String.valueOf(sequence))
-	    .build();
-		
-		try {
-			LOG.info("get bytes from file[{}] by sequence[{}] to {}:{}", path, sequence, host, port);
-			HttpResponse response = client.executeGet(uri);
-			LOG.info("get bytes from file[{}] response[{}]", path, response.getStatusCode());
-			if(response.isReponseOK()) {
-				return response.getResponseBody();
-			}
-		} catch (Exception e) {
-			LOG.error("get bytes of file[{}] with seq[{}] at {}:{} error", path, sequence, host, port, e);
-		}
-		
-		return null;
 	}
 
 	@Override
@@ -382,35 +365,6 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			}
 		} catch (Exception e) {
 			LOG.error("list files of dir[{}] with level[{}] at {}:{} error", path, level, host, port, e);
-		}
-		
-		return null;
-	}
-
-	@Override
-	public int[] getWritingFileMetaInfo(String path) {
-		URI uri = new URIBuilder()
-	    .setScheme(DEFAULT_SCHEME)
-	    .setHost(host)
-	    .setPort(port)
-	    .setPath(DiskContext.URI_META_NODE_ROOT + path)
-	    .build();
-		
-		try {
-			LOG.info("get meta info from file[{}] to {}:{}", path, host, port);
-			HttpResponse response = client.executeGet(uri);
-			LOG.info("get meta info from file[{}] response[{}]", path, response.getStatusCode());
-			
-			if(response.isReponseOK()) {
-				JSONObject json = JSONObject.parseObject(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
-				int[] result = new int[2];
-				result[0] = json.getIntValue("seq");
-				result[1] = json.getIntValue("length");
-				
-				return result;
-			}
-		} catch (Exception e) {
-			LOG.error("get meta info of file[{}] at {}:{} error", path, host, port, e);
 		}
 		
 		return null;

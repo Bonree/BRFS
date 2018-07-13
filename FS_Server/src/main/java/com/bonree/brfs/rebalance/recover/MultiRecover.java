@@ -30,6 +30,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.rebalance.DataRecover;
@@ -414,7 +415,7 @@ public class MultiRecover implements DataRecover {
                                 String localDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover.getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
                                 String remoteDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover.getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
                                 String localFilePath = dataDir + FileUtils.FILE_SEPARATOR + localDir + FileUtils.FILE_SEPARATOR + fileRecover.getFileName();
-                                Service service = serviceManager.getServiceById(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), fileRecover.getFirstServerID());
+                                Service service = serviceManager.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME), fileRecover.getFirstServerID());
                                 boolean success = false;
                                 while (true) {
                                     if (status.get().equals(TaskStatus.PAUSE)) {

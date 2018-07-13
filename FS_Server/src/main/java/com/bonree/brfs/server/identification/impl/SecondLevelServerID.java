@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,6 +112,8 @@ public class SecondLevelServerID {
 					}
 				}
 			}
+		} catch(NoNodeException e) {
+			LOG.info("no normal node!");
 		} catch (Exception e) {
 			LOG.warn("get expired id list error", e);
 		}

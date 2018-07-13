@@ -72,7 +72,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
         DataItem[] dataItems = new DataItem[itemArrays.length];
         for (int i = 0; i < dataItems.length; i++) {
             dataItems[i] = new DataItem();
-            dataItems[i].setUserSequence(i);
             dataItems[i].setBytes(itemArrays[i].getBytes());
         }
         dataMessage.setItems(dataItems);

@@ -13,19 +13,19 @@ public class DataFileReader {
 	
 	private DataFileReader() {}
 	
-	public static byte[] readFile(File file, int offset, int size) {
+	public static byte[] readFile(File file, long offset, int size) {
 		return readFile(file.getAbsolutePath(), offset, size);
 	}
 	
-	public static byte[] readFile(File file, int offset) {
+	public static byte[] readFile(File file, long offset) {
 		return readFile(file, offset, Integer.MAX_VALUE);
 	}
 	
-	public static byte[] readFile(String filePath, int offset) {
+	public static byte[] readFile(String filePath, long offset) {
 		return readFile(filePath, offset, Integer.MAX_VALUE);
 	}
 	
-	public static byte[] readFile(String filePath, int offset, int size) {
+	public static byte[] readFile(String filePath, long offset, int size) {
 		RandomAccessFile file = null;
 		MappedByteBuffer buffer = null;
 		try {

@@ -7,26 +7,24 @@ import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
-import com.bonree.brfs.common.write.data.FileEncoder;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
+import com.bonree.brfs.disknode.fileformat.FileFormater;
+import com.bonree.brfs.disknode.fileformat.impl.SimpleFileFormater;
 import com.bonree.brfs.disknode.utils.Pair;
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 
 public class OpenMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(OpenMessageHandler.class);
 	
-	private static final int DEFAULT_HEADER_VERSION = 0;
-	private static final int DEFAULT_HEADER_TYPE = 0;
-	
-	private static final int DEFAULT_HEADER_SIZE = 2;
-	private static final int DEFAULT_TAILER_SIZE = 9;
-	
 	private DiskContext diskContext;
 	private FileWriterManager writerManager;
+	
+	private static final long MAX_CAPACITY = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_FILE_MAX_CAPACITY);
 	
 	public OpenMessageHandler(DiskContext diskContext, FileWriterManager writerManager) {
 		this.diskContext = diskContext;
@@ -43,9 +41,17 @@ public class OpenMessageHandler implements MessageHandler {
 		HandleResult result = new HandleResult();
 		String realPath = null;
 		try {
+			String capacityParam = msg.getParams().get("capacity");
+			if(capacityParam == null) {
+				result.setSuccess(false);
+				return;
+			}
+			
+			long capacity = Long.parseLong(capacityParam);
+			FileFormater fileFormater = new SimpleFileFormater(Math.min(capacity, MAX_CAPACITY));
+			
 			realPath = diskContext.getConcreteFilePath(msg.getPath());
-			int capacity = Integer.parseInt(msg.getParams().get("capacity"));
-			LOG.info("open file [{}] with capacity[{}]", realPath, capacity);
+			LOG.info("open file [{}]", realPath);
 			
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(realPath, true);
 			if(binding == null) {
@@ -54,13 +60,11 @@ public class OpenMessageHandler implements MessageHandler {
 				return;
 			}
 			
-			byte[] header = Bytes.concat(FileEncoder.start(), FileEncoder.header(DEFAULT_HEADER_VERSION, DEFAULT_HEADER_TYPE));
-			binding.first().updateSequence(0);
-			binding.first().write(header);
+			binding.first().write(fileFormater.fileHeader().getBytes());
 			binding.first().flush();
 			
+			result.setData(Longs.toByteArray(fileFormater.maxBodyLength()));
 			result.setSuccess(true);
-			result.setData(Ints.toByteArray(capacity - DEFAULT_HEADER_SIZE - DEFAULT_TAILER_SIZE));
 		} catch (Exception e) {
 			LOG.error("write header to file[{}] error!", realPath);
 			result.setSuccess(false);

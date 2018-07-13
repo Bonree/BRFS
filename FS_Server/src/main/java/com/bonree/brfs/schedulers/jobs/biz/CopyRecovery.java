@@ -16,6 +16,7 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
@@ -235,7 +236,7 @@ public class CopyRecovery {
 				LOG.debug("<recoveryFile> remote name is empty");
 				continue;
 			}
-			remoteService = sm.getServiceById(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), remoteName);
+			remoteService = sm.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME), remoteName);
 			if(remoteService == null){
 				LOG.debug("<recoveryFile> remote service is empty");
 				continue;

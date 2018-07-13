@@ -8,39 +8,28 @@ import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.common.write.data.WriteDataMessage;
-import com.bonree.brfs.duplication.datastream.DataHandleCallback;
-import com.bonree.brfs.duplication.datastream.DataWriteResult;
-import com.bonree.brfs.duplication.datastream.DuplicateWriter;
-import com.bonree.brfs.duplication.datastream.tasks.ResultItem;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
+import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.google.protobuf.ByteString;
 
 public class WriteDataMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteDataMessageHandler.class);
 	
-	private DuplicateWriter duplicateWriter;
-	private StorageNameManager storageNameManager;
+	private StorageRegionWriter writer;
 	
-	public WriteDataMessageHandler(DuplicateWriter duplicateWriter,StorageNameManager snManager) {
-		this.duplicateWriter = duplicateWriter;
-		this.storageNameManager = snManager;
+	public WriteDataMessageHandler(StorageRegionWriter writer) {
+		this.writer = writer;
 	}
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
 		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
-		StorageNameNode node = storageNameManager.findStorageName(writeMsg.getStorageNameId());
-		
-		if(node == null || !node.isEnable()) {
-            callback.completed(new HandleResult(false));
-            return;
-		}
 		
 		DataItem[] items = writeMsg.getItems();
 		LOG.debug("Writing DataItem[{}]", items.length);
@@ -67,11 +56,10 @@ public class WriteDataMessageHandler implements MessageHandler {
 			}
 		}
 		
-		duplicateWriter.write(writeMsg.getStorageNameId(), items, new DataWriteCallback(callback));
+		writer.write(writeMsg.getStorageNameId(), items, new DataWriteCallback(callback));
 	}
 
-	private class DataWriteCallback implements DataHandleCallback<DataWriteResult> {
-		
+	private class DataWriteCallback implements StorageRegionWriteCallback {
 		private HandleResultCallback callback;
 		
 		public DataWriteCallback(HandleResultCallback callback) {
@@ -79,23 +67,18 @@ public class WriteDataMessageHandler implements MessageHandler {
 		}
 
 		@Override
-		public void completed(DataWriteResult writeResult) {
+		public void complete(String[] fids) {
 			HandleResult result = new HandleResult();
 			result.setSuccess(true);
 			
-			ResultItem[] resultItems = writeResult.getItems();
-			result.setData(JsonUtils.toJsonBytes(resultItems));
+			result.setData(BrStringUtils.toUtf8Bytes(JsonUtils.toJsonString(fids)));
 			
 			callback.completed(result);
 		}
 
 		@Override
-		public void error(Throwable t) {
-			HandleResult result = new HandleResult();
-			result.setSuccess(false);
-			result.setCause(t);
-			
-			callback.completed(result);
+		public void error() {
+			callback.completed(new HandleResult(false));
 		}
 		
 	}

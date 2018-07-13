@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.datastream.connection.http;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,11 +18,11 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.duplication.coordinator.DuplicateNode;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
+import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 
-public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
+public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool, Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(HttpDiskNodeConnectionPool.class);
 	
 	private static final int DEFAULT_CONNECTION_STATE_CHECK_INTERVAL = 3;
@@ -68,17 +69,6 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 		}
 		
 		return connection;
-	}
-	
-	@Override
-	public DiskNodeConnection[] getConnections(DuplicateNode[] duplicateNodes) {
-		DiskNodeConnection[] connections = new DiskNodeConnection[duplicateNodes.length];
-		
-		for(int i = 0; i < connections.length; i++) {
-			connections[i] = getConnection(duplicateNodes[i]);
-		}
-		
-		return connections;
 	}
 
 	private class ConnectionStateChecker implements Runnable {

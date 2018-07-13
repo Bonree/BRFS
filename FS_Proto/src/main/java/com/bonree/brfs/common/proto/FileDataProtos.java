@@ -5485,9 +5485,9 @@ public final class FileDataProtos {
     boolean hasTime();
     long getTime();
     
-    // optional int32 replica = 6;
-    boolean hasReplica();
-    int getReplica();
+    // optional string duration = 6;
+    boolean hasDuration();
+    String getDuration();
     
     // repeated int32 serverId = 7;
     java.util.List<java.lang.Integer> getServerIdList();
@@ -5603,14 +5603,36 @@ public final class FileDataProtos {
       return time_;
     }
     
-    // optional int32 replica = 6;
-    public static final int REPLICA_FIELD_NUMBER = 6;
-    private int replica_;
-    public boolean hasReplica() {
+    // optional string duration = 6;
+    public static final int DURATION_FIELD_NUMBER = 6;
+    private java.lang.Object duration_;
+    public boolean hasDuration() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
-    public int getReplica() {
-      return replica_;
+    public String getDuration() {
+      java.lang.Object ref = duration_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          duration_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getDurationBytes() {
+      java.lang.Object ref = duration_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        duration_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
     
     // repeated int32 serverId = 7;
@@ -5653,7 +5675,7 @@ public final class FileDataProtos {
       storageNameCode_ = 0L;
       uuid_ = "";
       time_ = 0L;
-      replica_ = 0;
+      duration_ = "";
       serverId_ = java.util.Collections.emptyList();;
       offset_ = 0L;
       size_ = 0L;
@@ -5686,7 +5708,7 @@ public final class FileDataProtos {
         output.writeInt64(5, time_);
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        output.writeInt32(6, replica_);
+        output.writeBytes(6, getDurationBytes());
       }
       for (int i = 0; i < serverId_.size(); i++) {
         output.writeInt32(7, serverId_.get(i));
@@ -5728,7 +5750,7 @@ public final class FileDataProtos {
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(6, replica_);
+          .computeBytesSize(6, getDurationBytes());
       }
       {
         int dataSize = 0;
@@ -5881,7 +5903,7 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000008);
         time_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000010);
-        replica_ = 0;
+        duration_ = "";
         bitField0_ = (bitField0_ & ~0x00000020);
         serverId_ = java.util.Collections.emptyList();;
         bitField0_ = (bitField0_ & ~0x00000040);
@@ -5950,7 +5972,7 @@ public final class FileDataProtos {
         if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
           to_bitField0_ |= 0x00000020;
         }
-        result.replica_ = replica_;
+        result.duration_ = duration_;
         if (((bitField0_ & 0x00000040) == 0x00000040)) {
           serverId_ = java.util.Collections.unmodifiableList(serverId_);
           bitField0_ = (bitField0_ & ~0x00000040);
@@ -5995,8 +6017,8 @@ public final class FileDataProtos {
         if (other.hasTime()) {
           setTime(other.getTime());
         }
-        if (other.hasReplica()) {
-          setReplica(other.getReplica());
+        if (other.hasDuration()) {
+          setDuration(other.getDuration());
         }
         if (!other.serverId_.isEmpty()) {
           if (serverId_.isEmpty()) {
@@ -6070,9 +6092,9 @@ public final class FileDataProtos {
               time_ = input.readInt64();
               break;
             }
-            case 48: {
+            case 50: {
               bitField0_ |= 0x00000020;
-              replica_ = input.readInt32();
+              duration_ = input.readBytes();
               break;
             }
             case 56: {
@@ -6225,25 +6247,40 @@ public final class FileDataProtos {
         return this;
       }
       
-      // optional int32 replica = 6;
-      private int replica_ ;
-      public boolean hasReplica() {
+      // optional string duration = 6;
+      private java.lang.Object duration_ = "";
+      public boolean hasDuration() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
-      public int getReplica() {
-        return replica_;
+      public String getDuration() {
+        java.lang.Object ref = duration_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          duration_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
       }
-      public Builder setReplica(int value) {
-        bitField0_ |= 0x00000020;
-        replica_ = value;
+      public Builder setDuration(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000020;
+        duration_ = value;
         onChanged();
         return this;
       }
-      public Builder clearReplica() {
+      public Builder clearDuration() {
         bitField0_ = (bitField0_ & ~0x00000020);
-        replica_ = 0;
+        duration_ = getDefaultInstance().getDuration();
         onChanged();
         return this;
+      }
+      void setDuration(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000020;
+        duration_ = value;
+        onChanged();
       }
       
       // repeated int32 serverId = 7;
@@ -6417,12 +6454,12 @@ public final class FileDataProtos {
       "\n\013description\030\005 \001(\t\"i\n\013FileContent\022\017\n\007cr" +
       "cFlag\030\001 \001(\010\022\024\n\014crcCheckCode\030\002 \001(\003\022\023\n\013des" +
       "cription\030\003 \001(\t\022\014\n\004data\030\004 \001(\014\022\020\n\010compress" +
-      "\030\005 \001(\005\"\236\001\n\003Fid\022\017\n\007version\030\001 \001(\005\022\020\n\010compr" +
+      "\030\005 \001(\005\"\237\001\n\003Fid\022\017\n\007version\030\001 \001(\005\022\020\n\010compr" +
       "ess\030\002 \001(\005\022\027\n\017storageNameCode\030\003 \001(\003\022\014\n\004uu" +
-      "id\030\004 \001(\t\022\014\n\004time\030\005 \001(\003\022\017\n\007replica\030\006 \001(\005\022" +
-      "\020\n\010serverId\030\007 \003(\005\022\016\n\006offset\030\010 \001(\003\022\014\n\004siz" +
-      "e\030\t \001(\003B1\n\034com.bonree.brfs.common.protoB" +
-      "\016FileDataProtos\210\001\000"
+      "id\030\004 \001(\t\022\014\n\004time\030\005 \001(\003\022\020\n\010duration\030\006 \001(\t" +
+      "\022\020\n\010serverId\030\007 \003(\005\022\016\n\006offset\030\010 \001(\003\022\014\n\004si" +
+      "ze\030\t \001(\003B1\n\034com.bonree.brfs.common.proto" +
+      "B\016FileDataProtos\210\001\000"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -6490,7 +6527,7 @@ public final class FileDataProtos {
           internal_static_brfs_proto_Fid_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_brfs_proto_Fid_descriptor,
-              new java.lang.String[] { "Version", "Compress", "StorageNameCode", "Uuid", "Time", "Replica", "ServerId", "Offset", "Size", },
+              new java.lang.String[] { "Version", "Compress", "StorageNameCode", "Uuid", "Time", "Duration", "ServerId", "Offset", "Size", },
               com.bonree.brfs.common.proto.FileDataProtos.Fid.class,
               com.bonree.brfs.common.proto.FileDataProtos.Fid.Builder.class);
           return null;

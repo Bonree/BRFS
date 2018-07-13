@@ -3,7 +3,6 @@ package com.bonree.brfs.disknode.client;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.BitSet;
 import java.util.List;
 
 import com.bonree.brfs.common.utils.CloseUtils;
@@ -15,26 +14,20 @@ import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 public class LocalDiskNodeClient implements DiskNodeClient {
 
 	@Override
-	public WriteResult writeData(String path, int sequence, byte[] bytes)
+	public WriteResult writeData(String path, byte[] bytes)
 			throws IOException {
 		return null;
 	}
 
 	@Override
-	public WriteResult writeData(String path, int sequence, byte[] bytes,
+	public WriteResult writeData(String path, byte[] bytes,
 			int offset, int size) throws IOException {
 		return null;
 	}
 
 	@Override
-	public byte[] readData(String path, int offset, int size)
-			throws IOException {
-		return null;
-	}
-
-	@Override
-	public boolean closeFile(String path) {
-		return false;
+	public long closeFile(String path) {
+		return -1;
 	}
 
 	@Override
@@ -50,21 +43,6 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	@Override
 	public boolean deleteDir(String path, boolean force, boolean recursive) {
 		return false;
-	}
-
-	@Override
-	public BitSet getWritingSequence(String path) {
-		return null;
-	}
-
-	@Override
-	public boolean recover(String path, RecoverInfo infos) {
-		return false;
-	}
-
-	@Override
-	public byte[] getBytesBySequence(String path, int sequence) {
-		return null;
 	}
 
 	@Override
@@ -86,7 +64,6 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	}
 	public boolean isExists(String host, int port,String remotePath) throws IOException {
 		DiskNodeClient client = null;
-		int bufferSize = 5 * 1024 * 1024;
 		try {
 			client = new HttpDiskNodeClient(host, port);
 			byte[] bytes = client.readData(remotePath, 0, Integer.MAX_VALUE);
@@ -109,7 +86,7 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 			byte[] buf;
 			int offset = 0;
 			while((buf = DataFileReader.readFile(localPath, offset, bufferSize)).length != 0) {
-				client.writeData(remotePath, offset, buf);
+				client.writeData(remotePath, buf);
 				offset += buf.length;
 			}
 			
@@ -124,11 +101,6 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public int[] getWritingFileMetaInfo(String path) {
-		return null;
-	}
-
-	@Override
 	public WriteResult[] writeDatas(String path, WriteData[] dataList)
 			throws IOException {
 		return null;
@@ -140,13 +112,36 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public int openFile(String path, int capacity) {
+	public boolean flush(String file) throws IOException {
+		return true;
+	}
+
+	@Override
+	public long openFile(String path, long capacity) {
+		return capacity;
+	}
+
+	@Override
+	public byte[] readData(String path, long offset) throws IOException {
+		return null;
+	}
+
+	@Override
+	public byte[] readData(String path, long offset, int size)
+			throws IOException {
+		return null;
+	}
+
+	@Override
+	public long getFileLength(String path) {
 		return 0;
 	}
 
 	@Override
-	public boolean flush(String file) throws IOException {
-		return true;
+	public boolean recover(String path, long fileLength,
+			List<String> serviceList) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

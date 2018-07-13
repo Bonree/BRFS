@@ -7,7 +7,6 @@ package com.bonree.brfs.disknode.data.write.record;
  *
  */
 public class RecordElement {
-	private int sequence;
 	//写入数据在文件中的偏移量
 	private long offset;
 	//写入数据的字节大小
@@ -24,22 +23,9 @@ public class RecordElement {
 	}
 	
 	public RecordElement(long offset, int size, long crc) {
-		this(-1, offset, size, crc);
-	}
-	
-	public RecordElement(int seq, long offset, int size, long crc) {
-		this.sequence = seq;
 		this.offset = offset;
 		this.size = size;
 		this.crc = crc;
-	}
-	
-	public int getSequence() {
-		return sequence;
-	}
-
-	public void setSequence(int sequence) {
-		this.sequence = sequence;
 	}
 
 	public long getOffset() {
@@ -69,8 +55,7 @@ public class RecordElement {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("[").append(sequence)
-		       .append(", ").append(offset)
+		builder.append("[").append(offset)
 		       .append(", ").append(size)
 		       .append(", ").append(crc)
 		       .append("]");

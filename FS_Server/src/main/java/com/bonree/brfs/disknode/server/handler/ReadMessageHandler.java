@@ -9,6 +9,7 @@ import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
+import com.bonree.brfs.disknode.fileformat.FileFormater;
 
 public class ReadMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(ReadMessageHandler.class);
@@ -17,9 +18,11 @@ public class ReadMessageHandler implements MessageHandler {
 	public static final String PARAM_READ_LENGTH = "size";
 	
 	private DiskContext diskContext;
+	private FileFormater fileFormater;
 	
-	public ReadMessageHandler(DiskContext context) {
+	public ReadMessageHandler(DiskContext context, FileFormater fileFormater) {
 		this.diskContext = context;
+		this.fileFormater = fileFormater;
 	}
 
 	@Override
@@ -27,14 +30,16 @@ public class ReadMessageHandler implements MessageHandler {
 		HandleResult result = new HandleResult();
 		
 		try {
+			String filePath = diskContext.getConcreteFilePath(msg.getPath());
+			
 			String offsetParam = msg.getParams().get(PARAM_READ_OFFSET);
 			String lengthParam = msg.getParams().get(PARAM_READ_LENGTH);
 			int offset = offsetParam == null ? 0 : Integer.parseInt(offsetParam);
-			int length = lengthParam == null ? Integer.MAX_VALUE : Integer.parseInt(lengthParam);
+			int length = (int) (lengthParam == null ? fileFormater.maxBodyLength() : Integer.parseInt(lengthParam));
 			
 			LOG.info("read data offset[{}], size[{}]", offset, length);
 			
-			byte[] data = DataFileReader.readFile(diskContext.getConcreteFilePath(msg.getPath()), offset, length);
+			byte[] data = DataFileReader.readFile(filePath, fileFormater.absoluteOffset(offset), length);
 			
 			result.setSuccess(data.length == 0 ? false : true);
 			result.setData(data);

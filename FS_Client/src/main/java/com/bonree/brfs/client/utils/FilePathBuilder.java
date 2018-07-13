@@ -1,5 +1,7 @@
 package com.bonree.brfs.client.utils;
 
+import java.time.Duration;
+
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.utils.TimeUtils;
 
@@ -14,7 +16,7 @@ public final class FilePathBuilder {
 		.append(PATH_SEPARATOR)
 		.append(index)
 		.append(PATH_SEPARATOR)
-		.append(TimeUtils.timeInterval(fid.getTime(), 60 * 60 * 1000))
+		.append(TimeUtils.timeInterval(fid.getTime(), Duration.parse(fid.getDuration()).toMillis()))
 		.append(PATH_SEPARATOR)
 		.append(fid.getUuid().toLowerCase());
 		

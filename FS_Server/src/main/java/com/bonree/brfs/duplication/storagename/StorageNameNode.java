@@ -9,6 +9,8 @@ public class StorageNameNode {
 	public static final String ATTR_REPLICATION = "replication";
 	//数据有效期属性名
 	public static final String ATTR_TTL = "ttl";
+	public static final String ATTR_FILE_CAPACITY = "fileCapacity";
+	public static final String ATTR_FILE_PATITION_DURATION = "filePatitionDuration";
 	public static final String ATTR_ENABLE = "enable";
 	
 	private String name;
@@ -17,16 +19,21 @@ public class StorageNameNode {
 	private int ttl;
 	private long createTime;
 	
+	private long fileCapacity;
+	private String partitionDuration;
+	
 	private boolean enable = true;
 	
 	public StorageNameNode() {
 	}
 	
-	public StorageNameNode(String name, int id, int replis, int ttl) {
+	public StorageNameNode(String name, int id, int replis, int ttl, long fileCapacity, String partitionDuration) {
 		this.name = name;
 		this.id = id;
 		this.replicateCount = replis;
 		this.ttl = ttl;
+		this.fileCapacity = fileCapacity;
+		this.partitionDuration = partitionDuration;
 	}
 
 	public String getName() {
@@ -69,6 +76,14 @@ public class StorageNameNode {
 		this.createTime = createTime;
 	}
 	
+	public long getFileCapacity() {
+		return fileCapacity;
+	}
+
+	public void setFileCapacity(long fileCapacity) {
+		this.fileCapacity = fileCapacity;
+	}
+	
 	public boolean isEnable() {
         return enable;
     }
@@ -106,5 +121,13 @@ public class StorageNameNode {
 		       .append(enable).append("]");
 		
 		return builder.toString();
+	}
+
+	public String getPartitionDuration() {
+		return partitionDuration;
+	}
+
+	public void setPartitionDuration(String partitionDuration) {
+		this.partitionDuration = partitionDuration;
 	}
 }

@@ -15,7 +15,6 @@ import com.bonree.brfs.disknode.data.write.record.RecordElement;
 public class RecordFileWriter implements FileWriter {
 	private FileWriter delegate;
 	private RecordCollection recorder;
-	private volatile int sequence;
 	
 	public RecordFileWriter(RecordCollection recorder, FileWriter delegate) {
 		this.recorder = recorder;
@@ -30,15 +29,6 @@ public class RecordFileWriter implements FileWriter {
 	public RecordCollection getRecordCollection() {
 		return recorder;
 	}
-	
-	/**
-	 * 更新写入数据的系列号
-	 * 
-	 * @param sequence
-	 */
-	public void updateSequence(int sequence) {
-		this.sequence = sequence;
-	}
 
 	@Override
 	public void write(byte[] bytes) throws IOException {
@@ -48,7 +38,6 @@ public class RecordFileWriter implements FileWriter {
 	@Override
 	public void write(byte[] bytes, int offset, int size) throws IOException {
 		RecordElement element = new RecordElement(delegate.position(), size, ByteUtils.crc(bytes, offset, size));
-		element.setSequence(sequence);
 		recorder.put(element);
 		
 		delegate.write(bytes, offset, size);

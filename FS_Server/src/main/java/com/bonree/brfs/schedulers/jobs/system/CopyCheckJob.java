@@ -1,10 +1,8 @@
 package com.bonree.brfs.schedulers.jobs.system;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
@@ -16,11 +14,10 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -61,7 +58,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			return;
 		}
 		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
-		List<Service> services = sm.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
+		List<Service> services = sm.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
 		if(services == null || services.isEmpty()) {
 			LOG.info("SKIP create {} task, because service is empty",taskType);
 			return ;

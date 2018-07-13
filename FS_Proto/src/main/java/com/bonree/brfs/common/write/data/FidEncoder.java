@@ -1,5 +1,6 @@
 package com.bonree.brfs.common.write.data;
 
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import com.bonree.brfs.common.data.utils.Base64;
@@ -30,16 +31,21 @@ public class FidEncoder {
         if (!ReturnCodeEnum.SUCCESS.equals(valicateCode)) {
             throw new Exception("Fid encoder failed! " + valicateCode);
         }
-        byte[] header = header(fid.getVersion(), fid.getCompress());
-        byte[] storageName = storageName(fid.getStorageNameCode());
-        byte[] uuid = uuid(fid.getUuid());
-        byte[] time = time(fid.getTime() / 1000 / 60);
-        byte[] offset = offset(fid.getOffset());
-        byte[] size = size(fid.getSize());
-        byte[] serverId = serverId(fid.getServerIdList());
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        output.write(FSCode.start);
+        output.write(header(fid.getVersion(), fid.getCompress()));
+        output.write(storageName(fid.getStorageNameCode()));
+        output.write(uuid(fid.getUuid()));
+        output.write(time(fid.getTime() / 1000 / 60));
+        output.write(offset(fid.getOffset()));
+        output.write(size(fid.getSize()));
+        output.write(serverId(fid.getServerIdList()));
+        output.write(FSCode.tail);
+        output.write(new byte[]{0x0});
+        output.write(duration(fid.getDuration()));
         // 封装fid
-        byte[] fidByte = FSCode.addBytes(FSCode.start, header, storageName, uuid, time, offset, size, serverId, FSCode.tail);
-        return Base64.encodeToString(fidByte, Base64.DEFAULT);
+        System.out.println("bytes : " + output.toByteArray().length);
+        return Base64.encodeToString(output.toByteArray(), Base64.DEFAULT).trim();
     }
 
     /**
@@ -123,6 +129,10 @@ public class FidEncoder {
      */
     private static byte[] time(long time) {
         return FSCode.LongToByte(time, 5); // 定长5字节
+    }
+    
+    private static byte[] duration(String duration) {
+    	return FSCode.StringToByte(duration);
     }
 
     /**

@@ -18,6 +18,7 @@ import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.utils.Pair;
 import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Longs;
 
 public class CloseMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(CloseMessageHandler.class);
@@ -25,7 +26,7 @@ public class CloseMessageHandler implements MessageHandler {
 	private DiskContext diskContext;
 	private FileWriterManager writerManager;
 
-	public CloseMessageHandler(DiskContext context, FileWriterManager nodeManager) {
+	public CloseMessageHandler(DiskContext context, FileWriterManager nodeManager	) {
 		this.diskContext = context;
 		this.writerManager = nodeManager;
 	}
@@ -37,9 +38,10 @@ public class CloseMessageHandler implements MessageHandler {
 		try {
 			filePath = diskContext.getConcreteFilePath(msg.getPath());
 			LOG.info("CLOSE file[{}]", filePath);
+			
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
 			if(binding == null) {
-				LOG.info("no writer is found for file[{}], I treat it as OK!", filePath);
+				LOG.info("no writer is found for file[{}], treat it as OK!", filePath);
 				result.setSuccess(true);
 				return;
 			}
@@ -57,6 +59,8 @@ public class CloseMessageHandler implements MessageHandler {
 			
 			LOG.info("close over for file[{}]", filePath);
 			writerManager.close(filePath);
+			
+			result.setData(Longs.toByteArray(crcCode));
 			result.setSuccess(true);
 		} catch (IOException e) {
 			result.setSuccess(false);

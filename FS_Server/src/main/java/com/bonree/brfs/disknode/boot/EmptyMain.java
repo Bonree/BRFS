@@ -11,9 +11,7 @@ import com.bonree.brfs.common.net.http.HttpConfig;
 import com.bonree.brfs.common.net.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.net.http.netty.NettyHttpServer;
 import com.bonree.brfs.common.process.LifeCycle;
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
@@ -21,20 +19,19 @@ import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
+import com.bonree.brfs.disknode.fileformat.FileFormater;
+import com.bonree.brfs.disknode.fileformat.impl.SimpleFileFormater;
 import com.bonree.brfs.disknode.server.handler.CloseMessageHandler;
 import com.bonree.brfs.disknode.server.handler.DeleteMessageHandler;
 import com.bonree.brfs.disknode.server.handler.FileCopyMessageHandler;
+import com.bonree.brfs.disknode.server.handler.FileLengthMessageHandler;
 import com.bonree.brfs.disknode.server.handler.FlushMessageHandler;
 import com.bonree.brfs.disknode.server.handler.ListMessageHandler;
 import com.bonree.brfs.disknode.server.handler.OpenMessageHandler;
 import com.bonree.brfs.disknode.server.handler.PingPongRequestHandler;
 import com.bonree.brfs.disknode.server.handler.ReadMessageHandler;
 import com.bonree.brfs.disknode.server.handler.RecoveryMessageHandler;
-import com.bonree.brfs.disknode.server.handler.SequenceNumberCache;
 import com.bonree.brfs.disknode.server.handler.WriteMessageHandler;
-import com.bonree.brfs.disknode.server.handler.WritingBytesMessageHandler;
-import com.bonree.brfs.disknode.server.handler.WritingMetaDataMessageHandler;
-import com.bonree.brfs.disknode.server.handler.WritingSequenceMessageHandler;
 
 public class EmptyMain implements LifeCycle {
 	private static final Logger LOG = LoggerFactory.getLogger(EmptyMain.class);
@@ -49,9 +46,6 @@ public class EmptyMain implements LifeCycle {
 	
 	private ExecutorService requestHandlerExecutor;
 	
-	private static final String DISKNODE_SERVICE_GROUP = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME);
-	private ServiceStateListener serviceStateListener;
-	
 	public EmptyMain(ServiceManager serviceManager) {
 		this.diskContext = new DiskContext(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
 		this.serviceManager = serviceManager;
@@ -65,19 +59,6 @@ public class EmptyMain implements LifeCycle {
 				.setRequestHandleWorkerNum(workerThreadNum)
 				.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")))
 				.build();
-		
-		this.serviceStateListener = new ServiceStateListener() {
-			
-			@Override
-			public void serviceRemoved(Service service) {
-				LOG.info("service[{}] removed, time to flush all files", service);
-				writerManager.flushAll();
-			}
-			
-			@Override
-			public void serviceAdded(Service service) {
-			}
-		};
 	}
 
 	@Override
@@ -92,17 +73,17 @@ public class EmptyMain implements LifeCycle {
 		
 		writerManager.rebuildFileWriterbyDir(diskContext.getRootDir());
 		
-		serviceManager.addServiceStateListener(DISKNODE_SERVICE_GROUP, serviceStateListener);
-		
 		server = new NettyHttpServer(httpConfig);
 		requestHandlerExecutor = Executors.newFixedThreadPool(
 				Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),
 				new PooledThreadFactory("request_handler"));
 		
+		FileFormater fileFormater = new SimpleFileFormater(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_FILE_MAX_CAPACITY));
+		
 		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 		requestHandler.addMessageHandler("PUT", new OpenMessageHandler(diskContext, writerManager));
-		requestHandler.addMessageHandler("POST", new WriteMessageHandler(diskContext, writerManager));
-		requestHandler.addMessageHandler("GET", new ReadMessageHandler(diskContext));
+		requestHandler.addMessageHandler("POST", new WriteMessageHandler(diskContext, writerManager, fileFormater));
+		requestHandler.addMessageHandler("GET", new ReadMessageHandler(diskContext, fileFormater));
 		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(diskContext, writerManager));
 		requestHandler.addMessageHandler("DELETE", new DeleteMessageHandler(diskContext, writerManager));
 		server.addContextHandler(DiskContext.URI_DISK_NODE_ROOT, requestHandler);
@@ -111,19 +92,9 @@ public class EmptyMain implements LifeCycle {
 		flushRequestHandler.addMessageHandler("POST", new FlushMessageHandler(diskContext, writerManager));
 		server.addContextHandler(DiskContext.URI_FLUSH_NODE_ROOT, flushRequestHandler);
 		
-		SequenceNumberCache cache = new SequenceNumberCache(writerManager);
-		
 		NettyHttpRequestHandler sequenceRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-		sequenceRequestHandler.addMessageHandler("GET", new WritingSequenceMessageHandler(diskContext, cache));
-		server.addContextHandler(DiskContext.URI_SEQUENCE_NODE_ROOT, sequenceRequestHandler);
-		
-		NettyHttpRequestHandler bytesRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-		bytesRequestHandler.addMessageHandler("GET", new WritingBytesMessageHandler(diskContext, cache));
-		server.addContextHandler(DiskContext.URI_SEQ_BYTE_NODE_ROOT, bytesRequestHandler);
-		
-		NettyHttpRequestHandler metaRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-		metaRequestHandler.addMessageHandler("GET", new WritingMetaDataMessageHandler(diskContext, writerManager));
-		server.addContextHandler(DiskContext.URI_META_NODE_ROOT, metaRequestHandler);
+		sequenceRequestHandler.addMessageHandler("GET", new FileLengthMessageHandler(diskContext, writerManager, fileFormater));
+		server.addContextHandler(DiskContext.URI_LENGTH_NODE_ROOT, sequenceRequestHandler);
 		
 		NettyHttpRequestHandler cpRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 		cpRequestHandler.addMessageHandler("POST", new FileCopyMessageHandler(diskContext));
@@ -134,7 +105,7 @@ public class EmptyMain implements LifeCycle {
 		server.addContextHandler(DiskContext.URI_LIST_NODE_ROOT, listRequestHandler);
 		
 		NettyHttpRequestHandler recoverRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(diskContext, serviceManager, writerManager, recorderManager));
+		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(diskContext, serviceManager, writerManager));
 		server.addContextHandler(DiskContext.URI_RECOVER_NODE_ROOT, recoverRequestHandler);
 		
 		NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
@@ -153,7 +124,6 @@ public class EmptyMain implements LifeCycle {
 	@Override
 	public void stop() throws Exception {
 		server.stop();
-		serviceManager.removeServiceStateListener(DISKNODE_SERVICE_GROUP, serviceStateListener);
 		writerManager.stop();
 		
 		if(requestHandlerExecutor != null) {

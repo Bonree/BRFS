@@ -8,6 +8,12 @@ cluster.name = cluster_name
 # Zookeeper地址
 zookeeper.addresses = ip1:2181,ip2:2181
 
+# 磁盘节点服务所在的服务组
+#disknode.service.group = disk_group
+
+# 副本节点服务群组名
+#duplicatenode.service.group = duplicate_group
+
 ###############################################
 ##############副本节点 Config###################
 ###############################################
@@ -18,46 +24,33 @@ duplicatenode.service.host = localhost
 # 副本节点服务端口
 duplicatenode.service.port = 8880
 
-# 副本节点服务群组名
-#duplicatenode.service.group = duplicate_group
-
-# 虚拟服务所属组名
-#duplicatenode.virtual.service.group = virtual_group
-
 # 副本节点日志文件夹
 duplicatenode.log.dir = /var/brfs/duplicatenode
-
-# 磁盘文件的容量（字节）
-#duplicatenode.file.capacity = 6815744
-
-# 文件清理程序的执行周期（秒）
-#duplicatenode.file.clean.interval.seconds = 30
 
 # 需要进行文件清理的文件个数
 # 副本节点中维护的文件数量超过此值，文件清理程序
 # 才会进行文件清理
 #duplicatenode.file.clean.count = 10
 
+# 副本节点能打开的最大文件数量
+#duplicatenode.file.max.count = 15
+
 # 文件可以被清理的字节下限
 # 文件清理程序只会清理文件空间使用比率大于此值的文件
 #duplicatenode.file.clean.usage.rate = 0.99
 
-# 文件会被按照时间存储到不同的文件夹下，每个文件夹会包含此值
-# 所指定的时间间隔内的所有文件
-# 单位（分钟）
-#duplicatenode.file.patition.interval.minutes = 60
-
-# 副本节点能同时写文件的个数
-# 这个值不是限定副本节点中管理的文件个数，而是同一时刻
-# 能同时对多少个文件进行写入操作
-# 程序默认值为机器的CPU核数
-#duplicatenode.writer.concurrent.file.num = 8
-
 # 副本节点向磁盘节点写数据的线程数
 #duplicatenode.writer.worker.num = 24
 
-# 副本节点中写数据时处理磁盘节点返回结果的线程数
-#duplicatenode.writer.result.handler.num = 5
+# 每个Storage Region可以缓存的数据数量
+#duplicatenode.data.pool.capacity = 512
+
+# 数据处理程序的空闲时间
+# 每个Storage Region都会对应有一个DataEngine
+# 当第一条数据到达时DataEngine才会创建，如果在最后
+# 一条数据写入后，在Idle设定时长的时间里都没有数据到
+# 达，则删除DataEngine
+#duplicatenode.dataengine.idle.time = PT1H
 
 ###############################################
 ##############磁盘节点 Config###################
@@ -68,11 +61,11 @@ disknode.service.host = localhost
 # 磁盘节点的服务端口
 disknode.service.port = 8881
 
-# 磁盘节点服务所在的服务组
-#disknode.service.group = disk_group
-
 # 磁盘节点保存数据文件的目录路径
 disknode.data.root = /data
+
+# 磁盘文件的最大容量（字节）
+#disknode.file.max.capacity = 6815744
 
 # 磁盘节点处理数据写入的线程数
 # 默认为机器CPU核数
@@ -87,7 +80,7 @@ disknode.data.root = /data
 
 # 文件的空闲时间
 # 如果文件空闲时间超过此值，则会把缓存中的内容刷入磁盘
-#disknode.file.idle.timeout.seconds = 3
+#disknode.file.idle.time = PT3S
 
 # 磁盘节点中用于处理Http请求的线程数
 #disknode.request.handler.num = 8
@@ -107,12 +100,19 @@ disknode.data.root = /data
 ##############Storage Config###################
 ###############################################
 # Storage中文件的有效期
-# 单位（天）
-# -1为有效期无穷大
-#storage.data.ttl = 30
+# 负数为无穷期限，例如"P-1D"
+#storage.data.ttl = P30D
 
 # Storage中文件的副本数
 #storage.replicate.count = 2
+
+# Storage Region中每个文件的容量大小（字节）
+storage.file.capacity = 6815744
+
+# 默认Storage Region中分隔文件的时间段大小;
+# 文件会被按照时间存储到不同的文件夹下，每个文件夹会包含此值
+# 所指定的时间间隔内的所有文件
+#storage.file.patition.duration = PT1H
 
 ###############################################
 ##############资源管理模块 Config################

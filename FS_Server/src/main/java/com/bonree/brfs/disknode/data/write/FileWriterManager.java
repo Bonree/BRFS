@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -46,8 +47,8 @@ public class FileWriterManager implements LifeCycle {
 
 	private ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
-	private WheelTimer<String> timeoutWheel = new WheelTimer<String>(
-			Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_FILE_FLUSH_TIMEOUT));
+	Duration fileIdleDuration = Duration.parse(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_FILE_IDLE_TIME));
+	private WheelTimer<String> timeoutWheel = new WheelTimer<String>((int) fileIdleDuration.getSeconds());
 
 	public FileWriterManager(RecordCollectionManager recorderManager) {
 		this(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager);
@@ -227,7 +228,7 @@ public class FileWriterManager implements LifeCycle {
 		
 		List<RecordElement> validElmentList = new ArrayList<RecordElement>();
 		RecordElement element = originElements.get(0);
-		if(element.getSequence() != 0) {
+		if(element.getOffset() != 0) {
 			//没有文件头的日志记录，不应该发生的
 			throw new IllegalStateException("no header record in file[" + filepath + "]");
 		}
@@ -243,17 +244,11 @@ public class FileWriterManager implements LifeCycle {
 			
 			if(index + 1 >= originSize) {
 				//数据文件还有数据，但日志文件没有记录
-				validElmentList.add(new RecordElement(index + 1, offset, size, crc));
+				validElmentList.add(new RecordElement(offset, size, crc));
 				continue;
 			}
 			
 			element = originElements.get(index + 1);
-			if(index + 1 != element.getSequence()) {
-				//序列号不一致，到此中断
-				//因为数据文件里获取的信息不包含文件头的，所以这里需要加上1
-				LOG.warn("excepted sequence number[{}], but get number[{}] for file[{}]", index + 1, element.getSequence(), filepath);
-				break;
-			}
 			
 			if(element.getOffset() != offset) {
 				LOG.warn("excepted offset[{}], but get offset[{}] for file[{}]", offset, element.getOffset(), filepath);

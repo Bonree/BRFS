@@ -1,5 +1,7 @@
 package com.bonree.brfs.common.write.data;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * *****************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -31,6 +33,16 @@ public class FSCode {
         }
         return sizeByte;
     }
+    
+    public static byte[] StringToByte(String s) {
+    	try {
+			return s.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+    	
+    	return new byte[0];
+    }
 
     /**
      * 概述：byte数组转换long数字
@@ -59,6 +71,16 @@ public class FSCode {
             offset++;
         }
         return value;
+    }
+    
+    public static String byteToString(byte[] bytes, int pos, int length) {
+    	try {
+			return new String(bytes, pos, length, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+    	
+    	return null;
     }
 
     /**

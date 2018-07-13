@@ -1,9 +1,9 @@
 package com.bonree.brfs.duplication.datastream.handler;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -19,8 +19,7 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
-import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storagename.StorageNameManager;
 import com.bonree.brfs.duplication.storagename.StorageNameNode;
@@ -30,8 +29,6 @@ import com.google.common.base.Splitter;
 
 public class DeleteDataMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(DeleteDataMessageHandler.class);
-	private static final long granule = TimeUnit.MINUTES.toMillis(Configs.getConfiguration()
-		.GetConfig(DuplicateNodeConfigs.CONFIG_FILE_PATITION_INTERVAL_MINUTES));
 	private static final int TIME_INTERVAL_LEVEL = 2;
 	
 	private ServiceManager serviceManager;
@@ -71,7 +68,8 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		}
 		
 		List<String> times = Splitter.on("_").omitEmptyStrings().trimResults().splitToList(deleteInfo.get(1));
-		ReturnCode code = checkTime(times.get(0), times.get(1), sn.getCreateTime(), granule);
+		
+		ReturnCode code = checkTime(times.get(0), times.get(1), sn.getCreateTime(), Duration.parse(sn.getPartitionDuration()).toMillis());
 		if(!ReturnCode.SUCCESS.equals(code)) {
 			result.setSuccess(false);
 			result.setData(BrStringUtils.toUtf8Bytes(code.name()));
@@ -83,9 +81,9 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		long endTime = DateTime.parse(times.get(1)).getMillis();
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
 		
-		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
+		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
 
-        code = TasksUtils.createUserDeleteTask(serviceList, zkPaths, sn, startTime, endTime,granule);
+        code = TasksUtils.createUserDeleteTask(serviceList, zkPaths, sn, startTime, endTime);
         
 		result.setSuccess(ReturnCode.SUCCESS.equals(code));
 		result.setData(BrStringUtils.toUtf8Bytes(code.name()));

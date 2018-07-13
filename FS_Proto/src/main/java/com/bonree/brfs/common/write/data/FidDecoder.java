@@ -1,5 +1,8 @@
 package com.bonree.brfs.common.write.data;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,15 +31,33 @@ public class FidDecoder {
     public static Fid build(String fidStr) throws Exception {
         Fid.Builder fid = Fid.newBuilder();
         if (fidStr != null) {
-            byte[] bytes = Base64.decode(fidStr, Base64.DEFAULT);
+            ByteArrayInputStream input  = new ByteArrayInputStream(Base64.decode(fidStr, Base64.DEFAULT));
+            System.out.println("read : " + input.available());
+            byte[] bytes = new byte[16];
+            input.read(bytes, 0, 1);
+            //跳过开头
+            
+            input.read(bytes, 0, 1);
             fid.setVersion(version(bytes));
             fid.setCompress(compress(bytes));
+            
+            input.read(bytes, 0, 2);
             fid.setStorageNameCode(storageName(bytes));
-            fid.setTime(time(bytes));
+            
+            input.read(bytes, 0, 16);
             fid.setUuid(uuid(bytes));
+            
+            input.read(bytes, 0, 5);
+            fid.setTime(time(bytes));
+            
+            input.read(bytes, 0, 4);
             fid.setOffset(offset(bytes));
+            
+            input.read(bytes, 0, 4);
             fid.setSize(size(bytes));
-            fid.addAllServerId(serverId(bytes));
+            
+            fid.addAllServerId(serverId(input));
+            fid.setDuration(duration(input));
         }
         return fid.build();
     }
@@ -48,7 +69,7 @@ public class FidDecoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static int version(byte[] bytes) {
-        int h = bytes[1] & 0xff;
+        int h = bytes[0] & 0xff;
         return h >> 5;
     }
 
@@ -59,7 +80,7 @@ public class FidDecoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static int compress(byte[] bytes) {
-        int h = bytes[1] & 0xff;
+        int h = bytes[0] & 0xff;
         return h >> 3 & 0x03;
     }
 
@@ -71,7 +92,7 @@ public class FidDecoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static long storageName(byte[] bytes) throws Exception {
-        return FSCode.byteToLong(bytes, 2, 2);
+        return FSCode.byteToLong(bytes, 0, 2);
     }
 
     /**
@@ -82,7 +103,7 @@ public class FidDecoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static String uuid(byte[] bytes) throws Exception {
-        return FSCode.ByteToHex(bytes, 4, 16);
+        return FSCode.ByteToHex(bytes, 0, 16);
     }
 
     /**
@@ -93,7 +114,13 @@ public class FidDecoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static long time(byte[] bytes) throws Exception {
-        return FSCode.byteToLong(bytes, 20, 5) * 60 * 1000;
+        return FSCode.byteToLong(bytes, 0, 5) * 60 * 1000;
+    }
+    
+    public static String duration(InputStream input) throws IOException {
+    	byte[] bytes = new byte[input.available()];
+    	input.read(bytes);
+    	return FSCode.byteToString(bytes, 0, bytes.length);
     }
 
     /**
@@ -103,7 +130,7 @@ public class FidDecoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static long offset(byte[] offsetByte) {
-        return FSCode.byteToLong(offsetByte, 25, 4);
+        return FSCode.byteToLong(offsetByte, 0, 4);
     }
 
     /**
@@ -113,20 +140,26 @@ public class FidDecoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static long size(byte[] sizeByte) {
-        return FSCode.byteToLong(sizeByte, 29, 4);
+        return FSCode.byteToLong(sizeByte, 0, 4);
     }
 
     /**
      * 概述：解码serverId
      * @param serverIdByte
      * @return
+     * @throws IOException 
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static List<Integer> serverId(byte[] bytes) {
+    public static List<Integer> serverId(InputStream input) throws IOException {
         int temp = 0;
         List<Integer> sidList = new ArrayList<Integer>();
-        for (int i = 33; i < bytes.length; i++) {
-            int sid = bytes[i] & 0xFF;
+        byte[] b = new byte[1];
+        while (input.read(b) != -1) {
+        	if(b[0] == 0) {
+        		break;
+        	}
+        	
+            int sid = b[0] & 0xFF;
             if (sid >> 7 == 0) {
                 temp <<= 7;
                 sidList.add(temp | (sid & 0x7F));

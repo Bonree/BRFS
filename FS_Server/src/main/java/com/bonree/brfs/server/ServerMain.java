@@ -90,7 +90,7 @@ public class ServerMain {
             finalizer.add(diskMain);
 
             // 副本平衡模块
-            sm.addServiceStateListener(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME),
+            sm.addServiceStateListener(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME),
             		new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
            
             @SuppressWarnings("resource")
@@ -102,10 +102,10 @@ public class ServerMain {
             Service selfService = new Service();
             selfService.setHost(host);
             selfService.setPort(port);
-            selfService.setServiceGroup(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
+            selfService.setServiceGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
             String serviceId = idManager.getFirstServerID();
             selfService.setServiceId(serviceId);
-            Service checkService = sm.getServiceById(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), serviceId);
+            Service checkService = sm.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME), serviceId);
             if(checkService == null) {
             	sm.registerService(selfService);
             	System.out.println(selfService);

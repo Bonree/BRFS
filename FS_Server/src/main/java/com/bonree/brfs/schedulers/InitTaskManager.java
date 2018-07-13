@@ -74,7 +74,7 @@ public class InitTaskManager {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
 		mcf.setServerId(serverId);
-		mcf.setGroupName(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME));
+		mcf.setGroupName(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
 		
 		// 工厂类添加服务管理
 		mcf.setSm(sm);
@@ -323,7 +323,7 @@ public class InitTaskManager {
 		ServerModel smodel = new ServerModel();
 		smodel.setBase(base);
 		String str = JsonUtils.toJsonString(smodel);
-		sm.updateService(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_SERVICE_GROUP_NAME), serverId, str);
+		sm.updateService(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME), serverId, str);
 		
 		// 3.创建资源采集线程池
 		Properties  prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);

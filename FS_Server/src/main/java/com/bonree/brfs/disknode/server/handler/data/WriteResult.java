@@ -1,29 +1,26 @@
 package com.bonree.brfs.disknode.server.handler.data;
 
 public class WriteResult {
-	private int sequence;
-	private int size;
-
-	public int getSequence() {
-		return sequence;
+	private final long offset;
+	private final int size;
+	
+	public WriteResult(long offset, int size) {
+		this.offset = offset;
+		this.size = size;
 	}
-
-	public void setSequence(int sequence) {
-		this.sequence = sequence;
+	
+	public long getOffset() {
+		return offset;
 	}
 
 	public int getSize() {
 		return size;
 	}
-
-	public void setSize(int size) {
-		this.size = size;
-	}
 	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("{").append(sequence).append(", ").append(size).append("}");
+		builder.append("{").append("offset:").append(offset).append(",size:").append(size).append("}");
 		
 		return builder.toString();
 	}

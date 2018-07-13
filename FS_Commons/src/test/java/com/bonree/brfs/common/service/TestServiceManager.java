@@ -1,7 +1,5 @@
 package com.bonree.brfs.common.service;
 
-import java.util.List;
-
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -10,7 +8,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 
 public class TestServiceManager {
-	private static final String zk_address = "122.11.47.17:2181";
+	private static final String zk_address = "192.168.107.13:2181";
 
 	public static void main(String[] args) throws Exception {
 		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
@@ -18,24 +16,14 @@ public class TestServiceManager {
 		client.start();
 		client.blockUntilConnected();
 		
-		ServiceManager sm = new DefaultServiceManager(client.usingNamespace("brfs"));
+		ServiceManager sm = new DefaultServiceManager(client.usingNamespace("test_c"));
 		sm.start();
 		
-		List<Service> slist = sm.getServiceListByGroup("a");
-		sm.addServiceStateListener("a", new ServiceStateListener() {
-			
-			@Override
-			public void serviceRemoved(Service service) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void serviceAdded(Service service) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
+		sm.registerService(new Service("ss_1", "ss_g", "localhost", 999));
+		
+		synchronized (sm) {
+			sm.wait();
+		}
 	}
 
 }

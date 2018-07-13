@@ -17,9 +17,18 @@ public final class TimeUtils {
 	 */
 	public static String timeInterval(long now, long interval) {
 		StringBuilder builder = new StringBuilder();
-		long last = (now - now % interval);
-		builder.append(formatTimeStamp(last)).append('_').append(formatTimeStamp(last + interval));
+		builder.append(formatTimeStamp(prevTimeStamp(now, interval)))
+		.append('_')
+		.append(formatTimeStamp(nextTimeStamp(now, interval)));
 		return builder.toString();
+	}
+	
+	public static long prevTimeStamp(long time, long interval) {
+		return (time - time % interval);
+	}
+	
+	public static long nextTimeStamp(long time, long interval) {
+		return prevTimeStamp(time, interval) + interval;
 	}
 	
 	/**

@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.write.data.FidEncoder;
-import com.bonree.brfs.duplication.coordinator.FileNode;
+import com.bonree.brfs.duplication.filenode.FileNode;
 import com.google.common.base.Splitter;
 
 public class FidBuilder {
@@ -15,13 +15,13 @@ public class FidBuilder {
 	
 	public static String getFid(FileNode node, long offset, int size) {
 		Fid.Builder builder = Fid.newBuilder()
+				.setVersion(0)
 				.setCompress(0)
 				.setStorageNameCode(node.getStorageId())
 				.setTime(node.getCreateTime())
+				.setDuration(node.getTimeDuration())
 				.setOffset(offset)
-				.setSize(size)
-				.setReplica(node.getDuplicateNodes().length)
-				.setVersion(0);
+				.setSize(size);
 		
 		List<String> nameParts = Splitter.on("_").splitToList(node.getName());
 		builder.setUuid(nameParts.get(0));
