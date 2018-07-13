@@ -256,6 +256,10 @@ public class DefaultStorageNameManager implements StorageNameManager {
                     node.setTtl(attrs.getInt(StorageNameNode.ATTR_TTL, node.getTtl()));
                 } else if (StorageNameNode.ATTR_ENABLE.equals(name)) {
                     node.setEnable(attrs.getBoolean(StorageNameNode.ATTR_ENABLE));
+                } else if (StorageNameNode.ATTR_FILE_CAPACITY.equals(name)) {
+                	node.setFileCapacity(attrs.getLong(StorageNameNode.ATTR_FILE_CAPACITY));
+                } else if (StorageNameNode.ATTR_FILE_PATITION_DURATION.equals(name)) {
+                	node.setPartitionDuration(attrs.getString(StorageNameNode.ATTR_FILE_PATITION_DURATION));
                 }
             }
         }
