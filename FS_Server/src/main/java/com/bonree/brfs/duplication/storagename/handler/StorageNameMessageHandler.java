@@ -17,6 +17,8 @@ public abstract class StorageNameMessageHandler implements MessageHandler {
 	private static final String PARAM_REPLICATION = "replicas";
 	private static final String PARAM_TTL = "ttl";
 	private static final String PARAM_ENABLE = "enable";
+	private static final String PARAM_FILE_CAPACITY = "fileCapacity";
+	private static final String PARAM_FILE_PARTITION = "filePatitionDuration";
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
@@ -37,6 +39,14 @@ public abstract class StorageNameMessageHandler implements MessageHandler {
 		
 		if(params.containsKey(PARAM_ENABLE)) {
 			message.addAttribute(StorageNameNode.ATTR_ENABLE, Boolean.parseBoolean(params.get(PARAM_ENABLE)));
+		}
+		
+		if(params.containsKey(PARAM_FILE_CAPACITY)) {
+			message.addAttribute(StorageNameNode.ATTR_FILE_CAPACITY, Long.parseLong(params.get(PARAM_FILE_CAPACITY)));
+		}
+		
+		if(params.containsKey(PARAM_FILE_PARTITION)) {
+			message.addAttribute(StorageNameNode.ATTR_FILE_PATITION_DURATION, params.get(PARAM_FILE_PARTITION));
 		}
 		
 		handleMessage(message, callback);
