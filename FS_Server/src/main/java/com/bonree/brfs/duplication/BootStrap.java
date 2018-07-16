@@ -191,7 +191,10 @@ public class BootStrap {
             finalizer.add(diskWriter);
             
             DataEngineFactory engineFactory = new DefaultDataEngineFactory(dataPoolFactory, fileSupplierFactory, diskWriter);
-            DataEngineManager engineManager = new DefaultDataEngineManager(storageNameManager, engineFactory);
+            DefaultDataEngineManager engineManager = new DefaultDataEngineManager(storageNameManager, engineFactory);
+            
+            finalizer.add(engineManager);
+            
             StorageRegionWriter writer = new StorageRegionWriter(engineManager);
             
             NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);

@@ -135,7 +135,7 @@ public class DefaultDataEngine implements DataEngine {
 						}
 					});
 				} catch (InterruptedException e) {
-					LOG.error("data consumer interrupted.", e);
+					LOG.error("data consumer interrupted.");
 				} catch (Exception e) {
 					LOG.error("process data error", e);
 				}

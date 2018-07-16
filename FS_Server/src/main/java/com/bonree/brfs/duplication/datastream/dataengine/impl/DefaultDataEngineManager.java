@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.datastream.dataengine.impl;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
@@ -23,7 +24,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 
-public class DefaultDataEngineManager implements DataEngineManager {
+public class DefaultDataEngineManager implements DataEngineManager, Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultDataEngineManager.class);
 	
 	private StorageRegionManager storageRegionManager;
@@ -114,5 +115,15 @@ public class DefaultDataEngineManager implements DataEngineManager {
 			dataEngineContainer.invalidate(node.getId());
 		}
 		
+	}
+	
+
+	@Override
+	public void close() throws IOException {
+		if(dataEngineContainer == null) {
+			return;
+		}
+		
+		dataEngineContainer.invalidateAll();
 	}
 }
