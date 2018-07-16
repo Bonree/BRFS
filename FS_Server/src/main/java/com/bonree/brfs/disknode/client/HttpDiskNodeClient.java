@@ -2,25 +2,23 @@ package com.bonree.brfs.disknode.client;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
-import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.server.handler.data.FileCopyMessage;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteResult;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Longs;
 
@@ -350,18 +348,8 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 			HttpResponse response = client.executeGet(uri);
 			
 			if(response.isReponseOK()) {
-				JSONArray array = JSONArray.parseArray(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
-				ArrayList<FileInfo> result = new ArrayList<FileInfo>();
-				for(int i = 0; i < array.size(); i++) {
-					JSONObject object = array.getJSONObject(i);
-					FileInfo info = new FileInfo();
-					info.setType(object.getIntValue("type"));
-					info.setLevel(object.getIntValue("level"));
-					info.setPath(object.getString("path"));
-					result.add(info);
-				}
-				
-				return result;
+				return JsonUtils.toObject(response.getResponseBody(), new TypeReference<List<FileInfo>>() {
+				});
 			}
 		} catch (Exception e) {
 			LOG.error("list files of dir[{}] with level[{}] at {}:{} error", path, level, host, port, e);

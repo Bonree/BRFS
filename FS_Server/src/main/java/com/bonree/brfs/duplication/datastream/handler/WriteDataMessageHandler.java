@@ -9,8 +9,8 @@ import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
-import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.common.write.data.WriteDataMessage;
@@ -69,9 +69,14 @@ public class WriteDataMessageHandler implements MessageHandler {
 		@Override
 		public void complete(String[] fids) {
 			HandleResult result = new HandleResult();
-			result.setSuccess(true);
 			
-			result.setData(BrStringUtils.toUtf8Bytes(JsonUtils.toJsonString(fids)));
+			try {
+				result.setData(JsonUtils.toJsonBytes(fids));
+				result.setSuccess(true);
+			} catch (JsonException e) {
+				LOG.error("can not json fids", e);
+				result.setSuccess(false);
+			}
 			
 			callback.completed(result);
 		}

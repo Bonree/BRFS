@@ -50,7 +50,7 @@ import com.google.common.cache.LoadingCache;
 public class DefaultStorageRegionManager implements StorageRegionManager {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageRegionManager.class);
     
-    public static final String DEFAULT_PATH_STORAGE_REGION_NODES = "nodes";
+    private static final String DEFAULT_PATH_STORAGE_REGION_NODES = "nodes";
     
     private static final int DEFAULT_MAX_CACHE_SIZE = 100;
     private LoadingCache<String, Optional<StorageRegion>> storageRegionCache;
@@ -66,7 +66,9 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     public DefaultStorageRegionManager(CuratorFramework client, StorageRegionIdBuilder idBuilder) {
         this.zkClient = client;
         this.idBuilder = idBuilder;
-        this.storageRegionCache = CacheBuilder.newBuilder().maximumSize(DEFAULT_MAX_CACHE_SIZE).build(new StorageRegionLoader());
+        this.storageRegionCache = CacheBuilder.newBuilder()
+        		.maximumSize(DEFAULT_MAX_CACHE_SIZE)
+        		.build(new StorageRegionLoader());
         this.childrenCache = new PathChildrenCache(client,
         		ZKPaths.makePath(StorageRegionZkPaths.DEFAULT_PATH_STORAGE_REGION_ROOT, DEFAULT_PATH_STORAGE_REGION_NODES),
         		false);

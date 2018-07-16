@@ -14,7 +14,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSONArray;
 import com.bonree.brfs.client.InputItem;
 import com.bonree.brfs.client.StorageNameStick;
 import com.bonree.brfs.client.route.DiskServiceSelectorCache;
@@ -31,6 +30,7 @@ import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.write.data.FidDecoder;
 import com.bonree.brfs.common.write.data.FileDecoder;
@@ -100,12 +100,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 }
 
                 if (response.isReponseOK()) {
-                    JSONArray array = JSONArray.parseArray(new String(response.getResponseBody()));
-                    String[] fids = new String[array.size()];
-                    for (int i = 0; i < array.size(); i++) {
-                        fids[i] = array.getString(i);
-                    }
-                    return fids;
+                	return JsonUtils.toObject(response.getResponseBody(), String[].class);
                 }
             }
         } catch (Exception e) {

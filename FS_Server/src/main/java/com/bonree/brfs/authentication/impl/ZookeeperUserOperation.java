@@ -7,10 +7,11 @@ import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.authentication.UserOperation;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 /*******************************************************************************
@@ -40,13 +41,17 @@ public class ZookeeperUserOperation implements UserOperation {
 
     @Override
     public void createUser(UserModel user) {
-        String userNode = basePath + SEPARATOR + user.getUserName();
-        String jsonStr = JSON.toJSONString(user);
-        if (!curatorClient.checkExists(userNode)) {
-            curatorClient.createPersistent(userNode, false, jsonStr.getBytes());
-        } else {
-            LOG.warn("the user:" + user.getUserName() + " is exist!");
-        }
+    	try {
+    		 String userNode = basePath + SEPARATOR + user.getUserName();
+    	        String jsonStr = JsonUtils.toJsonString(user);
+    	        if (!curatorClient.checkExists(userNode)) {
+    	            curatorClient.createPersistent(userNode, false, jsonStr.getBytes());
+    	        } else {
+    	            LOG.warn("the user:" + user.getUserName() + " is exist!");
+    	        }
+		} catch (Exception e) {
+			LOG.error("createUser", e);
+		}
     }
 
     @Override
@@ -61,9 +66,13 @@ public class ZookeeperUserOperation implements UserOperation {
 
     @Override
     public void updateUser(UserModel user) {
-        String userNode = basePath + SEPARATOR + user.getUserName();
-        String jsonStr = JSON.toJSONString(user);
-        curatorClient.setData(userNode, jsonStr.getBytes());
+    	try {
+    		String userNode = basePath + SEPARATOR + user.getUserName();
+            String jsonStr = JsonUtils.toJsonString(user);
+            curatorClient.setData(userNode, jsonStr.getBytes());
+		} catch (Exception e) {
+			LOG.error("updateUser", e);
+		}
     }
 
     @Override
@@ -73,8 +82,13 @@ public class ZookeeperUserOperation implements UserOperation {
             return null;
         }
         String jsonStr = new String(curatorClient.getData(userNode));
-        UserModel user = JSON.parseObject(jsonStr, UserModel.class);
-        return user;
+		try {
+			return JsonUtils.toObject(jsonStr, UserModel.class);
+		} catch (JsonException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return null;
     }
 
     @Override

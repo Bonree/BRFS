@@ -8,11 +8,11 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.apache.curator.shaded.com.google.common.collect.Lists;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.client.route.RouteRoleCache;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
+import com.bonree.brfs.common.utils.JsonUtils;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -42,10 +42,10 @@ public class RouteCacheListener implements TreeCacheListener {
             String endStr = splitPaths.get(splitPaths.size() - 1);
             if (endStr.length()>16 && splitPaths.size() > 4) {
                 if (splitPaths.contains(Constants.VIRTUAL_ROUTE)) {
-                    VirtualRoute route = JSON.parseObject(event.getData().getData(), VirtualRoute.class);
+                    VirtualRoute route = JsonUtils.toObject(event.getData().getData(), VirtualRoute.class);
                     routeRoleCache.getVirtualRouteCache().put(route.getVirtualID(), route);
                 } else if (splitPaths.contains(Constants.NORMAL_ROUTE)) {
-                    NormalRoute route = JSON.parseObject(event.getData().getData(), NormalRoute.class);
+                    NormalRoute route = JsonUtils.toObject(event.getData().getData(), NormalRoute.class);
                     routeRoleCache.getNormalRouteCache().put(route.getSecondID(), route);
                 }
             }

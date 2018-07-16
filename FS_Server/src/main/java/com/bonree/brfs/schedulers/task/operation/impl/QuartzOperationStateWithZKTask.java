@@ -1,24 +1,14 @@
 package com.bonree.brfs.schedulers.task.operation.impl;
 
-import java.util.List;
-
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
-import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
-import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.operation.QuartzOperationStateInterface;
 
 public abstract class QuartzOperationStateWithZKTask implements QuartzOperationStateInterface {
@@ -57,19 +47,23 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 				return;
 			}
 			LOG.info("operation batch id {}",currentIndex);
-			// 更新任务状态
-			TaskResultModel resultTask = new TaskResultModel();
-			resultTask.setSuccess(isSuccess);
-			TaskStateLifeContral.updateMapTaskMessage(context, resultTask);
-			// 更新要操作的批次
-			if(currentIndex > 1){
-				data.put(JobDataMapConstract.CURRENT_INDEX, (currentIndex-1)+"" );
-			// 最后一次更新任务信息
-			}else if(currentIndex == 1){
-				String result = data.getString(JobDataMapConstract.TASK_RESULT);
-				stat = data.getInt(JobDataMapConstract.TASK_MAP_STAT);
-				TaskStateLifeContral.updateTaskStatusByCompelete(serverId, taskName, taskTypeName, result, stat);
-				data.put(JobDataMapConstract.CURRENT_INDEX, (currentIndex-1)+"" );
+			try {
+				// 更新任务状态
+				TaskResultModel resultTask = new TaskResultModel();
+				resultTask.setSuccess(isSuccess);
+				TaskStateLifeContral.updateMapTaskMessage(context, resultTask);
+				// 更新要操作的批次
+				if(currentIndex > 1){
+					data.put(JobDataMapConstract.CURRENT_INDEX, (currentIndex-1)+"" );
+				// 最后一次更新任务信息
+				}else if(currentIndex == 1){
+					String result = data.getString(JobDataMapConstract.TASK_RESULT);
+					stat = data.getInt(JobDataMapConstract.TASK_MAP_STAT);
+					TaskStateLifeContral.updateTaskStatusByCompelete(serverId, taskName, taskTypeName, result, stat);
+					data.put(JobDataMapConstract.CURRENT_INDEX, (currentIndex-1)+"" );
+				}
+			} catch (Exception e) {
+				LOG.error("execute error", e);
 			}
 		}
 		

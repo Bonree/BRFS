@@ -8,6 +8,7 @@ import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 /*******************************************************************************
@@ -29,7 +30,7 @@ public class RouteRoleCache {
 
     private Map<String, VirtualRoute> virtualRouteDetail;
 
-    public RouteRoleCache(CuratorClient curatorClient, int storageIndex, String baseRoutePath) {
+    public RouteRoleCache(CuratorClient curatorClient, int storageIndex, String baseRoutePath) throws JsonException {
         this.curatorClient = curatorClient;
         this.storageIndex = storageIndex;
         this.baseRoutePath = baseRoutePath;
@@ -38,7 +39,7 @@ public class RouteRoleCache {
         loadRouteRole();
     }
 
-    private void loadRouteRole() {
+    private void loadRouteRole() throws JsonException {
             // load virtual id
             String virtualPath = baseRoutePath + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE + Constants.SEPARATOR + storageIndex;
             List<String> virtualNodes = curatorClient.getChildren(virtualPath);

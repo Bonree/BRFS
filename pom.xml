@@ -61,7 +61,7 @@
 		<httpasyncclient_version>4.1.3</httpasyncclient_version>
 		<sigar_version>1.6.4</sigar_version>
 		<quartz_version>2.0.2</quartz_version>
-		<fastjson_version>1.2.3</fastjson_version>
+		<jackson_version>2.9.6</jackson_version>
 		<protobuf_version>2.4.0a</protobuf_version>
 		<protostuff_version>1.6.0</protostuff_version>
 		<commons_lang_version>3.4</commons_lang_version>
@@ -181,10 +181,10 @@
 				</exclusions>
 			</dependency>
 			<dependency>
-				<groupId>com.alibaba</groupId>
-				<artifactId>fastjson</artifactId>
-				<version>${fastjson_version}</version>
-			</dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson_version}</version>
+		</dependency>
 
 			<dependency>
 				<groupId>org.apache.commons</groupId>

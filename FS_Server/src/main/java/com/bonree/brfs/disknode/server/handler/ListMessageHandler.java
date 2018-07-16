@@ -8,13 +8,11 @@ import java.util.LinkedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
-import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 
@@ -58,8 +56,9 @@ public class ListMessageHandler implements MessageHandler {
 			
 			ArrayList<FileInfo> fileInfoList = new ArrayList<FileInfo>();
 			traverse(level, fileInfoList);
+			
 			result.setSuccess(true);
-			result.setData(BrStringUtils.toUtf8Bytes(toJson(fileInfoList)));
+			result.setData(JsonUtils.toJsonBytes(fileInfoList));
 		} catch (Exception e) {
 			LOG.error("list dir[{}] error", dirPath, e);
 			result.setSuccess(false);
@@ -89,19 +88,6 @@ public class ListMessageHandler implements MessageHandler {
 			fileInfo.setPath(context.getLogicFilePath(fileInfo.getPath()));
 			fileInfoList.add(fileInfo);
 		}
-	}
-	
-	private String toJson(ArrayList<FileInfo> fileInfoList) {
-		JSONArray array = new JSONArray();
-		for(FileInfo file : fileInfoList) {
-			JSONObject object = new JSONObject();
-			object.put("type", file.getType());
-			object.put("level", file.getLevel());
-			object.put("path", file.getPath());
-			array.add(object);
-		}
-		
-		return array.toJSONString();
 	}
 	
 	@Override

@@ -197,12 +197,12 @@ public class CopyCountCheck {
 		if(client == null || BrStringUtils.isEmpty(path)) {
 			return null;
 		}
-		List<FileInfo> files =client.listFiles(path, 1);
-		if(files == null || files.isEmpty()) {
+		FileInfo[] files =client.listFiles(path, 1);
+		if(files == null || files.length == 0) {
 			LOG.debug("<getFileList> file size :{}",0);
 			return null;
 		}
-		LOG.debug("<getFileList> file size :{}",files.size());
+		LOG.debug("<getFileList> file size :{}",files.length);
 		List<String> fileNames = converToStringList(files, path);
 		return fileNames;
 	}
@@ -212,7 +212,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> converToStringList(List<FileInfo> files,String dir){
+	public static List<String> converToStringList(FileInfo[] files,String dir){
 		List<String> strs = new ArrayList<>();
 		String path = null;
 		String fileName = null;

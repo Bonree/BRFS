@@ -2,6 +2,7 @@ package com.bonree.brfs.duplication.storageregion;
 
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.StorageConfigs;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 
 
@@ -12,15 +13,23 @@ public class StorageRegion {
 	public static final String DEFAULT_FILE_PATITION_DURATION = Configs.getConfiguration().GetConfig(StorageConfigs.CONFIG_FILE_PATITION_DURATION);
 	
 	//Storage Region的自身属性
+	@JsonProperty("name")
 	private String name;
+	@JsonProperty("id")
 	private int id;
+	@JsonProperty("create_time")
 	private long createTime;
+	@JsonProperty("enable")
 	private boolean enable;
 	
 	//Storage Region存储的数据相关属性
+	@JsonProperty("replicate_num")
 	private int replicateNum;
+	@JsonProperty("data_ttl")
 	private String dataTtl;
+	@JsonProperty("file_capacity")
 	private long fileCapacity;
+	@JsonProperty("patition_duration")
 	private String filePartitionDuration;
 	
 	private StorageRegion() {
