@@ -5,7 +5,7 @@ import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplier;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
 import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 
 public class DefaultDataEngineFactory implements DataEngineFactory {
 	
@@ -22,7 +22,7 @@ public class DefaultDataEngineFactory implements DataEngineFactory {
 	}
 
 	@Override
-	public DataEngine createDataEngine(StorageNameNode storageRegion) {
+	public DataEngine createDataEngine(StorageRegion storageRegion) {
 		DataPool dataPool = dataPoolFactory.createDataPool();
 		FileObjectSupplier provider = fileSupplierFactory.create(storageRegion);
 		return new DefaultDataEngine(storageRegion, dataPool, provider, diskWriter);

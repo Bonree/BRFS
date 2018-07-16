@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.jobs.system.CopyCountCheck;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -47,7 +47,7 @@ public class WatchDog{
 	 * @param granule
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void searchPreys(ServerIDManager sim, Collection<StorageNameNode> sns,String zkHosts,String baseRoutesPath, String dataPath, long limitTime, long granule) {
+	public static void searchPreys(ServerIDManager sim, Collection<StorageRegion> sns,String zkHosts,String baseRoutesPath, String dataPath, long limitTime, long granule) {
 		if(sns == null || sns.isEmpty() || BrStringUtils.isEmpty(dataPath)) {
 			LOG.info("<searchPreys> SKip search data because is empty");
 			return;
@@ -63,7 +63,7 @@ public class WatchDog{
 		int snId = -1;
 		SecondIDParser parser = null;
 		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts);
-		for(StorageNameNode sn : sns) {
+		for(StorageRegion sn : sns) {
 			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
 				LOG.info("<searchPreys> SKip search data because there is one");
 				return;
@@ -72,7 +72,7 @@ public class WatchDog{
 			LOG.info(" watch dog eat {} :{}", sn.getName(),sn.getId());
 			parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
 			// 单个副本的不做检查
-			if(sn.getReplicateCount()<=1) {
+			if(sn.getReplicateNum()<=1) {
 				continue;
 			}
 			// 收集sn文件信息
@@ -137,13 +137,13 @@ public class WatchDog{
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private static Map<String,List<String>> collectFood(String datapath,StorageNameNode sn,long limitTime, long granule){
+	private static Map<String,List<String>> collectFood(String datapath,StorageRegion sn,long limitTime, long granule){
 		Map<String,List<String>> foods = new ConcurrentHashMap<String,List<String>>();
 		if(sn == null || BrStringUtils.isEmpty(datapath)) {
 			LOG.info("<collectFood> sn or dataPath is empty !!! ");
 			return foods;
 		}
-		int copyCount = sn.getReplicateCount();
+		int copyCount = sn.getReplicateNum();
 		String snName = sn.getName();
 		String dirPath = null;
 		Map<String,List<String>> part = null;

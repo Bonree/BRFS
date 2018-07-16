@@ -1,5 +1,6 @@
 package com.bonree.brfs.schedulers.jobs.system;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +15,7 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -42,7 +43,7 @@ public class CreateSystemTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Pair<TaskModel,TaskTypeModel> createSystemTask(TaskTypeModel tmodel, final TaskType taskType, final List<StorageNameNode> snList, final long granule,final long globalttl){
+	public static Pair<TaskModel,TaskTypeModel> createSystemTask(TaskTypeModel tmodel, final TaskType taskType, final List<StorageRegion> snList, final long granule,final long globalttl){
 		if(snList == null || snList.isEmpty()) {
 			return null;
 		}
@@ -94,7 +95,7 @@ public class CreateSystemTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Pair<TaskModel,Map<String,Long>> creatTaskWithFiles(final Map<String,Long> snTimes, final Map<String,List<String>> snFiles,List<StorageNameNode> needSn, TaskType taskType, String taskOperation, long granule, long globalTTL) {
+	public static Pair<TaskModel,Map<String,Long>> creatTaskWithFiles(final Map<String,Long> snTimes, final Map<String,List<String>> snFiles,List<StorageRegion> needSn, TaskType taskType, String taskOperation, long granule, long globalTTL) {
 		if(needSn == null || snTimes == null) {
 			return null;
 		}
@@ -114,7 +115,7 @@ public class CreateSystemTask {
 		List<String> files = null;
 		AtomTaskModel atom = null;
 		String dir = null;
-		for(StorageNameNode sn : needSn) {
+		for(StorageRegion sn : needSn) {
 			snName = sn.getName();
 			cTime = sn.getCreateTime();
 			// 获取开始时间
@@ -168,7 +169,7 @@ public class CreateSystemTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Pair<TaskModel,Map<String,Long>> creatSingleTask(final Map<String,Long> snTimes, List<StorageNameNode> needSn, TaskType taskType, long granule, long globalTTL) {
+	public static Pair<TaskModel,Map<String,Long>> creatSingleTask(final Map<String,Long> snTimes, List<StorageRegion> needSn, TaskType taskType, long granule, long globalTTL) {
 		String snName = null;
 		long cTime = 0;
 		long startTime = 0;
@@ -180,7 +181,7 @@ public class CreateSystemTask {
 		List<AtomTaskModel> sumAtoms = new ArrayList<AtomTaskModel>();
 		long ttl = 0;
 		Map<String,Long> lastSnTimes = new HashMap<String,Long>(snTimes);
-		for(StorageNameNode sn : needSn) {
+		for(StorageRegion sn : needSn) {
 			snName = sn.getName();
 			cTime = sn.getCreateTime();
 			// 获取开始时间
@@ -205,7 +206,7 @@ public class CreateSystemTask {
 			if(cGraTime == startTime) {
 				continue;
 			}
-			copyCount = sn.getReplicateCount();
+			copyCount = sn.getReplicateNum();
 			atoms =  AtomTaskModel.createInstance(snName, copyCount, startTime, endTime, "");
 			if(atoms == null || atoms.isEmpty()) {
 				continue;
@@ -229,7 +230,7 @@ public class CreateSystemTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static long getTTL(StorageNameNode sn,TaskType taskType, long ttl) {
+	public static long getTTL(StorageRegion sn,TaskType taskType, long ttl) {
 		if(sn == null) {
 			return ttl;
 		}
@@ -237,7 +238,7 @@ public class CreateSystemTask {
 			return ttl;
 		}
 		if(TaskType.SYSTEM_DELETE.equals(taskType)) {
-			return sn.getTtl()*1000;
+			return Duration.parse(sn.getDataTtl()).toMillis();
 		}
 		return ttl;
 	}
@@ -283,17 +284,17 @@ public class CreateSystemTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<StorageNameNode> fileterNeverTTL(final List<StorageNameNode> snList){
+	public static List<StorageRegion> fileterNeverTTL(final List<StorageRegion> snList){
 		if(snList == null || snList.isEmpty()) {
 			return null;
 		}
-		List<StorageNameNode> filters = new ArrayList<>();
+		List<StorageRegion> filters = new ArrayList<>();
 		long ttl = 0;
 		long cTime = 0;
 		long currentTime = System.currentTimeMillis();
-		for(StorageNameNode sn : snList) {
+		for(StorageRegion sn : snList) {
 			//TODO 测试阶段单位为s，正式阶段单位为d
-			ttl = sn.getTtl()*1000;
+			ttl = Duration.parse(sn.getDataTtl()).toMillis();
 			cTime = sn.getCreateTime();
 			// 过滤永久保存的sn
 			if(ttl <0) {

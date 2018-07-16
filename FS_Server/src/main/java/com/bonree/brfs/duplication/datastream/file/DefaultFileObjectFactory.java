@@ -12,7 +12,7 @@ import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.FilePathBuilder;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class DefaultFileObjectFactory implements FileObjectFactory {
@@ -37,8 +37,8 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 	}
 
 	@Override
-	public FileObject createFile(StorageNameNode storageRegion) {
-		DuplicateNode[] nodes = duplicationNodeSelector.getDuplicationNodes(storageRegion.getId(), storageRegion.getReplicateCount());
+	public FileObject createFile(StorageRegion storageRegion) {
+		DuplicateNode[] nodes = duplicationNodeSelector.getDuplicationNodes(storageRegion.getId(), storageRegion.getReplicateNum());
 		if(nodes.length == 0) {
 			LOG.error("No available duplication node to build FileNode");
 			//没有磁盘节点可用
@@ -52,7 +52,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 		fileNode.setServiceGroup(service.getServiceGroup());
 		fileNode.setName(FileNameBuilder.createFile(idManager, storageRegion, nodes));
 		fileNode.setDuplicateNodes(nodes);
-		fileNode.setTimeDuration(storageRegion.getPartitionDuration());
+		fileNode.setTimeDuration(storageRegion.getFilePartitionDuration());
 		
 		long capacity = -1;
 		for(DuplicateNode node : nodes) {

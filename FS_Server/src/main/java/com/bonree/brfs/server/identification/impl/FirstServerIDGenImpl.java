@@ -2,6 +2,8 @@ package com.bonree.brfs.server.identification.impl;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
 import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
@@ -17,6 +19,8 @@ import com.bonree.brfs.server.identification.LevelServerIDGen;
  * 为了安全性，此处的方法，不需要太高的效率，故使用synchronized字段,该实例为单例模式
  ******************************************************************************/
 public class FirstServerIDGenImpl implements LevelServerIDGen {
+	private static final Logger LOG = LoggerFactory.getLogger(FirstServerIDGenImpl.class);
+	
     private final static String FIRST_ID_INDEX_NODE = "firstIdIndex";
     public final static int FIRST_ID_PREFIX = 1;
 
@@ -28,15 +32,18 @@ public class FirstServerIDGenImpl implements LevelServerIDGen {
 
     @Override
     public String genLevelID() {
-    	int uniqueId = firstServerIDCreator.nextSequenceNumber();
-    	if(uniqueId < 0) {
-    		return null;
-    	}
-    	
-    	StringBuilder idBuilder = new StringBuilder();
-    	idBuilder.append(FIRST_ID_PREFIX).append(uniqueId);
-    	
-    	return idBuilder.toString();
+		try {
+			int uniqueId = firstServerIDCreator.nextSequenceNumber();
+			
+			StringBuilder idBuilder = new StringBuilder();
+	    	idBuilder.append(FIRST_ID_PREFIX).append(uniqueId);
+	    	
+	    	return idBuilder.toString();
+		} catch (Exception e) {
+			LOG.info("create first id error", e);
+		}
+		
+		return null;
     }
 
 }

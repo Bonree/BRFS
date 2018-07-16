@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.utils;
+package com.bonree.brfs.common.serialize;
 
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtostuffIOUtil;
@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 
 /**
  * ProtoStuff方式的对象序列化类
@@ -48,6 +49,13 @@ public final class ProtoStuffUtils {
 		ProtostuffIOUtil.writeDelimitedTo(output, obj, schema, LinkedBuffer.allocate(256));
 	}
 	
+	@SuppressWarnings("unchecked")
+	private static <T> T newInstance(Class<T> cls) throws Exception {
+		Constructor<?> constructor = cls.getDeclaredConstructor();
+		constructor.setAccessible(true);
+		return (T) constructor.newInstance();
+	}
+	
 	/**
 	 * 通过字节数组解析对象
 	 * 
@@ -58,7 +66,7 @@ public final class ProtoStuffUtils {
 	public static <T> T deserialize(byte[] bytes, Class<T> cls) {
 		T obj = null;
 		try {
-			obj = cls.newInstance();
+			obj = newInstance(cls);
 			@SuppressWarnings("unchecked")
 			Schema<T> schema = (Schema<T>) RuntimeSchema.getSchema(obj.getClass());
             ProtostuffIOUtil.mergeDelimitedFrom(new ByteArrayInputStream(bytes), obj, schema);
@@ -79,7 +87,7 @@ public final class ProtoStuffUtils {
 	public static <T> T readFrom(InputStream input, Class<T> cls) {
 		T obj = null;
 		try {
-			obj = cls.newInstance();
+			obj = newInstance(cls);
 			@SuppressWarnings("unchecked")
 			Schema<T> schema = (Schema<T>) RuntimeSchema.getSchema(obj.getClass());  
             ProtostuffIOUtil.mergeDelimitedFrom(input, obj, schema);

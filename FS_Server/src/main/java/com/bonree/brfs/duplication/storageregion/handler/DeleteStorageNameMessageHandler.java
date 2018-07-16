@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.storagename.handler;
+package com.bonree.brfs.duplication.storageregion.handler;
 
 import java.util.List;
 
@@ -14,23 +14,23 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
-import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
-import com.bonree.brfs.duplication.storagename.exception.StorageNameRemoveException;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.duplication.storageregion.exception.StorageNameNonexistentException;
+import com.bonree.brfs.duplication.storageregion.exception.StorageNameRemoveException;
 import com.bonree.brfs.schedulers.task.TasksUtils;
 
 public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(DeleteStorageNameMessageHandler.class);
 
-    private StorageNameManager storageNameManager;
+    private StorageRegionManager storageNameManager;
 
     private ServiceManager serviceManager;
 
     private ZookeeperPaths zkPaths;
 
-    public DeleteStorageNameMessageHandler(ZookeeperPaths zkPaths, StorageNameManager storageNameManager, ServiceManager serviceManager) {
+    public DeleteStorageNameMessageHandler(ZookeeperPaths zkPaths, StorageRegionManager storageNameManager, ServiceManager serviceManager) {
         this.zkPaths = zkPaths;
         this.storageNameManager = storageNameManager;
         this.serviceManager = serviceManager;
@@ -42,7 +42,7 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
         HandleResult result = new HandleResult();
         try {
 			List<Service> services = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
-			StorageNameNode sn = storageNameManager.findStorageName(msg.getName());
+			StorageRegion sn = storageNameManager.findStorageRegionByName(msg.getName());
 			if(sn.isEnable()){
 				result.setSuccess(false);
 				result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()));
@@ -54,7 +54,7 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
 				result.setSuccess(false);
 				result.setData(BrStringUtils.toUtf8Bytes(code.name()));
 			} else {
-				deleted = storageNameManager.removeStorageName(msg.getName());
+				deleted = storageNameManager.removeStorageRegion(msg.getName());
 				result.setSuccess(deleted);
 				if (deleted) {
 					LOG.info("clean all data for " + msg.getName());

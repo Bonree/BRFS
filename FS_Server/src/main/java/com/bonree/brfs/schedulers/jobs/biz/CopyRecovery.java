@@ -20,8 +20,8 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
@@ -60,11 +60,11 @@ public class CopyRecovery {
 		ServerIDManager sim = mcf.getSim();
 		ServiceManager sm = mcf.getSm();
 		Service localServer = sm.getServiceById(mcf.getGroupName(), mcf.getServerId());
-		StorageNameManager snm = mcf.getSnm();
+		StorageRegionManager snm = mcf.getSnm();
 		
 		DiskNodeClient client = new LocalDiskNodeClient();
 		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts);
-		StorageNameNode sn = null;
+		StorageRegion sn = null;
 		SecondIDParser parser = null;
 		String snName = null;
 		int snId = 0;
@@ -77,7 +77,7 @@ public class CopyRecovery {
 			atomR.setDir(atom.getDirName());
 			atomR.setSn(atom.getStorageName());
 			snName = atom.getStorageName();
-			sn = snm.findStorageName(snName);
+			sn = snm.findStorageRegionByName(snName);
 			if (sn == null) {
 				atomR.setSuccess(false);
 				result.setSuccess(false);
@@ -132,7 +132,7 @@ public class CopyRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> recoveryFiles(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageNameNode snNode,AtomTaskModel atom, String dataPath) {
+	public static List<String> recoveryFiles(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageRegion snNode,AtomTaskModel atom, String dataPath) {
 
 		String snName = atom.getStorageName();
 		String dirName = atom.getDirName();
@@ -173,7 +173,7 @@ public class CopyRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageNameNode snNode, String fileName,String dirName, String dataPath,String operation){
+	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageRegion snNode, String fileName,String dirName, String dataPath,String operation){
 		String[] sss = null;
 		String remoteName = null;
 		Service remoteService = null;

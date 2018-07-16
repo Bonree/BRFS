@@ -19,8 +19,8 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.StorageNameFileUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
@@ -67,8 +67,8 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			return;
 		}
 		// 3.获取storageName
-		StorageNameManager snm = mcf.getSnm();
-		List<StorageNameNode> snList = snm.getStorageNameNodeList();
+		StorageRegionManager snm = mcf.getSnm();
+		List<StorageRegion> snList = snm.getStorageRegionList();
 		if(snList == null || snList.isEmpty()) {
 			LOG.info("SKIP create system task !!! because storageName is null !!!");
 			return;

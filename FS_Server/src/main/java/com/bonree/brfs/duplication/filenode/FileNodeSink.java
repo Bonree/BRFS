@@ -1,6 +1,6 @@
 package com.bonree.brfs.duplication.filenode;
 
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 
 /**
  * 接受转移文件的节点槽
@@ -15,7 +15,7 @@ public interface FileNodeSink {
 	 * 
 	 * @return
 	 */
-	StorageNameNode getStorageRegion();
+	StorageRegion getStorageRegion();
 	
 	/**
 	 * 当有文件节点放入槽中时，此方法会被调用

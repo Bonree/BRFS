@@ -20,10 +20,10 @@ import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.boot.EmptyMain;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
-import com.bonree.brfs.duplication.storagename.StorageNameStateListener;
-import com.bonree.brfs.duplication.storagename.impl.DefaultStorageNameManager;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
+import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.schedulers.InitTaskManager;
@@ -56,20 +56,20 @@ public class ServerMain {
             ServerIDManager idManager = new ServerIDManager(client.getInnerClient(), zookeeperPaths);
             idManager.getFirstServerID();
 
-            StorageNameManager snManager = new DefaultStorageNameManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);
-            snManager.addStorageNameStateListener(new StorageNameStateListener() {
+            StorageRegionManager snManager = new DefaultStorageRegionManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);
+            snManager.addStorageRegionStateListener(new StorageRegionStateListener() {
                 @Override
-                public void storageNameAdded(StorageNameNode node) {
+                public void storageRegionAdded(StorageRegion node) {
                     LOG.info("-----------StorageNameAdded--[{}]", node);
                     idManager.getSecondServerID(node.getId());
                 }
 
                 @Override
-                public void storageNameUpdated(StorageNameNode node) {
+                public void storageRegionUpdated(StorageRegion node) {
                 }
 
                 @Override
-                public void storageNameRemoved(StorageNameNode node) {
+                public void storageRegionRemoved(StorageRegion node) {
                     LOG.info("-----------StorageNameRemove--[{}]", node);
                     idManager.deleteSecondServerID(node.getId());
                 }

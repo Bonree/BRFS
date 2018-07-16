@@ -3,7 +3,7 @@ package com.bonree.brfs.duplication.datastream.file;
 import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizer;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 
 public class DefaultFileObjectSupplierFactory implements FileObjectSupplierFactory {
 	private FileObjectFactory fileFactory;
@@ -25,7 +25,7 @@ public class DefaultFileObjectSupplierFactory implements FileObjectSupplierFacto
 	}
 
 	@Override
-	public FileObjectSupplier create(StorageNameNode storageRegion) {
+	public FileObjectSupplier create(StorageRegion storageRegion) {
 		return new DefaultFileObjectSupplier(storageRegion, fileFactory, fileCloser, fileSynchronizer, fileNodeSinkManager, timeEventEmitter);
 	}
 

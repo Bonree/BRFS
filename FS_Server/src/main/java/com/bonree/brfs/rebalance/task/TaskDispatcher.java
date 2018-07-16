@@ -50,8 +50,8 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
@@ -85,7 +85,7 @@ public class TaskDispatcher implements Closeable {
 
     private ServerIDManager idManager;
 
-    private StorageNameManager snManager;
+    private StorageRegionManager snManager;
 
     private TaskMonitor monitor = new TaskMonitor();;
 
@@ -232,7 +232,7 @@ public class TaskDispatcher implements Closeable {
                         if (isLoad.get()) {
                             for (Entry<Integer, List<ChangeSummary>> entry : cacheSummaryCache.entrySet()) {
                                 LOG.info("auditTask auditTask auditTask auditTask");
-                                StorageNameNode sn = snManager.findStorageName(entry.getKey());
+                                StorageRegion sn = snManager.findStorageRegionById(entry.getKey());
                                 // 因为sn可能会被删除
                                 if (sn != null) {
                                     syncAuditTask(entry.getKey(), entry.getValue());
@@ -249,7 +249,7 @@ public class TaskDispatcher implements Closeable {
 
     }
 
-    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager, StorageNameManager snManager, int virtualDelay, int normalDelay) {
+    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager, StorageRegionManager snManager, int virtualDelay, int normalDelay) {
         this.baseRebalancePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
         this.virtualRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE;
         this.normalRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.NORMAL_ROUTE;
@@ -650,7 +650,7 @@ public class TaskDispatcher implements Closeable {
 
     private boolean isCanRecover(ChangeSummary cs, List<String> joinerFirstIDs, List<String> aliveFirstIDs) {
         boolean canRecover = true;
-        int replicas = snManager.findStorageName(cs.getStorageIndex()).getReplicateCount();
+        int replicas = snManager.findStorageRegionById(cs.getStorageIndex()).getReplicateNum();
 
         // 检查参与者是否都存活
         for (String joiner : joinerFirstIDs) {

@@ -21,6 +21,10 @@ public final class Attributes {
 		this(other.attributes);
 	}
 	
+	public boolean isEmpty() {
+		return attributes.isEmpty();
+	}
+	
 	public Set<String> getAttributeNames() {
 		return attributes.keySet();
 	}

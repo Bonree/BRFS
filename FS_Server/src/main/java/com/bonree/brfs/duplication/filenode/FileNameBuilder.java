@@ -6,13 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class FileNameBuilder {
 	private static final Logger LOG = LoggerFactory.getLogger(FileNameBuilder.class);
 	
-	public static String createFile(ServerIDManager idManager, StorageNameNode storageRegion, DuplicateNode[] duplicateNodes) {
+	public static String createFile(ServerIDManager idManager, StorageRegion storageRegion, DuplicateNode[] duplicateNodes) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(UUID.randomUUID().toString().replaceAll("-", ""));
 		
@@ -20,7 +20,7 @@ public class FileNameBuilder {
 			builder.append('_').append(idManager.getOtherSecondID(node.getId(), storageRegion.getId()));
 		}
 		
-		int virtualIdCount = storageRegion.getReplicateCount() - duplicateNodes.length;
+		int virtualIdCount = storageRegion.getReplicateNum() - duplicateNodes.length;
 		if(virtualIdCount > 0) {
 			for(String virtualId : idManager.getVirtualServerID(storageRegion.getId(), virtualIdCount)) {
 				LOG.info("get virtual id---{}", virtualId);

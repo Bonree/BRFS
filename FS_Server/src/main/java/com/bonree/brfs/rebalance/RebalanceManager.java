@@ -15,7 +15,7 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.configuration.units.RebalanceConfigs;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.task.TaskDispatcher;
 import com.bonree.brfs.rebalance.task.TaskOperation;
 import com.bonree.brfs.rebalance.transfer.SimpleFileServer;
@@ -30,7 +30,7 @@ public class RebalanceManager implements Closeable {
     ExecutorService simpleFileServer = Executors.newSingleThreadExecutor();
     private CuratorClient curatorClient = null;
 
-    public RebalanceManager(ZookeeperPaths zkPaths, ServerIDManager idManager, StorageNameManager snManager, ServiceManager serviceManager) {
+    public RebalanceManager(ZookeeperPaths zkPaths, ServerIDManager idManager, StorageRegionManager snManager, ServiceManager serviceManager) {
     	String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         curatorClient = CuratorClient.getClientInstance(zkAddresses, 500, 500);
         dispatch = new TaskDispatcher(curatorClient, zkPaths.getBaseRebalancePath(),

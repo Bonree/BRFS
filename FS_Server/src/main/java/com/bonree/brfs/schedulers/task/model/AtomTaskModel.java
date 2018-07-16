@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

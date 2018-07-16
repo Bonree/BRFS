@@ -26,9 +26,9 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
-import com.bonree.brfs.duplication.storagename.impl.DefaultStorageNameManager;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
@@ -206,12 +206,12 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 
 		// 1-1初始化storagename管理器
 		// TODO:俞朋 的 获取storageName
-		StorageNameManager snManager = mcf.getSnm();
+		StorageRegionManager snManager = mcf.getSnm();
 		// 1-2.初始化service管理器
 		ServiceManager sManager = mcf.getSm();
 
 		// 2.获取storage信息
-		List<StorageNameNode> storageNames = snManager.getStorageNameNodeList();
+		List<StorageRegion> storageNames = snManager.getStorageRegionList();
 		List<String> storagenameList = getStorageNames(storageNames);
 		// 3.计算状态值
 		sum = GatherResource.calcStatServerModel(lists, storagenameList, inverTime, dataDir);
@@ -246,14 +246,14 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private List<String> getStorageNames(List<StorageNameNode> storageNames) {
+	private List<String> getStorageNames(List<StorageRegion> storageNames) {
 		List<String> snList = new ArrayList<String>();
 
 		if (storageNames == null || storageNames.isEmpty()) {
 			return snList;
 		}
 		String tmp = null;
-		for (StorageNameNode sn : storageNames) {
+		for (StorageRegion sn : storageNames) {
 			if (sn == null) {
 				continue;
 			}
@@ -341,15 +341,15 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	 */
 	private Map<Integer,String> getStorageNameIdWithName(){
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		StorageNameManager snm = mcf.getSnm();
-		List<StorageNameNode> sns = snm.getStorageNameNodeList();
+		StorageRegionManager snm = mcf.getSnm();
+		List<StorageRegion> sns = snm.getStorageRegionList();
 		Map<Integer,String> snToId = new ConcurrentHashMap<Integer,String>();
 		if(sns == null || sns.isEmpty()){
 			return snToId;
 		}
 		int id = -1;
 		String name = null;
-		for (StorageNameNode sn : sns) {
+		for (StorageRegion sn : sns) {
 			if (sn == null) {
 				continue;
 			}

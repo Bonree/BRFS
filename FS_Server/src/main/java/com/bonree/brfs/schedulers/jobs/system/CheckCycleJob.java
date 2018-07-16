@@ -7,14 +7,15 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
-		StorageNameManager snm = mcf.getSnm();
+		StorageRegionManager snm = mcf.getSnm();
 		ServiceManager sm = mcf.getSm();
 
 		if (WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
@@ -57,7 +58,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			LOG.info("SKIP create {} task, because service is empty", TaskType.SYSTEM_COPY_CHECK);
 			return;
 		}
-		List snList = snm.getStorageNameNodeList();
+		List snList = snm.getStorageRegionList();
 		if ((snList == null) || (snList.isEmpty())) {
 			LOG.warn("SKIP storagename list is null");
 			return;
@@ -66,7 +67,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		long currentTime = System.currentTimeMillis();
 		long lGraDay = currentTime - currentTime % 86400000L;
 		long sGraDay = lGraDay - day * 86400000L;
-		List<StorageNameNode> needSns = CopyCountCheck.filterSn(snList, services.size());
+		List<StorageRegion> needSns = CopyCountCheck.filterSn(snList, services.size());
 		if(needSns == null|| needSns.isEmpty()) {
 			LOG.warn("no storagename need check copy count ! ");
 			return ;
@@ -92,14 +93,14 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public Map<String, Long> fixTimes(List<StorageNameNode> snList, long startTime,long granule) {
+	public Map<String, Long> fixTimes(List<StorageRegion> snList, long startTime,long granule) {
 		if ((snList == null) || (startTime <= 0L)) {
 			return null;
 		}
 		Map<String,Long> fixMap = new HashMap<String,Long>();
 		long crGra = 0L;
 		String snName = null;
-		for (StorageNameNode sn : snList) {
+		for (StorageRegion sn : snList) {
 			crGra = sn.getCreateTime() - sn.getCreateTime()%granule;
 			snName = sn.getName();
 			LOG.info("<fixTimes> sn {}, cTime:{}, time:{}", snName,crGra,startTime);
@@ -119,7 +120,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 	 * @param granule
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void createSingleTask(MetaTaskManagerInterface release, List<StorageNameNode> needSns, List<Service> services, TaskType taskType, Map<String, Long> sourceTimes, long granule) {
+	public void createSingleTask(MetaTaskManagerInterface release, List<StorageRegion> needSns, List<Service> services, TaskType taskType, Map<String, Long> sourceTimes, long granule) {
 		Map losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, granule);
 		Pair pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, taskType, CopyCheckJob.RECOVERY_NUM, granule, 0L);
 		if (pair == null) {

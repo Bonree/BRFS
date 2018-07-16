@@ -22,18 +22,21 @@ public class ZkSequenceNumberBuilder implements SequenceNumberBuilder {
 	}
 
 	@Override
-	public int nextSequenceNumber() {
+	public int nextSequenceNumber() throws Exception {
 		String numberPath = null;
 		try {
 			numberPath = client.create().creatingParentsIfNeeded()
 					.withMode(CreateMode.PERSISTENT_SEQUENTIAL)
 					.forPath(ZKPaths.makePath(numberContainerPath, NUMBER_PREFIX));
 			
-			if(numberPath != null) {
-				return Integer.parseInt(Splitter.on("_").splitToList(ZKPaths.getNodeFromPath(numberPath)).get(1));
+			if(numberPath == null) {
+				throw new RuntimeException("can not create id node on zookeeper!");
 			}
+			
+			return Integer.parseInt(Splitter.on("_").splitToList(ZKPaths.getNodeFromPath(numberPath)).get(1));
 		} catch (Exception e) {
 			LOG.error("get sequence number error!", e);
+			throw e;
 		} finally {
 			if(numberPath != null) {
 				try {
@@ -43,8 +46,6 @@ public class ZkSequenceNumberBuilder implements SequenceNumberBuilder {
 				}
 			}
 		}
-		
-		return -1;
 	}
 
 }

@@ -12,8 +12,8 @@ import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
-import com.bonree.brfs.common.utils.ProtoStuffUtils;
 
 public class RecordElementReader implements Iterable<RecordElement>, Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(RecordElementReader.class);

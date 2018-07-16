@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.storagename.handler;
+package com.bonree.brfs.duplication.storageregion.handler;
 
 import java.util.Set;
 
@@ -11,16 +11,16 @@ import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.utils.Attributes;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
-import com.bonree.brfs.duplication.storagename.exception.StorageNameExistException;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.duplication.storageregion.exception.StorageNameExistException;
 
 public class CreateStorageNameMessageHandler extends StorageNameMessageHandler {
     private static final Logger LOG = LoggerFactory.getLogger(CreateStorageNameMessageHandler.class);
 
-    private StorageNameManager storageNameManager;
+    private StorageRegionManager storageNameManager;
 
-    public CreateStorageNameMessageHandler(StorageNameManager storageNameManager) {
+    public CreateStorageNameMessageHandler(StorageRegionManager storageNameManager) {
         this.storageNameManager = storageNameManager;
     }
 
@@ -39,14 +39,14 @@ public class CreateStorageNameMessageHandler extends StorageNameMessageHandler {
         Attributes atts = msg.getAttributes();
         Set<String> attNames = atts.getAttributeNames();
         for (String name : attNames) {
-            if (StorageNameNode.ATTR_REPLICATION.equals(name)) {
+            if (StorageNameMessage.ATTR_REPLICATION.equals(name)) {
                 if (atts.getInt(name) <= 0 || atts.getInt(name) > 16) {
                     result.setSuccess(false);
                     result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REPLICATION_ERROR.name()));
                     callback.completed(result);
                     return;
                 }
-            } else if (StorageNameNode.ATTR_TTL.equals(name)) {
+            } else if (StorageNameMessage.ATTR_TTL.equals(name)) {
                 if (atts.getInt(name) == 0) {
                     result.setSuccess(false);
                     result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_TTL_ERROR.name()));
@@ -56,9 +56,9 @@ public class CreateStorageNameMessageHandler extends StorageNameMessageHandler {
             }
         }
 
-        StorageNameNode node = null;
+        StorageRegion node = null;
         try {
-            node = storageNameManager.createStorageName(msg.getName(), msg.getAttributes());
+            node = storageNameManager.createStorageRegion(msg.getName(), msg.getAttributes());
             LOG.info("created NODE[{}]", node);
 
             if (node == null) {

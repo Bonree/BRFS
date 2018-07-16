@@ -13,9 +13,9 @@ import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngine;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineManager;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
-import com.bonree.brfs.duplication.storagename.StorageNameStateListener;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -26,25 +26,25 @@ import com.google.common.cache.RemovalNotification;
 public class DefaultDataEngineManager implements DataEngineManager {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultDataEngineManager.class);
 	
-	private StorageNameManager storageNameManager;
+	private StorageRegionManager storageRegionManager;
 	private DataEngineFactory storageRegionFactory;
 	
 	private LoadingCache<Integer, Optional<DataEngine>> dataEngineContainer;
 	
-	public DefaultDataEngineManager(StorageNameManager storageNameManager, DataEngineFactory factory) {
-		this(storageNameManager, factory,
+	public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory) {
+		this(storageRegionManager, factory,
 				Duration.parse(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_DATA_ENGINE_IDLE_TIME)));
 	}
 	
-	public DefaultDataEngineManager(StorageNameManager storageNameManager, DataEngineFactory factory, Duration idleTime) {
-		this.storageNameManager = storageNameManager;
+	public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory, Duration idleTime) {
+		this.storageRegionManager = storageRegionManager;
 		this.storageRegionFactory = factory;
 		this.dataEngineContainer = CacheBuilder.newBuilder()
 				.expireAfterAccess(idleTime.toMillis(), TimeUnit.MILLISECONDS)
 				.removalListener(new StorageRegionRemovalListener())
 				.build(new DataEngineLoader());
 		
-		this.storageNameManager.addStorageNameStateListener(new StorageRegionStateHandler());
+		this.storageRegionManager.addStorageRegionStateListener(new StorageRegionStateHandler());
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class DefaultDataEngineManager implements DataEngineManager {
 
 		@Override
 		public Optional<DataEngine> load(Integer storageRegionId) throws Exception {
-			StorageNameNode storageRegion = storageNameManager.findStorageName(storageRegionId);
+			StorageRegion storageRegion = storageRegionManager.findStorageRegionById(storageRegionId);
 			if(storageRegion == null) {
 				return Optional.absent();
 			}
@@ -96,16 +96,16 @@ public class DefaultDataEngineManager implements DataEngineManager {
 		
 	}
 	
-	private class StorageRegionStateHandler implements StorageNameStateListener {
+	private class StorageRegionStateHandler implements StorageRegionStateListener {
 
 		@Override
-		public void storageNameAdded(StorageNameNode node) {}
+		public void storageRegionAdded(StorageRegion node) {}
 
 		@Override
-		public void storageNameUpdated(StorageNameNode node) {}
+		public void storageRegionUpdated(StorageRegion node) {}
 
 		@Override
-		public void storageNameRemoved(StorageNameNode node) {
+		public void storageRegionRemoved(StorageRegion node) {
 			LOG.info("Storage region[{},{}] is removed!", node.getName(), node.getId());
 			dataEngineContainer.invalidate(node.getId());
 		}

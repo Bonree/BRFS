@@ -21,9 +21,9 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
-import com.bonree.brfs.duplication.storagename.exception.StorageNameNonexistentException;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.duplication.storageregion.exception.StorageNameNonexistentException;
 import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.google.common.base.Splitter;
 
@@ -32,10 +32,10 @@ public class DeleteDataMessageHandler implements MessageHandler {
 	private static final int TIME_INTERVAL_LEVEL = 2;
 	
 	private ServiceManager serviceManager;
-	private StorageNameManager storageNameManager;
+	private StorageRegionManager storageNameManager;
 	private ZookeeperPaths zkPaths;
 	
-	public DeleteDataMessageHandler(ZookeeperPaths zkPaths,ServiceManager serviceManager, StorageNameManager storageNameManager) {
+	public DeleteDataMessageHandler(ZookeeperPaths zkPaths,ServiceManager serviceManager, StorageRegionManager storageNameManager) {
 		this.zkPaths = zkPaths;
 	    this.serviceManager = serviceManager;
 		this.storageNameManager = storageNameManager;
@@ -58,7 +58,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		LOG.info("DELETE data for storage[{}]", storageId);
 		
 //		String path = getPathByStorageNameId(storageId);
-		StorageNameNode sn = storageNameManager.findStorageName(storageId);
+		StorageRegion sn = storageNameManager.findStorageRegionById(storageId);
 		if(sn == null) {
 			result.setSuccess(false);
 			result.setCause(new StorageNameNonexistentException(storageId));
@@ -69,7 +69,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		
 		List<String> times = Splitter.on("_").omitEmptyStrings().trimResults().splitToList(deleteInfo.get(1));
 		
-		ReturnCode code = checkTime(times.get(0), times.get(1), sn.getCreateTime(), Duration.parse(sn.getPartitionDuration()).toMillis());
+		ReturnCode code = checkTime(times.get(0), times.get(1), sn.getCreateTime(), Duration.parse(sn.getFilePartitionDuration()).toMillis());
 		if(!ReturnCode.SUCCESS.equals(code)) {
 			result.setSuccess(false);
 			result.setData(BrStringUtils.toUtf8Bytes(code.name()));
@@ -129,7 +129,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 	}
 
 	private String getPathByStorageNameId(int storageId) {
-		StorageNameNode node = storageNameManager.findStorageName(storageId);
+		StorageRegion node = storageNameManager.findStorageRegionById(storageId);
 		if(node != null) {
 			return "/" + node.getName();
 		}

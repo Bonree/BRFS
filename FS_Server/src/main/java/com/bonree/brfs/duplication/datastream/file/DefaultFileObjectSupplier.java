@@ -26,7 +26,7 @@ import com.bonree.brfs.duplication.filenode.FileNode;
 import com.bonree.brfs.duplication.filenode.FileNodeSink;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager.StateListener;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 
 public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchangeListener, FileNodeSink {
 	private static Logger LOG = LoggerFactory.getLogger(DefaultFileObjectSupplier.class);
@@ -53,9 +53,9 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 	private TimeExchangeEventEmitter timeEventEmitter;
 	private Duration timeDuration;
 	
-	private final StorageNameNode storageRegion;
+	private final StorageRegion storageRegion;
 	
-	public DefaultFileObjectSupplier(StorageNameNode storageRegion,
+	public DefaultFileObjectSupplier(StorageRegion storageRegion,
 			FileObjectFactory factory,
 			FileObjectCloser closer,
 			FileObjectSynchronizer fileSynchronizer,
@@ -67,7 +67,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 				Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_FILE_CLEAN_USAGE_RATE));
 	}
 	
-	public DefaultFileObjectSupplier(StorageNameNode storageRegion,
+	public DefaultFileObjectSupplier(StorageRegion storageRegion,
 			FileObjectFactory factory,
 			FileObjectCloser closer,
 			FileObjectSynchronizer fileSynchronizer,
@@ -86,7 +86,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 		this.forceCleanLimit = forceCleanLimit;
 		this.cleanFileLengthRatio = cleanFileLengthRatio;
 		
-		updateTimeEventListener(Duration.parse(storageRegion.getPartitionDuration()));
+		updateTimeEventListener(Duration.parse(storageRegion.getFilePartitionDuration()));
 		this.fileNodeSinkManager.registerFileNodeSink(this);
 		this.fileNodeSinkManager.addStateListener(stateListener);
 	}
@@ -258,7 +258,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 				
 				clearList();
 				
-				Duration storageRegionDuration = Duration.parse(storageRegion.getPartitionDuration());
+				Duration storageRegionDuration = Duration.parse(storageRegion.getFilePartitionDuration());
 				if(!storageRegionDuration.equals(duration)
 						&& timeEventEmitter.removeListener(duration, DefaultFileObjectSupplier.this)) {
 					updateTimeEventListener(storageRegionDuration);
@@ -268,7 +268,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 	}
 	
 	@Override
-	public StorageNameNode getStorageRegion() {
+	public StorageRegion getStorageRegion() {
 		return storageRegion;
 	}
 

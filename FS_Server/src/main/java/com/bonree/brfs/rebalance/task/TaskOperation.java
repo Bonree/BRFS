@@ -16,8 +16,8 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.recover.MultiRecover;
@@ -42,7 +42,7 @@ public class TaskOperation implements Closeable {
     private CuratorTreeCache treeCache;
     private String tasksPath;
     private String dataDir;
-    private StorageNameManager snManager;
+    private StorageRegionManager snManager;
     private ServiceManager serviceManager;
     private String baseRoutesPath;
     private ExecutorService es = Executors.newFixedThreadPool(10, new ThreadFactory() {
@@ -52,7 +52,7 @@ public class TaskOperation implements Closeable {
         }
     });
 
-    public TaskOperation(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, ServerIDManager idManager, String dataDir, StorageNameManager snManager, ServiceManager serviceManager) {
+    public TaskOperation(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, ServerIDManager idManager, String dataDir, StorageRegionManager snManager, ServiceManager serviceManager) {
         this.client = client;
         this.idManager = idManager;
         this.tasksPath = baseBalancePath + Constants.SEPARATOR + Constants.TASKS_NODE;
@@ -74,20 +74,20 @@ public class TaskOperation implements Closeable {
         if (multiIds.contains(idManager.getSecondServerID(taskSummary.getStorageIndex()))) {
             // 注册自身的selfMultiId,并设置为created阶段
             if (taskSummary.getTaskType() == RecoverType.NORMAL) { // 正常迁移任务
-                StorageNameNode node = snManager.findStorageName(taskSummary.getStorageIndex());
+                StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
                 if (node == null) {
                     LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
                     return;
                 }
-                String storageName = snManager.findStorageName(taskSummary.getStorageIndex()).getName();
+                String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
                 recover = new MultiRecover(taskSummary, idManager, serviceManager, taskPath, client, dataDir, storageName, baseRoutesPath);
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
-                StorageNameNode node = snManager.findStorageName(taskSummary.getStorageIndex());
+                StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
                 if (node == null) {
                     LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
                     return;
                 }
-                String storageName = snManager.findStorageName(taskSummary.getStorageIndex()).getName();
+                String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
                 recover = new VirtualRecover(client, taskSummary, taskPath, dataDir, storageName, idManager, serviceManager);
             }
 

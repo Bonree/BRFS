@@ -6,7 +6,7 @@ import java.util.List;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
@@ -21,7 +21,7 @@ public class ManagerContralFactory {
 	/**
 	 * storageName管理服务
 	 */
-	private StorageNameManager snm;
+	private StorageRegionManager snm;
 	/**
 	 * 任务发布服务
 	 */
@@ -65,10 +65,10 @@ public class ManagerContralFactory {
 	public void setSm(ServiceManager sm) {
 		this.sm = sm;
 	}
-	public StorageNameManager getSnm() {
+	public StorageRegionManager getSnm() {
 		return snm;
 	}
-	public void setSnm(StorageNameManager snm) {
+	public void setSnm(StorageRegionManager snm) {
 		this.snm = snm;
 	}
 	public MetaTaskManagerInterface getTm() {

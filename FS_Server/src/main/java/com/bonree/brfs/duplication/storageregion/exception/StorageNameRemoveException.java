@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.storagename.exception;
+package com.bonree.brfs.duplication.storageregion.exception;
 
 public class StorageNameRemoveException extends Exception {
 

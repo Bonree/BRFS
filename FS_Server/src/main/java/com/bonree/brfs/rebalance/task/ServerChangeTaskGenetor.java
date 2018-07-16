@@ -20,8 +20,8 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DiskNodeConfigs;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*******************************************************************************
@@ -50,13 +50,13 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
     private CuratorClient client;
 
-    private StorageNameManager snManager;
+    private StorageRegionManager snManager;
 
     private CuratorClient leaderClient;
 
     private int delayDeal;
 
-    public ServerChangeTaskGenetor(final CuratorClient leaderClient, final CuratorClient client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath, final int delayDeal, StorageNameManager snManager) throws Exception {
+    public ServerChangeTaskGenetor(final CuratorClient leaderClient, final CuratorClient client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath, final int delayDeal, StorageRegionManager snManager) throws Exception {
         this.serverManager = serverManager;
         this.snManager = snManager;
         this.delayDeal = delayDeal;
@@ -84,9 +84,9 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
     private void genChangeSummary(Service service, ChangeType type) {
         String firstID = service.getServiceId();
-        List<StorageNameNode> snList = snManager.getStorageNameNodeList();
-        for (StorageNameNode snModel : snList) {
-            if (snModel.getReplicateCount() > 1) { // TODO 此处需要判断是否配置了sn恢复
+        List<StorageRegion> snList = snManager.getStorageRegionList();
+        for (StorageRegion snModel : snList) {
+            if (snModel.getReplicateNum() > 1) { // TODO 此处需要判断是否配置了sn恢复
                 List<String> currentServers = getCurrentServers(serverManager);
                 String secondID = idManager.getOtherSecondID(firstID, snModel.getId());
                 if (!StringUtils.isEmpty(secondID)) { // 如果没数据，该sn的secondID会为null

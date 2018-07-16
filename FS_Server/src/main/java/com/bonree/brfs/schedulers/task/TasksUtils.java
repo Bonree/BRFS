@@ -14,8 +14,8 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
@@ -42,7 +42,7 @@ public class TasksUtils {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	 public static ReturnCode createUserDeleteTask(List<Service> services, ZookeeperPaths zkPaths, StorageNameNode sn, long startTime, long endTime){
+	 public static ReturnCode createUserDeleteTask(List<Service> services, ZookeeperPaths zkPaths, StorageRegion sn, long startTime, long endTime){
 		 	if(services == null || services.isEmpty()){
 		 		return ReturnCode.DELETE_DATA_ERROR;
 		 	}
@@ -80,7 +80,7 @@ public class TasksUtils {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static TaskModel createUserDelete(final StorageNameNode sn,final TaskType taskType, final String opertationContent, final long startTime, final long endTime){
+	public static TaskModel createUserDelete(final StorageRegion sn,final TaskType taskType, final String opertationContent, final long startTime, final long endTime){
 		if(sn == null ||taskType == null){
 			return null;
 		}
@@ -92,7 +92,7 @@ public class TasksUtils {
 		AtomTaskModel atom = null;
 		String dirName = null;
 		String snName = sn.getName();
-		int count = sn.getReplicateCount();
+		int count = sn.getReplicateNum();
 		long startHour = 0;
 		long endHour =  endTime/1000/60/60*60*60*1000;
 		boolean isDeleteSN = false;
@@ -166,8 +166,8 @@ public class TasksUtils {
 	public static void createCopyTask(String taskName) {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
-		StorageNameManager snm = mcf.getSnm();
-		List<StorageNameNode> snList = snm.getStorageNameNodeList();
+		StorageRegionManager snm = mcf.getSnm();
+		List<StorageRegion> snList = snm.getStorageRegionList();
 		if(snList == null || snList.isEmpty()) {
 			return ;
 		}
@@ -197,16 +197,16 @@ public class TasksUtils {
 			release.updateServerTaskContentNode(sname, tName, TaskType.SYSTEM_COPY_CHECK.name(), TaskServerNodeModel.getInitInstance());
 		}
 	}
-	private static Map<String,Integer> getReplicationMap(List<StorageNameNode> snList){
+	private static Map<String,Integer> getReplicationMap(List<StorageRegion> snList){
 		if(snList == null || snList.isEmpty()) {
 			return null;
 		}
 		Map<String,Integer> map = new HashMap<String,Integer>();
 		String snName = null;
 		int replicationCount = 0;
-		for(StorageNameNode sn : snList) {
+		for(StorageRegion sn : snList) {
 			snName = sn.getName();
-			replicationCount = sn.getReplicateCount();
+			replicationCount = sn.getReplicateNum();
 			map.put(snName, replicationCount);
 		}
 		return map;

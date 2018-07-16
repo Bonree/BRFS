@@ -1,7 +1,7 @@
 package com.bonree.brfs.duplication.datastream.dataengine;
 
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 
 public interface DataEngineFactory {
-	DataEngine createDataEngine(StorageNameNode storageRegion);
+	DataEngine createDataEngine(StorageRegion storageRegion);
 }

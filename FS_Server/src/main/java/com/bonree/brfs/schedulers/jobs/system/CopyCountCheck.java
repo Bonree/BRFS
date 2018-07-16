@@ -18,7 +18,7 @@ import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -40,13 +40,13 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,List<String>> collectLossFile(List<StorageNameNode> storageNames, List<Service> services, Map<String,Long> snTimes, long granule){
-		Map<StorageNameNode, List<String>> snFiles = collectionSnFiles(services, storageNames,snTimes,granule);
+	public static Map<String,List<String>> collectLossFile(List<StorageRegion> storageNames, List<Service> services, Map<String,Long> snTimes, long granule){
+		Map<StorageRegion, List<String>> snFiles = collectionSnFiles(services, storageNames,snTimes,granule);
 		if(snFiles == null|| snFiles.isEmpty()) {
 			LOG.debug("<collectLossFile> collection files is empty");
 			return null;
 		}
-		Map<StorageNameNode,Pair<List<String>, List<String>>> copyMap = calcCopyCount(snFiles);
+		Map<StorageRegion,Pair<List<String>, List<String>>> copyMap = calcCopyCount(snFiles);
 		if(copyMap == null|| copyMap.isEmpty()){
 			LOG.info("cluster data is normal !!!");
 			return null;
@@ -60,16 +60,16 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String, List<String>> lossFiles(Map<StorageNameNode,Pair<List<String>, List<String>>> copyMap){
+	public static Map<String, List<String>> lossFiles(Map<StorageRegion,Pair<List<String>, List<String>>> copyMap){
 		if(copyMap == null || copyMap.isEmpty()){
 			return null;
 		}
 		Map<String,List<String>> lossMap = new HashMap<String,List<String>>();
-		StorageNameNode sn = null;
+		StorageRegion sn = null;
 		String snName = null;
 		Pair<List<String>,List<String>> cache = null;
 		List<String> losss = null;
-		for(Map.Entry<StorageNameNode,Pair<List<String>, List<String>>> entry: copyMap.entrySet()){
+		for(Map.Entry<StorageRegion,Pair<List<String>, List<String>>> entry: copyMap.entrySet()){
 			sn = entry.getKey();
 			if(sn == null){
 				continue;
@@ -96,17 +96,17 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<StorageNameNode,Pair<List<String>, List<String>>> calcCopyCount(Map<StorageNameNode, List<String>> snFiles){
+	public static Map<StorageRegion,Pair<List<String>, List<String>>> calcCopyCount(Map<StorageRegion, List<String>> snFiles){
 		if(snFiles == null || snFiles.isEmpty()){
 			return null;
 		}
-		StorageNameNode sn = null;
+		StorageRegion sn = null;
 		List files = null;
 		Map<String, Integer> fileCopyCount = null;
 		Pair<List<String>,List<String>> result = null;
-		Map<StorageNameNode,Pair<List<String>, List<String>>> copyMap = new HashMap<StorageNameNode,Pair<List<String>, List<String>>>();
+		Map<StorageRegion,Pair<List<String>, List<String>>> copyMap = new HashMap<StorageRegion,Pair<List<String>, List<String>>>();
 		
-		for(Map.Entry<StorageNameNode, List<String>> entry : snFiles.entrySet()){
+		for(Map.Entry<StorageRegion, List<String>> entry : snFiles.entrySet()){
 			sn = entry.getKey();
 			files = entry.getValue();
 			if(files == null || files.isEmpty()){
@@ -116,7 +116,7 @@ public class CopyCountCheck {
 			if(fileCopyCount == null || fileCopyCount.isEmpty()){
 				continue;
 			}
-			result = filterLoser(fileCopyCount, sn.getReplicateCount());
+			result = filterLoser(fileCopyCount, sn.getReplicateNum());
 			if(result == null){
 				continue;
 			}
@@ -134,8 +134,8 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<StorageNameNode, List<String>> collectionSnFiles(List<Service> services, List<StorageNameNode> snList,final Map<String,Long> snTimes, long granule){
-		Map<StorageNameNode,List<String>> snMap = new HashMap<>();
+	public static Map<StorageRegion, List<String>> collectionSnFiles(List<Service> services, List<StorageRegion> snList,final Map<String,Long> snTimes, long granule){
+		Map<StorageRegion,List<String>> snMap = new HashMap<>();
 		DiskNodeClient client = null;
 		int reCount = 0;
 		String snName = null;
@@ -146,8 +146,8 @@ public class CopyCountCheck {
 		for(Service service : services){
 			try {
 				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
-				for(StorageNameNode sn : snList){
-					reCount = sn.getReplicateCount();
+				for(StorageRegion sn : snList){
+					reCount = sn.getReplicateNum();
 					snName = sn.getName();
 					if(!snTimes.containsKey(snName)) {
 						LOG.debug("<collectionSnFiles> sntime don't contain {}", snName);
@@ -291,15 +291,15 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<StorageNameNode> filterSn(List<StorageNameNode> sns, int size){
-		List<StorageNameNode> filters = new ArrayList<StorageNameNode>();
+	public static List<StorageRegion> filterSn(List<StorageRegion> sns, int size){
+		List<StorageRegion> filters = new ArrayList<StorageRegion>();
 		if(sns == null || sns.isEmpty()){
 			return filters;
 		}
 		int count = 0;
 		String snName = null;
-		for(StorageNameNode sn : sns){
-			count = sn.getReplicateCount();
+		for(StorageRegion sn : sns){
+			count = sn.getReplicateNum();
 			snName = sn.getName();
 			if(count == 1){
 				LOG.info("<filterSn> sn {} {} skip",snName,count);
@@ -369,7 +369,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageNameNode> needSns, long granule, long ttl){
+	public static Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageRegion> needSns, long granule, long ttl){
 		Map<String,Long> repairs = new ConcurrentHashMap<>();
 		if(needSns == null || needSns.isEmpty()) {
 			return repairs;
@@ -382,7 +382,7 @@ public class CopyCountCheck {
 		String snName = null;
 		long startTime = 0L;
 		long sGra = 0L;
-		for(StorageNameNode sn : needSns) {
+		for(StorageRegion sn : needSns) {
 			snName = sn.getName();
 			if(sourceTimes!=null && sourceTimes.containsKey(snName)) {
 				continue;

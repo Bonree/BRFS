@@ -19,7 +19,7 @@ import com.bonree.brfs.duplication.datastream.file.FileObject;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplier;
 import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
 import com.bonree.brfs.duplication.datastream.writer.DiskWriter.WriteProgressListener;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 
 public class DefaultDataEngine implements DataEngine {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultDataEngine.class);
@@ -30,12 +30,12 @@ public class DefaultDataEngine implements DataEngine {
 	
 	private ExecutorService mainThread;
 	
-	private final StorageNameNode storageRegion;
+	private final StorageRegion storageRegion;
 	
 	private final AtomicBoolean runningState = new AtomicBoolean(false);
 	private volatile boolean quit = false;
 	
-	public DefaultDataEngine(StorageNameNode storageRegion, DataPool pool, FileObjectSupplier fileSupplier, DiskWriter writer) {
+	public DefaultDataEngine(StorageRegion storageRegion, DataPool pool, FileObjectSupplier fileSupplier, DiskWriter writer) {
 		this.storageRegion = storageRegion;
 		this.dataPool = pool;
 		this.fileSupplier = fileSupplier;
@@ -48,7 +48,7 @@ public class DefaultDataEngine implements DataEngine {
 	}
 	
 	@Override
-	public StorageNameNode getStorageRegion() {
+	public StorageRegion getStorageRegion() {
 		return storageRegion;
 	}
 	

@@ -52,30 +52,27 @@ public class VirtualServerIDImpl implements VirtualServerID {
     }
 
     private String createVirtualId(int storageId) {
-    	int uniqueId = virtualServerIDCreator.nextSequenceNumber();
-    	if(uniqueId < 0) {
-    		return null;
-    	}
-    	
-    	StringBuilder idBuilder = new StringBuilder();
-    	idBuilder.append(VIRTUAL_ID_PREFIX).append(uniqueId);
-    	
-    	String virtualId = idBuilder.toString();
-        try {
-			String nodePath = client.create()
-			.creatingParentsIfNeeded()
-			.withMode(CreateMode.PERSISTENT)
-			.forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), virtualId),
-					Ints.toByteArray(STATE_VALID));
+		try {
+			int uniqueId = virtualServerIDCreator.nextSequenceNumber();
 			
-			if(nodePath != null) {
+			StringBuilder idBuilder = new StringBuilder();
+	    	idBuilder.append(VIRTUAL_ID_PREFIX).append(uniqueId);
+	    	
+	    	String virtualId = idBuilder.toString();
+	    	String nodePath = client.create()
+					.creatingParentsIfNeeded()
+					.withMode(CreateMode.PERSISTENT)
+					.forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), virtualId),
+							Ints.toByteArray(STATE_VALID));
+	    	
+	    	if(nodePath != null) {
 				return virtualId;
 			}
 		} catch (Exception e) {
 			LOG.error("create virtual id node error", e);
 		}
-        
-        return null;
+    	
+		return null;
     }
 
     @Override

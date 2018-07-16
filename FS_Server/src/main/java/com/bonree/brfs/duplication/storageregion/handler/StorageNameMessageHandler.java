@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.storagename.handler;
+package com.bonree.brfs.duplication.storageregion.handler;
 
 import java.util.Map;
 
@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
 import com.google.common.base.Splitter;
 
 public abstract class StorageNameMessageHandler implements MessageHandler {
@@ -30,23 +29,23 @@ public abstract class StorageNameMessageHandler implements MessageHandler {
 		Map<String, String> params = msg.getParams();
 		LOG.info("params = {}", params);
 		if(params.containsKey(PARAM_REPLICATION)) {
-			message.addAttribute(StorageNameNode.ATTR_REPLICATION, Integer.parseInt(params.get(PARAM_REPLICATION)));
+			message.addAttribute(StorageNameMessage.ATTR_REPLICATION, Integer.parseInt(params.get(PARAM_REPLICATION)));
 		}
 		
 		if(params.containsKey(PARAM_TTL)) {
-			message.addAttribute(StorageNameNode.ATTR_TTL, Integer.parseInt(params.get(PARAM_TTL)));
+			message.addAttribute(StorageNameMessage.ATTR_TTL, Integer.parseInt(params.get(PARAM_TTL)));
 		}
 		
 		if(params.containsKey(PARAM_ENABLE)) {
-			message.addAttribute(StorageNameNode.ATTR_ENABLE, Boolean.parseBoolean(params.get(PARAM_ENABLE)));
+			message.addAttribute(StorageNameMessage.ATTR_ENABLE, Boolean.parseBoolean(params.get(PARAM_ENABLE)));
 		}
 		
 		if(params.containsKey(PARAM_FILE_CAPACITY)) {
-			message.addAttribute(StorageNameNode.ATTR_FILE_CAPACITY, Long.parseLong(params.get(PARAM_FILE_CAPACITY)));
+			message.addAttribute(StorageNameMessage.ATTR_FILE_CAPACITY, Long.parseLong(params.get(PARAM_FILE_CAPACITY)));
 		}
 		
 		if(params.containsKey(PARAM_FILE_PARTITION)) {
-			message.addAttribute(StorageNameNode.ATTR_FILE_PATITION_DURATION, params.get(PARAM_FILE_PARTITION));
+			message.addAttribute(StorageNameMessage.ATTR_FILE_PATITION_DURATION, params.get(PARAM_FILE_PARTITION));
 		}
 		
 		handleMessage(message, callback);

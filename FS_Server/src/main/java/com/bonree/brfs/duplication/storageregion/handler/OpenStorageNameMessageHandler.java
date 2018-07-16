@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.storagename.handler;
+package com.bonree.brfs.duplication.storageregion.handler;
 
 import java.io.IOException;
 
@@ -8,23 +8,23 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
+import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.ProtoStuffUtils;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 
 public class OpenStorageNameMessageHandler extends StorageNameMessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(OpenStorageNameMessageHandler.class);
 	
-	private StorageNameManager storageNameManager;
+	private StorageRegionManager storageNameManager;
 	
-	public OpenStorageNameMessageHandler(StorageNameManager storageNameManager) {
+	public OpenStorageNameMessageHandler(StorageRegionManager storageNameManager) {
 		this.storageNameManager = storageNameManager;
 	}
 
 	@Override
 	public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
-		StorageNameNode node = storageNameManager.findStorageName(msg.getName());
+		StorageRegion node = storageNameManager.findStorageRegionByName(msg.getName());
 		
 		
 		HandleResult result = new HandleResult();

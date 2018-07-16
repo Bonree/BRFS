@@ -12,8 +12,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
-import com.bonree.brfs.common.utils.ProtoStuffUtils;
 import com.bonree.brfs.disknode.data.write.FileWriter;
 
 /**

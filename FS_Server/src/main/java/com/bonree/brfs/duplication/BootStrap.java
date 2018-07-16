@@ -60,14 +60,14 @@ import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileCoordinatorPaths;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
-import com.bonree.brfs.duplication.storagename.StorageIdBuilder;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.handler.CreateStorageNameMessageHandler;
-import com.bonree.brfs.duplication.storagename.handler.DeleteStorageNameMessageHandler;
-import com.bonree.brfs.duplication.storagename.handler.OpenStorageNameMessageHandler;
-import com.bonree.brfs.duplication.storagename.handler.UpdateStorageNameMessageHandler;
-import com.bonree.brfs.duplication.storagename.impl.DefaultStorageNameManager;
-import com.bonree.brfs.duplication.storagename.impl.ZkStorageIdBuilder;
+import com.bonree.brfs.duplication.storageregion.StorageRegionIdBuilder;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.duplication.storageregion.handler.CreateStorageNameMessageHandler;
+import com.bonree.brfs.duplication.storageregion.handler.DeleteStorageNameMessageHandler;
+import com.bonree.brfs.duplication.storageregion.handler.OpenStorageNameMessageHandler;
+import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageNameMessageHandler;
+import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
+import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class BootStrap {
@@ -117,8 +117,8 @@ public class BootStrap {
             
             finalizer.add(timeEventEmitter);
 
-            StorageIdBuilder storageIdBuilder = new ZkStorageIdBuilder(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
-            StorageNameManager storageNameManager = new DefaultStorageNameManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), storageIdBuilder);
+            StorageRegionIdBuilder storageIdBuilder = new ZkStorageRegionIdBuilder(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
+            StorageRegionManager storageNameManager = new DefaultStorageRegionManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), storageIdBuilder);
             storageNameManager.start();
             
             finalizer.add(storageNameManager);

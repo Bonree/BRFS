@@ -15,8 +15,8 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.duplication.storagename.StorageNameManager;
-import com.bonree.brfs.duplication.storagename.StorageNameNode;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -50,7 +50,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		LOG.info("createCheck Copy Job working");	
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
-		StorageNameManager snm = mcf.getSnm();
+		StorageRegionManager snm = mcf.getSnm();
 		ServiceManager sm = mcf.getSm();
 		//判断是否有恢复任务，有恢复任务则不进行创建
 		if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)){
@@ -63,7 +63,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			LOG.info("SKIP create {} task, because service is empty",taskType);
 			return ;
 		}
-		List<StorageNameNode> snList = snm.getStorageNameNodeList();
+		List<StorageRegion> snList = snm.getStorageRegionList();
 		if( snList== null || snList.isEmpty()) {
 			LOG.info("SKIP storagename list is null");
 			return;
@@ -77,7 +77,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		}
 		Map<String,Long> sourceTimes = tmodel.getSnTimes();
 		// 2.过滤不符合副本校验的sn信息
-		List<StorageNameNode> needSns = CopyCountCheck.filterSn(snList, services.size());
+		List<StorageRegion> needSns = CopyCountCheck.filterSn(snList, services.size());
 		// 3.针对第一次出现的sn补充时间
 		sourceTimes = CopyCountCheck.repairTime(sourceTimes, needSns, 3600000,time);
 		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, 3600000);

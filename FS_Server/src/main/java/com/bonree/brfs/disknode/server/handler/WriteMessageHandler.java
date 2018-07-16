@@ -9,7 +9,7 @@ import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
-import com.bonree.brfs.common.utils.ProtoStuffUtils;
+import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.client.WriteDataList;
 import com.bonree.brfs.disknode.client.WriteResultList;
