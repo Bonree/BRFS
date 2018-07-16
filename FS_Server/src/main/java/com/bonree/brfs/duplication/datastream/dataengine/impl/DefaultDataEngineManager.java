@@ -102,7 +102,11 @@ public class DefaultDataEngineManager implements DataEngineManager {
 		public void storageRegionAdded(StorageRegion node) {}
 
 		@Override
-		public void storageRegionUpdated(StorageRegion node) {}
+		public void storageRegionUpdated(StorageRegion node) {
+			//Storage Region属性的变化也许要重新加载Data Engine
+			LOG.info("Storage region[{},{}] is updated!", node.getName(), node.getId());
+			dataEngineContainer.invalidate(node.getId());
+		}
 
 		@Override
 		public void storageRegionRemoved(StorageRegion node) {
