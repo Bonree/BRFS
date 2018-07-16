@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
@@ -31,7 +30,6 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
@@ -104,7 +102,7 @@ public class MultiRecover implements DataRecover {
             LOG.info("receive update event!!!");
             if (client.checkExists(taskNode)) {
                 byte[] data = client.getData(taskNode);
-                BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
+                BalanceTaskSummary bts = JsonUtils.toObject(data, BalanceTaskSummary.class);
                 String newID = bts.getId();
                 String oldID = balanceSummary.getId();
                 if (newID.equals(oldID)) { // 是同一个任务
@@ -156,7 +154,7 @@ public class MultiRecover implements DataRecover {
                 for (String virtualNode : virtualNodes) {
                     String dataPath = virtualPath + Constants.SEPARATOR + virtualNode;
                     byte[] data = client.getData(dataPath);
-                    VirtualRoute virtual = JsonUtils.toObject(data, VirtualRoute.class);
+                    VirtualRoute virtual = JsonUtils.toObjectQuietly(data, VirtualRoute.class);
                     virtualRoutes.put(virtual.getVirtualID(), virtual);
                 }
             }
@@ -171,7 +169,7 @@ public class MultiRecover implements DataRecover {
                 for (String normalNode : normalNodes) {
                     String dataPath = normalPath + Constants.SEPARATOR + normalNode;
                     byte[] data = client.getData(dataPath);
-                    NormalRoute normal = JsonUtils.toObject(data, NormalRoute.class);
+                    NormalRoute normal = JsonUtils.toObjectQuietly(data, NormalRoute.class);
                     normalRoutes.put(normal.getSecondID(), normal);
                 }
             }
@@ -489,7 +487,7 @@ public class MultiRecover implements DataRecover {
     public void updateDetail(String node, TaskDetail detail) {
         if (client.checkExists(node)) {
             try {
-                client.setData(node, JSON.toJSONString(detail).getBytes());
+                client.setData(node, JsonUtils.toJsonBytes(detail));
             } catch (Exception e) {
                 LOG.error("change Task status error!", e);
             }
@@ -504,10 +502,10 @@ public class MultiRecover implements DataRecover {
         TaskDetail detail = null;
         if (!client.checkExists(node)) {
             detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
-            client.createPersistent(node, false, JSON.toJSONString(detail).getBytes());
+            client.createPersistent(node, false, JsonUtils.toJsonBytesQuietly(detail));
         }else {
             byte[] data=client.getData(node);
-            detail = JsonUtils.toObject(data, TaskDetail.class);
+            detail = JsonUtils.toObjectQuietly(data, TaskDetail.class);
         }
         return detail;
     }

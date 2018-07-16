@@ -35,7 +35,6 @@ import org.apache.curator.framework.state.ConnectionStateListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
@@ -43,13 +42,13 @@ import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.RebalanceUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
@@ -175,7 +174,7 @@ public class TaskDispatcher implements Closeable {
                     for (String childNode : childPaths) {
                         String childPath = snPath + Constants.SEPARATOR + childNode;
                         byte[] data = curatorClient.getData(childPath);
-                        ChangeSummary cs = JSON.parseObject(data, ChangeSummary.class);
+                        ChangeSummary cs = JsonUtils.toObjectQuietly(data, ChangeSummary.class);
                         changeSummaries.add(cs);
                     }
                 }
@@ -194,7 +193,7 @@ public class TaskDispatcher implements Closeable {
             for (String sn : sns) {
                 String taskNode = tasksPath + Constants.SEPARATOR + sn + Constants.SEPARATOR + Constants.TASK_NODE;
                 if (curatorClient.checkExists(taskNode)) {
-                    BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(taskNode), BalanceTaskSummary.class);
+                    BalanceTaskSummary bts = JsonUtils.toObjectQuietly(curatorClient.getData(taskNode), BalanceTaskSummary.class);
                     runTask.put(Integer.valueOf(sn), bts);
                 }
             }
@@ -317,7 +316,7 @@ public class TaskDispatcher implements Closeable {
         LOG.info("parse and add change:" + RebalanceUtils.convertEvent(event));
 
         if (event.getData().getData() != null) {
-            ChangeSummary changeSummary = JSON.parseObject(event.getData().getData(), ChangeSummary.class);
+            ChangeSummary changeSummary = JsonUtils.toObjectQuietly(event.getData().getData(), ChangeSummary.class);
             int storageIndex = changeSummary.getStorageIndex();
             changeSummaries = cacheSummaryCache.get(storageIndex);
 
@@ -363,7 +362,7 @@ public class TaskDispatcher implements Closeable {
                     if (!curatorClient.checkExists(parentPath)) {
                         return;
                     }
-                    BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(parentPath), BalanceTaskSummary.class);
+                    BalanceTaskSummary bts = JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummary.class);
                     List<String> serverIds = curatorClient.getChildren(parentPath);
 
                     // 判断是否所有的节点做完任务
@@ -375,7 +374,7 @@ public class TaskDispatcher implements Closeable {
                         } else {
                             for (String serverId : serverIds) {
                                 String nodePath = parentPath + Constants.SEPARATOR + serverId;
-                                TaskDetail td = JSON.parseObject(curatorClient.getData(nodePath), TaskDetail.class);
+                                TaskDetail td = JsonUtils.toObjectQuietly(curatorClient.getData(nodePath), TaskDetail.class);
                                 if (td.getStatus() != DataRecover.ExecutionStatus.FINISH) {
                                     finishFlag = false;
                                     break;
@@ -394,7 +393,7 @@ public class TaskDispatcher implements Closeable {
                             String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
                             VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
                             LOG.info("add virtual route:" + route);
-                            addRoute(virtualRouteNode, JSON.toJSONBytes(route));
+                            addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
 
                             // 因共享节点，所以得将余下的所有virtual server id，注册新迁移的server。不足之处，可能为导致副本数的恢复大于服务数。
                             String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
@@ -415,7 +414,7 @@ public class TaskDispatcher implements Closeable {
                             String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
                             NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
                             LOG.info("add normal route:" + route);
-                            addRoute(normalRouteNode, JSON.toJSONBytes(route));
+                            addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
                         }
 
                         List<ChangeSummary> changeSummaries = cacheSummaryCache.get(bts.getStorageIndex());
@@ -468,7 +467,7 @@ public class TaskDispatcher implements Closeable {
         if (!curatorClient.checkExists(parentPath)) {
             return;
         }
-        BalanceTaskSummary bts = JSON.parseObject(curatorClient.getData(parentPath), BalanceTaskSummary.class);
+        BalanceTaskSummary bts = JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummary.class);
 
         // 所有的服务都则发布迁移规则，并清理任务
         if (bts.getTaskStatus().equals(TaskStatus.FINISH)) {
@@ -477,7 +476,7 @@ public class TaskDispatcher implements Closeable {
                 String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
                 VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
                 LOG.info("add virtual route:" + route);
-                addRoute(virtualRouteNode, JSON.toJSONBytes(route));
+                addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
 
                 // 因共享节点，所以得将余下的所有virtual server id，注册新迁移的server。不足之处，可能为导致副本数的恢复大于服务数。
                 String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
@@ -497,7 +496,7 @@ public class TaskDispatcher implements Closeable {
                 String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
                 NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
                 LOG.info("add normal route:" + route);
-                addRoute(normalRouteNode, JSON.toJSONBytes(route));
+                addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
             }
         }
 
@@ -962,7 +961,7 @@ public class TaskDispatcher implements Closeable {
     public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) {
         task.setTaskStatus(status);
         String taskNode = tasksPath + Constants.SEPARATOR + task.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
-        curatorClient.setData(taskNode, JSON.toJSONBytes(task));
+        curatorClient.setData(taskNode, JsonUtils.toJsonBytesQuietly(task));
     }
 
     /** 概述：在任务节点上创建任务
@@ -975,7 +974,7 @@ public class TaskDispatcher implements Closeable {
         // 设置唯一任务UUID
         taskSummary.setId(UUID.randomUUID().toString());
 
-        String jsonStr = JSON.toJSONString(taskSummary);
+        String jsonStr = JsonUtils.toJsonStringQuietly(taskSummary);
         LOG.info("dispatch task:{}", jsonStr);
         // 创建任务
         String taskNode = tasksPath + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + Constants.TASK_NODE;

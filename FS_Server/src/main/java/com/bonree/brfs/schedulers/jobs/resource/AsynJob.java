@@ -181,6 +181,6 @@ public class AsynJob extends QuartzOperationStateTask {
 		if(BrStringUtils.isEmpty(payLoad)){
 			return null;
 		}
-		return JsonUtils.toObject(payLoad, ServerModel.class);
+		return JsonUtils.toObjectQuietly(payLoad, ServerModel.class);
 	}
 }

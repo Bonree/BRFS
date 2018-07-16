@@ -17,7 +17,6 @@ import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
@@ -113,7 +112,7 @@ public class CopyRecovery {
 			LOG.warn("content is empty");
 			return null;
 		}
-		BatchAtomModel batch = JsonUtils.toObject(content, BatchAtomModel.class);
+		BatchAtomModel batch = JsonUtils.toObjectQuietly(content, BatchAtomModel.class);
 		if (batch == null) {
 			LOG.warn("batch content is empty");
 			return null;

@@ -12,12 +12,10 @@ import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
@@ -246,6 +244,6 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 //		System.out.println(dirs);
 //		System.out.println(tmp);
 		TaskResultModel t = a.deleteDirs("sn", dir, datapath);
-		System.out.println(JsonUtils.toJsonString(t));
+		System.out.println(JsonUtils.toJsonStringQuietly(t));
 	}
 }

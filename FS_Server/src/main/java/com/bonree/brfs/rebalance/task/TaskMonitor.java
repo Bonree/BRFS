@@ -2,8 +2,8 @@ package com.bonree.brfs.rebalance.task;
 
 import java.util.List;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 /*******************************************************************************
@@ -34,7 +34,7 @@ public class TaskMonitor {
             for (String joiner : joiners) {
                 String joinerPath = taskPath + Constants.SEPARATOR + joiner;
                 byte[] data = client.getData(joinerPath);
-                TaskDetail detail = JSON.parseObject(data, TaskDetail.class);
+                TaskDetail detail = JsonUtils.toObjectQuietly(data, TaskDetail.class);
                 curent += detail.getCurentCount();
                 total += detail.getTotalDirectories();
             }

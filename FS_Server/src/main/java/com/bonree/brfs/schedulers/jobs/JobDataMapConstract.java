@@ -141,7 +141,7 @@ public class JobDataMapConstract {
 		dataMap.put(SERVER_ID, serviceId);
 		dataMap.put(TASK_TYPE, task.getTaskType() +"");
 		dataMap.put(TASK_STAT, task.getTaskState() + "");
-		dataMap.put(TASK_OPERATION_ARRAYS, JsonUtils.toJsonString(task.getAtomList()));
+		dataMap.put(TASK_OPERATION_ARRAYS, JsonUtils.toJsonStringQuietly(task.getAtomList()));
 		List<AtomTaskModel> atoms = task.getAtomList();
 		int size = atoms == null ? 0 : atoms.size();
 		int count = size / pattern.getRepeateCount();
@@ -158,7 +158,7 @@ public class JobDataMapConstract {
 				tmp = new ArrayList<AtomTaskModel>();
 			}
 			batch.addAll(tmp);
-			dataMap.put(i +"", JsonUtils.toJsonString(batch));
+			dataMap.put(i +"", JsonUtils.toJsonStringQuietly(batch));
 			index = index +count;
 		}
 		dataMap.put(TASK_REPEAT_RUN_COUNT, pattern.getRepeateCount() + "");

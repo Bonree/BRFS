@@ -1,18 +1,14 @@
 package com.bonree.brfs.resourceschedule.commons;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.hyperic.sigar.NetStat;
 import org.hyperic.sigar.SigarException;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
@@ -27,7 +23,6 @@ import com.bonree.brfs.resourceschedule.model.StateMetaServerModel;
 import com.bonree.brfs.resourceschedule.utils.CalcUtils;
 import com.bonree.brfs.resourceschedule.utils.DiskUtils;
 import com.bonree.brfs.resourceschedule.utils.SigarUtils;
-import com.bonree.brfs.resourceschedule.utils.OSCheckUtils;
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -340,7 +335,7 @@ public class GatherResource {
      */
     public static void updateBaseInfo(String serverID, String dataDir, String bZkNode,String zkUrl){
 		BaseMetaServerModel local = GatherResource.gatherBase(serverID, dataDir);
-		byte[] content = JsonUtils.toJsonBytes(local);
+		byte[] content = JsonUtils.toJsonBytesQuietly(local);
 		ZookeeperClient client =  CuratorClient.getClientInstance(zkUrl);
 		String baseNode = bZkNode + "/"+serverID;
 		if(client.checkExists(baseNode)){
@@ -377,7 +372,7 @@ public class GatherResource {
 			if(data == null){
 				continue;
 			}
-			tmpBase = JsonUtils.toObject(data, ResourceModel.class);
+			tmpBase = JsonUtils.toObjectQuietly(data, ResourceModel.class);
 			dataList.add(tmpBase);
 		}
 		client.close();
@@ -410,7 +405,7 @@ public class GatherResource {
 			if(data == null){
 				continue;
 			}
-			tmpBase = JsonUtils.toObject(data, BaseMetaServerModel.class);
+			tmpBase = JsonUtils.toObjectQuietly(data, BaseMetaServerModel.class);
 			dataList.add(tmpBase);
 		}
 		client.close();

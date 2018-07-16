@@ -11,15 +11,14 @@ import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -90,11 +89,15 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
                 List<String> currentServers = getCurrentServers(serverManager);
                 String secondID = idManager.getOtherSecondID(firstID, snModel.getId());
                 if (!StringUtils.isEmpty(secondID)) { // 如果没数据，该sn的secondID会为null
-                    ChangeSummary tsm = new ChangeSummary(snModel.getId(), genChangeID(), type, secondID, currentServers);
-                    String snPath = changesPath + Constants.SEPARATOR + snModel.getId();
-                    String jsonStr = JSON.toJSONString(tsm);
-                    String snTaskNode = snPath + Constants.SEPARATOR + tsm.getChangeID();
-                    client.createPersistent(snTaskNode, true, jsonStr.getBytes());
+                	try {
+                		ChangeSummary tsm = new ChangeSummary(snModel.getId(), genChangeID(), type, secondID, currentServers);
+                        String snPath = changesPath + Constants.SEPARATOR + snModel.getId();
+                        String jsonStr = JsonUtils.toJsonString(tsm);
+                        String snTaskNode = snPath + Constants.SEPARATOR + tsm.getChangeID();
+                        client.createPersistent(snTaskNode, true, jsonStr.getBytes());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
                 }
             }
         }

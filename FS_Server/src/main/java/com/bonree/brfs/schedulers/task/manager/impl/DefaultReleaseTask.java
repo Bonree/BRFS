@@ -822,7 +822,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			System.out.println(data+"null");
 			return null;
 		}
-		TaskTypeModel tModel = JsonUtils.toObject(data, TaskTypeModel.class);
+		TaskTypeModel tModel = JsonUtils.toObjectQuietly(data, TaskTypeModel.class);
 		return tModel;
 	}
 
@@ -834,7 +834,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		if(type == null) {
 			return false;
 		}
-		byte[] data = JsonUtils.toJsonBytes(type);
+		byte[] data = JsonUtils.toJsonBytesQuietly(type);
 		if(data == null || data.length == 0) {
 			return false;
 		}

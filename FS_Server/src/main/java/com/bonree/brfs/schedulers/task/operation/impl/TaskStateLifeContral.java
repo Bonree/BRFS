@@ -81,7 +81,7 @@ public class TaskStateLifeContral {
 	public static void updateTaskStatusByCompelete(String serverId, String taskname,String taskType,String result, int stat){
 		TaskResultModel taskResult = null;
 		if(!BrStringUtils.isEmpty(result)){
-			taskResult = JsonUtils.toObject(result, TaskResultModel.class);
+			taskResult = JsonUtils.toObjectQuietly(result, TaskResultModel.class);
 		}
 		if(BrStringUtils.isEmpty(taskname)){
 			LOG.info("task name is empty !!! {} {} {}", taskType,taskname, serverId);
@@ -94,7 +94,7 @@ public class TaskStateLifeContral {
 			LOG.info("server task is null !!! {} {} {}", taskType,taskname, serverId);
 			sTask = new TaskServerNodeModel();
 		}
-		LOG.info("TaskMessage complete  sTask :{}", JsonUtils.toJsonString(sTask));
+		LOG.info("TaskMessage complete  sTask :{}", JsonUtils.toJsonStringQuietly(sTask));
 		sTask.setResult(taskResult);
 		if(BrStringUtils.isEmpty(sTask.getTaskStartTime())) {
 			sTask.setTaskStartTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
@@ -172,12 +172,12 @@ public class TaskStateLifeContral {
 			content = data.getString(JobDataMapConstract.TASK_RESULT);
 		}
 		if(!BrStringUtils.isEmpty(content)){
-			sumResult = JsonUtils.toObject(content, TaskResultModel.class);
+			sumResult = JsonUtils.toObjectQuietly(content, TaskResultModel.class);
 		}else{
 			sumResult = new TaskResultModel();
 		}
 		sumResult.addAll(result.getAtoms());
-		String sumContent = JsonUtils.toJsonString(sumResult);
+		String sumContent = JsonUtils.toJsonStringQuietly(sumResult);
 		data.put(JobDataMapConstract.TASK_RESULT, sumContent);
 		
 	}
@@ -198,7 +198,7 @@ public class TaskStateLifeContral {
 		if(serverNode == null){
 			serverNode =new TaskServerNodeModel();
 		}
-		LOG.info("TaskMessage Run  sTask :{}", JsonUtils.toJsonString(serverNode));
+		LOG.info("TaskMessage Run  sTask :{}", JsonUtils.toJsonStringQuietly(serverNode));
 		serverNode.setTaskStartTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
 		serverNode.setTaskState(TaskState.RUN.code());
 		release.updateServerTaskContentNode(serverId, taskname, taskType, serverNode);
@@ -239,7 +239,7 @@ public class TaskStateLifeContral {
 		//更新异常的次数
 		if(task.getValue().getKey() == TaskState.EXCEPTION.code()){
 			TaskServerNodeModel server = release.getTaskServerContentNodeInfo(typeName, task.getKey(), serverId);
-			LOG.info("TaskMessage get  sTask :{}", JsonUtils.toJsonString(server));
+			LOG.info("TaskMessage get  sTask :{}", JsonUtils.toJsonStringQuietly(server));
 			server.setRetryCount(server.getRetryCount() + 1);
 			release.updateServerTaskContentNode(serverId, task.getKey(), typeName, server);
 		}

@@ -36,7 +36,7 @@ public class SecondIDParser {
                 for (String virtualNode : virtualNodes) {
                     String dataPath = virtualPath + Constants.SEPARATOR + virtualNode;
                     byte[] data = curatorClient.getData(dataPath);
-                    VirtualRoute virtual = JsonUtils.toObject(data, VirtualRoute.class);
+                    VirtualRoute virtual = JsonUtils.toObjectQuietly(data, VirtualRoute.class);
                     virtualRouteDetail.put(virtual.getVirtualID(), virtual);
                 }
             }
@@ -50,7 +50,7 @@ public class SecondIDParser {
                 for (String normalNode : normalNodes) {
                     String dataPath = normalPath + Constants.SEPARATOR + normalNode;
                     byte[] data = curatorClient.getData(dataPath);
-                    NormalRoute normal = JsonUtils.toObject(data, NormalRoute.class);
+                    NormalRoute normal = JsonUtils.toObjectQuietly(data, NormalRoute.class);
                     normalRouteDetail.put(normal.getSecondID(), normal);
                 }
             }

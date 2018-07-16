@@ -101,7 +101,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			run.update(stat);
 			prexState = metaSource;
 			LOG.info("update RunnableTaskInterface state !!!");
-			LOG.info("state : {}",JsonUtils.toJsonString(stat));
+			LOG.info("state : {}",JsonUtils.toJsonStringQuietly(stat));
 		}
 	}
 	/***
@@ -166,7 +166,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if(BrStringUtils.isEmpty(payload)){
 			return null;
 		}
-		ServerModel serverModel = JsonUtils.toObject(payload, ServerModel.class);
+		ServerModel serverModel = JsonUtils.toObjectQuietly(payload, ServerModel.class);
 		return serverModel;
 	}
 	/**
@@ -231,7 +231,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if (BrStringUtils.isEmpty(content)) {
 			sinfo = new ServerModel();
 		}
-		sinfo = JsonUtils.toObject(content, ServerModel.class);
+		sinfo = JsonUtils.toObjectQuietly(content, ServerModel.class);
 		if (sinfo == null) {
 			sinfo = new ServerModel();
 		}
@@ -331,7 +331,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if(BrStringUtils.isEmpty(payLoad)){
 			return null;
 		}
-		return JsonUtils.toObject(payLoad, ServerModel.class);
+		return JsonUtils.toObjectQuietly(payLoad, ServerModel.class);
 	}
 	/**
 	 * 概述：获取storageName关系

@@ -8,8 +8,8 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskOperation;
 
@@ -35,7 +35,7 @@ public class TaskExecutorListener implements TreeCacheListener {
                 // 标识为一个任务节点
                 if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
                     byte[] data = event.getData().getData();
-                    BalanceTaskSummary taskSummary = JSON.parseObject(data, BalanceTaskSummary.class);
+                    BalanceTaskSummary taskSummary = JsonUtils.toObjectQuietly(data, BalanceTaskSummary.class);
                     LOG.info("deal task:" + taskSummary);
                     String taskPath = event.getData().getPath();
                     opt.launchDelayTaskExecutor(taskSummary, taskPath);

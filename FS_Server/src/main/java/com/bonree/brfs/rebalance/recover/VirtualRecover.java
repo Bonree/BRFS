@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -23,7 +22,6 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
@@ -88,7 +86,7 @@ public class VirtualRecover implements DataRecover {
             LOG.info("node change!!!");
             if (client.checkExists(taskNode)) {
                 byte[] data = client.getData(taskNode);
-                BalanceTaskSummary bts = JSON.parseObject(data, BalanceTaskSummary.class);
+                BalanceTaskSummary bts = JsonUtils.toObject(data, BalanceTaskSummary.class);
                 String newID = bts.getId();
                 String oldID = balanceSummary.getId();
                 if (newID.equals(oldID)) { // 是同一个任务
@@ -333,7 +331,7 @@ public class VirtualRecover implements DataRecover {
     public void updateDetail(String node, TaskDetail detail) {
         if (client.checkExists(node)) {
             try {
-                client.setData(node, JSON.toJSONString(detail).getBytes());
+                client.setData(node, JsonUtils.toJsonBytes(detail));
             } catch (Exception e) {
                 LOG.error("change Task status error!", e);
             }
@@ -346,13 +344,18 @@ public class VirtualRecover implements DataRecover {
      */
     public TaskDetail registerNodeDetail(String node) {
         TaskDetail detail = null;
-        if (!client.checkExists(node)) {
-            detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
-            client.createPersistent(node, false, JSON.toJSONString(detail).getBytes());
-        } else {
-            byte[] data = client.getData(node);
-            detail = JsonUtils.toObject(data, TaskDetail.class);
+        try {
+        	if (!client.checkExists(node)) {
+                detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
+                client.createPersistent(node, false, JsonUtils.toJsonBytes(detail));
+            } else {
+                byte[] data = client.getData(node);
+                detail = JsonUtils.toObject(data, TaskDetail.class);
+            }
+        } catch(Exception e) {
+        	e.printStackTrace();
         }
+        
         return detail;
 
     }

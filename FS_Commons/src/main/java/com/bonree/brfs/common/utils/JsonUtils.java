@@ -29,6 +29,16 @@ public final class JsonUtils {
 		}
 	}
 	
+	public static <T> String toJsonStringQuietly(T obj) {
+		try {
+			return mapper.writeValueAsString(obj);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
 	/**
 	 * 从Json字符串解析Java对象
 	 * 
@@ -42,6 +52,16 @@ public final class JsonUtils {
 		} catch (Exception e) {
 			throw new JsonException("parse json string ot object", e);
 		}
+	}
+	
+	public static <T> T toObjectQuietly(String jsonString, Class<T> cls) {
+		try {
+			return mapper.readValue(jsonString, cls);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 
 	/**
@@ -59,6 +79,16 @@ public final class JsonUtils {
 		}
 	}
 	
+	public static <T> byte[] toJsonBytesQuietly(T obj) {
+		try {
+			return mapper.writeValueAsBytes(obj);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
 	/**
 	 * 从Json形式的字节数组中解析Java对象
 	 * 
@@ -73,6 +103,16 @@ public final class JsonUtils {
 		} catch (Exception e) {
 			throw new JsonException("parse json bytes ot object error", e);
 		}
+	}
+	
+	public static <T> T toObjectQuietly(byte[] jsonBytes, Class<T> cls) {
+		try {
+			return mapper.readValue(jsonBytes, cls);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 	
 	/**

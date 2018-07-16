@@ -10,9 +10,9 @@ import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
@@ -99,7 +99,7 @@ public class TaskOperation implements Closeable {
     public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) {
         task.setTaskStatus(status);
         String taskNode = tasksPath + Constants.SEPARATOR + task.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
-        client.setData(taskNode, JSON.toJSONBytes(task));
+        client.setData(taskNode, JsonUtils.toJsonBytesQuietly(task));
     }
 
     /** 概述：生成一个具有延时的任务

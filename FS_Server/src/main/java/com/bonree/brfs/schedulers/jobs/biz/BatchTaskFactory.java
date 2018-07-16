@@ -5,19 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
-
-import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
-import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskResultModel;
-import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
 
 public class BatchTaskFactory {
 	/**
@@ -49,7 +42,7 @@ public class BatchTaskFactory {
 			batch = new BatchAtomModel();
 			batch.addAll(atoms);
 			batchDatas.put(JobDataMapConstract.CURRENT_INDEX,  "1");
-			batchDatas.put("1", JsonUtils.toJsonString(batch));
+			batchDatas.put("1", JsonUtils.toJsonStringQuietly(batch));
 			return batchDatas;
 		}
 		batchDatas.put(JobDataMapConstract.CURRENT_INDEX, batchCount + "");
@@ -64,7 +57,7 @@ public class BatchTaskFactory {
 				tmp = atoms.subList(index, index + batchSize);
 			}
 			batch.addAll(tmp);
-			batchDatas.put(i + "", JsonUtils.toJsonString(batch));
+			batchDatas.put(i + "", JsonUtils.toJsonStringQuietly(batch));
 			index = index + batchSize;
 		}
 		return batchDatas;
