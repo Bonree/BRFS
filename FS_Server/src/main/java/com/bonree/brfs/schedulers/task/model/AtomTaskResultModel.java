@@ -9,6 +9,7 @@ public class AtomTaskResultModel {
 	private String dataStartTime;
 	private String dataStopTime;
 	private boolean isSuccess = true;
+	private long granule;
 	
 	private List<String> files = new ArrayList<String>();
 	private int operationFileCount = 0;
@@ -66,6 +67,12 @@ public class AtomTaskResultModel {
 	}
 	public void setDataStopTime(String dataStopTime) {
 		this.dataStopTime = dataStopTime;
+	}
+	public long getGranule() {
+		return granule;
+	}
+	public void setGranule(long granule) {
+		this.granule = granule;
 	}
 	
 }

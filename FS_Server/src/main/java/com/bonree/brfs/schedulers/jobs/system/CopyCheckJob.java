@@ -79,10 +79,10 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		// 2.过滤不符合副本校验的sn信息
 		List<StorageRegion> needSns = CopyCountCheck.filterSn(snList, services.size());
 		// 3.针对第一次出现的sn补充时间
-		sourceTimes = CopyCountCheck.repairTime(sourceTimes, needSns, 3600000,time);
-		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, 3600000);
+		sourceTimes = CopyCountCheck.repairTime(sourceTimes, needSns, time);
+		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes);
 		
-		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, RECOVERY_NUM, 3600000, time);
+		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, RECOVERY_NUM, time);
 		if(pair == null) {
 			LOG.warn("create pair is empty !!!!");
 			return;

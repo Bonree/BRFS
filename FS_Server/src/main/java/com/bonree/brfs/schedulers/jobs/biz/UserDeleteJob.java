@@ -97,7 +97,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 				LOG.warn("dir is empty !!!");
 				continue;
 			}
-			usrResult = deleteFiles(snName, dirName, dataPath);
+			usrResult = deleteFiles(snName, dirName, dataPath, atom.getGranule());
 			if (usrResult == null) {
 				continue;
 			}
@@ -126,7 +126,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private AtomTaskResultModel deleteFiles(String snName, String dirName,String dataPath){
+	private AtomTaskResultModel deleteFiles(String snName, String dirName,String dataPath,long granule){
 		String path = dataPath + File.separator + dirName;
 		if(!FileUtils.isExist(path)){
 			LOG.warn("{} is not exists !!",path);
@@ -136,6 +136,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		boolean isSuccess = false;
 		isSuccess = FileUtils.deleteDir(path,true);
 		atomR.setSn(snName);
+		atomR.setGranule(granule);
 		atomR.setDir(dirName);
 		atomR.setSuccess(isSuccess);
 		atomR.setOperationFileCount(1);

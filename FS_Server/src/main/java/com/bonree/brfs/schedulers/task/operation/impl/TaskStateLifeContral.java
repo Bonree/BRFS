@@ -256,6 +256,7 @@ public class TaskStateLifeContral {
 		if(message == null) {
 			return null;
 		}
+		
 		TaskModel changeTask = new TaskModel();
 		changeTask.setCreateTime(message.getCreateTime());
 		changeTask.setStartDataTime(message.getStartDataTime());
@@ -278,27 +279,28 @@ public class TaskStateLifeContral {
 		String dir = null;
 		String tmpDir = null;
 		String operation = null;
+		long granule = 0;
 		for(AtomTaskModel aTask : atoms) {
 			startTime = TimeUtils.getMiles(aTask.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 			endTime = TimeUtils.getMiles(aTask.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
 			dir = aTask.getDirName();
 			snName = aTask.getStorageName();
 			operation = aTask.getTaskOperation();
-			for(long start = startTime; start < endTime; start += 3600000) {
-				if(start +3600000 > endTime) {
+			granule = aTask.getGranule();
+			for(long start = startTime; start < endTime; start += granule) {
+				if(start +granule > endTime) {
 					continue;
 				}
 				atom = new AtomTaskModel();
 				atom.setDataStartTime(TimeUtils.formatTimeStamp(start,TimeUtils.TIME_MILES_FORMATE));
-				atom.setDataStopTime(TimeUtils.formatTimeStamp(start + 3600000,TimeUtils.TIME_MILES_FORMATE));
+				atom.setDataStopTime(TimeUtils.formatTimeStamp(start + granule,TimeUtils.TIME_MILES_FORMATE));
 				atom.setStorageName(snName);
-				tmpDir = StorageNameFileUtils.createSNDir(snName, dir, start);
+				atom.setGranule(granule);
+				tmpDir = StorageNameFileUtils.createSNDir(snName, dir, start,granule);
 				atom.setDirName(tmpDir);
 				atom.setTaskOperation(operation);
 				changeTask.addAtom(atom);
-				
 			}
-			
 		}
 		return changeTask;
 	}

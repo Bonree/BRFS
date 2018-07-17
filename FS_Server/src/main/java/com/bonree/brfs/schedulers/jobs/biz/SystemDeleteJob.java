@@ -88,7 +88,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 			}
 			path = dataPath + File.separator+ dirName;
 			if(isuser){
-				usrResult = deleteFiles(snName, dirName, dataPath);
+				usrResult = deleteFiles(snName, dirName, dataPath, atom.getGranule());
 				if(usrResult == null){
 					continue;
 				}
@@ -97,7 +97,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 				}
 				result.add(usrResult);
 			}else{
-				batchResult = deleteDirs(snName, dirName, dataPath);
+				batchResult = deleteDirs(snName, dirName, dataPath, atom.getGranule());
 				if(batchResult == null){
 					continue;
 				}
@@ -117,13 +117,13 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public TaskResultModel deleteDirs(String snName, String dirName, String dataPath){
+	public TaskResultModel deleteDirs(String snName, String dirName, String dataPath, long granule){
 		TaskResultModel result = new TaskResultModel();
 		AtomTaskResultModel  atom = null;
 		String tmpPath = dataPath+ File.separator+dirName;
 		LOG.info(tmpPath);
 		if(FileUtils.isExist(tmpPath) && !FileUtils.isDirectory(tmpPath)){
-			atom = deleteFiles(snName, dirName, dataPath);
+			atom = deleteFiles(snName, dirName, dataPath,granule);
 			if(atom != null){
 				result.add(atom);
 				result.setSuccess(atom.isSuccess());
@@ -150,7 +150,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		}
 		List<String> filters = filterFiles(tmpName, dirs, basePath);
 		for(String file : filters){
-			atom = deleteFiles(snName, file, dataPath);
+			atom = deleteFiles(snName, file, dataPath, granule);
 			if(atom == null){
 				continue;
 			}
@@ -201,7 +201,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private AtomTaskResultModel deleteFiles(String snName, String dirName,String dataPath){
+	private AtomTaskResultModel deleteFiles(String snName, String dirName,String dataPath,long granule){
 		String path = dataPath + File.separator + dirName;
 		if(!FileUtils.isExist(path)){
 			LOG.warn("{} is not exists !!",path);
@@ -213,6 +213,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		atomR.setSn(snName);
 		atomR.setDir(dirName);
 		atomR.setSuccess(isSuccess);
+		atomR.setGranule(granule);
 		atomR.setOperationFileCount(1);
 		return atomR;
 	}
@@ -228,22 +229,5 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		}
 		return paths;
 	
-	}
-	public static void main(String[] args) {
-		String datapath = "D:/tmp/";
-		datapath = coveryPath(datapath);
-		System.out.println(datapath);
-		String dir = "tmp/test";
-//		File file = new File(dir);
-//		String path = file.getParentFile().getAbsolutePath();
-//		System.out.println(path);
-		SystemDeleteJob a = new SystemDeleteJob();
-//		List<String> dirs = FileUtils.listFilePaths(dir);
-//		System.out.println(dirs);
-//		List<String> tmp = a.filterFiles(dir, dirs);
-//		System.out.println(dirs);
-//		System.out.println(tmp);
-		TaskResultModel t = a.deleteDirs("sn", dir, datapath);
-		System.out.println(JsonUtils.toJsonStringQuietly(t));
 	}
 }

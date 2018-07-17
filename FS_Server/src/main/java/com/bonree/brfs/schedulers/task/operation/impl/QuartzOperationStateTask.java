@@ -1,6 +1,7 @@
 package com.bonree.brfs.schedulers.task.operation.impl;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -13,6 +14,8 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -30,7 +33,7 @@ public abstract class QuartzOperationStateTask implements QuartzOperationStateIn
 		}catch(Exception e){
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
-			LOG.info("{}",e);
+			LOG.info("{}",e.toString());
 		}
 		
 	}

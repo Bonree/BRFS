@@ -43,7 +43,7 @@ public class CreateSystemTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Pair<TaskModel,TaskTypeModel> createSystemTask(TaskTypeModel tmodel, final TaskType taskType, final List<StorageRegion> snList, final long granule,final long globalttl){
+	public static Pair<TaskModel,TaskTypeModel> createSystemTask(TaskTypeModel tmodel, final TaskType taskType, final List<StorageRegion> snList,final long globalttl){
 		if(snList == null || snList.isEmpty()) {
 			return null;
 		}
@@ -55,7 +55,7 @@ public class CreateSystemTask {
 			return null;
 		}
 		snTimes = tmodel.getSnTimes();
-		Pair<TaskModel, Map<String,Long>> pair =  creatSingleTask(snTimes, snList, taskType, granule,globalttl);
+		Pair<TaskModel, Map<String,Long>> pair =  creatSingleTask(snTimes, snList, taskType, globalttl);
 		if(pair == null) {
 			return null;
 		}
@@ -95,7 +95,7 @@ public class CreateSystemTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Pair<TaskModel,Map<String,Long>> creatTaskWithFiles(final Map<String,Long> snTimes, final Map<String,List<String>> snFiles,List<StorageRegion> needSn, TaskType taskType, String taskOperation, long granule, long globalTTL) {
+	public static Pair<TaskModel,Map<String,Long>> creatTaskWithFiles(final Map<String,Long> snTimes, final Map<String,List<String>> snFiles,List<StorageRegion> needSn, TaskType taskType, String taskOperation, long globalTTL) {
 		if(needSn == null || snTimes == null) {
 			return null;
 		}
@@ -105,7 +105,6 @@ public class CreateSystemTask {
 		long endTime = 0;
 		int copyCount = 1;
 		long currentTime = System.currentTimeMillis();
-		long cGraTime = currentTime - ( currentTime % granule );
 		List<AtomTaskModel> sumAtoms = new ArrayList<AtomTaskModel>();
 		long ttl = 0;
 		Map<String,Long> lastSnTimes = new HashMap<String,Long>();
@@ -115,7 +114,11 @@ public class CreateSystemTask {
 		List<String> files = null;
 		AtomTaskModel atom = null;
 		String dir = null;
+		long cGraTime = 0;
+		long granule = 0;
 		for(StorageRegion sn : needSn) {
+			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
+			cGraTime = currentTime - ( currentTime % granule );
 			snName = sn.getName();
 			cTime = sn.getCreateTime();
 			// 获取开始时间
@@ -148,7 +151,7 @@ public class CreateSystemTask {
 			}
 			if(files != null && !files.isEmpty()) {
 				dir = TimeUtils.timeInterval(startTime, granule);
-				atom = AtomTaskModel.getInstance(files, snName, taskOperation, dir, startTime, endTime);
+				atom = AtomTaskModel.getInstance(files, snName, taskOperation, dir, startTime, endTime, granule);
 				sumAtoms.add(atom);
 			}
 			lastSnTimes.put(snName, endTime);
@@ -156,7 +159,7 @@ public class CreateSystemTask {
 		if(sumAtoms == null || sumAtoms.isEmpty()) {
 			return new Pair<TaskModel,Map<String,Long>>(null, lastSnTimes);
 		}
-		TaskModel task = TaskModel.getInitInstance(taskType, "1");
+		TaskModel task = TaskModel.getInitInstance(taskType, "1", granule);
 		task.putAtom(sumAtoms);
 		return new Pair<TaskModel,Map<String,Long>>(task,lastSnTimes);
 	}
@@ -169,7 +172,7 @@ public class CreateSystemTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Pair<TaskModel,Map<String,Long>> creatSingleTask(final Map<String,Long> snTimes, List<StorageRegion> needSn, TaskType taskType, long granule, long globalTTL) {
+	public static Pair<TaskModel,Map<String,Long>> creatSingleTask(final Map<String,Long> snTimes, List<StorageRegion> needSn, TaskType taskType, long globalTTL) {
 		String snName = null;
 		long cTime = 0;
 		long startTime = 0;
@@ -177,11 +180,14 @@ public class CreateSystemTask {
 		int copyCount = 1;
 		List<AtomTaskModel> atoms = null;
 		long currentTime = System.currentTimeMillis();
-		long cGraTime = currentTime - ( currentTime % granule );
 		List<AtomTaskModel> sumAtoms = new ArrayList<AtomTaskModel>();
 		long ttl = 0;
 		Map<String,Long> lastSnTimes = new HashMap<String,Long>(snTimes);
+		long cGraTime = 0;
+		long granule = 0;
 		for(StorageRegion sn : needSn) {
+			granule =Duration.parse(sn.getFilePartitionDuration()).toMillis();
+			cGraTime = currentTime - currentTime%granule;
 			snName = sn.getName();
 			cTime = sn.getCreateTime();
 			// 获取开始时间
@@ -193,6 +199,7 @@ public class CreateSystemTask {
 			// 获取有效的过期时间
 			ttl = getTTL(sn, taskType, globalTTL);
 			endTime = startTime + granule;
+			LOG.info("sn : {} ,ttl:{}, taskType,", sn.getName(),ttl,taskType.name());
 			// 当ttl小于等于0 的sn 跳过
 			if(ttl <= 0) {
 				LOG.info("sn {} don't to create task !!!",snName);
@@ -207,7 +214,7 @@ public class CreateSystemTask {
 				continue;
 			}
 			copyCount = sn.getReplicateNum();
-			atoms =  AtomTaskModel.createInstance(snName, copyCount, startTime, endTime, "");
+			atoms =  AtomTaskModel.createInstance(snName, copyCount, startTime, endTime, "", granule);
 			if(atoms == null || atoms.isEmpty()) {
 				continue;
 			}
@@ -217,7 +224,7 @@ public class CreateSystemTask {
 		if(sumAtoms == null || sumAtoms.isEmpty()) {
 			return null;
 		}
-		TaskModel task = TaskModel.getInitInstance(taskType, "");
+		TaskModel task = TaskModel.getInitInstance(taskType, "", granule);
 		task.putAtom(sumAtoms);
 		
 		return new Pair<TaskModel,Map<String,Long>>(task,lastSnTimes);

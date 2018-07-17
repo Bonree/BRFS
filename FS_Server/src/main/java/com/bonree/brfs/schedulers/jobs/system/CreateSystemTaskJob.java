@@ -88,8 +88,9 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 				ttl = checkTtl;
 			}
 			tmodel = release.getTaskTypeInfo(taskType.name());
-			result = CreateSystemTask.createSystemTask(tmodel,taskType, snList, 3600000, ttl);
+			result = CreateSystemTask.createSystemTask(tmodel,taskType, snList, ttl);
 			if(result == null) {
+				LOG.warn("create sys task is empty {}",taskType.name());
 				continue;
 			}
 			task = result.getKey();
