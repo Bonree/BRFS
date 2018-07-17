@@ -1,7 +1,5 @@
 package com.bonree.brfs.duplication.storageregion.handler;
 
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
-import com.bonree.brfs.common.utils.Attributes;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -34,26 +31,6 @@ public class CreateStorageNameMessageHandler extends StorageNameMessageHandler {
             result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_NAME_ERROR.name()));
             callback.completed(result);
             return;
-        }
-
-        Attributes atts = msg.getAttributes();
-        Set<String> attNames = atts.getAttributeNames();
-        for (String name : attNames) {
-            if (StorageNameMessage.ATTR_REPLICATION.equals(name)) {
-                if (atts.getInt(name) <= 0 || atts.getInt(name) > 16) {
-                    result.setSuccess(false);
-                    result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REPLICATION_ERROR.name()));
-                    callback.completed(result);
-                    return;
-                }
-            } else if (StorageNameMessage.ATTR_TTL.equals(name)) {
-                if (atts.getInt(name) == 0) {
-                    result.setSuccess(false);
-                    result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_TTL_ERROR.name()));
-                    callback.completed(result);
-                    return;
-                }
-            }
         }
 
         StorageRegion node = null;
