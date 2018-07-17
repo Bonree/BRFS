@@ -150,6 +150,8 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
             		.setFileCapacity(fileCapacity)
             		.setFilePartitionDuration(filePatitionDuration)
             		.build()));
+            
+            return findStorageRegionByName(regionName);
         } catch (NodeExistsException e) {
         	throw new StorageNameExistException(regionName);
         } catch (Exception e) {

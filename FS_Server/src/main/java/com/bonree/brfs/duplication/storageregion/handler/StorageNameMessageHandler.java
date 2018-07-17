@@ -33,7 +33,7 @@ public abstract class StorageNameMessageHandler implements MessageHandler {
 		}
 		
 		if(params.containsKey(PARAM_TTL)) {
-			message.addAttribute(StorageNameMessage.ATTR_TTL, Integer.parseInt(params.get(PARAM_TTL)));
+			message.addAttribute(StorageNameMessage.ATTR_TTL, params.get(PARAM_TTL));
 		}
 		
 		if(params.containsKey(PARAM_ENABLE)) {
