@@ -6,6 +6,8 @@
 *.prefs
 *.log
 .project
+./bin/
+./lib/
 FS_Server/.classpath
 FS_Server/.project
 FS_Server/.settings/
