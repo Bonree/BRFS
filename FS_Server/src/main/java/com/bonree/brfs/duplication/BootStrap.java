@@ -61,10 +61,10 @@ import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.duplication.storageregion.StorageRegionIdBuilder;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.duplication.storageregion.handler.CreateStorageNameMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.DeleteStorageNameMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.OpenStorageNameMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageNameMessageHandler;
+import com.bonree.brfs.duplication.storageregion.handler.CreateStorageRegionMessageHandler;
+import com.bonree.brfs.duplication.storageregion.handler.DeleteStorageRegionMessageHandler;
+import com.bonree.brfs.duplication.storageregion.handler.OpenStorageRegionMessageHandler;
+import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -203,10 +203,10 @@ public class BootStrap {
             httpServer.addContextHandler(URI_DATA_ROOT, requestHandler);
 
             NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-            snRequestHandler.addMessageHandler("PUT", new CreateStorageNameMessageHandler(storageNameManager));
-            snRequestHandler.addMessageHandler("POST", new UpdateStorageNameMessageHandler(storageNameManager));
-            snRequestHandler.addMessageHandler("GET", new OpenStorageNameMessageHandler(storageNameManager));
-            snRequestHandler.addMessageHandler("DELETE", new DeleteStorageNameMessageHandler(zookeeperPaths, storageNameManager, serviceManager));
+            snRequestHandler.addMessageHandler("PUT", new CreateStorageRegionMessageHandler(storageNameManager));
+            snRequestHandler.addMessageHandler("POST", new UpdateStorageRegionMessageHandler(storageNameManager));
+            snRequestHandler.addMessageHandler("GET", new OpenStorageRegionMessageHandler(storageNameManager));
+            snRequestHandler.addMessageHandler("DELETE", new DeleteStorageRegionMessageHandler(zookeeperPaths, storageNameManager, serviceManager));
             httpServer.addContextHandler(URI_STORAGE_REGION_ROOT, snRequestHandler);
 
             httpServer.start();

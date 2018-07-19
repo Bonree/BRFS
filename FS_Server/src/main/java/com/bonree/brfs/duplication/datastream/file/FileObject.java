@@ -9,8 +9,22 @@ public class FileObject {
 	private volatile long applyLength;
 	private FileNode fileNode;
 	
+	public static final int STATE_USING = 0;
+	public static final int STATE_CLOSING = 1;
+	public static final int STATE_ABANDON = 2;
+	private volatile int state;
+	
 	public FileObject(FileNode node) {
 		this.fileNode = node;
+		this.state = STATE_USING;
+	}
+	
+	public int getState() {
+		return this.state;
+	}
+	
+	public void setState(int state) {
+		this.state = state;
 	}
 	
 	public FileNode node() {

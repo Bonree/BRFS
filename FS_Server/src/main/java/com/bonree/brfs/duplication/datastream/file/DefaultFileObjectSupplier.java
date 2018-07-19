@@ -2,6 +2,7 @@ package com.bonree.brfs.duplication.datastream.file;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -9,7 +10,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.collection.SortedList;
 import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
 import com.bonree.brfs.common.timer.TimeExchangeListener;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizeCallback;
@@ -33,25 +35,24 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 	
 	private FileObjectFactory fileFactory;
 	
-	private ExecutorService mainThread = Executors.newSingleThreadExecutor();
+	private ExecutorService mainThread;
 	
 	private final int cleanLimit;
 	private final int forceCleanLimit;
 	private final double cleanFileLengthRatio;
 	
-	private volatile long fileTimeoutClock;
-	
 	private SortedList<FileObject> idleFileList = new SortedList<FileObject>(FileObject.LENGTH_COMPARATOR);
 	private SortedList<FileObject> busyFileList = new SortedList<FileObject>(FileObject.LENGTH_COMPARATOR);
 	
-	private LinkedBlockingQueue<FileObject> recycleList = new LinkedBlockingQueue<FileObject>();
+	private AtomicBoolean recycleSignal = new AtomicBoolean(false);
+	private List<FileObject> recycleFileList = Collections.synchronizedList(new ArrayList<FileObject>());
+	private List<FileObject> exceptionFileList = Collections.synchronizedList(new ArrayList<FileObject>());
 	
 	private FileObjectCloser fileCloser;
 	private FileObjectSynchronizer fileSynchronizer;
 	private FileNodeSinkManager fileNodeSinkManager;
 	
 	private TimeExchangeEventEmitter timeEventEmitter;
-	private Duration timeDuration;
 	
 	private final StorageRegion storageRegion;
 	
@@ -85,16 +86,11 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 		this.cleanLimit = Math.min(cleanLimit, forceCleanLimit);
 		this.forceCleanLimit = forceCleanLimit;
 		this.cleanFileLengthRatio = cleanFileLengthRatio;
+		this.mainThread = Executors.newSingleThreadExecutor(new PooledThreadFactory(storageRegion.getName() + "_file_supplier"));
 		
-		updateTimeEventListener(Duration.parse(storageRegion.getFilePartitionDuration()));
+		this.timeEventEmitter.addListener(Duration.parse(storageRegion.getFilePartitionDuration()), this);
 		this.fileNodeSinkManager.registerFileNodeSink(this);
 		this.fileNodeSinkManager.addStateListener(stateListener);
-	}
-	
-	private void updateTimeEventListener(Duration duration) {
-		timeDuration = duration;
-		fileTimeoutClock = timeEventEmitter.getStartTime(duration);
-		timeEventEmitter.addListener(duration, this);
 	}
 	
 	private int totalSize() {
@@ -115,62 +111,84 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 	
 	@Override
 	public void recycle(FileObject file, boolean needSync) {
-		if(mainThread.isShutdown()) {
-			fileCloser.close(file);
-			return;
-		}
-		
-		if(needSync) {
-			fileSynchronizer.synchronize(file, new FileObjectSynchronizeCallback() {
+		try {
+			if(needSync) {
+				exceptionFileList.add(file);
 				
-				@Override
-				public void complete(FileObject file, long fileLength) {
-					if(file.length() != fileLength) {
-						LOG.warn("update file[{}] length from [{}] to [{}]", file.node().getName(), file.length(), fileLength);
-						file.setLength(fileLength);
-					}
+				fileSynchronizer.synchronize(file, new FileObjectSynchronizeCallback() {
 					
-					recycle(file, false);
-				}
-			});
+					@Override
+					public void complete(FileObject file, long fileLength) {
+						if(file.length() != fileLength) {
+							LOG.warn("update file[{}] length from [{}] to [{}]", file.node().getName(), file.length(), fileLength);
+							file.setLength(fileLength);
+						}
+						
+						exceptionFileList.remove(file);
+						recycle(file, false);
+					}
+				});
+				
+				return;
+			}
 			
-			return;
+			recycleFileList.add(file);
+		} finally {
+			recycleSignal.set(true);
 		}
-		
-		if(file.node().getCreateTime() < fileTimeoutClock) {
-			//过期的文件直接清理
-			fileCloser.close(file);
-			return;
-		}
-		
-		recycleList.offer(file);
 	}
 	
-	private void recycleFileList() {
-		FileObject recycleFile = null;
-		while((recycleFile = recycleList.poll()) != null) {
-			busyFileList.remove(recycleFile);
-			idleFileList.add(recycleFile);
+	private void recycleFileObjects() {
+		synchronized (recycleFileList) {
+			for(FileObject file : recycleFileList) {
+				if(file.getState() == FileObject.STATE_ABANDON) {
+					continue;
+				}
+				
+				if(file.getState() == FileObject.STATE_CLOSING) {
+					fileCloser.close(file);
+					continue;
+				}
+				
+				idleFileList.add(file);
+				busyFileList.remove(file);
+			}
 		}
+		
+		synchronized (exceptionFileList) {
+			for(FileObject file : exceptionFileList) {
+				busyFileList.remove(file);
+			}
+		}
+		
+		recycleFileList.clear();
 	}
 	
 	private void clearList() {
-		recycleFileList();
+		recycleFileObjects();
 		
-		LOG.info("idle file size : {}, busy file size : {}", idleFileList.size(), busyFileList.size());
+		synchronized (exceptionFileList) {
+			for(FileObject file : exceptionFileList) {
+				file.setState(FileObject.STATE_CLOSING);
+			}
+		}
+		
+		for(FileObject file : busyFileList) {
+			file.setState(FileObject.STATE_CLOSING);
+		}
+		busyFileList.clear();
+		
 		for(FileObject file : idleFileList) {
 			fileCloser.close(file);
 		}
-		
 		idleFileList.clear();
-		busyFileList.clear();
 	}
 	
 	@Override
 	public void close() {
 		fileNodeSinkManager.removeStateListener(stateListener);
 		fileNodeSinkManager.unregisterFileNodeSink(this);
-		timeEventEmitter.removeListener(timeDuration, this);
+		timeEventEmitter.removeListener(Duration.parse(storageRegion.getFilePartitionDuration()), this);
 		mainThread.submit(() -> clearList());
 		mainThread.shutdown();
 	}
@@ -191,7 +209,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 		@Override
 		public FileObject call() throws Exception {
 			while(true) {
-				recycleFileList();
+				recycleFileObjects();
 				
 				Iterator<FileObject> iter = idleFileList.iterator();
 				while(iter.hasNext()) {
@@ -238,8 +256,9 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 					return file;
 				}
 				
-				FileObject file = recycleList.take();
-				recycleList.offer(file);
+				while(!recycleSignal.compareAndSet(true, false)) {
+					Thread.yield();
+				}
 			}
 		}
 		
@@ -252,17 +271,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 			@Override
 			public void run() {
 				LOG.info("Time[{}] to clear file list", new DateTime());
-				
-				//更新文件过期时间
-				fileTimeoutClock = startTime;
-				
 				clearList();
-				
-				Duration storageRegionDuration = Duration.parse(storageRegion.getFilePartitionDuration());
-				if(!storageRegionDuration.equals(duration)
-						&& timeEventEmitter.removeListener(duration, DefaultFileObjectSupplier.this)) {
-					updateTimeEventListener(storageRegionDuration);
-				}
 			}
 		});
 	}
@@ -288,15 +297,19 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 					public void run() {
 						idleFileList.clear();
 						
-						while(!busyFileList.isEmpty()) {
-							try {
-								FileObject file = recycleList.take();
-								
-								busyFileList.remove(file);
-							} catch (InterruptedException e) {
-								LOG.error("recycle to remove busy file node error!", e);
+						for(FileObject file : busyFileList) {
+							file.setState(FileObject.STATE_ABANDON);
+						}
+						
+						synchronized (exceptionFileList) {
+							for(FileObject file : exceptionFileList) {
+								file.setState(FileObject.STATE_ABANDON);
 							}
 						}
+						
+						busyFileList.clear();
+						recycleFileList.clear();
+						exceptionFileList.clear();
 					}
 				});
 			}
