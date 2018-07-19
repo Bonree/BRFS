@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.storageregion.handler;
 
+import java.time.Duration;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -8,58 +9,78 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
+import com.bonree.brfs.duplication.storageregion.StorageRegionConfig;
 import com.google.common.base.Splitter;
 
-public abstract class StorageNameMessageHandler implements MessageHandler {
-	private static final Logger LOG = LoggerFactory.getLogger(StorageNameMessageHandler.class);
+public abstract class StorageRegionMessageHandler implements MessageHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(StorageRegionMessageHandler.class);
 	
-	private static final String PARAM_REPLICATION = "replicas";
-	private static final String PARAM_TTL = "ttl";
-	private static final String PARAM_ENABLE = "enable";
-	private static final String PARAM_FILE_CAPACITY = "fileCapacity";
-	private static final String PARAM_FILE_PARTITION = "filePatitionDuration";
+	private static final int DEFAULT_MAX_STORAGE_NAME_LENGTH = 64;
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		StorageNameMessage message = new StorageNameMessage();
-		message.setName(parseName(msg.getPath()));
+		StorageRegionMessage message = new StorageRegionMessage();
+		String name = parseName(msg.getPath());
+		LOG.info("handle storage region[{}]", name);
 		
-		LOG.info("handle StorageName[{}]", message.getName());
-		
-		Map<String, String> params = msg.getParams();
-		LOG.info("params = {}", params);
-		if(params.containsKey(PARAM_REPLICATION)) {
-			message.addAttribute(StorageNameMessage.ATTR_REPLICATION, Integer.parseInt(params.get(PARAM_REPLICATION)));
-		}
-		
-		if(params.containsKey(PARAM_TTL)) {
-			message.addAttribute(StorageNameMessage.ATTR_TTL, params.get(PARAM_TTL));
-		}
-		
-		if(params.containsKey(PARAM_ENABLE)) {
-			message.addAttribute(StorageNameMessage.ATTR_ENABLE, Boolean.parseBoolean(params.get(PARAM_ENABLE)));
-		}
-		
-		if(params.containsKey(PARAM_FILE_CAPACITY)) {
-			message.addAttribute(StorageNameMessage.ATTR_FILE_CAPACITY, Long.parseLong(params.get(PARAM_FILE_CAPACITY)));
-		}
-		
-		if(params.containsKey(PARAM_FILE_PARTITION)) {
-			message.addAttribute(StorageNameMessage.ATTR_FILE_PATITION_DURATION, params.get(PARAM_FILE_PARTITION));
-		}
+		message.setName(name);
+		parseAttributes(message, msg.getParams());
 		
 		handleMessage(message, callback);
 	}
 	
-	protected abstract void handleMessage(StorageNameMessage msg, HandleResultCallback callback);
+	protected abstract void handleMessage(StorageRegionMessage msg, HandleResultCallback callback);
 	
 	private String parseName(String uri) {
 		return Splitter.on('/').omitEmptyStrings().trimResults().splitToList(uri).get(0);
 	}
+	
+	private void parseAttributes(StorageRegionMessage message, Map<String, String> params) {
+		String enableParam = params.get(StorageRegionConfig.CONFIG_ENABLE);
+		if(enableParam != null) {
+			message.addAttribute(StorageRegionConfig.CONFIG_ENABLE, Boolean.parseBoolean(enableParam));
+		}
+		
+		String replicateNumParam = params.get(StorageRegionConfig.CONFIG_REPLICATE_NUM);
+		if(replicateNumParam != null) {
+			try {
+				message.addAttribute(StorageRegionConfig.CONFIG_REPLICATE_NUM, Integer.parseInt(replicateNumParam));
+			} catch (Exception e) {}
+			
+		}
+		
+		String ttlParam = params.get(StorageRegionConfig.CONFIG_DATA_TTL);
+		if(ttlParam != null) {
+			try {
+				Duration.parse(ttlParam);
+				message.addAttribute(StorageRegionConfig.CONFIG_DATA_TTL, ttlParam);
+			} catch (Exception e) {}
+		}
+		
+		String capacityParam = params.get(StorageRegionConfig.CONFIG_FILE_CAPACITY);
+		if(capacityParam != null) {
+			try {
+				message.addAttribute(StorageRegionConfig.CONFIG_FILE_CAPACITY, Long.parseLong(capacityParam));
+			} catch (Exception e) {}
+		}
+		
+		String partitionDurationParam = params.get(StorageRegionConfig.CONFIG_FILE_PARTITION_DURATION);
+		if(partitionDurationParam != null) {
+			try {
+				Duration.parse(partitionDurationParam);
+				message.addAttribute(StorageRegionConfig.CONFIG_FILE_PARTITION_DURATION, partitionDurationParam);
+			} catch (Exception e) {}
+		}
+	}
 
 	@Override
 	public boolean isValidRequest(HttpMessage message) {
-		return !parseName(message.getPath()).isEmpty();
+		String regionName = parseName(message.getPath());
+		if(regionName.isEmpty() || regionName.length() > DEFAULT_MAX_STORAGE_NAME_LENGTH) {
+			return false;
+		}
+		
+		return true;
 	}
 
 }

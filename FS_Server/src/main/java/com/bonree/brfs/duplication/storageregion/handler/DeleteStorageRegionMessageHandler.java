@@ -17,44 +17,48 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.exception.StorageNameNonexistentException;
-import com.bonree.brfs.duplication.storageregion.exception.StorageNameRemoveException;
 import com.bonree.brfs.schedulers.task.TasksUtils;
 
-public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
+public class DeleteStorageRegionMessageHandler extends StorageRegionMessageHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DeleteStorageNameMessageHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DeleteStorageRegionMessageHandler.class);
 
-    private StorageRegionManager storageNameManager;
+    private StorageRegionManager storageRegionManager;
 
     private ServiceManager serviceManager;
 
     private ZookeeperPaths zkPaths;
 
-    public DeleteStorageNameMessageHandler(ZookeeperPaths zkPaths, StorageRegionManager storageNameManager, ServiceManager serviceManager) {
+    public DeleteStorageRegionMessageHandler(ZookeeperPaths zkPaths, StorageRegionManager storageRegionManager, ServiceManager serviceManager) {
         this.zkPaths = zkPaths;
-        this.storageNameManager = storageNameManager;
+        this.storageRegionManager = storageRegionManager;
         this.serviceManager = serviceManager;
     }
 
     @Override
-    public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
+    public void handleMessage(StorageRegionMessage msg, HandleResultCallback callback) {
+    	StorageRegion region = storageRegionManager.findStorageRegionByName(msg.getName());
+    	if(region == null) {
+    		callback.completed(new HandleResult(false));
+    		return;
+    	}
+    	
         boolean deleted;
         HandleResult result = new HandleResult();
         try {
 			List<Service> services = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
-			StorageRegion sn = storageNameManager.findStorageRegionByName(msg.getName());
-			if(sn.isEnable()){
+			if(region.isEnable()){
 				result.setSuccess(false);
 				result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()));
 				callback.completed(result);
 				return;
 			}
-			ReturnCode code = TasksUtils.createUserDeleteTask(services, zkPaths, sn, -1,	System.currentTimeMillis());
+			ReturnCode code = TasksUtils.createUserDeleteTask(services, zkPaths, region, -1,	System.currentTimeMillis());
 			if (!ReturnCode.SUCCESS.equals(code)) {
 				result.setSuccess(false);
 				result.setData(BrStringUtils.toUtf8Bytes(code.name()));
 			} else {
-				deleted = storageNameManager.removeStorageRegion(msg.getName());
+				deleted = storageRegionManager.removeStorageRegion(msg.getName());
 				result.setSuccess(deleted);
 				if (deleted) {
 					LOG.info("clean all data for " + msg.getName());
@@ -66,7 +70,7 @@ public class DeleteStorageNameMessageHandler extends StorageNameMessageHandler {
         } catch (StorageNameNonexistentException e) {
             result.setSuccess(false);
             result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_NONEXIST_ERROR.name()));
-        } catch (StorageNameRemoveException e) {
+        } catch (Exception e) {
             result.setSuccess(false);
             result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()));
         }

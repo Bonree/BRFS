@@ -3,42 +3,41 @@ package com.bonree.brfs.duplication.storageregion.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
-import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionConfig;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.duplication.storageregion.exception.StorageNameNonexistentException;
 
-public class UpdateStorageNameMessageHandler extends StorageNameMessageHandler {
-    private static final Logger LOG = LoggerFactory.getLogger(UpdateStorageNameMessageHandler.class);
+public class UpdateStorageRegionMessageHandler extends StorageRegionMessageHandler {
+    private static final Logger LOG = LoggerFactory.getLogger(UpdateStorageRegionMessageHandler.class);
 
-    private StorageRegionManager storageNameManager;
+    private StorageRegionManager storageRegionManager;
 
-    public UpdateStorageNameMessageHandler(StorageRegionManager storageNameManager) {
-        this.storageNameManager = storageNameManager;
+    public UpdateStorageRegionMessageHandler(StorageRegionManager storageRegionManager) {
+        this.storageRegionManager = storageRegionManager;
     }
 
     @Override
-    public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
-        LOG.info("update storageName[{}], {}", msg.getName(), msg.getAttributes());
-        HandleResult result = new HandleResult();
-        boolean success = false;
-
-        try {
-            success = storageNameManager.updateStorageRegion(msg.getName(), msg.getAttributes());
-            result.setSuccess(success);
-            result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.SUCCESS.name()));
-            if (!success) {
-                result.setSuccess(false);
-                result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_OPT_ERROR.name()));
-            }
-        } catch (StorageNameNonexistentException e) {
-            result.setSuccess(success);
-            result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_NONEXIST_ERROR.name()));
+    public void handleMessage(StorageRegionMessage msg, HandleResultCallback callback) {
+        LOG.info("update storage region[{}] with attrs {}", msg.getName(), msg.getAttributes());
+        
+        StorageRegion region = storageRegionManager.findStorageRegionByName(msg.getName());
+        if(region == null) {
+        	callback.completed(new HandleResult(false));
+        	return;
         }
 
-        callback.completed(result);
+        try {
+        	StorageRegionConfig config = new StorageRegionConfig(region);
+        	config.update(msg.getAttributes());
+        	
+            storageRegionManager.updateStorageRegion(msg.getName(), config);
+            callback.completed(new HandleResult(true));
+        } catch (Exception e) {
+        	LOG.error("remove nonexist storage region");
+            callback.completed(new HandleResult(false));
+        }
     }
 
 }

@@ -28,6 +28,7 @@ import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
+import com.google.common.primitives.Ints;
 
 public class DefaultBRFileSystem implements BRFileSystem {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBRFileSystem.class);
@@ -227,7 +228,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		            	}
     		            	
     		            	if(response.isReponseOK()) {
-    		            		int storageId = Integer.parseInt(BrStringUtils.fromUtf8Bytes(response.getResponseBody()));
+    		            		int storageId = Ints.fromByteArray(response.getResponseBody());
     		            		
     		            		DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
     	    		            stick = new DefaultStorageNameStick(storageName, storageId,

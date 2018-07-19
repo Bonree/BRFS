@@ -1,47 +1,36 @@
 package com.bonree.brfs.duplication.storageregion.handler;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
-import com.bonree.brfs.common.serialize.ProtoStuffUtils;
-import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.google.common.primitives.Ints;
 
-public class OpenStorageNameMessageHandler extends StorageNameMessageHandler {
-	private static final Logger LOG = LoggerFactory.getLogger(OpenStorageNameMessageHandler.class);
+public class OpenStorageRegionMessageHandler extends StorageRegionMessageHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(OpenStorageRegionMessageHandler.class);
 	
-	private StorageRegionManager storageNameManager;
+	private StorageRegionManager storageRegionManager;
 	
-	public OpenStorageNameMessageHandler(StorageRegionManager storageNameManager) {
-		this.storageNameManager = storageNameManager;
+	public OpenStorageRegionMessageHandler(StorageRegionManager storageRegionManager) {
+		this.storageRegionManager = storageRegionManager;
 	}
 
 	@Override
-	public void handleMessage(StorageNameMessage msg, HandleResultCallback callback) {
-		StorageRegion node = storageNameManager.findStorageRegionByName(msg.getName());
+	public void handleMessage(StorageRegionMessage msg, HandleResultCallback callback) {
+		LOG.info("open storage region[{}]", msg.getName());
+		StorageRegion node = storageRegionManager.findStorageRegionByName(msg.getName());
+		if(node == null) {
+			callback.completed(new HandleResult(false));
+			return;
+		}
 		
 		
 		HandleResult result = new HandleResult();
-		if(node == null) {
-		    result.setSuccess(false);
-            result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_NONEXIST_ERROR.name()));
-		} else {
-			result.setSuccess(true);
-			byte[] nodeBytes = null;
-			try {
-				nodeBytes = ProtoStuffUtils.serialize(node);
-			} catch (IOException e) {
-				LOG.error("serialize storage node error", e);
-			}
-			result.setData(BrStringUtils.toUtf8Bytes(String.valueOf(node.getId())));
-		}
-		
+		result.setSuccess(true);
+		result.setData(Ints.toByteArray(node.getId()));
 		callback.completed(result);
 	}
 
