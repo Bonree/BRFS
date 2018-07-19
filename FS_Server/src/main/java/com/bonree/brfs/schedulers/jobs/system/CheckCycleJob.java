@@ -16,6 +16,8 @@ import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +65,6 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			LOG.warn("SKIP storagename list is null");
 			return;
 		}
-		long granule = 3600000L;
 		long currentTime = System.currentTimeMillis();
 		long lGraDay = currentTime - currentTime % 86400000L;
 		long sGraDay = lGraDay - day * 86400000L;
@@ -72,19 +73,79 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			LOG.warn("no storagename need check copy count ! ");
 			return ;
 		}
-		//修复时间
-//		Map<String,Long> sourceTimes = CopyCountCheck.repairTime(null, needSns, granule, 0);
-		Map<String,Long> sourceTimes = null;
-		LOG.info("scan time begin :{}, end :{}, day:{}",TimeUtils.formatTimeStamp(sGraDay),TimeUtils.formatTimeStamp(lGraDay),day);
-		for (long startTime = sGraDay; startTime <= lGraDay; startTime += granule) {
-			sourceTimes = fixTimes(needSns, startTime,granule);
+		Map<String,List<Long>> snTimes = collectionTimes(needSns, sGraDay, lGraDay);
+		if(snTimes == null || snTimes.isEmpty()) {
+			LOG.warn("{} - {} time, no data to check copy count", TimeUtils.formatTimeStamp(sGraDay), TimeUtils.formatTimeStamp(lGraDay));
+		}
+		List<Map<String,Long>> tTimes = converTimes(snTimes);
+		for(Map<String,Long> sourceTimes : tTimes) {
 			if(sourceTimes == null|| sourceTimes.isEmpty()) {
-				LOG.warn("skip collection {} data to check copy count!! because time is empty",	TimeUtils.formatTimeStamp(startTime, "yyyy-MM-dd HH:mm:ss.SSS"));
 				continue;
 			}
-			LOG.info("collection {} data to check copy count", TimeUtils.formatTimeStamp(startTime, "yyyy-MM-dd HH:mm:ss.SSS"));
-			createSingleTask(release, needSns, services, TaskType.SYSTEM_COPY_CHECK, sourceTimes, granule);
+			createSingleTask(release, needSns, services, TaskType.SYSTEM_COPY_CHECK, sourceTimes);
 		}
+	}
+	/**
+	 * 概述：生成sn时间
+	 * @param needSns
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public Map<String,List<Long>> collectionTimes(List<StorageRegion> needSns, final long startTime, final long endTime){
+		if(needSns == null || needSns.isEmpty()) {
+			return null;
+		}
+		Map<String,List<Long>> snTimes = new HashMap<String,List<Long>>();
+		List<Long> times = null;
+		long cTime = 0;
+		long granule = 0;
+		String snName = null;
+		for(StorageRegion sn : needSns) {
+			snName = sn.getName();
+			cTime = sn.getCreateTime();
+			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
+			times = new ArrayList<Long>();
+			for(long start =startTime; start <endTime; start += granule) {
+				if(start < cTime) {
+					continue;
+				}
+				times.add(start);
+			}
+			if(times == null || times.isEmpty()) {
+				continue;
+			}
+			if(!snTimes.containsKey(snName)) {
+				snTimes.put(snName, times);
+			}
+			
+		}
+		return snTimes;
+	}
+	public List<Map<String,Long>> converTimes(Map<String,List<Long>> snTime){
+		int maxSize = 0;
+		boolean isOver = false;
+		List<Map<String,Long>> snTimes = new ArrayList<Map<String,Long>>();
+		String snName = null;
+		List<Long> times = null;
+		Map<String,Long> atoms = null;
+		for(Map.Entry<String, List<Long>> entry : snTime.entrySet()) {
+			snName = entry.getKey();
+			times = entry.getValue();
+			if(maxSize < times.size()) {
+				maxSize = times.size();
+			}
+			for(int i = 0; i< times.size(); i++) {
+				if(i >= snTimes.size()) {
+					atoms = new HashMap<String,Long>();
+					snTimes.add(atoms);
+				}
+				atoms = snTimes.get(i);
+				atoms.put(snName,times.get(i));
+			}
+		}
+		return snTimes;
 	}
 	/**
 	 * 概述：填补时间
@@ -93,14 +154,16 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public Map<String, Long> fixTimes(List<StorageRegion> snList, long startTime,long granule) {
+	public Map<String, Long> fixTimes(List<StorageRegion> snList, long startTime) {
 		if ((snList == null) || (startTime <= 0L)) {
 			return null;
 		}
 		Map<String,Long> fixMap = new HashMap<String,Long>();
 		long crGra = 0L;
 		String snName = null;
+		long granule = 0;
 		for (StorageRegion sn : snList) {
+			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 			crGra = sn.getCreateTime() - sn.getCreateTime()%granule;
 			snName = sn.getName();
 			LOG.info("<fixTimes> sn {}, cTime:{}, time:{}", snName,crGra,startTime);
@@ -120,9 +183,9 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 	 * @param granule
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void createSingleTask(MetaTaskManagerInterface release, List<StorageRegion> needSns, List<Service> services, TaskType taskType, Map<String, Long> sourceTimes, long granule) {
-		Map losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes, granule);
-		Pair pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, taskType, CopyCheckJob.RECOVERY_NUM, granule, 0L);
+	public void createSingleTask(MetaTaskManagerInterface release, List<StorageRegion> needSns, List<Service> services, TaskType taskType, Map<String, Long> sourceTimes) {
+		Map losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes);
+		Pair pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, taskType, CopyCheckJob.RECOVERY_NUM, 0L);
 		if (pair == null) {
 			LOG.warn("create pair is empty !!!!");
 			return;

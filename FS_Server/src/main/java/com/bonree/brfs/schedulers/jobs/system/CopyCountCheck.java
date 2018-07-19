@@ -1,6 +1,7 @@
 package com.bonree.brfs.schedulers.jobs.system;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,8 +41,8 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,List<String>> collectLossFile(List<StorageRegion> storageNames, List<Service> services, Map<String,Long> snTimes, long granule){
-		Map<StorageRegion, List<String>> snFiles = collectionSnFiles(services, storageNames,snTimes,granule);
+	public static Map<String,List<String>> collectLossFile(List<StorageRegion> storageNames, List<Service> services, Map<String,Long> snTimes){
+		Map<StorageRegion, List<String>> snFiles = collectionSnFiles(services, storageNames,snTimes);
 		if(snFiles == null|| snFiles.isEmpty()) {
 			LOG.debug("<collectLossFile> collection files is empty");
 			return null;
@@ -134,7 +135,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<StorageRegion, List<String>> collectionSnFiles(List<Service> services, List<StorageRegion> snList,final Map<String,Long> snTimes, long granule){
+	public static Map<StorageRegion, List<String>> collectionSnFiles(List<Service> services, List<StorageRegion> snList,final Map<String,Long> snTimes){
 		Map<StorageRegion,List<String>> snMap = new HashMap<>();
 		DiskNodeClient client = null;
 		int reCount = 0;
@@ -146,7 +147,9 @@ public class CopyCountCheck {
 		for(Service service : services){
 			try {
 				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+				long granule = 0;
 				for(StorageRegion sn : snList){
+					granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 					reCount = sn.getReplicateNum();
 					snName = sn.getName();
 					if(!snTimes.containsKey(snName)) {
@@ -369,20 +372,20 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageRegion> needSns, long granule, long ttl){
+	public static Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageRegion> needSns, long ttl){
 		Map<String,Long> repairs = new ConcurrentHashMap<>();
 		if(needSns == null || needSns.isEmpty()) {
 			return repairs;
 		}
 		long currentTime = System.currentTimeMillis();
-		long cGra = currentTime - currentTime%granule;
-		if(sourceTimes != null) {
-			repairs.putAll(filterCurrentTime(sourceTimes,cGra));
-		}
 		String snName = null;
 		long startTime = 0L;
 		long sGra = 0L;
+		long cGra = 0L;
+		long granule = 0;
 		for(StorageRegion sn : needSns) {
+			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
+			cGra = currentTime - currentTime%granule;
 			snName = sn.getName();
 			if(sourceTimes!=null && sourceTimes.containsKey(snName)) {
 				continue;
@@ -399,30 +402,5 @@ public class CopyCountCheck {
 			repairs.put(snName, sGra);
 		}
 		return repairs;
-	}
-	/**
-	 * 概述：过滤当前时间的sn
-	 * @param sourceTimes
-	 * @param cGra
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private static Map<String,Long> filterCurrentTime(final Map<String,Long> sourceTimes, final long cGra){
-		Map<String,Long> collMap = new HashMap<String,Long>();
-		if(sourceTimes == null || sourceTimes.isEmpty()) {
-			return collMap;
-		}
-		String sn = null;
-		long cTime = 0;
-		for(Map.Entry<String, Long> entry : sourceTimes.entrySet()) {
-			sn = entry.getKey();
-			cTime = entry.getValue();
-			if(cTime == cGra) {
-				continue;
-			}
-			collMap.put(sn, cTime);
-		}
-		return collMap;
-		
 	}
 }

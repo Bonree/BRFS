@@ -21,8 +21,9 @@ public class AtomTaskModel {
 	private String dataStartTime;
 	private String dataStopTime;
 	private String dirName;
-	private ArrayList<String> files = new ArrayList<String>();
+	private List<String> files = new ArrayList<String>();
 	private String taskOperation;
+	private long granule;
 	/**
 	 * 概述：生成任务信息
 	 * @param atomFiles
@@ -34,7 +35,7 @@ public class AtomTaskModel {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static AtomTaskModel getInstance(Collection<String> atomFiles, String snName, String taskOperation,String dir, long startTime, long endTime) {
+	public static AtomTaskModel getInstance(Collection<String> atomFiles, String snName, String taskOperation,String dir, long startTime, long endTime,long granule) {
 		AtomTaskModel atom = new AtomTaskModel();
 		if(atomFiles != null) {
 			atom.addAllFiles(atomFiles);
@@ -44,6 +45,7 @@ public class AtomTaskModel {
 		atom.setDataStartTime(TimeUtils.formatTimeStamp(startTime, TimeUtils.TIME_MILES_FORMATE));
 		atom.setDataStopTime(TimeUtils.formatTimeStamp(endTime, TimeUtils.TIME_MILES_FORMATE));
 		atom.setDirName(dir);
+		atom.setGranule(granule);
 		return atom;
 	}
 	
@@ -57,11 +59,11 @@ public class AtomTaskModel {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<AtomTaskModel> createInstance(String snName, int copyCount, final long startTime,final long endTime, String taskOperation){
+	public static List<AtomTaskModel> createInstance(String snName, int copyCount, final long startTime,final long endTime, String taskOperation, long granule){
 		List<AtomTaskModel> atomList = new ArrayList<AtomTaskModel>();
 		AtomTaskModel atom = null;
 		for(int i = 1; i <= copyCount; i++){
-			atom = getInstance(null, snName, taskOperation, i+"", startTime, endTime);
+			atom = getInstance(null, snName, taskOperation, i+"", startTime, endTime, granule);
 			atomList.add(atom);
 		}
 		return atomList;
@@ -90,9 +92,6 @@ public class AtomTaskModel {
 	public void setFiles(List<String> files) {
 		this.files.addAll(files);
 	}
-	public void setFiles(ArrayList<String> files) {
-		this.files = files;
-	}
 	public void addAllFiles(Collection<String> files){
 		this.files.addAll(files);
 	}
@@ -110,5 +109,13 @@ public class AtomTaskModel {
 	}
 	public void setDataStopTime(String dataStopTime) {
 		this.dataStopTime = dataStopTime;
+	}
+
+	public long getGranule() {
+		return granule;
+	}
+
+	public void setGranule(long granule) {
+		this.granule = granule;
 	}
 }

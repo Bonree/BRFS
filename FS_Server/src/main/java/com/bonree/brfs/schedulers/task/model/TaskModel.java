@@ -41,13 +41,15 @@ public class TaskModel {
 	 * 任务操作
 	 */
 	private String taskOperation;
+	private long granule;
 	
-	public static TaskModel getInitInstance(TaskType taskType, String taskOperation) {
+	public static TaskModel getInitInstance(TaskType taskType, String taskOperation,long granule) {
 		TaskModel task = new TaskModel();
 		task.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(),TimeUtils.TIME_MILES_FORMATE));
 		task.setTaskState(TaskState.INIT.code());
 		task.setTaskType(taskType.code());
 		task.setTaskOperation(taskOperation);
+		task.setGranule(granule);
 		return task;
 	}
 	public int getTaskType() {
@@ -109,5 +111,11 @@ public class TaskModel {
 	}
 	public void setTaskOperation(String taskOperation) {
 		this.taskOperation = taskOperation;
+	}
+	public long getGranule() {
+		return granule;
+	}
+	public void setGranule(long granule) {
+		this.granule = granule;
 	}
 }

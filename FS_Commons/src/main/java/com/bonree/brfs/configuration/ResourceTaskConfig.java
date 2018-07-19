@@ -82,7 +82,6 @@ public class ResourceTaskConfig {
 		configMap.put(TaskType.SYSTEM_DELETE.name(), sysDelFlag);
 		configMap.put(TaskType.SYSTEM_MERGER.name(), sysMergeFlag);
 		configMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckFlag);
-		configMap.put(TaskType.SYSTEM_RECOVERY.name(), sysRecoveryFlag);
 		configMap.put(TaskType.USER_DELETE.name(), userDelFlag);
 		configMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyFlag);
 
@@ -98,7 +97,6 @@ public class ResourceTaskConfig {
 		poolMap.put(TaskType.SYSTEM_DELETE.name(), sysDelPool);
 		poolMap.put(TaskType.SYSTEM_MERGER.name(), sysMergePool);
 		poolMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckPool);
-		poolMap.put(TaskType.SYSTEM_RECOVERY.name(), sysRecoveryPool);
 		poolMap.put(TaskType.USER_DELETE.name(), userDelPool);
 		poolMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool);
 
