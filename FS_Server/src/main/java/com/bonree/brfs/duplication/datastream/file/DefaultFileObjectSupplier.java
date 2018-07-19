@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 	private SortedList<FileObject> idleFileList = new SortedList<FileObject>(FileObject.LENGTH_COMPARATOR);
 	private SortedList<FileObject> busyFileList = new SortedList<FileObject>(FileObject.LENGTH_COMPARATOR);
 	
-	private AtomicBoolean recycleSignal = new AtomicBoolean(false);
+	private AtomicInteger recycledFiles = new AtomicInteger(0);
 	private List<FileObject> recycleFileList = Collections.synchronizedList(new ArrayList<FileObject>());
 	private List<FileObject> exceptionFileList = Collections.synchronizedList(new ArrayList<FileObject>());
 	
@@ -134,7 +135,8 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 			
 			recycleFileList.add(file);
 		} finally {
-			recycleSignal.set(true);
+			int n = recycledFiles.get();
+			while(!recycledFiles.compareAndSet(n, n + 1));
 		}
 	}
 	
@@ -240,7 +242,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 					checkSize(dataSize, file);
 				}
 				
-				LOG.info("file total size => " + totalSize());
+				LOG.info("file total size => " + totalSize() + ", exception =>" + exceptionFileList.size());
 				if(totalSize() < cleanLimit || (totalSize() < forceCleanLimit && usableBusyFileList.isEmpty())) {
 					FileObject file = fileFactory.createFile(storageRegion);
 					if(file == null) {
@@ -256,7 +258,12 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 					return file;
 				}
 				
-				while(!recycleSignal.compareAndSet(true, false)) {
+				while(true) {
+					int n = recycledFiles.get();
+					if(n > 0 && recycledFiles.compareAndSet(n, n-1)) {
+						break;
+					}
+					
 					Thread.yield();
 				}
 			}
