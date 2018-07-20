@@ -156,15 +156,20 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 	
 	private void recycleFileObjects() {
 		synchronized (exceptedFiles) {
-			for(FileObject file : exceptedFiles) {
+			Iterator<FileObject> iter = exceptedFiles.iterator();
+			while(iter.hasNext()) {
+				FileObject file = iter.next();
 				busyFileList.remove(file);
 				exceptionFileList.add(file);
+				
+				iter.remove();
 			}
 		}
-		exceptedFiles.clear();
 		
 		synchronized (recycledFiles) {
-			for(FileObject file : recycledFiles) {
+			Iterator<FileObject> iter = recycledFiles.iterator();
+			while(iter.hasNext()) {
+				FileObject file = iter.next();
 				if(file.getState() == FileObject.STATE_ABANDON) {
 					continue;
 				}
@@ -178,10 +183,10 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 				idleFileList.add(file);
 				busyFileList.remove(file);
 				exceptionFileList.remove(file);
+				
+				iter.remove();
 			}
 		}
-		
-		recycledFiles.clear();
 	}
 	
 	private void clearList() {
@@ -203,12 +208,14 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 		exceptedFiles.clear();
 		
 		synchronized (recycledFiles) {
-			for(FileObject file : recycledFiles) {
+			Iterator<FileObject> iter = recycledFiles.iterator();
+			while(iter.hasNext()) {
+				FileObject file = iter.next();
 				fileCloser.close(file, true);
+				
+				iter.remove();
 			}
 		}
-		
-		recycledFiles.clear();
 	}
 	
 	@Override
@@ -340,8 +347,10 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 						}
 						
 						busyFileList.clear();
-						recycledFiles.clear();
 						exceptionFileList.clear();
+						
+						recycledFiles.clear();
+						exceptedFiles.clear();
 					}
 				});
 			}

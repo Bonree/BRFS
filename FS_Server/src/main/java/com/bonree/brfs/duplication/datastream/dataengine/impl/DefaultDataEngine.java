@@ -134,7 +134,7 @@ public class DefaultDataEngine implements DataEngine {
 						
 						@Override
 						public void writeCompleted(FileObject file, boolean errorOccurred) {
-							LOG.info("in => {}", file.node().getName());
+							LOG.info("in => {}, sync => {}", file.node().getName(), errorOccurred);
 							fileSupplier.recycle(file, errorOccurred);
 						}
 					});
