@@ -37,8 +37,8 @@ public class DiskWriter implements Closeable {
 		DuplicateNode[] nodes = file.node().getDuplicateNodes();
 		
 		DiskWriterCallback writerCallback = new DiskWriterCallback(nodes.length, datas, listener);
-		for(DuplicateNode dup : nodes) {
-			writeWorkers.submit(new DiskWriteTask(file, datas, dup, writerCallback));
+		for(int i = 0; i < nodes.length; i++) {
+			writeWorkers.submit(new DiskWriteTask(file, datas, nodes[i], i, writerCallback));
 		}
 	}
 	
@@ -56,11 +56,13 @@ public class DiskWriter implements Closeable {
 		private List<DataObject> datas;
 		private DiskWriterCallback callback;
 		private DuplicateNode node;
+		private final int index;
 		
-		public DiskWriteTask(FileObject file, List<DataObject> datas, DuplicateNode node, DiskWriterCallback callback) {
+		public DiskWriteTask(FileObject file, List<DataObject> datas, DuplicateNode node, int index, DiskWriterCallback callback) {
 			this.file = file;
 			this.datas = datas;
 			this.node = node;
+			this.index = index;
 			this.callback = callback;
 		}
 
@@ -68,48 +70,49 @@ public class DiskWriter implements Closeable {
 		public void run() {
 			DataOut[] dataOuts = new DataOut[datas.size()];
 			
-			DiskNodeConnection conn = connectionPool.getConnection(node);
-			if(conn == null || conn.getClient() == null) {
-				callback.complete(file, dataOuts);
-				return;
-			}
-			
-			WriteData[] writeDatas = new WriteData[datas.size()];
-			for(int i = 0; i < writeDatas.length; i++) {
-				writeDatas[i] = new WriteData();
-				writeDatas[i].setBytes(datas.get(i).getBytes());
-			}
-			
-			WriteResult[] results = null;
 			try {
-				results = conn.getClient().writeDatas(pathMaker.buildPath(file.node(), node), writeDatas);
-			} catch (IOException e) {
-				LOG.error("write file[{}] to disk error!", file.node().getName());
-			}
-			
-			if(results != null) {
-				for(int i = 0; i < dataOuts.length; i++) {
-					if(results[i] == null) {
-						break;
-					}
-					
-					final WriteResult result = results[i];
-					dataOuts[i] = new DataOut() {
-						
-						@Override
-						public long offset() {
-							return result.getOffset();
-						}
-						
-						@Override
-						public int length() {
-							return result.getSize();
-						}
-					};
+				DiskNodeConnection conn = connectionPool.getConnection(node);
+				if(conn == null || conn.getClient() == null) {
+					return;
 				}
+				
+				WriteData[] writeDatas = new WriteData[datas.size()];
+				for(int i = 0; i < writeDatas.length; i++) {
+					writeDatas[i] = new WriteData();
+					writeDatas[i].setBytes(datas.get(i).getBytes());
+				}
+				
+				WriteResult[] results = null;
+				try {
+					results = conn.getClient().writeDatas(pathMaker.buildPath(file.node(), node), writeDatas);
+				} catch (IOException e) {
+					LOG.error("write file[{}] to disk error!", file.node().getName());
+				}
+				
+				if(results != null) {
+					for(int i = 0; i < dataOuts.length; i++) {
+						if(results[i] == null) {
+							break;
+						}
+						
+						final WriteResult result = results[i];
+						dataOuts[i] = new DataOut() {
+							
+							@Override
+							public long offset() {
+								return result.getOffset();
+							}
+							
+							@Override
+							public int length() {
+								return result.getSize();
+							}
+						};
+					}
+				}
+			} finally {
+				callback.complete(file, index, dataOuts);
 			}
-			
-			callback.complete(file, dataOuts);
 		}
 		
 	}

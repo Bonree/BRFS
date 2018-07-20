@@ -29,11 +29,8 @@ public class DiskWriterCallback {
 		this.callback = callback;
 	}
 
-	public void complete(FileObject file, DataOut[] result) {
-		int index = count.get() - 1;
-		while(!results.compareAndSet(index, null, result)) {
-			index--;
-		}
+	public void complete(FileObject file, int index, DataOut[] result) {
+		results.set(index, result);
 		
 		if(count.decrementAndGet() == 0) {
 			handleResults(file);
