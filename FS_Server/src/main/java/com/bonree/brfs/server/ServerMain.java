@@ -46,7 +46,7 @@ public class ServerMain {
             CuratorCacheFactory.init(zkAddresses);
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME), zkAddresses);
             
-            SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client.getInnerClient());
+            SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), zookeeperPaths.getBaseLocksPath(), client.getInnerClient());
             UserModel model = authentication.getUser("root");
             if(model == null) {
                 LOG.error("please init server!!!");

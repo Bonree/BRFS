@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +31,6 @@ public class ZookeeperUserOperation implements UserOperation {
 
     private CuratorClient curatorClient;
 
-    private final static String SEPARATOR = "/";
-
     private String basePath;
 
     public ZookeeperUserOperation(CuratorFramework client, String basePath) {
@@ -42,7 +41,7 @@ public class ZookeeperUserOperation implements UserOperation {
     @Override
     public void createUser(UserModel user) {
     	try {
-    		 String userNode = basePath + SEPARATOR + user.getUserName();
+    		 	String userNode = ZKPaths.makePath(basePath, user.getUserName());
     	        String jsonStr = JsonUtils.toJsonString(user);
     	        if (!curatorClient.checkExists(userNode)) {
     	            curatorClient.createPersistent(userNode, false, jsonStr.getBytes());
@@ -60,14 +59,14 @@ public class ZookeeperUserOperation implements UserOperation {
             LOG.warn("can not delete: " + ROOT_USER);
             return;
         }
-        String userNode = basePath + SEPARATOR + userName;
+        String userNode =ZKPaths.makePath(basePath, userName);
         curatorClient.delete(userNode, false);
     }
 
     @Override
     public void updateUser(UserModel user) {
     	try {
-    		String userNode = basePath + SEPARATOR + user.getUserName();
+    		String userNode = ZKPaths.makePath(basePath, user.getUserName());
             String jsonStr = JsonUtils.toJsonString(user);
             curatorClient.setData(userNode, jsonStr.getBytes());
 		} catch (Exception e) {
@@ -77,7 +76,7 @@ public class ZookeeperUserOperation implements UserOperation {
 
     @Override
     public UserModel getUser(String userName) {
-        String userNode = basePath + SEPARATOR + userName;
+        String userNode = ZKPaths.makePath(basePath, userName);
         if (!curatorClient.checkExists(userNode)) {
             return null;
         }
@@ -85,7 +84,6 @@ public class ZookeeperUserOperation implements UserOperation {
 		try {
 			return JsonUtils.toObject(jsonStr, UserModel.class);
 		} catch (JsonException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         return null;

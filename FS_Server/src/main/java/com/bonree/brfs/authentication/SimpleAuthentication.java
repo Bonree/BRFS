@@ -31,11 +31,14 @@ public class SimpleAuthentication implements UserOperation {
     private final static Logger LOG = LoggerFactory.getLogger(SimpleAuthentication.class);
 
     private final static String SEPARATOR_TOKEN = ":";
+    
+    public final static String USER_LOCK = "user_lock";
 
-    public final static String LOCK_PATH = "/brfs/wz/locks/auth";
+    public String userLockPath;
 
     private static SimpleAuthentication auth = null;
 
+    //目前使用的map进行用户缓存，后续可以考虑使用loadingcache
     private final Map<String, UserModel> userCache;
 
     private UserOperation userOpt;
@@ -44,15 +47,17 @@ public class SimpleAuthentication implements UserOperation {
     private UserCacheListener userListener;
 
     class UserCacheListener extends AbstractPathChildrenCacheListener {
-        public UserCacheListener(String listenName) {
+    	private String userLockPath;
+        public UserCacheListener(String listenName,String userLockPath) {
             super(listenName);
+            this.userLockPath = userLockPath;
         }
 
         @Override
         public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
             switch (event.getType()) {
                 case CHILD_ADDED: {
-                    InterProcessMutex lock = new InterProcessMutex(client, LOCK_PATH);
+                    InterProcessMutex lock = new InterProcessMutex(client, userLockPath);
                     lock.acquire();
                     try {
                         LOG.info("add user");
@@ -65,7 +70,7 @@ public class SimpleAuthentication implements UserOperation {
                     break;
                 }
                 case CHILD_REMOVED: {
-                    InterProcessMutex lock = new InterProcessMutex(client, LOCK_PATH);
+                    InterProcessMutex lock = new InterProcessMutex(client, userLockPath);
                     lock.acquire();
                     try {
                         LOG.info("delete user");
@@ -77,7 +82,7 @@ public class SimpleAuthentication implements UserOperation {
                     break;
                 }
                 case CHILD_UPDATED: {
-                    InterProcessMutex lock = new InterProcessMutex(client, LOCK_PATH);
+                    InterProcessMutex lock = new InterProcessMutex(client, userLockPath);
                     lock.acquire();
                     try {
 
@@ -98,8 +103,9 @@ public class SimpleAuthentication implements UserOperation {
         }
     }
 
-    private SimpleAuthentication(String basePath, CuratorFramework client) {
+    private SimpleAuthentication(String basePath,String lockPath, CuratorFramework client) {
         String userPath = BrStringUtils.trimBasePath(basePath);
+        this.userLockPath = ZKPaths.makePath(BrStringUtils.trimBasePath(lockPath), USER_LOCK);
         userCache = new ConcurrentHashMap<String, UserModel>();
         userOpt = new ZookeeperUserOperation(client, userPath);
         List<UserModel> userList = userOpt.getUserList();
@@ -109,7 +115,7 @@ public class SimpleAuthentication implements UserOperation {
 
         // 对节点进行监听
         pathCache = CuratorCacheFactory.getPathCache();
-        userListener = new UserCacheListener("userManager");
+        userListener = new UserCacheListener("userManager", userLockPath);
         pathCache.addListener(userPath, userListener);
     }
 
@@ -119,12 +125,12 @@ public class SimpleAuthentication implements UserOperation {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public static SimpleAuthentication getAuthInstance(String basePath, CuratorFramework client) {
+    public static SimpleAuthentication getAuthInstance(String basePath,String lockPath, CuratorFramework client) {
         LOG.info("init SimpleAuthentication...");
         if (auth == null) {
             synchronized (SimpleAuthentication.class) {
                 if (auth == null) {
-                    auth = new SimpleAuthentication(basePath, client);
+                    auth = new SimpleAuthentication(basePath, lockPath, client);
                 }
 
             }
