@@ -55,7 +55,6 @@ public class DefaultDataEngine implements DataEngine {
 	@Override
 	public void store(byte[] data, DataStoreCallback callback) {
 		try {
-			LOG.info("data pool size ==> {}", dataPool.size());
 			dataPool.put(new DataObject() {
 				
 				@Override
