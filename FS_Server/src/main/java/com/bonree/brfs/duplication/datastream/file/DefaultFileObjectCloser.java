@@ -48,15 +48,17 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 	}
 
 	@Override
-	public void close(FileObject file) {
-		closeThreads.submit(new CloseProcessor(file));
+	public void close(FileObject file, boolean syncIfFailed) {
+		closeThreads.submit(new CloseProcessor(file, syncIfFailed));
 	}
 
 	private class CloseProcessor implements Runnable {
 		private FileObject file;
+		private boolean syncIfNeeded;
 		
-		public CloseProcessor(FileObject file) {
+		public CloseProcessor(FileObject file, boolean syncIfNeeded) {
 			this.file = file;
+			this.syncIfNeeded = syncIfNeeded;
 		}
 		
 		private boolean closeDiskNodes() {
@@ -97,13 +99,18 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 
 		@Override
 		public void run() {
-			if(!closeDiskNodes()) {
+			if(!closeDiskNodes() && syncIfNeeded) {
 				fileSynchronizer.synchronize(file, new FileObjectSynchronizeCallback() {
 					
 					@Override
 					public void complete(FileObject file, long fileLength) {
 						LOG.info("final length is [{}] before close file[{}]", fileLength, file.node().getName());
-						close(file);
+						close(file, true);
+					}
+
+					@Override
+					public void timeout(FileObject file) {
+						close(file, false);
 					}
 				});
 				

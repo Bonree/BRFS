@@ -115,7 +115,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 					}
 					
 					LOG.info("close expired file[{}]", fileNode.getName());
-					fileCloser.close(new FileObject(fileNode));
+					fileCloser.close(new FileObject(fileNode), true);
 				}
 				
 				dispatchWildFileNode();
@@ -290,7 +290,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 					
 					try {
 						LOG.info("close exipred file node[{}], create time[{}]", file.getName());
-						fileCloser.close(new FileObject(file));
+						fileCloser.close(new FileObject(file), true);
 						
 						iter.remove();
 					} catch (Exception e) {

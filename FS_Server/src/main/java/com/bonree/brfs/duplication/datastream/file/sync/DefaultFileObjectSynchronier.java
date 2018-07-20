@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.datastream.file.sync;
 
+import io.netty.util.HashedWheelTimer;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +47,7 @@ public class DefaultFileObjectSynchronier implements FileObjectSynchronizer, Tim
 	private ServiceStateListener serviceStateListener;
 	
 	private TimeExchangeEventEmitter timeEventEmitter;
+	private HashedWheelTimer timer;
 	
 	private DelayTaskActivator taskActivator;
 	private List<Runnable> delayedTaskList = new ArrayList<Runnable>();
@@ -116,37 +119,37 @@ public class DefaultFileObjectSynchronier implements FileObjectSynchronizer, Tim
 			DuplicateNode[] nodeList = file.node().getDuplicateNodes();
 			
 			boolean syncAccomplished = true;
-			List<DuplicateLength> fileLengthList = getFileLengthList(nodeList);
+			List<FileObjectState> fileStateList = getFileStateList(nodeList);
 			
-			if(fileLengthList.isEmpty()) {
+			if(fileStateList.isEmpty()) {
 				//文件所在的所有磁盘节点都处于异常状态
 				LOG.error("No available duplicate node is found to sync file[{}]", file.node().getName());
 				addDelayedTask(this);
 				return;
 			}
 			
-			if(fileLengthList.size() != nodeList.length) {
+			if(fileStateList.size() != nodeList.length) {
 				//文件所在的所有磁盘节点中有部分不可用，这种情况先同步可用的磁盘节点信息
 				LOG.warn("Not all duplicate nodes are available to sync file[{}]", file.node().getName());
 				syncAccomplished = false;
 			}
 			
 			long maxLength = -1;
-			for(DuplicateLength length : fileLengthList) {
+			for(FileObjectState length : fileStateList) {
 				maxLength = Math.max(maxLength, length.getFileLength());
 			}
 			
-			List<DuplicateNode> lacks = new ArrayList<DuplicateNode>();
-			List<DuplicateNode> fulled = new ArrayList<DuplicateNode>();
-			for(DuplicateLength length : fileLengthList) {
-				if(length.getFileLength() != maxLength) {
-					lacks.add(length.getNode());
+			List<FileObjectState> lack = new ArrayList<FileObjectState>();
+			List<FileObjectState> full = new ArrayList<FileObjectState>();
+			for(FileObjectState state : fileStateList) {
+				if(state.getFileLength() != maxLength) {
+					lack.add(state);
 				} else {
-					fulled.add(length.getNode());
+					full.add(state);
 				}
 			}
 			
-			if(lacks.isEmpty()) {
+			if(lack.isEmpty()) {
 				LOG.info("file[{}] is ok!", file.node().getName());
 				if(syncAccomplished) {
 					callback.complete(file, maxLength);
@@ -159,7 +162,7 @@ public class DefaultFileObjectSynchronier implements FileObjectSynchronizer, Tim
 			
 			//TODO
 			//TODO
-			syncAccomplished &= doSynchronize(maxLength, lacks, fulled);
+			syncAccomplished &= doSynchronize(maxLength, lack, full);
 			if(syncAccomplished) {
 				callback.complete(file, maxLength);
 			} else {
@@ -169,8 +172,8 @@ public class DefaultFileObjectSynchronier implements FileObjectSynchronizer, Tim
 			LOG.info("End synchronize file[{}]", file.node().getName());
 		}
 		
-		private List<DuplicateLength> getFileLengthList(DuplicateNode[] nodeList) {
-			List<DuplicateLength> fileLengthList = new ArrayList<DuplicateLength>();
+		private List<FileObjectState> getFileStateList(DuplicateNode[] nodeList) {
+			List<FileObjectState> fileStateList = new ArrayList<FileObjectState>();
 			
 			for(DuplicateNode node : nodeList) {
 				DiskNodeConnection connection = connectionPool.getConnection(node);
@@ -190,47 +193,44 @@ public class DefaultFileObjectSynchronier implements FileObjectSynchronizer, Tim
 				
 				LOG.info("server{} -- {}", node.getId(), fileLength);
 				
-				DuplicateLength nodeSequence = new DuplicateLength();
-				nodeSequence.setNode(node);
-				nodeSequence.setFileLength(fileLength);
-				
-				fileLengthList.add(nodeSequence);
+				fileStateList.add(new FileObjectState(node.getGroup(), node.getId(), filePath, fileLength));
 			}
 			
-			return fileLengthList;
+			return fileStateList;
 		}
 		
-		private boolean doSynchronize(long correctLength, List<DuplicateNode> lacks, List<DuplicateNode> fulls) {
+		private boolean doSynchronize(long correctLength, List<FileObjectState> lacks, List<FileObjectState> fulls) {
 			//TODO
-			List<String> serviceList = new ArrayList<String>();
-			for(DuplicateNode node : fulls) {
-				serviceList.add(node.getId());
-			}
-			
-			boolean allSynced = true;
-			for(DuplicateNode node : lacks) {
-				DiskNodeConnection connection = connectionPool.getConnection(node);
-				if(connection == null || connection.getClient() == null) {
-					LOG.error("can not recover file[{}], because of lack of connection to duplication node[{}]", file.node().getName(), node);
-					allSynced = false;
-					continue;
-				}
-				
-				DiskNodeClient client = connection.getClient();
-				if(client == null) {
-					allSynced = false;
-					continue;
-				}
-				
-				LOG.info("start synchronize file[{}] at duplicate node[{}]", file.node().getName(), node);
-				if(!client.recover(pathMaker.buildPath(file.node(), node), correctLength, serviceList)) {
-					LOG.error("can not synchronize file[{}] at duplicate node[{}]", file.node().getName(), node);
-					allSynced = false;
-				}
-				
-			}
-			
-			return allSynced;
+//			List<String> serviceList = new ArrayList<String>();
+//			for(FileObjectState node : full) {
+//				serviceList.add(node.getId());
+//			}
+//			
+//			boolean allSynced = true;
+//			for(DuplicateNode node : lack) {
+//				DiskNodeConnection connection = connectionPool.getConnection(node);
+//				if(connection == null || connection.getClient() == null) {
+//					LOG.error("can not recover file[{}], because of lack of connection to duplication node[{}]", file.node().getName(), node);
+//					allSynced = false;
+//					continue;
+//				}
+//				
+//				DiskNodeClient client = connection.getClient();
+//				if(client == null) {
+//					allSynced = false;
+//					continue;
+//				}
+//				
+//				LOG.info("start synchronize file[{}] at duplicate node[{}]", file.node().getName(), node);
+//				if(!client.recover(pathMaker.buildPath(file.node(), node), correctLength, serviceList)) {
+//					LOG.error("can not synchronize file[{}] at duplicate node[{}]", file.node().getName(), node);
+//					allSynced = false;
+//				}
+//				
+//			}
+//			
+//			return allSynced;
+			return true;
 		}
 	}
 	

@@ -27,7 +27,7 @@ public class NettyHttpAuthenticationHandler extends SimpleChannelInboundHandler<
 		HttpHeaders headers = request.headers();
 		String userName = headers.get("username");
 		String passwd = headers.get("password");
-		LOG.info("get user info[{}, {}]", userName, passwd);
+		LOG.debug("get user info[{}, {}]", userName, passwd);
 		
 		int checkResult = httpAuthenticator.check(userName, passwd);
 		if(checkResult != 0) {
