@@ -274,7 +274,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 					checkSize(dataSize, file);
 				}
 				
-				LOG.info("idle => {}, busy => {}, exception => {}", idleFileList.size(), busyFileList.size(), exceptionFileList.size());
+				LOG.debug("idle => {}, busy => {}, exception => {}", idleFileList.size(), busyFileList.size(), exceptionFileList.size());
 				if(totalSize() < cleanLimit || (totalSize() < forceCleanLimit && usableBusyFileList.isEmpty())) {
 					FileObject file = fileFactory.createFile(storageRegion);
 					if(file == null) {
@@ -293,9 +293,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 					return file;
 				}
 				
-				for(FileObject file : usableBusyFileList) {
-					LOG.info("usable => {}", file.node().getName());
-				}
+				LOG.debug("available busy file count => {}", usableBusyFileList.size());
 				while(recycledFiles.isEmpty() && exceptedFiles.isEmpty()) {
 					Thread.yield();
 				}

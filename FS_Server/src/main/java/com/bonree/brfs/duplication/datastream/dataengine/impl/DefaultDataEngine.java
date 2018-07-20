@@ -55,6 +55,7 @@ public class DefaultDataEngine implements DataEngine {
 	@Override
 	public void store(byte[] data, DataStoreCallback callback) {
 		try {
+			LOG.info("data pool size ==> {}", dataPool.size());
 			dataPool.put(new DataObject() {
 				
 				@Override
@@ -103,7 +104,7 @@ public class DefaultDataEngine implements DataEngine {
 				try {
 					DataObject data = unhandledData == null ? (unhandledData = dataPool.take()) : unhandledData;
 					
-					LOG.info("fetch file with {}", data.length());
+					LOG.debug("fetch file with {}", data.length());
 					FileObject file = fileSupplier.fetch(data.length());
 					unhandledData = null;
 					
@@ -129,12 +130,12 @@ public class DefaultDataEngine implements DataEngine {
 						dataPool.remove();
 					}
 					
-					LOG.info("out => {}", file.node().getName());
+					LOG.debug("out => {}", file.node().getName());
 					diskWriter.write(file, dataList, new WriteProgressListener() {
 						
 						@Override
 						public void writeCompleted(FileObject file, boolean errorOccurred) {
-							LOG.info("in => {}, sync => {}", file.node().getName(), errorOccurred);
+							LOG.debug("in => {}, sync => {}", file.node().getName(), errorOccurred);
 							fileSupplier.recycle(file, errorOccurred);
 						}
 					});

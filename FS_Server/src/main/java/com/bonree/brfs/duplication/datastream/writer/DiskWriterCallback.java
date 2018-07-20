@@ -46,6 +46,7 @@ public class DiskWriterCallback {
 			DataOut[] dupResult = results.get(i);
 			for(int j = dupResult.length - 1; j >= 0; j--) {
 				if(dupResult[j] == null) {
+					LOG.error("data write error from index[{}]", j);
 					writeError = true;
 					continue;
 				}
@@ -59,7 +60,7 @@ public class DiskWriterCallback {
 			}
 		}
 		
-		LOG.info("write result with max valid index[{}]", maxValidIndex);
+		LOG.debug("write result with max valid index[{}]", maxValidIndex);
 		file.setLength(maxValidIndex < 0 ? file.length() : (maxResult[maxValidIndex].offset() + maxResult[maxValidIndex].length()));
 		callback.writeCompleted(file, writeError);
 		

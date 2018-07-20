@@ -16,7 +16,7 @@ public class FilePathBuilder {
 	public static String buildFilePath(FileNode fileNode, String serviceId) {
 		int index = 0;
 		
-		LOG.info("build file path with sn[{}], serid[{}], time[{}] filename[{}]", fileNode.getStorageName(), serviceId, fileNode.getCreateTime(), fileNode.getName());
+		LOG.debug("build file path with sn[{}], serid[{}], time[{}] filename[{}]", fileNode.getStorageName(), serviceId, fileNode.getCreateTime(), fileNode.getName());
 		for(String id : Splitter.on("_").splitToList(fileNode.getName())) {
 			if(id.equals(serviceId)) {
 				break;

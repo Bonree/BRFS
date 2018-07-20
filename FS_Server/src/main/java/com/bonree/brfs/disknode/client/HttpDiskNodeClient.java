@@ -74,7 +74,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		try {
 			LOG.info("open file[{}] @ {}:{}", path, host, port);
 			HttpResponse response = client.executePut(uri);
-			LOG.info("open file[{}] response[{}]", path, response.getStatusCode());
+			LOG.debug("open file[{}] response[{}]", path, response.getStatusCode());
 			if(response != null && response.isReponseOK()) {
 				return Longs.fromByteArray(response.getResponseBody());
 			}
@@ -120,7 +120,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		try {
 			LOG.info("write file[{}] with {} datas to {}:{}", path, dataList.length, host, port);
 			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(datas));
-			LOG.info("write file[{}] response[{}]", path, response.getStatusCode());
+			LOG.debug("write file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
 				WriteResultList resultList = ProtoStuffUtils.deserialize(response.getResponseBody(), WriteResultList.class);
 				return resultList.getWriteResults();
@@ -144,7 +144,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		try {
 			LOG.info("flush file[{}] to {}:{}", path, host, port);
 			HttpResponse response = client.executePost(uri);
-			LOG.info("flush file[{}] response[{}]", path, response.getStatusCode());
+			LOG.debug("flush file[{}] response[{}]", path, response.getStatusCode());
 			return response.isReponseOK();
 		} catch (Exception e) {
 			LOG.error("write file[{}] to {}:{} error", path, host, port, e);
@@ -173,7 +173,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		try {
 			LOG.info("read file[{}] with offset[{}], size[{}] to {}:{}", path, offset, size, host, port);
 			HttpResponse response = client.executeGet(uri);
-			LOG.info("read file[{}] response[{}]", path, response.getStatusCode());
+			LOG.debug("read file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
 				result = response.getResponseBody();
 			}
@@ -196,7 +196,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		try {
 			LOG.info("close file[{}] to {}:{}", path, host, port);
 			HttpResponse response = client.executeClose(uri);
-			LOG.info("close file[{}] response[{}]", path, response.getStatusCode());
+			LOG.debug("close file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
 				return Longs.fromByteArray(response.getResponseBody());
 			}
@@ -222,7 +222,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		try {
 			LOG.info("delete file[{}] force[{}] to {}:{}", path, force, host, port);
 			HttpResponse response = client.executeDelete(builder.build());
-			LOG.info("delete file[{}] response[{}]", path, response.getStatusCode());
+			LOG.debug("delete file[{}] response[{}]", path, response.getStatusCode());
 			return response.isReponseOK();
 		} catch (Exception e) {
 			LOG.error("delete file[{}] at {}:{} error", path, host, port, e);
@@ -250,7 +250,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		try {
 			LOG.info("delete dir[{}] force[{}] recursive[{}] to {}:{}", path, force, recursive, host, port);
 			HttpResponse response = client.executeDelete(builder.build());
-			LOG.info("delete dir[{}] response[{}]", path, response.getStatusCode());
+			LOG.debug("delete dir[{}] response[{}]", path, response.getStatusCode());
 			return response.isReponseOK();
 		} catch (Exception e) {
 			LOG.error("delete dir[{}] at {}:{} error", path, host, port, e);
@@ -271,7 +271,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		try {
 			LOG.info("get length from file[{}] to {}:{}", path, host, port);
 			HttpResponse response = client.executeGet(uri);
-			LOG.info("get length from file[{}] response[{}]", path, response.getStatusCode());
+			LOG.debug("get length from file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
 				return Longs.fromByteArray(response.getResponseBody());
 			}
@@ -324,7 +324,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		try {
 			LOG.info("recover file[{}] response[{}] to {}:{}", path, host, port);
 			HttpResponse response = client.executePost(uri);
-			LOG.info("recover file[{}] response[{}]", path, response.getStatusCode());
+			LOG.debug("recover file[{}] response[{}]", path, response.getStatusCode());
 			
 			return response.isReponseOK();
 		} catch (Exception e) {
