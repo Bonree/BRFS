@@ -286,7 +286,9 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 					return file;
 				}
 				
-				LOG.info("usable => {}", usableBusyFileList.size());
+				for(FileObject file : usableBusyFileList) {
+					LOG.info("usable => {}", file.node().getName());
+				}
 				while(recycledFiles.isEmpty() && exceptedFiles.isEmpty()) {
 					Thread.yield();
 				}

@@ -103,7 +103,10 @@ public class DefaultDataEngine implements DataEngine {
 				try {
 					DataObject data = unhandledData == null ? (unhandledData = dataPool.take()) : unhandledData;
 					
+					LOG.info("fetch file with {}", data.length());
 					FileObject file = fileSupplier.fetch(data.length());
+					unhandledData = null;
+					
 					if(file == null) {
 						data.processComplete(null);
 						continue;
@@ -111,7 +114,6 @@ public class DefaultDataEngine implements DataEngine {
 					
 					List<DataObject> dataList = new ArrayList<DataObject>();
 					dataList.add(data);
-					unhandledData = null;
 					
 					while(true) {
 						data = dataPool.peek();
