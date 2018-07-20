@@ -97,7 +97,7 @@ public class BootStrap {
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(clusterName, zkAddresses);
             ServerIDManager idManager = new ServerIDManager(client, zookeeperPaths);
 
-            SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), client);
+            SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(),zookeeperPaths.getBaseLocksPath(), client);
             UserModel model = simpleAuthentication.getUser("root");
             if (model == null) {
                 LOG.error("please init server!!!");
