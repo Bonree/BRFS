@@ -127,10 +127,12 @@ public class DefaultDataEngine implements DataEngine {
 						dataPool.remove();
 					}
 					
+					LOG.info("out => {}", file.node().getName());
 					diskWriter.write(file, dataList, new WriteProgressListener() {
 						
 						@Override
 						public void writeCompleted(FileObject file, boolean errorOccurred) {
+							LOG.info("in => {}", file.node().getName());
 							fileSupplier.recycle(file, errorOccurred);
 						}
 					});
