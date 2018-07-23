@@ -101,8 +101,8 @@ public class GatherResource {
 			obj.setMemorySize(memorySize);
 			Pair<Long, Long> netData = SigarUtils.instance.gatherNetStatInfos(ip);
 			if(netData != null){
-				obj.setNetRByte(netData.getKey());
-				obj.setNetTByte(netData.getValue());
+				obj.setNetRByte(netData.getFirst());
+				obj.setNetTByte(netData.getSecond());
 			}
 			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir);
 			if(partition.containsKey(0)){

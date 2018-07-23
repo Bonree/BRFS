@@ -1,18 +1,15 @@
 package com.bonree.brfs.resourceschedule.service.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
@@ -69,9 +66,7 @@ public class RandomAvailable implements AvailableServerInterface {
 			}else{
 				continue;
 			}
-			tmp = new Pair<String, Double>();
-			tmp.setKey(server);
-			tmp.setValue(sum);
+			tmp = new Pair<String, Double>(server,sum);
 			values.add(tmp);
 		}
 		if(values.isEmpty()){
@@ -80,7 +75,7 @@ public class RandomAvailable implements AvailableServerInterface {
 		}
 		int index = getWeightRandom(values);
 		
-		return values.get(index).getKey();
+		return values.get(index).getFirst();
 	}
 	@Override
 	public String selectAvailableServer(int scene, String storageName, List<String> exceptionServerList)
@@ -126,9 +121,7 @@ public class RandomAvailable implements AvailableServerInterface {
 			}else{
 				continue;
 			}
-			tmpResource = new Pair<String, Double>();
-			tmpResource.setKey(server);
-			tmpResource.setValue(sum);
+			tmpResource = new Pair<String, Double>(server, sum);
 			values.add(tmpResource);
 		}
 		if(values.isEmpty()){
@@ -136,7 +129,7 @@ public class RandomAvailable implements AvailableServerInterface {
 			return null;
 		}
 		int index = getWeightRandom(values);
-		return values.get(index).getKey();
+		return values.get(index).getFirst();
 	}
 	@Override
 	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName) throws Exception {
@@ -166,12 +159,10 @@ public class RandomAvailable implements AvailableServerInterface {
 			}else{
 				continue;
 			}
-			tmpResource = new Pair<String, Double>();
-			tmpResource.setKey(server);
-			tmpResource.setValue(sum);
+			tmpResource = new Pair<String, Double>(server,sum);
 			values.add(tmpResource);
 		}
-		return converDoublesToIntegers(values).getValue();
+		return converDoublesToIntegers(values).getSecond();
 	}
 	@Override
 	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList)
@@ -214,15 +205,13 @@ public class RandomAvailable implements AvailableServerInterface {
 			}else{
 				continue;
 			}
-			tmpResource = new Pair<String, Double>();
-			tmpResource.setKey(server);
-			tmpResource.setValue(sum);
+			tmpResource = new Pair<String, Double>(server,sum);
 			values.add(tmpResource);
 		}
 		if(values == null || values.isEmpty()){
 			return null;
 		}
-		return converDoublesToIntegers(values).getValue();
+		return converDoublesToIntegers(values).getSecond();
 	}
 	@Override
 	public void update(Collection<ResourceModel> resources) {
@@ -256,8 +245,8 @@ public class RandomAvailable implements AvailableServerInterface {
 	private int getWeightRandom(List<Pair<String, Double>> servers){
 		Pair<Integer,List<Pair<String,Integer>>> resourceValues = converDoublesToIntegers(servers);
 
-		int total = resourceValues.getKey();
-		List<Pair<String,Integer>> dents = resourceValues.getValue();
+		int total = resourceValues.getFirst();
+		List<Pair<String,Integer>> dents = resourceValues.getSecond();
 		if(total == 0 || dents == null || dents.isEmpty()){
 			return 0;
 		}
@@ -266,7 +255,7 @@ public class RandomAvailable implements AvailableServerInterface {
 		int current = 0;
 		int index = 0;
 		for(Pair<String, Integer> ele : dents){
-			current += ele.getValue();
+			current += ele.getSecond();
 			if(randomNum > current){
 				index ++;
 				continue;
@@ -291,28 +280,28 @@ public class RandomAvailable implements AvailableServerInterface {
 		double sum = 0;
 		Pair<String,Integer> tmp = null;
 		for(Pair<String,Double> ele : servers){
-			sum += ele.getValue();
+			sum += ele.getSecond();
 		}
 		for(Pair<String,Double> ele : servers){
 			tmp = new Pair<String, Integer>();
-			tmp.setKey(ele.getKey());
-			value = (int)(ele.getValue()/sum* 100);
+			tmp.setFirst(ele.getFirst());
+			value = (int)(ele.getSecond()/sum* 100);
 			if(value == 0){
 				value = 1;
 			}
-			tmp.setValue(value);
+			tmp.setSecond(value);
 			total += value;
 			dents.add(tmp);
 		}
-		pair.setKey(total);
-		pair.setValue(dents);
+		pair.setFirst(total);
+		pair.setSecond(dents);
 		return pair;
 	}
 	
 	private Pair<String,Integer> converDoubleToInteger(final Pair<String, Double> source, int baseLine){
 		Pair<String,Integer> dent = new Pair<String, Integer>();
-		dent.setKey(source.getKey());
-		dent.setValue((int)(source.getValue() * baseLine));
+		dent.setFirst(source.getFirst());
+		dent.setSecond((int)(source.getSecond() * baseLine));
 		return dent;
 	}
 	@Override

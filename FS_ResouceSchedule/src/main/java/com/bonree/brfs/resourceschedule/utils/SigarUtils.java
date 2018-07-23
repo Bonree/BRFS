@@ -1,11 +1,8 @@
 package com.bonree.brfs.resourceschedule.utils;
 
 import java.io.File;
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -189,9 +186,7 @@ public enum SigarUtils {
     		}
     		if(ip.equals(tmpIp)){
     			netStat = sigar.getNetInterfaceStat(netInfo);
-    			nets = new Pair<Long, Long>();
-    			nets.setKey(netStat.getRxBytes());
-    			nets.setValue(netStat.getTxBytes());
+    			nets = new Pair<Long, Long>(netStat.getRxBytes(),netStat.getTxBytes());
     			break;
     		}
     	}
