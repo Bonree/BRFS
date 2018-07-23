@@ -6,9 +6,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-
-import javax.transaction.Synchronization;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -433,8 +430,8 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			int deleteCount = deleteTasks(taskQueues, taskType, ttl);
 			// 维护任务状态
 			int reviseCount = reviseTaskState(taskQueues, aliveServers, taskType, deleteCount);
-			counts.setKey(deleteCount);
-			counts.setValue(reviseCount);
+			counts.setFirst(deleteCount);
+			counts.setSecond(reviseCount);
 		}
 		catch (Exception e) {
 			LOG.error("{}",e);
@@ -738,9 +735,9 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		for(String child : childeServers){
 			stat = new Pair<String, Integer>();
 			tmpServer = getTaskServerContentNodeInfo(taskType, taskName, child);
-			stat.setKey(child);
+			stat.setFirst(child);
 			iStat = tmpServer == null ? -3 :tmpServer.getTaskState();
-			stat.setValue(iStat);
+			stat.setSecond(iStat);
 			serverStatus.add(stat);
 		}
 		return serverStatus;

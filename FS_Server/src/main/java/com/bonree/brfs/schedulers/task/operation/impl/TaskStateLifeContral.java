@@ -15,7 +15,6 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.utils.StorageNameFileUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
@@ -71,7 +70,7 @@ public class TaskStateLifeContral {
 		int finishCount = 0;
 		int size = cStatus.size();
 		for(Pair<String,Integer> pair : cStatus){
-			cstat = pair.getValue();
+			cstat = pair.getSecond();
 			if(TaskState.EXCEPTION.code() == cstat){
 				isException = true;
 				finishCount +=1;
@@ -180,22 +179,22 @@ public class TaskStateLifeContral {
 		if(task == null){
 			return null;
 		}
-		if(BrStringUtils.isEmpty(task.getKey())){
+		if(BrStringUtils.isEmpty(task.getFirst())){
 			return null;
 		}
-		TaskModel cTask = release.getTaskContentNodeInfo(typeName, task.getKey());
+		TaskModel cTask = release.getTaskContentNodeInfo(typeName, task.getFirst());
 		if(cTask == null){
 			return null;
 		}
 		//更新异常的次数
-		if(task.getValue().getKey() == TaskState.EXCEPTION.code()){
-			TaskServerNodeModel server = release.getTaskServerContentNodeInfo(typeName, task.getKey(), serverId);
+		if(task.getSecond().getFirst() == TaskState.EXCEPTION.code()){
+			TaskServerNodeModel server = release.getTaskServerContentNodeInfo(typeName, task.getFirst(), serverId);
 			LOG.info("TaskMessage get  sTask :{}", JsonUtils.toJsonStringQuietly(server));
 			server.setRetryCount(server.getRetryCount() + 1);
-			release.updateServerTaskContentNode(serverId, task.getKey(), typeName, server);
+			release.updateServerTaskContentNode(serverId, task.getFirst(), typeName, server);
 		}
 		
-		return new Pair<String,TaskModel>(task.getKey(), cTask);
+		return new Pair<String,TaskModel>(task.getFirst(), cTask);
 	}
 	/**
 	 * 概述：将任务分批
@@ -288,16 +287,16 @@ public class TaskStateLifeContral {
 		List<Pair<String,Pair<Integer,Integer>>> eTasks = new ArrayList<Pair<String,Pair<Integer,Integer>>>();
 		Pair<Integer,Integer> codeAndCount = null;
 		for(Pair<String,Pair<Integer,Integer>> task : tasks){
-			codeAndCount = task.getValue();
+			codeAndCount = task.getSecond();
 			if(codeAndCount == null){
 				continue;
 			}
-			if(codeAndCount.getKey() == TaskState.FINISH.code()|| codeAndCount.getKey() == TaskState.RUN.code()||codeAndCount.getKey() == TaskState.RERUN.code()){
+			if(codeAndCount.getFirst() == TaskState.FINISH.code()|| codeAndCount.getFirst() == TaskState.RUN.code()||codeAndCount.getFirst() == TaskState.RERUN.code()){
 				continue;
-			}else if(codeAndCount.getKey() == TaskState.INIT.code()){
+			}else if(codeAndCount.getFirst() == TaskState.INIT.code()){
 				return task;
-			}else if(codeAndCount.getKey() == TaskState.EXCEPTION.code() && limtCount > 0){
-				if(codeAndCount.getValue() >limtCount){
+			}else if(codeAndCount.getFirst() == TaskState.EXCEPTION.code() && limtCount > 0){
+				if(codeAndCount.getSecond() >limtCount){
 					eTasks.add(task);
 				}else{
 					return task;
@@ -309,15 +308,15 @@ public class TaskStateLifeContral {
 		}
 		Collections.sort(eTasks, new Comparator<Pair<String,Pair<Integer,Integer>>>() {
 			public int compare(Pair<String,Pair<Integer,Integer>> o1, Pair<String,Pair<Integer,Integer>> o2) {
-				if(o1 == null|| o1.getValue() == null ){
+				if(o1 == null|| o1.getSecond() == null ){
 					return -1;
 				}
-				if(o2 == null || o2.getValue() == null){
+				if(o2 == null || o2.getSecond() == null){
 					return 1;
 				}
-				if(o1.getValue().getValue() > o2.getValue().getValue()){
+				if(o1.getSecond().getSecond() > o2.getSecond().getSecond()){
 					return -1;
-				}else if(o1.getValue().getValue() == o2.getValue().getValue()){
+				}else if(o1.getSecond().getSecond() == o2.getSecond().getSecond()){
 					return 0;
 				}else{
 					return 1;

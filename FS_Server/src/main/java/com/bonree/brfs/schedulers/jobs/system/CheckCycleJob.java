@@ -1,6 +1,18 @@
 
 package com.bonree.brfs.schedulers.jobs.system;
 
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.UnableToInterruptJobException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
@@ -15,18 +27,6 @@ import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CheckCycleJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("CycleCheckJob");
@@ -190,7 +190,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			LOG.warn("create pair is empty !!!!");
 			return;
 		}
-		TaskModel task = (TaskModel) pair.getKey();
+		TaskModel task = (TaskModel) pair.getFirst();
 		String taskName = null;
 		if (task != null) {
 			List servers = CreateSystemTask.getServerIds(services);

@@ -87,7 +87,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			LOG.warn("create pair is empty !!!!");
 			return;
 		}
-		TaskModel task = pair.getKey();
+		TaskModel task = pair.getFirst();
 		String taskName = null;
 		if(task != null) {
 			List<String> servers = CreateSystemTask.getServerIds(services);
@@ -96,7 +96,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		if(!BrStringUtils.isEmpty(taskName)) {
 			LOG.info("create {} {} task successfull !!!", taskType, taskName);
 		}
-		sourceTimes = pair.getValue();
+		sourceTimes = pair.getSecond();
 		// 更新sn临界信息
 		tmodel = release.getTaskTypeInfo(taskType);
 		tmodel.putAllSnTimes(sourceTimes);

@@ -1,9 +1,6 @@
 package com.bonree.brfs.schedulers.jobs.system;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -11,23 +8,16 @@ import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.utils.StorageNameFileUtils;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
-import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 
@@ -93,11 +83,11 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 				LOG.warn("create sys task is empty {}",taskType.name());
 				continue;
 			}
-			task = result.getKey();
+			task = result.getFirst();
 			taskName = CreateSystemTask.updateTask(release, task, serverIds, taskType);
 			if(!BrStringUtils.isEmpty(taskName)) {
 				LOG.info("create {} {} task successfull !!!", taskType.name(), taskName);
-				release.setTaskTypeModel(taskType.name(), result.getValue());
+				release.setTaskTypeModel(taskType.name(), result.getSecond());
 			}
 		}
 	}

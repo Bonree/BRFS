@@ -118,7 +118,7 @@ public class LocalFileUtils {
 		if(times == null ) {
 			return false;
 		}
-		if(times.getValue() <= endTime) {
+		if(times.getSecond() <= endTime) {
 			return true;
 		}else {
 			return false;
@@ -136,13 +136,13 @@ public class LocalFileUtils {
 		if(times == null ) {
 			return false;
 		}
-		if(times.getKey() < startTime) {
+		if(times.getFirst() < startTime) {
 			return false;
 		}
-		if(times.getKey() > endTime) {
+		if(times.getFirst() > endTime) {
 			return false;
 		}
-		if(times.getValue() > endTime) {
+		if(times.getSecond() > endTime) {
 			return false;
 		}
 		return true;

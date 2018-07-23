@@ -1,43 +1,27 @@
 package com.bonree.brfs.schedulers.jobs.system;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.RetrySleeper;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.RetryNTimes;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.SystemCheckJob;
 import com.bonree.brfs.schedulers.jobs.biz.SystemDeleteJob;
 import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
-import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
-import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
@@ -115,9 +99,9 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					LOG.warn("taskType :{} taskName: null is vaild ,skiping !!!",typeName);
 					continue;
 				}
-				currentTaskName = taskPair.getKey();
+				currentTaskName = taskPair.getFirst();
 				
-				task = TaskStateLifeContral.changeRunTaskModel(taskPair.getValue());
+				task = TaskStateLifeContral.changeRunTaskModel(taskPair.getSecond());
 				// 获取执行策略
 				runPattern = runTask.taskRunnPattern(task);
 				if(runPattern == null){

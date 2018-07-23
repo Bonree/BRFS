@@ -83,7 +83,7 @@ public class CopyCountCheck {
 			if(cache == null){
 				continue;
 			}
-			losss = cache.getKey();
+			losss = cache.getFirst();
 			if(losss == null || losss.isEmpty()){
 				continue;
 			}
@@ -357,9 +357,7 @@ public class CopyCountCheck {
 				filterBiggestResult.add(key);
 			}
 		}
-		Pair<List<String>,List<String>> result = new Pair<List<String>,List<String>>();
-		result.setKey(filterLitterResult);
-		result.setValue(filterBiggestResult);
+		Pair<List<String>,List<String>> result = new Pair<List<String>,List<String>>(filterLitterResult,filterBiggestResult);
 		return result;
 	}
 	

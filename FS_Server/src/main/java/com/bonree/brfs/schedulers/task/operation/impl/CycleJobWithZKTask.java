@@ -126,8 +126,8 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			return;
 		}
 		// 将当前的任务分成批次执行
-		TaskModel task = TaskStateLifeContral.changeRunTaskModel(taskPair.getValue());
-		String currentTaskName = taskPair.getKey();
+		TaskModel task = TaskStateLifeContral.changeRunTaskModel(taskPair.getSecond());
+		String currentTaskName = taskPair.getFirst();
 		if(BrStringUtils.isEmpty(currentTaskName)){
 			LOG.info("{} {} task behind is empty !!!",taskType.name(),prexName);
 			return ;

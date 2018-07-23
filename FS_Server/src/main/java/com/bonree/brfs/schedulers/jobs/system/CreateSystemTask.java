@@ -60,11 +60,11 @@ public class CreateSystemTask {
 			return null;
 		}
 		
-		snTimes = pair.getValue();
+		snTimes = pair.getSecond();
 		if(snTimes != null && !snTimes.isEmpty()) {
 			tmodel.putAllSnTimes(snTimes);
 		}
-		return new Pair<TaskModel,TaskTypeModel>(pair.getKey(), tmodel);
+		return new Pair<TaskModel,TaskTypeModel>(pair.getFirst(), tmodel);
 	}
 	/***
 	 * 概述：获取任务
