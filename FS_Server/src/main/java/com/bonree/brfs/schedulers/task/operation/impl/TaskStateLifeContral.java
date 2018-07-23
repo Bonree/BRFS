@@ -30,46 +30,6 @@ public class TaskStateLifeContral {
 	private static final Logger LOG = LoggerFactory.getLogger("TaskLife");
 	
 	/**
-	 * 概述：获取当前任务
-	 * @param release
-	 * @param prexTaskName
-	 * @param taskType
-	 * @param serverId
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-//	public static String getcurrentTaskName(MetaTaskManagerInterface release, String prexTaskName,TaskType taskType, String serverId){
-//		String typeName = taskType.name();
-//		String currentTaskName = null;
-//		if(BrStringUtils.isEmpty(prexTaskName)){
-//			prexTaskName = release.getLastSuccessTaskIndex(typeName, serverId);
-//		}
-//		if(BrStringUtils.isEmpty(prexTaskName)|| !BrStringUtils.isEmpty(prexTaskName)&& release.queryTaskState(prexTaskName, typeName) < 0){
-//			currentTaskName = release.getFirstServerTask(typeName, serverId);
-//		}else{
-//			currentTaskName = release.getNextTaskName(typeName, prexTaskName);
-//		}
-//		LOG.info("type: {},  prexTaskName :{} , currentTaskName: {}", typeName, prexTaskName, currentTaskName);
-//		return currentTaskName;
-//	}
-	/**
-	 * 概述：获取任务信息
-	 * @param release
-	 * @param prexTaskName
-	 * @param serviceId
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-//	public static Pair<String, TaskModel> getTaskModel(MetaTaskManagerInterface release,TaskType taskType,String prexTaskName, String serviceId){
-//		String currentTaskName = getcurrentTaskName(release, prexTaskName, taskType, serviceId);
-//		if(BrStringUtils.isEmpty(currentTaskName)){
-//			return null;
-//		}
-//		TaskModel task = release.getTaskContentNodeInfo(taskType.name(), currentTaskName);
-//		return new Pair<String,TaskModel>(currentTaskName, task);
-//	}
-	
-	/**
 	 * 概述：更新任务状态
 	 * @param serverId
 	 * @param taskname
@@ -78,11 +38,7 @@ public class TaskStateLifeContral {
 	 * @param stat
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void updateTaskStatusByCompelete(String serverId, String taskname,String taskType,String result, int stat){
-		TaskResultModel taskResult = null;
-		if(!BrStringUtils.isEmpty(result)){
-			taskResult = JsonUtils.toObjectQuietly(result, TaskResultModel.class);
-		}
+	public static void updateTaskStatusByCompelete(String serverId, String taskname,String taskType,TaskResultModel taskResult){
 		if(BrStringUtils.isEmpty(taskname)){
 			LOG.info("task name is empty !!! {} {} {}", taskType,taskname, serverId);
 			return;
@@ -100,7 +56,8 @@ public class TaskStateLifeContral {
 			sTask.setTaskStartTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
 		}
 		sTask.setTaskStopTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
-		sTask.setTaskState(stat);
+		TaskState status = taskResult == null ? TaskState.EXCEPTION : taskResult.isSuccess() ? TaskState.FINISH :TaskState.EXCEPTION;
+		sTask.setTaskState(status.code());
 		release.updateServerTaskContentNode(serverId, taskname, taskType, sTask);
 		LOG.info("----> complete server task :{} - {} - {} - {}",taskType, taskname, serverId, TaskState.valueOf(sTask.getTaskState()).name());
 		// 更新TaskContent
@@ -153,19 +110,12 @@ public class TaskStateLifeContral {
 		if(data == null){
 			return ;
 		}
-		// 更新任务结果
+		// 结果为空不更新批次任务结果
 		if(result == null){
 			return;
 		}
 		int taskStat = -1;
-		if(data.containsKey(JobDataMapConstract.TASK_MAP_STAT)){
-			taskStat = data.getInt(JobDataMapConstract.TASK_MAP_STAT);
-		}
-		
-		if(!(TaskState.EXCEPTION.code() == taskStat || TaskState.FINISH.code() == taskStat)){
-			data.put(JobDataMapConstract.TASK_MAP_STAT, result.isSuccess() ? TaskState.FINISH.code() : TaskState.EXCEPTION.code());
-		}else{
-		}
+		boolean isSuccess = result.isSuccess();
 		TaskResultModel sumResult = null;
 		String content = null;
 		if(data.containsKey(JobDataMapConstract.TASK_RESULT)){
@@ -177,6 +127,7 @@ public class TaskStateLifeContral {
 			sumResult = new TaskResultModel();
 		}
 		sumResult.addAll(result.getAtoms());
+		sumResult.setSuccess(isSuccess && sumResult.isSuccess());
 		String sumContent = JsonUtils.toJsonStringQuietly(sumResult);
 		data.put(JobDataMapConstract.TASK_RESULT, sumContent);
 		
@@ -259,9 +210,6 @@ public class TaskStateLifeContral {
 		
 		TaskModel changeTask = new TaskModel();
 		changeTask.setCreateTime(message.getCreateTime());
-		changeTask.setStartDataTime(message.getStartDataTime());
-		changeTask.setEndDataTime(message.getEndDataTime());
-		changeTask.setRetryCount(message.getRetryCount());
 		changeTask.setTaskState(changeTask.getTaskState());
 		changeTask.setTaskType(message.getTaskType());
 		if(TaskType.SYSTEM_COPY_CHECK.code() == changeTask.getTaskType()) {
@@ -276,14 +224,11 @@ public class TaskStateLifeContral {
 		long startTime = 0;
 		long endTime = 0;
 		String snName = null;
-		String dir = null;
-		String tmpDir = null;
 		String operation = null;
 		long granule = 0;
 		for(AtomTaskModel aTask : atoms) {
 			startTime = TimeUtils.getMiles(aTask.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 			endTime = TimeUtils.getMiles(aTask.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
-			dir = aTask.getDirName();
 			snName = aTask.getStorageName();
 			operation = aTask.getTaskOperation();
 			granule = aTask.getGranule();
@@ -291,14 +236,7 @@ public class TaskStateLifeContral {
 				if(start +granule > endTime) {
 					continue;
 				}
-				atom = new AtomTaskModel();
-				atom.setDataStartTime(TimeUtils.formatTimeStamp(start,TimeUtils.TIME_MILES_FORMATE));
-				atom.setDataStopTime(TimeUtils.formatTimeStamp(start + granule,TimeUtils.TIME_MILES_FORMATE));
-				atom.setStorageName(snName);
-				atom.setGranule(granule);
-				tmpDir = StorageNameFileUtils.createSNDir(snName, dir, start,granule);
-				atom.setDirName(tmpDir);
-				atom.setTaskOperation(operation);
+				atom = AtomTaskModel.getInstance(null, snName, operation, aTask.getPatitionNum(), start, start+granule, granule);
 				changeTask.addAtom(atom);
 			}
 		}
@@ -331,37 +269,6 @@ public class TaskStateLifeContral {
 				continue;
 			}
 			codeAndCount = new Pair<Integer, Integer>(server.getTaskState(), server.getRetryCount());
-			sTaskStatus = new Pair<String,Pair<Integer,Integer>>(taskName,codeAndCount);
-			sTaskStatuss.add(sTaskStatus);
-		}
-		return sTaskStatuss;
-	}
-	/***
-	 * 概述：获取指定任务的servid任务状态
-	 * @param release
-	 * @param typeName
-	 * @param serverId
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static List<Pair<String,Pair<Integer,Integer>>> getTaskState(MetaTaskManagerInterface release, String typeName, String serverId){
-		List<String> taskNames = release.getTaskList(typeName);
-		List<Pair<String,Pair<Integer,Integer>>> sTaskStatuss = new ArrayList<Pair<String,Pair<Integer,Integer>>>();
-		if(taskNames == null || taskNames.isEmpty()){
-			return sTaskStatuss;
-		}
-		Pair<String,Pair<Integer,Integer>> sTaskStatus = null;
-		Pair<Integer,Integer> codeAndCount = null;
-		TaskModel task = null;
-		for(String taskName : taskNames){
-			task = release.getTaskContentNodeInfo(typeName, taskName);
-			if(task == null){
-				continue;
-			}
-			if(task.getTaskState() == TaskState.FINISH.code()){
-				continue;
-			}
-			codeAndCount = new Pair<Integer, Integer>(task.getTaskState(), task.getRetryCount());
 			sTaskStatus = new Pair<String,Pair<Integer,Integer>>(taskName,codeAndCount);
 			sTaskStatuss.add(sTaskStatus);
 		}

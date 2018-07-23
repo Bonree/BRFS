@@ -18,7 +18,9 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.jobs.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
@@ -72,7 +74,6 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 			return;
 		}
 		String snName = null;
-		String dirName = null;
 		TaskResultModel result = new TaskResultModel();
 		TaskResultModel batchResult = null;
 		AtomTaskResultModel usrResult = null;
@@ -80,7 +81,6 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		String operation = null;
 		for(AtomTaskModel atom : atoms){
 			snName = atom.getStorageName();
-			dirName = atom.getDirName();
 			if("1".equals(currentIndex)) {
 				operation = atom.getTaskOperation();
 				LOG.info("task operation {} source:{}",operation ,DELETE_SN_ALL);
@@ -88,16 +88,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 					dSns.add(snName);
 				}
 			}
-			
-			if(BrStringUtils.isEmpty(snName)){
-				LOG.warn("sn is empty !!!");
-				continue;
-			}
-			if(BrStringUtils.isEmpty(dirName)){
-				LOG.warn("dir is empty !!!");
-				continue;
-			}
-			usrResult = deleteFiles(snName, dirName, dataPath, atom.getGranule());
+			usrResult = deleteFiles(atom, dataPath);
 			if (usrResult == null) {
 				continue;
 			}
@@ -120,39 +111,39 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		TaskStateLifeContral.updateMapTaskMessage(context, result);
 	}
 	/**
-	 * 概述：删除指定目录的任务信息
-	 * @param snName
-	 * @param dirName
+	 * 概述：封装执行结果
+	 * @param atom
+	 * @param dataPath
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private AtomTaskResultModel deleteFiles(String snName, String dirName,String dataPath,long granule){
-		String path = dataPath + File.separator + dirName;
-		if(!FileUtils.isExist(path)){
-			LOG.warn("{} is not exists !!",path);
+	public AtomTaskResultModel deleteFiles(AtomTaskModel atom, String dataPath){
+		if(atom == null) {
 			return null;
 		}
+		String snName = atom.getStorageName();
+		int partitionNum = atom.getPatitionNum();
+		long granule = atom.getGranule();
+		long startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
+		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
+		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
 		AtomTaskResultModel atomR = new AtomTaskResultModel();
-		boolean isSuccess = false;
-		isSuccess = FileUtils.deleteDir(path,true);
 		atomR.setSn(snName);
-		atomR.setGranule(granule);
-		atomR.setDir(dirName);
+		if(partDirs == null || partDirs.isEmpty()) {
+			atomR.setOperationFileCount(0);
+			return atomR;
+		}
+		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1);
+		if(deleteDirs == null || deleteDirs.isEmpty()) {
+			atomR.setOperationFileCount(0);
+			return atomR;
+		}
+		boolean isSuccess = true;
+		for(String deletePath : deleteDirs) {
+			isSuccess = isSuccess && FileUtils.deleteDir(deletePath, true);
+		}
+		atomR.setOperationFileCount(deleteDirs.size());
 		atomR.setSuccess(isSuccess);
-		atomR.setOperationFileCount(1);
 		return atomR;
-	}
-	public static String coveryPath(String path){
-		String paths = new String(path);
-		int index = paths.lastIndexOf("/");
-		if(index == path.length() -1){
-			paths = paths.substring(0, index);
-		}
-		index = paths.lastIndexOf("\\");
-		if(index == path.length() -1){
-			paths = paths.substring(0, index);
-		}
-		return paths;
-	
 	}
 }

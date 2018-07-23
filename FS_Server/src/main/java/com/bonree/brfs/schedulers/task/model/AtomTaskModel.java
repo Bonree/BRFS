@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -16,14 +17,15 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
  * @Description: 任务原子任务
  *****************************************************************************
  */
+@JsonIgnoreProperties(ignoreUnknown = true) 
 public class AtomTaskModel {
 	private String storageName;
 	private String dataStartTime;
 	private String dataStopTime;
-	private String dirName;
 	private List<String> files = new ArrayList<String>();
 	private String taskOperation;
 	private long granule;
+	private int patitionNum;
 	/**
 	 * 概述：生成任务信息
 	 * @param atomFiles
@@ -35,7 +37,7 @@ public class AtomTaskModel {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static AtomTaskModel getInstance(Collection<String> atomFiles, String snName, String taskOperation,String dir, long startTime, long endTime,long granule) {
+	public static AtomTaskModel getInstance(Collection<String> atomFiles, String snName, String taskOperation,int patitionNum, long startTime, long endTime,long granule) {
 		AtomTaskModel atom = new AtomTaskModel();
 		if(atomFiles != null) {
 			atom.addAllFiles(atomFiles);
@@ -44,41 +46,16 @@ public class AtomTaskModel {
 		atom.setTaskOperation(taskOperation);
 		atom.setDataStartTime(TimeUtils.formatTimeStamp(startTime, TimeUtils.TIME_MILES_FORMATE));
 		atom.setDataStopTime(TimeUtils.formatTimeStamp(endTime, TimeUtils.TIME_MILES_FORMATE));
-		atom.setDirName(dir);
+		atom.setPatitionNum(patitionNum);
 		atom.setGranule(granule);
 		return atom;
 	}
 	
-	/**
-	 * 概述：创建原子任务list 无文件
-	 * @param snName
-	 * @param copyCount
-	 * @param startTime
-	 * @param endTime
-	 * @param taskOperation
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static List<AtomTaskModel> createInstance(String snName, int copyCount, final long startTime,final long endTime, String taskOperation, long granule){
-		List<AtomTaskModel> atomList = new ArrayList<AtomTaskModel>();
-		AtomTaskModel atom = null;
-		for(int i = 1; i <= copyCount; i++){
-			atom = getInstance(null, snName, taskOperation, i+"", startTime, endTime, granule);
-			atomList.add(atom);
-		}
-		return atomList;
-	}
 	public String getStorageName() {
 		return storageName;
 	}
 	public void setStorageName(String storageName) {
 		this.storageName = storageName;
-	}
-	public String getDirName() {
-		return dirName;
-	}
-	public void setDirName(String dirName) {
-		this.dirName = dirName;
 	}
 	public String getTaskOperation() {
 		return taskOperation;
@@ -117,5 +94,13 @@ public class AtomTaskModel {
 
 	public void setGranule(long granule) {
 		this.granule = granule;
+	}
+
+	public int getPatitionNum() {
+		return patitionNum;
+	}
+
+	public void setPatitionNum(int patitionNum) {
+		this.patitionNum = patitionNum;
 	}
 }

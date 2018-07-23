@@ -151,7 +151,7 @@ public class CreateSystemTask {
 			}
 			if(files != null && !files.isEmpty()) {
 				dir = TimeUtils.timeInterval(startTime, granule);
-				atom = AtomTaskModel.getInstance(files, snName, taskOperation, dir, startTime, endTime, granule);
+				atom = AtomTaskModel.getInstance(files, snName, taskOperation, sn.getReplicateNum(), startTime, endTime, granule);
 				sumAtoms.add(atom);
 			}
 			lastSnTimes.put(snName, endTime);
@@ -178,13 +178,13 @@ public class CreateSystemTask {
 		long startTime = 0;
 		long endTime = 0;
 		int copyCount = 1;
-		List<AtomTaskModel> atoms = null;
 		long currentTime = System.currentTimeMillis();
 		List<AtomTaskModel> sumAtoms = new ArrayList<AtomTaskModel>();
 		long ttl = 0;
 		Map<String,Long> lastSnTimes = new HashMap<String,Long>(snTimes);
 		long cGraTime = 0;
 		long granule = 0;
+		AtomTaskModel atom = null;
 		for(StorageRegion sn : needSn) {
 			granule =Duration.parse(sn.getFilePartitionDuration()).toMillis();
 			cGraTime = currentTime - currentTime%granule;
@@ -214,11 +214,12 @@ public class CreateSystemTask {
 				continue;
 			}
 			copyCount = sn.getReplicateNum();
-			atoms =  AtomTaskModel.createInstance(snName, copyCount, startTime, endTime, "", granule);
-			if(atoms == null || atoms.isEmpty()) {
+//			atoms =  AtomTaskModel.createInstance(snName, copyCount, startTime, endTime, "", granule);
+			atom  =  AtomTaskModel.getInstance(null, snName, "", sn.getReplicateNum(), startTime, endTime, granule);
+			if(atom == null) {
 				continue;
 			}
-			sumAtoms.addAll(atoms);
+			sumAtoms.add(atom);
 			lastSnTimes.put(snName, endTime);
 		}
 		if(sumAtoms == null || sumAtoms.isEmpty()) {

@@ -73,7 +73,6 @@ public class CopyRecovery {
 		for (AtomTaskModel atom : atoms) {
 			atomR = new AtomTaskResultModel();
 			atomR.setFiles(atom.getFiles());
-			atomR.setDir(atom.getDirName());
 			atomR.setSn(atom.getStorageName());
 			snName = atom.getStorageName();
 			sn = snm.findStorageRegionByName(snName);
@@ -134,13 +133,10 @@ public class CopyRecovery {
 	public static List<String> recoveryFiles(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageRegion snNode,AtomTaskModel atom, String dataPath) {
 
 		String snName = atom.getStorageName();
-		String dirName = atom.getDirName();
-		if(BrStringUtils.isEmpty(dirName)) {
-			long start = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
-			long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
-			long granule = endTime -start;
-			dirName = TimeUtils.timeInterval(start, granule);
-		}
+		long start = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
+		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
+		long granule = endTime -start;
+		String dirName = TimeUtils.timeInterval(start, granule);
 		List<String> fileNames = atom.getFiles();
 		if (fileNames == null || fileNames.isEmpty()) {
 			LOG.warn("<recoverFiles> {} files name is empty", snName);

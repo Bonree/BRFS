@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
@@ -40,7 +41,6 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 		String prexName = null;
 		String currentTaskName = null;
 		int batchIndex = 0;
-		int stat = -1;
 		TaskType taskType = null;
 		String serverId = null;
 		JobDataMap data = context.getJobDetail().getJobDataMap();
@@ -85,19 +85,22 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 				LOG.warn("rebalance task is running !! skip check copy task");
 				return;
 			}
-			LOG.info("batch ID :{} {} {} {} {}",batchIndex,taskType,currentTaskName,serverId,stat);
 			if(batchIndex >= 1){
+				LOG.info("batch ID :{} {} {} {} {}",batchIndex,taskType,currentTaskName,serverId,isSuccess ? TaskState.RUN :TaskState.EXCEPTION);
 				TaskResultModel resultTask = new TaskResultModel();
 				resultTask.setSuccess(isSuccess);
 				TaskStateLifeContral.updateMapTaskMessage(context, resultTask);
 			}
 			//最后一次执行更新任务状态并处理任务
 			if(batchIndex == 1){
+				LOG.info("batch ID :{} {} {} {} {}",batchIndex,taskType,currentTaskName,serverId,isSuccess ? TaskState.FINISH :TaskState.EXCEPTION);
 				String result = data.getString(JobDataMapConstract.TASK_RESULT);
-				stat = data.getInt(JobDataMapConstract.TASK_MAP_STAT);
-				TaskStateLifeContral.updateTaskStatusByCompelete(serverId, currentTaskName, taskType.name(), result, stat);
+				TaskResultModel tResult = new TaskResultModel(); 
+				if(!BrStringUtils.isEmpty(result)) {
+					tResult = JsonUtils.toObjectQuietly(result, TaskResultModel.class);
+				}
+				TaskStateLifeContral.updateTaskStatusByCompelete(serverId, currentTaskName, taskType.name(), tResult);
 				data.put(JobDataMapConstract.CURRENT_INDEX, (batchIndex-1)+"" );
-				data.put(JobDataMapConstract.TASK_MAP_STAT, TaskState.INIT.code());
 				data.put(JobDataMapConstract.TASK_RESULT, "");
 				data.put(JobDataMapConstract.PREX_TASK_NAME, currentTaskName);
 				data.put(JobDataMapConstract.CURRENT_TASK_NAME, "");
@@ -133,7 +136,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 		// 若批次为空则更新任务状态
 		if(batchDatas == null || batchDatas.isEmpty()){
 			LOG.info("batch data is empty !! update task :{} {}",taskType.name(),currentTaskName);
-			TaskStateLifeContral.updateTaskStatusByCompelete(serverId, currentTaskName, taskType.name(), "", TaskState.FINISH.code());
+			TaskStateLifeContral.updateTaskStatusByCompelete(serverId, currentTaskName, taskType.name(), new TaskResultModel());
 			data.put(JobDataMapConstract.PREX_TASK_NAME, currentTaskName);
 			data.put(JobDataMapConstract.CURRENT_TASK_NAME, "");
 			data.put(JobDataMapConstract.CURRENT_INDEX, 0+"");

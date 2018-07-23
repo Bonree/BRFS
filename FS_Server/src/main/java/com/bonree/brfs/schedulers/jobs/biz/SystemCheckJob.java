@@ -1,13 +1,6 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.List;
-import java.util.zip.CRC32;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -15,15 +8,11 @@ import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.CloseUtils;
-import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.write.data.FSCode;
-import com.bonree.brfs.common.write.data.FileDecoder;
-import com.bonree.brfs.disknode.utils.CheckUtils;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.jobs.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
@@ -45,7 +34,6 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 	@Override
 	public void caughtException(JobExecutionContext context) {
 		LOG.info("Error ......   ");
-		
 	}
 
 	@Override
@@ -77,22 +65,15 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 			return;
 		}
 		String snName = null;
-		String dirName = null;
 		TaskResultModel result = new TaskResultModel();
 		TaskResultModel batchResult = null;
-		boolean isException = false;
 		for(AtomTaskModel atom : atoms){
 			snName = atom.getStorageName();
-			dirName = atom.getDirName();
 			if(BrStringUtils.isEmpty(snName)){
 				LOG.warn("sn is empty !!!");
 				continue;
 			}
-			if(BrStringUtils.isEmpty(dirName)){
-				LOG.warn("dir is empty !!!");
-				continue;
-			}
-			batchResult = checkFiles(snName, dirName, dataPath,atom.getDataStartTime(), atom.getDataStopTime(), atom.getGranule());
+			batchResult =checkFiles(atom, dataPath);
 			if(batchResult == null){
 				continue;
 			}
@@ -104,32 +85,25 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		//更新任务状态
 		TaskStateLifeContral.updateMapTaskMessage(context, result);
 	}
-	/**
-	 * 概述：校验文件
-	 * @param snName
-	 * @param dirName
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private TaskResultModel checkFiles(String snName, String dirName, String dataPath,String startTime, String endTime,long granule){
-		String path = dataPath + File.separator + dirName;
+	public TaskResultModel checkFiles(AtomTaskModel atom ,String dataPath){
+		String snName  = atom.getStorageName();
+		int partitionNum = atom.getPatitionNum();
+		long startTime = TimeUtils.getMiles(atom.getDataStartTime());
+		long endTime = TimeUtils.getMiles(atom.getDataStopTime());
+		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
+		List<String> checkDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1);
+		List<String> errors = null;
 		TaskResultModel result = new TaskResultModel();
-		AtomTaskResultModel atomR = new AtomTaskResultModel();
-		atomR.setDir(dirName);
-		atomR.setSn(snName);
-		atomR.setDataStartTime(startTime);
-		atomR.setDataStopTime(endTime);
-		atomR.setGranule(granule);
-		List<String> errors = FileCollection.checkDirs(path);
-		if(errors == null || errors.isEmpty()) {
-			atomR.setSuccess(true);
-			result.setSuccess(true);
-		}else {
-			atomR.setSuccess(false);
-			result.setSuccess(false);
-			atomR.addAll(errors);
+		AtomTaskResultModel atomR = null;
+		for(String checkDir :checkDirs) {
+			errors = FileCollection.checkDirs(checkDir);
+			atomR = AtomTaskResultModel.getInstance(errors, snName, startTime, endTime, "", partitionNum);
+			if(errors !=null && !errors.isEmpty()) {
+				atomR.setSuccess(false);
+				result.setSuccess(false);
+			}
+			result.add(atomR);
 		}
-		result.add(atomR);
 		return result;
 	}
 	

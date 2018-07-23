@@ -1,9 +1,6 @@
+
 package com.bonree.brfs.schedulers.jobs.biz;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.quartz.JobDataMap;
@@ -12,17 +9,19 @@ import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.jobs.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateWithZKTask;
 import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
+
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -35,16 +34,15 @@ import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
  */
 public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 	private static final Logger LOG = LoggerFactory.getLogger("SystemDeleteJob");
+
 	@Override
 	public void caughtException(JobExecutionContext context) {
 		LOG.info("Error ......   ");
-		
 	}
 
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
-		LOG.info("interrupt ......   " );
-		
+		LOG.info("interrupt ......   ");
 	}
 
 	@Override
@@ -54,180 +52,73 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
-		LOG.info("batch {}",content);
+		LOG.info("batch {}", content);
 		// 获取当前执行的任务类型
 		int taskType = data.getInt(JobDataMapConstract.TASK_TYPE);
-		boolean isuser = TaskType.USER_DELETE.code() == taskType;
 		BatchAtomModel batch = JsonUtils.toObject(content, BatchAtomModel.class);
-		if(batch == null){
+		if (batch == null) {
 			LOG.warn("batch data is empty !!!");
 			return;
 		}
-		
+
 		List<AtomTaskModel> atoms = batch.getAtoms();
-		if(atoms == null || atoms.isEmpty()){
+		if (atoms == null || atoms.isEmpty()) {
 			LOG.warn("atom task is empty !!!");
 			return;
 		}
 		String snName = null;
-		String dirName = null;
 		TaskResultModel result = new TaskResultModel();
-		TaskResultModel batchResult = null;
+		
 		AtomTaskResultModel usrResult = null;
 		String path = null;
-		for(AtomTaskModel atom : atoms){
+		for (AtomTaskModel atom : atoms) {
 			snName = atom.getStorageName();
-			dirName = atom.getDirName();
-			if(BrStringUtils.isEmpty(snName)){
+			if (BrStringUtils.isEmpty(snName)) {
 				LOG.warn("sn is empty !!!");
 				continue;
 			}
-			if(BrStringUtils.isEmpty(dirName)){
-				LOG.warn("dir is empty !!!");
+			usrResult = deleteDirs(atom, dataPath);
+			if (usrResult == null) {
 				continue;
 			}
-			path = dataPath + File.separator+ dirName;
-			if(isuser){
-				usrResult = deleteFiles(snName, dirName, dataPath, atom.getGranule());
-				if(usrResult == null){
-					continue;
-				}
-				if(!usrResult.isSuccess()){
-					result.setSuccess(false);
-				}
-				result.add(usrResult);
-			}else{
-				batchResult = deleteDirs(snName, dirName, dataPath, atom.getGranule());
-				if(batchResult == null){
-					continue;
-				}
-				if(!batchResult.isSuccess()){
-					result.setSuccess(false);
-				}
-				result.addAll(batchResult.getAtoms());
+			if (!usrResult.isSuccess()) {
+				result.setSuccess(false);
 			}
+			result.add(usrResult);
 		}
 		//更新任务状态
 		TaskStateLifeContral.updateMapTaskMessage(context, result);
 	}
 	/**
-	 * 概述：删除之前的数据
-	 * @param snName
-	 * @param dirName
+	 * 概述：封装结果
+	 * @param atom
+	 * @param dataPath
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public TaskResultModel deleteDirs(String snName, String dirName, String dataPath, long granule){
-		TaskResultModel result = new TaskResultModel();
-		AtomTaskResultModel  atom = null;
-		String tmpPath = dataPath+ File.separator+dirName;
-		LOG.info(tmpPath);
-		if(FileUtils.isExist(tmpPath) && !FileUtils.isDirectory(tmpPath)){
-			atom = deleteFiles(snName, dirName, dataPath,granule);
-			if(atom != null){
-				result.add(atom);
-				result.setSuccess(atom.isSuccess());
-			}
-			return result;
+	public AtomTaskResultModel deleteDirs(AtomTaskModel atom, String dataPath) {
+		AtomTaskResultModel atomResult = null;
+		String snName = atom.getStorageName();
+		int patitionNum = atom.getPatitionNum();
+		long granule = atom.getGranule();
+		long startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
+		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
+		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, patitionNum);
+		AtomTaskResultModel atomR = AtomTaskResultModel.getInstance(null, snName, startTime, endTime, "", patitionNum);
+		if(partDirs == null || partDirs.isEmpty()) {
+			return atomR;
 		}
-		File file1 = new File(tmpPath);
-		String tmpName = file1.getName();
-		File parent = new File(tmpPath).getParentFile();
-		
-		String path = parent.getAbsolutePath();
-		String basePath = parent.getParentFile().getName()+File.separator+parent.getName();
-		if(!FileUtils.isExist(path)){
-			result.setSuccess(true);
-			return result;
+		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 0);
+		if(deleteDirs == null || deleteDirs.isEmpty()) {
+			return atomR;
 		}
-		List<String> dirs = FileUtils.listFileNames(path);
-		if(dirs == null || dirs.isEmpty()){
-			result.setSuccess(true);
-			return result;
+		atomR.setOperationFileCount(deleteDirs.size());
+		boolean isSuccess = true;
+		for(String deleteDir : deleteDirs) {
+			isSuccess = isSuccess && FileUtils.deleteDir(deleteDir, true);
+			LOG.info("delete :{} status :{} ",deleteDir, isSuccess);
 		}
-		if(!FileUtils.isExist(tmpPath)){
-			dirs.add(tmpName);
-		}
-		List<String> filters = filterFiles(tmpName, dirs, basePath);
-		for(String file : filters){
-			atom = deleteFiles(snName, file, dataPath, granule);
-			if(atom == null){
-				continue;
-			}
-			if(!atom.isSuccess()){
-				result.setSuccess(false);
-				result.add(atom);
-			}
-		}
-		return result;
-	}
-	/**
-	 * 概述：过滤出需要删除的文件
-	 * @param dirNames
-	 * @param dirNames
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public List<String> filterFiles(String dirName, final List<String> dirNames,String basePath){
-		List<String> files = new ArrayList<String>();
-		if(dirNames == null||dirNames.isEmpty()){
-			return files;
-		}
-		
-		//升序排列任务
-		Collections.sort(dirNames, new Comparator<String>() {
-			public int compare(String o1, String o2) {
-				return o1.compareTo(o2);
-			}
-		});
-		//获取文件路径，统一分割符。
-		String path = new File(dirName).getPath();
-		int index = dirNames.indexOf(path);
-		if(index < 0){
-			files.add(path);
-			return files;
-		}
-		String tmpDir = null;
-		for(int i = 0; i <= index; i++){
-			tmpDir = dirNames.get(i);
-			files.add(basePath +File.separator + tmpDir);
-		}
-		return files;
-	}
-	/**
-	 * 概述：删除指定目录的任务信息
-	 * @param snName
-	 * @param dirName
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private AtomTaskResultModel deleteFiles(String snName, String dirName,String dataPath,long granule){
-		String path = dataPath + File.separator + dirName;
-		if(!FileUtils.isExist(path)){
-			LOG.warn("{} is not exists !!",path);
-			return null;
-		}
-		AtomTaskResultModel atomR = new AtomTaskResultModel();
-		boolean isSuccess = false;
-		isSuccess = FileUtils.deleteDir(path,true);
-		atomR.setSn(snName);
-		atomR.setDir(dirName);
 		atomR.setSuccess(isSuccess);
-		atomR.setGranule(granule);
-		atomR.setOperationFileCount(1);
 		return atomR;
-	}
-	public static String coveryPath(String path){
-		String paths = new String(path);
-		int index = paths.lastIndexOf("/");
-		if(index == path.length() -1){
-			paths = paths.substring(0, index);
-		}
-		index = paths.lastIndexOf("\\");
-		if(index == path.length() -1){
-			paths = paths.substring(0, index);
-		}
-		return paths;
-	
 	}
 }

@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.operation.QuartzOperationStateInterface;
@@ -20,7 +22,6 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 		String serverId = null;
 		String taskTypeName = null;
 		String taskName = null;
-		int stat = -1;
 		boolean isSuccess = true;
 		try{
 			data = context.getJobDetail().getJobDataMap();
@@ -58,8 +59,11 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 				// 最后一次更新任务信息
 				}else if(currentIndex == 1){
 					String result = data.getString(JobDataMapConstract.TASK_RESULT);
-					stat = data.getInt(JobDataMapConstract.TASK_MAP_STAT);
-					TaskStateLifeContral.updateTaskStatusByCompelete(serverId, taskName, taskTypeName, result, stat);
+					TaskResultModel tResult = new TaskResultModel(); 
+					if(!BrStringUtils.isEmpty(result)) {
+						tResult = JsonUtils.toObjectQuietly(result, TaskResultModel.class);
+					}
+					TaskStateLifeContral.updateTaskStatusByCompelete(serverId, taskName, taskTypeName, tResult);
 					data.put(JobDataMapConstract.CURRENT_INDEX, (currentIndex-1)+"" );
 				}
 			} catch (Exception e) {

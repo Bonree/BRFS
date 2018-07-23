@@ -308,6 +308,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		String groupName = mcf.getGroupName();
 		String serverId = mcf.getServerId();
 		ServiceManager sm = mcf.getSm();
+		
 		String payLoad = JsonUtils.toJsonString(server);
 		sm.updateService(groupName, serverId, payLoad);
 	}

@@ -6,7 +6,8 @@ import java.util.List;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.TimeUtils;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+@JsonIgnoreProperties(ignoreUnknown = true) 
 public class TaskModel {
 	/**
 	 * 任务类型taskType
@@ -24,32 +25,12 @@ public class TaskModel {
 	 * sn执行最小单元
 	 */
 	private List<AtomTaskModel> atomList = new ArrayList<AtomTaskModel>();
-	/**
-	 * 任务结果
-	 */
-	private TaskResultModel result;
-	private int retryCount = 0;
-	/**
-	 * 处理数据的开始时间
-	 */
-	private String startDataTime;
-	/**
-	 * 处理数据的结束时间
-	 */
-	private String endDataTime;
-	/**
-	 * 任务操作
-	 */
-	private String taskOperation;
-	private long granule;
 	
 	public static TaskModel getInitInstance(TaskType taskType, String taskOperation,long granule) {
 		TaskModel task = new TaskModel();
 		task.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(),TimeUtils.TIME_MILES_FORMATE));
 		task.setTaskState(TaskState.INIT.code());
 		task.setTaskType(taskType.code());
-		task.setTaskOperation(taskOperation);
-		task.setGranule(granule);
 		return task;
 	}
 	public int getTaskType() {
@@ -64,12 +45,6 @@ public class TaskModel {
 	public void setTaskState(int taskState) {
 		this.taskState = taskState;
 	}
-	public TaskResultModel getResult() {
-		return result;
-	}
-	public void setResult(TaskResultModel result) {
-		this.result = result;
-	}
 	public List<AtomTaskModel> getAtomList() {
 		return atomList;
 	}
@@ -82,40 +57,10 @@ public class TaskModel {
 	public void addAtom(AtomTaskModel atom){
 		this.atomList.add(atom);
 	}
-	public int getRetryCount() {
-		return retryCount;
-	}
-	public void setRetryCount(int retryCount) {
-		this.retryCount = retryCount;
-	}
 	public String getCreateTime() {
 		return createTime;
 	}
 	public void setCreateTime(String createTime) {
 		this.createTime = createTime;
-	}
-	public String getStartDataTime() {
-		return startDataTime;
-	}
-	public void setStartDataTime(String startDataTime) {
-		this.startDataTime = startDataTime;
-	}
-	public String getEndDataTime() {
-		return endDataTime;
-	}
-	public void setEndDataTime(String endDataTime) {
-		this.endDataTime = endDataTime;
-	}
-	public String getTaskOperation() {
-		return taskOperation;
-	}
-	public void setTaskOperation(String taskOperation) {
-		this.taskOperation = taskOperation;
-	}
-	public long getGranule() {
-		return granule;
-	}
-	public void setGranule(long granule) {
-		this.granule = granule;
 	}
 }

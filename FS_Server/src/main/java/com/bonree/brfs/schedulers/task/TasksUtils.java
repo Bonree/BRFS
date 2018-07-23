@@ -89,8 +89,6 @@ public class TasksUtils {
 		if(endTime == 0 || startTime >= endTime){
 			return null;
 		}	
-		AtomTaskModel atom = null;
-		String dirName = null;
 		String snName = sn.getName();
 		int count = sn.getReplicateNum();
 		long startHour = 0;
@@ -110,17 +108,11 @@ public class TasksUtils {
 		if(startHour >= endHour) {
 			return null;
 		}
-		
-		for(int i = 1; i<=count; i++){
-			atom = new AtomTaskModel();
-			atom.setStorageName(snName);
-			atom.setTaskOperation(opertationContent);
-			atom.setDirName(i+"");
-			atom.setDataStartTime(TimeUtils.formatTimeStamp(startHour, TimeUtils.TIME_MILES_FORMATE));
-			atom.setDataStopTime(TimeUtils.formatTimeStamp(endHour, TimeUtils.TIME_MILES_FORMATE));
-			atom.setTaskOperation(isDeleteSN ? UserDeleteJob.DELETE_SN_ALL:UserDeleteJob.DELETE_PART);
-			storageAtoms.add(atom);
-		}
+		String startStr = TimeUtils.formatTimeStamp(startHour, TimeUtils.TIME_MILES_FORMATE);
+		String endStr = TimeUtils.formatTimeStamp(endHour, TimeUtils.TIME_MILES_FORMATE);
+		String operation = isDeleteSN ? UserDeleteJob.DELETE_SN_ALL:UserDeleteJob.DELETE_PART;
+		AtomTaskModel atom = AtomTaskModel.getInstance(null, snName, operation, sn.getReplicateNum(), startTime, endTime, 3600000);
+		storageAtoms.add(atom);
 		task.setAtomList(storageAtoms);
 		task.setTaskState(TaskState.INIT.code());
 		task.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
@@ -270,7 +262,6 @@ public class TasksUtils {
 		tTask.setAtomList(tList);
 		tTask.setTaskState(TaskState.INIT.code());
 		tTask.setTaskType(TaskType.SYSTEM_COPY_CHECK.code());
-		tTask.setTaskOperation(CopyCheckJob.RECOVERY_CRC);
 		return  tTask;
 	}
 	

@@ -70,7 +70,6 @@ public class JobDataMapConstract {
 	public static final String TASK_NAME = "TASK_NAME";
 	public static final String TASK_TYPE = "TASK_TYPE";
 	public static final String TASK_STAT = "TASK_STAT";
-	public static final String TASK_MAP_STAT = "TASK_MAP_STAT";
 	public static final String CURRENT_INDEX = "CURRENT_INDEX";
 	public static final String TASK_RESULT = "TASK_RESULT";
 	public static final String BATCH_SIZE = "BATCH_SIZE";
