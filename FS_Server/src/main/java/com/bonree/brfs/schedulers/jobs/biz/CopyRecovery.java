@@ -178,7 +178,7 @@ public class CopyRecovery {
 		int localIndex = 0;
 		String remotePath = null;
 		String serverId = sim.getFirstServerID();
-		boolean isSuccess = false;
+		boolean isSuccess = true;
 		String snName = snNode.getName();
 		int snId = snNode.getId();
 		sss = parser.getAliveSecondID(fileName);
@@ -194,7 +194,7 @@ public class CopyRecovery {
 		localIndex = isContain(sss, secondId);
 		if (-1 == localIndex) {
 			LOG.info("<recoveryFile> {} {} {} is not mine !! skip",secondId, snName, fileName );
-			return false;
+			return true;
 		}
 		
 		localPath = "/"+snName + "/" + localIndex + "/" + dirName + "/" + fileName;
@@ -243,7 +243,7 @@ public class CopyRecovery {
 				return true;
 			}
 		}
-		return false;
+		return isSuccess;
 	}
 	/***
 	 * 概述：批量恢复任务

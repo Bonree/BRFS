@@ -38,7 +38,6 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		int taskTypeCode = 0;
 		int batchSize = 10;
-		String prexName = null;
 		String currentTaskName = null;
 		int batchIndex = 0;
 		TaskType taskType = null;
@@ -52,11 +51,6 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			
 			batchSize = data.getInt(JobDataMapConstract.BATCH_SIZE);
 					
-			if(!data.containsKey(JobDataMapConstract.PREX_TASK_NAME)){
-				data.put(JobDataMapConstract.PREX_TASK_NAME, "");
-			}
-			prexName = data.getString(JobDataMapConstract.PREX_TASK_NAME);
-			
 			if(!data.containsKey(JobDataMapConstract.CURRENT_TASK_NAME)){
 				data.put(JobDataMapConstract.CURRENT_TASK_NAME, "");
 			}
@@ -66,7 +60,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 				data.put(JobDataMapConstract.CURRENT_INDEX, "0");
 			}
 			batchIndex = data.getInt(JobDataMapConstract.CURRENT_INDEX);
-			LOG.info("current :{}, batchId : {}, prex:{}", currentTaskName, batchIndex, prexName);
+			LOG.info("current :{}, batchId : {}", currentTaskName, batchIndex);
 			if(batchSize == 0){
 				batchSize = 10;
 			}
@@ -93,23 +87,22 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			}
 			//最后一次执行更新任务状态并处理任务
 			if(batchIndex == 1){
-				LOG.info("batch ID :{} {} {} {} {}",batchIndex,taskType,currentTaskName,serverId,isSuccess ? TaskState.FINISH :TaskState.EXCEPTION);
 				String result = data.getString(JobDataMapConstract.TASK_RESULT);
 				TaskResultModel tResult = new TaskResultModel(); 
 				if(!BrStringUtils.isEmpty(result)) {
 					tResult = JsonUtils.toObjectQuietly(result, TaskResultModel.class);
 				}
+				LOG.info("batch ID :{} {} {} {} {}",batchIndex,taskType,currentTaskName,serverId,isSuccess&& tResult.isSuccess() ? TaskState.FINISH :TaskState.EXCEPTION);
 				TaskStateLifeContral.updateTaskStatusByCompelete(serverId, currentTaskName, taskType.name(), tResult);
 				data.put(JobDataMapConstract.CURRENT_INDEX, (batchIndex-1)+"" );
 				data.put(JobDataMapConstract.TASK_RESULT, "");
-				data.put(JobDataMapConstract.PREX_TASK_NAME, currentTaskName);
 				data.put(JobDataMapConstract.CURRENT_TASK_NAME, "");
 				data.put(JobDataMapConstract.CURRENT_INDEX, (batchIndex-1)+"" );
 			}else if(batchIndex <=0){
 				ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 				MetaTaskManagerInterface release = mcf.getTm();
 				//创建任务
-				createBatchData(release, data, serverId, taskType, prexName, batchSize, 3);
+				createBatchData(release, data, serverId, taskType, batchSize, 3);
 			}else{
 				//更新任务状态
 				data.put(JobDataMapConstract.CURRENT_INDEX, (batchIndex-1)+"" );
@@ -118,7 +111,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 		}
 	}
 	
-	public void createBatchData(MetaTaskManagerInterface release,JobDataMap data,String serverId, TaskType taskType, String prexName, int batchSize, int limitCount){
+	public void createBatchData(MetaTaskManagerInterface release,JobDataMap data,String serverId, TaskType taskType, int batchSize, int limitCount){
 		// 从zk获取任务信息最后一次执行成功的  若任务为空则返回
 		Pair<String,TaskModel> taskPair = TaskStateLifeContral.getCurrentOperationTask(release, taskType.name(), serverId, limitCount);
 		if(taskPair == null){
@@ -129,7 +122,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 		TaskModel task = TaskStateLifeContral.changeRunTaskModel(taskPair.getSecond());
 		String currentTaskName = taskPair.getFirst();
 		if(BrStringUtils.isEmpty(currentTaskName)){
-			LOG.info("{} {} task behind is empty !!!",taskType.name(),prexName);
+			LOG.info("{} {} task behind is empty !!!",taskType.name());
 			return ;
 		}
 		Map<String,String> batchDatas = BatchTaskFactory.createBatch(task, batchSize);
@@ -137,7 +130,6 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 		if(batchDatas == null || batchDatas.isEmpty()){
 			LOG.info("batch data is empty !! update task :{} {}",taskType.name(),currentTaskName);
 			TaskStateLifeContral.updateTaskStatusByCompelete(serverId, currentTaskName, taskType.name(), new TaskResultModel());
-			data.put(JobDataMapConstract.PREX_TASK_NAME, currentTaskName);
 			data.put(JobDataMapConstract.CURRENT_TASK_NAME, "");
 			data.put(JobDataMapConstract.CURRENT_INDEX, 0+"");
 			return;
