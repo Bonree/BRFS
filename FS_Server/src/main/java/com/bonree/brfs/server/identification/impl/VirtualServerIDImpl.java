@@ -76,8 +76,9 @@ public class VirtualServerIDImpl implements VirtualServerID {
     }
 
     @Override
-    public List<String> getVirtualID(int storageIndex, int count) {
+    public List<String> getVirtualID(int storageIndex, int count, String selfFirstID) {
         List<String> resultVirtualIds = new ArrayList<String>(count);
+        
         List<String> virtualIds = listValidVirtualIds(storageIndex);
         
         int index = 0;
@@ -88,7 +89,19 @@ public class VirtualServerIDImpl implements VirtualServerID {
         for(; index < count; index++) {
         	resultVirtualIds.add(createVirtualId(storageIndex));
         }
-        
+        try {
+        	for(String vid : resultVirtualIds) {
+        		String registerNode = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), vid, selfFirstID);
+        		if(client.checkExists().forPath(registerNode) == null) {
+        			client.create()
+					.creatingParentsIfNeeded()
+					.withMode(CreateMode.PERSISTENT)
+					.forPath(registerNode);
+        		}
+        	}
+        }catch (Exception e) {
+        	LOG.error("register vid error for " + resultVirtualIds, e);
+		}
         return resultVirtualIds;
     }
     
@@ -120,7 +133,6 @@ public class VirtualServerIDImpl implements VirtualServerID {
     public boolean deleteVirtualId(int storageIndex, String virtualId) {
         try {
 			client.delete().guaranteed().forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId));
-			
 			return true;
 		} catch (Exception e) {
 			LOG.error("delete virtual id node[{}:{}] error", storageIndex, virtualId, e);

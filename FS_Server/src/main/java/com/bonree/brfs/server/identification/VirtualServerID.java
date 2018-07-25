@@ -11,7 +11,7 @@ public interface VirtualServerID {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> getVirtualID(int storageIndex, int count);
+    public List<String> getVirtualID(int storageIndex, int count, String selfFirstID);
 
     /** 概述：列出使用的virtualID
      * @return

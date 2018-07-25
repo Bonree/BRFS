@@ -34,6 +34,7 @@ public class ServerIDManager {
 	private static final Logger LOG = LoggerFactory.getLogger(ServerIDManager.class);
 	
     private FirstLevelServerIDImpl firstLevelServerID;
+    
     private final String firstServerId;
     
     private SecondLevelServerID secondServerID;
@@ -44,7 +45,7 @@ public class ServerIDManager {
 
     private final static String SINGLE_FILE_DIR = new File(System.getProperty(SystemProperties.PROP_SERVER_ID_DIR), "disknode_id").getAbsolutePath();
 
-    private Map<String, String> otherServerIDCache = null;
+    private Map<String, String> otherServerIDCache = new ConcurrentHashMap<>();
 
     private final static String SEPARATOR = ":";
 
@@ -75,7 +76,6 @@ public class ServerIDManager {
     public ServerIDManager(CuratorFramework client, ZookeeperPaths zkBasePaths) {
         firstLevelServerID = new FirstLevelServerIDImpl(client, zkBasePaths.getBaseServerIdPath(), SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath());
         virtualServerID = new VirtualServerIDImpl(client, zkBasePaths.getBaseServerIdSeqPath());
-        otherServerIDCache = new ConcurrentHashMap<>();
         loadSecondServerIDCache(client, zkBasePaths.getBaseServerIdPath());
         secondIDCache = CuratorCacheFactory.getTreeCache();
         secondIDCache.addListener(zkBasePaths.getBaseServerIdPath(), new SecondIDCacheListener());
@@ -146,7 +146,7 @@ public class ServerIDManager {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public List<String> getVirtualServerID(int storageIndex, int count) {
-        return virtualServerID.getVirtualID(storageIndex, count);
+        return virtualServerID.getVirtualID(storageIndex, count, firstServerId);
     }
 
     /** 概述：将一个virtual server ID置为无效

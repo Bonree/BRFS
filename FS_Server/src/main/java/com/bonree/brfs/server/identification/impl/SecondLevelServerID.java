@@ -1,13 +1,10 @@
 package com.bonree.brfs.server.identification.impl;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
-import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,79 +44,42 @@ public class SecondLevelServerID {
     }
 
     public void loadServerID() {
-    	Map<String, String> expiredIds = scanExpiredServerIds();
-    	
     	try {
-			List<String> storageIdList = client.getChildren().forPath(selfFirstPath);
-			
-			if(storageIdList != null) {
-				for(String storageId : storageIdList) {
-					String idNodePath = ZKPaths.makePath(selfFirstPath, storageId);
-					
-					byte[] bytes = client.getData().forPath(idNodePath);
-					if(bytes == null) {
-						throw new IllegalStateException("server id node" + storageId + " can not get data");
-					}
-					
-					String serverId = BrStringUtils.fromUtf8Bytes(bytes);
-					if(expiredIds.remove(serverId, storageId)) {
-						client.delete().forPath(idNodePath);
-						continue;
-					}
-					
-					secondMap.put(Integer.parseInt(storageId), BrStringUtils.fromUtf8Bytes(bytes));
-				}
-			}
-		} catch (Exception e) {
-			LOG.error("can not get server id list from zk", e);
-			
-			throw new RuntimeException(e);
+    		List<String> storageIndeies = client.getChildren().forPath(selfFirstPath);
+    		// 此处需要进行判断是否过期
+    		for (String si : storageIndeies) {
+    			String node = ZKPaths.makePath(selfFirstPath, si);
+    			byte[] data = client.getData().forPath(node);
+    			String serverID = BrStringUtils.fromUtf8Bytes(data);
+    			if (isExpire(si, serverID)) { // 判断secondServerID是否过期，过期需要重新生成
+    				serverID = secondServerIDOpt.genLevelID();
+    				client.setData().forPath(node, serverID.getBytes());
+    			}
+    			secondMap.put(BrStringUtils.parseNumber(si, Integer.class), serverID);
+    		}
+    	}catch (Exception e) {
+    		LOG.error("load second id error!!!",e);
 		}
     }
     
-    private Map<String, String> scanExpiredServerIds() {
-    	Map<String, String> expiredIds = new HashMap<String, String>();
-    	
-    	try {
-    		String normalRoutePath = ZKPaths.makePath(baseRoutes, Constants.NORMAL_ROUTE);
-    		
-			List<String> storageIdList = client.getChildren().forPath(normalRoutePath);
-			if(storageIdList != null) {
-				for(String storageId : storageIdList) {
-					String idNodePath = ZKPaths.makePath(normalRoutePath, storageId);
-					
-					try {
-						List<String> routeList = client.getChildren().forPath(idNodePath);
-						if(routeList == null) {
-							continue;
-						}
-						
-						for(String route : routeList) {
-							try {
-								byte[] bytes = client.getData().forPath(ZKPaths.makePath(idNodePath, route));
-								if(bytes == null) {
-									continue;
-								}
-								
-								NormalRoute routeNode = JsonUtils.toObject(bytes, NormalRoute.class);
-								expiredIds.put(routeNode.getSecondID(), storageId);
-							} catch (Exception e) {
-								LOG.error("get route data of [{}] error", route, e);
-							}
-						}
-					} catch (Exception e) {
-						LOG.error("get route list[{}] error", idNodePath, e);
-					}
-				}
-			}
-		} catch(NoNodeException e) {
-			LOG.info("no normal node!");
-		} catch (Exception e) {
-			LOG.warn("get expired id list error", e);
-		}
-    	
-    	return expiredIds;
+
+    private boolean isExpire(String si, String secondServerID) throws Exception {
+        String normalPath = ZKPaths.makePath(baseRoutes, Constants.NORMAL_ROUTE);
+        String siPath = ZKPaths.makePath(normalPath, si);
+        if (client.checkExists().forPath(normalPath)!=null && client.checkExists().forPath(siPath)!=null) {
+            List<String> routeNodes = client.getChildren().forPath(siPath);
+            for (String routeNode : routeNodes) {
+                String routePath = ZKPaths.makePath(si, routeNode);
+                byte[] data = client.getData().forPath(routePath);
+                NormalRoute normalRoute = JsonUtils.toObject(data, NormalRoute.class);
+                if (normalRoute.getSecondID().equals(secondServerID)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
+    
 
     public String getServerID(int storageIndex) {
         String serverID = secondMap.get(storageIndex);
