@@ -3,7 +3,7 @@ package com.bonree.brfs.duplication.datastream.connection.http;
 import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
@@ -12,7 +12,7 @@ public class HttpDiskNodeConnection implements DiskNodeConnection {
 	
 	private static final int DEFAULT_RESPONSE_TIMEOUT_MILLIS = 15 * 1000;
 	
-	private static final int MAX_CONNECTION_RER_ROUTE = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_WRITER_WORKER_NUM);
+	private static final int MAX_CONNECTION_RER_ROUTE = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM);
 	
 	private String address;
 	private int port;

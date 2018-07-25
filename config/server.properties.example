@@ -9,81 +9,81 @@ cluster.name = cluster_name
 zookeeper.addresses = ip1:2181,ip2:2181
 
 # 磁盘节点服务所在的服务组
-#disknode.service.group = disk_group
+#datanode.service.group = data_group
 
 # 副本节点服务群组名
-#duplicatenode.service.group = duplicate_group
+#regionnode.service.group = region_group
 
 ###############################################
-##############副本节点 Config###################
+##############Region Node Config###################
 ###############################################
 
 # 副本节点服务地址
-duplicatenode.service.host = localhost
+regionnode.service.host = localhost
 
 # 副本节点服务端口
-duplicatenode.service.port = 8880
+regionnode.service.port = 8880
 
 # 副本节点日志文件夹
-duplicatenode.log.dir = /var/brfs/duplicatenode
+regionnode.log.dir = /var/brfs/regionnode
 
 # 需要进行文件清理的文件个数
 # 副本节点中维护的文件数量超过此值，文件清理程序
 # 才会进行文件清理
-#duplicatenode.file.clean.count = 10
+#regionnode.file.clean.count = 10
 
 # 副本节点能打开的最大文件数量
-#duplicatenode.file.max.count = 15
+#regionnode.file.max.count = 15
 
 # 文件可以被清理的字节下限
 # 文件清理程序只会清理文件空间使用比率大于此值的文件
-#duplicatenode.file.clean.usage.rate = 0.99
+#regionnode.file.clean.usage.rate = 0.99
 
 # 副本节点向磁盘节点写数据的线程数
-#duplicatenode.writer.worker.num = 24
+#regionnode.writer.worker.num = 24
 
 # 每个Storage Region可以缓存的数据数量
-#duplicatenode.data.pool.capacity = 512
+#regionnode.data.pool.capacity = 512
 
 # 数据处理程序的空闲时间
 # 每个Storage Region都会对应有一个DataEngine
 # 当第一条数据到达时DataEngine才会创建，如果在最后
 # 一条数据写入后，在Idle设定时长的时间里都没有数据到
 # 达，则删除DataEngine
-#duplicatenode.dataengine.idle.time = PT1H
+#regionnode.dataengine.idle.time = PT1H
 
 ###############################################
-##############磁盘节点 Config###################
+##############Data Node Config###################
 ###############################################
 # 磁盘节点的服务地址
-disknode.service.host = localhost
+datanode.service.host = localhost
 
 # 磁盘节点的服务端口
-disknode.service.port = 8881
+datanode.service.port = 8881
 
 # 磁盘节点保存数据文件的目录路径
-disknode.data.root = /data
+datanode.data.root = /data
 
 # 磁盘文件的最大容量（字节）
-#disknode.file.max.capacity = 6815744
+#datanode.file.max.capacity = 6815744
 
 # 磁盘节点处理数据写入的线程数
 # 默认为机器CPU核数
-#disknode.writer.worker.num = 8
+#datanode.writer.worker.num = 8
 
 # 数据文件的写入缓存
 # 单位（字节）
-#disknode.writer.data.cache = 524288
+#datanode.writer.data.cache = 524288
 
 # 数据写入记录的缓存大小
-#disknode.writer.record.cache = 65536
+#datanode.writer.record.cache = 65536
 
 # 文件的空闲时间
 # 如果文件空闲时间超过此值，则会把缓存中的内容刷入磁盘
-#disknode.file.idle.time = PT3S
+#datanode.file.idle.time = PT3S
 
 # 磁盘节点中用于处理Http请求的线程数
-#disknode.request.handler.num = 8
+#datanode.request.handler.num = 8
 
 ###############################################
 ##############文件平衡模块 Config################
@@ -107,7 +107,7 @@ disknode.data.root = /data
 #storage.replicate.count = 2
 
 # Storage Region中每个文件的容量大小（字节）
-storage.file.capacity = 6815744
+storage.file.capacity = 67108864
 
 # 默认Storage Region中分隔文件的时间段大小;
 # 文件会被按照时间存储到不同的文件夹下，每个文件夹会包含此值

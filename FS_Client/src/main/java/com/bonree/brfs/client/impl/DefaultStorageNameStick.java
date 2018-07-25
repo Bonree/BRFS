@@ -145,7 +145,9 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 }
                 URI uri = new URIBuilder().setScheme(config.getUrlSchema())
                 		.setHost(service.getHost()).setPort(service.getPort())
-                		.setPath(config.getDiskUrlRoot() + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot())).addParameter("offset", String.valueOf(fidObj.getOffset())).addParameter("size", String.valueOf(fidObj.getSize())).build();
+                		.setPath(config.getDiskUrlRoot() + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot()))
+                		.addParameter("offset", String.valueOf(fidObj.getOffset()))
+                		.addParameter("size", String.valueOf(fidObj.getSize())).build();
                 
                 try {
 					final HttpResponse response = client.executeGet(uri, defaultHeaders);

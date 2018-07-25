@@ -20,8 +20,8 @@ import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
 import com.bonree.brfs.common.timer.TimeExchangeListener;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
-import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizeCallback;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
+import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncCallback;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizer;
 import com.bonree.brfs.duplication.filenode.FileNode;
 import com.bonree.brfs.duplication.filenode.FileNodeSink;
@@ -64,9 +64,9 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 			FileNodeSinkManager fileNodeSinkManager,
 			TimeExchangeEventEmitter timeEventEmitter) {
 		this(storageRegion, factory, closer, fileSynchronizer, fileNodeSinkManager, timeEventEmitter,
-				Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_FILE_CLEAN_COUNT),
-				Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_MAX_FILE_COUNT),
-				Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_FILE_CLEAN_USAGE_RATE));
+				Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_FILE_CLEAN_COUNT),
+				Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_MAX_FILE_COUNT),
+				Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_FILE_CLEAN_USAGE_RATE));
 	}
 	
 	public DefaultFileObjectSupplier(StorageRegion storageRegion,
@@ -125,7 +125,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 		if(needSync) {
 			exceptedFiles.add(file);
 			
-			fileSynchronizer.synchronize(file, new FileObjectSynchronizeCallback() {
+			fileSynchronizer.synchronize(file, new FileObjectSyncCallback() {
 				
 				@Override
 				public void complete(FileObject file, long fileLength) {

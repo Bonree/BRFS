@@ -45,26 +45,26 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 			return null;
 		}
 		
-		FileNode fileNode = new FileNode();
-		fileNode.setStorageName(storageRegion.getName());
-		fileNode.setStorageId(storageRegion.getId());
-		fileNode.setServiceId(service.getServiceId());
-		fileNode.setServiceGroup(service.getServiceGroup());
-		fileNode.setName(FileNameBuilder.createFile(idManager, storageRegion, nodes));
-		fileNode.setDuplicateNodes(nodes);
-		fileNode.setTimeDuration(storageRegion.getFilePartitionDuration());
+		FileNode.Builder fileNodeBuilder = FileNode.newBuilder()
+				.setStorageName(storageRegion.getName())
+				.setStorageId(storageRegion.getId())
+				.setServiceId(service.getServiceId())
+				.setServiceGroup(service.getServiceGroup())
+				.setName(FileNameBuilder.createFile(idManager, storageRegion, nodes))
+				.setDuplicateNodes(nodes)
+				.setTimeDuration(storageRegion.getFilePartitionDuration());
 		
 		long capacity = -1;
 		for(DuplicateNode node : nodes) {
-			LOG.info("start init node[{}] for file[{}]", node, fileNode.getName());
-			DiskNodeConnection connection = connectionPool.getConnection(node);
+			LOG.info("start init node[{}] for file[{}]", node, fileNodeBuilder.build().getName());
+			DiskNodeConnection connection = connectionPool.getConnection(node.getGroup(), node.getId());
 			if(connection == null || connection.getClient() == null) {
-				LOG.info("can not write header for file[{}] because [{}] is disconnected", fileNode.getName(), node);
+				LOG.info("can not write header for file[{}] because [{}] is disconnected", fileNodeBuilder.build().getName(), node);
 				continue;
 			}
 			
 			String serverId = idManager.getOtherSecondID(node.getId(), storageRegion.getId());
-			String filePath = FilePathBuilder.buildFilePath(fileNode, serverId);
+			String filePath = FilePathBuilder.buildFilePath(fileNodeBuilder.build(), serverId);
 			
 			long result = connection.getClient().openFile(filePath, storageRegion.getFileCapacity());
 			if(result < 0) {
@@ -85,12 +85,12 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 		
 		//如果没有一个磁盘节点写入头数据成功，则放弃使用此文件节点
 		if(capacity < 0) {
-			LOG.error("can not open file at any duplicate node for file[{}]", fileNode.getName());
+			LOG.error("can not open file at any duplicate node for file[{}]", fileNodeBuilder.build().getName());
 			return null;
 		}
 		
+		FileNode fileNode = fileNodeBuilder.setCapacity(capacity).build();
 		try {
-			fileNode.setCapacity(capacity);
 			fileNodeStorer.save(fileNode);
 			
 			return new FileObject(fileNode);

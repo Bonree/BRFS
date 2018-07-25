@@ -311,14 +311,14 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public boolean recover(String path, long fileLength, List<String> serviceList) {
+	public boolean recover(String path, long fileLength, List<String> fullSates) {
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(host)
 	    .setPort(port)
 	    .setPath(DiskContext.URI_RECOVER_NODE_ROOT + path)
 	    .addParameter("length", String.valueOf(fileLength))
-	    .addParameter("services", Joiner.on(',').join(serviceList))
+	    .addParameter("fulls", Joiner.on(',').join(fullSates))
 	    .build();
 		
 		try {

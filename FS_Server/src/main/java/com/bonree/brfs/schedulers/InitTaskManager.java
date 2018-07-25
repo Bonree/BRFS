@@ -24,7 +24,7 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
@@ -74,7 +74,7 @@ public class InitTaskManager {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
 		mcf.setServerId(serverId);
-		mcf.setGroupName(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
+		mcf.setGroupName(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 		
 		// 工厂类添加服务管理
 		mcf.setSm(sm);
@@ -127,7 +127,7 @@ public class InitTaskManager {
 						TaskType.SYSTEM_COPY_CHECK.name(), serverId,
 						CopyRecoveryJob.class.getCanonicalName(), zkAddresses,
 						zkPath.getBaseRoutePath(),
-						Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
+						Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
 				manager.addTask(TaskType.SYSTEM_COPY_CHECK.name(), copyJob);
 			}
 			mcf.setTaskOn(tasks);
@@ -192,7 +192,7 @@ public class InitTaskManager {
 			switchMap = recoveryTask(switchList, release, serverId);
 			LOG.info("========================================================================================");
 		}
-		dataMap = JobDataMapConstract.createRebootTaskOpertionDataMap(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT), switchMap);
+		dataMap = JobDataMapConstract.createRebootTaskOpertionDataMap(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT), switchMap);
 		SumbitTaskInterface task = QuartzSimpleInfo.createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, dataMap, OperationTaskJob.class);
 		boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
 		if(sumbitFlag){
@@ -207,7 +207,7 @@ public class InitTaskManager {
 			LOG.info("watch task sumbit complete !!!");
 		}
 		Map<String,String> watchDogMap = JobDataMapConstract.createWatchDogDataMap(zkAddresses, zkPath.getBaseRoutePath(),
-				Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
+				Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
 		LOG.info("watch dog map {}",watchDogMap);
 		if(watchDogMap == null|| watchDogMap.isEmpty()) {
 			System.exit(1);
@@ -319,11 +319,11 @@ public class InitTaskManager {
 		// 2.采集基本信息上传到 zk
 		ServiceManager sm = ManagerContralFactory.getInstance().getSm();
 		String serverId = ManagerContralFactory.getInstance().getServerId();
-		BaseMetaServerModel base = GatherResource.gatherBase(serverId, Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
+		BaseMetaServerModel base = GatherResource.gatherBase(serverId, Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
 		ServerModel smodel = new ServerModel();
 		smodel.setBase(base);
 		String str = JsonUtils.toJsonString(smodel);
-		sm.updateService(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME), serverId, str);
+		sm.updateService(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), serverId, str);
 		
 		// 3.创建资源采集线程池
 		Properties  prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);

@@ -13,7 +13,7 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.configuration.units.RebalanceConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.task.TaskDispatcher;
@@ -39,11 +39,11 @@ public class RebalanceManager implements Closeable {
         		Configs.getConfiguration().GetConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
         		Configs.getConfiguration().GetConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY));
         
-        String dataPath = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT);
+        String dataPath = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT);
         opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager,
         		dataPath, snManager, serviceManager);
         
-		int port = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT);
+		int port = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT);
         try {
             fileServer = new SimpleFileServer(port + 20, dataPath, 10);
         } catch (IOException e) {

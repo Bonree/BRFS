@@ -231,7 +231,7 @@ public class CopyRecovery {
 				LOG.debug("<recoveryFile> remote name is empty");
 				continue;
 			}
-			remoteService = sm.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME), remoteName);
+			remoteService = sm.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), remoteName);
 			if(remoteService == null){
 				LOG.debug("<recoveryFile> remote service is empty");
 				continue;

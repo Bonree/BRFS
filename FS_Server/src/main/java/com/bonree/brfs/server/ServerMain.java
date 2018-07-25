@@ -18,7 +18,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.disknode.boot.EmptyMain;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -90,22 +90,22 @@ public class ServerMain {
             finalizer.add(diskMain);
 
             // 副本平衡模块
-            sm.addServiceStateListener(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME),
+            sm.addServiceStateListener(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
             		new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
            
             @SuppressWarnings("resource")
             RebalanceManager rebalanceServer = new RebalanceManager(zookeeperPaths, idManager, snManager, sm);
             rebalanceServer.start();
             
-            String host = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_HOST);
-    		int port = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT);
+            String host = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST);
+    		int port = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT);
             Service selfService = new Service();
             selfService.setHost(host);
             selfService.setPort(port);
-            selfService.setServiceGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
+            selfService.setServiceGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
             String serviceId = idManager.getFirstServerID();
             selfService.setServiceId(serviceId);
-            Service checkService = sm.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME), serviceId);
+            Service checkService = sm.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), serviceId);
             if(checkService == null) {
             	sm.registerService(selfService);
             	System.out.println(selfService);

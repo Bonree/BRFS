@@ -13,7 +13,7 @@ import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
-import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizeCallback;
+import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncCallback;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizer;
 import com.bonree.brfs.duplication.filenode.FileNode;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
@@ -67,7 +67,7 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 			
 			long closeCode = -1;
 			for(DuplicateNode node : fileNode.getDuplicateNodes()) {
-				DiskNodeConnection connection = connectionPool.getConnection(node);
+				DiskNodeConnection connection = connectionPool.getConnection(node.getGroup(), node.getId());
 				if(connection == null || connection.getClient() == null) {
 					LOG.info("close error because node[{}] is disconnected!", node);
 					closeAll = false;
@@ -100,7 +100,7 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 		@Override
 		public void run() {
 			if(!closeDiskNodes() && syncIfNeeded) {
-				fileSynchronizer.synchronize(file, new FileObjectSynchronizeCallback() {
+				fileSynchronizer.synchronize(file, new FileObjectSyncCallback() {
 					
 					@Override
 					public void complete(FileObject file, long fileLength) {

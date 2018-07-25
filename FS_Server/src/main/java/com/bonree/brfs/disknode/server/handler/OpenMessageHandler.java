@@ -8,7 +8,7 @@ import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
@@ -24,7 +24,7 @@ public class OpenMessageHandler implements MessageHandler {
 	private DiskContext diskContext;
 	private FileWriterManager writerManager;
 	
-	private static final long MAX_CAPACITY = Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_FILE_MAX_CAPACITY);
+	private static final long MAX_CAPACITY = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY);
 	
 	public OpenMessageHandler(DiskContext diskContext, FileWriterManager writerManager) {
 		this.diskContext = diskContext;

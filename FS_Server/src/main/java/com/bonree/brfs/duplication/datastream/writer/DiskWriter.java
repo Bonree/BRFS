@@ -71,7 +71,7 @@ public class DiskWriter implements Closeable {
 			DataOut[] dataOuts = new DataOut[datas.size()];
 			
 			try {
-				DiskNodeConnection conn = connectionPool.getConnection(node);
+				DiskNodeConnection conn = connectionPool.getConnection(node.getGroup(), node.getId());
 				if(conn == null || conn.getClient() == null) {
 					return;
 				}

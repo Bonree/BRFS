@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -31,7 +32,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.connection.http.HttpDiskNodeConnectionPool;
@@ -45,7 +46,9 @@ import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectFactory;
 import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectSupplierFactory;
 import com.bonree.brfs.duplication.datastream.file.FileObjectFactory;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
+import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSynchronier;
+import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.ReadDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.WriteDataMessageHandler;
@@ -81,8 +84,8 @@ public class BootStrap {
         
         try {
             String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-            String host = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_HOST);
-    		int port = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_PORT);
+            String host = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_HOST);
+    		int port = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_PORT);
             
             RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
             CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddresses, 3000, 15000, retryPolicy);
@@ -105,7 +108,7 @@ public class BootStrap {
             }
     		
     		Service service = new Service(UUID.randomUUID().toString(),
-            		Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DUPLICATE_SERVICE_GROUP_NAME),
+            		Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME),
             		host, port);
             ServiceManager serviceManager = new DefaultServiceManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
             serviceManager.start();
@@ -163,7 +166,8 @@ public class BootStrap {
 				}
 			});
             
-            DefaultFileObjectSynchronier fileSynchronizer = new DefaultFileObjectSynchronier(connectionPool, serviceManager, timeEventEmitter, pathMaker);
+            FileObjectSyncProcessor processor = new DefaultFileObjectSyncProcessor(connectionPool, pathMaker);
+            DefaultFileObjectSynchronier fileSynchronizer = new DefaultFileObjectSynchronier(processor, serviceManager, 10, TimeUnit.SECONDS);
             fileSynchronizer.start();
             
             finalizer.add(fileSynchronizer);
@@ -181,11 +185,11 @@ public class BootStrap {
             
             finalizer.add(sinkManager);
             
-            DataPoolFactory dataPoolFactory = new BlockingQueueDataPoolFactory(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_DATA_POOL_CAPACITY));
+            DataPoolFactory dataPoolFactory = new BlockingQueueDataPoolFactory(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_DATA_POOL_CAPACITY));
             FileObjectSupplierFactory fileSupplierFactory = new DefaultFileObjectSupplierFactory(fileFactory,
             		fileCloser, fileSynchronizer, sinkManager, timeEventEmitter);
             
-            DiskWriter diskWriter = new DiskWriter(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_WRITER_WORKER_NUM),
+            DiskWriter diskWriter = new DiskWriter(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM),
             		connectionPool, pathMaker);
             finalizer.add(diskWriter);
             

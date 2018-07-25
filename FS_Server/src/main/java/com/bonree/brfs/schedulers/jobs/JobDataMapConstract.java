@@ -10,8 +10,8 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
-import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
@@ -89,8 +89,8 @@ public class JobDataMapConstract {
 	 */
 	public static Map<String,String> createGatherResourceDataMap(ResourceTaskConfig resource, String serverId){
 		Map<String, String>  dataMap = new HashMap<>();
-		dataMap.put(DATA_PATH, Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
-		String host = Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_HOST);
+		dataMap.put(DATA_PATH, Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
+		String host = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_HOST);
 		dataMap.put(IP, host);
 		dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
 		dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");

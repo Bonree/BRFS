@@ -1,12 +1,12 @@
-package com.bonree.brfs.duplication.datastream.file.sync;
+package com.bonree.brfs.common.filesync;
 
-public class FileObjectState {
+public class FileObjectSyncState {
 	private final String serviceGroup;
 	private final String serviceId;
 	private final String filePath;
 	private final long fileLength;
 	
-	public FileObjectState(String group, String id, String path, long length) {
+	public FileObjectSyncState(String group, String id, String path, long length) {
 		this.serviceGroup = group;
 		this.serviceId = id;
 		this.filePath = path;

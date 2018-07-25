@@ -49,7 +49,7 @@ import com.google.common.collect.Table;
 class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener, Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(FileNodeDistributor.class);
 	
-	private static final String DUPLICATE_SERVICE_GROUP = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DUPLICATE_SERVICE_GROUP_NAME);
+	private static final String DUPLICATE_SERVICE_GROUP = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
 	
 	private Table<String, String, Long> serviceTimeTable = HashBasedTable.create();
 	private Map<String, PathChildrenCache> childWatchers = new HashMap<String, PathChildrenCache>();
@@ -177,9 +177,10 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 		
 		LOG.info("transfer fileNode[{}] to service[{}]", fileNode.getName(), target.getServiceId());
 		
-		FileNode newFileNode = new FileNode(fileNode);
-		newFileNode.setServiceId(target.getServiceId());
-		newFileNode.setServiceTime(target.getRegisterTime());
+		FileNode newFileNode = FileNode.newBuilder(fileNode)
+				.setServiceId(target.getServiceId())
+				.setServiceTime(target.getRegisterTime())
+				.build();
 		
 		try {
 			fileStorer.update(newFileNode);

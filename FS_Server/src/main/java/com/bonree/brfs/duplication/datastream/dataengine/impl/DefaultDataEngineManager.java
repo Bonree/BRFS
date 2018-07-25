@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.DuplicateNodeConfigs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngine;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineManager;
@@ -34,7 +34,7 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
 	
 	public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory) {
 		this(storageRegionManager, factory,
-				Duration.parse(Configs.getConfiguration().GetConfig(DuplicateNodeConfigs.CONFIG_DATA_ENGINE_IDLE_TIME)));
+				Duration.parse(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_DATA_ENGINE_IDLE_TIME)));
 	}
 	
 	public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory, Duration idleTime) {

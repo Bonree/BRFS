@@ -84,9 +84,9 @@ public class FileLengthMessageHandler implements MessageHandler {
 				}
 				
 				HandleResult result = new HandleResult(true);
-				long fileLength = fileFormater.relativeOffset(fileFormater.relativeOffset(lastElement.getOffset())) + lastElement.getSize();
+				long fileLength = fileFormater.relativeOffset(lastElement.getOffset()) + lastElement.getSize();
 				
-				LOG.info("get max offset[{}] from file[{}]", fileLength, filePath);
+				LOG.info("get file length[{}] from file[{}]", fileLength, filePath);
 				result.setData(Longs.toByteArray(fileLength));
 				callback.completed(result);
 			}

@@ -15,7 +15,7 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
-import com.bonree.brfs.configuration.units.DiskNodeConfigs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
@@ -47,14 +47,14 @@ public class EmptyMain implements LifeCycle {
 	private ExecutorService requestHandlerExecutor;
 	
 	public EmptyMain(ServiceManager serviceManager) {
-		this.diskContext = new DiskContext(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_DATA_ROOT));
+		this.diskContext = new DiskContext(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
 		this.serviceManager = serviceManager;
 		
 		int workerThreadNum = Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_IO_WORKER_NUM,
 				String.valueOf(Runtime.getRuntime().availableProcessors())));
 		this.httpConfig = HttpConfig.newBuilder()
-				.setHost(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_HOST))
-				.setPort(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_PORT))
+				.setHost(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST))
+				.setPort(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT))
 				.setAcceptWorkerNum(1)
 				.setRequestHandleWorkerNum(workerThreadNum)
 				.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")))
@@ -75,10 +75,10 @@ public class EmptyMain implements LifeCycle {
 		
 		server = new NettyHttpServer(httpConfig);
 		requestHandlerExecutor = Executors.newFixedThreadPool(
-				Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),
+				Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),
 				new PooledThreadFactory("request_handler"));
 		
-		FileFormater fileFormater = new SimpleFileFormater(Configs.getConfiguration().GetConfig(DiskNodeConfigs.CONFIG_FILE_MAX_CAPACITY));
+		FileFormater fileFormater = new SimpleFileFormater(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY));
 		
 		NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 		requestHandler.addMessageHandler("PUT", new OpenMessageHandler(diskContext, writerManager));

@@ -252,7 +252,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
                 }
                     break;
                 case CHILD_UPDATED: {
-                    storageRegionCache.refresh(regionName);
+                    storageRegionCache.invalidate(regionName);
                     Optional<StorageRegion> nodeOptional = storageRegionCache.get(regionName);
                     executor.submit(new Runnable() {
 						

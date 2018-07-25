@@ -36,7 +36,7 @@ public interface DiskNodeClient extends Closeable {
 	 */
 	long getFileLength(String path);
 	
-	boolean recover(String path, long fileLength, List<String> serviceList);
+	boolean recover(String path, long fileLength, List<String> fullstates);
 	
 	void copyFrom(String host, int port, String remotePath, String localPath) throws Exception;
 	void copyTo(String host, int port, String localPath, String remotePath) throws Exception;

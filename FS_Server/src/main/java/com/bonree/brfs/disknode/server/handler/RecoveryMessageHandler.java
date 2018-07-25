@@ -5,6 +5,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.filesync.FileObjectSyncState;
+import com.bonree.brfs.common.filesync.SyncStateCodec;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpMessage;
@@ -44,46 +46,56 @@ public class RecoveryMessageHandler implements MessageHandler {
 			filePath = context.getConcreteFilePath(msg.getPath());
 			LOG.info("starting recover file[{}]", filePath);
 			String lengthParam = msg.getParams().get("length");
+			if(lengthParam == null) {
+				handleResult.setSuccess(false);
+				callback.completed(handleResult);
+				return;
+			}
 			
-			//TODO
+			long fileLength = Long.parseLong(msg.getParams().get("length"));
+			List<String> fullStates = Splitter.on(',').omitEmptyStrings().trimResults().splitToList(msg.getParams().get("fulls"));
+			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
+			if(binding == null) {
+				handleResult.setSuccess(false);
+				callback.completed(handleResult);
+				return;
+			}
 			
-//			long maxLength = Long.parseLong(msg.getParams().get("length"));
-//			List<String> serviceList = Splitter.on(',').omitEmptyStrings().trimResults().splitToList(msg.getParams().get("services"));
-//			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
-//			if(binding == null) {
-//				handleResult.setSuccess(false);
-//				callback.completed(handleResult);
-//				return;
-//			}
-//			
-//			long position = binding.first().position();
-//			byte[] bytes = null;
-//			for(String serviceId : serviceList) {
-//				Service service = serviceManager.getServiceById(fileInfo.getServiceGroup(), fileInfo.getServiceId());
-//				if(service == null) {
-//					LOG.error("can not get service with[{}:{}]", fileInfo.getServiceGroup(), fileInfo.getServiceId());
-//					continue;
-//				}
-//				
-//				DiskNodeClient client = null;
-//				try {
-//					LOG.info("get data from{} to recover...", service);
-//					client = new HttpDiskNodeClient(service.getHost(), service.getPort());
-//					
-//					bytes = client.readData(fileInfo.getFilePath(), info.getCurrentLength());
-//					if(bytes != null) {
-//						break;
-//					}
-//				} catch (Exception e) {
-//					LOG.error("recover file[{}] error", filePath, e);
-//				} finally {
-//					CloseUtils.closeQuietly(client);
-//				}
-//			}
-//			
-//			binding.first().write(bytes);
-//			
-//			writerManager.adjustFileWriter(filePath);
+			binding.first().position(fileLength);
+			byte[] bytes = null;
+			for(String stateString : fullStates) {
+				FileObjectSyncState state = SyncStateCodec.fromString(stateString);
+				Service service = serviceManager.getServiceById(state.getServiceGroup(), state.getServiceId());
+				if(service == null) {
+					LOG.error("can not get service with[{}:{}]", state.getServiceGroup(), state.getServiceId());
+					continue;
+				}
+				
+				DiskNodeClient client = null;
+				try {
+					LOG.info("get data from{} to recover...", service);
+					client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+					
+					bytes = client.readData(state.getFilePath(), fileLength);
+					if(bytes != null) {
+						break;
+					}
+				} catch (Exception e) {
+					LOG.error("recover file[{}] error", filePath, e);
+				} finally {
+					CloseUtils.closeQuietly(client);
+				}
+			}
+			
+			if(bytes == null) {
+				handleResult.setSuccess(false);
+				callback.completed(handleResult);
+				return;
+			}
+			
+			binding.first().write(bytes);
+			
+			writerManager.adjustFileWriter(filePath);
 			
 			handleResult.setSuccess(true);
 		} catch (Exception e) {

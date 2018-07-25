@@ -1,340 +1,141 @@
 package com.bonree.brfs.duplication.datastream.file.sync;
 
-import io.netty.util.HashedWheelTimer;
-
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.process.LifeCycle;
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.ServiceStateListener;
-import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
-import com.bonree.brfs.common.timer.TimeExchangeListener;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.duplication.datastream.FilePathMaker;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.file.FileObject;
-import com.bonree.brfs.duplication.filenode.FileNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 
-public class DefaultFileObjectSynchronier implements FileObjectSynchronizer, TimeExchangeListener, LifeCycle {
+public class DefaultFileObjectSynchronier implements FileObjectSynchronizer, LifeCycle {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileObjectSynchronier.class);
 	
-	private static final int DEFAULT_THREAD_NUM = 1;
-	private ExecutorService threadPool;
+	private Thread mainThread = new Thread(new FileSyncExecutor(), "file_sync_main");;
+	private FileObjectSyncProcessor processor;
 	
-	private DiskNodeConnectionPool connectionPool;
-	
-	private FilePathMaker pathMaker;
+	private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("file_sync_sched"));
+	private long checkMillis;
 	
 	private ServiceManager serviceManager;
-	private ServiceStateListener serviceStateListener;
 	
-	private TimeExchangeEventEmitter timeEventEmitter;
-	private HashedWheelTimer timer;
+	private LinkedBlockingQueue<FileObjectSyncTask> readyTasks = new LinkedBlockingQueue<FileObjectSyncTask>();
+	private List<FileObjectSyncTask> delayedTaskList = new ArrayList<FileObjectSyncTask>();
 	
-	private DelayTaskActivator taskActivator;
-	private List<Runnable> delayedTaskList = new ArrayList<Runnable>();
-	
-	public DefaultFileObjectSynchronier(DiskNodeConnectionPool connectionPool,
-			ServiceManager serviceManager,
-			TimeExchangeEventEmitter timeEventEmitter,
-			FilePathMaker pathMaker) {
-		this(DEFAULT_THREAD_NUM, connectionPool, serviceManager, timeEventEmitter, pathMaker);
-	}
-	
-	public DefaultFileObjectSynchronier(int threadNum,
-			DiskNodeConnectionPool connectionPool,
-			ServiceManager serviceManager,
-			TimeExchangeEventEmitter timeEventEmitter,
-			FilePathMaker pathMaker) {
-		this.connectionPool = connectionPool;
-		this.pathMaker = pathMaker;
+	public DefaultFileObjectSynchronier(FileObjectSyncProcessor processor, ServiceManager serviceManager, long checkPeriod, TimeUnit unit) {
+		this.processor = processor;
 		this.serviceManager = serviceManager;
-		this.timeEventEmitter = timeEventEmitter;
-		this.serviceStateListener = new DiskNodeServiceStateListener();
-		this.taskActivator = new DelayTaskActivator();
-		this.threadPool = new ThreadPoolExecutor(threadNum, threadNum,
-                0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(),
-                new PooledThreadFactory("file_synchronize"));
+		this.checkMillis = unit.toMillis(checkPeriod);
 	}
 
 	@Override
 	public void start() throws Exception {
-		taskActivator.start();
-		serviceManager.addServiceStateListener(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME), serviceStateListener);
+		mainThread.start();
+		scheduler.scheduleAtFixedRate(new DelayedTaskChecker(), 0, checkMillis, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
 	public void stop() throws Exception {
-		serviceManager.removeServiceStateListener(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME), serviceStateListener);
-		taskActivator.quit();
-		taskActivator.interrupt();
-		threadPool.shutdown();
+		scheduler.shutdown();
+		mainThread.interrupt();
 	}
 
 	@Override
-	public void synchronize(FileObject file, FileObjectSynchronizeCallback callback) {
-		threadPool.submit(new FileSynchronizeTask(file, callback));
+	public void synchronize(FileObject file, FileObjectSyncCallback callback) {
+		try {
+			readyTasks.put(new FileObjectSyncTask(file, callback));
+		} catch (InterruptedException e) {
+			LOG.error("add file sync task error", e);
+		}
 	}
 	
-	private void addDelayedTask(FileSynchronizeTask task) {
-		LOG.info("add to delayed task list for filnode[{}]", task.fileNode().getName());
-		delayedTaskList.add(task);
+	private class FileSyncExecutor implements Runnable {
+		
+		@Override
+		public void run() {
+			while(!mainThread.isInterrupted()) {
+				try {
+					FileObjectSyncTask task = readyTasks.take();
+					
+					if(!processor.process(task)) {
+						synchronized(delayedTaskList) {
+							delayedTaskList.add(task);
+						}
+					}
+				} catch (InterruptedException e) {
+					LOG.warn("file sync executor has been interrupted!");
+				} catch (Exception e) {
+					LOG.error("file sync executor error", e);
+				}
+			}
+		}
+		
 	}
 	
-	public class FileSynchronizeTask implements Runnable {
-		private final FileObject file;
-		private final FileObjectSynchronizeCallback callback;
-		
-		public FileSynchronizeTask(FileObject file, FileObjectSynchronizeCallback callback) {
-			this.file = file;
-			this.callback = callback;
-		}
-		
-		public FileNode fileNode() {
-			return file.node();
-		}
+	private class DelayedTaskChecker implements Runnable {
 
 		@Override
 		public void run() {
-			LOG.info("start to synchronize file[{}]", file.node().getName());
-			DuplicateNode[] nodeList = file.node().getDuplicateNodes();
-			
-			boolean syncAccomplished = true;
-			List<FileObjectState> fileStateList = getFileStateList(nodeList);
-			
-			if(fileStateList.isEmpty()) {
-				//文件所在的所有磁盘节点都处于异常状态
-				LOG.error("No available duplicate node is found to sync file[{}]", file.node().getName());
-				addDelayedTask(this);
-				return;
+			FileObjectSyncTask[] tasks = null;
+			synchronized(delayedTaskList) {
+				tasks = new FileObjectSyncTask[delayedTaskList.size()];
+				delayedTaskList.toArray(tasks);
+				delayedTaskList.clear();
 			}
 			
-			if(fileStateList.size() != nodeList.length) {
-				//文件所在的所有磁盘节点中有部分不可用，这种情况先同步可用的磁盘节点信息
-				LOG.warn("Not all duplicate nodes are available to sync file[{}]", file.node().getName());
-				syncAccomplished = false;
-			}
-			
-			long maxLength = -1;
-			for(FileObjectState length : fileStateList) {
-				maxLength = Math.max(maxLength, length.getFileLength());
-			}
-			
-			List<FileObjectState> lack = new ArrayList<FileObjectState>();
-			List<FileObjectState> full = new ArrayList<FileObjectState>();
-			for(FileObjectState state : fileStateList) {
-				if(state.getFileLength() != maxLength) {
-					lack.add(state);
-				} else {
-					full.add(state);
+			Map<String, Boolean> serviceStates = new HashMap<String, Boolean>();
+			for(FileObjectSyncTask task : tasks) {
+				try {
+					if(task.isExpired()) {
+						readyTasks.put(task);
+						continue;
+					}
+					
+					boolean canBesync = true;
+					for(DuplicateNode node : task.file().node().getDuplicateNodes()) {
+						String nodeToken = nodeToken(node);
+						Boolean exist = serviceStates.get(nodeToken);
+						if(exist == null) {
+							exist = serviceManager.getServiceById(node.getGroup(), node.getId()) != null;
+							serviceStates.put(nodeToken, exist);
+						}
+						
+						if(!exist) {
+							canBesync = false;
+							break;
+						}
+					}
+					
+					if(canBesync) {
+						readyTasks.put(task);
+						continue;
+					}
+					
+					synchronized(delayedTaskList) {
+						delayedTaskList.add(task);
+					}
+				} catch (InterruptedException e) {
+					LOG.warn("check has been interrupted!");
 				}
-			}
-			
-			if(lack.isEmpty()) {
-				LOG.info("file[{}] is ok!", file.node().getName());
-				if(syncAccomplished) {
-					callback.complete(file, maxLength);
-				} else {
-					addDelayedTask(this);
-				}
-				
-				return;
-			}
-			
-			//TODO
-			//TODO
-			syncAccomplished &= doSynchronize(maxLength, lack, full);
-			if(syncAccomplished) {
-				callback.complete(file, maxLength);
-			} else {
-				addDelayedTask(this);
-			}
-			
-			LOG.info("End synchronize file[{}]", file.node().getName());
-		}
-		
-		private List<FileObjectState> getFileStateList(DuplicateNode[] nodeList) {
-			List<FileObjectState> fileStateList = new ArrayList<FileObjectState>();
-			
-			for(DuplicateNode node : nodeList) {
-				DiskNodeConnection connection = connectionPool.getConnection(node);
-				if(connection == null || connection.getClient() == null) {
-					LOG.error("duplication node[{}, {}] of [{}] is not available, that's maybe a trouble!", node.getGroup(), node.getId(), file.node().getName());
-					continue;
-				}
-				
-				String filePath = pathMaker.buildPath(file.node(), node);
-				LOG.info("checking---{}", filePath);
-				long fileLength = connection.getClient().getFileLength(filePath);
-				
-				if(fileLength < 0) {
-					LOG.error("duplication node[{}, {}] of [{}] can not get file length, that's maybe a trouble!", node.getGroup(), node.getId(), file.node().getName());
-					continue;
-				}
-				
-				LOG.info("server{} -- {}", node.getId(), fileLength);
-				
-				fileStateList.add(new FileObjectState(node.getGroup(), node.getId(), filePath, fileLength));
-			}
-			
-			return fileStateList;
-		}
-		
-		private boolean doSynchronize(long correctLength, List<FileObjectState> lacks, List<FileObjectState> fulls) {
-			//TODO
-//			List<String> serviceList = new ArrayList<String>();
-//			for(FileObjectState node : full) {
-//				serviceList.add(node.getId());
-//			}
-//			
-//			boolean allSynced = true;
-//			for(DuplicateNode node : lack) {
-//				DiskNodeConnection connection = connectionPool.getConnection(node);
-//				if(connection == null || connection.getClient() == null) {
-//					LOG.error("can not recover file[{}], because of lack of connection to duplication node[{}]", file.node().getName(), node);
-//					allSynced = false;
-//					continue;
-//				}
-//				
-//				DiskNodeClient client = connection.getClient();
-//				if(client == null) {
-//					allSynced = false;
-//					continue;
-//				}
-//				
-//				LOG.info("start synchronize file[{}] at duplicate node[{}]", file.node().getName(), node);
-//				if(!client.recover(pathMaker.buildPath(file.node(), node), correctLength, serviceList)) {
-//					LOG.error("can not synchronize file[{}] at duplicate node[{}]", file.node().getName(), node);
-//					allSynced = false;
-//				}
-//				
-//			}
-//			
-//			return allSynced;
-			return true;
-		}
-	}
-	
-	private class DiskNodeServiceStateListener implements ServiceStateListener {
-
-		@Override
-		public void serviceAdded(Service service) {
-			LOG.info("Disk Node[{}] added", service);
-			taskActivator.putService(service);
-		}
-
-		@Override
-		public void serviceRemoved(Service service) {
-			LOG.info("Disk Node[{}] removed", service);
-		}
-		
-	}
-	
-	private class DelayTaskActivator extends Thread {
-		private BlockingQueue<Service> serviceQueue = new LinkedBlockingQueue<Service>();
-		
-		private static final int POLL_TIMEOUT_MILLIS = 30 * 1000;
-		
-		private volatile boolean isQuit = false;
-		
-		public void putService(Service service) {
-			try {
-				serviceQueue.put(service);
-			} catch (InterruptedException e) {
-				LOG.error("put service error", e);
 			}
 		}
 		
 		private String nodeToken(DuplicateNode node) {
 			StringBuilder builder = new StringBuilder();
-			builder.append(node.getGroup()).append("_").append(node.getId());
+			builder.append(node.getGroup()).append(",").append(node.getId());
 			
 			return builder.toString();
 		}
 		
-		public void quit() {
-			isQuit = true;
-		}
-
-		@Override
-		public void run() {
-			while(!isQuit) {
-				try {
-					serviceQueue.poll(POLL_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
-					
-					FileSynchronizeTask[] tasks;
-					synchronized (delayedTaskList) {
-						tasks = new FileSynchronizeTask[delayedTaskList.size()];
-						delayedTaskList.toArray(tasks);
-						delayedTaskList.clear();
-					}
-					
-					LOG.info("start to check vadility of {} delayed tasks", tasks.length);
-					if(tasks.length == 0) {
-						continue;
-					}
-					
-					Map<String, Boolean> serviceStates = new HashMap<String, Boolean>();
-					for(FileSynchronizeTask task : tasks) {
-						FileNode fileNode = task.fileNode();
-						
-						boolean canBeSubmitted = true;
-						for(DuplicateNode node : fileNode.getDuplicateNodes()) {
-							String nodeToken = nodeToken(node);
-							Boolean exist = serviceStates.get(nodeToken);
-							if(exist == null) {
-								exist = serviceManager.getServiceById(node.getGroup(), node.getId()) != null;
-								serviceStates.put(nodeToken, exist);
-							}
-							
-							if(!exist) {
-								canBeSubmitted = false;
-								break;
-							}
-						}
-						
-						if(canBeSubmitted) {
-							LOG.info("restart task for fileNode[{}]", fileNode.getName());
-							threadPool.submit(task);
-							continue;
-						}
-						
-						addDelayedTask(task);
-						LOG.info("skipped synchronize file node[{}]", fileNode.getName());
-					}
-				} catch (Exception e) {
-					if(!isQuit) {
-						LOG.error("task activator error", e);
-					}
-				}
-			}
-		}
-		
 	}
-
-	@Override
-	public void timeExchanged(long startTime, Duration duration) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

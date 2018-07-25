@@ -23,7 +23,7 @@ public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector {
 
 	@Override
 	public DuplicateNode[] getDuplicationNodes(int storageId, int nums) {
-		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
+		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 		if(serviceList.isEmpty()) {
 			return new DuplicateNode[0];
 		}
@@ -33,7 +33,7 @@ public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector {
 			Service service = serviceList.remove(rand.nextInt(serviceList.size()));
 			
 			DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
-			DiskNodeConnection conn = connectionPool.getConnection(node);
+			DiskNodeConnection conn = connectionPool.getConnection(node.getGroup(), node.getId());
 			if(conn == null || conn.getClient() == null || !conn.getClient().ping()) {
 				continue;
 			}

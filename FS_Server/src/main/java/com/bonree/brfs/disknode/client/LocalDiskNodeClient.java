@@ -138,9 +138,7 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public boolean recover(String path, long fileLength,
-			List<String> serviceList) {
-		// TODO Auto-generated method stub
+	public boolean recover(String path, long fileLength, List<String> fulls) {
 		return false;
 	}
 

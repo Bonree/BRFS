@@ -24,9 +24,9 @@ public class FileSystemConfig {
 	private static final int DEFAULT_CONNECTION_POOL_SIZE = 16;
 	private int connectionPoolSize;
 	
-	private static final String DEFAULT_DUPLICATE_SERVICE_GROUP = "duplicate_group";
+	private static final String DEFAULT_DUPLICATE_SERVICE_GROUP = "region_group";
 	private String duplicateServiceGroup;
-	private static final String DEFAULT_DISK_SERVICE_GROUP = "disk_group";
+	private static final String DEFAULT_DISK_SERVICE_GROUP = "data_group";
 	private String diskServiceGroup;
 	
 	private FileSystemConfig() {

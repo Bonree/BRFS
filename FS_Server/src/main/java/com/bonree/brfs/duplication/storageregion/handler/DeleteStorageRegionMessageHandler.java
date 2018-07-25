@@ -46,7 +46,7 @@ public class DeleteStorageRegionMessageHandler extends StorageRegionMessageHandl
         boolean deleted;
         HandleResult result = new HandleResult();
         try {
-			List<Service> services = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME));
+			List<Service> services = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 			if(region.isEnable()){
 				result.setSuccess(false);
 				result.setData(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()));

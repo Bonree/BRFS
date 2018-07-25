@@ -2,10 +2,7 @@ package com.bonree.brfs.duplication.datastream.connection.http;
 
 import java.io.Closeable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -20,14 +17,15 @@ import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
-import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 
 public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool, Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(HttpDiskNodeConnectionPool.class);
 	
 	private static final int DEFAULT_CONNECTION_STATE_CHECK_INTERVAL = 3;
 	private ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("connection_checker"));
-	private Map<DuplicateNode, HttpDiskNodeConnection> connectionCache = new HashMap<DuplicateNode, HttpDiskNodeConnection>();
+	private Table<String, String, HttpDiskNodeConnection> connectionCache = HashBasedTable.create();
 	
 	private ServiceManager serviceManager;
 	
@@ -50,22 +48,22 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool, Close
 	}
 
 	@Override
-	public DiskNodeConnection getConnection(DuplicateNode duplicateNode) {
-		HttpDiskNodeConnection connection = connectionCache.get(duplicateNode);
+	public DiskNodeConnection getConnection(String serviceGroup, String serviceId) {
+		HttpDiskNodeConnection connection = connectionCache.get(serviceGroup, serviceId);
 		
 		if(connection != null) {
 			return connection;
 		}
 		
 		synchronized (connectionCache) {
-			Service service = serviceManager.getServiceById(duplicateNode.getGroup(), duplicateNode.getId());
+			Service service = serviceManager.getServiceById(serviceGroup, serviceId);
 			if(service == null) {
 				return null;
 			}
 			
 			connection = new HttpDiskNodeConnection(service.getHost(), service.getPort());
 			connection.connect();
-			connectionCache.put(duplicateNode, connection);
+			connectionCache.put(serviceGroup, serviceId, connection);
 		}
 		
 		return connection;
@@ -75,24 +73,31 @@ public class HttpDiskNodeConnectionPool implements DiskNodeConnectionPool, Close
 
 		@Override
 		public void run() {
-			List<DuplicateNode> invalidKeys = new ArrayList<DuplicateNode>();
-			for(Entry<DuplicateNode, HttpDiskNodeConnection> entry : connectionCache.entrySet()) {
-				if(!entry.getValue().isValid()) {
-					LOG.info("Connection to node{} is invalid!", entry.getKey());
-					invalidKeys.add(entry.getKey());
-				}
+			List<String> rows = new ArrayList<String>();
+			synchronized (connectionCache) {
+				rows.addAll(connectionCache.rowKeySet());
 			}
 			
-			invalidKeys.forEach(new Consumer<DuplicateNode>() {
-
-				@Override
-				public void accept(DuplicateNode node) {
-					HttpDiskNodeConnection connection = connectionCache.remove(node);
-					if(connection != null) {
-						CloseUtils.closeQuietly(connection);
+			List<String> cols = new ArrayList<String>();
+			for(String row : rows) {
+				cols.clear();
+				synchronized (connectionCache) {
+					cols.addAll(connectionCache.row(row).keySet());
+				}
+				
+				for(String col : cols) {
+					HttpDiskNodeConnection conn = connectionCache.get(row, col);
+					if(conn != null && !conn.isValid()) {
+						LOG.info("Connection to service[{}, {}] is invalid!", row, col);
+						
+						synchronized (connectionCache) {
+							connectionCache.remove(row, col);
+						}
+						
+						CloseUtils.closeQuietly(conn);
 					}
 				}
-			});
+			}
 		}
 		
 	}
