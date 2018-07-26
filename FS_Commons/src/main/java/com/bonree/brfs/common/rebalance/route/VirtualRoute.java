@@ -1,13 +1,23 @@
 package com.bonree.brfs.common.rebalance.route;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class VirtualRoute {
 
+    @JsonProperty("changeID")
     private String changeID;
+    
+    @JsonProperty("storageIndex")
     private int storageIndex;
+    
+    @JsonProperty("virtualID")
     private String virtualID;
+    
+    @JsonProperty("newSecondID")
     private String newSecondID;
+    
+    @JsonProperty("version")
     private TaskVersion version;
 
     @SuppressWarnings("unused")

@@ -3,6 +3,7 @@ package com.bonree.brfs.rebalance.task;
 import java.util.List;
 
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -14,58 +15,69 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
  ******************************************************************************/
 public class BalanceTaskSummary {
     
+    @JsonProperty("id")
     private String id;
 
     /**
      *和每个change进行关联
      */
+    @JsonProperty("changeID")
     private String changeID;
 
     /**
      *需要恢复的serverID;
      */
+    @JsonProperty("serverId")
     private String serverId;
 
     /**
      * 需要恢复的SN
      */
+    @JsonProperty("storageIndex")
     private int storageIndex;
 
     /**
      * 任务类型，目前有多副本恢复和虚拟ID恢复
      */
+    @JsonProperty("taskType")
     private RecoverType taskType;
 
     /**
      *任务的状态，分为正常和异常；
      *正常任务，可以正常执行，异常任务不可以执行
      */
+    @JsonProperty("taskStatus")
     private TaskStatus taskStatus;
 
     /**
      *参与提供恢复数据的servers
      */
+    @JsonProperty("outputServers")
     private List<String> outputServers;
 
     /**
      *参与接收恢复数据的servers
      */
+    @JsonProperty("inputServers")
     private List<String> inputServers;
 
     /**
      *本次平衡时存活的server
      */
+    @JsonProperty("aliveServer")
     private List<String> aliveServer;
 
     /**
      *任务延迟执行时间,单位：秒
      */
+    @JsonProperty("delayTime")
     private long delayTime;
     
 
     /**
      *用于初始化倒计时间隔
      */
+    @JsonProperty("interval")
     private int interval = -1;
     
 

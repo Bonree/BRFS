@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
+import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +36,6 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerChangeTaskGenetor.class);
 
-    private static final String CHANGES_NODE = "changes";
-
     private LeaderLatch leaderLath;
 
     private String leaderPath;
@@ -59,8 +58,8 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
         this.serverManager = serverManager;
         this.snManager = snManager;
         this.delayDeal = delayDeal;
-        this.leaderPath = baseRebalancePath + Constants.SEPARATOR + Constants.CHANGE_LEADER;
-        this.changesPath = baseRebalancePath + Constants.SEPARATOR + CHANGES_NODE;
+        this.leaderPath = ZKPaths.makePath(baseRebalancePath, Constants.CHANGE_LEADER);
+        this.changesPath = ZKPaths.makePath(baseRebalancePath, Constants.CHANGES_NODE);
         this.client = client;
         this.leaderClient = leaderClient;
         this.leaderLath = new LeaderLatch(this.leaderClient.getInnerClient(), this.leaderPath);
@@ -68,45 +67,55 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
             @Override
             public void notLeader() {
-
+                LOG.info("I'am not ServerChangeTaskGenetor leader!");
             }
 
             @Override
             public void isLeader() {
-                LOG.info("I'am ServerChangeTaskGenetor leader!!!!");
+                LOG.info("I'am ServerChangeTaskGenetor leader!");
             }
         });
         this.idManager = idManager;
         leaderLath.start();
-        LOG.info("ServerChangeTaskGenetor launch successful!!");
     }
 
     private void genChangeSummary(Service service, ChangeType type) {
         String firstID = service.getServiceId();
         List<StorageRegion> snList = snManager.getStorageRegionList();
+        List<String> currentServers = getCurrentServers(serverManager);
+        LOG.info("fetch all storageRegion:" + snList);
         for (StorageRegion snModel : snList) {
             if (snModel.getReplicateNum() > 1) { // TODO 此处需要判断是否配置了sn恢复
-                List<String> currentServers = getCurrentServers(serverManager);
                 String secondID = idManager.getOtherSecondID(firstID, snModel.getId());
-                if (!StringUtils.isEmpty(secondID)) { // 如果没数据，该sn的secondID会为null
-                	try {
-                		ChangeSummary tsm = new ChangeSummary(snModel.getId(), genChangeID(), type, secondID, currentServers);
-                        String snPath = changesPath + Constants.SEPARATOR + snModel.getId();
+                if (!StringUtils.isEmpty(secondID)) {
+                    try {
+                        ChangeSummary tsm = new ChangeSummary(snModel.getId(), genChangeID(), type, secondID, currentServers);
                         String jsonStr = JsonUtils.toJsonString(tsm);
-                        String snTaskNode = snPath + Constants.SEPARATOR + tsm.getChangeID();
+                        String snTaskNode = ZKPaths.makePath(changesPath, String.valueOf(snModel.getId()), tsm.getChangeID());
                         client.createPersistent(snTaskNode, true, jsonStr.getBytes());
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+                        LOG.info("generator a change record:" + jsonStr + ", for storageRegion:" + snModel);
+                    } catch (Exception e) {
+                        LOG.error("generator a change record failed for storageRegion:" + snModel, e);
+                        e.printStackTrace();
+                    }
                 }
             }
         }
     }
 
+    /** 概述：changeID 使用时间戳和UUID进行标识
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     private String genChangeID() {
         return (Calendar.getInstance().getTimeInMillis() / 1000) + UUID.randomUUID().toString();
     }
 
+    /** 概述：获取当时存活的机器
+     * @param serviceManager
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
     private List<String> getCurrentServers(ServiceManager serviceManager) {
         List<Service> servers = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
         List<String> serverIDs = servers.stream().map(Service::getServiceId).collect(Collectors.toList());
@@ -119,17 +128,13 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
      */
     @Override
     public void serviceAdded(Service service) {
-        LOG.info("add wzlistener:"+service);
+        LOG.info("trigger a add change, service:" + service);
         try {
             Thread.sleep(delayDeal);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         if (leaderLath.hasLeadership()) {
-            String firstID = service.getServiceId();
-            if (firstID.equals(idManager.getFirstServerID())) {
-                return;
-            }
             genChangeSummary(service, ChangeType.ADD);
         }
 
@@ -141,17 +146,13 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
      */
     @Override
     public void serviceRemoved(Service service) {
-        LOG.info("remove wzlistener:"+service);
+        LOG.info("trigger a remove change, service:" + service);
         try {
             Thread.sleep(delayDeal);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         if (leaderLath.hasLeadership()) {
-            String firstID = service.getServiceId();
-            if (firstID.equals(idManager.getFirstServerID())) {
-                return;
-            }
             genChangeSummary(service, ChangeType.REMOVE);
         }
 

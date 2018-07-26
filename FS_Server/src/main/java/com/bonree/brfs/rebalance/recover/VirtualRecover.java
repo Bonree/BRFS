@@ -158,7 +158,13 @@ public class VirtualRecover implements DataRecover {
                 if (!detail.getStatus().equals(ExecutionStatus.INIT)) {
                     break;
                 }
-                LOG.info("remain time:" + (delayTime - i) + "s, start task!!!");
+                if (delayTime - i <= 10) {
+                    LOG.info("remain time:" + (delayTime - i) + "s, start task!!!");
+                } else {
+                    if ((delayTime - i) % 10 == 0) {
+                        LOG.info("remain time:" + (delayTime - i) + "s, start task!!!");
+                    }
+                }
                 Thread.sleep(1000);
             }
         } catch (InterruptedException e) {

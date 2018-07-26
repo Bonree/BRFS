@@ -2,6 +2,8 @@ package com.bonree.brfs.rebalance.task;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
@@ -12,14 +14,19 @@ import java.util.List;
  ******************************************************************************/
 
 public class ChangeSummary implements Comparable<ChangeSummary> {
+    @JsonProperty("changeID")
     private String changeID;
-
+    
+    @JsonProperty("storageIndex")
     private int storageIndex;
 
+    @JsonProperty("changeType")
     private ChangeType changeType;
 
+    @JsonProperty("changeServer")
     private String changeServer;
 
+    @JsonProperty("currentServers")
     private List<String> currentServers;
 
     @SuppressWarnings("unused")

@@ -32,6 +32,7 @@ import org.apache.curator.framework.recipes.leader.LeaderLatch;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
+import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +93,11 @@ public class TaskDispatcher implements Closeable {
 
     private final String changesPath;
 
+    private final String changesHistoryPath;
+
     private final String tasksPath;
+
+    private final String tasksHistoryPath;
 
     private final ServiceManager serviceManager;
 
@@ -166,13 +171,13 @@ public class TaskDispatcher implements Closeable {
         List<String> snPaths = curatorClient.getChildren(greatPatentPath); // 此处获得子节点名称
         if (snPaths != null) {
             for (String snNode : snPaths) {
-                String snPath = greatPatentPath + Constants.SEPARATOR + snNode;
+                String snPath = ZKPaths.makePath(greatPatentPath, snNode);
                 List<String> childPaths = curatorClient.getChildren(snPath);
 
                 List<ChangeSummary> changeSummaries = new CopyOnWriteArrayList<>();
                 if (childPaths != null) {
                     for (String childNode : childPaths) {
-                        String childPath = snPath + Constants.SEPARATOR + childNode;
+                        String childPath = ZKPaths.makePath(snPath, childNode);
                         byte[] data = curatorClient.getData(childPath);
                         ChangeSummary cs = JsonUtils.toObjectQuietly(data, ChangeSummary.class);
                         changeSummaries.add(cs);
@@ -191,7 +196,7 @@ public class TaskDispatcher implements Closeable {
         List<String> sns = curatorClient.getChildren(tasksPath);
         if (sns != null && !sns.isEmpty()) {
             for (String sn : sns) {
-                String taskNode = tasksPath + Constants.SEPARATOR + sn + Constants.SEPARATOR + Constants.TASK_NODE;
+                String taskNode = ZKPaths.makePath(tasksPath, sn, Constants.TASK_NODE);
                 if (curatorClient.checkExists(taskNode)) {
                     BalanceTaskSummary bts = JsonUtils.toObjectQuietly(curatorClient.getData(taskNode), BalanceTaskSummary.class);
                     runTask.put(Integer.valueOf(sn), bts);
@@ -252,8 +257,10 @@ public class TaskDispatcher implements Closeable {
         this.baseRebalancePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
         this.virtualRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE;
         this.normalRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.NORMAL_ROUTE;
-        this.changesPath = baseRebalancePath + Constants.SEPARATOR + Constants.CHANGES_NODE;
-        this.tasksPath = baseRebalancePath + Constants.SEPARATOR + Constants.TASKS_NODE;
+        this.changesPath = ZKPaths.makePath(baseRebalancePath, Constants.CHANGES_NODE);
+        this.changesHistoryPath = ZKPaths.makePath(baseRebalancePath, Constants.CHANGES_HISTORY_NODE);
+        this.tasksPath = ZKPaths.makePath(baseRebalancePath, Constants.TASKS_NODE);
+        this.tasksHistoryPath = ZKPaths.makePath(baseRebalancePath, Constants.TASKS_HISTORY_NODE);
         this.idManager = idManager;
         this.serviceManager = serviceManager;
         this.snManager = snManager;
@@ -272,19 +279,19 @@ public class TaskDispatcher implements Closeable {
                 }
             }
         });
-
-        String leaderPath = this.baseRebalancePath + Constants.SEPARATOR + Constants.DISPATCH_LEADER;
+        String leaderPath = ZKPaths.makePath(this.baseRebalancePath, Constants.DISPATCH_LEADER);
         LOG.info("leader path:" + leaderPath);
         leaderLath = new LeaderLatch(this.curatorClient.getInnerClient(), leaderPath);
 
         leaderLath.addListener(new LeaderLatchListener() {
             @Override
             public void notLeader() {
+                LOG.info("I'am not taskDispatch leader!");
             }
 
             @Override
             public void isLeader() {
-                LOG.info("I'am taskDispatch leader!!!!");
+                LOG.info("I'am taskDispatch leader!");
             }
         });
         treeCache = CuratorCacheFactory.getTreeCache();
@@ -373,7 +380,7 @@ public class TaskDispatcher implements Closeable {
                             finishFlag = false;
                         } else {
                             for (String serverId : serverIds) {
-                                String nodePath = parentPath + Constants.SEPARATOR + serverId;
+                                String nodePath = ZKPaths.makePath(parentPath, serverId);
                                 TaskDetail td = JsonUtils.toObjectQuietly(curatorClient.getData(nodePath), TaskDetail.class);
                                 if (td.getStatus() != DataRecover.ExecutionStatus.FINISH) {
                                     finishFlag = false;
@@ -390,7 +397,7 @@ public class TaskDispatcher implements Closeable {
                         // 发布路由规则
                         if (bts.getTaskType() == RecoverType.VIRTUAL) {
                             LOG.info("one virtual task finish,detail:" + RebalanceUtils.convertEvent(event));
-                            String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
+                            String virtualRouteNode = ZKPaths.makePath(virtualRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                             VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
                             LOG.info("add virtual route:" + route);
                             addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
@@ -407,11 +414,9 @@ public class TaskDispatcher implements Closeable {
                             // 删除virtual server ID
                             LOG.info("delete the virtual server id:" + bts.getServerId());
                             idManager.deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
-
                         } else if (bts.getTaskType() == RecoverType.NORMAL) {
                             LOG.info("one normal task finish,detail:" + RebalanceUtils.convertEvent(event));
-
-                            String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
+                            String normalRouteNode = ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                             NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
                             LOG.info("add normal route:" + route);
                             addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
@@ -420,10 +425,7 @@ public class TaskDispatcher implements Closeable {
                         List<ChangeSummary> changeSummaries = cacheSummaryCache.get(bts.getStorageIndex());
 
                         // 清理zk上的变更
-                        LOG.info("delete the change:" + bts.getChangeID());
-                        String changePath = changesPath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
-                        LOG.info("delete change path: " + changePath);
-                        curatorClient.checkAndDelte(changePath, false);
+                        removeChange2History(bts);
 
                         // for (ChangeSummary cs : changeSummaries) {
                         // if (cs.getChangeID().equals(bts.getChangeID())) {
@@ -462,7 +464,7 @@ public class TaskDispatcher implements Closeable {
     public void fixTaskMeta(BalanceTaskSummary taskSummary) {
 
         // task路径
-        String parentPath = tasksPath + Constants.SEPARATOR + taskSummary.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
+        String parentPath = ZKPaths.makePath(tasksPath, String.valueOf(taskSummary.getStorageIndex()), Constants.TASK_NODE);
         // 节点已经删除，则忽略
         if (!curatorClient.checkExists(parentPath)) {
             return;
@@ -473,7 +475,7 @@ public class TaskDispatcher implements Closeable {
         if (bts.getTaskStatus().equals(TaskStatus.FINISH)) {
             if (bts.getTaskType() == RecoverType.VIRTUAL) {
                 LOG.info("one virtual task finish,detail:" + taskSummary);
-                String virtualRouteNode = virtualRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
+                String virtualRouteNode = ZKPaths.makePath(virtualRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                 VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0), TaskVersion.V1);
                 LOG.info("add virtual route:" + route);
                 addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
@@ -491,9 +493,8 @@ public class TaskDispatcher implements Closeable {
                 idManager.deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
 
             } else if (bts.getTaskType() == RecoverType.NORMAL) {
-                LOG.info("one normal task finish,detail:" + taskSummary);
-
-                String normalRouteNode = normalRoutePath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getId();
+                LOG.info("one normal task finish, detail:" + taskSummary);
+                String normalRouteNode = ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                 NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(), TaskVersion.V1);
                 LOG.info("add normal route:" + route);
                 addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
@@ -503,10 +504,7 @@ public class TaskDispatcher implements Closeable {
         List<ChangeSummary> changeSummaries = cacheSummaryCache.get(bts.getStorageIndex());
 
         // 清理zk上的变更
-        LOG.info("delete the change:" + bts.getChangeID());
-        String changePath = changesPath + Constants.SEPARATOR + bts.getStorageIndex() + Constants.SEPARATOR + bts.getChangeID();
-        LOG.info("delete change path: " + changePath);
-        curatorClient.checkAndDelte(changePath, false);
+        removeChange2History(bts);
 
         // 清理change cache缓存
         if (changeSummaries != null) {
@@ -621,7 +619,7 @@ public class TaskDispatcher implements Closeable {
                 if (canRecover) {
                     List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
                     List<String> joinerSecondIDs = joinerFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
-                    //挂掉的机器不能做生存者和参与者，此处进行再次过滤，防止其他情况
+                    // 挂掉的机器不能做生存者和参与者，此处进行再次过滤，防止其他情况
                     if (aliveSecondIDs.contains(cs.getChangeServer())) {
                         aliveSecondIDs.remove(cs.getChangeServer());
                     }
@@ -697,7 +695,8 @@ public class TaskDispatcher implements Closeable {
                     Collections.sort(virtualServerIds);
                     for (String virtualID : virtualServerIds) {
                         // 获取使用该serverID的参与者的firstID。
-                        List<String> participators = curatorClient.getChildren(virtualServersPath + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + virtualID);
+                        String vidPath = ZKPaths.makePath(virtualServersPath, String.valueOf(storageIndex), virtualID);
+                        List<String> participators = curatorClient.getChildren(vidPath);
                         // 如果当前存活的firstID包括该 virtualID的参与者，那么
                         List<String> selectIds = selectAvailableIDs(currentFirstIDs, participators);
 
@@ -876,6 +875,7 @@ public class TaskDispatcher implements Closeable {
                                                 // 删除以前的task
                                                 delBalanceTask(currentTask);
                                                 currentTask.setOutputServers(Lists.newArrayList(secondParticipator));
+                                                currentTask.setTaskStatus(TaskStatus.INIT);
                                                 // 重新分发task
                                                 dispatchTask(currentTask);
                                             }
@@ -943,15 +943,25 @@ public class TaskDispatcher implements Closeable {
 
     public void delChangeSummaryNode(ChangeSummary summary) {
         LOG.info("delete:" + summary);
-        String path = changesPath + Constants.SEPARATOR + summary.getStorageIndex() + Constants.SEPARATOR + summary.getChangeID();
-        curatorClient.guaranteedDelete(path, false);
+        String path = ZKPaths.makePath(changesPath, String.valueOf(summary.getStorageIndex()), summary.getChangeID());
+        String historyPath = ZKPaths.makePath(changesHistoryPath, String.valueOf(summary.getStorageIndex()), summary.getChangeID());
+        byte[] data = curatorClient.getData(path);
+        try {
+            curatorClient.guaranteedDelete(path, false);
+            curatorClient.getInnerClient().create().creatingParentsIfNeeded().forPath(historyPath, data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean delBalanceTask(BalanceTaskSummary task) {
         LOG.info("delete task:" + task);
-        String taskNode = tasksPath + Constants.SEPARATOR + task.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
+        String taskNode = ZKPaths.makePath(tasksPath, String.valueOf(task.getStorageIndex()), Constants.TASK_NODE);
+        String taskHistory = ZKPaths.makePath(tasksHistoryPath, String.valueOf(task.getStorageIndex()), task.getChangeID());
         try {
+            byte[] data = curatorClient.getData(taskNode);
             curatorClient.checkAndDelte(taskNode, true);
+            curatorClient.getInnerClient().create().creatingParentsIfNeeded().forPath(taskHistory, data);
             return true;
         } catch (Exception e) {
             return false;
@@ -960,7 +970,7 @@ public class TaskDispatcher implements Closeable {
 
     public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) {
         task.setTaskStatus(status);
-        String taskNode = tasksPath + Constants.SEPARATOR + task.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
+        String taskNode = ZKPaths.makePath(tasksPath, String.valueOf(task.getStorageIndex()), Constants.TASK_NODE);
         curatorClient.setData(taskNode, JsonUtils.toJsonBytesQuietly(task));
     }
 
@@ -977,7 +987,7 @@ public class TaskDispatcher implements Closeable {
         String jsonStr = JsonUtils.toJsonStringQuietly(taskSummary);
         LOG.info("dispatch task:{}", jsonStr);
         // 创建任务
-        String taskNode = tasksPath + Constants.SEPARATOR + storageIndex + Constants.SEPARATOR + Constants.TASK_NODE;
+        String taskNode = ZKPaths.makePath(tasksPath, String.valueOf(storageIndex), Constants.TASK_NODE);
         if (!curatorClient.checkExists(taskNode)) {
             curatorClient.createPersistent(taskNode, true, jsonStr.getBytes());
         }
@@ -1035,6 +1045,19 @@ public class TaskDispatcher implements Closeable {
 
     public void removeRunTask(int storageIndex) {
         runTask.remove(storageIndex);
+    }
+
+    public void removeChange2History(BalanceTaskSummary bts) {
+        String changePath = ZKPaths.makePath(changesPath, String.valueOf(bts.getStorageIndex()), bts.getChangeID());
+        LOG.info("delete change path: " + changePath);
+        String changeHistoryPath = ZKPaths.makePath(changesHistoryPath, String.valueOf(bts.getStorageIndex()), bts.getChangeID());
+        byte[] data = curatorClient.getData(changePath);
+        try {
+            curatorClient.checkAndDelte(changePath, false);
+            curatorClient.getInnerClient().create().creatingParentsIfNeeded().forPath(changeHistoryPath, data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

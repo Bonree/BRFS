@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ public class TaskOperation implements Closeable {
     public TaskOperation(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, ServerIDManager idManager, String dataDir, StorageRegionManager snManager, ServiceManager serviceManager) {
         this.client = client;
         this.idManager = idManager;
-        this.tasksPath = baseBalancePath + Constants.SEPARATOR + Constants.TASKS_NODE;
+        this.tasksPath = ZKPaths.makePath(baseBalancePath, Constants.TASKS_NODE);
         this.baseRoutesPath = baseRoutesPath;
         this.dataDir = dataDir;
         treeCache = CuratorCacheFactory.getTreeCache();
@@ -98,7 +99,7 @@ public class TaskOperation implements Closeable {
 
     public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) {
         task.setTaskStatus(status);
-        String taskNode = tasksPath + Constants.SEPARATOR + task.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
+        String taskNode = ZKPaths.makePath(tasksPath, String.valueOf(task.getStorageIndex()), Constants.TASK_NODE);
         client.setData(taskNode, JsonUtils.toJsonBytesQuietly(task));
     }
 
