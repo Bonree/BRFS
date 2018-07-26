@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,7 +22,6 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.service.impl.curator.ServiceDiscoveryBuilder;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.google.common.collect.HashMultimap;
 
 /**
  * 服务管理接口的默认实现，借助Zookeeper的功能实现服务的管理流程
@@ -45,11 +43,10 @@ public class DefaultServiceManager implements ServiceManager {
 	private static final String SERVICE_BASE_PATH = "/discovery";
 	private ServiceDiscovery<String> serviceDiscovery;
 	private Map<String, ServiceCache<String>> serviceCaches = new HashMap<String, ServiceCache<String>>();
-	private HashMultimap<String, ServiceStateListener> stateListeners;
+	private Map<String, ServiceStateWatcher> watchers = new HashMap<String, ServiceStateWatcher>();
 	
 	public DefaultServiceManager(CuratorFramework client) {
 		this.threadPools = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, new PooledThreadFactory(DEFAULT_SERVICE_MANAGER_THREADPOOL_NAME));
-		this.stateListeners = HashMultimap.create();
 		this.serviceDiscovery = ServiceDiscoveryBuilder.builder(String.class)
 				.client(client)
 				.basePath(SERVICE_BASE_PATH)
@@ -121,15 +118,21 @@ public class DefaultServiceManager implements ServiceManager {
 	private ServiceCache<String> getOrBuildServiceCache(String serviceGroup) {
 		ServiceCache<String> serviceCache = serviceCaches.get(serviceGroup);
 		if(serviceCache == null) {
-			serviceCache = serviceDiscovery.serviceCacheBuilder().name(serviceGroup).executorService(threadPools).build();
-			
-			try {
-				serviceCache.start();
-				serviceCaches.put(serviceGroup, serviceCache);
-				
-				return serviceCache;
-			} catch (Exception e) {
-				LOG.error("build service cache error", e);
+			synchronized (serviceCaches) {
+				serviceCache = serviceCaches.get(serviceGroup);
+				if(serviceCache == null) {
+					serviceCache = serviceDiscovery.serviceCacheBuilder().name(serviceGroup).executorService(threadPools).build();
+					
+					try {
+						serviceCache.start();
+						serviceCaches.put(serviceGroup, serviceCache);
+						
+						LOG.info("build service cache for group[{}]", serviceGroup);
+						return serviceCache;
+					} catch (Exception e) {
+						LOG.error("build service cache error", e);
+					}
+				}
 			}
 		}
 		
@@ -137,35 +140,48 @@ public class DefaultServiceManager implements ServiceManager {
 	}
 
 	@Override
-	public synchronized void addServiceStateListener(String serviceGroup, ServiceStateListener listener) throws Exception {
+	public void addServiceStateListener(String serviceGroup, ServiceStateListener listener) throws Exception {
 		LOG.info("add service state listener for group[{}]", serviceGroup);
-		stateListeners.put(serviceGroup, listener);
-		
-		ServiceCache<String> serviceCache = getOrBuildServiceCache(serviceGroup);
-		if(serviceCache == null) {
-			throw new Exception("Can not get ServiceCache");
+		ServiceStateWatcher watcher = watchers.get(serviceGroup);
+		if(watcher == null) {
+			synchronized (watchers) {
+				watcher = watchers.get(serviceGroup);
+				if(watcher == null) {
+					ServiceCache<String> serviceCache = getOrBuildServiceCache(serviceGroup);
+					if(serviceCache == null) {
+						throw new Exception("Can not get ServiceCache");
+					}
+					
+					watcher = new ServiceStateWatcher(serviceGroup);
+					serviceCache.addListener(watcher);
+					watchers.put(serviceGroup, watcher);
+				}
+			}
 		}
 		
-		serviceCache.addListener(new InnerServiceListener(serviceGroup));
+		watcher.addListener(listener);
 	}
 	
 	@Override
-	public synchronized void removeServiceStateListenerByGroup(String group) {
-		LOG.info("remove all service state listeners for group[{}]", group);
-		stateListeners.removeAll(group);
-	}
-	
-	@Override
-	public synchronized void removeServiceStateListener(String serviceGroup, ServiceStateListener listener) {
-		LOG.info("remove service state listener[{}] for group[{}]", listener, serviceGroup);
-		stateListeners.remove(serviceGroup, listener);
-	}
-	
-	private synchronized ServiceStateListener[] getServiceStateListener(String serviceGroup) {
-		Set<ServiceStateListener> listenerSet = stateListeners.get(serviceGroup);
-		ServiceStateListener[] listeners = new ServiceStateListener[listenerSet.size()];
+	public void removeServiceStateListenerByGroup(String serviceGroup) {
+		LOG.info("remove all service state listeners for group[{}]", serviceGroup);
+		ServiceStateWatcher watcher = watchers.get(serviceGroup);
+		if(watcher == null) {
+			return;
+		}
 		
-		return listenerSet.toArray(listeners);
+		watcher.removeAllListeners();
+	}
+	
+	@Override
+	public void removeServiceStateListener(String serviceGroup, ServiceStateListener listener) {
+		LOG.info("remove service state listener[{}] for group[{}]", listener, serviceGroup);
+		ServiceStateWatcher watcher = watchers.get(serviceGroup);
+		if(watcher == null) {
+			return;
+		}
+		
+		watcher.removeListener(listener);
 	}
 
 	@Override
@@ -201,11 +217,13 @@ public class DefaultServiceManager implements ServiceManager {
 	 * @author chen
 	 *
 	 */
-	private class InnerServiceListener implements ServiceCacheListener {
+	private class ServiceStateWatcher implements ServiceCacheListener {
 		private final String group;
 		private List<Service> lastCache;
 		
-		public InnerServiceListener(String group) {
+		private List<ServiceStateListener> listeners = new ArrayList<ServiceStateListener>();
+		
+		public ServiceStateWatcher(String group) {
 			this.group = group;
 			this.lastCache = getServiceListByGroup(group);
 			
@@ -214,8 +232,28 @@ public class DefaultServiceManager implements ServiceManager {
 			}
 		}
 		
+		public synchronized void addListener(ServiceStateListener listener) {
+			listeners.add(listener);
+			
+			for(Service service : lastCache) {
+				try {
+					listener.serviceAdded(service);
+				} catch (Exception e) {
+					LOG.error("notify service added error", e);
+				}
+			}
+		}
+		
+		public synchronized void removeListener(ServiceStateListener listener) {
+			listeners.remove(listener);
+		}
+		
+		public synchronized void removeAllListeners() {
+			listeners.clear();
+		}
+		
 		private void notifyServiceAdded(Service service) {
-			for(ServiceStateListener listener : getServiceStateListener(group)) {
+			for(ServiceStateListener listener : listeners) {
 				try {
 					listener.serviceAdded(service);
 				} catch (Exception e) {
@@ -225,7 +263,7 @@ public class DefaultServiceManager implements ServiceManager {
 		}
 		
 		private void notifyServiceRemoved(Service service) {
-			for(ServiceStateListener listener : getServiceStateListener(group)) {
+			for(ServiceStateListener listener : listeners) {
 				try {
 					listener.serviceRemoved(service);
 				} catch (Exception e) {
@@ -238,7 +276,7 @@ public class DefaultServiceManager implements ServiceManager {
 		public void stateChanged(CuratorFramework client, ConnectionState newState) {}
 
 		@Override
-		public synchronized  void cacheChanged() {
+		public synchronized void cacheChanged() {
 			List<Service> tmp = getServiceListByGroup(group);
 			
 			for(Service last : lastCache) {
