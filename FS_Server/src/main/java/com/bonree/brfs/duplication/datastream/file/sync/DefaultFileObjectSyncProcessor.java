@@ -71,12 +71,14 @@ public class DefaultFileObjectSyncProcessor implements FileObjectSyncProcessor {
 		}
 		
 		if(lack.isEmpty()) {
-			LOG.info("file[{}] is ok!", file.node().getName());
 			if(syncAccomplished) {
+				LOG.info("file[{}] is ok!", file.node().getName());
 				task.callback().complete(file, maxLength);
 				return true;
 			} else {
+				LOG.info("file[{}] is lack of some duplicate node!", file.node().getName());
 				if(task.isExpired()) {
+					LOG.info("file[{}] sync is expired!", file.node().getName());
 					task.callback().timeout(file);
 					return true;
 				}
@@ -86,10 +88,13 @@ public class DefaultFileObjectSyncProcessor implements FileObjectSyncProcessor {
 		} else {
 			syncAccomplished &= doSynchronize(file.node(), maxLength, lack, full);
 			if(syncAccomplished) {
+				LOG.info("file[{}] sync is completed!", file.node().getName());
 				task.callback().complete(file, maxLength);
 				return true;
 			} else {
+				LOG.info("file[{}] sync is failed!", file.node().getName());
 				if(task.isExpired()) {
+					LOG.info("file[{}] sync is expired!", file.node().getName());
 					task.callback().timeout(file);
 					return true;
 				}

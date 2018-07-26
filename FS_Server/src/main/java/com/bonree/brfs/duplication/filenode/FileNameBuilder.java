@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.filenode;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -16,13 +18,15 @@ public class FileNameBuilder {
 		StringBuilder builder = new StringBuilder();
 		builder.append(UUID.randomUUID().toString().replaceAll("-", ""));
 		
+		List<String> ids = new ArrayList<String>();
 		for(DuplicateNode node : duplicateNodes) {
+			ids.add(node.getId());
 			builder.append('_').append(idManager.getOtherSecondID(node.getId(), storageRegion.getId()));
 		}
 		
 		int virtualIdCount = storageRegion.getReplicateNum() - duplicateNodes.length;
 		if(virtualIdCount > 0) {
-			for(String virtualId : idManager.getVirtualServerID(storageRegion.getId(), virtualIdCount)) {
+			for(String virtualId : idManager.getVirtualServerID(storageRegion.getId(), virtualIdCount, ids)) {
 				LOG.info("get virtual id---{}", virtualId);
 				builder.append('_').append(virtualId);
 			}
