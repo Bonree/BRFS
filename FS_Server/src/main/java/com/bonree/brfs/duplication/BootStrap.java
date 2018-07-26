@@ -57,7 +57,7 @@ import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
-import com.bonree.brfs.duplication.filenode.duplicates.MinimalDuplicateNodeSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.ResourceDuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileCoordinatorPaths;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
@@ -70,6 +70,7 @@ import com.bonree.brfs.duplication.storageregion.handler.OpenStorageRegionMessag
 import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
+import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class BootStrap {
@@ -130,7 +131,14 @@ public class BootStrap {
 
             FilePathMaker pathMaker = new IDFilePathMaker(idManager);
 
-            DuplicateNodeSelector nodeSelector = new MinimalDuplicateNodeSelector(serviceManager, connectionPool);
+//            DuplicateNodeSelector nodeSelector = new MinimalDuplicateNodeSelector(serviceManager, connectionPool);
+            String diskGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
+            String rPath = zookeeperPaths.getBaseResourcesPath()+"/"+diskGroup+"/resource";
+            DuplicateNodeSelector nodeSelector = new ResourceDuplicateNodeSelector().setClient(client, rPath)
+            		.setAvailable(new RandomAvailable(null))
+            		.setConnectionPool(connectionPool)
+            		.setServiceManager(serviceManager)
+            		.start();
 
             int workerThreadNum = Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_IO_WORKER_NUM,
     				String.valueOf(Runtime.getRuntime().availableProcessors())));
