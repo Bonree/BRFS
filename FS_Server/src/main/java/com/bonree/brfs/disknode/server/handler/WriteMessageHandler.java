@@ -80,12 +80,12 @@ public class WriteMessageHandler implements MessageHandler {
 			
 			RecordFileWriter writer = binding.first();
 			for(int i = 0; i < datas.length; i++) {
-				WriteData data = datas[i];
+				byte[] contentData = fileFormater.formatData(datas[i].getBytes());
 				
-				LOG.debug("writing file[{}] with data size[{}]", writer.getPath(), data.getBytes().length);
+				LOG.debug("writing file[{}] with data size[{}]", writer.getPath(), contentData.length);
 				
-				WriteResult result = new WriteResult(fileFormater.relativeOffset(writer.position()), data.getBytes().length);
-				writer.write(data.getBytes());
+				WriteResult result = new WriteResult(fileFormater.relativeOffset(writer.position()), contentData.length);
+				writer.write(contentData);
 				
 				writerManager.flushIfNeeded(writer.getPath());
 				results[i] = result;

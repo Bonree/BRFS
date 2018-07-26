@@ -76,8 +76,10 @@ public class RecoveryMessageHandler implements MessageHandler {
 					LOG.info("get data from{} to recover...", service);
 					client = new HttpDiskNodeClient(service.getHost(), service.getPort());
 					
-					bytes = client.readData(state.getFilePath(), fileLength);
+					long lackBytes = state.getFileLength() - fileLength;
+					bytes = client.readData(state.getFilePath(), fileLength, (int) lackBytes);
 					if(bytes != null) {
+						LOG.info("read bytes length[{}], require[{}]", bytes.length, lackBytes);
 						break;
 					}
 				} catch (Exception e) {

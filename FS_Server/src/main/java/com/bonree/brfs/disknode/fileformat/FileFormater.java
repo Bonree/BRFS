@@ -6,4 +6,6 @@ public interface FileFormater {
 	long maxBodyLength();
 	long relativeOffset(long offset);
 	long absoluteOffset(long offset);
+	
+	byte[] formatData(byte[] data) throws Exception;
 }

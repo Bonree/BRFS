@@ -288,11 +288,10 @@ public class FileWriterManager implements LifeCycle {
 		RecordElement lastElement = elements.get(elements.size() - 1);
 		long validPosition = lastElement.getOffset() + lastElement.getSize();
 		LOG.debug("last element : {}", lastElement);
-		LOG.debug("position : {}", binding.first().position());
 		
 		boolean needFlush = false;
 		if(validPosition != binding.first().position()) {
-			LOG.info("rewrite file content of file[{}]", filePath);
+			LOG.info("rewrite file content of file[{}] from[{}] to [{}]", filePath, binding.first().position(), validPosition);
 			//数据文件的内容和日志信息不一致，需要调整数据文件
 			binding.first().position(validPosition);
 			needFlush = true;
