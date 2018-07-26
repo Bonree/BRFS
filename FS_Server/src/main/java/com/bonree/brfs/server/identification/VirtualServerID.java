@@ -7,11 +7,11 @@ public interface VirtualServerID {
     /** 概述：获取virtual serverID
      * @param storageIndex sn索引
      * @param count 获取virtual server id 个数
-     * @param selfFirstID 自身的1级serverid，会进行注册，表明自身使用过该虚拟serverid
+     * @param diskFirstID 使用1级serverid，会进行注册，表明自身使用过该虚拟serverid
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> getVirtualID(int storageIndex, int count, String selfFirstID);
+    public List<String> getVirtualID(int storageIndex, int count, List<String> diskFirstIDs);
 
     /** 概述：列出使用的virtualID
      * @return

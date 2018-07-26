@@ -145,8 +145,8 @@ public class ServerIDManager {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> getVirtualServerID(int storageIndex, int count) {
-        return virtualServerID.getVirtualID(storageIndex, count, firstServerId);
+    public List<String> getVirtualServerID(int storageIndex, int count, List<String> diskFirstIds) {
+        return virtualServerID.getVirtualID(storageIndex, count, diskFirstIds);
     }
 
     /** 概述：将一个virtual server ID置为无效
