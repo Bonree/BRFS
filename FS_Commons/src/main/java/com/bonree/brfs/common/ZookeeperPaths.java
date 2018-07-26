@@ -39,6 +39,8 @@ public class ZookeeperPaths {
     public final static String USERS = "users";
 
     public final static String TASKS = "tasks";
+    
+    public final static String RESOURCES = "resources";
 
     private final String clusterName;
 
@@ -61,6 +63,8 @@ public class ZookeeperPaths {
     private String baseUserPath;
 
     private String baseTaskPath;
+    
+    private String baseResourcesPath;
 
     private ZookeeperPaths(final String clusterName, final String zkHosts) {
         this.clusterName = clusterName;
@@ -138,7 +142,14 @@ public class ZookeeperPaths {
     public void setBaseSequencesPath(String baseSequencesPath) {
         this.baseSequencesPath = baseSequencesPath;
     }
+    
+    public String getBaseResourcesPath() {
+		return baseResourcesPath;
+	}
 
+	public void setBaseResourcesPath(String baseResourcesPath) {
+		this.baseResourcesPath = baseResourcesPath;
+	}
     public void createZkPath() {
         CuratorClient client = null;
         try {
@@ -152,6 +163,8 @@ public class ZookeeperPaths {
             createPathIfNotExist(client, baseRoutePath);
             createPathIfNotExist(client, baseUserPath);
             createPathIfNotExist(client, baseTaskPath);
+            createPathIfNotExist(client, baseResourcesPath);
+            
         } finally {
             client.close();
         }
@@ -177,6 +190,7 @@ public class ZookeeperPaths {
         setBaseRoutePath(baseClusterName + SEPARATOR + ROUTES);
         setBaseUserPath(baseClusterName + SEPARATOR + USERS);
         setBaseTaskPath(baseClusterName + SEPARATOR + TASKS);
+        setBaseResourcesPath(baseClusterName + SEPARATOR + RESOURCES); 
     }
 
     public static ZookeeperPaths create(final String clusterName, final String zkHosts) {
@@ -194,5 +208,7 @@ public class ZookeeperPaths {
         zkPaths.createPath();
         return zkPaths;
     }
+
+	
 
 }
