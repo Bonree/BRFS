@@ -3,6 +3,7 @@ package com.bonree.brfs.common.rebalance.route;
 import java.util.List;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /*******************************************************************************
@@ -14,10 +15,19 @@ import com.bonree.brfs.common.rebalance.TaskVersion;
  * @Description: 2级serverID的迁移记录
  ******************************************************************************/
 public class NormalRoute {
+    @JsonProperty("changeID")
     private String changeID;
+    
+    @JsonProperty("storageIndex")
     private int storageIndex;
+    
+    @JsonProperty("secondID")
     private String secondID;
+    
+    @JsonProperty("newSecondIDs")
     private List<String> newSecondIDs;
+    
+    @JsonProperty("version")
     private TaskVersion version;
 
     @SuppressWarnings("unused")

@@ -69,7 +69,7 @@ public class SecondLevelServerID {
         if (client.checkExists().forPath(normalPath)!=null && client.checkExists().forPath(siPath)!=null) {
             List<String> routeNodes = client.getChildren().forPath(siPath);
             for (String routeNode : routeNodes) {
-                String routePath = ZKPaths.makePath(si, routeNode);
+                String routePath = ZKPaths.makePath(siPath, routeNode);
                 byte[] data = client.getData().forPath(routePath);
                 NormalRoute normalRoute = JsonUtils.toObject(data, NormalRoute.class);
                 if (normalRoute.getSecondID().equals(secondServerID)) {

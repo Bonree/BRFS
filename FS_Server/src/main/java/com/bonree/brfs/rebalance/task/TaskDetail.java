@@ -2,12 +2,22 @@ package com.bonree.brfs.rebalance.task;
 
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.ExecutionStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TaskDetail {
+    @JsonProperty("selfServerId")
     private String selfServerId;
+    
+    @JsonProperty("status")
     private DataRecover.ExecutionStatus status;
+    
+    @JsonProperty("totalDirectories")
     private int totalDirectories;
+    
+    @JsonProperty("curentCount")
     private int curentCount;
+    
+    @JsonProperty("process")
     private double process;
 
     @SuppressWarnings("unused")

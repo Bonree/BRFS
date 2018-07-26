@@ -5,10 +5,14 @@ public class Constants {
     public final static String SEPARATOR = "/";
 
     public final static String CHANGES_NODE = "changes";
+    
+    public final static String CHANGES_HISTORY_NODE = "changes_history";
 
     public final static String DISPATCH_LEADER = "dispatch_leader";
 
     public final static String TASKS_NODE = "tasks";
+    
+    public final static String TASKS_HISTORY_NODE = "tasks_history";
 
     public final static String TASK_NODE = "task";
 

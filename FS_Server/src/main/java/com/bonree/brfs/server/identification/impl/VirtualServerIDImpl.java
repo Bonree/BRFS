@@ -132,7 +132,7 @@ public class VirtualServerIDImpl implements VirtualServerID {
     @Override
     public boolean deleteVirtualId(int storageIndex, String virtualId) {
         try {
-			client.delete().guaranteed().forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId));
+			client.delete().guaranteed().deletingChildrenIfNeeded().forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId));
 			return true;
 		} catch (Exception e) {
 			LOG.error("delete virtual id node[{}:{}] error", storageIndex, virtualId, e);

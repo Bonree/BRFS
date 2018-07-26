@@ -179,55 +179,59 @@ public class MultiRecover implements DataRecover {
 
     @Override
     public void recover() {
-        
+
         LOG.info("begin normal recover");
         // 注册节点
         LOG.info("create:" + selfNode + "-------------" + detail);
         // 无注册的话，则注册，否则不用注册
-        while(true) {
+        while (true) {
             detail = registerNodeDetail(selfNode);
-            if(detail!=null) {
-                LOG.info("register "+selfNode+" is successful!!");
+            if (detail != null) {
+                LOG.info("register " + selfNode + " is successful!!");
                 break;
             }
-            LOG.error("register "+selfNode+" is error!!");
+            LOG.error("register " + selfNode + " is error!!");
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        //主任务结束，则直接退出
-        if(balanceSummary.getTaskStatus().equals(TaskStatus.FINISH)) {
+        // 主任务结束，则直接退出
+        if (balanceSummary.getTaskStatus().equals(TaskStatus.FINISH)) {
             finishTask();
             return;
         }
-        
+
         try {
             for (int i = 0; i < delayTime; i++) {
                 if (status.get().equals(TaskStatus.CANCEL)) {
                     return;
                 }
-                //暂时用循环控制，后期重构改成wait notify机制
-                while(true) {
-                    if(!status.get().equals(TaskStatus.PAUSE)) {
+                // 暂时用循环控制，后期重构改成wait notify机制
+                while (true) {
+                    if (!status.get().equals(TaskStatus.PAUSE)) {
                         break;
                     }
                     Thread.sleep(1000);
                 }
-                
+
                 // 倒计时完毕，则不需要倒计时
                 if (!detail.getStatus().equals(ExecutionStatus.INIT)) {
                     break;
                 }
-                
-                LOG.info("remain time:" + (delayTime - i) + "s, start task!!!");
+                if (delayTime - i <= 10) {
+                    LOG.info("remain time:" + (delayTime - i) + "s, start task!!!");
+                } else {
+                    if ((delayTime - i) % 10 == 0) {
+                        LOG.info("remain time:" + (delayTime - i) + "s, start task!!!");
+                    }
+                }
                 Thread.sleep(1000);
             }
         } catch (InterruptedException e) {
             LOG.error("task back time count interrupt!!", e);
         }
-
 
         detail.setStatus(ExecutionStatus.RECOVER);
         LOG.info("update:" + selfNode + "-------------" + detail);
@@ -304,12 +308,13 @@ public class MultiRecover implements DataRecover {
                 return;
             }
             String timeFilePath = snDataDir + FileUtils.FILE_SEPARATOR + replica + FileUtils.FILE_SEPARATOR + timeFileName;
-//            String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
+            // String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
             try {
-//                simpleWriter = new SimpleRecordWriter(recordPath);
+                // simpleWriter = new SimpleRecordWriter(recordPath);
                 List<String> fileNames = FileUtils.listFileNames(timeFilePath, ".rd");
                 dealFiles(fileNames, timeFileName, replica, snDataDir);
-            } finally {}
+            } finally {
+            }
         }
 
     }
@@ -437,7 +442,8 @@ public class MultiRecover implements DataRecover {
                                 detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
                                 updateDetail(selfNode, detail);
                                 if (success) {
-//                                    BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
+                                    // BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()),
+                                    // fileRecover.getFirstServerID());
                                     // fileRecover.getSimpleWriter().writeRecord(record.toString());
                                 }
                                 LOG.info("update:" + selfNode + "-------------" + detail);
@@ -503,8 +509,8 @@ public class MultiRecover implements DataRecover {
         if (!client.checkExists(node)) {
             detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
             client.createPersistent(node, false, JsonUtils.toJsonBytesQuietly(detail));
-        }else {
-            byte[] data=client.getData(node);
+        } else {
+            byte[] data = client.getData(node);
             detail = JsonUtils.toObjectQuietly(data, TaskDetail.class);
         }
         return detail;
