@@ -1,5 +1,7 @@
 package com.bonree.brfs.disknode.server.handler;
 
+import java.io.File;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +33,18 @@ public class ReadMessageHandler implements MessageHandler {
 		
 		try {
 			String filePath = diskContext.getConcreteFilePath(msg.getPath());
+			File dataFile = new File(filePath);
+			if(!dataFile.exists() || !dataFile.isFile()) {
+				result.setSuccess(false);
+				return;
+			}
 			
 			String offsetParam = msg.getParams().get(PARAM_READ_OFFSET);
 			String lengthParam = msg.getParams().get(PARAM_READ_LENGTH);
 			int offset = offsetParam == null ? 0 : Integer.parseInt(offsetParam);
 			int length = (int) (lengthParam == null ? fileFormater.maxBodyLength() : Integer.parseInt(lengthParam));
 			
-			LOG.info("read data offset[{}], size[{}]", offset, length);
+			LOG.info("read data offset[{}], size[{}] from file[{}]", offset, length, filePath);
 			
 			byte[] data = DataFileReader.readFile(filePath, fileFormater.absoluteOffset(offset), length);
 			
