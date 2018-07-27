@@ -111,7 +111,7 @@ public class VirtualServerIDImpl implements VirtualServerID {
     	String node = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), virtualId);
         
         try {
-			Stat stat = client.setData().forPath(node, Ints.toByteArray(STATE_INVALID));
+			Stat stat = client.setData().forPath(node, Ints.toByteArray(state));
 			
 			return stat != null;
 		} catch (Exception e) {
