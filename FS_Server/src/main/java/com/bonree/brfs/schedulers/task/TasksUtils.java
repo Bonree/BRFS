@@ -42,7 +42,7 @@ public class TasksUtils {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	 public static ReturnCode createUserDeleteTask(List<Service> services, ZookeeperPaths zkPaths, StorageRegion sn, long startTime, long endTime){
+	 public static ReturnCode createUserDeleteTask(List<Service> services, ZookeeperPaths zkPaths, StorageRegion sn, long startTime, long endTime, boolean isAll){
 		 	if(services == null || services.isEmpty()){
 		 		return ReturnCode.DELETE_DATA_ERROR;
 		 	}
@@ -51,14 +51,13 @@ public class TasksUtils {
 		 	}
 		 	
 		 	String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-		 	ReturnCode code = checkTime(startTime, endTime, sn.getCreateTime(), Duration.parse(sn.getFilePartitionDuration()).toMillis());
 		 	MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
 		 	release.setPropreties(zkAddresses, zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
 	    	TaskTypeModel tmodel = release.getTaskTypeInfo(TaskType.USER_DELETE.name());
 	    	if(!tmodel.isSwitchFlag()) {
 	    		return ReturnCode.FORBID_DELETE_DATA_ERROR;
 	    	}
-	    	TaskModel task = TasksUtils.createUserDelete(sn, TaskType.USER_DELETE, "", startTime, endTime);
+	    	TaskModel task = TasksUtils.createUserDelete(sn, TaskType.USER_DELETE, isAll? UserDeleteJob.DELETE_SN_ALL :UserDeleteJob.DELETE_PART, startTime, endTime);
 	    	if(task == null){
 	    		return ReturnCode.DELETE_DATA_ERROR;
 	    	}
@@ -88,30 +87,30 @@ public class TasksUtils {
 		List<AtomTaskModel> storageAtoms = new ArrayList<AtomTaskModel>();
 		if(endTime == 0 || startTime >= endTime){
 			return null;
-		}	
+		}
+		long granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 		String snName = sn.getName();
 		int count = sn.getReplicateNum();
 		long startHour = 0;
-		long endHour =  endTime/1000/60/60*60*60*1000;
-		boolean isDeleteSN = false;
+		long endHour =  endTime - endTime%granule;
 		// 删除sn
-		if(startTime <=0){
-			startHour = sn.getCreateTime()/1000/60/60*60*60*1000;
-			isDeleteSN = true;
+		boolean isALL = UserDeleteJob.DELETE_SN_ALL.equals(opertationContent);
+		if(isALL){
+			startHour = sn.getCreateTime() - sn.getCreateTime()%granule;
 		}else{
-			startHour = startTime/1000/60/60*60*60*1000;
+			startHour = startTime - startTime%granule;
 		}
 		// 若是删除sn时，创建时间与删除时间间隔较短时，结束时间向后退
-		if(startHour == endHour && startTime <=0) {
-			endHour = endHour + 3600000;
+		if(startHour == endHour) {
+			endHour = endHour + granule;
 		}
 		if(startHour >= endHour) {
 			return null;
 		}
 		String startStr = TimeUtils.formatTimeStamp(startHour, TimeUtils.TIME_MILES_FORMATE);
 		String endStr = TimeUtils.formatTimeStamp(endHour, TimeUtils.TIME_MILES_FORMATE);
-		String operation = isDeleteSN ? UserDeleteJob.DELETE_SN_ALL:UserDeleteJob.DELETE_PART;
-		AtomTaskModel atom = AtomTaskModel.getInstance(null, snName, operation, sn.getReplicateNum(), startTime, endTime, 3600000);
+		
+		AtomTaskModel atom = AtomTaskModel.getInstance(null, snName, opertationContent, sn.getReplicateNum(), startHour, endHour, granule);
 		storageAtoms.add(atom);
 		task.setAtomList(storageAtoms);
 		task.setTaskState(TaskState.INIT.code());
@@ -119,42 +118,7 @@ public class TasksUtils {
 		task.setTaskType(taskType.code());
 		return task;
 	}
-	
-	/***
-	 * 概述：检测时间
-	 * @param startTime
-	 * @param endTime
-	 * @param cTime
-	 * @param granule
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static ReturnCode checkTime(long startTime, long endTime, long cTime, long granule) {
-		// 1，时间格式不对
-		if(startTime != (startTime - startTime%granule)
-				|| endTime !=(endTime - endTime%granule)) {
-			return ReturnCode.TIME_FORMATE_ERROR;
-		}
-		long currentTime = System.currentTimeMillis();
-		long cuGra = currentTime - currentTime%granule;
-		long sGra = startTime - startTime%granule;
-		long eGra = endTime - endTime%granule;
-		long cGra = cTime - cTime%granule;
-		// 2.开始时间等于结束世界
-		if(sGra >= eGra) {
-			return ReturnCode.PARAMETER_ERROR;
-		}
-		// 3.开始时间，结束时间小于创建时间
-		if(cGra >sGra ||cGra >eGra) {
-			return ReturnCode.TIME_EARLIER_THAN_CREATE_ERROR;
-		}
-		// 4.当前时间
-		if(cuGra <= sGra || cuGra<eGra) {
-			return ReturnCode.FORBID_DELETE_CURRENT_ERROR;
-		}
-		// 若成功则返回null
-		return ReturnCode.SUCCESS;
-	}
+
 	public static void createCopyTask(String taskName) {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();

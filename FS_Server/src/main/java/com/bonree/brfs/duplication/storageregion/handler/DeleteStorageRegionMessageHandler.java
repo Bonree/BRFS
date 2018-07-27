@@ -53,7 +53,7 @@ public class DeleteStorageRegionMessageHandler extends StorageRegionMessageHandl
 				callback.completed(result);
 				return;
 			}
-			ReturnCode code = TasksUtils.createUserDeleteTask(services, zkPaths, region, -1,	System.currentTimeMillis());
+			ReturnCode code = TasksUtils.createUserDeleteTask(services, zkPaths, region, region.getCreateTime(), System.currentTimeMillis(), true);
 			if (!ReturnCode.SUCCESS.equals(code)) {
 				result.setSuccess(false);
 				result.setData(BrStringUtils.toUtf8Bytes(code.name()));
