@@ -149,6 +149,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 		.addParameter("size", String.valueOf(fidObj.getSize())).build();
                 
                 try {
+                	LOG.info("read url:" + uri);
 					final HttpResponse response = client.executeGet(uri, defaultHeaders);
 					
 					if (response != null && response.isReponseOK()) {
