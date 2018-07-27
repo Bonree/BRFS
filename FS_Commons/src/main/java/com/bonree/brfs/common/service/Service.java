@@ -92,9 +92,7 @@ public class Service {
 		if(obj instanceof Service) {
 			Service cmp = (Service) obj;
 			if(this.serviceId.equals(cmp.serviceId)
-					&& this.serviceGroup.equals(cmp.serviceGroup)
-					&& this.host.equals(cmp.host)
-					&& this.port == cmp.port) {
+					&& this.serviceGroup.equals(cmp.serviceGroup)) {
 				return true;
 			}
 		}

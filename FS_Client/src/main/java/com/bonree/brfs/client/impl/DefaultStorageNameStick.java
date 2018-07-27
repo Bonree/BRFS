@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.client.InputItem;
 import com.bonree.brfs.client.StorageNameStick;
 import com.bonree.brfs.client.route.DiskServiceSelectorCache;
-import com.bonree.brfs.client.route.DuplicaServiceSelector;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.client.utils.FilePathBuilder;
 import com.bonree.brfs.common.ReturnCode;
@@ -44,7 +43,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
     private final int storageId;
 
     private DiskServiceSelectorCache selector;
-    private DuplicaServiceSelector dupSelector;
+    private RegionNodeSelector regionNodeSelector;
     private HttpClient client;
     
     private FileSystemConfig config;
@@ -52,12 +51,12 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
     public DefaultStorageNameStick(String storageName, int storageId,
     		HttpClient client, DiskServiceSelectorCache selector,
-    		DuplicaServiceSelector dupSelector, FileSystemConfig config) {
+    		RegionNodeSelector regionNodeSelector, FileSystemConfig config) {
         this.storageName = storageName;
         this.storageId = storageId;
         this.client = client;
         this.selector = selector;
-        this.dupSelector = dupSelector;
+        this.regionNodeSelector = regionNodeSelector;
         
         this.config = config;
         this.defaultHeaders.put("username", config.getName());
@@ -77,8 +76,8 @@ public class DefaultStorageNameStick implements StorageNameStick {
         dataMessage.setItems(dataItems);
 
         try {
-            List<Service> serviceList = dupSelector.randomServiceList();
-            if (serviceList.isEmpty()) {
+        	Service[] serviceList = regionNodeSelector.select(regionNodeSelector.serviceNum());
+            if (serviceList.length == 0) {
                 throw new BRFSException("none disknode!!!");
             }
 
@@ -153,18 +152,12 @@ public class DefaultStorageNameStick implements StorageNameStick {
 					final HttpResponse response = client.executeGet(uri, defaultHeaders);
 					
 					if (response != null && response.isReponseOK()) {
+						FileContent content = FileDecoder.contents(response.getResponseBody());
 	                    return new InputItem() {
 
 	                        @Override
 	                        public byte[] getBytes() {
-	                            try {
-	                                FileContent content = FileDecoder.contents(response.getResponseBody());
-	                                return content.getData().toByteArray();
-	                            } catch (Exception e) {
-	                                e.printStackTrace();
-	                            }
-
-	                            return null;
+	                        	return content.getData().toByteArray();
 	                        }
 	                    };
 	                }
@@ -217,8 +210,8 @@ public class DefaultStorageNameStick implements StorageNameStick {
         String starTimeStr = start.toString();
         String endTimeStr = end.toString();
         try {
-            List<Service> serviceList = dupSelector.randomServiceList();
-            if (serviceList.isEmpty()) {
+        	Service[] serviceList = regionNodeSelector.select(regionNodeSelector.serviceNum());
+            if (serviceList.length == 0) {
                 throw new BRFSException("none disknode!!!");
             }
             for (Service service : serviceList) {

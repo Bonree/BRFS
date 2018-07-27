@@ -12,7 +12,6 @@ import com.bonree.brfs.client.meta.impl.DiskServiceMetaCache;
 import com.bonree.brfs.client.meta.impl.DuplicaServiceMetaCache;
 import com.bonree.brfs.client.route.listener.RouteCacheListener;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 public class ServiceSelectorManager implements Closeable {
@@ -30,6 +29,7 @@ public class ServiceSelectorManager implements Closeable {
 
     public ServiceSelectorManager(final CuratorFramework client, String nameSpace, final String zkServerIDPath,
     		final String baseRoutePath,
+    		ServiceManager serviceManager,
     		String duplicateServiceGroup,
     		String diskServiceGroup) throws Exception {
         this.zkServerIDPath = zkServerIDPath;
@@ -37,8 +37,7 @@ public class ServiceSelectorManager implements Closeable {
         this.curatorClient = CuratorClient.wrapClient(client);
         treeCache = new TreeCache(client, baseRoutePath);
         
-        serviceManager = new DefaultServiceManager(client.usingNamespace(nameSpace));
-        serviceManager.start();
+        this.serviceManager = serviceManager;
         
         this.duplicateServiceGroup = duplicateServiceGroup;
         this.diskServiceGroup = diskServiceGroup;

@@ -3,7 +3,6 @@ package com.bonree.brfs.client.impl;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -26,7 +25,8 @@ import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.google.common.primitives.Ints;
 
@@ -36,7 +36,9 @@ public class DefaultBRFileSystem implements BRFileSystem {
     private HttpClient httpClient; 
     private CuratorFramework zkClient;
 
+    private ServiceManager serviceManager;
     private ServiceSelectorManager serviceSelectorManager;
+    private RegionNodeSelector regionNodeSelector;
     
     private Map<String, StorageNameStick> stickContainer = new HashMap<String, StorageNameStick>();
     
@@ -64,15 +66,21 @@ public class DefaultBRFileSystem implements BRFileSystem {
             throw new BRFSException("cluster is not exist!!!");
         }
         
-        this.serviceSelectorManager = new ServiceSelectorManager(zkClient, zkPaths.getBaseClusterName().substring(1), zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath(),
+        this.serviceManager = new DefaultServiceManager(zkClient.usingNamespace(zkPaths.getBaseClusterName().substring(1)));
+        this.serviceManager.start();
+        
+        this.serviceSelectorManager = new ServiceSelectorManager(zkClient, zkPaths.getBaseClusterName().substring(1),
+        		zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath(), serviceManager,
         		config.getDuplicateServiceGroup(), config.getDiskServiceGroup());
+        
+        this.regionNodeSelector = new RegionNodeSelector(serviceManager, config.getDuplicateServiceGroup());
     }
 
     @Override
     public boolean createStorageName(String storageName, Map<String, Object> attrs) {
         try {
-        	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
-        	if(serviceList.isEmpty()) {
+        	Service[] serviceList = regionNodeSelector.select(regionNodeSelector.serviceNum());
+            if (serviceList.length == 0) {
         		throw new BRFSException("none disknode!!!");
         	}
         	
@@ -114,8 +122,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
     @Override
     public boolean updateStorageName(String storageName, Map<String, Object> attrs) {
     	try {
-        	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
-        	if(serviceList.isEmpty()) {
+    		Service[] serviceList = regionNodeSelector.select(regionNodeSelector.serviceNum());
+            if (serviceList.length == 0) {
         		throw new BRFSException("none disknode!!!");
         	}
         	
@@ -161,8 +169,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
     @Override
     public boolean deleteStorageName(String storageName) {
     	try {
-        	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
-        	if(serviceList.isEmpty()) {
+    		Service[] serviceList = regionNodeSelector.select(regionNodeSelector.serviceNum());
+            if (serviceList.length == 0) {
         		throw new BRFSException("none disknode!!!");
         	}
         	
@@ -205,8 +213,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
     			stick = stickContainer.get(storageName);
     			if(stick == null) {
     				try {
-    		        	List<Service> serviceList = serviceSelectorManager.useDuplicaSelector().randomServiceList();
-    		        	if(serviceList.isEmpty()) {
+    					Service[] serviceList = regionNodeSelector.select(regionNodeSelector.serviceNum());
+    		            if (serviceList.length == 0) {
     		        		throw new BRFSException("none disknode!!!");
     		        	}
     		        	
@@ -232,7 +240,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		            		
     		            		DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
     	    		            stick = new DefaultStorageNameStick(storageName, storageId,
-    	    		            		httpClient, cache, serviceSelectorManager.useDuplicaSelector(),
+    	    		            		httpClient, cache, regionNodeSelector,
     	    		            		config);
     	    		            stickContainer.put(storageName, stick);
     	    		            
