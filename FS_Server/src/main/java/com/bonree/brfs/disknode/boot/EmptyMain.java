@@ -105,7 +105,7 @@ public class EmptyMain implements LifeCycle {
 		server.addContextHandler(DiskContext.URI_LIST_NODE_ROOT, listRequestHandler);
 		
 		NettyHttpRequestHandler recoverRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(diskContext, serviceManager, writerManager));
+		recoverRequestHandler.addMessageHandler("POST", new RecoveryMessageHandler(diskContext, serviceManager, writerManager, fileFormater));
 		server.addContextHandler(DiskContext.URI_RECOVER_NODE_ROOT, recoverRequestHandler);
 		
 		NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);

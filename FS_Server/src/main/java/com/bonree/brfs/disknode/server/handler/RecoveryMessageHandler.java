@@ -14,12 +14,14 @@ import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.CloseUtils;
+import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
+import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.utils.Pair;
 import com.google.common.base.Splitter;
 
@@ -29,13 +31,16 @@ public class RecoveryMessageHandler implements MessageHandler {
 	private DiskContext context;
 	private ServiceManager serviceManager;
 	private FileWriterManager writerManager;
+	private FileFormater fileFormater;
 	
 	public RecoveryMessageHandler(DiskContext context,
 			ServiceManager serviceManager,
-			FileWriterManager writerManager) {
+			FileWriterManager writerManager,
+			FileFormater fileFormater) {
 		this.context = context;
 		this.serviceManager = serviceManager;
 		this.writerManager = writerManager;
+		this.fileFormater = fileFormater;
 	}
 
 	@Override
@@ -61,7 +66,7 @@ public class RecoveryMessageHandler implements MessageHandler {
 				return;
 			}
 			
-			binding.first().position(fileLength);
+			binding.first().position(fileFormater.absoluteOffset(fileLength));
 			byte[] bytes = null;
 			for(String stateString : fullStates) {
 				FileObjectSyncState state = SyncStateCodec.fromString(stateString);
@@ -95,9 +100,18 @@ public class RecoveryMessageHandler implements MessageHandler {
 				return;
 			}
 			
-			binding.first().write(bytes);
+			int offset = 0;
+			int size = 0;
+			while((size = FileDecoder.getOffsets(offset, bytes)) > 0) {
+				LOG.info("rewrite data[offset={}, size={}] to file[{}]", offset, size, filePath);
+				binding.first().write(bytes, offset, size);
+				offset += size;
+				size = 0;
+			}
 			
-			writerManager.adjustFileWriter(filePath);
+			if(offset != bytes.length) {
+				LOG.error("perhaps datas that being recoverd is not correct! get [{}], but recoverd[{}]", bytes.length, offset);
+			}
 			
 			handleResult.setSuccess(true);
 		} catch (Exception e) {
