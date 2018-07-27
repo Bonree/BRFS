@@ -7,7 +7,6 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
@@ -29,7 +28,7 @@ public class ManagerContralFactory {
 	/**
 	 * 可用server服务
 	 */
-	private AvailableServerInterface asm;
+//	private AvailableServerInterface asm;
 	/**
 	 * 任务执行服务
 	 */
@@ -77,12 +76,7 @@ public class ManagerContralFactory {
 	public void setTm(MetaTaskManagerInterface tm) {
 		this.tm = tm;
 	}
-	public AvailableServerInterface getAsm() {
-		return asm;
-	}
-	public void setAsm(AvailableServerInterface asm) {
-		this.asm = asm;
-	}
+	
 	public SchedulerManagerInterface getStm() {
 		return stm;
 	}

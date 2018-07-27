@@ -20,24 +20,17 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.resourceschedule.commons.GatherResource;
-import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
-import com.bonree.brfs.resourceschedule.model.ServerModel;
-import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
-import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
 import com.bonree.brfs.schedulers.jobs.biz.WatchDogJob;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
-import com.bonree.brfs.schedulers.jobs.resource.AsynJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
 import com.bonree.brfs.schedulers.jobs.system.OperationTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -85,10 +78,6 @@ public class InitTaskManager {
 		// 1.工厂类添加调度管理
 		SchedulerManagerInterface manager = DefaultSchedulersManager.getInstance();
 		mcf.setStm(manager);
-		
-		// 2.工厂类添加可用服务
-		AvailableServerInterface as = RandomAvailable.getInstance();
-		mcf.setAsm(as);
 		
 		// 工厂类添加发布接口
 		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
@@ -317,14 +306,9 @@ public class InitTaskManager {
 		// 1.引入第三方lib库，资源采集时需要用到
 		LibUtils.loadLibraryPath(config.getLibPath());
 		// 2.采集基本信息上传到 zk
-		ServiceManager sm = ManagerContralFactory.getInstance().getSm();
 		String serverId = ManagerContralFactory.getInstance().getServerId();
-		BaseMetaServerModel base = GatherResource.gatherBase(serverId, Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
-		ServerModel smodel = new ServerModel();
-		smodel.setBase(base);
-		String str = JsonUtils.toJsonString(smodel);
-		sm.updateService(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), serverId, str);
-		
+		String zkAddress = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+		String diskGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
 		// 3.创建资源采集线程池
 		Properties  prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);
 		manager.createTaskPool(RESOURCE_MANAGER, prop);
@@ -333,19 +317,20 @@ public class InitTaskManager {
 			LOG.error("{} start fail !!!", RESOURCE_MANAGER);
 		}
 		// 4.创建采集任务信息
-		Map<String, String> gatherMap = JobDataMapConstract.createGatherResourceDataMap(config, serverId);
+		Map<String, String> gatherMap = JobDataMapConstract.createGatherResourceDataMap(config, serverId,zkPaths.getBaseResourcesPath(),zkAddress);
 		SumbitTaskInterface gatherInterface = QuartzSimpleInfo.createCycleTaskInfo(GatherResourceJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, gatherMap, GatherResourceJob.class);
 		boolean taskFlag = manager.addTask(RESOURCE_MANAGER, gatherInterface);
 		if(!taskFlag){
 			LOG.error("sumbit gather job fail !!!");
 		}
+		LOG.info("GATHER successful !!!");
 		// 2.创建同步信息
-		Map<String,String> syncMap = JobDataMapConstract.createAsynResourceDataMap(config);
-		SumbitTaskInterface syncInterface = QuartzSimpleInfo.createCycleTaskInfo(AsynJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, syncMap, AsynJob.class);
-		taskFlag = manager.addTask(RESOURCE_MANAGER, syncInterface);
-		if(!taskFlag){
-			LOG.error("sumbit asyn job fail !!!");
-		}
+//		Map<String,String> syncMap = JobDataMapConstract.createAsynResourceDataMap(config);
+//		SumbitTaskInterface syncInterface = QuartzSimpleInfo.createCycleTaskInfo(AsynJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, syncMap, AsynJob.class);
+//		taskFlag = manager.addTask(RESOURCE_MANAGER, syncInterface);
+//		if(!taskFlag){
+//			LOG.error("sumbit asyn job fail !!!");
+//		}
 	}
 	/**
 	 * 概述：创建任务执行线程池

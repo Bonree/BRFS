@@ -1,13 +1,11 @@
 package com.bonree.brfs.resourceschedule.model;
 
-import java.math.BigDecimal;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.bonree.brfs.resourceschedule.utils.CalcUtils;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+@JsonIgnoreProperties(ignoreUnknown = true) 
 public class StateMetaServerModel {
 	/**
 	 * 统计计数器

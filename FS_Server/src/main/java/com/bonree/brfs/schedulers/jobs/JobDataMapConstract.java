@@ -11,7 +11,6 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
-import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
@@ -75,9 +74,9 @@ public class JobDataMapConstract {
 	public static final String BATCH_SIZE = "BATCH_SIZE";
 	public static final String BASE_ROUTE_PATH = "BASE_ROUTE_PATH";
 	public static final String CHECK_TTL = "CHECK_TTL";
-//	public static final String PREX_TASK_NAME = "PREX_TASK_NAME";
 	public static final String CURRENT_TASK_NAME = "CURRENT_TASK_NAME";
 	public static final String CHECK_TIME_RANGE = "CHECK_TIME_RANGE";
+	public static final String BASE_SERVER_ID_PATH = "BASE_SERVER_ID_PATH";
 	
 	
 	/**
@@ -87,13 +86,15 @@ public class JobDataMapConstract {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,String> createGatherResourceDataMap(ResourceTaskConfig resource, String serverId){
+	public static Map<String,String> createGatherResourceDataMap(ResourceTaskConfig resource, String serverId, String zkServerPath,String zkaddress){
 		Map<String, String>  dataMap = new HashMap<>();
 		dataMap.put(DATA_PATH, Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
-		String host = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_HOST);
+		String host = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST);
 		dataMap.put(IP, host);
 		dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
 		dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");
+		dataMap.put(BASE_SERVER_ID_PATH, zkServerPath);
+		dataMap.put(ZOOKEEPER_ADDRESS, zkaddress);
 		return dataMap;
 	}
 	/**

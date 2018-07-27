@@ -4,7 +4,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+@JsonIgnoreProperties(ignoreUnknown = true) 
 public class ResourceModel {
 	/**
 	 * 

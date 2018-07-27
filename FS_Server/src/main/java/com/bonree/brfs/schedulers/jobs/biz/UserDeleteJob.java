@@ -1,9 +1,6 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.quartz.JobDataMap;
@@ -12,12 +9,8 @@ import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.task.TaskState;
-import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.LocalFileUtils;
@@ -59,10 +52,10 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
-		LOG.info("user delete batch {}",content);
+		LOG.info("user delete batchID:{} ,content: {}",currentIndex, content);
 		// 获取当前执行的任务类型
 		int taskType = data.getInt(JobDataMapConstract.TASK_TYPE);
-		BatchAtomModel batch = JsonUtils.toObject(content, BatchAtomModel.class);
+		BatchAtomModel batch = JsonUtils.toObjectQuietly(content, BatchAtomModel.class);
 		if(batch == null){
 			LOG.warn("batch data is empty !!!");
 			return;

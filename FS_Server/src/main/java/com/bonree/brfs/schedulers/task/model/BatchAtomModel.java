@@ -1,9 +1,10 @@
 package com.bonree.brfs.schedulers.task.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+@JsonIgnoreProperties(ignoreUnknown = true) 
 public class BatchAtomModel {
 	private ArrayList<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
 

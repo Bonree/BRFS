@@ -1,5 +1,6 @@
 package com.bonree.brfs.schedulers.task;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,6 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
-import com.bonree.brfs.schedulers.jobs.system.CopyCountCheck;
 import com.bonree.brfs.schedulers.jobs.system.CreateSystemTask;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
@@ -51,7 +51,7 @@ public class TasksUtils {
 		 	}
 		 	
 		 	String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-		 	ReturnCode code = checkTime(startTime, endTime, sn.getCreateTime(), 3600000);
+		 	ReturnCode code = checkTime(startTime, endTime, sn.getCreateTime(), Duration.parse(sn.getFilePartitionDuration()).toMillis());
 		 	MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
 		 	release.setPropreties(zkAddresses, zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
 	    	TaskTypeModel tmodel = release.getTaskTypeInfo(TaskType.USER_DELETE.name());

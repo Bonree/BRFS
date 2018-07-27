@@ -2,69 +2,82 @@
 package com.bonree.brfs.schedulers.jobs.resource;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.RetryNTimes;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.brfs.resourceschedule.model.ServerModel;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
 import com.bonree.brfs.resourceschedule.model.StateMetaServerModel;
-import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
-
+/*****************************************************************************
+ * 版权信息：北京博睿宏远数据科技股份有限公司
+ * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
+ * 
+ * @date 2018年7月24日 上午11:08:39
+ * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
+ * @Description:资源采集模块
+ *****************************************************************************
+ */
 public class GatherResourceJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("GATHER");
 	private static Queue<StateMetaServerModel> queue = new ConcurrentLinkedQueue<StateMetaServerModel>();
 	private static StateMetaServerModel prexState = null;
+	private static ZookeeperClient client = null;
 
 	@Override
 	public void caughtException(JobExecutionContext context) {
-
 	}
 
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
-		LOG.info("Interrupt job :", this.getClass().getName());
 	}
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
+		LOG.info("GATHER_______________");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		if (data == null || data.isEmpty()) {
 			throw new NullPointerException("job data map is empty");
 		}
 		String dataDir = data.getString(JobDataMapConstract.DATA_PATH);
-		// TODO:若是设置的为host，此处需要进行host转ip
+		String zkPath = data.getString(JobDataMapConstract.BASE_SERVER_ID_PATH);
 		String ip = data.getString(JobDataMapConstract.IP);
+		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		if(client ==null) {
+			String zkAddress= data.getString(JobDataMapConstract.ZOOKEEPER_ADDRESS);
+			if(BrStringUtils.isEmpty(zkAddress)) {
+				LOG.error("zookeeper address is empty !!!!");
+				return;
+			}
+			client = CuratorClient.getClientInstance(zkAddress);
+		}
+		String basePath = zkPath+"/"+mcf.getGroupName();
+		String bPath = basePath+"/base/"+mcf.getServerId();
+		if(!client.checkExists(bPath)) {
+			saveLocal(mcf.getServerId(), dataDir, bPath);
+		}
 		long gatherInveral = data.getLongValueFromString(JobDataMapConstract.GATHER_INVERAL_TIME);
 		int count = data.getIntFromString(JobDataMapConstract.CALC_RESOURCE_COUNT);
 		StateMetaServerModel metaSource = GatherResource.gatherResource(dataDir, ip);
@@ -74,64 +87,22 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			
 		}
 		int queueSize = queue.size();
-		if (queueSize >= count) {
-			updateResource(dataDir, gatherInveral);
-
+		if (queueSize < count) {
+			return ;
 		}
-	}
-	/***
-	 * 概述：更新资源
-	 * @param metaSource
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public void updateResourceOfTask(final StateMetaServerModel metaSource){
-		if(metaSource == null){
-			return;
+		// 更新任务的可执行资源
+		StatServerModel sum = calcStateServer(gatherInveral, dataDir);
+		if (sum != null) {
+			RunnableTaskInterface rt = mcf.getRt();
+			rt.update(sum);
 		}
-		// 更新任务可执行接口资源信息
-		if (prexState == null) {
-			prexState = metaSource;
-		}else {
-			StatServerModel stat = metaSource.converObject(prexState);
-			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-			RunnableTaskInterface run = mcf.getRt();
-			if(run == null){
-				LOG.warn("RunnableTaskInterface is null");
-			}
-			run.update(stat);
-			prexState = metaSource;
-			LOG.info("update RunnableTaskInterface state !!!");
-			LOG.info("state : {}",JsonUtils.toJsonStringQuietly(stat));
-		}
-	}
-	/***
-	 * 概述：更新资源
-	 * @param zkUrl
-	 * @param groupName
-	 * @param serverId
-	 * @param dataDir
-	 * @param inverTime
-	 * @throws Exception
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private void updateResource(String dataDir, long inverTime) throws Exception {
-
-		StatServerModel sum = calcStateServer(inverTime,dataDir);
-		if(sum == null){
-			return;
-		}
-		// 更新任务可执行接口资源信息
-		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		mcf.getRt().update(sum);
-		// 2.计算集群基础基础信息
-		BaseMetaServerModel base = getClusterBases();
+		// 计算可用服务
+		BaseMetaServerModel base = getClusterBases(client, basePath+"/base", mcf.getGroupName());
 		if (base == null) {
-			LOG.warn("base server info is null !!!");
 			return;
 		}
-		// 7.计算Resource值
+		// 计算资源值
 		ResourceModel resource = GatherResource.calcResourceValue(base, sum);
-		
 		if (resource == null) {
 			LOG.warn("calc resource value is null !!!");
 			return;
@@ -139,49 +110,173 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		Map<Integer, String> snIds = getStorageNameIdWithName();
 		resource.setSnIds(snIds);
 		resource.setServerId(mcf.getServerId());
-		// 6.获取本机信息
-		ServerModel server = getServerModel();
-		if(server == null){
-			LOG.warn("server model is null !!");
-			server = new ServerModel();
-			BaseMetaServerModel lBase = GatherResource.gatherBase(mcf.getServerId(), dataDir);
-			server.setBase(lBase);
+		byte[] rdata= JsonUtils.toJsonBytesQuietly(resource);
+		String rPath = basePath+"/resource/"+mcf.getServerId();;
+		if(!saveDataToZK(client, rPath, rdata)) {
+			LOG.error("resource content :{} save to zk fail !!!",JsonUtils.toJsonStringQuietly(resource));
+		}else {
+			LOG.info("RESOURCE: succefull !!!");
 		}
-		server.setResource(resource);
-		setServerModel(server);
-		LOG.info("update zookeeper complete");
-	}
-	/**
-	 * 概述：获取本机local信息
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public ServerModel getlocalServerModel(){
-		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		String groupName = mcf.getGroupName();
-		String serverId = mcf.getServerId();
-		ServiceManager sm = mcf.getSm();
-		Service service = sm.getServiceById(groupName, serverId);
-		String payload = service.getPayload();
-		if(BrStringUtils.isEmpty(payload)){
-			return null;
+		
+		BaseMetaServerModel local = GatherResource.gatherBase(mcf.getServerId(), dataDir);
+		if(local == null) {
+			LOG.error("gather base data is empty !!!");
+			return;
 		}
-		ServerModel serverModel = JsonUtils.toObjectQuietly(payload, ServerModel.class);
-		return serverModel;
+		byte[] bData = JsonUtils.toJsonBytesQuietly(local);
+		if(!saveDataToZK(client, bPath, bData)) {
+			LOG.error("base content : {} save to zk fail!!!",JsonUtils.toJsonStringQuietly(local));
+		}
+		saveLocal(mcf.getServerId(), dataDir, bPath);
+		
 	}
+	public void saveLocal(String serverId, String dataDir,String bPath) {
+		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir);
+		if(local == null) {
+			LOG.error("gather base data is empty !!!");
+			return;
+		}
+		byte[] bData = JsonUtils.toJsonBytesQuietly(local);
+		if(!saveDataToZK(client, bPath, bData)) {
+			LOG.error("base content : {} save to zk fail!!!",JsonUtils.toJsonStringQuietly(local));
+		}
+	}
+	
+	public static  boolean saveDataToZK(ZookeeperClient client, String path, byte[] data) {
+		if(data == null|| data.length == 0) {
+			LOG.error("save data to zk is empty !!! path :{}", path);
+			return false;
+		}
+		
+		try {
+			if(client.checkExists(path)) {
+				client.setData(path, data);
+			}else {
+				client.createEphemeral(path, true,data);
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+//	/***
+//	 * 概述：更新资源
+//	 * @param metaSource
+//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+//	 */
+//	public void updateResourceOfTask(final StateMetaServerModel metaSource){
+//		if(metaSource == null){
+//			return;
+//		}
+//		// 更新任务可执行接口资源信息
+//		if (prexState == null) {
+//			prexState = metaSource;
+//		}else {
+//			StatServerModel stat = metaSource.converObject(prexState);
+//			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+//			RunnableTaskInterface run = mcf.getRt();
+//			if(run == null){
+//				LOG.warn("RunnableTaskInterface is null");
+//			}
+//			run.update(stat);
+//			prexState = metaSource;
+//			LOG.info("update RunnableTaskInterface state !!!");
+//			LOG.info("state : {}",JsonUtils.toJsonStringQuietly(stat));
+//		}
+//	}
+//	/***
+//	 * 概述：更新资源
+//	 * @param zkUrl
+//	 * @param groupName
+//	 * @param serverId
+//	 * @param dataDir
+//	 * @param inverTime
+//	 * @throws Exception
+//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+//	 */
+//	private void updateResource(String dataDir, long inverTime) throws Exception {
+//
+//	
+//		// 更新任务可执行接口资源信息
+//		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+//		// 2.计算集群基础基础信息
+//		BaseMetaServerModel base = getClusterBases();
+//		if (base == null) {
+//			LOG.warn("base server info is null !!!");
+//			return;
+//		}
+//		// 7.计算Resource值
+//		ResourceModel resource = GatherResource.calcResourceValue(base, sum);
+//		
+//		if (resource == null) {
+//			LOG.warn("calc resource value is null !!!");
+//			return;
+//		}
+//		Map<Integer, String> snIds = getStorageNameIdWithName();
+//		resource.setSnIds(snIds);
+//		resource.setServerId(mcf.getServerId());
+//		// 6.获取本机信息
+//		ServerModel server = getServerModel();
+//		if(server == null){
+//			LOG.warn("server model is null !!");
+//			server = new ServerModel();
+//			BaseMetaServerModel lBase = GatherResource.gatherBase(mcf.getServerId(), dataDir);
+//			server.setBase(lBase);
+//		}
+//		server.setResource(resource);
+//		setServerModel(server);
+//		LOG.info("update zookeeper complete");
+//	}
+//	/**
+//	 * 概述：获取本机local信息
+//	 * @return
+//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+//	 */
+//	public ServerModel getlocalServerModel(){
+//		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+//		String groupName = mcf.getGroupName();
+//		String serverId = mcf.getServerId();
+////		ServiceManager sm = mcf.getSm();
+//		Service service = sm.getServiceById(groupName, serverId);
+//		String payload = service.getPayload();
+//		if(BrStringUtils.isEmpty(payload)){
+//			return null;
+//		}
+//		ServerModel serverModel = JsonUtils.toObjectQuietly(payload, ServerModel.class);
+//		return serverModel;
+//	}
 	/**
 	 * 概述：获取基本信息
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private BaseMetaServerModel getClusterBases() {
-		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		String groupName = mcf.getGroupName();
-		ServiceManager sManager = mcf.getSm();
-		// 1.获取集群基础信息
-		List<Service> serverList = sManager.getServiceListByGroup(groupName);
+	private BaseMetaServerModel getClusterBases(ZookeeperClient client, String basePath, String groupName) {
+		List<String> childs = client.getChildren(basePath);
+		if (childs == null) {
+			return null;
+		}
+		List<BaseMetaServerModel> bases = new ArrayList<BaseMetaServerModel>();
+		String cPath = null;
+		byte[] data = null;
+		BaseMetaServerModel tmp = null;
+		for (String child : childs) {
+			try {
+				cPath = basePath + "/" + child;
+				data = client.getData(cPath);
+				if (data == null || data.length == 0) {
+					continue;
+				}
+				tmp = JsonUtils.toObject(data, BaseMetaServerModel.class);
+				bases.add(tmp);
+			}
+			catch (JsonException e) {
+				e.printStackTrace();
+			}
+		}
 		// 2.计算集群基础基础信息
-		BaseMetaServerModel base = calcBaseCluster(serverList);
+		BaseMetaServerModel base = GatherResource.collectBaseMetaServer(bases);
 		return base;
 	}
 
@@ -218,27 +313,27 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		return sum;
 	}
 
-	/**
-	 * 概述：检查并创建服务信息
-	 * @param content
-	 * @param serverId
-	 * @param dataDir
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private ServerModel checkAndCreateServerModel(String content, String serverId, String dataDir) {
-		ServerModel sinfo = null;
-		if (BrStringUtils.isEmpty(content)) {
-			sinfo = new ServerModel();
-		}
-		sinfo = JsonUtils.toObjectQuietly(content, ServerModel.class);
-		if (sinfo == null) {
-			sinfo = new ServerModel();
-		}
-		BaseMetaServerModel tmpbase = GatherResource.gatherBase(serverId, dataDir);
-		sinfo.setBase(tmpbase);
-		return sinfo;
-	}
+//	/**
+//	 * 概述：检查并创建服务信息
+//	 * @param content
+//	 * @param serverId
+//	 * @param dataDir
+//	 * @return
+//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+//	 */
+//	private ServerModel checkAndCreateServerModel(String content, String serverId, String dataDir) {
+//		ServerModel sinfo = null;
+//		if (BrStringUtils.isEmpty(content)) {
+//			sinfo = new ServerModel();
+//		}
+//		sinfo = JsonUtils.toObjectQuietly(content, ServerModel.class);
+//		if (sinfo == null) {
+//			sinfo = new ServerModel();
+//		}
+//		BaseMetaServerModel tmpbase = GatherResource.gatherBase(serverId, dataDir);
+//		sinfo.setBase(tmpbase);
+//		return sinfo;
+//	}
 
 	/***
 	 * 概述：获取storageName的名称
@@ -273,67 +368,31 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private BaseMetaServerModel calcBaseCluster(List<Service> serverList) {
-		if (serverList == null || serverList.isEmpty()) {
-			return null;
-		}
-		// 2.获取集群基础基础信息
-		List<BaseMetaServerModel> bases = new ArrayList<BaseMetaServerModel>();
-		BaseMetaServerModel base = null;
-		ServerModel sinfo = null;
-		String content = null;
-		for (Service server : serverList) {
-			content = server.getPayload();
-			// 2-1.过滤掉为空的
-			sinfo = getServerModel(server);
-			// 2-2 过滤为null的
-			if (sinfo == null) {
-				continue;
-			}
-			base = sinfo.getBase();
-			// 2-3 过滤base为null的
-			if (base == null) {
-				continue;
-			}
-			bases.add(base);
-		}
-		if (bases.isEmpty()) {
-			return null;
-		}
-		return GatherResource.collectBaseMetaServer(bases);
-	}
-	
-	public static void  setServerModel(ServerModel server) throws Exception{
-		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		String groupName = mcf.getGroupName();
-		String serverId = mcf.getServerId();
-		ServiceManager sm = mcf.getSm();
-		
-		String payLoad = JsonUtils.toJsonString(server);
-		sm.updateService(groupName, serverId, payLoad);
-	}
-	public static ServerModel getServerModel(){
-		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		String groupName = mcf.getGroupName();
-		String serverId = mcf.getServerId();
-		return getServerModel(groupName, serverId);
-	}
-	public static ServerModel getServerModel(String groupName, String serverId){
-		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		ServiceManager sm = mcf.getSm();
-		Service service = sm.getServiceById(groupName, serverId);
-		return getServerModel(service);
-	}
-	public static ServerModel getServerModel(Service service){
-		if(service == null){
-			return null;
-		}
-		String payLoad = service.getPayload();
-		if(BrStringUtils.isEmpty(payLoad)){
-			return null;
-		}
-		return JsonUtils.toObjectQuietly(payLoad, ServerModel.class);
-	}
+//	private BaseMetaServerModel calcBaseCluster(List<BaseMetaServerModel> bases) {
+//		// 2.获取集群基础基础信息
+//		BaseMetaServerModel base = null;
+//		ServerModel sinfo = null;
+//		String content = null;
+//		for (Service server : serverList) {
+//			content = server.getPayload();
+//			// 2-1.过滤掉为空的
+//			sinfo = getServerModel(server);
+//			// 2-2 过滤为null的
+//			if (sinfo == null) {
+//				continue;
+//			}
+//			base = sinfo.getBase();
+//			// 2-3 过滤base为null的
+//			if (base == null) {
+//				continue;
+//			}
+//			bases.add(base);
+//		}
+//		if (bases.isEmpty()) {
+//			return null;
+//		}
+//		return GatherResource.collectBaseMetaServer(bases);
+//	}
 	/**
 	 * 概述：获取storageName关系
 	 * @param sns
