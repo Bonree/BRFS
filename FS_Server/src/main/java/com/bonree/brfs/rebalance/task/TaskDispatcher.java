@@ -132,28 +132,22 @@ public class TaskDispatcher implements Closeable {
     private Map<Integer, BalanceTaskSummary> runTask = new ConcurrentHashMap<Integer, BalanceTaskSummary>();
 
     // 为了能够有序的处理变更，需要将变更添加到队列中
-    private BlockingQueue<ChangeDetail> detailQueue = new ArrayBlockingQueue<>(256);
+    private BlockingQueue<ChangeSummary> detailQueue = new ArrayBlockingQueue<>(256);
 
-    public static class ChangeDetail {
-
-        private final CuratorFramework client;
-
-        private final TreeCacheEvent event;
-
-        public ChangeDetail(CuratorFramework client, TreeCacheEvent event) {
-            this.client = client;
-            this.event = event;
-        }
-
-        public CuratorFramework getClient() {
-            return client;
-        }
-
-        public TreeCacheEvent getEvent() {
-            return event;
-        }
-
-    }
+    // public static class ChangeDetail {
+    //
+    // private final TreeCacheEvent event;
+    //
+    // public ChangeDetail(TreeCacheEvent event) {
+    // this.event = event;
+    // }
+    //
+    //
+    // public TreeCacheEvent getEvent() {
+    // return event;
+    // }
+    //
+    // }
 
     /** 概述：
      * @param client
@@ -161,17 +155,11 @@ public class TaskDispatcher implements Closeable {
      * @throws Exception
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public void loadCache(CuratorFramework client, TreeCacheEvent event) throws Exception {
-        CuratorClient curatorClient = CuratorClient.wrapClient(client);
-        String nodePath = event.getData().getPath();
-        int lastSepatatorIndex = nodePath.lastIndexOf('/');
-        String parentPath = StringUtils.substring(nodePath, 0, lastSepatatorIndex);
-
-        String greatPatentPath = StringUtils.substring(parentPath, 0, parentPath.lastIndexOf('/'));
-        List<String> snPaths = curatorClient.getChildren(greatPatentPath); // 此处获得子节点名称
+    public void loadCache() throws Exception {
+        List<String> snPaths = curatorClient.getChildren(changesPath); // 此处获得子节点名称
         if (snPaths != null) {
             for (String snNode : snPaths) {
-                String snPath = ZKPaths.makePath(greatPatentPath, snNode);
+                String snPath = ZKPaths.makePath(changesPath, snNode);
                 List<String> childPaths = curatorClient.getChildren(snPath);
 
                 List<ChangeSummary> changeSummaries = new CopyOnWriteArrayList<>();
@@ -242,6 +230,10 @@ public class TaskDispatcher implements Closeable {
                                     syncAuditTask(entry.getKey(), entry.getValue());
                                 }
                             }
+                        } else {
+                            LOG.info("load once cache!");
+                            loadCache();
+                            isLoad.set(true);
                         }
                     }
                 } catch (Exception e) {
@@ -310,34 +302,28 @@ public class TaskDispatcher implements Closeable {
     }
 
     public void dealChangeSDetail() throws InterruptedException {
-        ChangeDetail cd = null;
         while (true) {
-            cd = detailQueue.take();
-            List<ChangeSummary> changeSummaries = addOneCache(cd.getClient(), cd.getEvent());
+            ChangeSummary cs = detailQueue.take();
+            List<ChangeSummary> changeSummaries = addOneCache(cs);
             LOG.debug("consume:" + changeSummaries);
         }
     }
 
-    public List<ChangeSummary> addOneCache(CuratorFramework client, TreeCacheEvent event) {
+    public List<ChangeSummary> addOneCache(ChangeSummary cs) {
         List<ChangeSummary> changeSummaries = null;
-        LOG.info("parse and add change:" + RebalanceUtils.convertEvent(event));
+        int storageIndex = cs.getStorageIndex();
+        changeSummaries = cacheSummaryCache.get(storageIndex);
 
-        if (event.getData().getData() != null) {
-            ChangeSummary changeSummary = JsonUtils.toObjectQuietly(event.getData().getData(), ChangeSummary.class);
-            int storageIndex = changeSummary.getStorageIndex();
-            changeSummaries = cacheSummaryCache.get(storageIndex);
-
-            if (changeSummaries == null) {
-                changeSummaries = new CopyOnWriteArrayList<>();
-                cacheSummaryCache.put(storageIndex, changeSummaries);
-            }
-            if (!changeSummaries.contains(changeSummary)) {
-                LOG.info("add cache:" + changeSummary);
-                changeSummaries.add(changeSummary);
-                LOG.info("cacheSummaryCache:" + cacheSummaryCache);
-            }
-            LOG.info("changeSummaries:" + changeSummaries);
+        if (changeSummaries == null) {
+            changeSummaries = new CopyOnWriteArrayList<>();
+            cacheSummaryCache.put(storageIndex, changeSummaries);
         }
+        if (!changeSummaries.contains(cs)) {
+            LOG.info("add cache:" + cs);
+            changeSummaries.add(cs);
+            LOG.info("cacheSummaryCache:" + cacheSummaryCache);
+        }
+        LOG.info("changeSummaries:" + changeSummaries);
 
         return changeSummaries;
     }
@@ -619,7 +605,7 @@ public class TaskDispatcher implements Closeable {
                 LOG.info("further to filter dead server...");
                 List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
                 List<String> joinerSecondIDs = joinerFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
-              
+
                 // 挂掉的机器不能做生存者和参与者，此处进行再次过滤，防止其他情况
                 if (aliveSecondIDs.contains(cs.getChangeServer())) {
                     aliveSecondIDs.remove(cs.getChangeServer());
@@ -651,7 +637,6 @@ public class TaskDispatcher implements Closeable {
     private boolean isCanRecover(ChangeSummary cs, List<String> joinerSecondIDs, List<String> aliveSecondIDs) {
         boolean canRecover = true;
         int replicas = snManager.findStorageRegionById(cs.getStorageIndex()).getReplicateNum();
-
         // 检查参与者是否都存活
         for (String joiner : joinerSecondIDs) {
             if (!aliveSecondIDs.contains(joiner)) {
@@ -1020,7 +1005,7 @@ public class TaskDispatcher implements Closeable {
         return isLoad;
     }
 
-    public BlockingQueue<ChangeDetail> getDetailQueue() {
+    public BlockingQueue<ChangeSummary> getDetailQueue() {
         return detailQueue;
     }
 
