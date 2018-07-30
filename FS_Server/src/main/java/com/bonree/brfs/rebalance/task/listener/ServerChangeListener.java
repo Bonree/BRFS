@@ -32,12 +32,10 @@ public class ServerChangeListener implements TreeCacheListener {
     @Override
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         LOG.info("leaderLath:" + dispatcher.getLeaderLatch().hasLeadership());
-        LOG.info("server change event detail:" + event.getType());
         if (dispatcher.getLeaderLatch().hasLeadership()) {
             // 检查event是否有数据
-            if (event.getType() != Type.NODE_REMOVED) { // 不是remove的事件，则需要处理
+            if (event.getType() != Type.NODE_REMOVED) { // 发现changes目录有新的任务产生
                 if (event.getData() != null && event.getData().getData() != null) {
-
                     // 需要进行检查，在切换leader的时候，变更记录需要加载进来。
                     if (!dispatcher.isLoad().get()) {
                         // 此处加载缓存
