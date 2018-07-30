@@ -8,7 +8,7 @@ public class LimitServerResource {
 	/**
 	 * 本机最大硬盘剩余率
 	 */
-	private double remainValue = 0.01;
+	private double remainValue = 0.001;
 	public double getRemainValue() {
 		return remainValue;
 	}

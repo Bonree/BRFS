@@ -23,9 +23,11 @@ public class RandomAvailable implements AvailableServerInterface {
 	 */
 	private Map<String,ResourceModel> resourceMap = new ConcurrentHashMap<String,ResourceModel>();
 	private Map<Integer, String> snIds = new ConcurrentHashMap<>();
-	private LimitServerResource limit = null;
+	private LimitServerResource limit = new LimitServerResource();
 	public RandomAvailable(LimitServerResource limit){
-		this.limit = limit;
+		if(limit !=null) {
+			this.limit = limit;
+		}
 	}
 	public List<ResourceModel> convertList(Map<String,ResourceModel> resourceMap,List<String> errors,int sence, LimitServerResource limit, String snName){
 		List<ResourceModel> resources = new ArrayList<ResourceModel>();
@@ -42,7 +44,7 @@ public class RandomAvailable implements AvailableServerInterface {
 			}
 			if(sence == 1) {
 				remainValue = entry.getValue().getDiskRemainValue(snName);
-				if(remainValue > limit.getRemainValue()) {
+				if(remainValue <= limit.getRemainValue()) {
 					continue;
 				}
 			}
@@ -141,7 +143,9 @@ public class RandomAvailable implements AvailableServerInterface {
 	}
 	@Override
 	public void setLimitParameter(LimitServerResource limits) {
-		this.limit = limits;	
+		if(limits !=null) {
+			this.limit = limits;	
+		}
 	}
 	@Override
 	public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList)
