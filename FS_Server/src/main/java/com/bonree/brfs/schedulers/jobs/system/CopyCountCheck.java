@@ -160,7 +160,7 @@ public class CopyCountCheck {
 					dirName = TimeUtils.timeInterval(time, granule);
 					for(int i = 1; i <=reCount; i++){
 						path = "/"+snName+"/"+i+"/"+dirName;
-						LOG.debug("<collectionSnFiles> path :{}",path);
+						LOG.info("<collectionSnFiles> path :{}",path);
 						strs = getFileList(client, path);
 						if(strs == null || strs.isEmpty()) {
 							LOG.debug("<collectionSnFiles> files is empty {}", path);

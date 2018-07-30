@@ -43,10 +43,10 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		
 		long time = 0;
 		long currentTime = System.currentTimeMillis();
-		long min = (currentTime%3600000)/60000;
-		if(min < 10) {
-			return;
-		}
+//		long min = (currentTime%3600000)/60000;
+//		if(min < 10) {
+//			return;
+//		}
 		LOG.info("createCheck Copy Job working");	
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();

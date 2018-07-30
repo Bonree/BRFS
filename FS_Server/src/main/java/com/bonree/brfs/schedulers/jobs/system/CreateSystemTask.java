@@ -214,7 +214,6 @@ public class CreateSystemTask {
 				continue;
 			}
 			copyCount = sn.getReplicateNum();
-//			atoms =  AtomTaskModel.createInstance(snName, copyCount, startTime, endTime, "", granule);
 			atom  =  AtomTaskModel.getInstance(null, snName, "", sn.getReplicateNum(), startTime, endTime, granule);
 			if(atom == null) {
 				continue;

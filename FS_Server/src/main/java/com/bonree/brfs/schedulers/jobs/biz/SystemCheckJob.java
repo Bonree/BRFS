@@ -88,15 +88,19 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 	public TaskResultModel checkFiles(AtomTaskModel atom ,String dataPath){
 		String snName  = atom.getStorageName();
 		int partitionNum = atom.getPatitionNum();
-		long startTime = TimeUtils.getMiles(atom.getDataStartTime());
-		long endTime = TimeUtils.getMiles(atom.getDataStopTime());
+		long startTime = TimeUtils.getMiles(atom.getDataStartTime(),TimeUtils.TIME_MILES_FORMATE);
+		long endTime = TimeUtils.getMiles(atom.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE);
 		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
 		List<String> checkDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1);
+//		LOG.info("CHECKJOB-0 start: {}, end : {}", atom.getDataStartTime(), atom.getDataStopTime());
+//		LOG.info("CHECKJOB-1 list dir :{}", partDirs);
+//		LOG.info("CHECKJOB-2 check List: {}", checkDirs);
 		List<String> errors = null;
 		TaskResultModel result = new TaskResultModel();
 		AtomTaskResultModel atomR = null;
 		for(String checkDir :checkDirs) {
 			errors = FileCollection.checkDirs(checkDir);
+//			LOG.info("CHECKJOB-2 error List: {}", errors);
 			atomR = AtomTaskResultModel.getInstance(errors, snName, startTime, endTime, "", partitionNum);
 			if(errors !=null && !errors.isEmpty()) {
 				atomR.setSuccess(false);

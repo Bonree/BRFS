@@ -59,7 +59,7 @@ public class LocalFileUtils {
 				continue;
 			}
 			if(!FileUtils.isDirectory(partDir)) {
-				deleteDirs.add(partDir);
+//				deleteDirs.add(partDir);
 				continue;
 			}
 			tmpList = collectTimeDirs(partDir, startTime, endTime, type);

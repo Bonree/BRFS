@@ -1,7 +1,6 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
@@ -21,7 +20,6 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.write.data.FSCode;
-import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.jobs.system.CopyCountCheck;
 import com.bonree.brfs.server.identification.ServerIDManager;
@@ -191,7 +189,6 @@ public class FileCollection {
 		if(BrStringUtils.isEmpty(dirPath)) {
 			return null;
 		}
-		
 		if(!FileUtils.isExist(dirPath) || !FileUtils.isDirectory(dirPath)) {
 			return null;
 		}
