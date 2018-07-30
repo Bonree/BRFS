@@ -12,6 +12,7 @@ import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.fileformat.FileFormater;
+import com.google.common.io.Files;
 
 public class ReadMessageHandler implements MessageHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(ReadMessageHandler.class);
@@ -46,9 +47,10 @@ public class ReadMessageHandler implements MessageHandler {
 			
 			LOG.info("read data offset[{}], size[{}] from file[{}]", offset, length, filePath);
 			
-			byte[] data = DataFileReader.readFile(filePath, fileFormater.absoluteOffset(offset), length);
+//			byte[] data = DataFileReader.readFile(filePath, fileFormater.absoluteOffset(offset), length);
+			byte[] data = Files.asByteSource(new File(filePath)).slice(fileFormater.absoluteOffset(offset), length).read();
 			
-			result.setSuccess(data.length == 0 ? false : true);
+			result.setSuccess(data.length != length ? false : true);
 			result.setData(data);
 		} catch (Exception e) {
 			LOG.error("read message error", e);
