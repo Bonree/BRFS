@@ -124,26 +124,32 @@ public class TimeExchangeEventEmitter implements Closeable {
 	
 	private class DurationRunner implements Runnable {
 		private final Duration duration;
+		private long currentStartTime;
 		
 		public DurationRunner(Duration duration) {
 			this.duration = duration;
+			this.currentStartTime = getStartTime(duration);
 		}
 
 		@Override
 		public void run() {
-			for(TimeExchangeListener listener : listeners.get(duration)) {
-				eventExecutor.submit(new Runnable() {
+			eventExecutor.submit(new Runnable() {
+				
+				@Override
+				public void run() {
+					while(getStartTime(duration) <= currentStartTime) {
+						Thread.yield();
+					}
 					
-					@Override
-					public void run() {
+					for(TimeExchangeListener listener : listeners.get(duration)) {
 						try {
 							listener.timeExchanged(getStartTime(duration), duration);
 						} catch (Exception e) {
 							LOG.error("call time exchange listener error", e);
 						}
 					}
-				});
-			}
+				}
+			});
 		}
 		
 	}
