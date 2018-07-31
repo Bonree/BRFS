@@ -1,6 +1,8 @@
 package com.bonree.brfs.disknode.server.handler;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.MappedByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +18,10 @@ import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
+import com.bonree.brfs.disknode.fileformat.FileFormater;
+import com.bonree.brfs.disknode.utils.BufferUtils;
 import com.bonree.brfs.disknode.utils.Pair;
+import com.google.common.io.Files;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Longs;
 
@@ -25,10 +30,12 @@ public class CloseMessageHandler implements MessageHandler {
 	
 	private DiskContext diskContext;
 	private FileWriterManager writerManager;
+	private FileFormater fileFormater;
 
-	public CloseMessageHandler(DiskContext context, FileWriterManager nodeManager	) {
+	public CloseMessageHandler(DiskContext context, FileWriterManager nodeManager, FileFormater fileFormater) {
 		this.diskContext = context;
 		this.writerManager = nodeManager;
+		this.fileFormater = fileFormater;
 	}
 
 	@Override
@@ -42,7 +49,19 @@ public class CloseMessageHandler implements MessageHandler {
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
 			if(binding == null) {
 				LOG.info("no writer is found for file[{}], treat it as OK!", filePath);
+				File dataFile = new File(filePath);
+				if(!dataFile.exists()) {
+					result.setData(Longs.toByteArray(0));
+					result.setSuccess(true);
+					return;
+				}
+				
+				MappedByteBuffer buffer = Files.map(dataFile);
+				buffer.position(fileFormater.fileHeader().length());
+				buffer.limit(filePath.length() - fileFormater.fileTailer().length());
+				result.setData(Longs.toByteArray(ByteUtils.cyc(buffer)));
 				result.setSuccess(true);
+				BufferUtils.release(buffer);
 				return;
 			}
 			

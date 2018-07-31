@@ -84,7 +84,7 @@ public class EmptyMain implements LifeCycle {
 		requestHandler.addMessageHandler("PUT", new OpenMessageHandler(diskContext, writerManager));
 		requestHandler.addMessageHandler("POST", new WriteMessageHandler(diskContext, writerManager, fileFormater));
 		requestHandler.addMessageHandler("GET", new ReadMessageHandler(diskContext, fileFormater));
-		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(diskContext, writerManager));
+		requestHandler.addMessageHandler("CLOSE", new CloseMessageHandler(diskContext, writerManager, fileFormater));
 		requestHandler.addMessageHandler("DELETE", new DeleteMessageHandler(diskContext, writerManager));
 		server.addContextHandler(DiskContext.URI_DISK_NODE_ROOT, requestHandler);
 		
