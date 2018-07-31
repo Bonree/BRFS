@@ -180,7 +180,6 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 	 * @param services
 	 * @param taskType
 	 * @param sourceTimes
-	 * @param granule
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public void createSingleTask(MetaTaskManagerInterface release, List<StorageRegion> needSns, List<Service> services, TaskType taskType, Map<String, Long> sourceTimes) {

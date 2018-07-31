@@ -37,7 +37,6 @@ public class CopyCountCheck {
 	 * @param storageNames
 	 * @param services
 	 * @param snTimes
-	 * @param granule
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -130,8 +129,6 @@ public class CopyCountCheck {
 	 * 概述：获取集群对应目录的文件
 	 * @param services
 	 * @param snList
-	 * @param dataPath
-	 * @param startTime
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -365,12 +362,10 @@ public class CopyCountCheck {
 	 * 概述：添加第一次出现的sn
 	 * @param sourceTimes
 	 * @param needSns
-	 * @param granule
-	 * @param ttl
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageRegion> needSns, long ttl){
+	public static Map<String,Long> repairTime(final Map<String,Long> sourceTimes, List<StorageRegion> needSns){
 		Map<String,Long> repairs = new ConcurrentHashMap<>();
 		if(needSns == null || needSns.isEmpty()) {
 			return repairs;
@@ -386,10 +381,11 @@ public class CopyCountCheck {
 			cGra = currentTime - currentTime%granule;
 			snName = sn.getName();
 			if(sourceTimes!=null && sourceTimes.containsKey(snName)) {
-				continue;
-			}
-			startTime = sn.getCreateTime();
-			if(currentTime - startTime <ttl) {
+				startTime = sourceTimes.get(snName);
+			}else{
+                startTime = sn.getCreateTime();
+            }
+			if(currentTime - startTime < granule) {
 				continue;
 			}
 			sGra = startTime - startTime % granule;
