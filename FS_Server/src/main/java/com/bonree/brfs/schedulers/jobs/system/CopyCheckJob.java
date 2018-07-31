@@ -41,13 +41,9 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
 		
-		long time = 0;
 		long currentTime = System.currentTimeMillis();
-//		long min = (currentTime%3600000)/60000;
-//		if(min < 10) {
-//			return;
-//		}
-		LOG.info("createCheck Copy Job working");	
+
+		LOG.info("createCheck Copy Job working");
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		StorageRegionManager snm = mcf.getSnm();
@@ -76,13 +72,14 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			release.setTaskTypeModel(taskType, tmodel);
 		}
 		Map<String,Long> sourceTimes = tmodel.getSnTimes();
+		LOG.info("update init sn time :{}", sourceTimes);
 		// 2.过滤不符合副本校验的sn信息
 		List<StorageRegion> needSns = CopyCountCheck.filterSn(snList, services.size());
 		// 3.针对第一次出现的sn补充时间
-		sourceTimes = CopyCountCheck.repairTime(sourceTimes, needSns, time);
+		sourceTimes = CopyCountCheck.repairTime(sourceTimes, needSns);
 		Map<String,List<String>> losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes);
-		
-		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, RECOVERY_NUM, time);
+		LOG.info("update before sn time :{}", sourceTimes);
+		Pair<TaskModel,Map<String,Long>> pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, TaskType.SYSTEM_COPY_CHECK, RECOVERY_NUM,0);
 		if(pair == null) {
 			LOG.warn("create pair is empty !!!!");
 			return;
@@ -101,7 +98,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		tmodel = release.getTaskTypeInfo(taskType);
 		tmodel.putAllSnTimes(sourceTimes);
 		release.setTaskTypeModel(taskType, tmodel);
-		LOG.info("update sn time");
+		LOG.info("update sn time {}", sourceTimes);
 		
 	}
 }

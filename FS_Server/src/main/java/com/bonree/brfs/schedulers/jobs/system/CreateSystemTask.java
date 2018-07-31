@@ -36,9 +36,7 @@ public class CreateSystemTask {
 	/***
 	 * 概述：创建系统任务model
 	 * @param taskType
-	 * @param prex
 	 * @param snList
-	 * @param granule
 	 * @param globalttl
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -91,7 +89,6 @@ public class CreateSystemTask {
 	 * @param snTimes
 	 * @param needSn
 	 * @param taskType
-	 * @param granule
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -168,7 +165,6 @@ public class CreateSystemTask {
 	 * @param snTimes
 	 * @param needSn
 	 * @param taskType
-	 * @param granule
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -247,6 +243,9 @@ public class CreateSystemTask {
 		if(TaskType.SYSTEM_DELETE.equals(taskType)) {
 			return Duration.parse(sn.getDataTtl()).toMillis();
 		}
+		if(TaskType.SYSTEM_COPY_CHECK.equals(taskType)){
+			return Duration.parse(sn.getFilePartitionDuration()).toMillis();
+		}
 		return ttl;
 	}
 	/**
@@ -287,7 +286,6 @@ public class CreateSystemTask {
 	/**
 	 * 概述：过滤不过期的SN
 	 * @param snList
-	 * @param currentTime
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
