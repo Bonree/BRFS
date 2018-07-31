@@ -89,6 +89,7 @@ public class VirtualServerIDImpl implements VirtualServerID {
         for(; index < count; index++) {
         	resultVirtualIds.add(createVirtualId(storageIndex));
         }
+        LOG.info("register disk first level ids:" + diskFirstIDs);
         try {
            for(String diskFirstID : diskFirstIDs) {
                for(String vid : resultVirtualIds) {
