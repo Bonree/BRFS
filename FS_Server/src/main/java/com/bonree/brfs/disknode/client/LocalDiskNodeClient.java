@@ -62,20 +62,6 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 			CloseUtils.closeQuietly(output);
 		}
 	}
-	public boolean isExists(String host, int port,String remotePath) throws IOException {
-		DiskNodeClient client = null;
-		try {
-			client = new HttpDiskNodeClient(host, port);
-			byte[] bytes = client.readData(remotePath, 0, Integer.MAX_VALUE);
-			if(bytes == null || bytes.length == 0) {
-				return false;
-			}
-		} finally {
-			CloseUtils.closeQuietly(client);
-		}
-		return true;
-	}
-
 	@Override
 	public void copyTo(String host, int port, String localPath, String remotePath) throws Exception {
 		DiskNodeClient client = null;

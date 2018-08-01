@@ -22,8 +22,6 @@ import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
- * @param <AtomTaskModel>
- * 
  * @date 2018年5月3日 下午4:29:44
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @Description:系统删除任务 
@@ -44,7 +42,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("----------> check task work");
+		LOG.info("check task work");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
@@ -85,6 +83,13 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		//更新任务状态
 		TaskStateLifeContral.updateMapTaskMessage(context, result);
 	}
+
+    /**
+     *
+     * @param atom
+     * @param dataPath
+     * @return
+     */
 	public TaskResultModel checkFiles(AtomTaskModel atom ,String dataPath){
 		String snName  = atom.getStorageName();
 		int partitionNum = atom.getPatitionNum();
@@ -92,15 +97,15 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE);
 		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
 		List<String> checkDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1);
-//		LOG.info("CHECKJOB-0 start: {}, end : {}", atom.getDataStartTime(), atom.getDataStopTime());
-//		LOG.info("CHECKJOB-1 list dir :{}", partDirs);
-//		LOG.info("CHECKJOB-2 check List: {}", checkDirs);
+		LOG.debug("CHECKJOB-0 start: {}, end : {}", atom.getDataStartTime(), atom.getDataStopTime());
+		LOG.debug("CHECKJOB-1 list dir :{}", partDirs);
+		LOG.debug("CHECKJOB-2 check List: {}", checkDirs);
 		List<String> errors = null;
 		TaskResultModel result = new TaskResultModel();
 		AtomTaskResultModel atomR = null;
 		for(String checkDir :checkDirs) {
 			errors = FileCollection.checkDirs(checkDir);
-//			LOG.info("CHECKJOB-2 error List: {}", errors);
+			LOG.info("CHECKJOB-3 error List: {}", errors);
 			atomR = AtomTaskResultModel.getInstance(errors, snName, startTime, endTime, "", partitionNum);
 			if(errors !=null && !errors.isEmpty()) {
 				atomR.setSuccess(false);
@@ -108,6 +113,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 			}
 			result.add(atomR);
 		}
+		LOG.debug("result : {}",JsonUtils.toJsonStringQuietly(result));
 		return result;
 	}
 	
