@@ -877,6 +877,7 @@ public class TaskDispatcher implements Closeable {
                         if (cs.getChangeType().equals(ChangeType.ADD)) {
                             // 正在执行的任务为remove恢复，检测到ADD事件，并且是同一个serverID
                             if (cs.getChangeServer().equals(runChangeSummary.getChangeServer())) {
+                                LOG.info("check the same change with running task...");
                                 String taskPath = ZKPaths.makePath(tasksPath, String.valueOf(runChangeSummary.getStorageIndex()), Constants.TASK_NODE);
                                 // 任务进度小于指定进度，则终止任务
                                 if (currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
@@ -888,7 +889,10 @@ public class TaskDispatcher implements Closeable {
                                     break;
                                 }
 
-                                if (monitor.getTaskProgress(curatorClient, taskPath) < DEFAULT_PROCESS) {
+                                double process = monitor.getTaskProgress(curatorClient, taskPath);
+                                LOG.info("process:" + process);
+                                
+                                if (process < DEFAULT_PROCESS) {
                                     if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
                                         updateTaskStatus(currentTask, TaskStatus.CANCEL);
                                     }
