@@ -213,6 +213,7 @@ public class MultiRecover implements DataRecover {
                     if (!status.get().equals(TaskStatus.PAUSE)) {
                         break;
                     }
+                    LOG.info("sub task is pause for " + balanceSummary);
                     Thread.sleep(1000);
                 }
 

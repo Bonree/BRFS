@@ -877,7 +877,7 @@ public class TaskDispatcher implements Closeable {
                         if (cs.getChangeType().equals(ChangeType.ADD)) {
                             // 正在执行的任务为remove恢复，检测到ADD事件，并且是同一个serverID
                             if (cs.getChangeServer().equals(runChangeSummary.getChangeServer())) {
-                                String taskPath = tasksPath + Constants.SEPARATOR + runChangeSummary.getStorageIndex() + Constants.SEPARATOR + Constants.TASK_NODE;
+                                String taskPath = ZKPaths.makePath(tasksPath, String.valueOf(runChangeSummary.getStorageIndex()), Constants.TASK_NODE);
                                 // 任务进度小于指定进度，则终止任务
                                 if (currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
                                     // 下次心跳删除该任务
@@ -898,9 +898,10 @@ public class TaskDispatcher implements Closeable {
                             } else { // 不为同一个serverID
                                 // 如果任务暂停，查看回来的是否为曾经的参与者
                                 if (currentTask.getTaskStatus().equals(TaskStatus.PAUSE)) {
-                                    List<String> aliverServers = getAliveServices();
+                                    List<String> aliveFirstIDs = getAliveServices();
+                                    List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
                                     // 参与者和接收者都存活
-                                    if (aliverServers.containsAll(currentTask.getOutputServers()) && aliverServers.containsAll(currentTask.getInputServers())) {
+                                    if (aliveSecondIDs.containsAll(currentTask.getOutputServers()) && aliveSecondIDs.containsAll(currentTask.getInputServers())) {
                                         updateTaskStatus(currentTask, TaskStatus.RUNNING);
                                     }
                                 }
