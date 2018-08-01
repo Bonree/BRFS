@@ -37,7 +37,6 @@ public class CopyRecovery {
 	 * @param content
 	 * @param zkHosts
 	 * @param baseRoutesPath
-	 * @param taskName
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -122,11 +121,9 @@ public class CopyRecovery {
 	/**
 	 * 概述：修复文件
 	 * @param sm
-	 * @param snm
 	 * @param sim
 	 * @param atom
 	 * @param parser
-	 * @param client
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -158,7 +155,6 @@ public class CopyRecovery {
 	}
 	/**
 	 * 概述：恢复单个文件
-	 * @param client
 	 * @param sm
 	 * @param sim
 	 * @param parser
@@ -248,9 +244,6 @@ public class CopyRecovery {
 	/***
 	 * 概述：批量恢复任务
 	 * @param service
-	 * @param paths
-	 * @param count
-	 * @param sleepTime
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -259,12 +252,10 @@ public class CopyRecovery {
 		LocalDiskNodeClient client = new LocalDiskNodeClient();
 		boolean isSuccess = false;
 		try {
-			if(client.isExists(service.getHost(), service.getPort(), remotePath)) {
-				client.copyFrom(service.getHost(), service.getPort(), remotePath, localPath);
-				isSuccess =  true;
-			}
+            client.copyFrom(service.getHost(), service.getPort(), remotePath, localPath);
+			isSuccess =  true;
 		}catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.warn("copy file fail !! try against {}",e);
 			isSuccess =  false;
 		}finally {
 			if(client != null){

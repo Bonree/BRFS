@@ -33,8 +33,6 @@ public class TaskStateLifeContral {
 	 * @param serverId
 	 * @param taskname
 	 * @param taskType
-	 * @param result
-	 * @param stat
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static void updateTaskStatusByCompelete(String serverId, String taskname,String taskType,TaskResultModel taskResult){
@@ -58,7 +56,7 @@ public class TaskStateLifeContral {
 		TaskState status = taskResult == null ? TaskState.EXCEPTION : taskResult.isSuccess() ? TaskState.FINISH :TaskState.EXCEPTION;
 		sTask.setTaskState(status.code());
 		release.updateServerTaskContentNode(serverId, taskname, taskType, sTask);
-		LOG.info("----> complete server task :{} - {} - {} - {}",taskType, taskname, serverId, TaskState.valueOf(sTask.getTaskState()).name());
+		LOG.info("Complete server task :{} - {} - {} - {}",taskType, taskname, serverId, TaskState.valueOf(sTask.getTaskState()).name());
 		// 更新TaskContent
 		List<Pair<String,Integer>> cStatus = release.getServerStatus(taskType, taskname);
 		if(cStatus == null || cStatus.isEmpty()){
@@ -101,7 +99,6 @@ public class TaskStateLifeContral {
 	/**
 	 * 概述：更新任务map的任务状态
 	 * @param context
-	 * @param stat
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static  void updateMapTaskMessage(JobExecutionContext context, TaskResultModel result){
@@ -129,7 +126,7 @@ public class TaskStateLifeContral {
 		sumResult.setSuccess(isSuccess && sumResult.isSuccess());
 		String sumContent = JsonUtils.toJsonStringQuietly(sumResult);
 		data.put(JobDataMapConstract.TASK_RESULT, sumContent);
-		
+		LOG.info("Test end");
 	}
 	
 	/**
