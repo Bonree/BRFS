@@ -1,4 +1,4 @@
-package com.bonree.brfs.disknode.server.handler.data;
+package com.bonree.brfs.disknode.client;
 
 public class WriteResult {
 	private final long offset;
