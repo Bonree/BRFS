@@ -60,6 +60,7 @@ import com.bonree.brfs.rebalance.task.listener.TaskStatusListener;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -562,19 +563,26 @@ public class TaskDispatcher implements Closeable {
     private void trimTask(List<ChangeSummary> changeSummaries) {
         LOG.info("trimTask !!!!");
         // 需要清除变更抵消。
-        Iterator<ChangeSummary> it1 = changeSummaries.iterator();
-        Iterator<ChangeSummary> it2 = changeSummaries.iterator();
-        while (it1.hasNext()) {
-            ChangeSummary cs1 = it1.next();
-            if (cs1.getChangeType() == ChangeType.ADD) {
-                while (it2.hasNext()) {
-                    ChangeSummary cs2 = it2.next();
-                    if (cs2.getChangeType() == ChangeType.REMOVE) {
-                        if (cs1.getChangeServer().equals(cs2.getChangeServer())) {
-                            changeSummaries.remove(cs2);
-                            delChangeSummaryNode(cs2);
-                        }
-                    }
+        Map<String, List<ChangeSummary>> tempCsMap = Maps.newHashMap();
+        // 需要清除变更抵消。
+        for (ChangeSummary cs : changeSummaries) {
+            if (tempCsMap.get(cs.getChangeServer()) == null) {
+                List<ChangeSummary> csList = Lists.newArrayList();
+                csList.add(cs);
+                tempCsMap.put(cs.getChangeServer(), csList);
+            } else {
+                tempCsMap.get(cs.getChangeServer()).add(cs);
+            }
+        }
+        for (Entry<String, List<ChangeSummary>> entry : tempCsMap.entrySet()) {
+            List<ChangeSummary> csList = entry.getValue();
+            Collections.sort(csList);
+            ChangeSummary lastCs = csList.get(csList.size() - 1);
+            for (ChangeSummary tmpCs : csList) {
+                if (!StringUtils.equals(lastCs.getChangeID(), tmpCs.getChangeID())) {
+                    // 不是最终状态的变更都删除掉
+                    changeSummaries.remove(tmpCs);
+                    delChangeSummaryNode(tmpCs);
                 }
             }
         }
@@ -760,25 +768,29 @@ public class TaskDispatcher implements Closeable {
         BalanceTaskSummary currentTask = runTask.get(snIndex);
         String runChangeID = currentTask.getChangeID();
 
-        // trim change cache 清除变更抵消，只删除remove变更
-        Iterator<ChangeSummary> it1 = changeSummaries.iterator();
-        Iterator<ChangeSummary> it2 = changeSummaries.iterator();
-        while (it1.hasNext()) {
-            ChangeSummary cs1 = it1.next();
-            if (!cs1.getChangeID().equals(runChangeID)) {
-                if (cs1.getChangeType() == ChangeType.ADD) {
-                    while (it2.hasNext()) {
-                        ChangeSummary cs2 = it2.next();
-                        if (!cs2.getChangeID().equals(runChangeID)) {
-                            if (cs2.getChangeType() == ChangeType.REMOVE) {
-                                if (cs1.getChangeServer().equals(cs2.getChangeServer())) {
-                                    LOG.info("change1:{},change2:{},remove change2:{}", cs1.toString(), cs2.toString(), cs2.toString());
-                                    changeSummaries.remove(cs2);
-                                    delChangeSummaryNode(cs2);
-                                }
-                            }
-                        }
-                    }
+        Map<String, List<ChangeSummary>> tempCsMap = Maps.newHashMap();
+        // trim change cache 清除变更抵消,查看最终的状态即可
+        for (ChangeSummary cs : changeSummaries) {
+            if (!StringUtils.equals(cs.getChangeID(), runChangeID)) {
+                if (tempCsMap.get(cs.getChangeServer()) == null) {
+                    List<ChangeSummary> csList = Lists.newArrayList();
+                    csList.add(cs);
+                    tempCsMap.put(cs.getChangeServer(), csList);
+                } else {
+                    tempCsMap.get(cs.getChangeServer()).add(cs);
+                }
+            }
+        }
+        
+        for (Entry<String, List<ChangeSummary>> entry : tempCsMap.entrySet()) {
+            List<ChangeSummary> csList = entry.getValue();
+            Collections.sort(csList);
+            ChangeSummary lastCs = csList.get(csList.size() - 1);
+            for(ChangeSummary tmpCs :  csList) {
+                if(!StringUtils.equals(lastCs.getChangeID(),tmpCs.getChangeID())) {
+                    //不是最终状态的变更都删除掉
+                    changeSummaries.remove(tmpCs);
+                    delChangeSummaryNode(tmpCs);
                 }
             }
         }
@@ -874,9 +886,12 @@ public class TaskDispatcher implements Closeable {
                             }
                         }
                     } else if (runChangeSummary.getChangeType().equals(ChangeType.REMOVE)) { // 正在执行普通迁移任务
+                        System.out.println("current remove task");
                         if (cs.getChangeType().equals(ChangeType.ADD)) {
                             // 正在执行的任务为remove恢复，检测到ADD事件，并且是同一个serverID
+                            System.out.println("check add change");
                             if (cs.getChangeServer().equals(runChangeSummary.getChangeServer())) {
+                                System.out.println(cs.getChangeServer() + "--" + runChangeSummary.getChangeServer());
                                 LOG.info("check the same change with running task...");
                                 String taskPath = ZKPaths.makePath(tasksPath, String.valueOf(runChangeSummary.getStorageIndex()), Constants.TASK_NODE);
                                 // 任务进度小于指定进度，则终止任务
@@ -891,7 +906,7 @@ public class TaskDispatcher implements Closeable {
 
                                 double process = monitor.getTaskProgress(curatorClient, taskPath);
                                 LOG.info("process:" + process);
-                                
+
                                 if (process < DEFAULT_PROCESS) {
                                     if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
                                         updateTaskStatus(currentTask, TaskStatus.CANCEL);
@@ -907,15 +922,18 @@ public class TaskDispatcher implements Closeable {
                                     // 参与者和接收者都存活
                                     if (aliveSecondIDs.containsAll(currentTask.getOutputServers()) && aliveSecondIDs.containsAll(currentTask.getInputServers())) {
                                         updateTaskStatus(currentTask, TaskStatus.RUNNING);
+                                        System.out.println("set task running");
                                     }
                                 }
                             }
                         } else if (cs.getChangeType().equals(ChangeType.REMOVE)) {
                             // 有可能是参与者挂掉，参与者包括接收者和发送者
                             // 参与者停止恢复 停止恢复必须查看是否有
+                            System.out.println("check remove change");
                             String secondID = cs.getChangeServer();
                             List<String> joiners = currentTask.getOutputServers();
                             List<String> receivers = currentTask.getInputServers();
+
                             if (joiners.contains(secondID)) { // 参与者出现问题 或 既是参与者又是接收者
                                 if (!TaskStatus.PAUSE.equals(currentTask.getTaskStatus())) {
                                     updateTaskStatus(currentTask, TaskStatus.PAUSE);
