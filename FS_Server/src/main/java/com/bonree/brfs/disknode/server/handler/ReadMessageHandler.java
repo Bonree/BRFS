@@ -20,6 +20,8 @@ public class ReadMessageHandler implements MessageHandler {
 	public static final String PARAM_READ_OFFSET = "offset";
 	public static final String PARAM_READ_LENGTH = "size";
 	
+	private static final long READ_LENGTH_LIMIT = 100 * 1024;
+	
 	private DiskContext diskContext;
 	private FileFormater fileFormater;
 	
@@ -47,8 +49,12 @@ public class ReadMessageHandler implements MessageHandler {
 			
 			LOG.info("read data offset[{}], size[{}] from file[{}]", offset, length, filePath);
 			
-//			byte[] data = DataFileReader.readFile(filePath, fileFormater.absoluteOffset(offset), length);
-			byte[] data = Files.asByteSource(new File(filePath)).slice(fileFormater.absoluteOffset(offset), length).read();
+			byte[] data = null;
+			if(length < READ_LENGTH_LIMIT) {
+				data = Files.asByteSource(new File(filePath)).slice(fileFormater.absoluteOffset(offset), length).read();
+			} else {
+				data = DataFileReader.readFile(filePath, fileFormater.absoluteOffset(offset), length);
+			}
 			
 			result.setSuccess(data.length != length ? false : true);
 			result.setData(data);

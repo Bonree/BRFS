@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.util.List;
 
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
-import com.bonree.brfs.disknode.server.handler.data.WriteData;
-import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 
 public interface DiskNodeClient extends Closeable {
 	boolean ping();
@@ -17,7 +15,7 @@ public interface DiskNodeClient extends Closeable {
 	WriteResult writeData(String path, byte[] bytes) throws IOException;
 	WriteResult writeData(String path, byte[] bytes, int offset, int size) throws IOException;
 	
-	WriteResult[] writeDatas(String path, WriteData[] dataList) throws IOException;
+	WriteResult[] writeDatas(String path, List<byte[]> dataList) throws IOException;
 	
 	boolean flush(String file) throws IOException;
 	

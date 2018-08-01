@@ -2,6 +2,7 @@ package com.bonree.brfs.duplication.datastream.writer;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,8 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.disknode.server.handler.data.WriteData;
-import com.bonree.brfs.disknode.server.handler.data.WriteResult;
+import com.bonree.brfs.disknode.client.WriteResult;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
@@ -76,15 +76,14 @@ public class DiskWriter implements Closeable {
 					return;
 				}
 				
-				WriteData[] writeDatas = new WriteData[datas.size()];
-				for(int i = 0; i < writeDatas.length; i++) {
-					writeDatas[i] = new WriteData();
-					writeDatas[i].setBytes(datas.get(i).getBytes());
+				List<byte[]> dataList = new ArrayList<byte[]>();
+				for(DataObject data : datas) {
+					dataList.add(data.getBytes());
 				}
 				
 				WriteResult[] results = null;
 				try {
-					results = conn.getClient().writeDatas(pathMaker.buildPath(file.node(), node), writeDatas);
+					results = conn.getClient().writeDatas(pathMaker.buildPath(file.node(), node), dataList);
 				} catch (IOException e) {
 					LOG.error("write file[{}] to disk error!", file.node().getName());
 				}

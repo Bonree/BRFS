@@ -1,6 +1,5 @@
-package com.bonree.brfs.disknode.client;
+package com.bonree.brfs.disknode.server.handler.data;
 
-import com.bonree.brfs.disknode.server.handler.data.WriteData;
 
 public class WriteDataList {
 	private WriteData[] datas;

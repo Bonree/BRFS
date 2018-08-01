@@ -9,7 +9,7 @@ public class ClientConfig {
 	private static final int DEFAULT_BUFFER_SIZE = 8 * 1024;
 	private int bufferSize;
 	
-	private int idleTimeout;
+	private long idleTimeout;
 	
 	private static final int DEFAULT_SEND_BUFFER_SIZE = 64 * 1024;
 	private int socketSendBufferSize;
@@ -27,6 +27,8 @@ public class ClientConfig {
 	private static final long DEFAULT_RESPONSE_TIMEOUT = Long.MAX_VALUE;
 	private long responseTimeout;
 	
+	private boolean keepAlive;
+	
 	public static ClientConfig DEFAULT = new ClientConfig();
 	
 	private ClientConfig() {
@@ -40,6 +42,7 @@ public class ClientConfig {
 		this.connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 		this.ioThreadNum = DEFAULT_IO_THREAD_NUM;
 		this.responseTimeout = DEFAULT_RESPONSE_TIMEOUT;
+		this.keepAlive = false;
 	}
 
 	public int getMaxConnection() {
@@ -54,7 +57,7 @@ public class ClientConfig {
 		return bufferSize;
 	}
 	
-	public int getIdleTimeout() {
+	public long getIdleTimeout() {
 		return idleTimeout;
 	}
 	
@@ -82,6 +85,10 @@ public class ClientConfig {
 		return responseTimeout;
 	}
 	
+	public boolean isKeepAlive() {
+		return keepAlive;
+	}
+	
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -104,7 +111,7 @@ public class ClientConfig {
 			return this;
 		}
 		
-		public Builder setIdleTimeout(int idleTimeout) {
+		public Builder setIdleTimeout(long idleTimeout) {
 			config.idleTimeout = idleTimeout > 0 ? idleTimeout : 0;
 			return this;
 		}
@@ -136,6 +143,11 @@ public class ClientConfig {
 		
 		public Builder setResponseTimeout(long timeout) {
 			config.responseTimeout = timeout > 0 ? timeout : DEFAULT_RESPONSE_TIMEOUT;
+			return this;
+		}
+		
+		public Builder setKeepAlive(boolean keepalive) {
+			config.keepAlive = keepalive;
 			return this;
 		}
 		

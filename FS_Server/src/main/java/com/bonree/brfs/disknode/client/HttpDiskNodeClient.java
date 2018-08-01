@@ -2,6 +2,7 @@ package com.bonree.brfs.disknode.client;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.server.handler.data.FileCopyMessage;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
-import com.bonree.brfs.disknode.server.handler.data.WriteResult;
+import com.bonree.brfs.disknode.server.handler.data.WriteDataList;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Longs;
@@ -87,10 +88,10 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 
 	@Override
 	public WriteResult writeData(String path, byte[] bytes) throws IOException {
-		WriteData writeItem = new WriteData();
-		writeItem.setBytes(bytes);
+		List<byte[]> datas = new ArrayList<byte[]>();
+		datas.add(bytes);
 		
-		WriteResult[] results = writeDatas(path, new WriteData[] {writeItem});
+		WriteResult[] results = writeDatas(path, datas);
 		
 		return results != null ? results[0] : null;
 	}
@@ -106,9 +107,16 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	}
 	
 	@Override
-	public WriteResult[] writeDatas(String path, WriteData[] dataList) throws IOException {
+	public WriteResult[] writeDatas(String path, List<byte[]> dataList) throws IOException {
 		WriteDataList datas = new WriteDataList();
-		datas.setDatas(dataList);
+		WriteData[] dataArray = new WriteData[dataList.size()];
+		for(int i = 0; i < dataArray.length; i++) {
+			WriteData data = new WriteData();
+			data.setBytes(dataList.get(i));
+			dataArray[i] = data;
+		}
+		
+		datas.setDatas(dataArray);
 		
 		URI uri = new URIBuilder()
 		.setScheme(DEFAULT_SCHEME)
@@ -118,7 +126,7 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 		.build();
 		
 		try {
-			LOG.info("write file[{}] with {} datas to {}:{}", path, dataList.length, host, port);
+			LOG.info("write file[{}] with {} datas to {}:{}", path, dataList.size(), host, port);
 			HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(datas));
 			LOG.debug("write file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {

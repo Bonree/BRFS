@@ -8,8 +8,6 @@ import java.util.List;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
-import com.bonree.brfs.disknode.server.handler.data.WriteData;
-import com.bonree.brfs.disknode.server.handler.data.WriteResult;
 
 public class LocalDiskNodeClient implements DiskNodeClient {
 
@@ -87,7 +85,7 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public WriteResult[] writeDatas(String path, WriteData[] dataList)
+	public WriteResult[] writeDatas(String path, List<byte[]> dataList)
 			throws IOException {
 		return null;
 	}

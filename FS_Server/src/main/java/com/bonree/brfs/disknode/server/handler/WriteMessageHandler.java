@@ -11,7 +11,7 @@ import com.bonree.brfs.common.net.http.HttpMessage;
 import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.disknode.DiskContext;
-import com.bonree.brfs.disknode.client.WriteDataList;
+import com.bonree.brfs.disknode.client.WriteResult;
 import com.bonree.brfs.disknode.client.WriteResultList;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
@@ -19,7 +19,7 @@ import com.bonree.brfs.disknode.data.write.worker.WriteTask;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
-import com.bonree.brfs.disknode.server.handler.data.WriteResult;
+import com.bonree.brfs.disknode.server.handler.data.WriteDataList;
 import com.bonree.brfs.disknode.utils.Pair;
 
 public class WriteMessageHandler implements MessageHandler {
