@@ -886,12 +886,9 @@ public class TaskDispatcher implements Closeable {
                             }
                         }
                     } else if (runChangeSummary.getChangeType().equals(ChangeType.REMOVE)) { // 正在执行普通迁移任务
-                        System.out.println("current remove task");
                         if (cs.getChangeType().equals(ChangeType.ADD)) {
                             // 正在执行的任务为remove恢复，检测到ADD事件，并且是同一个serverID
-                            System.out.println("check add change");
                             if (cs.getChangeServer().equals(runChangeSummary.getChangeServer())) {
-                                System.out.println(cs.getChangeServer() + "--" + runChangeSummary.getChangeServer());
                                 LOG.info("check the same change with running task...");
                                 String taskPath = ZKPaths.makePath(tasksPath, String.valueOf(runChangeSummary.getStorageIndex()), Constants.TASK_NODE);
                                 // 任务进度小于指定进度，则终止任务
@@ -922,14 +919,12 @@ public class TaskDispatcher implements Closeable {
                                     // 参与者和接收者都存活
                                     if (aliveSecondIDs.containsAll(currentTask.getOutputServers()) && aliveSecondIDs.containsAll(currentTask.getInputServers())) {
                                         updateTaskStatus(currentTask, TaskStatus.RUNNING);
-                                        System.out.println("set task running");
                                     }
                                 }
                             }
                         } else if (cs.getChangeType().equals(ChangeType.REMOVE)) {
                             // 有可能是参与者挂掉，参与者包括接收者和发送者
                             // 参与者停止恢复 停止恢复必须查看是否有
-                            System.out.println("check remove change");
                             String secondID = cs.getChangeServer();
                             List<String> joiners = currentTask.getOutputServers();
                             List<String> receivers = currentTask.getInputServers();
