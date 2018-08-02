@@ -110,7 +110,7 @@ public class ChangeSummary implements Comparable<ChangeSummary> {
 
     @Override
     public String toString() {
-        return "ChangeSummary [changeID=" + changeID + "]";
+        return "ChangeSummary [changeID=" + changeID + ", storageIndex=" + storageIndex + ", changeType=" + changeType + ", changeServer=" + changeServer + ", currentServers=" + currentServers + "]";
     }
 
 }

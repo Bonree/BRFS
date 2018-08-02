@@ -2,7 +2,8 @@ package com.bonree.brfs.rebalance.task;
 
 import java.util.List;
 
-import com.bonree.brfs.common.rebalance.Constants;
+import org.apache.curator.utils.ZKPaths;
+
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
@@ -32,11 +33,14 @@ public class TaskMonitor {
         List<String> joiners = client.getChildren(taskPath);
         if (joiners != null && !joiners.isEmpty()) {
             for (String joiner : joiners) {
-                String joinerPath = taskPath + Constants.SEPARATOR + joiner;
+                String joinerPath = ZKPaths.makePath(taskPath, joiner);
                 byte[] data = client.getData(joinerPath);
                 TaskDetail detail = JsonUtils.toObjectQuietly(data, TaskDetail.class);
                 curent += detail.getCurentCount();
                 total += detail.getTotalDirectories();
+            }
+            if(total == 0) {
+                return process;
             }
             process = curent / (double) total;
         }
