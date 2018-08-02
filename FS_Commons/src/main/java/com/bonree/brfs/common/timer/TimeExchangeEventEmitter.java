@@ -137,13 +137,16 @@ public class TimeExchangeEventEmitter implements Closeable {
 				
 				@Override
 				public void run() {
-					while(getStartTime(duration) <= currentStartTime) {
+					long startTime = getStartTime(duration);
+					while(startTime <= currentStartTime) {
 						Thread.yield();
+						startTime = getStartTime(duration);
 					}
 					
+					currentStartTime = startTime;
 					for(TimeExchangeListener listener : listeners.get(duration)) {
 						try {
-							listener.timeExchanged(getStartTime(duration), duration);
+							listener.timeExchanged(currentStartTime, duration);
 						} catch (Exception e) {
 							LOG.error("call time exchange listener error", e);
 						}
