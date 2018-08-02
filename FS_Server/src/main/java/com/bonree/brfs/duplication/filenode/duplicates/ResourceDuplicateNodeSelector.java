@@ -154,9 +154,20 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 			public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 				Type type = event.getType();
 				ChildData data = event.getData();
-				String path = data.getPath();
+				if(data == null){
+					LOG.warn("Event : {} ,ChildData is null",type);
+					return;
+				}
 				byte[] content = data.getData();
+				if(content == null || content.length == 0){
+					LOG.warn("Event : {} ,Byte data is null",type);
+					return;
+				}
 				ResourceModel resource = JsonUtils.toObjectQuietly(content, ResourceModel.class);
+				if(resource == null){
+					LOG.warn("Event : {} , Convert data is null",type);
+					return ;
+				}
 				String str = JsonUtils.toJsonString(resource);
 				if(Type.CHILD_ADDED == type) {
 					available.add(resource);
