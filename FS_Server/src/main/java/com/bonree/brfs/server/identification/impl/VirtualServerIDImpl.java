@@ -187,6 +187,7 @@ public class VirtualServerIDImpl implements VirtualServerID {
 
     @Override
     public void addFirstId(int storageIndex, String virtualId, String firstId) {
+        LOG.info("register first id :" + firstId);
     	String virtualIdNodePath = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId);
     	
         Stat nodeStat = null;

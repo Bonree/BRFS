@@ -390,13 +390,13 @@ public class TaskDispatcher implements Closeable {
                             addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
 
                             // 因共享节点，所以得将余下的所有virtual server id，注册新迁移的server。不足之处，可能为导致副本数的恢复大于服务数。
-                            String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
-                            List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
-                            if (normalVirtualIDs != null && !normalVirtualIDs.isEmpty()) {
-                                for (String virtualID : normalVirtualIDs) {
-                                    idManager.registerFirstID(bts.getStorageIndex(), virtualID, firstID);
-                                }
-                            }
+//                            String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
+//                            List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
+//                            if (normalVirtualIDs != null && !normalVirtualIDs.isEmpty()) {
+//                                for (String virtualID : normalVirtualIDs) {
+//                                    idManager.registerFirstID(bts.getStorageIndex(), virtualID, firstID);
+//                                }
+//                            }
 
                             // 删除virtual server ID
                             LOG.info("delete the virtual server id:" + bts.getServerId());
@@ -468,13 +468,13 @@ public class TaskDispatcher implements Closeable {
                 addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
 
                 // 因共享节点，所以得将余下的所有virtual server id，注册新迁移的server。不足之处，可能为导致副本数的恢复大于服务数。
-                String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
-                List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
-                if (normalVirtualIDs != null && !normalVirtualIDs.isEmpty()) {
-                    for (String virtualID : normalVirtualIDs) {
-                        idManager.registerFirstID(bts.getStorageIndex(), virtualID, firstID);
-                    }
-                }
+//                String firstID = idManager.getOtherFirstID(bts.getInputServers().get(0), bts.getStorageIndex());
+//                List<String> normalVirtualIDs = idManager.listNormalVirtualID(bts.getStorageIndex());
+//                if (normalVirtualIDs != null && !normalVirtualIDs.isEmpty()) {
+//                    for (String virtualID : normalVirtualIDs) {
+//                        idManager.registerFirstID(bts.getStorageIndex(), virtualID, firstID);
+//                    }
+//                }
                 // 删除virtual server ID
                 LOG.info("delete the virtual server id:" + bts.getServerId());
                 idManager.deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
