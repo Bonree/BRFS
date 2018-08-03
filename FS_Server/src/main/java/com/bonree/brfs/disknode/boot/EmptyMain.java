@@ -65,7 +65,7 @@ public class EmptyMain implements LifeCycle {
 	public void start() throws Exception {
 		LOG.info("Empty Main--port[{}]", httpConfig.getPort());
 		
-		checkDiskContextPath();
+		createRootDirIfNeeded(diskContext.getRootDir());
 		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
 		writerManager = new FileWriterManager(recorderManager);
@@ -115,9 +115,10 @@ public class EmptyMain implements LifeCycle {
 		server.start();
 	}
 	
-	private void checkDiskContextPath() {
-		if(!new File(diskContext.getRootDir()).exists()) {
-			throw new IllegalArgumentException("Disk context path[" + diskContext.getRootDir() + "] is not existed!");
+	private void createRootDirIfNeeded(String dirPath) {
+		File dir = new File(dirPath);
+		if(!dir.exists()) {
+			dir.mkdirs();
 		}
 	}
 
