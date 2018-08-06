@@ -1,7 +1,10 @@
 
 package com.bonree.brfs.schedulers.jobs.biz;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,13 +15,17 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.common.write.data.FSCode;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
+import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
+import com.bonree.brfs.disknode.fileformat.impl.SimpleFileHeader;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
@@ -233,45 +240,15 @@ public class CopyRecovery {
 				continue;
 			}
 			remotePath = "/"+snName + "/" + remoteIndex + "/" + dirName + "/" + fileName;
-			isSuccess = recoveryFile(remoteService, dataPath + localPath, remotePath);
-			LOG.debug("<recoveryFile> recovery file sn:{},localsnId {}, remoteIndex:{}, fileName :{},stat {}", snName,snsid,remoteIndex,fileName,isSuccess);
+			isSuccess = copyFrom(remoteService.getHost(), remoteService.getPort(), remotePath, dataPath + localPath);
+			LOG.info("remote address [{}:{}], remote [{}], local [{}], stat [{}]",remoteService.getHost(),remoteService.getPort(), remotePath, localPath,isSuccess ? "success" :"fail");
 			if(isSuccess){
 				return true;
 			}
 		}
 		return isSuccess;
 	}
-	/***
-	 * 概述：批量恢复任务
-	 * @param service
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static boolean recoveryFile(Service service, String localPath, String remotePath) {
-		// 文件恢复线程
-		LocalDiskNodeClient client = new LocalDiskNodeClient();
-		boolean isSuccess = false;
-		try {
-            client.copyFrom(service.getHost(), service.getPort(), remotePath, localPath);
-			isSuccess =  true;
-		}catch (Exception e) {
-			LOG.warn("copy file fail !! try against {}",e);
-			isSuccess =  false;
-		}finally {
-			if(client != null){
-				try {
-					client.close();
-				}
-				catch (IOException e) {
-					LOG.error("{}",e);
-				}
-			}
-			LOG.info("remote address {}:{}, remote {}, local {}, stat {}",service.getHost(),service.getPort(), remotePath, localPath,isSuccess ? "success" :"fail");
-			return isSuccess;
-		}
-
-	}
-
+	
 	/**
 	 * 概述：判断serverID是否存在
 	 * @param context
@@ -316,5 +293,66 @@ public class CopyRecovery {
 			snIds.add(tmp[i]);
 		}
 		return snIds;
+	}
+	/**
+	 * 概述：恢复数据文件
+	 * @param host
+	 * @param port
+	 * @param remotePath
+	 * @param localPath
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static boolean copyFrom(String host, int port, String remotePath, String localPath) {
+		DiskNodeClient client = null;
+		BufferedOutputStream output = null;
+		byte[] crcCode = null;
+		byte[] data = null;
+		int bufferSize = 5 * 1024 * 1024;
+		boolean resultFlag = false;
+		try {
+			client = new HttpDiskNodeClient(host, port);
+			long length = client.getFileLength(remotePath);
+			data = client.readData(remotePath, 0);
+			if (data == null || data.length == 0) {
+				return false;
+			}
+			long crc32Num = ByteUtils.crc(data);
+			crcCode = FSCode.LongToByte(crc32Num, 8);
+
+			output = new BufferedOutputStream(new FileOutputStream(localPath), bufferSize);
+			output.write(new SimpleFileHeader().getBytes());
+			output.write(data);
+			output.write(crcCode);
+			output.write(FSCode.tail);
+			output.flush();
+			return true;
+		}
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return false;
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		finally {
+			if (client != null) {
+				try {
+					client.close();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if (output != null) {
+				try {
+					output.close();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 }
