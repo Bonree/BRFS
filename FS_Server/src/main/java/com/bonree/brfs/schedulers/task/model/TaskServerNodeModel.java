@@ -21,7 +21,7 @@ public class TaskServerNodeModel {
 	private int retryCount = 0;
 	private List<AtomTaskModel> sAtoms = new ArrayList<AtomTaskModel>();
 	private TaskResultModel result;
-	
+
 	public TaskResultModel getResult() {
 		return result;
 	}

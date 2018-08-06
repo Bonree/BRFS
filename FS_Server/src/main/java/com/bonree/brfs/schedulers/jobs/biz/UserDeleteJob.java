@@ -13,18 +13,16 @@ import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
-import com.bonree.brfs.schedulers.jobs.LocalFileUtils;
+import com.bonree.brfs.schedulers.utils.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateWithZKTask;
-import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
+import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
- * @param <AtomTaskModel>
- * 
  * @date 2018年5月3日 下午4:29:44
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @Description:系统删除任务 
@@ -76,7 +74,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 			snName = atom.getStorageName();
 			if("1".equals(currentIndex)) {
 				operation = atom.getTaskOperation();
-				LOG.info("task operation {} source:{}",operation ,DELETE_SN_ALL);
+				LOG.info("task operation {} ", DELETE_SN_ALL.equals(operation) ? "Delete_Storage_Region" : "Delete_Part_Of_Storage_Region_Data");
 				if(DELETE_SN_ALL.equals(operation)) {
 					dSns.add(snName);
 				}
@@ -127,6 +125,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 			return atomR;
 		}
 		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1);
+		LOG.info("collection {}_{} dirs {}",atom.getDataStartTime(),atom.getDataStopTime(),deleteDirs);
 		if(deleteDirs == null || deleteDirs.isEmpty()) {
 			atomR.setOperationFileCount(0);
 			return atomR;

@@ -20,6 +20,7 @@ import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
+import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 
 public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("CreateSysTask");
@@ -68,10 +69,12 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		TaskTypeModel tmodel = null;
 		long ttl = 0;
 		Pair<TaskModel,TaskTypeModel> result = null;
+		List<String> srs = TaskStateLifeContral.getSRs(snm);
 		for(TaskType taskType : switchList){
 			if(TaskType.SYSTEM_COPY_CHECK.equals(taskType)||TaskType.USER_DELETE.equals(taskType)) {
 				continue;
 			}
+			TaskStateLifeContral.watchSR(release, srs, taskType.name());
 			if(TaskType.SYSTEM_DELETE.equals(taskType)) {
 				ttl = 0;
 			}else if(TaskType.SYSTEM_CHECK.equals(taskType)) {

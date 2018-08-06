@@ -1,5 +1,6 @@
 package com.bonree.brfs.schedulers.task.operation.impl;
 
+import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;

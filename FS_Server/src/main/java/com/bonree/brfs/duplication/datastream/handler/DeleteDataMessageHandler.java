@@ -24,7 +24,7 @@ import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.exception.StorageNameNonexistentException;
-import com.bonree.brfs.schedulers.task.TasksUtils;
+import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.base.Splitter;
 
 public class DeleteDataMessageHandler implements MessageHandler {

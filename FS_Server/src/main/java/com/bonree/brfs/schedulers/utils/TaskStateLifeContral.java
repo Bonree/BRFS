@@ -1,9 +1,10 @@
-package com.bonree.brfs.schedulers.task.operation.impl;
+package com.bonree.brfs.schedulers.utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -16,14 +17,16 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
-import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
+import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 public class TaskStateLifeContral {
 	private static final Logger LOG = LoggerFactory.getLogger("TaskLife");
@@ -91,7 +94,7 @@ public class TaskStateLifeContral {
 			task.setTaskState(TaskState.FINISH.code());
 		}
 		release.updateTaskContentNode(task, taskType, taskname);
-		LOG.info("----> complete task :{} - {} - {}",taskType, taskname, TaskState.valueOf(task.getTaskState()).name());
+		LOG.info("complete task :{} - {} - {}",taskType, taskname, TaskState.valueOf(task.getTaskState()).name());
 		if(TaskType.SYSTEM_CHECK.name().equals(taskType)) {
 			TasksUtils.createCopyTask(taskname);
 		}
@@ -193,12 +196,43 @@ public class TaskStateLifeContral {
 		
 		return new Pair<String,TaskModel>(task.getFirst(), cTask);
 	}
+	public static TaskModel changeRunTaskModel(final TaskModel message, String dataPath){
+		if(message == null){
+			return null;
+		}
+		// 文件恢复单独不需要处理
+		// 删除任务，校验任务，需要扫目录确定
+		List<AtomTaskModel> mAtoms = message.getAtomList();
+		if(mAtoms == null || mAtoms.isEmpty()){
+			return null;
+		}
+		// 循环atom，封装atom
+		AtomTaskModel rAtom = null;
+		long startTime = 0L;
+		long endTime = 0L;
+		String snName = null;
+		int partNum = 0;
+		for(AtomTaskModel atom : mAtoms){
+			startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
+			endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
+			snName = atom.getStorageName();
+			partNum = atom.getPatitionNum();
+//			List<String>
+			LocalFileUtils.collectTimeDirs(dataPath,startTime,endTime,1);
+		}
+		return null;
+		//封装
+	}
+	public static List<String> getNeedDirs(String dataPath, String snName, long startTime, long endTime){
+		return null;
+	}
 	/**
 	 * 概述：将任务分批
 	 * @param message
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
+	@Deprecated
 	public static TaskModel changeRunTaskModel(final TaskModel message) {
 		if(message == null) {
 			return null;
@@ -322,5 +356,55 @@ public class TaskStateLifeContral {
 			}
 		});
 		return eTasks.get(eTasks.size() -1);
+	}
+	/**
+	 * 概述：去掉已删除的sn
+	 * @param release
+	 * @param srs
+	 * @param taskType
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static void watchSR(MetaTaskManagerInterface release,List<String> srs, String taskType) {
+		TaskTypeModel  typeModel = release.getTaskTypeInfo(taskType);
+		Map<String,Long> snMap = typeModel.getSnTimes();
+		if(snMap == null || snMap.isEmpty()) {
+			return ;
+		}
+		List<String> deleteSRs = new ArrayList<String>();
+		for(String srName : snMap.keySet()) {
+			if(srs.contains(srName)) {
+				continue;
+			}
+			deleteSRs.add(srName);
+		}
+		if(deleteSRs == null || deleteSRs.isEmpty()) {
+			return;
+		}
+		for(String str : deleteSRs) {
+			typeModel.removesnTime(str);
+		}
+		release.setTaskTypeModel(taskType, typeModel);
+	}
+	/***
+	 * 概述：转换
+	 * @param srm
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static List<String> getSRs(StorageRegionManager srm){
+		List<StorageRegion> srList = srm.getStorageRegionList();
+		List<String> srs = new ArrayList<String>();
+		if(srList == null || srs.isEmpty()) {
+			return srs;
+		}
+		String srName = null;
+		for(StorageRegion sr : srList) {
+			srName = sr.getName();
+			if(BrStringUtils.isEmpty(srName)) {
+				continue;
+			}
+			srs.add(srName);
+		}
+		return srs;
 	}
 }

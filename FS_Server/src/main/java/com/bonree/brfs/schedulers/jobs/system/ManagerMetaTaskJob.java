@@ -3,7 +3,6 @@ package com.bonree.brfs.schedulers.jobs.system;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -17,10 +16,8 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
-import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
-import com.bonree.brfs.schedulers.task.TasksUtils;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
+import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 
 public class ManagerMetaTaskJob extends QuartzOperationStateTask {
@@ -53,8 +50,10 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 		// 2.设置可用服务
 		List<String> serverIds = getServerIds(sm, groupName);
 		if(serverIds == null || serverIds.isEmpty()){
-			throw new NullPointerException(" available server list is null");
+			LOG.warn("available server list is null");
+			return;
 		}
+		TaskTypeModel typeModel = null;
 		for(TaskType taskType : TaskType.values()){
 			try {
 				release.reviseTaskStat(taskType.name(), ttlTime, serverIds);
@@ -88,5 +87,6 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 		}
 		return sids;
 	}
+	
 
 }

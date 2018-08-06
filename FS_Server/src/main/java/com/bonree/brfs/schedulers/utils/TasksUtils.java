@@ -1,4 +1,4 @@
-package com.bonree.brfs.schedulers.task;
+package com.bonree.brfs.schedulers.utils;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -34,7 +34,6 @@ public class TasksUtils {
 	/**
 	 * 概述：
 	 * @param services
-	 * @param serverConfig
 	 * @param zkPaths
 	 * @param sn
 	 * @param startTime
@@ -206,11 +205,7 @@ public class TasksUtils {
 				emap = rmap.get(snName);
 				key = r.getDataStartTime() + "_"+r.getDataStopTime();
 				if(!emap.containsKey(key)) {
-					atom = new AtomTaskModel();
-					atom.setDataStartTime(r.getDataStartTime());
-					atom.setDataStopTime(r.getDataStopTime());
-					atom.setStorageName(snName);
-					atom.setTaskOperation(CopyCheckJob.RECOVERY_CRC);
+					atom = AtomTaskModel.getInstance(null,snName,CopyCheckJob.RECOVERY_CRC,r.getPartNum(),r.getDataStartTime(),r.getDataStopTime(),0);
 					emap.put(key, atom);
 				}
 				atom = emap.get(key);

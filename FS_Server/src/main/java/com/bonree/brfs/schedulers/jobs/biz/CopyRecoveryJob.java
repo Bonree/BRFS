@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.operation.impl.CycleJobWithZKTask;
-import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
+import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 
 public class CopyRecoveryJob extends CycleJobWithZKTask {
 	private static final Logger LOG = LoggerFactory.getLogger(CopyRecoveryJob.class);

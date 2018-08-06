@@ -25,7 +25,7 @@ import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
-import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
+import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 
 public class OperationTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("OperationTaskJob");

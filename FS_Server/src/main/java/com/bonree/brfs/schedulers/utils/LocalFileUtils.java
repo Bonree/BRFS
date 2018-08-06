@@ -1,4 +1,4 @@
-package com.bonree.brfs.schedulers.jobs;
+package com.bonree.brfs.schedulers.utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +9,47 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
 
 public class LocalFileUtils {
+	/**
+	 * 收集指定时间段的目录
+	 * @param dataPath
+	 * @param snName
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public  static List<String> collectDucationTimeDirs(String dataPath, String snName, long startTime, long endTime){
+		List<String> parDirs = collectPartitionDirs(dataPath,snName);
+		if(parDirs == null || parDirs.isEmpty()){
+			return null;
+		}
+		return LocalFileUtils.collectTimeDirs(parDirs, startTime,endTime,1);
+	}
+	/**
+	 * 概述：获取分区目录
+	 * @param dataPath
+	 * @param snName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static List<String> collectPartitionDirs(final String dataPath,final String snName){
+		List<String> dirs = new ArrayList<String>();
+		if(BrStringUtils.isEmpty(dataPath) || BrStringUtils.isEmpty(snName)) {
+			return dirs;
+		}
+		String path = null;
+		List<String> childs = FileUtils.listFileNames(coveryPath(dataPath) + "/"+snName);
+		for(String child : childs){
+			path = coveryPath(dataPath) + "/" +snName +"/" + child;
+			if(!FileUtils.isExist(path)) {
+				continue;
+			}
+			if(!FileUtils.isDirectory(path)) {
+				continue;
+			}
+			dirs.add(path);
+		}
+		return dirs;
+	}
 	/**
 	 * 概述：获取分区目录
 	 * @param dataPath

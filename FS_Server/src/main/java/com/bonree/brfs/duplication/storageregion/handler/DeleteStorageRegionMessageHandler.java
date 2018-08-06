@@ -17,7 +17,7 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.exception.StorageNameNonexistentException;
-import com.bonree.brfs.schedulers.task.TasksUtils;
+import com.bonree.brfs.schedulers.utils.TasksUtils;
 
 public class DeleteStorageRegionMessageHandler extends StorageRegionMessageHandler {
 

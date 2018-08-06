@@ -14,13 +14,13 @@ import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
-import com.bonree.brfs.schedulers.jobs.LocalFileUtils;
+import com.bonree.brfs.schedulers.utils.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateWithZKTask;
-import com.bonree.brfs.schedulers.task.operation.impl.TaskStateLifeContral;
+import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

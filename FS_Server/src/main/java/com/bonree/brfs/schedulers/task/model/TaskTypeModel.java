@@ -20,6 +20,11 @@ public class TaskTypeModel {
 	public Map<String, Long> getSnTimes() {
 		return snTimes;
 	}
+	public void removesnTime(String sn) {
+		if(this.snTimes.containsKey(sn)) {
+			this.snTimes.remove(sn);
+		}
+	}
 	public void setSnTimes(Map<String, Long> snTimes) {
 		this.snTimes = snTimes;
 	}
