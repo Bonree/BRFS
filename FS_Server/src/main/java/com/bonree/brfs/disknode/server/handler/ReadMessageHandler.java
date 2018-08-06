@@ -47,7 +47,7 @@ public class ReadMessageHandler implements MessageHandler {
 			int offset = offsetParam == null ? 0 : Integer.parseInt(offsetParam);
 			int length = (int) (lengthParam == null ? fileFormater.maxBodyLength() : Integer.parseInt(lengthParam));
 			
-			length = (int) Math.min(length, fileFormater.maxBodyLength());
+			length = (int) Math.min(length, dataFile.length() - 11);
 			
 			LOG.info("read data offset[{}], size[{}] from file[{}]", offset, length, filePath);
 			
