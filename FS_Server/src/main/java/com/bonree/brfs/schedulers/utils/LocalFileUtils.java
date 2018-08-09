@@ -1,7 +1,15 @@
 package com.bonree.brfs.schedulers.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
@@ -22,8 +30,24 @@ public class LocalFileUtils {
 		if(parDirs == null || parDirs.isEmpty()){
 			return null;
 		}
-		return LocalFileUtils.collectTimeDirs(parDirs, startTime,endTime,1);
+		return LocalFileUtils.collectTimeDirs(parDirs, startTime,endTime,1,false);
 	}
+	/**
+	 * 收集指定时间段的目录名称
+	 * @param dataPath
+	 * @param snName
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public  static List<String> collectDucationTimeDirNames(String dataPath, String snName, long startTime, long endTime){
+		List<String> parDirs = collectPartitionDirs(dataPath,snName);
+		if(parDirs == null || parDirs.isEmpty()){
+			return null;
+		}
+		return collectTimeDirs(parDirs, startTime,endTime,1, true);
+	}
+	
 	/**
 	 * 概述：获取分区目录
 	 * @param dataPath
@@ -83,10 +107,11 @@ public class LocalFileUtils {
 	 * @param startTime
 	 * @param endTime
 	 * @param type 0：收集指定时间及以前的目录，1：收集指定时间的目录
+	 * @param isName
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> collectTimeDirs(List<String> partitionDirs, long startTime, long endTime, int type){
+	public static List<String> collectTimeDirs(List<String> partitionDirs, long startTime, long endTime, int type, boolean isName){
 		List<String> deleteDirs = new ArrayList<String>();
 		if(partitionDirs == null || partitionDirs.isEmpty()) {
 			return deleteDirs;
@@ -103,7 +128,7 @@ public class LocalFileUtils {
 //				deleteDirs.add(partDir);
 				continue;
 			}
-			tmpList = collectTimeDirs(partDir, startTime, endTime, type);
+			tmpList = collectTimeDirs(partDir, startTime, endTime, type, isName);
 			if(tmpList == null || tmpList.isEmpty()) {
 				continue;
 			}
@@ -120,7 +145,7 @@ public class LocalFileUtils {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> collectTimeDirs(String partDir,long startTime, long endTime,int type){
+	public static List<String> collectTimeDirs(String partDir,long startTime, long endTime,int type, boolean isName){
 		List<String> dirNames = FileUtils.listFileNames(partDir);
 		Pair<Long,Long> times = null;
 		String path = null;
@@ -134,12 +159,20 @@ public class LocalFileUtils {
 			switch(type) {
 				case 0:
 					if(isBefore(times, startTime, endTime)) {
-						dirs.add(path);
+						if(isName) {
+							dirs.add(dirName);
+						}else {
+							dirs.add(path);
+						}
 					}
 					break;
 				case 1:
 					if(isDucation(times, startTime, endTime)) {
-						dirs.add(path);
+						if(isName) {
+							dirs.add(dirName);
+						}else {
+							dirs.add(path);
+						}
 					}
 					break;
 				default:
@@ -226,5 +259,91 @@ public class LocalFileUtils {
 		long start = TimeUtils.getMiles(timeStr[0]);
 		long end = TimeUtils.getMiles(timeStr[1]);
 		return new Pair<Long,Long>(start,end);
+	}
+	/**
+	 * 概述：转换为时间段
+	 * @param dirs
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static List<Pair<Long,Long>> converPairByUniqueness(List<String> dirs){
+		Set<Pair<Long,Long>> pDirs = new HashSet<Pair<Long,Long>>();
+		Pair<Long,Long> pair = null;
+		for(String dir : dirs) {
+			pair = ananlyDirNames(dir);
+			pDirs.add(pair);
+		}
+		return new ArrayList<Pair<Long,Long>>(pDirs);
+	}
+	public static List<Pair<Long,Long>> sortTime(List<Pair<Long,Long>> dirs){
+		Map<Long,List<Pair<Long,Long>>> graMap = sortGranule(dirs);
+		Long[] gras = orderGranule(graMap.keySet());
+		List<Pair<Long,Long>> tmp = null;
+		List<Pair<Long,Long>> sortList = new ArrayList<Pair<Long,Long>>();
+		for(Long gra : gras) {
+			tmp = graMap.remove(gra);
+			if(graMap == null || graMap.isEmpty()) {
+				sortList.addAll(tmp);
+				continue;
+			}
+			for(Pair<Long,Long> pair : tmp) {
+				sortList.add(pair);
+				for(Map.Entry<Long, List<Pair<Long,Long>>> entry : graMap.entrySet()) {
+					if(entry.getValue() == null || entry.getValue().isEmpty()) {
+						graMap.remove(entry.getKey());
+						continue;
+					}
+					for(Pair<Long,Long> sPair : entry.getValue()) {
+						if(pair.getFirst() <= sPair.getFirst() && pair.getSecond() >= sPair.getSecond()) {
+							graMap.get(entry.getKey()).remove(sPair);
+						}
+					}
+					
+				}
+			}
+		}
+		return sortList;
+	}
+	
+	/**
+	 * 概述：分拣粒度
+	 * @param dirs
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static Map<Long,List<Pair<Long,Long>>> sortGranule(List<Pair<Long,Long>> dirs){
+		Map<Long,List<Pair<Long,Long>>> sortMap = new ConcurrentHashMap<Long,List<Pair<Long,Long>>>();
+		long granule = 0l;
+		for(Pair<Long,Long> dirGra : dirs) {
+			granule = dirGra.getSecond() - dirGra.getFirst();
+			if(!sortMap.containsKey(granule)) {
+				sortMap.put(granule, new CopyOnWriteArrayList<Pair<Long,Long>>());
+			}
+			sortMap.get(granule).add(dirGra);
+		}
+		return sortMap;
+	}
+	/**
+	 * 概述：粒度时间从大到小排序
+	 * @param granules
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static Long[] orderGranule(final Collection<Long> granules) {
+		List<Long> arrays = new ArrayList<Long>(granules);
+		Collections.sort(arrays, new Comparator<Long>() {
+			@Override
+			public int compare(Long o1, Long o2) {
+				if(o1 > o2) {
+					return -1;
+				}else if(o1 == o2) {
+					return 0;
+				}else {
+					return 1;
+				}
+			}
+		});
+		System.out.println("granule order :" + arrays);
+		return  arrays.toArray(new Long[0]);
 	}
 }

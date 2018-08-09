@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
@@ -101,7 +102,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				}
 				currentTaskName = taskPair.getFirst();
 				
-				task = TaskStateLifeContral.changeRunTaskModel(taskPair.getSecond());
+				task = TaskStateLifeContral.changeRunTaskModel(taskPair.getSecond(), dataPath);
 				// 获取执行策略
 				runPattern = runTask.taskRunnPattern(task);
 				if(runPattern == null){
@@ -153,9 +154,10 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 	 * @param serverId
 	 * @param clazzName
 	 * @return
+	 * @throws JsonException 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId,String clazzName,String path){
+	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId,String clazzName,String path) throws JsonException{
 		QuartzSimpleInfo task = new QuartzSimpleInfo();
 		task.setRunNowFlag(true);
 		task.setCycleFlag(false);

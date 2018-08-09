@@ -127,7 +127,7 @@ public class ServerMain {
 			});
             
          // 资源管理模块
-            InitTaskManager.initManager(resourceConfig, zookeeperPaths, sm, snManager, idManager);
+            InitTaskManager.initManager(resourceConfig, zookeeperPaths, sm, snManager, idManager, client);
         } catch (Exception e) {
             LOG.error("launch server error!!!",e);
             System.exit(1);

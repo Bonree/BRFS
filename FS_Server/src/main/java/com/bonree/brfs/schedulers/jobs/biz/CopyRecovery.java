@@ -329,11 +329,11 @@ public class CopyRecovery {
 			return true;
 		}
 		catch (FileNotFoundException e) {
-			e.printStackTrace();
+			LOG.error("{}", e);
 			return false;
 		}
 		catch (IOException e) {
-			e.printStackTrace();
+			LOG.error("{}", e);
 			return false;
 		}
 		finally {
@@ -342,7 +342,7 @@ public class CopyRecovery {
 					client.close();
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					LOG.error("{}", e);
 				}
 			}
 			if (output != null) {
@@ -350,7 +350,7 @@ public class CopyRecovery {
 					output.close();
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					LOG.error("{}", e);
 				}
 			}
 		}

@@ -9,6 +9,7 @@ import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
@@ -34,14 +35,10 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 	private static final Logger LOG = LoggerFactory.getLogger(UserDeleteJob.class);
 	@Override
 	public void caughtException(JobExecutionContext context) {
-		LOG.info("Error ......   ");
-		
 	}
 
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
-		LOG.info("interrupt ......   " );
-		
 	}
 
 	@Override
@@ -50,10 +47,13 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
-		LOG.info("user delete batchID:{} ,content: {}",currentIndex, content);
 		// 获取当前执行的任务类型
 		int taskType = data.getInt(JobDataMapConstract.TASK_TYPE);
-		BatchAtomModel batch = JsonUtils.toObjectQuietly(content, BatchAtomModel.class);
+		if(BrStringUtils.isEmpty(content)) {
+			LOG.warn("batch data is empty !!!");
+			return ;
+		}
+		BatchAtomModel batch = JsonUtils.toObject(content, BatchAtomModel.class);
 		if(batch == null){
 			LOG.warn("batch data is empty !!!");
 			return;
@@ -124,7 +124,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 			atomR.setOperationFileCount(0);
 			return atomR;
 		}
-		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1);
+		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1,false);
 		LOG.info("collection {}_{} dirs {}",atom.getDataStartTime(),atom.getDataStopTime(),deleteDirs);
 		if(deleteDirs == null || deleteDirs.isEmpty()) {
 			atomR.setOperationFileCount(0);
@@ -133,6 +133,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		boolean isSuccess = true;
 		for(String deletePath : deleteDirs) {
 			isSuccess = isSuccess && FileUtils.deleteDir(deletePath, true);
+			LOG.info("delete [{}], status [{}]",deletePath, isSuccess);
 		}
 		atomR.setOperationFileCount(deleteDirs.size());
 		atomR.setSuccess(isSuccess);

@@ -108,7 +108,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		if(partDirs == null || partDirs.isEmpty()) {
 			return atomR;
 		}
-		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 0);
+		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 0, false);
 		if(deleteDirs == null || deleteDirs.isEmpty()) {
 			return atomR;
 		}

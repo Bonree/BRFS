@@ -6,6 +6,8 @@ import java.util.List;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.common.zookeeper.ZookeeperClient;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
@@ -40,6 +42,7 @@ public class ManagerContralFactory {
 	 */
 	private List<TaskType> taskOn = new ArrayList<TaskType>();
 	private ZookeeperPaths zkPath = null;
+	private CuratorClient client = null;
 	
 	
 	String serverId;
@@ -118,5 +121,11 @@ public class ManagerContralFactory {
 	}
 	public void setZkPath(ZookeeperPaths zkPath) {
 		this.zkPath = zkPath;
+	}
+	public CuratorClient getClient() {
+		return client;
+	}
+	public void setClient(CuratorClient client) {
+		this.client = client;
 	}
 }

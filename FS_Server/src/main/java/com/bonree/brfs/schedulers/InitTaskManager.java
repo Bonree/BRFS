@@ -20,6 +20,7 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.CommonConfigs;
@@ -62,7 +63,7 @@ public class InitTaskManager {
 	 * @throws ParamsErrorException 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void initManager(ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageRegionManager snm, ServerIDManager sim) throws Exception {
+	public static void initManager(ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageRegionManager snm, ServerIDManager sim, CuratorClient client) throws Exception {
 		managerConfig.printDetail();
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String serverId = sim.getFirstServerID();
@@ -87,6 +88,11 @@ public class InitTaskManager {
 			LOG.error("Meta task is empty");
 			System.exit(1);
 		}
+		if(client == null) {
+			LOG.error("zk client is empty");
+			System.exit(1);
+		}
+		mcf.setClient(client);
 		mcf.setTm(release);
 		// 工厂类添加任务可执行接口
 		RunnableTaskInterface run = DefaultRunnableTask.getInstance();

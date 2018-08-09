@@ -44,7 +44,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("GATHER");
 	private static Queue<StateMetaServerModel> queue = new ConcurrentLinkedQueue<StateMetaServerModel>();
 	private static StateMetaServerModel prexState = null;
-	private static ZookeeperClient client = null;
+//	private static ZookeeperClient client = null;
 
 	@Override
 	public void caughtException(JobExecutionContext context) {
@@ -56,7 +56,6 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("GATHER_______________");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		if (data == null || data.isEmpty()) {
 			throw new NullPointerException("job data map is empty");
@@ -65,18 +64,15 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		String zkPath = data.getString(JobDataMapConstract.BASE_SERVER_ID_PATH);
 		String ip = data.getString(JobDataMapConstract.IP);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+		CuratorClient client = mcf.getClient();
 		if(client ==null) {
-			String zkAddress= data.getString(JobDataMapConstract.ZOOKEEPER_ADDRESS);
-			if(BrStringUtils.isEmpty(zkAddress)) {
-				LOG.error("zookeeper address is empty !!!!");
-				return;
-			}
-			client = CuratorClient.getClientInstance(zkAddress);
+			LOG.error("zookeeper is empty !!!!");
+			return;
 		}
 		String basePath = zkPath+"/"+mcf.getGroupName();
 		String bPath = basePath+"/base/"+mcf.getServerId();
 		if(!client.checkExists(bPath)) {
-			saveLocal(mcf.getServerId(), dataDir, bPath);
+			saveLocal(client, mcf.getServerId(), dataDir, bPath);
 		}
 		long gatherInveral = data.getLongValueFromString(JobDataMapConstract.GATHER_INVERAL_TIME);
 		int count = data.getIntFromString(JobDataMapConstract.CALC_RESOURCE_COUNT);
@@ -127,10 +123,10 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if(!saveDataToZK(client, bPath, bData)) {
 			LOG.error("base content : {} save to zk fail!!!",JsonUtils.toJsonStringQuietly(local));
 		}
-		saveLocal(mcf.getServerId(), dataDir, bPath);
+		saveLocal(client,mcf.getServerId(), dataDir, bPath);
 		
 	}
-	public void saveLocal(String serverId, String dataDir,String bPath) {
+	public void saveLocal(CuratorClient client,String serverId, String dataDir,String bPath) {
 		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir);
 		if(local == null) {
 			LOG.error("gather base data is empty !!!");
@@ -156,97 +152,11 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}", e);
 			return false;
 		}
 		return true;
 	}
-//	/***
-//	 * 概述：更新资源
-//	 * @param metaSource
-//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-//	 */
-//	public void updateResourceOfTask(final StateMetaServerModel metaSource){
-//		if(metaSource == null){
-//			return;
-//		}
-//		// 更新任务可执行接口资源信息
-//		if (prexState == null) {
-//			prexState = metaSource;
-//		}else {
-//			StatServerModel stat = metaSource.converObject(prexState);
-//			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-//			RunnableTaskInterface run = mcf.getRt();
-//			if(run == null){
-//				LOG.warn("RunnableTaskInterface is null");
-//			}
-//			run.update(stat);
-//			prexState = metaSource;
-//			LOG.info("update RunnableTaskInterface state !!!");
-//			LOG.info("state : {}",JsonUtils.toJsonStringQuietly(stat));
-//		}
-//	}
-//	/***
-//	 * 概述：更新资源
-//	 * @param zkUrl
-//	 * @param groupName
-//	 * @param serverId
-//	 * @param dataDir
-//	 * @param inverTime
-//	 * @throws Exception
-//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-//	 */
-//	private void updateResource(String dataDir, long inverTime) throws Exception {
-//
-//	
-//		// 更新任务可执行接口资源信息
-//		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-//		// 2.计算集群基础基础信息
-//		BaseMetaServerModel base = getClusterBases();
-//		if (base == null) {
-//			LOG.warn("base server info is null !!!");
-//			return;
-//		}
-//		// 7.计算Resource值
-//		ResourceModel resource = GatherResource.calcResourceValue(base, sum);
-//		
-//		if (resource == null) {
-//			LOG.warn("calc resource value is null !!!");
-//			return;
-//		}
-//		Map<Integer, String> snIds = getStorageNameIdWithName();
-//		resource.setSnIds(snIds);
-//		resource.setServerId(mcf.getServerId());
-//		// 6.获取本机信息
-//		ServerModel server = getServerModel();
-//		if(server == null){
-//			LOG.warn("server model is null !!");
-//			server = new ServerModel();
-//			BaseMetaServerModel lBase = GatherResource.gatherBase(mcf.getServerId(), dataDir);
-//			server.setBase(lBase);
-//		}
-//		server.setResource(resource);
-//		setServerModel(server);
-//		LOG.info("update zookeeper complete");
-//	}
-//	/**
-//	 * 概述：获取本机local信息
-//	 * @return
-//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-//	 */
-//	public ServerModel getlocalServerModel(){
-//		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-//		String groupName = mcf.getGroupName();
-//		String serverId = mcf.getServerId();
-////		ServiceManager sm = mcf.getSm();
-//		Service service = sm.getServiceById(groupName, serverId);
-//		String payload = service.getPayload();
-//		if(BrStringUtils.isEmpty(payload)){
-//			return null;
-//		}
-//		ServerModel serverModel = JsonUtils.toObjectQuietly(payload, ServerModel.class);
-//		return serverModel;
-//	}
 	/**
 	 * 概述：获取基本信息
 	 * @return
@@ -272,7 +182,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 				bases.add(tmp);
 			}
 			catch (JsonException e) {
-				e.printStackTrace();
+				LOG.error("{}", e);
 			}
 		}
 		// 2.计算集群基础基础信息

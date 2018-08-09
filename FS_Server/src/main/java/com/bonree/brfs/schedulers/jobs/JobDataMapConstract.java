@@ -5,9 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
@@ -18,6 +22,7 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 
 public class JobDataMapConstract {
+	private static final Logger LOG = LoggerFactory.getLogger("Constract");
 	/**
 	 * zookeeper地址
 	 */
@@ -134,7 +139,7 @@ public class JobDataMapConstract {
 		dataMap.put(CHECK_TTL, resource.getCheckTtl()+"");
 		return dataMap;
 	}
-	public static Map<String, String> createOperationDataMap(String taskName,String serviceId, TaskModel task, TaskRunPattern pattern,String path){
+	public static Map<String, String> createOperationDataMap(String taskName,String serviceId, TaskModel task, TaskRunPattern pattern,String path) throws JsonException{
 		Map<String, String> dataMap = new HashMap<>();
 		dataMap.put(DATA_PATH, path);
 		dataMap.put(TASK_NAME, taskName);
@@ -151,14 +156,15 @@ public class JobDataMapConstract {
 		for(int i = 1; i <= count; i+=count){
 			batch = new BatchAtomModel();
 			if(index + count <= size){
-			tmp = atoms.subList(index, index + count);
+				tmp = atoms.subList(index, index + count);
 			}else if(size > 0){
 				tmp = atoms.subList(index, size - 1);
 			}else{
 				tmp = new ArrayList<AtomTaskModel>();
 			}
 			batch.addAll(tmp);
-			dataMap.put(i +"", JsonUtils.toJsonStringQuietly(batch));
+			LOG.info("batch start [{}], end:[{}], size: [{}], batch data : [{}]",index, (index+count) >size ? (size - 1): (index+count), tmp.size(),JsonUtils.toJsonStringQuietly(batch));
+			dataMap.put(i +"", JsonUtils.toJsonString(batch));
 			index = index +count;
 		}
 		dataMap.put(TASK_REPEAT_RUN_COUNT, pattern.getRepeateCount() + "");

@@ -15,6 +15,7 @@ import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
@@ -201,9 +202,18 @@ public class TaskStateLifeContral {
 			return null;
 		}
 		// 文件恢复单独不需要处理
+		TaskModel changeTask = new TaskModel();
+		changeTask.setCreateTime(message.getCreateTime());
+		changeTask.setTaskState(changeTask.getTaskState());
+		changeTask.setTaskType(message.getTaskType());
+		if(TaskType.SYSTEM_COPY_CHECK.code() == changeTask.getTaskType()) {
+			changeTask.setAtomList(message.getAtomList());
+			return changeTask;
+		}
 		// 删除任务，校验任务，需要扫目录确定
 		List<AtomTaskModel> mAtoms = message.getAtomList();
 		if(mAtoms == null || mAtoms.isEmpty()){
+			LOG.warn("task message atom list is empty!!!");
 			return null;
 		}
 		// 循环atom，封装atom
@@ -217,11 +227,16 @@ public class TaskStateLifeContral {
 			endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
 			snName = atom.getStorageName();
 			partNum = atom.getPatitionNum();
-//			List<String>
-			LocalFileUtils.collectTimeDirs(dataPath,startTime,endTime,1);
+			List<String> dirs = LocalFileUtils.collectDucationTimeDirNames(dataPath, snName, startTime, endTime);
+			List<Pair<Long,Long>> pDirs = LocalFileUtils.converPairByUniqueness(dirs);
+			List<Pair<Long,Long>> batchTimes = LocalFileUtils.sortTime(pDirs);
+			for(Pair<Long,Long> pair : batchTimes) {
+				rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, pair.getFirst(), pair.getSecond(), 0);
+				changeTask.addAtom(rAtom);
+			}
 		}
-		return null;
-		//封装
+		LOG.info("task [ {} ]", JsonUtils.toJsonStringQuietly(changeTask));
+		return changeTask;
 	}
 	public static List<String> getNeedDirs(String dataPath, String snName, long startTime, long endTime){
 		return null;
@@ -394,7 +409,7 @@ public class TaskStateLifeContral {
 	public static List<String> getSRs(StorageRegionManager srm){
 		List<StorageRegion> srList = srm.getStorageRegionList();
 		List<String> srs = new ArrayList<String>();
-		if(srList == null || srs.isEmpty()) {
+		if(srList == null || srList.isEmpty()) {
 			return srs;
 		}
 		String srName = null;

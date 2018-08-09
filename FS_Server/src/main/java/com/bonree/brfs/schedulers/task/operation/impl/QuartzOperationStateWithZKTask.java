@@ -37,6 +37,7 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 				TaskStateLifeContral.updateTaskRunState(serverId, taskName, taskTypeName);
 			}
 			currentIndex = data.getInt(JobDataMapConstract.CURRENT_INDEX);
+			LOG.info("taskType [{}],taskname [{}],batch id[{}], data :[{}]", taskTypeName, taskName,currentIndex,data.getString(currentIndex+""));
 			operation(context);
 			
 		}catch(Exception e){

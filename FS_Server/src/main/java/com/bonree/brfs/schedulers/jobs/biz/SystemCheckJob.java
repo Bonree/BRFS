@@ -47,7 +47,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
-		LOG.info("batch data :{}", content);
+		
 		if(BrStringUtils.isEmpty(content)){
 			LOG.warn("batch data is empty !!!");
 			return;
@@ -94,7 +94,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		long startTime = TimeUtils.getMiles(atom.getDataStartTime(),TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE);
 		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
-		List<String> checkDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1);
+		List<String> checkDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1, false);
 		LOG.debug("CHECKJOB-0 start: {}, end : {}", atom.getDataStartTime(), atom.getDataStopTime());
 		LOG.debug("CHECKJOB-1 list dir :{}", partDirs);
 		LOG.debug("CHECKJOB-2 check List: {}", checkDirs);
