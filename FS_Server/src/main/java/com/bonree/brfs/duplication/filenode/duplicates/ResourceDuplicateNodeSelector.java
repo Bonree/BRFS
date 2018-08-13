@@ -112,11 +112,7 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 			}
 			DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
 			DiskNodeConnection conn = connectionPool.getConnection(node.getGroup(), node.getId());
-			long ping1 = System.currentTimeMillis();
-			boolean flag = conn.getClient().ping();
-			long ping2 = System.currentTimeMillis();
-			LOG.info("[DUP] [{}] ping time[{}]",serverId,ping2-ping1);
-			if(conn == null || conn.getClient() == null || !flag) {
+			if(conn == null || conn.getClient() == null) {
 				continue;
 			}
 			serviceList.remove(service);
@@ -145,7 +141,7 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 			Service service = serviceList.remove(rand.nextInt(serviceList.size()));
 			DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
 			DiskNodeConnection conn = connectionPool.getConnection(node.getGroup(), node.getId());
-			if(conn == null || conn.getClient() == null || !conn.getClient().ping()) {
+			if(conn == null || conn.getClient() == null) {
 				continue;
 			}
 			nodes.add(node);
