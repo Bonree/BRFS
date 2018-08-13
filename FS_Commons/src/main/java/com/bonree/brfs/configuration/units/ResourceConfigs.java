@@ -98,6 +98,8 @@ public final class ResourceConfigs {
 	
 	public static final ConfigUnit<Integer> CONFIG_SCHED_WATCHDOG_TRIGGER_INTERVAL =
 			ConfigUnit.ofInt("watch.dog.trigger.interval", 7);
+	public static final ConfigUnit<Integer> CONFIG_RESOURCE_CENT_SIZE = 
+			ConfigUnit.ofInt("resource.cent.size",1000);
 
 	private ResourceConfigs() {}
 }

@@ -58,7 +58,7 @@ public class RandomAvailable implements AvailableServerInterface {
 	}
 	
 	@Override
-	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList)
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,int centSize)
 			throws Exception {
 		if(resourceMap.isEmpty()){
 			return null;
@@ -94,7 +94,7 @@ public class RandomAvailable implements AvailableServerInterface {
 		if(values == null || values.isEmpty()){
 			return null;
 		}
-		return converDoublesToIntegers(values);
+		return converDoublesToIntegers(values, centSize);
 	}
 	@Override
 	public void update(ResourceModel resource) {
@@ -102,15 +102,10 @@ public class RandomAvailable implements AvailableServerInterface {
 			return;
 		}
 		String serverId = resource.getServerId();
-//		if(!this.resourceMap.containsKey(serverId)) {
-//			System.out.println("continue-------------------------------->");
-//			return;
-//		}
 		Map<Integer,String> tmpMap = resource.getSnIds();
-		if(tmpMap!=null&& !tmpMap.isEmpty()) {
-			this.snIds.putAll(tmpMap);
-		}
-		
+		for(Map.Entry<Integer, String> entry : tmpMap.entrySet()) {
+			this.snIds.put(entry.getKey(), entry.getValue());
+		}		
 		this.resourceMap.put(serverId, resource);
 	}
 	/**
@@ -119,11 +114,12 @@ public class RandomAvailable implements AvailableServerInterface {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private List<Pair<String, Integer>> converDoublesToIntegers(final List<Pair<String, Double>> servers){
+	private List<Pair<String, Integer>> converDoublesToIntegers(final List<Pair<String, Double>> servers, int preCentSize){
 		List<Pair<String,Integer>> dents = new ArrayList<Pair<String,Integer>>();
 		int total = 0;
 		int value = 0;
 		double sum = 0;
+		int centSize = preCentSize<=0 ? 100 : preCentSize;
 		for(Pair<String,Double> pair: servers) {
 			sum +=pair.getSecond();
 		}
@@ -131,7 +127,7 @@ public class RandomAvailable implements AvailableServerInterface {
 		for(Pair<String,Double> ele : servers){
 			tmp = new Pair<String, Integer>();
 			tmp.setFirst(ele.getFirst());
-			value = (int)(ele.getSecond()/sum* 100);
+			value = (int)(ele.getSecond()/sum* centSize);
 			if(value == 0){
 				value = 1;
 			}
@@ -148,10 +144,10 @@ public class RandomAvailable implements AvailableServerInterface {
 		}
 	}
 	@Override
-	public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList)
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList, int centSize)
 			throws Exception {
 		String snName = this.snIds.get(snId);
-		return selectAvailableServers(scene, snName,exceptionServerList);
+		return selectAvailableServers(scene, snName,exceptionServerList, centSize);
 	}
 	@Override
 	public void add(ResourceModel resource) {

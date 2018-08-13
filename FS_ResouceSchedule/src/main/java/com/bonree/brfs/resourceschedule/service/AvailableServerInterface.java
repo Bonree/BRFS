@@ -25,7 +25,7 @@ public interface AvailableServerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList) throws Exception;
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,int centSize) throws Exception;
 	/**
 	 * 概述：获取可用server集合
 	 * @param scene 场景枚举
@@ -34,7 +34,7 @@ public interface AvailableServerInterface {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList) throws Exception;
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList,int centSize) throws Exception;
 	/**
 	 * 概述：设置异常过滤指标
 	 * @param limits

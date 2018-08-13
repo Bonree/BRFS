@@ -115,7 +115,7 @@ storage.file.capacity = 67108864
 #storage.file.patition.duration = PT1H
 
 ###############################################
-##############资源管理模块 Config################
+##############任务管理模块 Config################
 ###############################################
 # 任务开关 true 开  false 关，当为false时，将不会创建相应的线程池
 # 系统删除任务开关
@@ -164,12 +164,6 @@ storage.file.capacity = 67108864
 # 执行任务的时间间隔 单位s
 #execute.task.inverval.time = 60
 
-# 资源采集的时间间隔 单位s
-#gather.resource.inveral.time = 60
-
-# 当有N个采样点时，计算资源值，最小值为2
-#calc.resource.value.count = 5
-
 # 任务管理信息
 # 任务总体控制开关
 #task.framework.switch = true
@@ -179,28 +173,6 @@ storage.file.capacity = 67108864
 
 # 任务信息保留时长，单位s
 #task.expired.time = 680400
-
-#资源限制
-#资源限制 cpu使用率
-#limit.resource.value.cpurate = 0.9
-
-#资源限制 内存使用率
-#limit.resource.value.memoryrate = 0.9
-
-#资源限制 磁盘剩余率
-#limit.resource.value.disakremainrate = 0.01
-
-#资源限制 磁盘写入率
-#limit.resource.value.diskwritespeedrate = 0.9
-
-#资源限制 磁盘读取率
-#limit.resource.value.diskreadspeedrate = 0.9
-
-#资源限制 网卡发送率
-#limit.resource.value.nettspeedrate = 0.9
-
-#资源限制 网卡接收率
-#limit.resource.value.netrspeedrate = 0.9
 
 # 对过多久的数据检查 单位s
 #system.check.data.ttl = 3600
@@ -216,3 +188,38 @@ storage.file.capacity = 67108864
 
 # 周期清理多余文件的时间间隔，单位天
 #watch.dog.trigger.interval = 7
+
+###############################################
+##############资源管理模块 Config################
+###############################################
+#资源采集
+#资源采集的时间间隔 单位s
+#gather.resource.inveral.time = 60
+
+#当有N个采样点时，计算资源值，最小值为2
+#calc.resource.value.count = 5
+
+#资源选择的比值大小
+#resource.cent.size=1000
+
+#资源限制
+#资源限制 cpu使用率
+#limit.resource.value.cpurate = 0.9
+
+#资源限制 内存使用率
+#limit.resource.value.memoryrate = 0.9
+
+#资源限制 磁盘剩余率
+#limit.resource.value.disakremainrate = 0.001
+
+#资源限制 磁盘写入率
+#limit.resource.value.diskwritespeedrate = 0.9
+
+#资源限制 磁盘读取率
+#limit.resource.value.diskreadspeedrate = 0.9
+
+#资源限制 网卡发送率
+#limit.resource.value.nettspeedrate = 0.9
+
+#资源限制 网卡接收率
+#limit.resource.value.netrspeedrate = 0.9

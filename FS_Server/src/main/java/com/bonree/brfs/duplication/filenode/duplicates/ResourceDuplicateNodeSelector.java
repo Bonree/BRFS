@@ -40,7 +40,9 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 	private ServiceManager serviceManager = null;
 	private DiskNodeConnectionPool connectionPool = null;
 	private Random rand = new Random();
-	public ResourceDuplicateNodeSelector(String zkPath,ServiceManager serviceManager, DiskNodeConnectionPool connectionPool,CuratorFramework client,AvailableServerInterface available) {
+	private int centSize = 1000;
+	public ResourceDuplicateNodeSelector(int centSize, String zkPath,ServiceManager serviceManager, DiskNodeConnectionPool connectionPool,CuratorFramework client,AvailableServerInterface available) {
+		this.centSize = centSize <=0 ? 1000: centSize;
 		this.zkPath = zkPath;
 		this.serviceManager = serviceManager;
 		this.connectionPool = connectionPool;
@@ -60,18 +62,27 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 		}
 		List<Pair<String, Integer>> servers = null;
 		try {
-			servers = this.available.selectAvailableServers(1, storageId, null);
+			long select1 = System.currentTimeMillis();
+			servers = this.available.selectAvailableServers(1, storageId, null, centSize);
+			long select2 = System.currentTimeMillis();
+			LOG.info("select services time [{}]", select2 - select1);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		LOG.info("disk group : {}, services:{}",groupName,servers);
 		// 若过滤不出正常的则采用随机
-		if(servers == null|| servers.isEmpty()) {
-			return getRandom(storageId, nums);
-		}else {
-			LOG.info("disk resource do it !!!");
-			return getResource(storageId, nums, servers);
+		DuplicateNode[] dups = null;
+		long start = System.currentTimeMillis();
+		if(servers !=null && !servers.isEmpty()) {
+			dups = getResource(storageId, nums, servers);
 		}
+		if(dups == null || dups.length ==0) {
+			dups = getRandom(storageId, nums);
+		}
+		long end = System.currentTimeMillis();
+		LOG.info("[DUP] select Times [{}]ms", end - start);
+		return dups;
 	}
 	private DuplicateNode[] getResource(int storageId, int nums,List<Pair<String,Integer>> servers) {
 		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
@@ -101,7 +112,11 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 			}
 			DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
 			DiskNodeConnection conn = connectionPool.getConnection(node.getGroup(), node.getId());
-			if(conn == null || conn.getClient() == null || !conn.getClient().ping()) {
+			long ping1 = System.currentTimeMillis();
+			boolean flag = conn.getClient().ping();
+			long ping2 = System.currentTimeMillis();
+			LOG.info("[DUP] [{}] ping time[{}]",serverId,ping2-ping1);
+			if(conn == null || conn.getClient() == null || !flag) {
 				continue;
 			}
 			serviceList.remove(service);
@@ -109,7 +124,7 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 		}
 		DuplicateNode[] result = new DuplicateNode[nodes.size()];
 		long end = System.currentTimeMillis();
-		LOG.info("resource select time {} ms, select services :{}",(end - start),uNeeds);
+		LOG.info("select time {} ms, select services :{}",(end - start),uNeeds);
 		return nodes.toArray(result);
 	}
 	/**
@@ -122,18 +137,17 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 	private DuplicateNode[] getRandom(int storageId, int nums) {
 		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 		if(serviceList.isEmpty()) {
+			LOG.info("[DUP] seviceList is empty");
 			return new DuplicateNode[0];
 		}
 		List<DuplicateNode> nodes = new ArrayList<DuplicateNode>();
 		while(!serviceList.isEmpty() && nodes.size() < nums) {
 			Service service = serviceList.remove(rand.nextInt(serviceList.size()));
-			
 			DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
 			DiskNodeConnection conn = connectionPool.getConnection(node.getGroup(), node.getId());
 			if(conn == null || conn.getClient() == null || !conn.getClient().ping()) {
 				continue;
 			}
-			
 			nodes.add(node);
 		}
 		
@@ -212,6 +226,14 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 
 	public ResourceDuplicateNodeSelector setConnectionPool(DiskNodeConnectionPool connectionPool) {
 		this.connectionPool = connectionPool;
+		return this;
+	}
+	public ResourceDuplicateNodeSelector setZkPath(String zkPath) {
+		this.zkPath = zkPath;
+		return this;
+	}
+	public ResourceDuplicateNodeSelector setCentSize(int centSize) {
+		this.centSize = centSize <= 0 ? 1000 : centSize;
 		return this;
 	}
 }

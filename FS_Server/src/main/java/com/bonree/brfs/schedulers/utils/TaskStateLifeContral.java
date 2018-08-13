@@ -97,7 +97,8 @@ public class TaskStateLifeContral {
 		release.updateTaskContentNode(task, taskType, taskname);
 		LOG.info("complete task :{} - {} - {}",taskType, taskname, TaskState.valueOf(task.getTaskState()).name());
 		if(TaskType.SYSTEM_CHECK.name().equals(taskType)) {
-			TasksUtils.createCopyTask(taskname);
+			String cTask = TasksUtils.createCopyTask(taskname);
+			LOG.info("SYSTEM_CHECK task [{}] check for errors. create SYSTEM_COPY_CHECK task [{}] ", taskname, cTask);
 		}
 	}
 	/**

@@ -33,6 +33,7 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
+import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.connection.http.HttpDiskNodeConnectionPool;
@@ -138,6 +139,7 @@ public class BootStrap {
             		.setAvailable(new RandomAvailable(null))
             		.setConnectionPool(connectionPool)
             		.setServiceManager(serviceManager)
+            		.setCentSize(Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_CENT_SIZE))
             		.start();
 
             int workerThreadNum = Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_IO_WORKER_NUM,

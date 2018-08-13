@@ -118,17 +118,17 @@ public class TasksUtils {
 		return task;
 	}
 
-	public static void createCopyTask(String taskName) {
+	public static String createCopyTask(String taskName) {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		StorageRegionManager snm = mcf.getSnm();
 		List<StorageRegion> snList = snm.getStorageRegionList();
 		if(snList == null || snList.isEmpty()) {
-			return ;
+			return null;
 		}
 		List<String> sNames = release.getTaskServerList(TaskType.SYSTEM_CHECK.name(), taskName);
 		if(sNames == null|| sNames.isEmpty()) {
-			return ;
+			return null;
 		}
 		List<TaskServerNodeModel> sTasks = new ArrayList<TaskServerNodeModel>();
 		Map<String,Integer> copyMap = getReplicationMap(snList);
@@ -141,16 +141,17 @@ public class TasksUtils {
 			sTasks.add(sTask);
 		}
 		if(sTasks == null || sTasks.isEmpty()) {
-			return ;
+			return null;
 		}
 		TaskModel task = getErrorFile(sTasks, copyMap);
 		String tName = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
 		if(BrStringUtils.isEmpty(tName)) {
-			return;
+			return null;
 		}
 		for(String sname :sNames) {
 			release.updateServerTaskContentNode(sname, tName, TaskType.SYSTEM_COPY_CHECK.name(), TaskServerNodeModel.getInitInstance());
 		}
+		return tName;
 	}
 	private static Map<String,Integer> getReplicationMap(List<StorageRegion> snList){
 		if(snList == null || snList.isEmpty()) {
