@@ -71,6 +71,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 				continue;
 			}
 			
+			LOG.info("open file[{}] from datanode[{}] with capacity[{}]", filePath, node, result);
 			if(capacity < 0) {
 				capacity = result;
 				continue;

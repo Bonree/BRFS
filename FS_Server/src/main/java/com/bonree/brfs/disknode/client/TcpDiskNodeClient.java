@@ -44,7 +44,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	@Override
 	public boolean ping() {
 		try {
-			BaseMessage message = new BaseMessage(-1, DataNodeBootStrap.TYPE_PING_PONG);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_PING_PONG);
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
 			client.sendMessage(message, new ResponseHandler<BaseResponse>() {
 				
@@ -77,7 +77,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			openFileMessage.setFilePath(path);
 			openFileMessage.setCapacity(capacity);
 			
-			BaseMessage message = new BaseMessage(0, DataNodeBootStrap.TYPE_OPEN_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_OPEN_FILE);
 			message.setBody(ProtoStuffUtils.serialize(openFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -108,7 +108,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	@Override
 	public long closeFile(String path) {
 		try {
-			BaseMessage message = new BaseMessage(0, DataNodeBootStrap.TYPE_CLOSE_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_CLOSE_FILE);
 			message.setBody(BrStringUtils.toUtf8Bytes(path));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -146,7 +146,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			writeFileMessage.setFilePath(path);
 			writeFileMessage.setDatas(new WriteFileData[]{data});
 			
-			BaseMessage message = new BaseMessage(0, DataNodeBootStrap.TYPE_WRITE_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_WRITE_FILE);
 			message.setBody(ProtoStuffUtils.serialize(writeFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -205,10 +205,11 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			writeFileMessage.setFilePath(path);
 			writeFileMessage.setDatas(datas);
 			
-			BaseMessage message = new BaseMessage(0, DataNodeBootStrap.TYPE_WRITE_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_WRITE_FILE);
 			message.setBody(ProtoStuffUtils.serialize(writeFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
+			LOG.info("write [{}] datas to data node", dataList.size());
 			client.sendMessage(message, new ResponseHandler<BaseResponse>() {
 				
 				@Override
@@ -239,7 +240,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	@Override
 	public boolean flush(String file) throws IOException {
 		try {
-			BaseMessage message = new BaseMessage(0, DataNodeBootStrap.TYPE_FLUSH_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_FLUSH_FILE);
 			message.setBody(BrStringUtils.toUtf8Bytes(file));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -282,7 +283,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			readFileMessage.setOffset(offset);
 			readFileMessage.setLength(size);
 			
-			BaseMessage message = new BaseMessage(0, DataNodeBootStrap.TYPE_READ_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_READ_FILE);
 			message.setBody(ProtoStuffUtils.serialize(readFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -318,7 +319,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			listFileMessage.setPath(path);
 			listFileMessage.setLevel(level);
 			
-			BaseMessage message = new BaseMessage(0, DataNodeBootStrap.TYPE_LIST_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_LIST_FILE);
 			message.setBody(ProtoStuffUtils.serialize(listFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -360,7 +361,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			deleteFileMessage.setForce(force);
 			deleteFileMessage.setRecursive(recursive);
 			
-			BaseMessage message = new BaseMessage(0, DataNodeBootStrap.TYPE_DELETE_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_DELETE_FILE);
 			message.setBody(ProtoStuffUtils.serialize(deleteFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -391,7 +392,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	@Override
 	public long getFileLength(String path) {
 		try {
-			BaseMessage message = new BaseMessage(0, DataNodeBootStrap.TYPE_METADATA);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_METADATA);
 			message.setBody(BrStringUtils.toUtf8Bytes(path));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -429,7 +430,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			String[] states = new String[fullstates.size()];
 			recoveryMessage.setSources(fullstates.toArray(states));
 			
-			BaseMessage message = new BaseMessage(0, DataNodeBootStrap.TYPE_DELETE_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_DELETE_FILE);
 			message.setBody(ProtoStuffUtils.serialize(recoveryMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -458,14 +459,11 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public void copyFrom(String host, int port, String remotePath,
-			String localPath) throws Exception {
+	public void copyFrom(String host, int port, String remotePath, String localPath) throws Exception {
 	}
 
 	@Override
-	public void copyTo(String host, int port, String localPath,
-			String remotePath) throws Exception {
-		// TODO Auto-generated method stub
-
+	public void copyTo(String host, int port, String localPath, String remotePath) throws Exception {
+		
 	}
 }

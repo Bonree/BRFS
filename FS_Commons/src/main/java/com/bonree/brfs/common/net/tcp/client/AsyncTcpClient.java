@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,8 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 	private Channel channel;
 	
 	private Executor executor;
-	private LinkedBlockingQueue<ResponseHandler<BaseResponse>> requestQueue = new LinkedBlockingQueue<ResponseHandler<BaseResponse>>();
+	private AtomicInteger tokenMaker = new AtomicInteger(0);
+	private LinkedBlockingQueue<MessageBinding> requestQueue = new LinkedBlockingQueue<MessageBinding>();
 	
 	private TcpClientCloseListener listener;
 	
@@ -34,6 +36,10 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 		Preconditions.checkNotNull(channel);
 		this.channel = channel;
 		this.channel.closeFuture().addListener(new ChannelCloseListener());
+	}
+	
+	private int token() {
+		return tokenMaker.getAndIncrement() & Integer.MAX_VALUE;
 	}
 	
 	@Override
@@ -53,8 +59,9 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 		Preconditions.checkNotNull(msg);
 		Preconditions.checkNotNull(handler);
 		
+		msg.setToken(token());
 		synchronized (requestQueue) {
-			requestQueue.put(handler);
+			requestQueue.put(new MessageBinding(msg, handler));
 			channel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
 				
 				@Override
@@ -77,16 +84,21 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 	}
 	
 	void handleResponse(BaseResponse response) {
-		ResponseHandler<BaseResponse> handler = requestQueue.poll();
-		if(handler == null) {
+		MessageBinding binding = requestQueue.poll();
+		if(binding == null) {
+			LOG.error("no handler is found for response[{}]", response.getToken());
 			return;
+		}
+		
+		if(binding.getMessage().getToken() != response.getToken()) {
+			LOG.error("base message token[{}] is different from response token[{}]", binding.getMessage().getToken(), response.getToken());
 		}
 		
 		executor.execute(new Runnable() {
 			
 			@Override
 			public void run() {
-				handler.handle(response);
+				binding.getHandler().handle(response);
 			}
 		});
 	}
@@ -120,9 +132,9 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 				});
 			}
 			
-			ResponseHandler<BaseResponse> handler = null;
-			while((handler = requestQueue.poll()) != null) {
-				final ResponseHandler<BaseResponse> h = handler;
+			MessageBinding binding = null;
+			while((binding = requestQueue.poll()) != null) {
+				final ResponseHandler<BaseResponse> h = binding.getHandler();
 				executor.execute(new Runnable() {
 					
 					@Override

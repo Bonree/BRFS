@@ -36,7 +36,8 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder{
 				return;
 			}
 			
-			decodingMessage = new BaseMessage(token, type);
+			decodingMessage = new BaseMessage(type);
+			decodingMessage.setToken(token);
 			decodingMessage.setBody(new byte[length]);
 		}
 		

@@ -68,7 +68,7 @@ public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResp
 										if (evt instanceof IdleStateEvent) {
 											IdleStateEvent e = (IdleStateEvent) evt;
 											if (e.state() == IdleState.WRITER_IDLE) {
-												ctx.writeAndFlush(new BaseMessage(0, -1));
+												ctx.writeAndFlush(new BaseMessage(-1));
 											}
 										}
 								}
