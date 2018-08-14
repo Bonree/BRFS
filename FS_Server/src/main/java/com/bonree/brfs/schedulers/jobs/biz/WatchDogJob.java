@@ -16,8 +16,8 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
+import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class WatchDogJob extends QuartzOperationStateTask {

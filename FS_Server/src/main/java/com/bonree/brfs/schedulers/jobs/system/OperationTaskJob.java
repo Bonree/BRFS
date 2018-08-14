@@ -13,7 +13,6 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.SystemCheckJob;
 import com.bonree.brfs.schedulers.jobs.biz.SystemDeleteJob;
 import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
@@ -26,6 +25,7 @@ import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
+import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 
 public class OperationTaskJob extends QuartzOperationStateTask {
@@ -157,7 +157,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 	 * @throws JsonException 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId,String clazzName,String path) throws JsonException{
+	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId,String clazzName,String path) throws Exception{
 		QuartzSimpleInfo task = new QuartzSimpleInfo();
 		task.setRunNowFlag(true);
 		task.setCycleFlag(false);

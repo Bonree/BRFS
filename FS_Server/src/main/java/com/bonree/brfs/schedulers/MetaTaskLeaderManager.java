@@ -13,7 +13,6 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
-import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.system.CheckCycleJob;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.jobs.system.CreateSystemTaskJob;
@@ -25,6 +24,7 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzCronInfo;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
+import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

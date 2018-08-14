@@ -1,4 +1,4 @@
-package com.bonree.brfs.schedulers.jobs;
+package com.bonree.brfs.schedulers.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -139,7 +139,7 @@ public class JobDataMapConstract {
 		dataMap.put(CHECK_TTL, resource.getCheckTtl()+"");
 		return dataMap;
 	}
-	public static Map<String, String> createOperationDataMap(String taskName,String serviceId, TaskModel task, TaskRunPattern pattern,String path) throws JsonException{
+	public static Map<String, String> createOperationDataMap(String taskName,String serviceId, TaskModel task, TaskRunPattern pattern,String path) throws Exception{
 		Map<String, String> dataMap = new HashMap<>();
 		dataMap.put(DATA_PATH, path);
 		dataMap.put(TASK_NAME, taskName);
@@ -148,28 +148,43 @@ public class JobDataMapConstract {
 		dataMap.put(TASK_STAT, task.getTaskState() + "");
 		dataMap.put(TASK_OPERATION_ARRAYS, JsonUtils.toJsonStringQuietly(task.getAtomList()));
 		List<AtomTaskModel> atoms = task.getAtomList();
-		int size = atoms == null ? 0 : atoms.size();
-		int count = size / pattern.getRepeateCount();
-		BatchAtomModel batch = null;
-		List<AtomTaskModel> tmp = null;
-		int index = 0;
-		for(int i = 1; i <= count; i+=count){
-			batch = new BatchAtomModel();
-			if(index + count <= size){
-				tmp = atoms.subList(index, index + count);
-			}else if(size > 0){
-				tmp = atoms.subList(index, size - 1);
-			}else{
-				tmp = new ArrayList<AtomTaskModel>();
-			}
-			batch.addAll(tmp);
-			LOG.info("batch start [{}], end:[{}], size: [{}], batch data : [{}]",index, (index+count) >size ? (size - 1): (index+count), tmp.size(),JsonUtils.toJsonStringQuietly(batch));
-			dataMap.put(i +"", JsonUtils.toJsonString(batch));
-			index = index +count;
+		Map<Integer,BatchAtomModel> batchMap = groupAtoms(atoms, pattern.getRepeateCount());
+		for(Map.Entry<Integer, BatchAtomModel> entry : batchMap.entrySet()) {
+			dataMap.put(entry.getKey().toString(), JsonUtils.toJsonStringQuietly(entry.getValue()));
 		}
 		dataMap.put(TASK_REPEAT_RUN_COUNT, pattern.getRepeateCount() + "");
 		dataMap.put(TASK_RUN_INVERAL_TIME, pattern.getSleepTime() + "");
 		return dataMap;
+	}
+	public static Map<Integer,BatchAtomModel> groupAtoms(final List<AtomTaskModel> atoms, int batchCount) throws IllegalArgumentException{
+		Map<Integer,BatchAtomModel> batchMap = new HashMap<Integer,BatchAtomModel>();
+		BatchAtomModel batch = null;
+		int size = atoms == null ? 0 : atoms.size();
+		int batchSize = size%batchCount == 0 ? size/batchCount : size/batchCount + size%batchCount;
+		int fromIndex = 0;
+		int rSize = 0;
+		for(int i = 1; i<=batchCount; i++) {
+			if(!batchMap.containsKey(i)) {
+				batchMap.put(i, new BatchAtomModel());
+			}
+			if(size == 0) {
+				continue;
+			}
+			batch = batchMap.get(i);
+			if(fromIndex > size) {
+				continue;
+			}else if(fromIndex+batchSize <=size) {
+				batch.addAll(atoms.subList(fromIndex, fromIndex +batchSize));
+			}else {
+				batch.addAll(atoms.subList(fromIndex, size));
+			}
+			rSize += batch.getAtoms().size();
+			fromIndex +=batchSize;
+		}
+		if(size !=rSize) {
+			throw new IllegalArgumentException("total batch ["+rSize+"] not equal source ["+size+"], batch count ["+batchCount+"]") ;
+		}
+		return batchMap;
 	}
 	/**
 	 * 概述：重启时，检查

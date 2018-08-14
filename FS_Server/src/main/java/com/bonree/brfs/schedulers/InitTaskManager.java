@@ -28,7 +28,6 @@ import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
-import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
 import com.bonree.brfs.schedulers.jobs.biz.WatchDogJob;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
@@ -46,6 +45,7 @@ import com.bonree.brfs.schedulers.task.meta.impl.QuartzCronInfo;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
+import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class InitTaskManager {

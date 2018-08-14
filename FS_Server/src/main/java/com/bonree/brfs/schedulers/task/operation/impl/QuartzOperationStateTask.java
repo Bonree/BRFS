@@ -17,12 +17,12 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.operation.QuartzOperationStateInterface;
+import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 
 public abstract class QuartzOperationStateTask implements QuartzOperationStateInterface {
 	private static final Logger LOG = LoggerFactory.getLogger(QuartzOperationStateTask.class);

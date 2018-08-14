@@ -13,7 +13,7 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
+import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
@@ -119,6 +119,9 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
 		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
 		AtomTaskResultModel atomR = new AtomTaskResultModel();
+		atomR.setDataStartTime(TimeUtils.formatTimeStamp(startTime, TimeUtils.TIME_MILES_FORMATE));
+		atomR.setDataStopTime(TimeUtils.formatTimeStamp(endTime, TimeUtils.TIME_MILES_FORMATE));
+		atomR.setPartNum(atom.getPatitionNum());
 		atomR.setSn(snName);
 		if(partDirs == null || partDirs.isEmpty()) {
 			atomR.setOperationFileCount(0);

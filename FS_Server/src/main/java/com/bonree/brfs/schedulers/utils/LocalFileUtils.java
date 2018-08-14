@@ -319,6 +319,10 @@ public class LocalFileUtils {
 			if(!sortMap.containsKey(granule)) {
 				sortMap.put(granule, new CopyOnWriteArrayList<Pair<Long,Long>>());
 			}
+			// 过滤重复的
+			if(sortMap.get(granule).contains(dirGra)) {
+				continue;
+			}
 			sortMap.get(granule).add(dirGra);
 		}
 		return sortMap;
@@ -343,7 +347,6 @@ public class LocalFileUtils {
 				}
 			}
 		});
-		System.out.println("granule order :" + arrays);
 		return  arrays.toArray(new Long[0]);
 	}
 }

@@ -57,7 +57,6 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		
 		LOG.info("DELETE data for storage[{}]", storageId);
 		
-//		String path = getPathByStorageNameId(storageId);
 		StorageRegion sn = storageNameManager.findStorageRegionById(storageId);
 		if(sn == null) {
 			result.setSuccess(false);
@@ -105,13 +104,16 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		// 1，时间格式不对
 		if(startTime != (startTime - startTime%granule)
 				|| endTime !=(endTime - endTime%granule)) {
-			return ReturnCode.TIME_GRANULE_ERROR;
+			LOG.warn("starttime and endTime granule is not match !!! startTime: [{}], endTime:[{}], granue:[{}]",startTimeStr,endTimeStr,granule);
+//			return ReturnCode.TIME_GRANULE_ERROR;
 		}
 		long currentTime = System.currentTimeMillis();
 		long cuGra = currentTime - currentTime%granule;
 		long sGra = startTime - startTime%granule;
 		long eGra = endTime - endTime%granule;
 		long cGra = cTime - cTime%granule;
+		sGra = startTime;
+		eGra = endTime;
 		// 2.开始时间等于结束世界
 		if(sGra >= eGra) {
 			return ReturnCode.PARAMETER_ERROR;

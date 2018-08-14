@@ -21,7 +21,6 @@ import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -236,7 +235,6 @@ public class TaskStateLifeContral {
 				changeTask.addAtom(rAtom);
 			}
 		}
-		LOG.info("task [ {} ]", JsonUtils.toJsonStringQuietly(changeTask));
 		return changeTask;
 	}
 	public static List<String> getNeedDirs(String dataPath, String snName, long startTime, long endTime){

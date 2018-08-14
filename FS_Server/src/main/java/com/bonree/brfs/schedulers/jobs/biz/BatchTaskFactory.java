@@ -7,10 +7,10 @@ import java.util.Map;
 
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.schedulers.jobs.JobDataMapConstract;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
+import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 
 public class BatchTaskFactory {
 	/**
