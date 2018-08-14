@@ -15,6 +15,8 @@ public class Service {
 	private String host;
 	//服务进程的开放端口
 	private int port;
+	//服务进程的附属端口
+	private int extraPort;
 	//注册时间
 	private long registerTime;
 	
@@ -67,6 +69,14 @@ public class Service {
 		this.port = port;
 	}
 	
+	public int getExtraPort() {
+		return extraPort;
+	}
+
+	public void setExtraPort(int extraPort) {
+		this.extraPort = extraPort;
+	}
+	
 	public long getRegisterTime() {
 		return registerTime;
 	}
@@ -108,6 +118,7 @@ public class Service {
 		.append(",group=").append(serviceGroup)
 		.append(",host=").append(host)
 		.append(",port=").append(port)
+		.append("extraport=").append(extraPort)
 		.append("]");
 		
 		return builder.toString();

@@ -19,6 +19,7 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
+import com.bonree.brfs.disknode.boot.DataNodeBootStrap;
 import com.bonree.brfs.disknode.boot.EmptyMain;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -84,10 +85,15 @@ public class ServerMain {
             finalizer.add(sm);
 
             // 磁盘管理模块
-            EmptyMain diskMain = new EmptyMain(sm);
-            diskMain.start();
+//            EmptyMain diskMain = new EmptyMain(sm);
+//            diskMain.start();
+//            
+//            finalizer.add(diskMain);
             
-            finalizer.add(diskMain);
+            DataNodeBootStrap dataNodeBootStrap = new DataNodeBootStrap(sm);
+            dataNodeBootStrap.start();
+            
+            finalizer.add(dataNodeBootStrap);
 
             // 副本平衡模块
             sm.addServiceStateListener(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
@@ -99,9 +105,11 @@ public class ServerMain {
             
             String host = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST);
     		int port = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT);
+    		int readPort = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_PORT);
             Service selfService = new Service();
             selfService.setHost(host);
             selfService.setPort(port);
+            selfService.setExtraPort(readPort);
             selfService.setServiceGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
             String serviceId = idManager.getFirstServerID();
             selfService.setServiceId(serviceId);

@@ -38,7 +38,7 @@ public class NettyHttpRequestHandler {
 	}
 
 	public void requestReceived(ChannelHandlerContext ctx, FullHttpRequest request) {
-		LOG.debug("handle request[{}:{}]", request.method(), request.uri());
+		LOG.debug("ctx{}, handle request[{}:{}]", ctx.channel(), request.method(), request.uri());
 		
 		MessageHandler handler = methodToOps.get(request.method());
 		if(handler == null) {

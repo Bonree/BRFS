@@ -61,6 +61,9 @@ datanode.service.host = localhost
 # 磁盘节点的服务端口
 datanode.service.port = 8881
 
+# 磁盘节点中文件读取端口
+datanode.file.server.port = 8900
+
 # 磁盘节点保存数据文件的目录路径
 datanode.data.root = /data
 

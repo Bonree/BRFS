@@ -1,4 +1,4 @@
-package com.bonree.brfs.disknode.server.handler;
+package com.bonree.brfs.disknode.server.tcp.handler;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,10 +7,12 @@ import java.nio.MappedByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.net.http.HandleResult;
-import com.bonree.brfs.common.net.http.HandleResultCallback;
-import com.bonree.brfs.common.net.http.HttpMessage;
-import com.bonree.brfs.common.net.http.MessageHandler;
+import com.bonree.brfs.common.net.tcp.BaseMessage;
+import com.bonree.brfs.common.net.tcp.BaseResponse;
+import com.bonree.brfs.common.net.tcp.HandleCallback;
+import com.bonree.brfs.common.net.tcp.MessageHandler;
+import com.bonree.brfs.common.net.tcp.ResponseCode;
+import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.disknode.DiskContext;
@@ -25,43 +27,49 @@ import com.google.common.io.Files;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Longs;
 
-public class CloseMessageHandler implements MessageHandler {
-	private static final Logger LOG = LoggerFactory.getLogger(CloseMessageHandler.class);
+public class CloseFileMessageHandler implements MessageHandler {
+	private static final Logger LOG = LoggerFactory.getLogger(CloseFileMessageHandler.class);
 	
 	private DiskContext diskContext;
 	private FileWriterManager writerManager;
 	private FileFormater fileFormater;
 
-	public CloseMessageHandler(DiskContext context, FileWriterManager nodeManager, FileFormater fileFormater) {
+	public CloseFileMessageHandler(DiskContext context, FileWriterManager nodeManager, FileFormater fileFormater) {
 		this.diskContext = context;
 		this.writerManager = nodeManager;
 		this.fileFormater = fileFormater;
 	}
 
 	@Override
-	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		HandleResult result = new HandleResult();
+	public void handleMessage(BaseMessage baseMessage, HandleCallback callback) {
+		String path = BrStringUtils.fromUtf8Bytes(baseMessage.getBody());
+		if(path == null) {
+			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR_PROTOCOL));
+			return;
+		}
+		
 		String filePath = null;
 		try {
-			filePath = diskContext.getConcreteFilePath(msg.getPath());
+			filePath = diskContext.getConcreteFilePath(path);
 			LOG.info("CLOSE file[{}]", filePath);
 			
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
 			if(binding == null) {
 				LOG.info("no writer is found for file[{}], treat it as OK!", filePath);
+				
 				File dataFile = new File(filePath);
 				if(!dataFile.exists()) {
-					result.setData(Longs.toByteArray(0));
-					result.setSuccess(true);
+					callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
 					return;
 				}
 				
 				MappedByteBuffer buffer = Files.map(dataFile);
 				buffer.position(fileFormater.fileHeader().length());
 				buffer.limit(filePath.length() - fileFormater.fileTailer().length());
-				result.setData(Longs.toByteArray(ByteUtils.cyc(buffer)));
-				result.setSuccess(true);
+				BaseResponse response = new BaseResponse(baseMessage.getToken(), ResponseCode.OK);
+				response.setBody(Longs.toByteArray(ByteUtils.cyc(buffer)));
 				BufferUtils.release(buffer);
+				callback.complete(response);
 				return;
 			}
 			
@@ -79,19 +87,13 @@ public class CloseMessageHandler implements MessageHandler {
 			LOG.info("close over for file[{}]", filePath);
 			writerManager.close(filePath);
 			
-			result.setData(Longs.toByteArray(crcCode));
-			result.setSuccess(true);
+			BaseResponse response = new BaseResponse(baseMessage.getToken(), ResponseCode.OK);
+			response.setBody(Longs.toByteArray(crcCode));
+			callback.complete(response);
 		} catch (IOException e) {
-			result.setSuccess(false);
-			LOG.error("close file[{}] error!", filePath, e);
-		} finally {
-			callback.completed(result);
+			LOG.error("close file[{}] error!", filePath);
+			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
 		}
-	}
-
-	@Override
-	public boolean isValidRequest(HttpMessage message) {
-		return !message.getPath().isEmpty();
 	}
 
 }

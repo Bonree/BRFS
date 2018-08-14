@@ -3,7 +3,6 @@ package com.bonree.brfs.common.net.http.netty;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -21,8 +20,6 @@ import com.bonree.brfs.common.process.LifeCycle;
  *
  */
 public class NettyHttpServer implements LifeCycle {
-	private ChannelFuture channelFuture;
-	
 	private NettyChannelInitializer handlerInitializer;
 	
 	private EventLoopGroup bossGroup;
@@ -52,19 +49,13 @@ public class NettyHttpServer implements LifeCycle {
 		
 		InetSocketAddress address = (httpConfig.getHost() == null ?
 				new InetSocketAddress(httpConfig.getPort()) : new InetSocketAddress(httpConfig.getHost(), httpConfig.getPort()));
-		channelFuture = serverBootstrap.bind(address).sync();
+		serverBootstrap.bind(address).sync();
 	}
 
 	@Override
 	public void stop() {
-		try {
-			channelFuture.channel().close().sync();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} finally {
-			workerGroup.shutdownGracefully();
-			bossGroup.shutdownGracefully();
-		}
+		workerGroup.shutdownGracefully();
+		bossGroup.shutdownGracefully();
 	}
 	
 	public void addHttpAuthenticator(HttpAuthenticator authenticator) {

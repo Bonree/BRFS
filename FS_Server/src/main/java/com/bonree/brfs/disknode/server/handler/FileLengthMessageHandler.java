@@ -1,6 +1,7 @@
 package com.bonree.brfs.disknode.server.handler;
 
 import java.io.File;
+import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +28,7 @@ import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.utils.Pair;
 import com.google.common.base.Splitter;
+import com.google.common.io.Files;
 import com.google.common.primitives.Longs;
 
 public class FileLengthMessageHandler implements MessageHandler {
@@ -95,40 +97,39 @@ public class FileLengthMessageHandler implements MessageHandler {
 	
 	private List<RecordElement> getRecordElements(String filePath) {
 		List<RecordElement> recordInfo = null;
-		Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
-		if(binding != null) {
-			RecordElementReader recordReader = null;
-			try {
-				binding.first().flush();
-				writerManager.adjustFileWriter(filePath);
-				
-				RecordCollection recordSet = binding.first().getRecordCollection();
-				
-				recordReader = recordSet.getRecordElementReader();
-				
-				recordInfo = new ArrayList<RecordElement>();
-				for(RecordElement element : recordReader) {
-					recordInfo.add(element);
-				}
-			} catch (Exception e) {
-				LOG.error("getSequnceNumbers from file[{}] error", filePath, e);
-			} finally {
-				CloseUtils.closeQuietly(recordReader);
-			}
-		} else {
-			//到这有两种情况：
-			//1、文件打开操作未成功后进行同步；
-			//2、文件关闭操作未成功进行再次关闭;
-			recordInfo = new ArrayList<RecordElement>();
-			File dataFile = new File(filePath);
-			if(dataFile.exists()) {
-				//到这的唯一机会是，多副本文件关闭时只有部分关闭成功，当磁盘节点恢复正常
-				//后，需要再次进行同步流程让所有副本文件关闭，因为没有日志文件，所以只能
-				//通过解析数据文件生成序列号列表
-				byte[] bytes = DataFileReader.readFile(dataFile, 0);
-				if(bytes[0] == 0xAC && bytes[1] == 0) {
-					recordInfo.add(new RecordElement(0, 2, 0));
+		try {
+			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
+			if(binding != null) {
+				RecordElementReader recordReader = null;
+				try {
+					binding.first().flush();
+					writerManager.adjustFileWriter(filePath);
 					
+					RecordCollection recordSet = binding.first().getRecordCollection();
+					
+					recordReader = recordSet.getRecordElementReader();
+					
+					recordInfo = new ArrayList<RecordElement>();
+					for(RecordElement element : recordReader) {
+						recordInfo.add(element);
+					}
+				} catch (Exception e) {
+					LOG.error("getSequnceNumbers from file[{}] error", filePath, e);
+				} finally {
+					CloseUtils.closeQuietly(recordReader);
+				}
+			} else {
+				//到这有两种情况：
+				//1、文件打开操作未成功后进行同步；
+				//2、文件关闭操作未成功进行再次关闭;
+				recordInfo = new ArrayList<RecordElement>();
+				File dataFile = new File(filePath);
+				if(dataFile.exists()) {
+					//到这的唯一机会是，多副本文件关闭时只有部分关闭成功，当磁盘节点恢复正常
+					//后，需要再次进行同步流程让所有副本文件关闭，因为没有日志文件，所以只能
+					//通过解析数据文件生成序列号列表
+					byte[] bytes = DataFileReader.readFile(dataFile, fileFormater.fileHeader().length(),
+							(int) (dataFile.length() - fileFormater.fileTailer().length()));
 					List<String> offsetInfos = FileDecoder.getOffsets(bytes);
 					for(String info : offsetInfos) {
 						List<String> parts = Splitter.on('|').splitToList(info);
@@ -138,6 +139,8 @@ public class FileLengthMessageHandler implements MessageHandler {
 					}
 				}
 			}
+		} catch (Exception e) {
+			LOG.error("get record element error", e);
 		}
 		
 		return recordInfo;

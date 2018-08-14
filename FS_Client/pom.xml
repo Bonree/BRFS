@@ -15,10 +15,6 @@
 			<version>0.0.1-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
-					<groupId>io.netty</groupId>
-					<artifactId>netty-all</artifactId>
-				</exclusion>
-				<exclusion>
 					<groupId>org.quartz-scheduler</groupId>
 					<artifactId>quartz</artifactId>
 				</exclusion>

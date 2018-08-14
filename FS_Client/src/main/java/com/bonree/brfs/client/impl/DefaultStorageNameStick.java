@@ -1,5 +1,6 @@
 package com.bonree.brfs.client.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
@@ -8,6 +9,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.joda.time.DateTime;
@@ -24,11 +28,17 @@ import com.bonree.brfs.common.exception.BRFSException;
 import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
+import com.bonree.brfs.common.net.tcp.client.ResponseHandler;
+import com.bonree.brfs.common.net.tcp.client.TcpClient;
+import com.bonree.brfs.common.net.tcp.file.ReadObject;
+import com.bonree.brfs.common.net.tcp.file.client.AsyncFileReaderGroup;
+import com.bonree.brfs.common.net.tcp.file.client.FileContentPart;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.write.data.FidDecoder;
@@ -48,6 +58,10 @@ public class DefaultStorageNameStick implements StorageNameStick {
     
     private FileSystemConfig config;
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
+    
+    private AsyncFileReaderGroup clientGroup;
+    private ExecutorService executor = Executors.newFixedThreadPool(4);
+    private ConnectionPool connectionPool;
 
     public DefaultStorageNameStick(String storageName, int storageId,
     		HttpClient client, DiskServiceSelectorCache selector,
@@ -61,6 +75,9 @@ public class DefaultStorageNameStick implements StorageNameStick {
         this.config = config;
         this.defaultHeaders.put("username", config.getName());
         this.defaultHeaders.put("password", config.getPasswd());
+        
+        this.clientGroup = new AsyncFileReaderGroup(Runtime.getRuntime().availableProcessors());
+        this.connectionPool = new ConnectionPool(clientGroup, executor);
     }
 
     @Override
@@ -137,37 +154,84 @@ public class DefaultStorageNameStick implements StorageNameStick {
             // 最大尝试副本数个server
             for (int i = 0; i < parts.size() - 1; i++) {
                 ServiceMetaInfo serviceMetaInfo = selector.readerService(Joiner.on('_').join(parts), excludePot);
+                if(serviceMetaInfo == null) {
+                	continue;
+                }
+                
                 Service service = serviceMetaInfo.getFirstServer();
                 LOG.info("read service[{}]", service);
                 if (service == null) {
                     throw new BRFSException("none disknode!!!");
                 }
-                URI uri = new URIBuilder().setScheme(config.getUrlSchema())
-                		.setHost(service.getHost()).setPort(service.getPort())
-                		.setPath(config.getDiskUrlRoot() + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot()))
-                		.addParameter("offset", String.valueOf(fidObj.getOffset()))
-                		.addParameter("size", String.valueOf(fidObj.getSize())).build();
+                
+                TcpClient<ReadObject, FileContentPart> fileReader = connectionPool.getConnection(service);
+//                URI uri = new URIBuilder().setScheme(config.getUrlSchema())
+//                		.setHost(service.getHost()).setPort(service.getPort())
+//                		.setPath(config.getDiskUrlRoot() + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot()))
+//                		.addParameter("offset", String.valueOf(fidObj.getOffset()))
+//                		.addParameter("size", String.valueOf(fidObj.getSize())).build();
                 
                 try {
-                	LOG.info("read url:" + uri);
-					final HttpResponse response = client.executeGet(uri, defaultHeaders);
+//                	LOG.info("read url:" + uri);
+//					final HttpResponse response = client.executeGet(uri, defaultHeaders);
+                	ReadObject readObject = new ReadObject();
+                	readObject.setFilePath(FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot()));
+                	readObject.setOffset(fidObj.getOffset());
+                	readObject.setLength((int) fidObj.getSize());
+                	
+                	CompletableFuture<byte[]> future = new CompletableFuture<byte[]>();
+                	fileReader.sendMessage(readObject, new ResponseHandler<FileContentPart>() {
+                		ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
+						
+						@Override
+						public void handle(FileContentPart response) {
+							System.out.println("read -->>>>" + response.content().length);
+							try {
+								byteOutput.write(response.content());
+							} catch (IOException e) {
+								future.completeExceptionally(e);
+								return;
+							}
+							
+							if(response.endOfContent()) {
+								future.complete(byteOutput.toByteArray());
+							}
+							
+							
+						}
+						
+						@Override
+						public void error() {
+							System.out.println("READ ERROR");
+							future.completeExceptionally(new Exception());
+						}
+					});
 					
-					if (response != null && response.isReponseOK()) {
-						FileContent content = FileDecoder.contents(response.getResponseBody());
-	                    return new InputItem() {
+                	byte[] bytes = future.get();
+                	FileContent content = FileDecoder.contents(bytes);
+                    return new InputItem() {
 
-	                        @Override
-	                        public byte[] getBytes() {
-	                        	return content.getData().toByteArray();
-	                        }
-	                    };
-	                }
+                        @Override
+                        public byte[] getBytes() {
+                        	return content.getData().toByteArray();
+                        }
+                    };
+                	
+//					if (response != null && response.isReponseOK()) {
+//						FileContent content = FileDecoder.contents(response.getResponseBody());
+//	                    return new InputItem() {
+//
+//	                        @Override
+//	                        public byte[] getBytes() {
+//	                        	return content.getData().toByteArray();
+//	                        }
+//	                    };
+//	                }
 				} catch (Exception e) {
+					// 使用选择的server没有读取到数据，需要进行排除
+	                excludePot.add(serviceMetaInfo.getReplicatPot());
 					continue;
 				}
-                
-                // 使用选择的server没有读取到数据，需要进行排除
-                excludePot.add(serviceMetaInfo.getReplicatPot());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -195,6 +259,8 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
     @Override
     public void close() throws IOException {
+    	CloseUtils.closeQuietly(clientGroup);
+    	executor.shutdown();
     }
 
     @Override

@@ -22,6 +22,7 @@ import com.bonree.brfs.common.net.http.HttpConfig;
 import com.bonree.brfs.common.net.http.netty.HttpAuthenticator;
 import com.bonree.brfs.common.net.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.net.http.netty.NettyHttpServer;
+import com.bonree.brfs.common.net.tcp.client.AsyncTcpClientGroup;
 import com.bonree.brfs.common.process.ProcessFinalizer;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -37,6 +38,7 @@ import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.connection.http.HttpDiskNodeConnectionPool;
+import com.bonree.brfs.duplication.datastream.connection.tcp.TcpDiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.BlockingQueueDataPoolFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DataPoolFactory;
@@ -127,9 +129,21 @@ public class BootStrap {
             
             finalizer.add(storageNameManager);
             
-            HttpDiskNodeConnectionPool connectionPool = new HttpDiskNodeConnectionPool(serviceManager);
-            finalizer.add(connectionPool);
-
+//            HttpDiskNodeConnectionPool connectionPool = new HttpDiskNodeConnectionPool(serviceManager);
+//            finalizer.add(connectionPool);
+            
+            AsyncTcpClientGroup tcpClientGroup = new AsyncTcpClientGroup(4);
+            ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup, executor);
+            finalizer.add(new Closeable() {
+				
+				@Override
+				public void close() throws IOException {
+					executor.shutdown();
+				}
+			});
+            finalizer.add(tcpClientGroup);
+            
             FilePathMaker pathMaker = new IDFilePathMaker(idManager);
 
 //            DuplicateNodeSelector nodeSelector = new MinimalDuplicateNodeSelector(serviceManager, connectionPool);
