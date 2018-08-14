@@ -53,25 +53,27 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 		Preconditions.checkNotNull(msg);
 		Preconditions.checkNotNull(handler);
 		
-		requestQueue.put(handler);
-		channel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
-			
-			@Override
-			public void operationComplete(ChannelFuture future) throws Exception {
-				if(!future.isSuccess()) {
-					requestQueue.remove(handler);
-					executor.execute(new Runnable() {
+		synchronized (requestQueue) {
+			requestQueue.put(handler);
+			channel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
+				
+				@Override
+				public void operationComplete(ChannelFuture future) throws Exception {
+					if(!future.isSuccess()) {
+						requestQueue.remove(handler);
+						executor.execute(new Runnable() {
+							
+							@Override
+							public void run() {
+								handler.error();
+							}
+						});
 						
-						@Override
-						public void run() {
-							handler.error();
-						}
-					});
-					
-					channel.close();
+						channel.close();
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 	
 	void handleResponse(BaseResponse response) {
