@@ -201,9 +201,9 @@ public class DefaultStorageNameStick implements StorageNameStick {
 						}
 						
 						@Override
-						public void error() {
+						public void error(Throwable e) {
 							System.out.println("READ ERROR");
-							future.completeExceptionally(new Exception());
+							future.completeExceptionally(e);
 						}
 					});
 					

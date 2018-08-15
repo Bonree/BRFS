@@ -118,7 +118,7 @@ public class Service {
 		.append(",group=").append(serviceGroup)
 		.append(",host=").append(host)
 		.append(",port=").append(port)
-		.append("extraport=").append(extraPort)
+		.append(",extraport=").append(extraPort)
 		.append("]");
 		
 		return builder.toString();

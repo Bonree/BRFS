@@ -54,8 +54,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			
@@ -89,8 +89,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			
@@ -120,8 +120,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			
@@ -158,8 +158,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			
@@ -218,8 +218,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			
@@ -252,8 +252,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			
@@ -295,8 +295,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			
@@ -331,8 +331,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			
@@ -373,8 +373,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			
@@ -404,8 +404,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			
@@ -442,8 +442,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 				}
 				
 				@Override
-				public void error() {
-					future.completeExceptionally(new Exception());
+				public void error(Throwable e) {
+					future.completeExceptionally(e);
 				}
 			});
 			

@@ -68,7 +68,7 @@ public class AsyncFileReader implements TcpClient<ReadObject, FileContentPart> {
 						
 						@Override
 						public void run() {
-							processor.error();
+							processor.error(new Exception("send read object[" + object + "] failed."));
 						}
 					});
 					
@@ -99,7 +99,7 @@ public class AsyncFileReader implements TcpClient<ReadObject, FileContentPart> {
 			@Override
 			public void run() {
 				if(content.content() == null) {
-					handler.error();
+					handler.error(new Exception("no content is find!"));
 					return;
 				}
 				
@@ -144,7 +144,7 @@ public class AsyncFileReader implements TcpClient<ReadObject, FileContentPart> {
 					
 					@Override
 					public void run() {
-						h.error();
+						h.error(new Exception("channel is closed!"));
 					}
 				});
 			}

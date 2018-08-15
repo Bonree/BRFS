@@ -72,11 +72,13 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 							
 							@Override
 							public void run() {
-								handler.error();
+								handler.error(new Exception("send message of type[" + msg.getType() + "] error"));
 							}
 						});
 						
 						channel.close();
+					} else {
+						LOG.info("send base message[{}, {}]", msg.getToken(), msg.getType());
 					}
 				}
 			});
@@ -139,7 +141,7 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 					
 					@Override
 					public void run() {
-						h.error();
+						h.error(new Exception("channel is closed!"));
 					}
 				});
 			}
