@@ -37,7 +37,6 @@ import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
-import com.bonree.brfs.duplication.datastream.connection.http.HttpDiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.connection.tcp.TcpDiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.BlockingQueueDataPoolFactory;

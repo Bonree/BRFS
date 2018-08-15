@@ -6,8 +6,8 @@ import io.netty.channel.ChannelFutureListener;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -24,12 +24,13 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 	
 	private Executor executor;
 	private AtomicInteger tokenMaker = new AtomicInteger(0);
-	private LinkedBlockingQueue<MessageBinding> requestQueue = new LinkedBlockingQueue<MessageBinding>();
+	private ConcurrentHashMap<Integer, ResponseHandler<BaseResponse>> handlers;
 	
 	private TcpClientCloseListener listener;
 	
 	AsyncTcpClient(Executor executor) {
 		this.executor = executor;
+		this.handlers = new ConcurrentHashMap<>();
 	}
 	
 	void attach(Channel channel) {
@@ -60,47 +61,41 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 		Preconditions.checkNotNull(handler);
 		
 		msg.setToken(token());
-		synchronized (requestQueue) {
-			requestQueue.put(new MessageBinding(msg, handler));
-			channel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
-				
-				@Override
-				public void operationComplete(ChannelFuture future) throws Exception {
-					if(!future.isSuccess()) {
-						requestQueue.remove(handler);
-						executor.execute(new Runnable() {
-							
-							@Override
-							public void run() {
-								handler.error(new Exception("send message of type[" + msg.getType() + "] error"));
-							}
-						});
+		handlers.put(msg.getToken(), handler);
+		channel.writeAndFlush(msg).addListener(new ChannelFutureListener() {
+			
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				if(!future.isSuccess()) {
+					handlers.remove(msg.getToken());
+					executor.execute(new Runnable() {
 						
-						channel.close();
-					} else {
-						LOG.info("send base message[{}, {}]", msg.getToken(), msg.getType());
-					}
+						@Override
+						public void run() {
+							handler.error(new Exception("send message of type[" + msg.getType() + "] error"));
+						}
+					});
+					
+					channel.close();
+				} else {
+					LOG.info("send base message[{}, {}]", msg.getToken(), msg.getType());
 				}
-			});
-		}
+			}
+		});
 	}
 	
 	void handleResponse(BaseResponse response) {
-		MessageBinding binding = requestQueue.poll();
-		if(binding == null) {
+		ResponseHandler<BaseResponse> handler = handlers.get(response.getToken());
+		if(handler == null) {
 			LOG.error("no handler is found for response[{}]", response.getToken());
 			return;
-		}
-		
-		if(binding.getMessage().getToken() != response.getToken()) {
-			LOG.error("base message token[{}] is different from response token[{}]", binding.getMessage().getToken(), response.getToken());
 		}
 		
 		executor.execute(new Runnable() {
 			
 			@Override
 			public void run() {
-				binding.getHandler().handle(response);
+				handler.handle(response);
 			}
 		});
 	}
@@ -134,14 +129,12 @@ public class AsyncTcpClient implements TcpClient<BaseMessage, BaseResponse> {
 				});
 			}
 			
-			MessageBinding binding = null;
-			while((binding = requestQueue.poll()) != null) {
-				final ResponseHandler<BaseResponse> h = binding.getHandler();
+			for(ResponseHandler<BaseResponse> handler : handlers.values()) {
 				executor.execute(new Runnable() {
 					
 					@Override
 					public void run() {
-						h.error(new Exception("channel is closed!"));
+						handler.error(new Exception("channel is closed!"));
 					}
 				});
 			}
