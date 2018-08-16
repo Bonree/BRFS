@@ -9,15 +9,15 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
-import com.bonree.brfs.common.net.tcp.HandleCallback;
 import com.bonree.brfs.common.net.tcp.MessageHandler;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
+import com.bonree.brfs.common.net.tcp.ResponseWriter;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.server.tcp.handler.data.DeleteFileMessage;
 
-public class DeleteFileMessageHandler implements MessageHandler {
+public class DeleteFileMessageHandler implements MessageHandler<BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(DeleteFileMessageHandler.class);
 	
 	private DiskContext diskContext;
@@ -29,10 +29,10 @@ public class DeleteFileMessageHandler implements MessageHandler {
 	}
 
 	@Override
-	public void handleMessage(BaseMessage baseMessage, HandleCallback callback) {
+	public void handleMessage(BaseMessage baseMessage, ResponseWriter<BaseResponse> writer) {
 		DeleteFileMessage message = ProtoStuffUtils.deserialize(baseMessage.getBody(), DeleteFileMessage.class);
 		if(message == null) {
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR_PROTOCOL));
+			writer.write(new BaseResponse(ResponseCode.ERROR_PROTOCOL));
 			return;
 		}
 		
@@ -45,23 +45,23 @@ public class DeleteFileMessageHandler implements MessageHandler {
 				try {
 					closeFile(targetFile, message.isForce());
 					
-					callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.OK));
+					writer.write(new BaseResponse(ResponseCode.OK));
 				} catch (Exception e) {
-					callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+					writer.write(new BaseResponse(ResponseCode.ERROR));
 					return;
 				}
 			} else {
 				try {
 					closeDir(targetFile, message.isRecursive(), message.isForce());
-					callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.OK));
+					writer.write(new BaseResponse(ResponseCode.OK));
 				} catch (Exception e) {
-					callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+					writer.write(new BaseResponse(ResponseCode.ERROR));
 					return;
 				}
 			}
 		} catch(Exception e) {
 			LOG.error("delete message error", e);
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+			writer.write(new BaseResponse(ResponseCode.ERROR));
 		}
 	}
 	

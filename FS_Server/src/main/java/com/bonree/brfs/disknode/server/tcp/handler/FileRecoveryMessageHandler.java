@@ -1,5 +1,6 @@
 package com.bonree.brfs.disknode.server.tcp.handler;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
@@ -9,9 +10,9 @@ import com.bonree.brfs.common.filesync.FileObjectSyncState;
 import com.bonree.brfs.common.filesync.SyncStateCodec;
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
-import com.bonree.brfs.common.net.tcp.HandleCallback;
 import com.bonree.brfs.common.net.tcp.MessageHandler;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
+import com.bonree.brfs.common.net.tcp.ResponseWriter;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -27,7 +28,7 @@ import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.server.tcp.handler.data.FileRecoveryMessage;
 import com.bonree.brfs.disknode.utils.Pair;
 
-public class FileRecoveryMessageHandler implements MessageHandler {
+public class FileRecoveryMessageHandler implements MessageHandler<BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(FileRecoveryMessageHandler.class);
 	
 	private DiskContext context;
@@ -35,29 +36,25 @@ public class FileRecoveryMessageHandler implements MessageHandler {
 	private FileWriterManager writerManager;
 	private FileFormater fileFormater;
 	
-	private ExecutorService threadPool;
-	
 	public FileRecoveryMessageHandler(DiskContext context,
 			ServiceManager serviceManager,
 			FileWriterManager writerManager,
-			FileFormater fileFormater,
-			ExecutorService threadPool) {
+			FileFormater fileFormater) {
 		this.context = context;
 		this.serviceManager = serviceManager;
 		this.writerManager = writerManager;
 		this.fileFormater = fileFormater;
-		this.threadPool = threadPool;
 	}
 
 	@Override
-	public void handleMessage(BaseMessage baseMessage, HandleCallback callback) {
+	public void handleMessage(BaseMessage baseMessage, ResponseWriter<BaseResponse> writer) {
 		FileRecoveryMessage message = ProtoStuffUtils.deserialize(baseMessage.getBody(), FileRecoveryMessage.class);
 		if(message == null) {
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR_PROTOCOL));
+			writer.write(new BaseResponse(ResponseCode.ERROR_PROTOCOL));
 			return;
 		}
 		
-		threadPool.submit(new Runnable() {
+		CompletableFuture.runAsync(new Runnable() {
 			
 			@Override
 			public void run() {
@@ -68,7 +65,7 @@ public class FileRecoveryMessageHandler implements MessageHandler {
 					
 					Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
 					if(binding == null) {
-						callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+						writer.write(new BaseResponse(ResponseCode.ERROR));
 						return;
 					}
 					
@@ -101,7 +98,7 @@ public class FileRecoveryMessageHandler implements MessageHandler {
 					}
 					
 					if(bytes == null) {
-						callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+						writer.write(new BaseResponse(ResponseCode.ERROR));
 						return;
 					}
 					
@@ -118,10 +115,10 @@ public class FileRecoveryMessageHandler implements MessageHandler {
 						LOG.error("perhaps datas that being recoverd is not correct! get [{}], but recoverd[{}]", bytes.length, offset);
 					}
 					
-					callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.OK));
+					writer.write(new BaseResponse(ResponseCode.OK));
 				} catch (Exception e) {
 					LOG.error("recover file[{}] error", filePath, e);
-					callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+					writer.write(new BaseResponse(ResponseCode.ERROR));
 				}
 			}
 		});

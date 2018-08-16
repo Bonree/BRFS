@@ -185,7 +185,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
 						
 						@Override
 						public void handle(FileContentPart response) {
-							System.out.println("read -->>>>" + response.content().length);
 							try {
 								byteOutput.write(response.content());
 							} catch (IOException e) {

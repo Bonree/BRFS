@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
-import com.bonree.brfs.common.net.tcp.HandleCallback;
 import com.bonree.brfs.common.net.tcp.MessageHandler;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
+import com.bonree.brfs.common.net.tcp.ResponseWriter;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.client.WriteResult;
@@ -23,7 +23,7 @@ import com.bonree.brfs.disknode.server.tcp.handler.data.WriteFileData;
 import com.bonree.brfs.disknode.server.tcp.handler.data.WriteFileMessage;
 import com.bonree.brfs.disknode.utils.Pair;
 
-public class WriteFileMessageHandler implements MessageHandler {
+public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(WriteFileMessageHandler.class);
 	
 	private DiskContext diskContext;
@@ -37,10 +37,10 @@ public class WriteFileMessageHandler implements MessageHandler {
 	}
 
 	@Override
-	public void handleMessage(BaseMessage baseMessage, HandleCallback callback) {
+	public void handleMessage(BaseMessage baseMessage, ResponseWriter<BaseResponse> writer) {
 		WriteFileMessage message = ProtoStuffUtils.deserialize(baseMessage.getBody(), WriteFileMessage.class);
 		if(message == null) {
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR_PROTOCOL));
+			writer.write(new BaseResponse(ResponseCode.ERROR_PROTOCOL));
 			return;
 		}
 		
@@ -52,14 +52,14 @@ public class WriteFileMessageHandler implements MessageHandler {
 			if(binding == null) {
 				//运行到这，可能时打开文件时失败，导致写数据节点找不到writer
 				LOG.warn("no file writer is found, maybe the file[{}] is not opened.", realPath);
-				callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+				writer.write(new BaseResponse(ResponseCode.ERROR));
 				return;
 			}
 			
-			binding.second().put(new DataWriteTask(binding, message, baseMessage.getToken(), callback));
+			binding.second().put(new DataWriteTask(binding, message, writer));
 		} catch (Exception e) {
 			LOG.error("EEEERRRRRR", e);
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+			writer.write(new BaseResponse(ResponseCode.ERROR));
 		}
 	}
 
@@ -67,14 +67,13 @@ public class WriteFileMessageHandler implements MessageHandler {
 		private WriteFileMessage message;
 		private WriteResult[] results;
 		private Pair<RecordFileWriter, WriteWorker> binding;
-		private HandleCallback callback;
+		private ResponseWriter<BaseResponse> writer;
 		private int token;
 		
-		public DataWriteTask(Pair<RecordFileWriter, WriteWorker> binding, WriteFileMessage message, int token, HandleCallback callback) {
+		public DataWriteTask(Pair<RecordFileWriter, WriteWorker> binding, WriteFileMessage message, ResponseWriter<BaseResponse> writer) {
 			this.binding = binding;
 			this.message = message;
-			this.callback = callback;
-			this.token = token;
+			this.writer = writer;
 		}
 
 		@Override
@@ -102,30 +101,30 @@ public class WriteFileMessageHandler implements MessageHandler {
 		@Override
 		protected void onPostExecute(WriteResult[] result) {
 			try {
-				BaseResponse response = new BaseResponse(token, ResponseCode.OK);
+				BaseResponse response = new BaseResponse(ResponseCode.OK);
 				WriteResultList resultList = new WriteResultList();
 				resultList.setWriteResults(result);
 				response.setBody(ProtoStuffUtils.serialize(resultList));
 				
-				callback.complete(response);
+				writer.write(response);
 			} catch (IOException e) {
 				LOG.error("onPostExecute error", e);
-				callback.complete(new BaseResponse(token, ResponseCode.ERROR));
+				writer.write(new BaseResponse(ResponseCode.ERROR));
 			}
 		}
 
 		@Override
 		protected void onFailed(Throwable cause) {
 			try {
-				BaseResponse response = new BaseResponse(token, ResponseCode.OK);
+				BaseResponse response = new BaseResponse(ResponseCode.OK);
 				WriteResultList resultList = new WriteResultList();
 				resultList.setWriteResults(results);
 				response.setBody(ProtoStuffUtils.serialize(resultList));
 				
-				callback.complete(response);
+				writer.write(response);
 			} catch (IOException e) {
 				LOG.error("onFailed error", e);
-				callback.complete(new BaseResponse(token, ResponseCode.ERROR));
+				writer.write(new BaseResponse(ResponseCode.ERROR));
 			}
 		}
 		

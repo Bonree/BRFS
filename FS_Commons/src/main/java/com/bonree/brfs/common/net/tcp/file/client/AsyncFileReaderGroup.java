@@ -36,13 +36,14 @@ public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileCont
 		bootstrap.channel(NioSocketChannel.class);
 		bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.connectTimeoutMillis());
 		
-		AsyncFileReader reader = new AsyncFileReader(executor);
+		FileReadClient reader = new FileReadClient(executor);
 		bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
 				ch.pipeline().addLast(new ReadObjectEncoder())
 						.addLast(new ByteToMessageDecoder() {
+							private int token;
 							private int readingLength = 0;
 
 							@Override
@@ -50,21 +51,22 @@ public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileCont
 									ByteBuf in, List<Object> out)
 									throws Exception {
 								if (readingLength == 0) {
-									if (in.readableBytes() < Integer.BYTES) {
+									if (in.readableBytes() < Integer.BYTES * 2) {
 										return;
 									}
 
+									token = in.readInt();
 									readingLength = in.readInt();
-
+									
 									if (readingLength < 0) {
-										reader.handleResponse(new FileContentPart(null, true));
+										reader.handle(token, new FileContentPart(null, true));
 
 										readingLength = 0;
 										return;
 									}
 
 									if (readingLength == 0) {
-										reader.handleResponse(new FileContentPart(new byte[0], true));
+										reader.handle(token, new FileContentPart(new byte[0], true));
 										return;
 									}
 								}
@@ -78,7 +80,7 @@ public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileCont
 								in.readBytes(bytes);
 								readingLength -= readableLength;
 								
-								reader.handleResponse(new FileContentPart(bytes, readingLength == 0));
+								reader.handle(token, new FileContentPart(bytes, readingLength == 0));
 							}
 						});
 			}

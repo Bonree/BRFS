@@ -1,17 +1,11 @@
 package com.bonree.brfs.common.net.tcp;
 
 public class BaseResponse {
-	private final int token;
 	private final int code;
 	private byte[] body;
 	
-	public BaseResponse(int token, int code) {
-		this.token = token;
+	public BaseResponse(int code) {
 		this.code = code;
-	}
-
-	public int getToken() {
-		return token;
 	}
 	
 	public int getCode() {

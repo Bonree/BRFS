@@ -8,45 +8,91 @@ import io.netty.handler.timeout.IdleStateEvent;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Sharable
-public class MessageDispatcher extends SimpleChannelInboundHandler<BaseMessage>{
+public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<BaseMessage>>{
 	private static final Logger LOG = LoggerFactory.getLogger(MessageDispatcher.class);
 	
-	private Map<Integer, MessageHandler> handlers = new HashMap<Integer, MessageHandler>();
+	private Executor executor;
+	private Map<Integer, MessageHandler<BaseResponse>> handlers = new HashMap<Integer, MessageHandler<BaseResponse>>();
 	
-	public void addHandler(int type, MessageHandler handler) {
+	public MessageDispatcher(Executor executor) {
+		this.executor = executor;
+	}
+	
+	public void addHandler(int type, MessageHandler<BaseResponse> handler) {
 		handlers.put(type, handler);
 	}
 
 	@Override
-	protected void channelRead0(ChannelHandlerContext ctx, BaseMessage msg) throws Exception {
-		MessageHandler handler = handlers.get(msg.getType());
+	protected void channelRead0(ChannelHandlerContext ctx, TokenMessage<BaseMessage> msg) throws Exception {
+		BaseMessage baseMessage = msg.message();
+		MessageHandler<BaseResponse> handler = handlers.get(baseMessage.getType());
 		if(handler == null) {
-			LOG.error("unknown type[{}] of message!", msg.getType());
-			ctx.writeAndFlush(new BaseResponse(msg.getToken(), ResponseCode.ERROR));
+			LOG.error("unknown type[{}] of message!", baseMessage.getType());
+			ctx.writeAndFlush(new TokenMessage<BaseResponse>() {
+
+				@Override
+				public int messageToken() {
+					return msg.messageToken();
+				}
+
+				@Override
+				public BaseResponse message() {
+					return new BaseResponse(ResponseCode.ERROR_PROTOCOL);
+				}
+			});
 			return;
 		}
 		
-		LOG.info("handle base message[{}, {}]", msg.getToken(), msg.getType());
+		LOG.info("handle base message[{}, {}]", msg.messageToken(), baseMessage.getType());
 		
-		try {
-			handler.handleMessage(msg, new HandleCallback() {
-				
-				@Override
-				public void complete(BaseResponse response) {
-					ctx.writeAndFlush(response);
-				}
-			});
-		} catch (Exception e) {
-			LOG.error("handle message error", e);
+		executor.execute(new Runnable() {
 			
-			ctx.writeAndFlush(new BaseResponse(msg.getToken(), ResponseCode.ERROR));
-		}
-		
+			@Override
+			public void run() {
+				try {
+					handler.handleMessage(baseMessage, new ResponseWriter<BaseResponse>() {
+
+						@Override
+						public void write(BaseResponse response) {
+							ctx.writeAndFlush(new TokenMessage<BaseResponse>() {
+
+								@Override
+								public int messageToken() {
+									return msg.messageToken();
+								}
+
+								@Override
+								public BaseResponse message() {
+									return response;
+								}
+							});
+						}
+						
+					});
+				} catch (Exception e) {
+					LOG.error("handle message error", e);
+					
+					ctx.writeAndFlush(new TokenMessage<BaseResponse>() {
+
+						@Override
+						public int messageToken() {
+							return msg.messageToken();
+						}
+
+						@Override
+						public BaseResponse message() {
+							return new BaseResponse(ResponseCode.ERROR);
+						}
+					});
+				}
+			}
+		});
 	}
 
 	@Override

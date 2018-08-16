@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
+import com.bonree.brfs.common.net.tcp.TokenMessage;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 
 public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResponse, TcpClientConfig>, Closeable {
@@ -52,13 +53,13 @@ public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResp
 				ch.pipeline().addLast(new IdleStateHandler(0, DEFAULT_WRITE_IDLE_TIMEOUT_SECONDS, 0))
 				             .addLast(new BaseMessageEncoder())
 				             .addLast(new BaseResponseDecoder())
-				             .addLast(new SimpleChannelInboundHandler<BaseResponse>() {
+				             .addLast(new SimpleChannelInboundHandler<TokenMessage<BaseResponse>>() {
 
 								@Override
 								protected void channelRead0(
 										ChannelHandlerContext ctx,
-										BaseResponse msg) throws Exception {
-									client.handleResponse(msg);
+										TokenMessage<BaseResponse> msg) throws Exception {
+									client.handle(msg.messageToken(), msg.message());
 								}
 
 								@Override

@@ -9,16 +9,16 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
-import com.bonree.brfs.common.net.tcp.HandleCallback;
 import com.bonree.brfs.common.net.tcp.MessageHandler;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
+import com.bonree.brfs.common.net.tcp.ResponseWriter;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.disknode.server.tcp.handler.data.ListFileMessage;
 
-public class ListFileMessageHandler implements MessageHandler {
+public class ListFileMessageHandler implements MessageHandler<BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(ListFileMessageHandler.class);
 	
 	private DiskContext context;
@@ -30,10 +30,10 @@ public class ListFileMessageHandler implements MessageHandler {
 	}
 
 	@Override
-	public void handleMessage(BaseMessage baseMessage, HandleCallback callback) {
+	public void handleMessage(BaseMessage baseMessage, ResponseWriter<BaseResponse> writer) {
 		ListFileMessage message = ProtoStuffUtils.deserialize(baseMessage.getBody(), ListFileMessage.class);
 		if(message == null) {
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR_PROTOCOL));
+			writer.write(new BaseResponse(ResponseCode.ERROR_PROTOCOL));
 			return;
 		}
 		
@@ -43,12 +43,12 @@ public class ListFileMessageHandler implements MessageHandler {
 			
 			File dir = new File(dirPath);
 			if(!dir.exists()) {
-				callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+				writer.write(new BaseResponse(ResponseCode.ERROR));
 				return;
 			}
 			
 			if(!dir.isDirectory()) {
-				callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+				writer.write(new BaseResponse(ResponseCode.ERROR));
 				return;
 			}
 			
@@ -61,12 +61,12 @@ public class ListFileMessageHandler implements MessageHandler {
 			ArrayList<FileInfo> fileInfoList = new ArrayList<FileInfo>();
 			traverse(message.getLevel(), fileInfoList);
 			
-			BaseResponse response = new BaseResponse(baseMessage.getToken(), ResponseCode.OK);
+			BaseResponse response = new BaseResponse(ResponseCode.OK);
 			response.setBody(JsonUtils.toJsonBytes(fileInfoList));
-			callback.complete(response);
+			writer.write(response);
 		} catch (Exception e) {
 			LOG.error("list dir[{}] error", dirPath, e);
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+			writer.write(new BaseResponse(ResponseCode.ERROR));
 		}
 	}
 

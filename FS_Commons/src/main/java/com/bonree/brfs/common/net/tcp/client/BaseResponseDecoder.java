@@ -3,13 +3,14 @@ package com.bonree.brfs.common.net.tcp.client;
 import java.util.List;
 
 import com.bonree.brfs.common.net.tcp.BaseResponse;
+import com.bonree.brfs.common.net.tcp.TokenMessage;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
 public class BaseResponseDecoder extends ByteToMessageDecoder {
-	private BaseResponse response;
+	private TokenMessage<BaseResponse> response;
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -18,26 +19,38 @@ public class BaseResponseDecoder extends ByteToMessageDecoder {
 				return;
 			}
 			
-			int token = in.readInt();
-			int code = in.readInt();
-			response = new BaseResponse(token, code);
+			final int token = in.readInt();
+			final int code = in.readInt();
+			final int length = in.readInt();
 			
-			int length = in.readInt();
-			byte[] bytes = new byte[length];
-			response.setBody(bytes);
+			response = new TokenMessage<BaseResponse>() {
+				BaseResponse baseResponse = new BaseResponse(code);
+
+				@Override
+				public int messageToken() {
+					return token;
+				}
+
+				@Override
+				public BaseResponse message() {
+					return baseResponse;
+				}
+			};
 			
 			if(length == 0) {
 				out.add(response);
 				response = null;
 				return;
 			}
+			
+			response.message().setBody(new byte[length]);
 		}
 		
-		if(in.readableBytes() < response.getBody().length) {
+		if(in.readableBytes() < response.message().getBody().length) {
 			return;
 		}
 		
-		in.readBytes(response.getBody());
+		in.readBytes(response.message().getBody());
 		out.add(response);
 		response = null;
 	}

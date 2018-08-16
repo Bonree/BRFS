@@ -6,6 +6,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 
 import com.bonree.brfs.common.net.tcp.MessageChannelInitializer;
 import com.bonree.brfs.common.net.tcp.ServerConfig;
@@ -76,7 +77,7 @@ public class DataNodeBootStrap implements LifeCycle {
 				Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),
 				new PooledThreadFactory("message_handler"));
 		
-		MessageChannelInitializer initializer = new MessageChannelInitializer();
+		MessageChannelInitializer initializer = new MessageChannelInitializer(threadPool);
 		initializer.addMessageHandler(TYPE_OPEN_FILE, new OpenFileMessageHandler(diskContext, writerManager));
 		initializer.addMessageHandler(TYPE_WRITE_FILE, new WriteFileMessageHandler(diskContext, writerManager, fileFormater));
 		initializer.addMessageHandler(TYPE_READ_FILE, new ReadFileMessageHandler(diskContext, fileFormater));
@@ -84,9 +85,9 @@ public class DataNodeBootStrap implements LifeCycle {
 		initializer.addMessageHandler(TYPE_DELETE_FILE, new DeleteFileMessageHandler(diskContext, writerManager));
 		initializer.addMessageHandler(TYPE_PING_PONG, new PingPongMessageHandler());
 		initializer.addMessageHandler(TYPE_FLUSH_FILE, new FlushFileMessageHandler(diskContext, writerManager));
-		initializer.addMessageHandler(TYPE_METADATA, new MetadataFetchMessageHandler(diskContext, writerManager, fileFormater, threadPool));
+		initializer.addMessageHandler(TYPE_METADATA, new MetadataFetchMessageHandler(diskContext, writerManager, fileFormater));
 		initializer.addMessageHandler(TYPE_LIST_FILE, new ListFileMessageHandler(diskContext));
-		initializer.addMessageHandler(TYPE_RECOVER_FILE, new FileRecoveryMessageHandler(diskContext, serviceManager, writerManager, fileFormater, threadPool));
+		initializer.addMessageHandler(TYPE_RECOVER_FILE, new FileRecoveryMessageHandler(diskContext, serviceManager, writerManager, fileFormater));
 		
 		int workerThreadNum = Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_IO_WORKER_NUM,
 				String.valueOf(Runtime.getRuntime().availableProcessors())));
@@ -121,7 +122,7 @@ public class DataNodeBootStrap implements LifeCycle {
 			public String filePath(String path) {
 				return diskContext.getConcreteFilePath(path);
 			}
-		});
+		}, ForkJoinPool.commonPool());
 		fileServer = new TcpServer(config, fileInitializer);
 		fileServer.start();
 	}

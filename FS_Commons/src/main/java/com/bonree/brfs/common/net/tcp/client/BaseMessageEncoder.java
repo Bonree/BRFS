@@ -5,21 +5,24 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 import com.bonree.brfs.common.net.tcp.BaseMessage;
+import com.bonree.brfs.common.net.tcp.TokenMessage;
 
-public class BaseMessageEncoder extends MessageToByteEncoder<BaseMessage> {
+public class BaseMessageEncoder extends MessageToByteEncoder<TokenMessage<BaseMessage>> {
 
 	@Override
-	protected void encode(ChannelHandlerContext ctx, BaseMessage msg, ByteBuf out)
+	protected void encode(ChannelHandlerContext ctx, TokenMessage<BaseMessage> msg, ByteBuf out)
 			throws Exception {
 		out.writeByte((byte) 0xBF);
-		out.writeInt(msg.getToken());
-		out.writeByte(msg.getType());
+		out.writeInt(msg.messageToken());
 		
-		int length = msg.getBody() == null ? 0 : msg.getBody().length;
+		BaseMessage baseMessage = msg.message();
+		out.writeByte(baseMessage.getType());
+		
+		int length = baseMessage.getBody() == null ? 0 : baseMessage.getBody().length;
 		out.writeInt(length);
 		
 		if(length > 0) {
-			out.writeBytes(msg.getBody());
+			out.writeBytes(baseMessage.getBody());
 		}
 	}
 

@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
-import com.bonree.brfs.common.net.tcp.HandleCallback;
 import com.bonree.brfs.common.net.tcp.MessageHandler;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
+import com.bonree.brfs.common.net.tcp.ResponseWriter;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.write.data.FileEncoder;
@@ -27,7 +27,7 @@ import com.google.common.io.Files;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Longs;
 
-public class CloseFileMessageHandler implements MessageHandler {
+public class CloseFileMessageHandler implements MessageHandler<BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(CloseFileMessageHandler.class);
 	
 	private DiskContext diskContext;
@@ -41,10 +41,10 @@ public class CloseFileMessageHandler implements MessageHandler {
 	}
 
 	@Override
-	public void handleMessage(BaseMessage baseMessage, HandleCallback callback) {
+	public void handleMessage(BaseMessage baseMessage, ResponseWriter<BaseResponse> writer) {
 		String path = BrStringUtils.fromUtf8Bytes(baseMessage.getBody());
 		if(path == null) {
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR_PROTOCOL));
+			writer.write(new BaseResponse(ResponseCode.ERROR_PROTOCOL));
 			return;
 		}
 		
@@ -59,17 +59,17 @@ public class CloseFileMessageHandler implements MessageHandler {
 				
 				File dataFile = new File(filePath);
 				if(!dataFile.exists()) {
-					callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+					writer.write(new BaseResponse(ResponseCode.ERROR));
 					return;
 				}
 				
 				MappedByteBuffer buffer = Files.map(dataFile);
 				buffer.position(fileFormater.fileHeader().length());
 				buffer.limit(filePath.length() - fileFormater.fileTailer().length());
-				BaseResponse response = new BaseResponse(baseMessage.getToken(), ResponseCode.OK);
+				BaseResponse response = new BaseResponse(ResponseCode.OK);
 				response.setBody(Longs.toByteArray(ByteUtils.cyc(buffer)));
 				BufferUtils.release(buffer);
-				callback.complete(response);
+				writer.write(response);
 				return;
 			}
 			
@@ -87,12 +87,12 @@ public class CloseFileMessageHandler implements MessageHandler {
 			LOG.info("close over for file[{}]", filePath);
 			writerManager.close(filePath);
 			
-			BaseResponse response = new BaseResponse(baseMessage.getToken(), ResponseCode.OK);
+			BaseResponse response = new BaseResponse(ResponseCode.OK);
 			response.setBody(Longs.toByteArray(crcCode));
-			callback.complete(response);
+			writer.write(response);
 		} catch (IOException e) {
 			LOG.error("close file[{}] error!", filePath);
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+			writer.write(new BaseResponse(ResponseCode.ERROR));
 		}
 	}
 

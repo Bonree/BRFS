@@ -7,14 +7,14 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
-import com.bonree.brfs.common.net.tcp.HandleCallback;
 import com.bonree.brfs.common.net.tcp.MessageHandler;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
+import com.bonree.brfs.common.net.tcp.ResponseWriter;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 
-public class FlushFileMessageHandler implements MessageHandler {
+public class FlushFileMessageHandler implements MessageHandler<BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(FlushFileMessageHandler.class);
 	
 	private DiskContext diskContext;
@@ -26,10 +26,10 @@ public class FlushFileMessageHandler implements MessageHandler {
 	}
 
 	@Override
-	public void handleMessage(BaseMessage baseMessage, HandleCallback callback) {
+	public void handleMessage(BaseMessage baseMessage, ResponseWriter<BaseResponse> writer) {
 		String path = BrStringUtils.fromUtf8Bytes(baseMessage.getBody());
 		if(path == null) {
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR_PROTOCOL));
+			writer.write(new BaseResponse(ResponseCode.ERROR_PROTOCOL));
 			return;
 		}
 		
@@ -39,9 +39,9 @@ public class FlushFileMessageHandler implements MessageHandler {
 			LOG.info("flush file[{}]", filePath);
 			writerManager.flushFile(filePath);
 			
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.OK));
+			writer.write(new BaseResponse(ResponseCode.OK));
 		} catch (FileNotFoundException e) {
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+			writer.write(new BaseResponse(ResponseCode.ERROR));
 		}
 	}
 

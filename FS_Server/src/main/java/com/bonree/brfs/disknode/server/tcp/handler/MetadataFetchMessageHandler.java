@@ -3,6 +3,7 @@ package com.bonree.brfs.disknode.server.tcp.handler;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
@@ -10,9 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
-import com.bonree.brfs.common.net.tcp.HandleCallback;
 import com.bonree.brfs.common.net.tcp.MessageHandler;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
+import com.bonree.brfs.common.net.tcp.ResponseWriter;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.write.data.FileDecoder;
@@ -29,34 +30,31 @@ import com.bonree.brfs.disknode.utils.Pair;
 import com.google.common.base.Splitter;
 import com.google.common.primitives.Longs;
 
-public class MetadataFetchMessageHandler implements MessageHandler {
+public class MetadataFetchMessageHandler implements MessageHandler<BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(MetadataFetchMessageHandler.class);
 	
 	private DiskContext context;
 	private FileWriterManager writerManager;
 	private FileFormater fileFormater;
 	
-	private ExecutorService threadPool;
-	
-	public MetadataFetchMessageHandler(DiskContext context, FileWriterManager writerManager, FileFormater fileFormater, ExecutorService threadPool) {
+	public MetadataFetchMessageHandler(DiskContext context, FileWriterManager writerManager, FileFormater fileFormater) {
 		this.context = context;
 		this.writerManager = writerManager;
 		this.fileFormater = fileFormater;
-		this.threadPool = threadPool;
 	}
 
 	@Override
-	public void handleMessage(BaseMessage baseMessage, HandleCallback callback) {
+	public void handleMessage(BaseMessage baseMessage, ResponseWriter<BaseResponse> writer) {
 		String path = BrStringUtils.fromUtf8Bytes(baseMessage.getBody());
 		if(path == null) {
-			callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR_PROTOCOL));
+			writer.write(new BaseResponse(ResponseCode.ERROR_PROTOCOL));
 			return;
 		}
 		
 		String filePath = context.getConcreteFilePath(path);
 		LOG.info("GET metadata of file[{}]", filePath);
 		
-		threadPool.submit(new Runnable() {
+		CompletableFuture.runAsync(new Runnable() {
 			
 			@Override
 			public void run() {
@@ -64,7 +62,7 @@ public class MetadataFetchMessageHandler implements MessageHandler {
 				
 				if(recordInfo == null) {
 					LOG.info("can not get record elements of file[{}]", filePath);
-					callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+					writer.write(new BaseResponse(ResponseCode.ERROR));
 					return;
 				}
 				
@@ -85,16 +83,16 @@ public class MetadataFetchMessageHandler implements MessageHandler {
 				
 				if(lastElement == null) {
 					LOG.info("no available record element of file[{}]", filePath);
-					callback.complete(new BaseResponse(baseMessage.getToken(), ResponseCode.ERROR));
+					writer.write(new BaseResponse(ResponseCode.ERROR));
 					return;
 				}
 				
 				long fileLength = fileFormater.relativeOffset(lastElement.getOffset()) + lastElement.getSize();
 				LOG.info("get file length[{}] from file[{}]", fileLength, filePath);
-				BaseResponse response = new BaseResponse(baseMessage.getToken(), ResponseCode.OK);
+				BaseResponse response = new BaseResponse(ResponseCode.OK);
 				response.setBody(Longs.toByteArray(fileLength));
 				
-				callback.complete(response);
+				writer.write(response);
 			}
 		});
 	}

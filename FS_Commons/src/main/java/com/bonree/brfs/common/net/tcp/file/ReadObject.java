@@ -11,6 +11,8 @@ public class ReadObject {
 	@JsonIgnore
 	public static final int RAW_LENGTH = 4;
 	
+	@JsonProperty("token")
+	private int token;
 	@JsonProperty("path")
 	private String filePath;
 	@JsonProperty("offset")
@@ -19,6 +21,14 @@ public class ReadObject {
 	private int length;
 	@JsonProperty("raw")
 	private int raw;
+	
+	public int getToken() {
+		return token;
+	}
+
+	public void setToken(int token) {
+		this.token = token;
+	}
 
 	public String getFilePath() {
 		return filePath;

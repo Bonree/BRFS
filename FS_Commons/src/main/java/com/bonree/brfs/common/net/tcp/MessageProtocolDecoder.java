@@ -15,7 +15,7 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder{
 	private static final byte HEADER_BYTE = (byte) 0xBF;
 	private static final int HEADER_LENGTH = 10;
 	
-	private BaseMessage decodingMessage;
+	private TokenMessage<BaseMessage> decodingMessage;
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -28,20 +28,39 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder{
 				throw new IllegalArgumentException("Header byte of mesage is illegal.");
 			}
 			
-			int token = in.readInt();
-			int type = in.readByte();
-			int length = in.readInt();
+			final int token = in.readInt();
+			final int type = in.readByte();
+			final int length = in.readInt();
 			if(type == -1) {
 				//心跳消息
 				return;
 			}
 			
-			decodingMessage = new BaseMessage(type);
-			decodingMessage.setToken(token);
-			decodingMessage.setBody(new byte[length]);
+			decodingMessage = new TokenMessage<BaseMessage>() {
+				BaseMessage message = new BaseMessage(type);
+				
+				@Override
+				public int messageToken() {
+					return token;
+				}
+				
+				@Override
+				public BaseMessage message() {
+					return message;
+				}
+			};
+			
+			if(length == 0) {
+				out.add(decodingMessage);
+				decodingMessage = null;
+				return;
+			}
+			
+			decodingMessage.message().setBody(new byte[length]);
 		}
 		
-		byte[] body = decodingMessage.getBody();
+		byte[] body = decodingMessage.message().getBody();
+		LOG.info("get body >> {}", body);
 		if(in.readableBytes() < body.length) {
 			return;
 		}

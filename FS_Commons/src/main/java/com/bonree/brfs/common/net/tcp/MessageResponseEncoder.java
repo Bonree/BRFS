@@ -7,20 +7,22 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-public class MessageResponseEncoder extends MessageToByteEncoder<BaseResponse>{
+public class MessageResponseEncoder extends MessageToByteEncoder<TokenMessage<BaseResponse>>{
 	private static final Logger LOG = LoggerFactory.getLogger(MessageResponseEncoder.class);
 
 	@Override
-	protected void encode(ChannelHandlerContext ctx, BaseResponse msg, ByteBuf out) throws Exception {
-		LOG.info("encoding response[{}, {}]", msg.getToken());
-		out.writeInt(msg.getToken());
-		out.writeInt(msg.getCode());
+	protected void encode(ChannelHandlerContext ctx, TokenMessage<BaseResponse> msg, ByteBuf out) throws Exception {
+		LOG.info("encoding response[{}, {}]", msg.messageToken());
+		out.writeInt(msg.messageToken());
 		
-		int length = msg.getBody() == null ? 0 : msg.getBody().length;
+		BaseResponse response = msg.message();
+		out.writeInt(response.getCode());
+		
+		int length = response.getBody() == null ? 0 : response.getBody().length;
 		out.writeInt(length);
 		
 		if(length > 0) {
-			out.writeBytes(msg.getBody());
+			out.writeBytes(response.getBody());
 		}
 	}
 
