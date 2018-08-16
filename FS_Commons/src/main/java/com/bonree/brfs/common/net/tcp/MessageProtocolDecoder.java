@@ -60,7 +60,6 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder{
 		}
 		
 		byte[] body = decodingMessage.message().getBody();
-		LOG.info("get body >> {}", body);
 		if(in.readableBytes() < body.length) {
 			return;
 		}
