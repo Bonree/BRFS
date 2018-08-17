@@ -313,7 +313,7 @@ public class CopyRecovery {
 		try {
 			client = new HttpDiskNodeClient(host, port);
 			long length = client.getFileLength(remotePath);
-			data = client.readData(remotePath, 0);
+//			data = client.readData(remotePath, 0);
 			if (data == null || data.length == 0) {
 				return false;
 			}
