@@ -1,7 +1,10 @@
 package com.bonree.brfs.disknode.server.tcp.handler;
 
 import java.io.ByteArrayOutputStream;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +16,11 @@ import com.bonree.brfs.common.net.tcp.BaseResponse;
 import com.bonree.brfs.common.net.tcp.MessageHandler;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
 import com.bonree.brfs.common.net.tcp.ResponseWriter;
+import com.bonree.brfs.common.net.tcp.client.TcpClient;
+import com.bonree.brfs.common.net.tcp.client.TcpClientGroup;
+import com.bonree.brfs.common.net.tcp.file.ReadObject;
+import com.bonree.brfs.common.net.tcp.file.client.AsyncFileReaderCreateConfig;
+import com.bonree.brfs.common.net.tcp.file.client.FileContentPart;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -21,7 +29,7 @@ import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.client.DiskNodeClient.ByteConsumer;
-import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
+import com.bonree.brfs.disknode.client.TcpDiskNodeClient;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
@@ -36,15 +44,18 @@ public class FileRecoveryMessageHandler implements MessageHandler<BaseResponse> 
 	private ServiceManager serviceManager;
 	private FileWriterManager writerManager;
 	private FileFormater fileFormater;
+	private TcpClientGroup<ReadObject, FileContentPart, AsyncFileReaderCreateConfig> clientGroup;
 	
 	public FileRecoveryMessageHandler(DiskContext context,
 			ServiceManager serviceManager,
 			FileWriterManager writerManager,
-			FileFormater fileFormater) {
+			FileFormater fileFormater,
+			TcpClientGroup<ReadObject, FileContentPart, AsyncFileReaderCreateConfig> clientGroup) {
 		this.context = context;
 		this.serviceManager = serviceManager;
 		this.writerManager = writerManager;
 		this.fileFormater = fileFormater;
+		this.clientGroup = clientGroup;
 	}
 
 	@Override
@@ -83,7 +94,26 @@ public class FileRecoveryMessageHandler implements MessageHandler<BaseResponse> 
 						DiskNodeClient client = null;
 						try {
 							LOG.info("get data from{} to recover...", service);
-							client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+							TcpClient<ReadObject, FileContentPart> readClient = clientGroup.createClient(new AsyncFileReaderCreateConfig() {
+								
+								@Override
+								public SocketAddress remoteAddress() {
+									return new InetSocketAddress(service.getHost(), service.getExtraPort());
+								}
+								
+								@Override
+								public int connectTimeoutMillis() {
+									return 3000;
+								}
+								
+								@Override
+								public int maxPendingRead() {
+									return 0;
+								}
+								
+							}, ForkJoinPool.commonPool());
+							
+							client = new TcpDiskNodeClient(null, readClient);
 							
 							long lackBytes = state.getFileLength() - message.getOffset();
 							CompletableFuture<byte[]> byteFuture = new CompletableFuture<byte[]>();

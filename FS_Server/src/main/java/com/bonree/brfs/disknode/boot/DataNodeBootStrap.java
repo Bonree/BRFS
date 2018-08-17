@@ -13,6 +13,7 @@ import com.bonree.brfs.common.net.tcp.ServerConfig;
 import com.bonree.brfs.common.net.tcp.TcpServer;
 import com.bonree.brfs.common.net.tcp.file.FileChannelInitializer;
 import com.bonree.brfs.common.net.tcp.file.ReadObjectTranslator;
+import com.bonree.brfs.common.net.tcp.file.client.AsyncFileReaderGroup;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
@@ -53,10 +54,12 @@ public class DataNodeBootStrap implements LifeCycle {
 	private TcpServer server;
 	private TcpServer fileServer;
 	private ExecutorService threadPool;
+	private AsyncFileReaderGroup readerGroup;
 	
 	public DataNodeBootStrap(ServiceManager serviceManager) {
 		this.diskContext = new DiskContext(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
 		this.serviceManager = serviceManager;
+		this.readerGroup = new AsyncFileReaderGroup(Math.min(2, Runtime.getRuntime().availableProcessors() / 2));
 	}
 	
 	@Override
@@ -84,7 +87,8 @@ public class DataNodeBootStrap implements LifeCycle {
 		initializer.addMessageHandler(TYPE_FLUSH_FILE, new FlushFileMessageHandler(diskContext, writerManager));
 		initializer.addMessageHandler(TYPE_METADATA, new MetadataFetchMessageHandler(diskContext, writerManager, fileFormater));
 		initializer.addMessageHandler(TYPE_LIST_FILE, new ListFileMessageHandler(diskContext));
-		initializer.addMessageHandler(TYPE_RECOVER_FILE, new FileRecoveryMessageHandler(diskContext, serviceManager, writerManager, fileFormater));
+		
+		initializer.addMessageHandler(TYPE_RECOVER_FILE, new FileRecoveryMessageHandler(diskContext, serviceManager, writerManager, fileFormater, readerGroup));
 		
 		int workerThreadNum = Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_IO_WORKER_NUM,
 				String.valueOf(Runtime.getRuntime().availableProcessors())));
@@ -146,6 +150,8 @@ public class DataNodeBootStrap implements LifeCycle {
 		if(threadPool != null) {
 			threadPool.shutdown();
 		}
+		
+		readerGroup.close();
 	}
 
 }
