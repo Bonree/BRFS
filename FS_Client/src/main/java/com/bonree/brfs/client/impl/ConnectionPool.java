@@ -50,6 +50,10 @@ public class ConnectionPool {
 		}
 		
 		synchronized (clients) {
+			if(clients[random.nextInt(clients.length)] != null) {
+				return clients[random.nextInt(clients.length)];
+			}
+			
 			try {
 				client = group.createClient(new AsyncFileReaderCreateConfig() {
 					
