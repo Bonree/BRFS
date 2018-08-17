@@ -1,7 +1,7 @@
 package com.bonree.brfs.disknode.server.tcp.handler;
 
+import java.io.ByteArrayOutputStream;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +20,7 @@ import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
+import com.bonree.brfs.disknode.client.DiskNodeClient.ByteConsumer;
 import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
@@ -85,7 +86,30 @@ public class FileRecoveryMessageHandler implements MessageHandler<BaseResponse> 
 							client = new HttpDiskNodeClient(service.getHost(), service.getPort());
 							
 							long lackBytes = state.getFileLength() - message.getOffset();
-							bytes = client.readData(state.getFilePath(), message.getOffset(), (int) lackBytes);
+							CompletableFuture<byte[]> byteFuture = new CompletableFuture<byte[]>();
+							ByteArrayOutputStream output = new ByteArrayOutputStream();
+							client.readData(state.getFilePath(), message.getOffset(), (int) lackBytes, new ByteConsumer() {
+								
+								@Override
+								public void error(Throwable e) {
+									byteFuture.completeExceptionally(e);
+								}
+								
+								@Override
+								public void consume(byte[] bytes, boolean endOfConsume) {
+									try {
+										output.write(bytes);
+										if(endOfConsume) {
+											byteFuture.complete(output.toByteArray());
+											output.close();
+										}
+									} catch (Exception e) {
+										byteFuture.completeExceptionally(e);
+									}
+								}
+							});
+							
+							bytes = byteFuture.get();
 							if(bytes != null) {
 								LOG.info("read bytes length[{}], require[{}]", bytes.length, lackBytes);
 								break;

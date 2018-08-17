@@ -68,7 +68,6 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 		private WriteResult[] results;
 		private Pair<RecordFileWriter, WriteWorker> binding;
 		private ResponseWriter<BaseResponse> writer;
-		private int token;
 		
 		public DataWriteTask(Pair<RecordFileWriter, WriteWorker> binding, WriteFileMessage message, ResponseWriter<BaseResponse> writer) {
 			this.binding = binding;

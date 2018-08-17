@@ -19,8 +19,10 @@ public interface DiskNodeClient extends Closeable {
 	
 	boolean flush(String file) throws IOException;
 	
-	byte[] readData(String path, long offset) throws IOException;
-	byte[] readData(String path, long offset, int size) throws IOException;
+	void readData(String path, long offset, ByteConsumer consumer) throws IOException;
+	void readData(String path, long offset, int size, ByteConsumer consumer) throws IOException;
+	
+	void readFile(String path, ByteConsumer consumer) throws IOException;
 	
 	List<FileInfo> listFiles(String path, int level);
 	boolean deleteFile(String path, boolean force);
@@ -36,6 +38,8 @@ public interface DiskNodeClient extends Closeable {
 	
 	boolean recover(String path, long fileLength, List<String> fullstates);
 	
-	void copyFrom(String host, int port, String remotePath, String localPath) throws Exception;
-	void copyTo(String host, int port, String localPath, String remotePath) throws Exception;
+	public static interface ByteConsumer {
+		void consume(byte[] bytes, boolean endOfConsume);
+		void error(Throwable e);
+	}
 }

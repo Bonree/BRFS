@@ -1,12 +1,8 @@
 package com.bonree.brfs.disknode.client;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-import com.bonree.brfs.common.utils.CloseUtils;
-import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 
 public class LocalDiskNodeClient implements DiskNodeClient {
@@ -42,43 +38,6 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	public boolean deleteDir(String path, boolean force, boolean recursive) {
 		return false;
 	}
-
-	@Override
-	public void copyFrom(String host, int port, String remotePath,
-			String localPath) throws Exception {
-		DiskNodeClient client = null;
-		BufferedOutputStream output = null;
-		int bufferSize = 5 * 1024 * 1024;
-		try {
-			client = new HttpDiskNodeClient(host, port);
-			byte[] bytes = client.readData(remotePath, 0, Integer.MAX_VALUE);
-			output = new BufferedOutputStream(new FileOutputStream(localPath), bufferSize);
-			output.write(bytes);
-			output.flush();
-		} finally {
-			CloseUtils.closeQuietly(client);
-			CloseUtils.closeQuietly(output);
-		}
-	}
-	@Override
-	public void copyTo(String host, int port, String localPath, String remotePath) throws Exception {
-		DiskNodeClient client = null;
-		int bufferSize = 5 * 1024 * 1024;
-		try {
-			client = new HttpDiskNodeClient(host, port);
-			
-			byte[] buf;
-			int offset = 0;
-			while((buf = DataFileReader.readFile(localPath, offset, bufferSize)).length != 0) {
-				client.writeData(remotePath, buf);
-				offset += buf.length;
-			}
-			
-			client.closeFile(remotePath);
-		} finally {
-			CloseUtils.closeQuietly(client);
-		}
-	}
 	
 	@Override
 	public void close() throws IOException {
@@ -106,14 +65,11 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public byte[] readData(String path, long offset) throws IOException {
-		return null;
+	public void readData(String path, long offset, ByteConsumer consumer) throws IOException {
 	}
 
 	@Override
-	public byte[] readData(String path, long offset, int size)
-			throws IOException {
-		return null;
+	public void readData(String path, long offset, int size, ByteConsumer consumer) throws IOException {
 	}
 
 	@Override
@@ -124,6 +80,12 @@ public class LocalDiskNodeClient implements DiskNodeClient {
 	@Override
 	public boolean recover(String path, long fileLength, List<String> fulls) {
 		return false;
+	}
+
+	@Override
+	public void readFile(String path, ByteConsumer consumer) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,6 @@ import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.disknode.DiskContext;
-import com.bonree.brfs.disknode.server.handler.data.FileCopyMessage;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.disknode.server.handler.data.WriteData;
 import com.bonree.brfs.disknode.server.handler.data.WriteDataList;
@@ -163,12 +161,12 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	}
 	
 	@Override
-	public byte[] readData(String path, long offset) throws IOException {
-		return readData(path, offset, Integer.MAX_VALUE);
+	public void readData(String path, long offset, ByteConsumer consumer) throws IOException {
+		readData(path, offset, Integer.MAX_VALUE, consumer);
 	}
 
 	@Override
-	public byte[] readData(String path, long offset, int size) throws IOException {
+	public void readData(String path, long offset, int size, ByteConsumer consumer) throws IOException {
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
 	    .setHost(host)
@@ -178,19 +176,16 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	    .addParameter("size", String.valueOf(size))
 	    .build();
 
-		byte[] result = null;
 		try {
 			LOG.info("read file[{}] with offset[{}], size[{}] to {}:{}", path, offset, size, host, port);
 			HttpResponse response = client.executeGet(uri);
 			LOG.debug("read file[{}] response[{}]", path, response.getStatusCode());
 			if(response.isReponseOK()) {
-				result = response.getResponseBody();
+				consumer.consume(response.getResponseBody(), true);
 			}
 		} catch (Exception e) {
 			LOG.error("read file[{}] with[offset={},size={}] at {}:{} error", path, offset, size, host, port, e);
 		}
-		
-		return result;
 	}
 
 	@Override
@@ -292,34 +287,6 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public void copyFrom(String host, int port, String remotePath, String localPath) throws Exception {
-		copyInner(FileCopyMessage.DIRECT_FROM_REMOTE, host, port, remotePath, localPath);
-	}
-	
-	@Override
-	public void copyTo(String host, int port, String localPath, String remotePath) throws Exception {
-		copyInner(FileCopyMessage.DIRECT_TO_REMOTE, host, port, remotePath, localPath);
-	}
-	
-	private void copyInner(int direct, String host, int port, String remotePath, String localPath) throws Exception {
-		FileCopyMessage msg = new FileCopyMessage();
-		msg.setDirect(direct);
-		msg.setRemoteHost(host);
-		msg.setRemotePort(port);
-		msg.setRemotePath(remotePath);
-		msg.setLocalPath(localPath);
-		
-		URI uri = new URIBuilder()
-	    .setScheme(DEFAULT_SCHEME)
-	    .setHost(host)
-	    .setPort(port)
-	    .setPath(DiskContext.URI_COPY_NODE_ROOT + "/")
-	    .build();
-		
-		client.executePost(uri, ProtoStuffUtils.serialize(msg));
-	}
-
-	@Override
 	public boolean recover(String path, long fileLength, List<String> fullSates) {
 		URI uri = new URIBuilder()
 	    .setScheme(DEFAULT_SCHEME)
@@ -370,6 +337,11 @@ public class HttpDiskNodeClient implements DiskNodeClient {
 	@Override
 	public void close() throws IOException {
 		client.close();
+	}
+
+	@Override
+	public void readFile(String path, ByteConsumer consumer) {
+		throw new UnsupportedOperationException("can't read file with http");
 	}
 
 }

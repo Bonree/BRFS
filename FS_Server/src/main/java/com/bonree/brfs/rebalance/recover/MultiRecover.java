@@ -530,11 +530,4 @@ public class MultiRecover implements DataRecover {
         return success;
     }
 
-    public static void main(String[] args) throws Exception {
-        LocalDiskNodeClient diskClient = new LocalDiskNodeClient();
-        diskClient.copyTo("192.168.4.111", 8885, "E:/BRFS1/data/sn_wz/1/123456789/xxoo_20_21", "sn/1111");
-        diskClient.close();
-
-    }
-
 }

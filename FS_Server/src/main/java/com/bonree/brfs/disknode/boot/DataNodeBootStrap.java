@@ -32,20 +32,18 @@ import com.bonree.brfs.disknode.server.tcp.handler.ListFileMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.MetadataFetchMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.OpenFileMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.PingPongMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.ReadFileMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.WriteFileMessageHandler;
 
 public class DataNodeBootStrap implements LifeCycle {
 	public static final int TYPE_OPEN_FILE = 0;
 	public static final int TYPE_WRITE_FILE = 1;
-	public static final int TYPE_READ_FILE = 2;
-	public static final int TYPE_CLOSE_FILE = 3;
-	public static final int TYPE_DELETE_FILE = 4;
-	public static final int TYPE_PING_PONG = 5;
-	public static final int TYPE_FLUSH_FILE = 6;
-	public static final int TYPE_METADATA = 7;
-	public static final int TYPE_LIST_FILE = 8;
-	public static final int TYPE_RECOVER_FILE = 9;
+	public static final int TYPE_CLOSE_FILE = 2;
+	public static final int TYPE_DELETE_FILE = 3;
+	public static final int TYPE_PING_PONG = 4;
+	public static final int TYPE_FLUSH_FILE = 5;
+	public static final int TYPE_METADATA = 6;
+	public static final int TYPE_LIST_FILE = 7;
+	public static final int TYPE_RECOVER_FILE = 8;
 	
 	private DiskContext diskContext;
 	
@@ -80,7 +78,6 @@ public class DataNodeBootStrap implements LifeCycle {
 		MessageChannelInitializer initializer = new MessageChannelInitializer(threadPool);
 		initializer.addMessageHandler(TYPE_OPEN_FILE, new OpenFileMessageHandler(diskContext, writerManager));
 		initializer.addMessageHandler(TYPE_WRITE_FILE, new WriteFileMessageHandler(diskContext, writerManager, fileFormater));
-		initializer.addMessageHandler(TYPE_READ_FILE, new ReadFileMessageHandler(diskContext, fileFormater));
 		initializer.addMessageHandler(TYPE_CLOSE_FILE, new CloseFileMessageHandler(diskContext, writerManager, fileFormater));
 		initializer.addMessageHandler(TYPE_DELETE_FILE, new DeleteFileMessageHandler(diskContext, writerManager));
 		initializer.addMessageHandler(TYPE_PING_PONG, new PingPongMessageHandler());

@@ -12,6 +12,8 @@ import com.bonree.brfs.common.net.tcp.BaseResponse;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
 import com.bonree.brfs.common.net.tcp.client.ResponseHandler;
 import com.bonree.brfs.common.net.tcp.client.TcpClient;
+import com.bonree.brfs.common.net.tcp.file.ReadObject;
+import com.bonree.brfs.common.net.tcp.file.client.FileContentPart;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
@@ -21,7 +23,6 @@ import com.bonree.brfs.disknode.server.tcp.handler.data.DeleteFileMessage;
 import com.bonree.brfs.disknode.server.tcp.handler.data.FileRecoveryMessage;
 import com.bonree.brfs.disknode.server.tcp.handler.data.ListFileMessage;
 import com.bonree.brfs.disknode.server.tcp.handler.data.OpenFileMessage;
-import com.bonree.brfs.disknode.server.tcp.handler.data.ReadFileMessage;
 import com.bonree.brfs.disknode.server.tcp.handler.data.WriteFileData;
 import com.bonree.brfs.disknode.server.tcp.handler.data.WriteFileMessage;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -31,9 +32,15 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	private static final Logger LOG = LoggerFactory.getLogger(TcpDiskNodeClient.class);
 	
 	private TcpClient<BaseMessage, BaseResponse> client;
+	private TcpClient<ReadObject, FileContentPart> readClient;
 	
 	public TcpDiskNodeClient(TcpClient<BaseMessage, BaseResponse> client) {
+		this(client, null);
+	}
+	
+	public TcpDiskNodeClient(TcpClient<BaseMessage, BaseResponse> client, TcpClient<ReadObject, FileContentPart> readClient) {
 		this.client = client;
+		this.readClient = readClient;
 	}
 
 	@Override
@@ -270,46 +277,67 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	}
 
 	@Override
-	public byte[] readData(String path, long offset) throws IOException {
-		return readData(path, offset, Integer.MAX_VALUE);
+	public void readData(String path, long offset, ByteConsumer consumer) throws IOException {
+		readData(path, offset, Integer.MAX_VALUE, consumer);
 	}
 
 	@Override
-	public byte[] readData(String path, long offset, int size)
-			throws IOException {
-		try {
-			ReadFileMessage readFileMessage = new ReadFileMessage();
-			readFileMessage.setFilePath(path);
-			readFileMessage.setOffset(offset);
-			readFileMessage.setLength(size);
-			
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_READ_FILE);
-			message.setBody(ProtoStuffUtils.serialize(readFileMessage));
-			
-			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
-			client.sendMessage(message, new ResponseHandler<BaseResponse>() {
-				
-				@Override
-				public void handle(BaseResponse response) {
-					future.complete(response);
-				}
-				
-				@Override
-				public void error(Throwable e) {
-					future.completeExceptionally(e);
-				}
-			});
-			
-			BaseResponse response = future.get();
-			
-			if(response != null && response.getCode() == ResponseCode.OK) {
-				return response.getBody();
-			}
-		} catch (Exception e) {
-			LOG.error("read file error", e);
+	public void readData(String path, long offset, int size, ByteConsumer consumer) throws IOException {
+		if(readClient == null) {
+			throw new UnsupportedOperationException("no read client is set");
 		}
 		
-		return null;
+		ReadObject object = new ReadObject();
+		object.setFilePath(path);
+		object.setOffset(offset);
+		object.setLength(size);
+		
+		try {
+			readClient.sendMessage(object, new ResponseHandler<FileContentPart>() {
+
+				@Override
+				public void handle(FileContentPart response) {
+					consumer.consume(response.content(), response.endOfContent());
+				}
+
+				@Override
+				public void error(Throwable t) {
+					consumer.error(t);
+				}
+			});
+		} catch (Exception e) {
+			throw new IOException("can not send read message", e);
+		}
+	}
+	
+	@Override
+	public void readFile(String path, ByteConsumer consumer) throws IOException {
+		if(readClient == null) {
+			throw new UnsupportedOperationException("no read client is set");
+		}
+		
+		ReadObject object = new ReadObject();
+		object.setFilePath(path);
+		object.setOffset(0);
+		object.setLength(Integer.MAX_VALUE);
+		object.setRaw(ReadObject.RAW_OFFSET);
+		
+		try {
+			readClient.sendMessage(object, new ResponseHandler<FileContentPart>() {
+
+				@Override
+				public void handle(FileContentPart response) {
+					consumer.consume(response.content(), response.endOfContent());
+				}
+
+				@Override
+				public void error(Throwable t) {
+					consumer.error(t);
+				}
+			});
+		} catch (Exception e) {
+			throw new IOException("can not send read message", e);
+		}
 	}
 
 	@Override
@@ -456,14 +484,5 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 		}
 		
 		return false;
-	}
-
-	@Override
-	public void copyFrom(String host, int port, String remotePath, String localPath) throws Exception {
-	}
-
-	@Override
-	public void copyTo(String host, int port, String localPath, String remotePath) throws Exception {
-		
 	}
 }

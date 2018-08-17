@@ -23,7 +23,6 @@ import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.fileformat.impl.SimpleFileFormater;
 import com.bonree.brfs.disknode.server.handler.CloseMessageHandler;
 import com.bonree.brfs.disknode.server.handler.DeleteMessageHandler;
-import com.bonree.brfs.disknode.server.handler.FileCopyMessageHandler;
 import com.bonree.brfs.disknode.server.handler.FileLengthMessageHandler;
 import com.bonree.brfs.disknode.server.handler.FlushMessageHandler;
 import com.bonree.brfs.disknode.server.handler.ListMessageHandler;
@@ -95,10 +94,6 @@ public class EmptyMain implements LifeCycle {
 		NettyHttpRequestHandler sequenceRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 		sequenceRequestHandler.addMessageHandler("GET", new FileLengthMessageHandler(diskContext, writerManager, fileFormater));
 		server.addContextHandler(DiskContext.URI_LENGTH_NODE_ROOT, sequenceRequestHandler);
-		
-		NettyHttpRequestHandler cpRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-		cpRequestHandler.addMessageHandler("POST", new FileCopyMessageHandler(diskContext));
-		server.addContextHandler(DiskContext.URI_COPY_NODE_ROOT, cpRequestHandler);
 		
 		NettyHttpRequestHandler listRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 		listRequestHandler.addMessageHandler("GET", new ListMessageHandler(diskContext));
