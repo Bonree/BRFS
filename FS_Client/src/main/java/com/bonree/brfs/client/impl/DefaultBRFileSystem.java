@@ -5,6 +5,8 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -24,6 +26,7 @@ import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
+import com.bonree.brfs.common.net.tcp.file.client.AsyncFileReaderGroup;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
@@ -45,6 +48,9 @@ public class DefaultBRFileSystem implements BRFileSystem {
     private FileSystemConfig config;
     
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
+    
+    private AsyncFileReaderGroup clientGroup;
+    private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     public DefaultBRFileSystem(FileSystemConfig config) throws Exception {
     	this.config = config;
@@ -74,6 +80,9 @@ public class DefaultBRFileSystem implements BRFileSystem {
         		config.getDuplicateServiceGroup(), config.getDiskServiceGroup());
         
         this.regionNodeSelector = new RegionNodeSelector(serviceManager, config.getDuplicateServiceGroup());
+        
+        executor = Executors.newFixedThreadPool(config.getHandleThreadNum());
+        this.clientGroup = new AsyncFileReaderGroup(Runtime.getRuntime().availableProcessors() / 2);
     }
 
     @Override
@@ -241,7 +250,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		            		DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
     	    		            stick = new DefaultStorageNameStick(storageName, storageId,
     	    		            		httpClient, cache, regionNodeSelector,
-    	    		            		config);
+    	    		            		config, clientGroup, executor);
     	    		            stickContainer.put(storageName, stick);
     	    		            
     	    		            return stick;
@@ -269,6 +278,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
         CloseUtils.closeQuietly(serviceSelectorManager);
         CloseUtils.closeQuietly(zkClient);
         CloseUtils.closeQuietly(httpClient);
+        CloseUtils.closeQuietly(clientGroup);
+        executor.shutdown();
     }
 
 }

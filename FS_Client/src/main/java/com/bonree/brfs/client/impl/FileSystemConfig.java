@@ -24,6 +24,9 @@ public class FileSystemConfig {
 	private static final int DEFAULT_CONNECTION_POOL_SIZE = 16;
 	private int connectionPoolSize;
 	
+	private static final int DEFAULT_CONNECTION_HANDLE_THREAD_NUM = 4;
+	private int handleThreadNum;
+	
 	private static final String DEFAULT_DUPLICATE_SERVICE_GROUP = "region_group";
 	private String duplicateServiceGroup;
 	private static final String DEFAULT_DISK_SERVICE_GROUP = "data_group";
@@ -35,6 +38,7 @@ public class FileSystemConfig {
 		this.duplicateUrlRoot = DEFAULT_DUPLICATE_URL_ROOT;
 		this.diskUrlRoot = DEFAULT_DISK_URL_ROOT;
 		this.connectionPoolSize = DEFAULT_CONNECTION_POOL_SIZE;
+		this.handleThreadNum = DEFAULT_CONNECTION_HANDLE_THREAD_NUM;
 		this.duplicateServiceGroup = DEFAULT_DUPLICATE_SERVICE_GROUP;
 		this.diskServiceGroup = DEFAULT_DISK_SERVICE_GROUP;
 	}
@@ -73,6 +77,10 @@ public class FileSystemConfig {
 
 	public int getConnectionPoolSize() {
 		return connectionPoolSize;
+	}
+	
+	public int getHandleThreadNum() {
+		return handleThreadNum;
 	}
 	
 	public String getDuplicateServiceGroup() {
@@ -136,6 +144,11 @@ public class FileSystemConfig {
 		
 		public Builder setConnectionPoolSize(int size) {
 			config.connectionPoolSize = size;
+			return this;
+		}
+		
+		public Builder setHandleThreadNum(int num) {
+			config.handleThreadNum = num;
 			return this;
 		}
 		

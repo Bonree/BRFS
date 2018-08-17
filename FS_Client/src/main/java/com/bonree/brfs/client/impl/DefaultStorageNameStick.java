@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -60,12 +61,12 @@ public class DefaultStorageNameStick implements StorageNameStick {
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
     
     private AsyncFileReaderGroup clientGroup;
-    private ExecutorService executor = Executors.newFixedThreadPool(4);
     private ConnectionPool connectionPool;
 
     public DefaultStorageNameStick(String storageName, int storageId,
     		HttpClient client, DiskServiceSelectorCache selector,
-    		RegionNodeSelector regionNodeSelector, FileSystemConfig config) {
+    		RegionNodeSelector regionNodeSelector, FileSystemConfig config,
+    		AsyncFileReaderGroup clientGroup, Executor executor) {
         this.storageName = storageName;
         this.storageId = storageId;
         this.client = client;
@@ -76,7 +77,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
         this.defaultHeaders.put("username", config.getName());
         this.defaultHeaders.put("password", config.getPasswd());
         
-        this.clientGroup = new AsyncFileReaderGroup(Runtime.getRuntime().availableProcessors());
         this.connectionPool = new ConnectionPool(clientGroup, executor);
     }
 
@@ -258,8 +258,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
 
     @Override
     public void close() throws IOException {
-    	CloseUtils.closeQuietly(clientGroup);
-    	executor.shutdown();
     }
 
     @Override
