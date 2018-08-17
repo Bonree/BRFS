@@ -51,6 +51,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     
     private AsyncFileReaderGroup clientGroup;
     private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private ConnectionPool connectionPool;
 
     public DefaultBRFileSystem(FileSystemConfig config) throws Exception {
     	this.config = config;
@@ -82,7 +83,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
         this.regionNodeSelector = new RegionNodeSelector(serviceManager, config.getDuplicateServiceGroup());
         
         executor = Executors.newFixedThreadPool(config.getHandleThreadNum());
-        this.clientGroup = new AsyncFileReaderGroup(Runtime.getRuntime().availableProcessors() / 2);
+        this.clientGroup = new AsyncFileReaderGroup(Runtime.getRuntime().availableProcessors());
+        this.connectionPool = new ConnectionPool(config.getConnectionPoolSize(), clientGroup, executor);
     }
 
     @Override
@@ -250,7 +252,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		            		DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
     	    		            stick = new DefaultStorageNameStick(storageName, storageId,
     	    		            		httpClient, cache, regionNodeSelector,
-    	    		            		config, clientGroup, executor);
+    	    		            		config, connectionPool);
     	    		            stickContainer.put(storageName, stick);
     	    		            
     	    		            return stick;

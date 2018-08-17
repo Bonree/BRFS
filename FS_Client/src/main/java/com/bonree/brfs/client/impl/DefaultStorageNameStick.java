@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.joda.time.DateTime;
@@ -39,7 +37,6 @@ import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.write.data.FidDecoder;
@@ -60,13 +57,12 @@ public class DefaultStorageNameStick implements StorageNameStick {
     private FileSystemConfig config;
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
     
-    private AsyncFileReaderGroup clientGroup;
     private ConnectionPool connectionPool;
 
     public DefaultStorageNameStick(String storageName, int storageId,
     		HttpClient client, DiskServiceSelectorCache selector,
     		RegionNodeSelector regionNodeSelector, FileSystemConfig config,
-    		AsyncFileReaderGroup clientGroup, Executor executor) {
+    		ConnectionPool connectionPool) {
         this.storageName = storageName;
         this.storageId = storageId;
         this.client = client;
@@ -77,7 +73,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
         this.defaultHeaders.put("username", config.getName());
         this.defaultHeaders.put("password", config.getPasswd());
         
-        this.connectionPool = new ConnectionPool(config.getConnectionPoolSize(), clientGroup, executor);
+        this.connectionPool = connectionPool;
     }
 
     @Override
