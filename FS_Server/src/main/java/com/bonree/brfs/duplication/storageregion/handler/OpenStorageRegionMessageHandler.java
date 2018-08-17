@@ -22,11 +22,10 @@ public class OpenStorageRegionMessageHandler extends StorageRegionMessageHandler
 	public void handleMessage(StorageRegionMessage msg, HandleResultCallback callback) {
 		LOG.info("open storage region[{}]", msg.getName());
 		StorageRegion node = storageRegionManager.findStorageRegionByName(msg.getName());
-		if(node == null) {
+		if(node == null || !node.isEnable()) {
 			callback.completed(new HandleResult(false));
 			return;
 		}
-		
 		
 		HandleResult result = new HandleResult();
 		result.setSuccess(true);
