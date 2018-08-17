@@ -77,7 +77,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
         this.defaultHeaders.put("username", config.getName());
         this.defaultHeaders.put("password", config.getPasswd());
         
-        this.connectionPool = new ConnectionPool(clientGroup, executor);
+        this.connectionPool = new ConnectionPool(config.getConnectionPoolSize(), clientGroup, executor);
     }
 
     @Override

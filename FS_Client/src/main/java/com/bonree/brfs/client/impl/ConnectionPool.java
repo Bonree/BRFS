@@ -1,7 +1,10 @@
 package com.bonree.brfs.client.impl;
 
+import java.lang.reflect.Array;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 import com.bonree.brfs.common.net.tcp.client.TcpClient;
@@ -11,29 +14,42 @@ import com.bonree.brfs.common.net.tcp.file.ReadObject;
 import com.bonree.brfs.common.net.tcp.file.client.AsyncFileReaderCreateConfig;
 import com.bonree.brfs.common.net.tcp.file.client.FileContentPart;
 import com.bonree.brfs.common.service.Service;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
 
 
 public class ConnectionPool {
 	private TcpClientGroup<ReadObject, FileContentPart, AsyncFileReaderCreateConfig> group;
 	private Executor executor;
-	private Table<String, String, TcpClient<ReadObject, FileContentPart>> clientCache;
+	private int connectionPerRoute;
+	private ConcurrentHashMap<String, TcpClient<ReadObject, FileContentPart>[]> clientCache;
 	
-	public ConnectionPool(TcpClientGroup<ReadObject, FileContentPart, AsyncFileReaderCreateConfig> group, Executor executor) {
+	private Random random = new Random();
+	
+	public ConnectionPool(int connectionPerRoute, TcpClientGroup<ReadObject, FileContentPart, AsyncFileReaderCreateConfig> group, Executor executor) {
+		this.connectionPerRoute = connectionPerRoute;
 		this.group = group;
 		this.executor = executor;
-		this.clientCache = HashBasedTable.create();
+		this.clientCache = new ConcurrentHashMap<>();
 	}
 	
+	@SuppressWarnings("unchecked")
 	public TcpClient<ReadObject, FileContentPart> getConnection(Service service) {
-		TcpClient<ReadObject, FileContentPart> client = clientCache.get(service.getServiceGroup(), service.getServiceId());
+		TcpClient<ReadObject, FileContentPart>[] clients = clientCache.get(service.getServiceId());
 		
+		TcpClient<ReadObject, FileContentPart> client = null;
+		int index = random.nextInt(connectionPerRoute);
+		
+		if(clients == null) {
+			clientCache.putIfAbsent(service.getServiceId(),
+					(TcpClient<ReadObject, FileContentPart>[]) Array.newInstance(TcpClient.class, connectionPerRoute));
+			clients = clientCache.get(service.getServiceId());
+		}
+		
+		client = clients[random.nextInt(clients.length)];
 		if(client != null) {
 			return client;
 		}
 		
-		synchronized (clientCache) {
+		synchronized (clients) {
 			try {
 				client = group.createClient(new AsyncFileReaderCreateConfig() {
 					
@@ -62,13 +78,14 @@ public class ConnectionPool {
 					
 					@Override
 					public void clientClosed() {
-						synchronized (clientCache) {
-							clientCache.remove(service.getServiceGroup(), service.getServiceId());
+						TcpClient<ReadObject, FileContentPart>[] clientArray = clientCache.get(service.getServiceId());
+						synchronized (clientArray) {
+							clientArray[index] = null;
 						}
 					}
 				});
 				
-				clientCache.put(service.getServiceGroup(), service.getServiceId(), client);
+				clients[index] = client;
 				return client;
 			} catch (Exception e) {
 				e.printStackTrace();
