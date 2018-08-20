@@ -145,14 +145,12 @@ public class DefaultStorageNameStick implements StorageNameStick {
             parts.add(String.valueOf(serverId));
         }
         
-        List<Throwable> errors = new ArrayList<>();
         try {
         	List<Integer> excludePot = new ArrayList<Integer>();
             // 最大尝试副本数个server
             for (int i = 0; i < parts.size() - 1; i++) {
                 ServiceMetaInfo serviceMetaInfo = selector.readerService(Joiner.on('_').join(parts), excludePot);
                 if(serviceMetaInfo == null) {
-                	errors.add(new Exception("no service is found"));
                 	continue;
                 }
                 
@@ -203,12 +201,19 @@ public class DefaultStorageNameStick implements StorageNameStick {
 					});
                 	
                 	byte[] bytes = future.get();
-                	FileContent content = FileDecoder.contents(bytes);
+                	
                     return new InputItem() {
 
                         @Override
                         public byte[] getBytes() {
-                        	return content.getData().toByteArray();
+                        	try {
+								return FileDecoder.contents(bytes).getData().toByteArray();
+							} catch (Exception e) {
+								e.printStackTrace();
+								System.out.println(">>>>>" + bytes.length);
+							}
+                        	
+                        	return null;
                         }
                     };
                 	
@@ -225,18 +230,14 @@ public class DefaultStorageNameStick implements StorageNameStick {
 				} catch (Exception e) {
 					// 使用选择的server没有读取到数据，需要进行排除
 	                excludePot.add(serviceMetaInfo.getReplicatPot());
-	                errors.add(e);
+	                
 					continue;
 				}
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        System.out.println("####################error Start#######################");
-        for(Throwable t : errors) {
-        	t.printStackTrace();
-        }
+        
         return null;
     }
 
