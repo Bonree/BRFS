@@ -44,14 +44,14 @@ public class ConnectionPool {
 			clients = clientCache.get(service.getServiceId());
 		}
 		
-		client = clients[random.nextInt(clients.length)];
+		client = clients[index];
 		if(client != null) {
 			return client;
 		}
 		
 		synchronized (clients) {
-			if(clients[random.nextInt(clients.length)] != null) {
-				return clients[random.nextInt(clients.length)];
+			if(clients[index] != null) {
+				return clients[index];
 			}
 			
 			try {
