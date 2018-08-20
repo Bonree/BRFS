@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -27,10 +26,6 @@ public abstract class AbstractTcpClient<S, R> implements TcpClient<S, R> {
 	private ConcurrentHashMap<Integer, ResponseHandler<R>> handlers;
 	
 	private TcpClientCloseListener listener;
-	
-	protected AbstractTcpClient() {
-		this(ForkJoinPool.commonPool());
-	}
 	
 	protected AbstractTcpClient(Executor executor) {
 		this.executor = executor;

@@ -13,10 +13,6 @@ public class FileReadClient extends AbstractTcpClient<ReadObject, FileContentPar
 	private static final Logger LOG = LoggerFactory.getLogger(FileReadClient.class);
 	
 	private ResponseHandler<FileContentPart> currentHandler;
-
-	FileReadClient() {
-		super();
-	}
 	
 	FileReadClient(Executor executor) {
 		super(executor);
@@ -24,13 +20,13 @@ public class FileReadClient extends AbstractTcpClient<ReadObject, FileContentPar
 
 	@Override
 	protected void handle(int token, FileContentPart response) {
-//		LOG.info("handle response token[{}]", token);
+		LOG.debug("handle response token[{}]", token);
 		if(currentHandler == null) {
 			currentHandler = takeHandler(token);
-		}
-		
-		if(currentHandler == null) {
-			throw new IllegalStateException("no handler to handle file content!");
+			
+			if(currentHandler == null) {
+				throw new IllegalStateException("no handler to handle file content!");
+			}
 		}
 		
 		final ResponseHandler<FileContentPart> handler = currentHandler;
@@ -39,18 +35,12 @@ public class FileReadClient extends AbstractTcpClient<ReadObject, FileContentPar
 			currentHandler = null;
 		}
 		
-		executor.execute(new Runnable() {
-			
-			@Override
-			public void run() {
-				if(response.content() == null) {
-					handler.error(new Exception("no content is find!"));
-					return;
-				}
-				
-				handler.handle(response);
-			}
-		});
+		if(response.content() == null) {
+			handler.error(new Exception("no content is find!"));
+			return;
+		}
+		
+		handler.handle(response);
 	}
 
 }

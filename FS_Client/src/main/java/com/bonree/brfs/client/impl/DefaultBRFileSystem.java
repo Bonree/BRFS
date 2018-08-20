@@ -5,8 +5,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -50,7 +48,6 @@ public class DefaultBRFileSystem implements BRFileSystem {
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
     
     private AsyncFileReaderGroup clientGroup;
-    private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private ConnectionPool connectionPool;
 
     public DefaultBRFileSystem(FileSystemConfig config) throws Exception {
@@ -82,9 +79,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
         
         this.regionNodeSelector = new RegionNodeSelector(serviceManager, config.getDuplicateServiceGroup());
         
-        executor = Executors.newFixedThreadPool(config.getHandleThreadNum());
-        this.clientGroup = new AsyncFileReaderGroup(Runtime.getRuntime().availableProcessors());
-        this.connectionPool = new ConnectionPool(config.getConnectionPoolSize(), clientGroup, executor);
+        this.clientGroup = new AsyncFileReaderGroup(config.getHandleThreadNum());
+        this.connectionPool = new ConnectionPool(config.getConnectionPoolSize(), clientGroup);
     }
 
     @Override
@@ -281,7 +277,6 @@ public class DefaultBRFileSystem implements BRFileSystem {
         CloseUtils.closeQuietly(zkClient);
         CloseUtils.closeQuietly(httpClient);
         CloseUtils.closeQuietly(clientGroup);
-        executor.shutdown();
     }
 
 }

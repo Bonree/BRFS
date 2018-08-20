@@ -36,6 +36,12 @@ public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResp
 	public AsyncTcpClientGroup(int workerNum) {
 		this.group = new NioEventLoopGroup(workerNum, new PooledThreadFactory("async_client"));
 	}
+	
+	@Override
+	public TcpClient<BaseMessage, BaseResponse> createClient(TcpClientConfig config)
+			throws InterruptedException {
+		return createClient(config, null);
+	}
 
 	@Override
 	public TcpClient<BaseMessage, BaseResponse> createClient(TcpClientConfig config, Executor executor)
@@ -44,6 +50,16 @@ public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResp
 		bootstrap.group(group);
 		bootstrap.channel(NioSocketChannel.class);
 		bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.connectTimeoutMillis());
+		
+		if(executor == null) {
+			executor = new Executor() {
+				
+				@Override
+				public void execute(Runnable command) {
+					command.run();
+				}
+			};
+		}
 		
 		AsyncTcpClient client = new AsyncTcpClient(executor);
 		bootstrap.handler(new ChannelInitializer<SocketChannel>() {
@@ -96,4 +112,5 @@ public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResp
 			group.shutdownGracefully().sync();
 		} catch (InterruptedException e) {}
 	}
+	
 }

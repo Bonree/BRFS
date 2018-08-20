@@ -5,7 +5,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
 
 import com.bonree.brfs.common.net.tcp.client.TcpClient;
 import com.bonree.brfs.common.net.tcp.client.TcpClientCloseListener;
@@ -18,16 +17,14 @@ import com.bonree.brfs.common.service.Service;
 
 public class ConnectionPool {
 	private TcpClientGroup<ReadObject, FileContentPart, AsyncFileReaderCreateConfig> group;
-	private Executor executor;
 	private int connectionPerRoute;
 	private ConcurrentHashMap<String, TcpClient<ReadObject, FileContentPart>[]> clientCache;
 	
 	private Random random = new Random();
 	
-	public ConnectionPool(int connectionPerRoute, TcpClientGroup<ReadObject, FileContentPart, AsyncFileReaderCreateConfig> group, Executor executor) {
+	public ConnectionPool(int connectionPerRoute, TcpClientGroup<ReadObject, FileContentPart, AsyncFileReaderCreateConfig> group) {
 		this.connectionPerRoute = connectionPerRoute;
 		this.group = group;
-		this.executor = executor;
 		this.clientCache = new ConcurrentHashMap<>();
 	}
 	
@@ -72,7 +69,7 @@ public class ConnectionPool {
 						return 1000 * 100;
 					}
 					
-				}, executor);
+				});
 				
 				if(client == null) {
 					return null;

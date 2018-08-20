@@ -11,10 +11,6 @@ import com.bonree.brfs.common.net.tcp.BaseResponse;
 public class AsyncTcpClient extends AbstractTcpClient<BaseMessage, BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(AsyncTcpClient.class);
 	
-	AsyncTcpClient() {
-		super();
-	}
-	
 	AsyncTcpClient(Executor executor) {
 		super(executor);
 	}
@@ -27,12 +23,6 @@ public class AsyncTcpClient extends AbstractTcpClient<BaseMessage, BaseResponse>
 			return;
 		}
 		
-		executor.execute(new Runnable() {
-			
-			@Override
-			public void run() {
-				handler.handle(response);
-			}
-		});
+		handler.handle(response);
 	}
 }

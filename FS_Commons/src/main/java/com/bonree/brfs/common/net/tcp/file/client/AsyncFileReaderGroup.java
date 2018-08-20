@@ -28,6 +28,11 @@ public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileCont
 	public AsyncFileReaderGroup(int workerNum) {
 		this.group = new NioEventLoopGroup(workerNum, new PooledThreadFactory("async_file_reader"));
 	}
+	
+	@Override
+	public TcpClient<ReadObject, FileContentPart> createClient(AsyncFileReaderCreateConfig config) throws InterruptedException {
+		return createClient(config, null);
+	}
 
 	@Override
 	public TcpClient<ReadObject, FileContentPart> createClient(AsyncFileReaderCreateConfig config, Executor executor) throws InterruptedException {
@@ -36,6 +41,15 @@ public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileCont
 		bootstrap.channel(NioSocketChannel.class);
 		bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.connectTimeoutMillis());
 		
+		if(executor == null) {
+			executor = new Executor() {
+				
+				@Override
+				public void execute(Runnable command) {
+					command.run();
+				}
+			};
+		}
 		FileReadClient reader = new FileReadClient(executor);
 		bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 
@@ -104,4 +118,5 @@ public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileCont
 			e.printStackTrace();
 		}
 	}
+	
 }
