@@ -175,9 +175,9 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 	readObject.setOffset(fidObj.getOffset());
                 	readObject.setLength((int) fidObj.getSize());
                 	
-                	CompletableFuture<byte[]> future = new CompletableFuture<byte[]>();
+                	CompletableFuture<ByteArrayOutputStream> future = new CompletableFuture<ByteArrayOutputStream>();
                 	fileReader.sendMessage(readObject, new ResponseHandler<FileContentPart>() {
-                		ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
+                		ByteArrayOutputStream byteOutput = new ByteArrayOutputStream(readObject.getLength());
 						
 						@Override
 						public void handle(FileContentPart response) {
@@ -189,7 +189,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 							}
 							
 							if(response.endOfContent()) {
-								future.complete(byteOutput.toByteArray());
+								future.complete(byteOutput);
 							}
 						}
 						
@@ -200,20 +200,13 @@ public class DefaultStorageNameStick implements StorageNameStick {
 						}
 					});
                 	
-                	byte[] bytes = future.get();
-                	
+                	ByteArrayOutputStream byteStream = future.get();
+                	FileContent content = FileDecoder.contents(byteStream.toByteArray());
                     return new InputItem() {
 
                         @Override
                         public byte[] getBytes() {
-                        	try {
-								return FileDecoder.contents(bytes).getData().toByteArray();
-							} catch (Exception e) {
-								e.printStackTrace();
-								System.out.println(">>>>>" + bytes.length);
-							}
-                        	
-                        	return null;
+                        	return content.getData().toByteArray();
                         }
                     };
                 	
@@ -230,7 +223,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
 				} catch (Exception e) {
 					// 使用选择的server没有读取到数据，需要进行排除
 	                excludePot.add(serviceMetaInfo.getReplicatPot());
-	                
 					continue;
 				}
             }

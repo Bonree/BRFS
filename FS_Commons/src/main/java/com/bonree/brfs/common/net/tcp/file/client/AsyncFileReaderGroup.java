@@ -2,7 +2,9 @@ package com.bonree.brfs.common.net.tcp.file.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -14,6 +16,8 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -24,6 +28,7 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
 
 public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileContentPart, AsyncFileReaderCreateConfig>, Closeable {
 	private EventLoopGroup group;
+	private List<Channel> channelList = Collections.synchronizedList(new ArrayList<>());
 	
 	public AsyncFileReaderGroup(int workerNum) {
 		this.group = new NioEventLoopGroup(workerNum, new PooledThreadFactory("async_file_reader"));
@@ -106,17 +111,34 @@ public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileCont
 			return null;
 		}
 		
-		reader.attach(future.channel());
+		Channel channel = future.channel();
+		channelList.add(channel);
+		channel.closeFuture().addListener(new ChannelFutureListener() {
+			
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				channelList.remove(channel);
+			}
+		});
+		
+		reader.attach(channel);
 		return reader;
 	}
 
 	@Override
 	public void close() throws IOException {
-		try {
-			group.shutdownGracefully().sync();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		Channel[] channels;
+		synchronized (channelList) {
+			channels = new Channel[channelList.size()];
+			channelList.toArray(channels);
+			channelList.clear();
 		}
+		
+		for(Channel channel : channels) {
+			channel.close();
+		}
+		
+		group.shutdownGracefully();
 	}
 	
 }

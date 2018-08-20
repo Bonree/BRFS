@@ -1,7 +1,9 @@
 package com.bonree.brfs.common.net.tcp.client;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -16,6 +18,9 @@ import io.netty.handler.timeout.IdleStateHandler;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
@@ -30,6 +35,7 @@ public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResp
 	private static final Logger LOG = LoggerFactory.getLogger(AsyncTcpClientGroup.class);
 	
 	private EventLoopGroup group;
+	private List<Channel> channelList = Collections.synchronizedList(new ArrayList<Channel>());
 	
 	private static final int DEFAULT_WRITE_IDLE_TIMEOUT_SECONDS = 5;
 
@@ -101,16 +107,35 @@ public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResp
 			return null;
 		}
 		
+		Channel channel = future.channel();
+		channelList.add(channel);
+		channel.closeFuture().addListener(new ChannelFutureListener() {
+			
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				channelList.remove(channel);
+			}
+		});
+		
 		LOG.info("create tcp client for {}", config.remoteAddress());
-		client.attach(future.channel());
+		client.attach(channel);
 		return client;
 	}
 
 	@Override
 	public void close() throws IOException {
-		try {
-			group.shutdownGracefully().sync();
-		} catch (InterruptedException e) {}
+		Channel[] channels;
+		synchronized (channelList) {
+			channels = new Channel[channelList.size()];
+			channelList.toArray(channels);
+			channelList.clear();
+		}
+		
+		for(Channel channel : channels) {
+			channel.close();
+		}
+		
+		group.shutdownGracefully();
 	}
 	
 }
