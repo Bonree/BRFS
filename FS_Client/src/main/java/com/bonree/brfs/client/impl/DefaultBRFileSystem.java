@@ -55,6 +55,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         this.httpClient = new HttpClient(ClientConfig.builder()
         		.setMaxConnection(config.getConnectionPoolSize())
         		.setMaxConnectionPerRoute(config.getConnectionPoolSize())
+        		.setIOThreadNum(config.getHandleThreadNum())
         		.build());
         
         this.defaultHeaders.put("username", config.getName());
