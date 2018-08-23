@@ -7,6 +7,8 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.core.util.CloseUtil;
+
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
@@ -16,6 +18,7 @@ import com.bonree.brfs.common.net.tcp.file.ReadObject;
 import com.bonree.brfs.common.net.tcp.file.client.FileContentPart;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.disknode.boot.DataNodeBootStrap;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
@@ -45,7 +48,8 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 
 	@Override
 	public void close() throws IOException {
-		client.close();
+		CloseUtil.closeQuietly(client);
+		CloseUtils.closeQuietly(readClient);
 	}
 
 	@Override
