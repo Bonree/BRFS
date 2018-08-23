@@ -29,6 +29,11 @@ public class TcpDiskNodeConnectionPool implements DiskNodeConnectionPool {
 	private Executor executor;
 	
 	public TcpDiskNodeConnectionPool(ServiceManager serviceManager,
+			TcpClientGroup<BaseMessage, BaseResponse, TcpClientConfig> tcpClientGroup) {
+		this(serviceManager, tcpClientGroup, null);
+	}
+	
+	public TcpDiskNodeConnectionPool(ServiceManager serviceManager,
 			TcpClientGroup<BaseMessage, BaseResponse, TcpClientConfig> tcpClientGroup,
 			Executor executor) {
 		this.serviceManager = serviceManager;

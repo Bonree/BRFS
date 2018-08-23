@@ -131,16 +131,8 @@ public class BootStrap {
 //            HttpDiskNodeConnectionPool connectionPool = new HttpDiskNodeConnectionPool(serviceManager);
 //            finalizer.add(connectionPool);
             
-            AsyncTcpClientGroup tcpClientGroup = new AsyncTcpClientGroup(4);
-            ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-            TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup, executor);
-            finalizer.add(new Closeable() {
-				
-				@Override
-				public void close() throws IOException {
-					executor.shutdown();
-				}
-			});
+            AsyncTcpClientGroup tcpClientGroup = new AsyncTcpClientGroup(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM));
+            TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup);
             finalizer.add(tcpClientGroup);
             
             FilePathMaker pathMaker = new IDFilePathMaker(idManager);
