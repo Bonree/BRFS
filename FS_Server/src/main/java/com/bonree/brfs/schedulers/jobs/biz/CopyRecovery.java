@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.ByteUtils;
+import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.write.data.FSCode;
@@ -23,8 +25,8 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
+import com.bonree.brfs.disknode.client.TcpDiskNodeClient;
 import com.bonree.brfs.disknode.fileformat.impl.SimpleFileHeader;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -35,6 +37,9 @@ import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
+import com.bonree.brfs.schedulers.utils.LocalByteStreamConsumer;
+import com.bonree.brfs.schedulers.utils.LocalRandomFileConsumer;
+import com.bonree.brfs.schedulers.utils.TcpClientUtils;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class CopyRecovery {
@@ -209,9 +214,12 @@ public class CopyRecovery {
 		}
 		if(CopyCheckJob.RECOVERY_CRC.equals(operation)) {
 			boolean flag = FileCollection.check(dataPath + localPath);
-			LOG.warn("locaPath : {}, CRCSTATUS: {}", dataPath+localPath, flag);
+			LOG.debug("locaPath : {}, CRCSTATUS: {}", dataPath+localPath, flag);
 			if(flag) {
 				return true;
+			}else {
+				boolean status = FileUtils.deleteFile(dataPath+localPath);
+				LOG.info("{} crc is error!! delete {}", localPath,status);
 			}
 		}else {
 			File file = new File(dataPath + localPath);
@@ -240,7 +248,7 @@ public class CopyRecovery {
 				continue;
 			}
 			remotePath = "/"+snName + "/" + remoteIndex + "/" + dirName + "/" + fileName;
-			isSuccess = copyFrom(remoteService.getHost(), remoteService.getPort(), remotePath, dataPath + localPath);
+			isSuccess = copyFrom(remoteService.getHost(), remoteService.getPort(),remoteService.getExtraPort(),5000, remotePath, dataPath + localPath);
 			LOG.info("remote address [{}:{}], remote [{}], local [{}], stat [{}]",remoteService.getHost(),remoteService.getPort(), remotePath, localPath,isSuccess ? "success" :"fail");
 			if(isSuccess){
 				return true;
@@ -303,37 +311,28 @@ public class CopyRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static boolean copyFrom(String host, int port, String remotePath, String localPath) {
-		DiskNodeClient client = null;
+	public static boolean copyFrom(String host, int port,int export,int timeout, String remotePath, String localPath) {
+		TcpDiskNodeClient client = null;
 		BufferedOutputStream output = null;
 		byte[] crcCode = null;
 		byte[] data = null;
 		int bufferSize = 5 * 1024 * 1024;
 		boolean resultFlag = false;
 		try {
-			client = new HttpDiskNodeClient(host, port);
-			long length = client.getFileLength(remotePath);
-//			data = client.readData(remotePath, 0);
-			if (data == null || data.length == 0) {
-				return false;
-			}
-			long crc32Num = ByteUtils.crc(data);
-			crcCode = FSCode.LongToByte(crc32Num, 8);
-
-			output = new BufferedOutputStream(new FileOutputStream(localPath), bufferSize);
-			output.write(new SimpleFileHeader().getBytes());
-			output.write(data);
-			output.write(crcCode);
-			output.write(FSCode.tail);
-			output.flush();
-			return true;
+			client = TcpClientUtils.getClient(host, port, export, timeout);
+			LOG.warn("{}:{},{}:{}, read {} to local{}",host,port,host,export,remotePath,localPath);
+			LocalByteStreamConsumer consumer = new LocalByteStreamConsumer(localPath);
+			client.readFile(remotePath, consumer);
+			return consumer.getResult().get();
+		}catch (InterruptedException e) {
+			return false;
 		}
 		catch (FileNotFoundException e) {
-			LOG.error("{}", e);
 			return false;
 		}
 		catch (IOException e) {
-			LOG.error("{}", e);
+			return false;
+		}catch (ExecutionException e) {
 			return false;
 		}
 		finally {
@@ -342,17 +341,10 @@ public class CopyRecovery {
 					client.close();
 				}
 				catch (IOException e) {
-					LOG.error("{}", e);
+					e.printStackTrace();
 				}
 			}
-			if (output != null) {
-				try {
-					output.close();
-				}
-				catch (IOException e) {
-					LOG.error("{}", e);
-				}
-			}
+			
 		}
 	}
 }

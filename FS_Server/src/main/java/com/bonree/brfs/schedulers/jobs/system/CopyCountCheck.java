@@ -17,9 +17,9 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.HttpDiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.schedulers.utils.TcpClientUtils;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -143,7 +143,7 @@ public class CopyCountCheck {
 		String dirName = null;
 		for(Service service : services){
 			try {
-				client = new HttpDiskNodeClient(service.getHost(), service.getPort());
+				client = TcpClientUtils.getClient(service.getHost(), service.getPort(), service.getExtraPort(), 5000);
 				long granule = 0;
 				for(StorageRegion sn : snList){
 					granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();

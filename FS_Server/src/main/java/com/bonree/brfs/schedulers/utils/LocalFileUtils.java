@@ -269,6 +269,9 @@ public class LocalFileUtils {
 	public static List<Pair<Long,Long>> converPairByUniqueness(List<String> dirs){
 		Set<Pair<Long,Long>> pDirs = new HashSet<Pair<Long,Long>>();
 		Pair<Long,Long> pair = null;
+		if(dirs == null || dirs.isEmpty()) {
+			return new ArrayList<Pair<Long,Long>>();
+		}
 		for(String dir : dirs) {
 			pair = ananlyDirNames(dir);
 			pDirs.add(pair);
