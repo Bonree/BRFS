@@ -141,8 +141,7 @@ public class BootStrap {
 //            finalizer.add(connectionPool);
             
             AsyncTcpClientGroup tcpClientGroup = new AsyncTcpClientGroup(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM));
-//            TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup);
-            MockDiskNodeConnectionPool connectionPool = new MockDiskNodeConnectionPool();
+            TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup);
             finalizer.add(tcpClientGroup);
             
             FilePathMaker pathMaker = new IDFilePathMaker(idManager);
