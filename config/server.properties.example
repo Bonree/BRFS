@@ -24,6 +24,9 @@ regionnode.service.host = localhost
 # 副本节点服务端口
 regionnode.service.port = 8880
 
+# 副本节点服务的IO线程数
+regionnode.server.io.num = 8;
+
 # 副本节点日志文件夹
 regionnode.log.dir = /var/brfs/regionnode
 

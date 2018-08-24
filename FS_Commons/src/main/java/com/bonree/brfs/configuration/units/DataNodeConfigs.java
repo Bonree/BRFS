@@ -15,6 +15,9 @@ public final class DataNodeConfigs {
 	public static final ConfigUnit<Integer> CONFIG_FILE_PORT =
 			ConfigUnit.ofInt("datanode.file.server.port", 8900);
 	
+	public static final ConfigUnit<Integer> CONFIG_SERVER_IO_NUM =
+			ConfigUnit.ofInt("datanode.server.io.num", Runtime.getRuntime().availableProcessors());
+	
 	public static final ConfigUnit<String> CONFIG_DATA_ROOT =
 			ConfigUnit.ofString("datanode.data.root",
 					new File(System.getProperty(SystemProperties.PROP_BRFS_HOME, "."), "datas").getAbsolutePath());

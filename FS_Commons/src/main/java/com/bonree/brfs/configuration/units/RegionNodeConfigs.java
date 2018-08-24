@@ -13,6 +13,9 @@ public final class RegionNodeConfigs {
 	public static final ConfigUnit<Integer> CONFIG_PORT =
 			ConfigUnit.ofInt("regionnode.service.port", 8880);
 	
+	public static final ConfigUnit<Integer> CONFIG_SERVER_IO_THREAD_NUM =
+			ConfigUnit.ofInt("regionnode.server.io.num", Runtime.getRuntime().availableProcessors());
+	
 	public static final ConfigUnit<String> CONFIG_LOG_DIR_PATH =
 			ConfigUnit.ofString("regionnode.log.dir",
 					new File(System.getProperty(SystemProperties.PROP_BRFS_HOME, "."), "logs").getAbsolutePath());

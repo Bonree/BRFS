@@ -67,7 +67,7 @@ public class DataNodeBootStrap implements LifeCycle {
 		createRootDirIfNeeded(diskContext.getRootDir());
 		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
-		writerManager = new FileWriterManager(recorderManager);
+		writerManager = new FileWriterManager(recorderManager, new FileValidChecker());
 		writerManager.start();
 		
 		writerManager.rebuildFileWriterbyDir(diskContext.getRootDir());
@@ -90,8 +90,7 @@ public class DataNodeBootStrap implements LifeCycle {
 		
 		initializer.addMessageHandler(TYPE_RECOVER_FILE, new FileRecoveryMessageHandler(diskContext, serviceManager, writerManager, fileFormater, readerGroup));
 		
-		int workerThreadNum = Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_IO_WORKER_NUM,
-				String.valueOf(Runtime.getRuntime().availableProcessors())));
+		int workerThreadNum = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_SERVER_IO_NUM);
 		
 		ServerConfig config = new ServerConfig();
 		config.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")));
@@ -123,7 +122,9 @@ public class DataNodeBootStrap implements LifeCycle {
 			public String filePath(String path) {
 				return diskContext.getConcreteFilePath(path);
 			}
+			
 		}, ForkJoinPool.commonPool());
+		
 		fileServer = new TcpServer(config, fileInitializer);
 		fileServer.start();
 	}

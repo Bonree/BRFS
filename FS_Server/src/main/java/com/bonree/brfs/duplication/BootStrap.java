@@ -18,17 +18,26 @@ import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.net.http.HandleResult;
+import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpConfig;
+import com.bonree.brfs.common.net.http.HttpMessage;
+import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.common.net.http.netty.HttpAuthenticator;
 import com.bonree.brfs.common.net.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.net.http.netty.NettyHttpServer;
 import com.bonree.brfs.common.net.tcp.client.AsyncTcpClientGroup;
 import com.bonree.brfs.common.process.ProcessFinalizer;
+import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
+import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
+import com.bonree.brfs.common.write.data.DataItem;
+import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
@@ -132,7 +141,8 @@ public class BootStrap {
 //            finalizer.add(connectionPool);
             
             AsyncTcpClientGroup tcpClientGroup = new AsyncTcpClientGroup(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM));
-            TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup);
+//            TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup);
+            MockDiskNodeConnectionPool connectionPool = new MockDiskNodeConnectionPool();
             finalizer.add(tcpClientGroup);
             
             FilePathMaker pathMaker = new IDFilePathMaker(idManager);
@@ -147,8 +157,7 @@ public class BootStrap {
             		.setCentSize(Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_CENT_SIZE))
             		.start();
 
-            int workerThreadNum = Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_IO_WORKER_NUM,
-    				String.valueOf(Runtime.getRuntime().availableProcessors())));
+            int workerThreadNum = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_SERVER_IO_THREAD_NUM);
             HttpConfig httpConfig = HttpConfig.newBuilder()
     				.setHost(host)
     				.setPort(port)
@@ -216,7 +225,38 @@ public class BootStrap {
             StorageRegionWriter writer = new StorageRegionWriter(engineManager);
             
             NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-            requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer));
+//            requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer));
+            requestHandler.addMessageHandler("POST", new MessageHandler() {
+				
+				@Override
+				public boolean isValidRequest(HttpMessage message) {
+					return true;
+				}
+				
+				@Override
+				public void handle(HttpMessage msg, HandleResultCallback callback) {
+					WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
+					
+					DataItem[] items = writeMsg.getItems();
+					
+					String[] fids = new String[items.length];
+					for(int i = 0; i < fids.length; i++) {
+						fids[i] = "fdkjslakfhdkla;fjdas;jfldka;jflkdjslkfjdklsjflkdl";
+					}
+					
+					HandleResult r = new HandleResult();
+					r.setSuccess(true);
+					try {
+						r.setData(JsonUtils.toJsonBytes(fids));
+						callback.completed(r);
+						return;
+					} catch (JsonException e) {
+						e.printStackTrace();
+					}
+					
+					callback.completed(new HandleResult(false));
+				}
+			});
             requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
             requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(zookeeperPaths, serviceManager, storageNameManager));
             httpServer.addContextHandler(URI_DATA_ROOT, requestHandler);

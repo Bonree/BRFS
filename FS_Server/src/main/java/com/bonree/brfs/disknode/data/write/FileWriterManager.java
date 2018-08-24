@@ -21,6 +21,7 @@ import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
+import com.bonree.brfs.disknode.boot.FileValidChecker;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.buf.ByteArrayFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
@@ -41,6 +42,8 @@ public class FileWriterManager implements LifeCycle {
 	private WriteWorkerGroup workerGroup;
 	private WriteWorkerSelector workerSelector;
 	private RecordCollectionManager recorderManager;
+	
+	private FileValidChecker checker;
 
 	private static int recordCacheSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_RECORD_CACHE_SIZE);
 	private static int dataCacheSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_DATA_CACHE_SIZE);
@@ -50,19 +53,20 @@ public class FileWriterManager implements LifeCycle {
 	Duration fileIdleDuration = Duration.parse(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_IDLE_TIME));
 	private WheelTimer<String> timeoutWheel = new WheelTimer<String>((int) fileIdleDuration.getSeconds());
 
-	public FileWriterManager(RecordCollectionManager recorderManager) {
-		this(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager);
+	public FileWriterManager(RecordCollectionManager recorderManager, FileValidChecker checker) {
+		this(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager, checker);
 	}
 
-	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager) {
-		this(workerNum, new RandomWriteWorkerSelector(), recorderManager);
+	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager, FileValidChecker checker) {
+		this(workerNum, new RandomWriteWorkerSelector(), recorderManager, checker);
 	}
 
 	public FileWriterManager(int workerNum, WriteWorkerSelector selector,
-			RecordCollectionManager recorderManager) {
+			RecordCollectionManager recorderManager, FileValidChecker checker) {
 		this.workerGroup = new WriteWorkerGroup(workerNum);
 		this.workerSelector = selector;
 		this.recorderManager = recorderManager;
+		this.checker = checker;
 	}
 
 	@Override
@@ -143,9 +147,13 @@ public class FileWriterManager implements LifeCycle {
 					for(File recordFile : recordFileList) {
 						File dataFile = RecordFileBuilder.reverse(recordFile);
 						
-						LOG.info("reopen file [{}]", dataFile);
-						
-						rebuildFileWriter(dataFile);
+						if(checker.isValid(dataFile.getName())) {
+							LOG.info("reopen file [{}]", dataFile);
+							rebuildFileWriter(dataFile);
+						} else {
+							LOG.info("close expired file [{}]", dataFile);
+							recordFile.delete();
+						}
 					}
 				}
 			}

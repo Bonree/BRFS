@@ -140,6 +140,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			if(response != null && response.getCode() == ResponseCode.OK) {
 				return Longs.fromByteArray(response.getBody());
 			}
+			
 		} catch (Exception e) {
 			LOG.error("close file error", e);
 		}
