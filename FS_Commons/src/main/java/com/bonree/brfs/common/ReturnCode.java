@@ -7,23 +7,23 @@ import com.bonree.brfs.common.exception.BRFSException;
 public enum ReturnCode {
 
     SUCCESS(2000), // 成功
-    STORAGE_EXIST_ERROR(4001), // storage name已经存在
-    STORAGE_NAME_ERROR(40010),// storage name错误
-    STORAGE_REPLICATION_ERROR(40011), // storage name副本错误
-    STORAGE_TTL_ERROR(40012), // storage nameTTL错误
-    STORAGE_NONEXIST_ERROR(4002),   // storage name不存在
-    STORAGE_UPDATE_ERROR(4003),     // 更新storage name发生错误
-    STORAGE_REMOVE_ERROR(4004), // 移除storage name发生错误
-    STORAGE_OPT_ERROR(4005), // 创建storage name发生错误
-    USER_FORBID(3001), // 用户不行
-    INVALID_CODE(3002),
-    TIME_FORMATE_ERROR(3003),
-    TIME_EARLIER_THAN_CREATE_ERROR(3004),
-    FORBID_DELETE_CURRENT_ERROR(3005),
-	PARAMETER_ERROR(3006),
-	DELETE_DATA_ERROR(3007),
-	FORBID_DELETE_DATA_ERROR(3008),
-	TIME_GRANULE_ERROR(3009);
+    STORAGE_EXIST_ERROR(4001), // storage region已经存在
+    STORAGE_NAME_ERROR(40010),// storage region名称非法
+    STORAGE_REPLICATION_ERROR(40011), // 设置storage region副本错误
+    STORAGE_TTL_ERROR(40012), // storage region TTL错误
+    STORAGE_NONEXIST_ERROR(4002),   // storage region不存在
+    STORAGE_UPDATE_ERROR(4003),     // 更新storage region发生错误
+    STORAGE_REMOVE_ERROR(4004), // 移除storage region发生错误
+    STORAGE_OPT_ERROR(4005), // 创建storage region发生错误
+    USER_FORBID(3001), // 非法用户禁止
+    INVALID_CODE(3002), // 无效的响应码
+    TIME_FORMATE_ERROR(3003), // 时间格式错误
+    TIME_EARLIER_THAN_CREATE_ERROR(3004), // 时间早于storage region的创建时间
+    FORBID_DELETE_CURRENT_ERROR(3005), // 禁止删除当前粒度的时间
+	PARAMETER_ERROR(3006), // 参数错误
+	DELETE_DATA_ERROR(3007), // 删除数据错误
+	FORBID_DELETE_DATA_ERROR(3008), // 禁止删除错误
+	TIME_GRANULE_ERROR(3009); // 时间粒度错误
 
     // 成员变量
     private int code;
