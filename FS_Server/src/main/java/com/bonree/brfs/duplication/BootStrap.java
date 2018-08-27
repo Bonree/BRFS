@@ -224,38 +224,7 @@ public class BootStrap {
             StorageRegionWriter writer = new StorageRegionWriter(engineManager);
             
             NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-//            requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer));
-            requestHandler.addMessageHandler("POST", new MessageHandler() {
-				
-				@Override
-				public boolean isValidRequest(HttpMessage message) {
-					return true;
-				}
-				
-				@Override
-				public void handle(HttpMessage msg, HandleResultCallback callback) {
-					WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
-					
-					DataItem[] items = writeMsg.getItems();
-					
-					String[] fids = new String[items.length];
-					for(int i = 0; i < fids.length; i++) {
-						fids[i] = "fdkjslakfhdkla;fjdas;jfldka;jflkdjslkfjdklsjflkdl";
-					}
-					
-					HandleResult r = new HandleResult();
-					r.setSuccess(true);
-					try {
-						r.setData(JsonUtils.toJsonBytes(fids));
-						callback.completed(r);
-						return;
-					} catch (JsonException e) {
-						e.printStackTrace();
-					}
-					
-					callback.completed(new HandleResult(false));
-				}
-			});
+            requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer));
             requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
             requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(zookeeperPaths, serviceManager, storageNameManager));
             httpServer.addContextHandler(URI_DATA_ROOT, requestHandler);
