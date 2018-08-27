@@ -184,7 +184,45 @@ public class CopyCountCheck {
 			}
 			
 		}
-		return snMap;
+		return clearUnLawFiles(snMap);
+	}
+	public static Map<StorageRegion, List<String>> clearUnLawFiles(Map<StorageRegion,List<String>> data){
+		Map<StorageRegion, List<String>> rMap = new HashMap<>();
+		if(data == null || data.isEmpty()) {
+			return rMap;
+		}
+		StorageRegion sr = null;
+		List<String> files = null;
+		for(Map.Entry<StorageRegion, List<String>> entry : data.entrySet()) {
+			sr = entry.getKey();
+			files = entry.getValue();
+			files = clearUnLawFiles(files);
+			rMap.put(sr, files);
+		}
+		return rMap;
+	}
+	public static List<String> clearUnLawFiles(List<String> files){
+		List<String> rList = new ArrayList<String>();
+		if(files == null || files.isEmpty()) {
+			return rList;
+		}
+		List<String> errors = new ArrayList<String>();
+		String[] checks = null;
+		for(String file : files) {
+			// 排除rd文件
+			if(file.indexOf(".rd") > 0){
+				file = file.substring(0, file.indexOf(".rd"));
+				errors.add(file);
+				continue;
+			}
+			//排除非法数据
+			checks = BrStringUtils.getSplit(file, "_");
+			if(checks == null|| checks.length<=1) {
+				errors.add(file);
+				continue;
+			}
+		}
+		return filterErrors(files, errors);
 	}
 	/**
 	 * 概述：获取文件名列表
@@ -218,7 +256,7 @@ public class CopyCountCheck {
 		String fileName = null;
 		int lastIndex = 0;
 		String dirName = getFileName(dir); 
-		List<String> filterRd = new ArrayList<>();
+//		List<String> errorFiles = new ArrayList<>();
 		String[] checks = null; 
 		for(FileInfo file : files){
 			path = file.getPath();
@@ -226,21 +264,22 @@ public class CopyCountCheck {
 			if(dirName.equals(fileName)){
 				continue;
 			}
-			// 排除rd文件
-			if(fileName.indexOf(".rd") > 0){
-				fileName = fileName.substring(0, fileName.indexOf(".rd"));
-				filterRd.add(fileName);
-				continue;
-			}
+//			// 排除rd文件
+//			if(fileName.indexOf(".rd") > 0){
+//				fileName = fileName.substring(0, fileName.indexOf(".rd"));
+//				filterRd.add(fileName);
+//				continue;
+//			}
 			// 排除非法数据
-			checks = BrStringUtils.getSplit(fileName, "_");
-			if(checks == null|| checks.length<=1) {
-				filterRd.add(fileName);
-				continue;
-			}
+//			checks = BrStringUtils.getSplit(fileName, "_");
+//			if(checks == null|| checks.length<=1) {
+//				errorFiles.add(fileName);
+//				continue;
+//			}
 			strs.add(fileName);
 		}
-		return filterRd(strs, filterRd);
+//		return filterErrors(strs, errorFiles);
+		return strs;
 	}
 	/**
 	 * 概述：过滤rd文件
@@ -249,7 +288,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> filterRd(final List<String> files, final List<String> rds){
+	public static List<String> filterErrors(final List<String> files, final List<String> rds){
 		List<String> rFiles = new ArrayList<>();
 		if(files == null || files.isEmpty()){
 			return rFiles;
