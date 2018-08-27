@@ -121,17 +121,11 @@ public class TasksUtils {
 	public static String createCopyTask(String taskName) {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
-		StorageRegionManager snm = mcf.getSnm();
-		List<StorageRegion> snList = snm.getStorageRegionList();
-		if(snList == null || snList.isEmpty()) {
-			return null;
-		}
 		List<String> sNames = release.getTaskServerList(TaskType.SYSTEM_CHECK.name(), taskName);
 		if(sNames == null|| sNames.isEmpty()) {
 			return null;
 		}
 		List<TaskServerNodeModel> sTasks = new ArrayList<TaskServerNodeModel>();
-		Map<String,Integer> copyMap = getReplicationMap(snList);
 		TaskServerNodeModel sTask = null;
 		for(String sName : sNames) {
 			sTask = release.getTaskServerContentNodeInfo(TaskType.SYSTEM_CHECK.name(), taskName, sName);
@@ -143,7 +137,7 @@ public class TasksUtils {
 		if(sTasks == null || sTasks.isEmpty()) {
 			return null;
 		}
-		TaskModel task = getErrorFile(sTasks, copyMap);
+		TaskModel task = getErrorFile(sTasks);
 		String tName = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
 		if(BrStringUtils.isEmpty(tName)) {
 			return null;
@@ -153,6 +147,12 @@ public class TasksUtils {
 		}
 		return tName;
 	}
+	/**
+	 * 概述：获取sr的副本数
+	 * @param snList
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	private static Map<String,Integer> getReplicationMap(List<StorageRegion> snList){
 		if(snList == null || snList.isEmpty()) {
 			return null;
@@ -174,7 +174,7 @@ public class TasksUtils {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static TaskModel getErrorFile(List<TaskServerNodeModel> taskContents, Map<String,Integer> snMap){
+	public static TaskModel getErrorFile(List<TaskServerNodeModel> taskContents){
 		if(taskContents == null || taskContents.isEmpty()) {
 			return null;
 		}
@@ -186,6 +186,7 @@ public class TasksUtils {
 		String snName = null;
 		String key = null;
 		AtomTaskModel atom = null;
+		Map<String,Integer> snMap = new HashMap<String,Integer>();
 		for(TaskServerNodeModel serverModel : taskContents) {
 			tmpR = serverModel.getResult();
 			if(tmpR == null) {
@@ -202,6 +203,9 @@ public class TasksUtils {
 				snName = r.getSn();
 				if(!rmap.containsKey(snName)) {
 					rmap.put(snName, new HashMap<String,AtomTaskModel>());
+				}
+				if(!snMap.containsKey(snName)) {
+					snMap.put(snName, r.getPartNum());
 				}
 				emap = rmap.get(snName);
 				key = r.getDataStartTime() + "_"+r.getDataStopTime();

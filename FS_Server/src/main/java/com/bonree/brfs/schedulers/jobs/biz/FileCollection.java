@@ -177,7 +177,7 @@ public class FileCollection {
 			}
 			
 		}
-		return CopyCountCheck.filterRd(part, filters);
+		return CopyCountCheck.filterErrors(part, filters);
 	}
 	/**
 	 * 概述：收集crc校验错误的文件
