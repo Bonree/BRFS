@@ -8,7 +8,6 @@ import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.io.File;
-import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +21,7 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 	
 	private ReadObjectTranslator translator;
 	
-	public FileReadHandler(ReadObjectTranslator translator, Executor executor) {
+	public FileReadHandler(ReadObjectTranslator translator) {
 		this.translator = translator;
 	}
 

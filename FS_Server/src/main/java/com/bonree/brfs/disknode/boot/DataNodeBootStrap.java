@@ -1,8 +1,5 @@
 package com.bonree.brfs.disknode.boot;
 
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,7 +51,6 @@ public class DataNodeBootStrap implements LifeCycle {
 	private TcpServer fileServer;
 	private ExecutorService threadPool;
 	private AsyncFileReaderGroup readerGroup;
-	private ExecutorService fileExecutor;
 	
 	public DataNodeBootStrap(ServiceManager serviceManager) {
 		this.diskContext = new DiskContext(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
@@ -88,26 +84,25 @@ public class DataNodeBootStrap implements LifeCycle {
 		initializer.addMessageHandler(TYPE_METADATA, new MetadataFetchMessageHandler(diskContext, writerManager, fileFormater));
 		initializer.addMessageHandler(TYPE_LIST_FILE, new ListFileMessageHandler(diskContext));
 		
-		initializer.addMessageHandler(TYPE_RECOVER_FILE, new FileRecoveryMessageHandler(diskContext, serviceManager, writerManager, fileFormater, readerGroup));
-		
-		int workerThreadNum = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_SERVER_IO_NUM);
+		initializer.addMessageHandler(TYPE_RECOVER_FILE,
+				new FileRecoveryMessageHandler(diskContext, serviceManager, writerManager, fileFormater, readerGroup));
 		
 		ServerConfig config = new ServerConfig();
 		config.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")));
 		config.setBossThreadNums(1);
-		config.setWorkerThreadNums(workerThreadNum);
+		config.setWorkerThreadNums(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_SERVER_IO_NUM));
 		config.setPort(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT));
 		config.setHost(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST));
 		
-		EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-		EventLoopGroup workerGroup = new NioEventLoopGroup(config.getWorkerThreadNums());
-		
-		server = new TcpServer(config, initializer, bossGroup, workerGroup);
+		server = new TcpServer(config, initializer);
 		server.start();
 		
-		config.setPort(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_PORT));
-		fileExecutor = Executors.newFixedThreadPool(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_READER_NUM),
-				new PooledThreadFactory("file_reader"));
+		ServerConfig fileServerConfig = new ServerConfig();
+		fileServerConfig.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")));
+		fileServerConfig.setBossThreadNums(1);
+		fileServerConfig.setWorkerThreadNums(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_READER_NUM));
+		fileServerConfig.setPort(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_PORT));
+		fileServerConfig.setHost(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST));
 		FileChannelInitializer fileInitializer = new FileChannelInitializer(new ReadObjectTranslator() {
 			
 			@Override
@@ -125,9 +120,9 @@ public class DataNodeBootStrap implements LifeCycle {
 				return diskContext.getConcreteFilePath(path);
 			}
 			
-		}, fileExecutor);
+		});
 		
-		fileServer = new TcpServer(config, fileInitializer);
+		fileServer = new TcpServer(fileServerConfig, fileInitializer);
 		fileServer.start();
 	}
 	
@@ -155,8 +150,6 @@ public class DataNodeBootStrap implements LifeCycle {
 		}
 		
 		readerGroup.close();
-		
-		fileExecutor.shutdown();
 	}
 
 }
