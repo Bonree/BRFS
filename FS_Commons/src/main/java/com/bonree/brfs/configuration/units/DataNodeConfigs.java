@@ -39,6 +39,9 @@ public final class DataNodeConfigs {
 	
 	public static final ConfigUnit<Integer> CONFIG_REQUEST_HANDLER_NUM =
 			ConfigUnit.ofInt("datanode.request.handler.num", Runtime.getRuntime().availableProcessors());
+	
+	public static final ConfigUnit<Integer> CONFIG_FILE_READER_NUM =
+			ConfigUnit.ofInt("datanode.file.reader.num", Runtime.getRuntime().availableProcessors());
 
 	private DataNodeConfigs() {}
 }

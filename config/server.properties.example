@@ -91,6 +91,9 @@ datanode.data.root = /data
 # 磁盘节点中用于处理Http请求的线程数
 #datanode.request.handler.num = 8
 
+# datanode中进行文件读取的线程数
+#datanode.file.reader.num = 8
+
 ###############################################
 ##############文件平衡模块 Config################
 ###############################################

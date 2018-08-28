@@ -6,7 +6,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 
 import com.bonree.brfs.common.net.tcp.MessageChannelInitializer;
 import com.bonree.brfs.common.net.tcp.ServerConfig;
@@ -55,6 +54,7 @@ public class DataNodeBootStrap implements LifeCycle {
 	private TcpServer fileServer;
 	private ExecutorService threadPool;
 	private AsyncFileReaderGroup readerGroup;
+	private ExecutorService fileExecutor;
 	
 	public DataNodeBootStrap(ServiceManager serviceManager) {
 		this.diskContext = new DiskContext(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
@@ -106,6 +106,8 @@ public class DataNodeBootStrap implements LifeCycle {
 		server.start();
 		
 		config.setPort(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_PORT));
+		fileExecutor = Executors.newFixedThreadPool(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_READER_NUM),
+				new PooledThreadFactory("file_reader"));
 		FileChannelInitializer fileInitializer = new FileChannelInitializer(new ReadObjectTranslator() {
 			
 			@Override
@@ -123,7 +125,7 @@ public class DataNodeBootStrap implements LifeCycle {
 				return diskContext.getConcreteFilePath(path);
 			}
 			
-		}, ForkJoinPool.commonPool());
+		}, fileExecutor);
 		
 		fileServer = new TcpServer(config, fileInitializer);
 		fileServer.start();
@@ -153,6 +155,8 @@ public class DataNodeBootStrap implements LifeCycle {
 		}
 		
 		readerGroup.close();
+		
+		fileExecutor.shutdown();
 	}
 
 }
