@@ -1,5 +1,5 @@
 
-package com.bonree.brfs.schedulers.jobs.biz;
+package com.bonree.brfs.schedulers.utils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -37,9 +37,6 @@ import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
-import com.bonree.brfs.schedulers.utils.LocalByteStreamConsumer;
-import com.bonree.brfs.schedulers.utils.LocalRandomFileConsumer;
-import com.bonree.brfs.schedulers.utils.TcpClientUtils;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class CopyRecovery {

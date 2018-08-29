@@ -69,7 +69,7 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 			LOG.info("select services time [{}]", select2 - select1);
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		LOG.info("disk group : {}, services:{}",groupName,servers);
 		// 若过滤不出正常的则采用随机

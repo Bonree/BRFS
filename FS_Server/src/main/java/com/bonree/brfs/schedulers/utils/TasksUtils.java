@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.Service;
@@ -31,6 +34,7 @@ import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 public class TasksUtils {
+	private static final Logger LOG = LoggerFactory.getLogger("TasksUtils");
 	/**
 	 * 概述：
 	 * @param services
@@ -117,12 +121,18 @@ public class TasksUtils {
 		task.setTaskType(taskType.code());
 		return task;
 	}
-
+	/**
+	 * 概述：根据CRC校验任务，创建副本数校验任务
+	 * @param taskName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
 	public static String createCopyTask(String taskName) {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		List<String> sNames = release.getTaskServerList(TaskType.SYSTEM_CHECK.name(), taskName);
 		if(sNames == null|| sNames.isEmpty()) {
+			LOG.error("CRC task [{}] get serviceList is empty!!!",taskName);
 			return null;
 		}
 		List<TaskServerNodeModel> sTasks = new ArrayList<TaskServerNodeModel>();
@@ -135,11 +145,13 @@ public class TasksUtils {
 			sTasks.add(sTask);
 		}
 		if(sTasks == null || sTasks.isEmpty()) {
+			LOG.error("CRC task [{}] get task service List is empty!!!",taskName);
 			return null;
 		}
 		TaskModel task = getErrorFile(sTasks);
 		String tName = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
 		if(BrStringUtils.isEmpty(tName)) {
+			LOG.error("CRC task [{}] create task fail !!!",taskName);
 			return null;
 		}
 		for(String sname :sNames) {

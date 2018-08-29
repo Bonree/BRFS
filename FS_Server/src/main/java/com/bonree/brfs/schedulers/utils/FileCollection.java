@@ -1,4 +1,4 @@
-package com.bonree.brfs.schedulers.jobs.biz;
+package com.bonree.brfs.schedulers.utils;
 
 import java.io.File;
 import java.io.IOException;
