@@ -20,7 +20,6 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
-import com.bonree.brfs.schedulers.jobs.system.CopyCountCheck;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*****************************************************************************
