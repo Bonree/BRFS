@@ -18,26 +18,17 @@ import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
-import com.bonree.brfs.common.net.http.HandleResult;
-import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.HttpConfig;
-import com.bonree.brfs.common.net.http.HttpMessage;
-import com.bonree.brfs.common.net.http.MessageHandler;
 import com.bonree.brfs.common.net.http.netty.HttpAuthenticator;
 import com.bonree.brfs.common.net.http.netty.NettyHttpRequestHandler;
 import com.bonree.brfs.common.net.http.netty.NettyHttpServer;
 import com.bonree.brfs.common.net.tcp.client.AsyncTcpClientGroup;
 import com.bonree.brfs.common.process.ProcessFinalizer;
-import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
-import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.common.write.data.DataItem;
-import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
@@ -63,8 +54,8 @@ import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.ReadDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.WriteDataMessageHandler;
+import com.bonree.brfs.duplication.datastream.writer.DefaultStorageRegionWriter;
 import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
-import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
@@ -221,7 +212,7 @@ public class BootStrap {
             
             finalizer.add(engineManager);
             
-            StorageRegionWriter writer = new StorageRegionWriter(engineManager);
+            DefaultStorageRegionWriter writer = new DefaultStorageRegionWriter(engineManager);
             
             NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
             requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer));

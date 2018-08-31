@@ -62,6 +62,23 @@ public final class ProtoStuffUtils {
 	 * @param bytes
 	 * @param cls
 	 * @return
+	 * @throws Exception 
+	 */
+	public static <T> T deserializeThrowable(byte[] bytes, Class<T> cls) throws Exception {
+		T obj = newInstance(cls);
+		@SuppressWarnings("unchecked")
+		Schema<T> schema = (Schema<T>) RuntimeSchema.getSchema(obj.getClass());
+        ProtostuffIOUtil.mergeDelimitedFrom(new ByteArrayInputStream(bytes), obj, schema);
+		
+		return obj;
+	}
+	
+	/**
+	 * 通过字节数组解析对象
+	 * 
+	 * @param bytes
+	 * @param cls
+	 * @return
 	 */
 	public static <T> T deserialize(byte[] bytes, Class<T> cls) {
 		T obj = null;
