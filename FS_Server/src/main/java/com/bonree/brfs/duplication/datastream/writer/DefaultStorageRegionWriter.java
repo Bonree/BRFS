@@ -32,6 +32,11 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
 		AtomicReferenceArray<String> fids = new AtomicReferenceArray<String>(items.length);
 		AtomicInteger count = new AtomicInteger(items.length);
 		for(int i = 0; i < items.length; i++) {
+			if(items[i].getBytes() == null) {
+				LOG.error("write erro because of null bytes");
+				callback.error();
+				continue;
+			}
 			dataEngine.store(items[i].getBytes(), new DataCallback(i, fids, count, callback));
 		}
 	}
