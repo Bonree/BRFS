@@ -26,17 +26,23 @@ public class WriteDataMessageHandler implements MessageHandler {
 
 	@Override
 	public void handle(HttpMessage msg, HandleResultCallback callback) {
-		WriteDataMessage writeMsg = ProtoStuffUtils.deserialize(msg.getContent(), WriteDataMessage.class);
-		
-		DataItem[] items = writeMsg.getItems();
-		LOG.debug("Writing DataItem[{}]", items.length);
-		
-		if(items == null || items.length == 0) {
-			callback.completed(new HandleResult(true));
-			return;
+		WriteDataMessage writeMsg;
+		try {
+			writeMsg = ProtoStuffUtils.deserializeThrowable(msg.getContent(), WriteDataMessage.class);
+			
+			DataItem[] items = writeMsg.getItems();
+			LOG.debug("Writing DataItem[{}]", items.length);
+			
+			if(items == null || items.length == 0) {
+				callback.completed(new HandleResult(true));
+				return;
+			}
+			
+			writer.write(writeMsg.getStorageNameId(), items, new DataWriteCallback(callback));
+		} catch (Exception e) {
+			LOG.error("handle write data message error", e);
+			callback.completed(new HandleResult(false));
 		}
-		
-		writer.write(writeMsg.getStorageNameId(), items, new DataWriteCallback(callback));
 	}
 
 	private class DataWriteCallback implements StorageRegionWriteCallback {
