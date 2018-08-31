@@ -95,11 +95,22 @@ public class TaskStateLifeContral {
 		}
 		release.updateTaskContentNode(task, taskType, taskname);
 		LOG.info("complete task :{} - {} - {}",taskType, taskname, TaskState.valueOf(task.getTaskState()).name());
-		if(TaskType.SYSTEM_CHECK.name().equals(taskType)) {
-			String cTask = TasksUtils.createCopyTask(taskname);
-			LOG.info("SYSTEM_CHECK task [{}] check for errors. create SYSTEM_COPY_CHECK task [{}] ", taskname, cTask);
+		if(TaskType.SYSTEM_CHECK.name().equals(taskType)&&isException) {
+			TaskModel cTask = TasksUtils.converyCopyTaskModel(release, taskname);
+			if(cTask == null) {
+				LOG.error("[{}]:[{}] task can't recovery !!!", taskType, taskname);
+				return;
+			}
+			String str = TasksUtils.createCopyTask(release, taskname,cTask);
+			if(BrStringUtils.isEmpty(str)) {
+				boolean flag = release.setTransferTask(taskType, taskname);
+				LOG.info("[{}] task [{}] find error ,transfer task create {}  ", taskType, taskname, flag ? "succefull !!!" : " fail !!!");
+			}else {
+				LOG.info("[{}]:[{}] find error create copy task [{}] to recovery ",taskType, taskname, str);
+			}
 		}
 	}
+	
 	/**
 	 * 概述：更新任务map的任务状态
 	 * @param context
@@ -130,7 +141,6 @@ public class TaskStateLifeContral {
 		sumResult.setSuccess(isSuccess && sumResult.isSuccess());
 		String sumContent = JsonUtils.toJsonStringQuietly(sumResult);
 		data.put(JobDataMapConstract.TASK_RESULT, sumContent);
-		LOG.info("Test end");
 	}
 	
 	/**
@@ -149,11 +159,11 @@ public class TaskStateLifeContral {
 		if(serverNode == null){
 			serverNode =new TaskServerNodeModel();
 		}
-		LOG.info("TaskMessage Run  sTask :{}", JsonUtils.toJsonStringQuietly(serverNode));
+		LOG.debug("TaskMessage Run  sTask :{}", JsonUtils.toJsonStringQuietly(serverNode));
 		serverNode.setTaskStartTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
 		serverNode.setTaskState(TaskState.RUN.code());
 		release.updateServerTaskContentNode(serverId, taskname, taskType, serverNode);
-		LOG.info("----> run server task :{} - {} - {} - {}",taskType, taskname, serverId, TaskState.valueOf(serverNode.getTaskState()).name());
+		LOG.debug("> run server task :{} - {} - {} - {}",taskType, taskname, serverId, TaskState.valueOf(serverNode.getTaskState()).name());
 		//查询任务节点状态，若不为RUN则获取分布式锁，修改为RUN
 		if(taskStat != TaskState.RUN.code() ){
 			TaskModel task = release.getTaskContentNodeInfo(taskType, taskname);
@@ -162,7 +172,7 @@ public class TaskStateLifeContral {
 			}
 			task.setTaskState(TaskState.RUN.code());
 			release.updateTaskContentNode(task, taskType, taskname);
-			LOG.info("----> run task :{} - {} - {}",taskType, taskname,  TaskState.valueOf(task.getTaskState()).name());
+			LOG.debug("run task :{} - {} - {}",taskType, taskname,  TaskState.valueOf(task.getTaskState()).name());
 		}
 	}
 	/**

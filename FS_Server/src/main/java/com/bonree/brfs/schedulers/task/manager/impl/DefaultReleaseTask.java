@@ -26,10 +26,14 @@ import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultReleaseTask.class);
+	private static final String QUEUE = "queue";
+	private static final String TRANSFER = "transfer";
 	private String zkUrl = null;
 	private String taskRootPath = null;
 	private String taskLockPath = null;
 	private ZookeeperClient client = null;
+	private String taskQueue = null;
+	private String taskTransfer = null;
 	private static class releaseInstance {
 		public static DefaultReleaseTask instance = new DefaultReleaseTask();
 	}
@@ -63,7 +67,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			int taskTypeIndex = current == null ? 0 : current.code();
 
 			StringBuilder pathBuilder = new StringBuilder();
-			pathBuilder.append(this.taskRootPath).append("/").append(taskType).append("/");
+			pathBuilder.append(this.taskQueue).append("/").append(taskType).append("/");
 			if(BrStringUtils.isEmpty(taskName)){
 				pathBuilder.append(taskTypeIndex);
 			}else{
@@ -111,7 +115,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return -2;
 			}
 			StringBuilder taskPath = new StringBuilder();
-			taskPath.append(taskRootPath).append("/").append(taskType).append("/").append(taskName);
+			taskPath.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName);
 			String path = taskPath.toString();
 			if (!client.checkExists(path)) {
 				return -3;
@@ -150,7 +154,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return false;
 			}
 			StringBuilder taskPath = new StringBuilder();
-			taskPath.append(taskRootPath).append("/").append(taskType).append("/").append(taskName).append("/").append(serverId);
+			taskPath.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName).append("/").append(serverId);
 			String path = taskPath.toString();
 			if (client.checkExists(path)) {
 				client.setData(path, datas);
@@ -231,7 +235,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			for (int i = maxIndex; i >= 0; i--) {
 				taskName = taskInfos.get(i);
 				path = new StringBuilder();
-				path.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName).append("/").append(
+				path.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName).append("/").append(
 					serverId);
 				taskPath = path.toString();
 				if (!client.checkExists(taskPath)) {
@@ -268,7 +272,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		for (int i = 0; i < size; i++) {
 			taskName = taskInfos.get(i);
 			path = new StringBuilder();
-			path.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName).append("/").append(
+			path.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName).append("/").append(
 				serverId);
 			taskPath = path.toString();
 			if (!client.checkExists(taskPath)) {
@@ -288,7 +292,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return false;
 			}
 			StringBuilder pathBuilder = new StringBuilder();
-			pathBuilder.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName);
+			pathBuilder.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName);
 			String path = pathBuilder.toString();
 			if (!client.checkExists(path)) {
 				return false;
@@ -353,7 +357,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return -2;
 			}
 			StringBuilder pathBuilder = new StringBuilder();
-			pathBuilder.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName);
+			pathBuilder.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName);
 			String path = pathBuilder.toString();
 			if (!client.checkExists(path)) {
 				return -3;
@@ -404,6 +408,8 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				throw new NullPointerException("task lock path is empty");
 			}
 			this.taskLockPath = lockPath;
+			this.taskQueue = this.taskRootPath + "/" + QUEUE;
+			this.taskTransfer = this.taskRootPath + "/" + TRANSFER;
 			client = CuratorClient.getClientInstance(this.zkUrl);
 		}
 		catch (Exception e) {
@@ -472,7 +478,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				}
 				// 获取任务下的子节点
 				taskPath = new StringBuilder();
-				taskPath.append(taskRootPath).append("/").append(taskType).append("/").append(taskName);
+				taskPath.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName);
 				tmpPath = taskPath.toString();
 				cServers = client.getChildren(tmpPath);
 				if((cServers == null || cServers.isEmpty()) && !exceptionFlag){
@@ -607,7 +613,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return taskContent;
 			}
 			StringBuilder taskPath = new StringBuilder();
-			taskPath.append(taskRootPath).append("/").append(taskType).append("/").append(taskName);
+			taskPath.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName);
 			String path = taskPath.toString();
 			if(!client.checkExists(path)){
 				return taskContent;
@@ -635,7 +641,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return taskServerNode;
 			}
 			StringBuilder taskPath = new StringBuilder();
-			taskPath.append(taskRootPath).append("/").append(taskType).append("/").append(taskName).append("/").append(serverId);
+			taskPath.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName).append("/").append(serverId);
 			String path = taskPath.toString();
 			if(!client.checkExists(path)){
 				return taskServerNode;
@@ -753,7 +759,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return childeServers;
 		}
 		StringBuilder pathStr = new StringBuilder();
-		pathStr.append(this.taskRootPath).append("/").append(taskType).append("/").append(taskName);
+		pathStr.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName);
 		String path = pathStr.toString();
 		childeServers = client.getChildren(path);
 		if (childeServers == null || childeServers.isEmpty()) {
@@ -773,7 +779,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			throw new NullPointerException("taskType is empty");
 		}
 		StringBuilder pathBuilder = new StringBuilder();
-		pathBuilder.append(this.taskRootPath).append("/").append(taskType);
+		pathBuilder.append(this.taskQueue).append("/").append(taskType);
 		String path = pathBuilder.toString();
 		if (!client.checkExists(path)) {
 			return null;
@@ -795,10 +801,10 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	public List<String> getTaskTypeList() {
 		List<String> taskTypeList = new ArrayList<String>();
 		StringBuilder pathBuilder = new StringBuilder();
-		if (!client.checkExists(this.taskRootPath)) {
+		if (!client.checkExists(this.taskQueue)) {
 			return taskTypeList;
 		}
-		taskTypeList = client.getChildren(this.taskRootPath);
+		taskTypeList = client.getChildren(this.taskQueue);
 		return taskTypeList;
 	}
 
@@ -808,7 +814,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return null;
 		}
 		StringBuilder pathBuilder = new StringBuilder();
-		pathBuilder.append(this.taskRootPath).append("/").append(taskType);
+		pathBuilder.append(this.taskQueue).append("/").append(taskType);
 		String path = pathBuilder.toString();
 		if(!client.checkExists(path)) {
 			System.out.println(path);
@@ -836,7 +842,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return false;
 		}
 		StringBuilder pathBuilder = new StringBuilder();
-		pathBuilder.append(this.taskRootPath).append("/").append(taskType);
+		pathBuilder.append(this.taskQueue).append("/").append(taskType);
 		String path = pathBuilder.toString();
 		if(client.checkExists(path)) {
 			client.setData(path, data);
@@ -844,6 +850,50 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			client.createPersistent(path, true, data);
 		}
 		return true;
+	}
+
+	@Override
+	public List<String> getTransferTask(String taskType) {
+		if(BrStringUtils.isEmpty(taskType)) {
+			return null;
+		}
+		String path = this.taskTransfer+"/"+taskType;
+		if(!client.checkExists(path)) {
+			return null;
+		}
+		return client.getChildren(path);
+	}
+
+	@Override
+	public boolean deleteTransferTask(String taskType, String taskName) {
+		if(BrStringUtils.isEmpty(taskType)) {
+			return false;
+		}
+		if(BrStringUtils.isEmpty(taskName)) {
+			return false;
+		}
+		String path = this.taskTransfer + "/" + taskType + "/" + taskName;
+		if(!client.checkExists(path)) {
+			return true;
+		}
+		client.delete(path, true);
+		return true;
+	}
+
+	@Override
+	public boolean setTransferTask(String taskType, String taskName) {
+		if(BrStringUtils.isEmpty(taskType)) {
+			return false;
+		}
+		if(BrStringUtils.isEmpty(taskName)) {
+			return false;
+		}
+		String path = this.taskTransfer + "/" + taskType + "/" + taskName;
+		if(client.checkExists(path)) {
+			return false;
+		}
+		String str = client.createPersistent(path, true);
+		return !BrStringUtils.isEmpty(str);
 	}
 
 }

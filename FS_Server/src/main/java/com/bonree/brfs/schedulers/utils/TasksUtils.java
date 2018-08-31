@@ -134,29 +134,90 @@ public class TasksUtils {
 			LOG.error("CRC task [{}] get serviceList is empty!!!",taskName);
 			return null;
 		}
+		
+		TaskModel task =converyCopyTaskModel(release, taskName);
+		return createTask(release, sNames, TaskType.SYSTEM_CHECK.name(), task);
+	}
+	public static String createCopyTask(MetaTaskManagerInterface release, String taskName,TaskModel task) {
+		List<String> sNames = release.getTaskServerList(TaskType.SYSTEM_CHECK.name(), taskName);
+		if(sNames == null|| sNames.isEmpty()) {
+			LOG.error("CRC task [{}] get serviceList is empty!!!",taskName);
+			return null;
+		}
+		return createTask(release, sNames, TaskType.SYSTEM_CHECK.name(), task);
+	}
+	public static TaskModel converyCopyTaskModel(MetaTaskManagerInterface release, String taskName) {
+		List<String> sNames = release.getTaskServerList(TaskType.SYSTEM_CHECK.name(), taskName);
+		if(sNames == null|| sNames.isEmpty()) {
+			LOG.error("CRC task [{}] get serviceList is empty!!!",taskName);
+			return null;
+		}
+		List<TaskServerNodeModel> sTasks = getServicesInfo(release, TaskType.SYSTEM_CHECK, taskName);
+		if(sTasks == null || sTasks.isEmpty()) {
+			LOG.error("CRC task [{}] get task service List is empty!!!",taskName);
+			return null;
+		}
+		return getErrorFile(sTasks);
+	}
+	/**
+	 * 概述： 
+	 * @param release
+	 * @param services
+	 * @param taskType
+	 * @param task
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static String createTask(MetaTaskManagerInterface release, List<String> services, String taskType, TaskModel task) {
+		String tName = null;
+		tName = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
+		if(BrStringUtils.isEmpty(tName)) {
+			return null;
+		}
+		for(String sname : services) {
+			release.updateServerTaskContentNode(sname, tName, TaskType.SYSTEM_COPY_CHECK.name(), TaskServerNodeModel.getInitInstance());
+		}
+		return tName;
+	}
+	/**
+	 * 概述：
+	 * @param release
+	 * @param taskType
+	 * @param name
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static TaskModel createCopyTask(MetaTaskManagerInterface release, TaskType taskType, String name) {
+		List<TaskServerNodeModel> sList = getServicesInfo(release, taskType, name);
+		if(sList == null) {
+			return null;
+		}
+		return TasksUtils.getErrorFile(sList);
+	}
+	/**
+	 * 概述：
+	 * @param release
+	 * @param taskType
+	 * @param name
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	public static List<TaskServerNodeModel> getServicesInfo(MetaTaskManagerInterface release, TaskType taskType, String name){
+		List<String> sNames = release.getTaskServerList(taskType.name(), name);
+		if(sNames == null|| sNames.isEmpty()) {
+			LOG.error("CRC task [{}] get serviceList is empty!!!",name);
+			return null;
+		}
 		List<TaskServerNodeModel> sTasks = new ArrayList<TaskServerNodeModel>();
 		TaskServerNodeModel sTask = null;
 		for(String sName : sNames) {
-			sTask = release.getTaskServerContentNodeInfo(TaskType.SYSTEM_CHECK.name(), taskName, sName);
+			sTask = release.getTaskServerContentNodeInfo(taskType.name(), name, sName);
 			if(sTask == null) {
 				continue;
 			}
 			sTasks.add(sTask);
 		}
-		if(sTasks == null || sTasks.isEmpty()) {
-			LOG.error("CRC task [{}] get task service List is empty!!!",taskName);
-			return null;
-		}
-		TaskModel task = getErrorFile(sTasks);
-		String tName = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
-		if(BrStringUtils.isEmpty(tName)) {
-			LOG.error("CRC task [{}] create task fail !!!",taskName);
-			return null;
-		}
-		for(String sname :sNames) {
-			release.updateServerTaskContentNode(sname, tName, TaskType.SYSTEM_COPY_CHECK.name(), TaskServerNodeModel.getInitInstance());
-		}
-		return tName;
+		return sTasks;
 	}
 	/**
 	 * 概述：获取sr的副本数
@@ -239,7 +300,6 @@ public class TasksUtils {
 		tTask.setTaskType(TaskType.SYSTEM_COPY_CHECK.code());
 		return  tTask;
 	}
-	
 	/**
 	 * 概述：收集可执行子任务
 	 * @param rmap

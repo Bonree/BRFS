@@ -222,4 +222,21 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	boolean setTaskTypeModel(String taskType,TaskTypeModel type);
+	/**
+	 * 概述：获取待处理的任务
+	 * @param taskType
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	List<String> getTransferTask(String taskType);
+	/**
+	 * 概述：删除待处理的任务
+	 * @param taskType
+	 * @param taskName
+	 * @return
+	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+	 */
+	boolean deleteTransferTask(String taskType, String taskName);
+	
+	boolean setTransferTask(String taskType, String taskName);
 }

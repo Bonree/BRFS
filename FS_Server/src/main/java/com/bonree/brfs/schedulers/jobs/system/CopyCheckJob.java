@@ -26,6 +26,7 @@ import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.CopyCountCheck;
 import com.bonree.brfs.schedulers.utils.CreateSystemTask;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
+import com.bonree.brfs.schedulers.utils.TasksUtils;
 
 public class CopyCheckJob extends QuartzOperationStateTask{
 	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
@@ -104,6 +105,20 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		tmodel.putAllSnTimes(sourceTimes);
 		release.setTaskTypeModel(taskType, tmodel);
 		LOG.info("update sn time {}", sourceTimes);
-		
+		createTransferTasks(release);
+	}
+	public void createTransferTasks(MetaTaskManagerInterface release) {
+		List<String> taskNames = release.getTransferTask(TaskType.SYSTEM_CHECK.name());
+		if(taskNames == null) {
+			return;
+		}
+		String result = null;
+		for(String name : taskNames) {
+			result = TasksUtils.createCopyTask(name);
+			if(BrStringUtils.isEmpty(result)) {
+				continue;
+			}
+			release.deleteTransferTask(TaskType.SYSTEM_CHECK.name(), name);
+		}
 	}
 }
