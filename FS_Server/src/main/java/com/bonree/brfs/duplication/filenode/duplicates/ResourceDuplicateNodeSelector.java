@@ -58,6 +58,7 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 		String groupName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
 		List<Service> serviceList = serviceManager.getServiceListByGroup(groupName);
 		if(serviceList == null || serviceList.isEmpty()) {
+			LOG.error("[{}] select service list is empty !!!!", groupName);
 			return new DuplicateNode[0];
 		}
 		List<Pair<String, Integer>> servers = null;
@@ -68,7 +69,7 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 			LOG.info("select services time [{}]", select2 - select1);
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("{}",e);
 		}
 		LOG.info("disk group : {}, services:{}",groupName,servers);
 		// 若过滤不出正常的则采用随机
@@ -81,12 +82,13 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 			dups = getRandom(storageId, nums);
 		}
 		long end = System.currentTimeMillis();
-		LOG.info("[DUP] select Times [{}]ms", end - start);
+		LOG.info("[DUP] select Times [{}]ms dups size {}", end - start, dups.length);
 		return dups;
 	}
 	private DuplicateNode[] getResource(int storageId, int nums,List<Pair<String,Integer>> servers) {
 		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 		if(serviceList.isEmpty()) {
+			LOG.error("[{}] resource select serviceList is empty !!!",Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 			return new DuplicateNode[0];
 		}
 		Map<String,Service> map = new HashMap<String,Service>();

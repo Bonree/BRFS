@@ -1,4 +1,4 @@
-package com.bonree.brfs.schedulers.jobs.system;
+package com.bonree.brfs.schedulers.utils;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -19,7 +19,6 @@ import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
-import com.bonree.brfs.schedulers.utils.TcpClientUtils;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

@@ -1,4 +1,4 @@
-package com.bonree.brfs.schedulers.jobs.biz;
+package com.bonree.brfs.schedulers.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +19,7 @@ import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
-import com.bonree.brfs.schedulers.jobs.system.CopyCountCheck;
+import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*****************************************************************************
@@ -103,6 +103,7 @@ public class WatchDog{
 						try {
 							path = preys.poll();
 							boolean deleteFlag = FileUtils.deleteFile(path);
+							LOG.info("file : {} deleting!",path);
 							if(!deleteFlag) {
 								LOG.info("file : {} cann't delete !!!",path);
 							}

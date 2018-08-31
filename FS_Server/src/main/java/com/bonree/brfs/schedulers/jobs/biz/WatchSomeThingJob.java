@@ -16,6 +16,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
+import com.bonree.brfs.schedulers.utils.WatchDog;
 
 public class WatchSomeThingJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("WatchSomeThingJob");

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.operation.impl.CycleJobWithZKTask;
+import com.bonree.brfs.schedulers.utils.CopyRecovery;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 
