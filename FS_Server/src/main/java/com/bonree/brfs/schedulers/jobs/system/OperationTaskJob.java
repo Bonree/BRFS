@@ -32,15 +32,10 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("OperationTaskJob");
 	@Override
 	public void caughtException(JobExecutionContext context) {
-		// TODO Auto-generated method stub
-		LOG.info(" happened Exception !!!");
 	}
 
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
-		// TODO Auto-generated method stub
-		LOG.info(" happened Interrupt !!!");
-		
 	}
 
 	@Override
