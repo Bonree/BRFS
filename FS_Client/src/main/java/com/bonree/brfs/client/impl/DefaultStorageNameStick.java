@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.joda.time.DateTime;
@@ -30,7 +29,6 @@ import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.net.tcp.client.ResponseHandler;
 import com.bonree.brfs.common.net.tcp.client.TcpClient;
 import com.bonree.brfs.common.net.tcp.file.ReadObject;
-import com.bonree.brfs.common.net.tcp.file.client.AsyncFileReaderGroup;
 import com.bonree.brfs.common.net.tcp.file.client.FileContentPart;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
