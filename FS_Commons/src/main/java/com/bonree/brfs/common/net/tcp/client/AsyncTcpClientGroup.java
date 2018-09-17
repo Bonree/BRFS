@@ -55,6 +55,7 @@ public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResp
 		Bootstrap bootstrap = new Bootstrap();
 		bootstrap.group(group);
 		bootstrap.channel(NioSocketChannel.class);
+		bootstrap.option(ChannelOption.TCP_NODELAY, true);
 		bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.connectTimeoutMillis());
 		
 		if(executor == null) {
