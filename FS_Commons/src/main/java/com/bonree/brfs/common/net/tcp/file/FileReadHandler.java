@@ -4,7 +4,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.io.File;
@@ -12,6 +11,9 @@ import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
+import com.bonree.brfs.common.write.data.FileDecoder;
+import com.google.common.io.Files;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 
@@ -49,10 +51,11 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 		ctx.write(Unpooled.wrappedBuffer(Bytes.concat(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength))));
 		
 		//zero-copy read
-        ctx.writeAndFlush(new DefaultFileRegion(file, readOffset, readableLength)).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+//        ctx.writeAndFlush(new DefaultFileRegion(file, readOffset, readableLength)).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         
         //normal read
-//        ctx.writeAndFlush(Unpooled.wrappedBuffer(Files.asByteSource(file).slice(readOffset, readableLength).read())).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+		FileContent content = FileDecoder.contents(Files.asByteSource(file).slice(readOffset, readableLength).read());
+        ctx.writeAndFlush(Unpooled.wrappedBuffer(content.getData().toByteArray())).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 	}
 
 	@Override

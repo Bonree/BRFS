@@ -199,12 +199,12 @@ public class DefaultStorageNameStick implements StorageNameStick {
 					});
                 	
                 	ByteArrayOutputStream byteStream = future.get();
-                	FileContent content = FileDecoder.contents(byteStream.toByteArray());
+//                	FileContent content = FileDecoder.contents(byteStream.toByteArray());
                     return new InputItem() {
 
                         @Override
                         public byte[] getBytes() {
-                        	return content.getData().toByteArray();
+                        	return byteStream.toByteArray();
                         }
                     };
                 	
