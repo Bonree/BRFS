@@ -48,14 +48,16 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 		}
 		
 		int readableLength = (int) Math.min(readLength, fileLength - readOffset);
-		ctx.write(Unpooled.wrappedBuffer(Bytes.concat(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength))));
+//		ctx.write(Unpooled.wrappedBuffer(Bytes.concat(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength))));
 		
 		//zero-copy read
 //        ctx.writeAndFlush(new DefaultFileRegion(file, readOffset, readableLength)).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         
         //normal read
 		FileContent content = FileDecoder.contents(Files.asByteSource(file).slice(readOffset, readableLength).read());
-        ctx.writeAndFlush(Unpooled.wrappedBuffer(content.getData().toByteArray())).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+		byte[] bytes = content.getData().toByteArray();
+		ctx.write(Unpooled.wrappedBuffer(Bytes.concat(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(bytes.length))));
+        ctx.writeAndFlush(Unpooled.wrappedBuffer(bytes)).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 	}
 
 	@Override
