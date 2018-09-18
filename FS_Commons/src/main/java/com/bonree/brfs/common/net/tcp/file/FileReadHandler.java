@@ -29,22 +29,22 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 	protected void channelRead0(ChannelHandlerContext ctx, ReadObject readObject)throws Exception {
 		File file = new File((readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
 				translator.filePath(readObject.getFilePath()) : readObject.getFilePath());
-		if(!file.exists() || !file.isFile()) {
-			LOG.error("unexcepted file path : {}", file.getAbsolutePath());
-			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
-			.addListener(ChannelFutureListener.CLOSE);
-			return;
-		}
-		
-//		long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
-//		int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
-//		long fileLength = file.length();
-//		if(readOffset < 0 || readOffset > fileLength) {
-//			LOG.error("unexcepted file offset : {}", readOffset);
+//		if(!file.exists() || !file.isFile()) {
+//			LOG.error("unexcepted file path : {}", file.getAbsolutePath());
 //			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
 //			.addListener(ChannelFutureListener.CLOSE);
 //			return;
 //		}
+		
+		long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
+		int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
+		long fileLength = file.length();
+		if(readOffset < 0 || readOffset > fileLength) {
+			LOG.error("unexcepted file offset : {}", readOffset);
+			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
+			.addListener(ChannelFutureListener.CLOSE);
+			return;
+		}
 //		
 //		int readableLength = (int) Math.min(readLength, fileLength - readOffset);
 		
