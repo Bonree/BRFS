@@ -24,7 +24,8 @@ public class ReadObjectEncoder extends MessageToByteEncoder<TokenMessage<ReadObj
 						readObject.getOffset(),
 						readObject.getLength(),
 						readObject.getRaw(),
-						readObject.getToken()).getBytes(Charsets.UTF_8));
+						readObject.getToken(),
+						"\n").getBytes(Charsets.UTF_8));
 	}
 
 }

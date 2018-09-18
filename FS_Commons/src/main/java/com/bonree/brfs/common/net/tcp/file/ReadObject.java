@@ -2,7 +2,6 @@ package com.bonree.brfs.common.net.tcp.file;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Joiner;
 
 public class ReadObject {
 	@JsonIgnore
