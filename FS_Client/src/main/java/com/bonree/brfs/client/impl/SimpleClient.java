@@ -10,6 +10,8 @@ import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.utils.InputUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.write.data.FidDecoder;
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
 
 public class SimpleClient {
@@ -25,7 +27,14 @@ public class SimpleClient {
     	readObject.setLength((int) fidObj.getSize());
     	
     	readObject.setToken(0);
-    	request = JsonUtils.toJsonBytes(readObject);
+//    	request = JsonUtils.toJsonBytes(readObject);
+    	request = Joiner.on(';')
+				.join(readObject.getFilePath(),
+						readObject.getOffset(),
+						readObject.getLength(),
+						readObject.getRaw(),
+						readObject.getToken(),
+						"\n").getBytes(Charsets.UTF_8);
     	
     	socket = new Socket();
     	socket.connect(new InetSocketAddress(ip, port));
