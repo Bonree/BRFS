@@ -10,6 +10,8 @@ import com.google.protobuf.ByteString;
 
 public class SimpleFileFormater implements FileFormater {
 	private final long capacity;
+	private FileHeader header = new SimpleFileHeader();
+	private FileTailer tailer = new SimpleFileTailer();
 	
 	public SimpleFileFormater(long capacity) {
 		Preconditions.checkArgument(capacity >= 0);
@@ -18,12 +20,12 @@ public class SimpleFileFormater implements FileFormater {
 
 	@Override
 	public FileHeader fileHeader() {
-		return new SimpleFileHeader();
+		return header;
 	}
 
 	@Override
 	public FileTailer fileTailer() {
-		return new SimpleFileTailer();
+		return tailer;
 	}
 
 	@Override
