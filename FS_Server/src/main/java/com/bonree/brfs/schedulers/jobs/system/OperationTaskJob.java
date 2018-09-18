@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
@@ -112,6 +113,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				}
 				if(TaskType.SYSTEM_CHECK.equals(taskType)){
 					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName(),dataPath);
+					LOG.error("[TEST TIP] : task : [{}], pattern:[{}], runTask:[{}]",JsonUtils.toJsonString(task),JsonUtils.toJsonString(runPattern),JsonUtils.toJsonString(sumbitTask));
 				}
 				if(TaskType.USER_DELETE.equals(taskType)){
 					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), UserDeleteJob.class.getCanonicalName(),dataPath);
@@ -164,7 +166,6 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		if(dataMap != null && !dataMap.isEmpty()){
 			task.setTaskContent(dataMap);
 		}
-		
 		task.setClassInstanceName(clazzName);
 		return task;
 	}

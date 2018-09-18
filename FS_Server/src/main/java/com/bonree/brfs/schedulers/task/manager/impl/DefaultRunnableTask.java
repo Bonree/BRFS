@@ -18,12 +18,12 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 	private long updateTime = 0;
 	private StatServerModel stat = null;
 	private TaskExecutablePattern  limit= null;
-	private Map<Integer,Integer> taskLevelMap = null;
-	private final static int REPEAT_COUNT [] = {1,2,4,8,10};
-	private final static long INTERVAL_TIME[] = {1000L, 2000L, 4000L, 8000L, 10000L};
+//	private Map<Integer,Integer> taskLevelMap = null;
+
 	private final static int batchCount = 5;
-	private final static long batchSleepTime = 5000;
+	private final static long batchSleepTime = 5000L;
 	private final static int maxbatchTimes = 10;
+	private final static long maxBatchSleepTime = 30000L;
 	private DefaultRunnableTask(){
 		
 	}
@@ -51,17 +51,16 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 	}
 	@Override
 	public void setTaskLevel(Map<Integer, Integer> taskLevel) {
-		this.taskLevelMap = taskLevel;
 	}
 	@Override
 	public TaskRunPattern taskRunnPattern(TaskModel task) throws Exception {
 		TaskRunPattern runPattern = new TaskRunPattern();
 		int type = task.getTaskType();
 		int dataSize = task.getAtomList().size();
-		
-		int repeadCount = (dataSize/batchCount) > maxbatchTimes ? maxbatchTimes : dataSize/batchCount;
-		repeadCount = repeadCount == 0 ? 1 : repeadCount;
-		long sleepTime = task.getTaskType() * batchSleepTime > 25000 ? 10000 : task.getTaskType() * batchSleepTime;
+		int repeadCount = 1;
+		repeadCount = ( dataSize % batchCount == 0 ) ? dataSize/batchCount :(dataSize/batchCount + 1);
+		repeadCount = repeadCount > maxbatchTimes ? maxbatchTimes : repeadCount <= 0 ? 1 : repeadCount;
+		long sleepTime = task.getTaskType() * batchSleepTime > maxBatchSleepTime ? maxBatchSleepTime : task.getTaskType() * batchSleepTime;
 		sleepTime = sleepTime == 0 ? batchSleepTime :sleepTime;
 		runPattern.setRepeateCount(repeadCount);
 		runPattern.setSleepTime(sleepTime);
@@ -92,20 +91,10 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 			return true;
 		}
 		if(TaskType.SYSTEM_CHECK.code() == taskType){
-			if(stat.getMemoryRate() < limit.getMemoryRate()){
-				return true;
-			}else{
-				LOG.warn("state memoryRate : {}, limit Rate :{}",stat.getMemoryRate(), limit.getMemoryRate());
-				return false;
-			}
+			return stat.getMemoryRate() < limit.getMemoryRate();
 		}
 		if(TaskType.SYSTEM_MERGER.code() == taskType){
-			
-			if(stat.getMemoryRate() < limit.getMemoryRate()){
-				return true;
-			}else{
-				return false;
-			}
+			return stat.getMemoryRate() < limit.getMemoryRate();
 		}
 		return true;
 	}
