@@ -2,6 +2,7 @@ package com.bonree.brfs.common.net.tcp.file.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -44,6 +45,8 @@ public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileCont
 		Bootstrap bootstrap = new Bootstrap();
 		bootstrap.group(group);
 		bootstrap.channel(NioSocketChannel.class);
+		bootstrap.option(ChannelOption.TCP_NODELAY, true);
+		bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator());
 		bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.connectTimeoutMillis());
 		
 		if(executor == null) {
