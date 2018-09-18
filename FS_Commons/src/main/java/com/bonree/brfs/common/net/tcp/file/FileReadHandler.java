@@ -61,6 +61,7 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		LOG.error("file read error", cause);
 		ctx.close();
 	}
 

@@ -18,7 +18,7 @@ public class FileChannelInitializer extends ChannelInitializer<SocketChannel> {
 		ChannelPipeline pipeline = ch.pipeline();
 //		pipeline.addLast(new JsonBytesDecoder(true));
 //		pipeline.addLast(new ReadObjectDecoder());
-		pipeline.addLast(new LineBasedFrameDecoder(1024));
+		pipeline.addLast(new LineBasedFrameDecoder(1024 * 16));
 		pipeline.addLast(new ReadObjectStringDecoder());
 		pipeline.addLast(new ChunkedWriteHandler());
 		pipeline.addLast(fileReadHandler);

@@ -14,6 +14,7 @@ public class ReadObjectStringDecoder extends ByteToMessageDecoder {
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		List<String> parts = Splitter.on(';').splitToList(in.toString(Charsets.UTF_8));
+		in.skipBytes(in.readableBytes());
 		
 		ReadObject object = new ReadObject();
 		object.setFilePath(parts.get(0));
