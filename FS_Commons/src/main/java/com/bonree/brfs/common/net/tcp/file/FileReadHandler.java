@@ -36,19 +36,20 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 			return;
 		}
 		
-		long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
-		int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
-		long fileLength = file.length();
-		if(readOffset < 0 || readOffset > fileLength) {
-			LOG.error("unexcepted file offset : {}", readOffset);
-			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
-			.addListener(ChannelFutureListener.CLOSE);
-			return;
-		}
+//		long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
+//		int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
+//		long fileLength = file.length();
+//		if(readOffset < 0 || readOffset > fileLength) {
+//			LOG.error("unexcepted file offset : {}", readOffset);
+//			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
+//			.addListener(ChannelFutureListener.CLOSE);
+//			return;
+//		}
+//		
+//		int readableLength = (int) Math.min(readLength, fileLength - readOffset);
 		
-		int readableLength = (int) Math.min(readLength, fileLength - readOffset);
-		
-		ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength), new byte[readableLength]));
+		ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()),
+				Ints.toByteArray(readObject.getLength()), new byte[readObject.getLength()]));
 //		ctx.write(Unpooled.wrappedBuffer(Bytes.concat(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength))));
 //		
 //		//zero-copy read
