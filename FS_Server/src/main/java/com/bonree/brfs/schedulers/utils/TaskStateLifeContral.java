@@ -15,7 +15,6 @@ import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
@@ -238,6 +237,7 @@ public class TaskStateLifeContral {
 			snName = atom.getStorageName();
 			partNum = atom.getPatitionNum();
 			List<String> dirs = LocalFileUtils.collectDucationTimeDirNames(dataPath, snName, startTime, endTime);
+			dirs = filterRepeadDirs(dirs);
 			List<Pair<Long,Long>> pDirs = LocalFileUtils.converPairByUniqueness(dirs);
 			List<Pair<Long,Long>> batchTimes = LocalFileUtils.sortTime(pDirs);
 			for(Pair<Long,Long> pair : batchTimes) {
@@ -247,9 +247,19 @@ public class TaskStateLifeContral {
 		}
 		return changeTask;
 	}
-	public static List<String> getNeedDirs(String dataPath, String snName, long startTime, long endTime){
-		return null;
+	public static List<String> filterRepeadDirs(List<String> files){
+		if(files == null || files.isEmpty()) {
+			return new ArrayList<String>();
+		}
+		List<String> nFiles = new ArrayList<String>();
+		for(String file : files) {
+			if(!nFiles.contains(file)) {
+				nFiles.add(file);
+			}
+		}
+		return nFiles;
 	}
+	
 	/**
 	 * 概述：将任务分批
 	 * @param message

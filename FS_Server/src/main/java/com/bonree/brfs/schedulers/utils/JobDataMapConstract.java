@@ -160,7 +160,10 @@ public class JobDataMapConstract {
 		Map<Integer,BatchAtomModel> batchMap = new HashMap<Integer,BatchAtomModel>();
 		BatchAtomModel batch = null;
 		int size = atoms == null ? 0 : atoms.size();
-		int batchSize = size%batchCount == 0 ? size/batchCount : size/batchCount + size%batchCount;
+		if(batchCount <= 0) {
+			throw new IllegalArgumentException("batch time below zero !!!") ;
+		}
+		int batchSize = size % batchCount == 0 ? size/batchCount : size/batchCount + size%batchCount;
 		int fromIndex = 0;
 		int rSize = 0;
 		for(int i = 1; i<=batchCount; i++) {
