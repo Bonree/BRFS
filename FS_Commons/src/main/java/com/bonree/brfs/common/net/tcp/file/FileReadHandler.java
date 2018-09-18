@@ -8,10 +8,14 @@ import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.utils.CloseUtils;
+import com.google.common.cache.LoadingCache;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 
@@ -27,26 +31,32 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, ReadObject readObject)throws Exception {
-		File file = new File((readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
-				translator.filePath(readObject.getFilePath()) : readObject.getFilePath());
-//		if(!file.exists() || !file.isFile()) {
-//			LOG.error("unexcepted file path : {}", file.getAbsolutePath());
-//			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
-//			.addListener(ChannelFutureListener.CLOSE);
-//			return;
-//		}
-		
-		long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
-		int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
-		long fileLength = file.length();
-		if(readOffset < 0 || readOffset > fileLength) {
-			LOG.error("unexcepted file offset : {}", readOffset);
+		String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
+				translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
+				
+		FileChannel fileChannel = null;
+		try {
+			fileChannel = new RandomAccessFile(filePath, "r").getChannel();
+			
+			long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
+			int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
+			long fileLength = fileChannel.size();
+			if(readOffset < 0 || readOffset > fileLength) {
+				LOG.error("unexcepted file offset : {}", readOffset);
+				ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
+				.addListener(ChannelFutureListener.CLOSE);
+				return;
+			}
+			
+			int readableLength = (int) Math.min(readLength, fileLength - readOffset);
+		} catch (Exception e) {
+			LOG.error("read file error", e);
 			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
 			.addListener(ChannelFutureListener.CLOSE);
 			return;
+		} finally {
+			CloseUtils.closeQuietly(fileChannel);
 		}
-//		
-//		int readableLength = (int) Math.min(readLength, fileLength - readOffset);
 		
 		ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()),
 				Ints.toByteArray(readObject.getLength()), new byte[readObject.getLength()]));
