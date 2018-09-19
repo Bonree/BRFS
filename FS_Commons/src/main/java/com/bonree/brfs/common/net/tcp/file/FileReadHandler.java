@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.io.RandomAccessFile;
@@ -73,6 +74,11 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 			}
 			
 			int readableLength = (int) Math.min(readLength, fileLength - readOffset);
+			
+			ctx.write(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
+			
+			//zero-copy read
+	        ctx.writeAndFlush(new DefaultFileRegion(fileChannel, readOffset, readableLength)).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 		} catch (ExecutionException e) {
 			LOG.error("can not open file channel for {}", filePath, e);
 			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
@@ -85,12 +91,8 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 			return;
 		}
 		
-		ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()),
-				Ints.toByteArray(readObject.getLength()), new byte[readObject.getLength()]));
-//		ctx.write(Unpooled.wrappedBuffer(Bytes.concat(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength))));
-//		
-//		//zero-copy read
-//        ctx.writeAndFlush(new DefaultFileRegion(file, readOffset, readableLength)).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+//		ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()),
+//				Ints.toByteArray(readObject.getLength()), new byte[readObject.getLength()]));
         
         //normal read
 //		FileContent content = FileDecoder.contents(Files.asByteSource(file).slice(readOffset, readableLength).read());
