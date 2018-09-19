@@ -23,7 +23,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.io.Files;
-import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 
 @Sharable
@@ -31,7 +30,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 	private static final Logger LOG = LoggerFactory.getLogger(MappedFileReadHandler.class);
 	
 	private ReadObjectTranslator translator;
-	private LoadingCache<String, MappedByteBuffer> channelCache = (LoadingCache<String, MappedByteBuffer>) CacheBuilder.newBuilder()
+	private LoadingCache<String, MappedByteBuffer> bufferCache = (LoadingCache<String, MappedByteBuffer>) CacheBuilder.newBuilder()
 			.concurrencyLevel(Runtime.getRuntime().availableProcessors())
 			.maximumSize(20)
 			.initialCapacity(10)
@@ -63,7 +62,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 		
 		MappedByteBuffer fileBuffer = null;
 		try {
-			fileBuffer = channelCache.get(filePath);
+			fileBuffer = bufferCache.get(filePath);
 			
 			long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
 			int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
@@ -95,7 +94,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			.addListener(ChannelFutureListener.CLOSE);
 			return;
 		} finally {
-			channelCache.cleanUp();
+			bufferCache.cleanUp();
 		}
 	}
 
