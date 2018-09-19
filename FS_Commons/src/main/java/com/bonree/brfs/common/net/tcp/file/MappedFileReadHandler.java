@@ -58,8 +58,10 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, ReadObject readObject)throws Exception {
-		String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
-				translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
+//		String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
+//				translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
+				
+				String filePath = "/root/temp/brfs/sss_1/1/2018-08-16T11-00-00_2018-08-16T12-00-00/b620a6b9d2c64d1fb409bb6ff5a23aa5_20_30";
 		
 		MappedByteBuffer fileBuffer = null;
 		try {
@@ -76,13 +78,14 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			}
 			
 			int readableLength = (int) Math.min(readLength, fileLength - readOffset);
-			ByteBuffer header = ByteBuffer.wrap(Bytes.concat(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
 			
 			ByteBuffer contentBuffer = fileBuffer.slice();
 			contentBuffer.position((int) readOffset);
 			contentBuffer.limit((int) (readOffset + readableLength));
 			
-	        ctx.writeAndFlush(Unpooled.wrappedBuffer(header, contentBuffer)).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+	        ctx.writeAndFlush(Unpooled.wrappedBuffer(ByteBuffer.wrap(Ints.toByteArray(readObject.getToken())),
+	        		ByteBuffer.wrap(Ints.toByteArray(readableLength)),
+	        		contentBuffer)).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 		} catch (ExecutionException e) {
 			LOG.error("can not open file channel for {}", filePath, e);
 			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
