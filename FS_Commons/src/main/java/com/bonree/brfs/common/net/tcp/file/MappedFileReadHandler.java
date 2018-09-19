@@ -83,7 +83,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			
 	        ctx.writeAndFlush(Unpooled.wrappedBuffer(ByteBuffer.wrap(Ints.toByteArray(readObject.getToken())),
 	        		ByteBuffer.wrap(Ints.toByteArray(readableLength)),
-	        		contentBuffer)).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+	        		contentBuffer.slice())).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 		} catch (ExecutionException e) {
 			LOG.error("can not open file channel for {}", filePath, e);
 			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
