@@ -4,19 +4,22 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.CloseUtils;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.primitives.Bytes;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import com.google.common.primitives.Ints;
 
 @Sharable
@@ -24,6 +27,27 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 	private static final Logger LOG = LoggerFactory.getLogger(FileReadHandler.class);
 	
 	private ReadObjectTranslator translator;
+	private LoadingCache<String, FileChannel> channelCache = (LoadingCache<String, FileChannel>) CacheBuilder.newBuilder()
+			.concurrencyLevel(Runtime.getRuntime().availableProcessors())
+			.maximumSize(200)
+			.initialCapacity(139)
+			.expireAfterAccess(30, TimeUnit.SECONDS)
+			.removalListener(new RemovalListener<String, FileChannel>() {
+
+				@Override
+				public void onRemoval(RemovalNotification<String, FileChannel> notification) {
+					CloseUtils.closeQuietly(notification.getValue());
+				}
+			})
+			.build(new CacheLoader<String, FileChannel>() {
+
+				@SuppressWarnings("resource")
+				@Override
+				public FileChannel load(String filePath) throws Exception {
+					return new RandomAccessFile(filePath, "r").getChannel();
+				}
+				
+			});
 	
 	public FileReadHandler(ReadObjectTranslator translator) {
 		this.translator = translator;
@@ -36,7 +60,7 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 				
 		FileChannel fileChannel = null;
 		try {
-			fileChannel = new RandomAccessFile(filePath, "r").getChannel();
+			fileChannel = channelCache.get(filePath);
 			
 			long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
 			int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
@@ -49,13 +73,16 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 			}
 			
 			int readableLength = (int) Math.min(readLength, fileLength - readOffset);
+		} catch (ExecutionException e) {
+			LOG.error("can not open file channel for {}", filePath, e);
+			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
+			.addListener(ChannelFutureListener.CLOSE);
+			return;
 		} catch (Exception e) {
 			LOG.error("read file error", e);
 			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
 			.addListener(ChannelFutureListener.CLOSE);
 			return;
-		} finally {
-			CloseUtils.closeQuietly(fileChannel);
 		}
 		
 		ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()),
