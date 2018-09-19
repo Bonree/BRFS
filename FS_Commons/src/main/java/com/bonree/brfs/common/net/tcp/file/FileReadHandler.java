@@ -32,12 +32,12 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 			.concurrencyLevel(Runtime.getRuntime().availableProcessors())
 			.maximumSize(200)
 			.initialCapacity(50)
-			.expireAfterAccess(30, TimeUnit.SECONDS)
+//			.expireAfterAccess(30, TimeUnit.SECONDS)
 			.removalListener(new RemovalListener<String, FileChannel>() {
 
 				@Override
 				public void onRemoval(RemovalNotification<String, FileChannel> notification) {
-					LOG.info("close file channel {}", notification.getKey());
+					LOG.info("close file channel {}", notification.getValue());
 					CloseUtils.closeQuietly(notification.getValue());
 				}
 			})
@@ -46,8 +46,9 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 				@SuppressWarnings("resource")
 				@Override
 				public FileChannel load(String filePath) throws Exception {
-					LOG.info("open file channel {}", filePath);
-					return new RandomAccessFile(filePath, "r").getChannel();
+					FileChannel channel = new RandomAccessFile(filePath, "r").getChannel();
+					LOG.info("open file channel {} for {}", channel, filePath);
+					return channel;
 				}
 				
 			});
@@ -64,6 +65,7 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 		FileChannel fileChannel = null;
 		try {
 			fileChannel = channelCache.get(filePath);
+			LOG.info("get channel {}", fileChannel);
 			
 			long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
 			int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
