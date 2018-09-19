@@ -58,10 +58,9 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, ReadObject readObject)throws Exception {
-//		String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
-//				translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
-				
-		String filePath = "/root/temp/brfs/sss_1/1/2018-08-16T11-00-00_2018-08-16T12-00-00/b620a6b9d2c64d1fb409bb6ff5a23aa5_20_30";
+		String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
+				translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
+		
 		FileChannel fileChannel = null;
 		try {
 			fileChannel = channelCache.get(filePath);
