@@ -31,12 +31,13 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 	private LoadingCache<String, FileChannel> channelCache = (LoadingCache<String, FileChannel>) CacheBuilder.newBuilder()
 			.concurrencyLevel(Runtime.getRuntime().availableProcessors())
 			.maximumSize(200)
-			.initialCapacity(139)
+			.initialCapacity(50)
 			.expireAfterAccess(30, TimeUnit.SECONDS)
 			.removalListener(new RemovalListener<String, FileChannel>() {
 
 				@Override
 				public void onRemoval(RemovalNotification<String, FileChannel> notification) {
+					LOG.info("close file channel {}", notification.getKey());
 					CloseUtils.closeQuietly(notification.getValue());
 				}
 			})
@@ -45,6 +46,7 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 				@SuppressWarnings("resource")
 				@Override
 				public FileChannel load(String filePath) throws Exception {
+					LOG.info("open file channel {}", filePath);
 					return new RandomAccessFile(filePath, "r").getChannel();
 				}
 				
