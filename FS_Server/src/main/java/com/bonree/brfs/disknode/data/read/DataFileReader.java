@@ -6,8 +6,8 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
+import com.bonree.brfs.common.utils.BufferUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
-import com.bonree.brfs.disknode.utils.BufferUtils;
 
 public class DataFileReader {
 	

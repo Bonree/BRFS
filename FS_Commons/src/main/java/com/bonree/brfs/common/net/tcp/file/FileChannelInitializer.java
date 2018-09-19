@@ -7,10 +7,10 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
 public class FileChannelInitializer extends ChannelInitializer<SocketChannel> {
-	private SimpleFileReadHandler fileReadHandler;
+	private MappedFileReadHandler fileReadHandler;
 	
 	public FileChannelInitializer(ReadObjectTranslator translator) {
-		this.fileReadHandler = new SimpleFileReadHandler(translator);
+		this.fileReadHandler = new MappedFileReadHandler(translator);
 	}
 
 	@Override
