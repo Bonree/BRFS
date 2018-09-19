@@ -23,8 +23,8 @@ import com.google.common.cache.RemovalNotification;
 import com.google.common.primitives.Ints;
 
 @Sharable
-public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
-	private static final Logger LOG = LoggerFactory.getLogger(FileReadHandler.class);
+public class ZeroCopyFileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
+	private static final Logger LOG = LoggerFactory.getLogger(ZeroCopyFileReadHandler.class);
 	
 	private ReadObjectTranslator translator;
 	private LoadingCache<String, FileChannel> channelCache = (LoadingCache<String, FileChannel>) CacheBuilder.newBuilder()
@@ -52,7 +52,7 @@ public class FileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
 				
 			});
 	
-	public FileReadHandler(ReadObjectTranslator translator) {
+	public ZeroCopyFileReadHandler(ReadObjectTranslator translator) {
 		this.translator = translator;
 	}
 
