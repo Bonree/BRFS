@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,11 +37,14 @@ import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.write.data.FidDecoder;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.common.write.data.WriteDataMessage;
 import com.google.common.base.Joiner;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 
 public class DefaultStorageNameStick implements StorageNameStick {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageNameStick.class);
@@ -56,6 +60,9 @@ public class DefaultStorageNameStick implements StorageNameStick {
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
     
     private ConnectionPool connectionPool;
+    
+    private Map<String, Long> durationCache = new HashMap<>();
+    private Table<Long, Integer, String> intervalCache = HashBasedTable.create();
 
     public DefaultStorageNameStick(String storageName, int storageId,
     		HttpClient client, DiskServiceSelectorCache selector,
@@ -143,6 +150,19 @@ public class DefaultStorageNameStick implements StorageNameStick {
             parts.add(String.valueOf(serverId));
         }
         
+        Long duration = durationCache.get(fidObj.getDuration());
+        if(duration == null) {
+        	duration = Duration.parse(fidObj.getDuration()).toMillis();
+        	durationCache.put(fidObj.getDuration(), duration);
+        }
+        
+        int count = (int) (fidObj.getTime() / duration);
+        String interval = intervalCache.get(duration, count);
+        if(interval == null) {
+        	interval = TimeUtils.timeInterval(fidObj.getTime(), duration);
+        	intervalCache.put(duration, count, interval);
+        }
+        
         try {
         	List<Integer> excludePot = new ArrayList<Integer>();
             // 最大尝试副本数个server
@@ -169,7 +189,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 //                	LOG.info("read url:" + uri);
 //					final HttpResponse response = client.executeGet(uri, defaultHeaders);
                 	ReadObject readObject = new ReadObject();
-                	readObject.setFilePath(FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot()));
+                	readObject.setFilePath(FilePathBuilder.buildPath(fidObj, interval, storageName, serviceMetaInfo.getReplicatPot()));
                 	readObject.setOffset(fidObj.getOffset());
                 	readObject.setLength((int) fidObj.getSize());
                 	
@@ -193,7 +213,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
 						
 						@Override
 						public void error(Throwable e) {
-							System.out.println("READ ERROR");
 							future.completeExceptionally(e);
 						}
 					});
