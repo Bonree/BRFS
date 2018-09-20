@@ -66,7 +66,6 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			
 			long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
 			int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
-			LOG.info("read {} of {}, {}", filePath, readOffset, readLength);
 			long fileLength = fileBuffer.capacity();
 			if(readOffset < 0 || readOffset > fileLength) {
 				LOG.error("unexcepted file offset : {}", readOffset);
