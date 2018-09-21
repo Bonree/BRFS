@@ -41,7 +41,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     private ServiceSelectorManager serviceSelectorManager;
     private RegionNodeSelector regionNodeSelector;
     
-    private Map<String, StorageNameStick> stickContainer = new HashMap<String, StorageNameStick>();
+//    private Map<String, StorageNameStick> stickContainer = new HashMap<String, StorageNameStick>();
     
     private FileSystemConfig config;
     
@@ -215,11 +215,12 @@ public class DefaultBRFileSystem implements BRFileSystem {
 
     @Override
     public StorageNameStick openStorageName(String storageName) {
-    	StorageNameStick stick = stickContainer.get(storageName);
-    	if(stick == null) {
-    		synchronized (stickContainer) {
-    			stick = stickContainer.get(storageName);
-    			if(stick == null) {
+//    	StorageNameStick stick = stickContainer.get(storageName);
+    	StorageNameStick stick = null;
+//    	if(stick == null) {
+//    		synchronized (stickContainer) {
+//    			stick = stickContainer.get(storageName);
+//    			if(stick == null) {
     				try {
     					Service[] serviceList = regionNodeSelector.select(regionNodeSelector.serviceNum());
     		            if (serviceList.length == 0) {
@@ -250,7 +251,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     	    		            stick = new DefaultStorageNameStick(storageName, storageId,
     	    		            		httpClient, cache, regionNodeSelector,
     	    		            		config);
-    	    		            stickContainer.put(storageName, stick);
+//    	    		            stickContainer.put(storageName, stick);
     	    		            
     	    		            return stick;
     		        		}
@@ -261,18 +262,18 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		        } catch (Exception e) {
     		        	LOG.error("openStorageName error", e);
     		        }
-    			}
-			}
-    	}
+//    			}
+//			}
+//    	}
 
         return stick;
     }
 
     @Override
     public void close() throws IOException {
-        for(StorageNameStick stick : stickContainer.values()) {
-        	stick.close();
-        }
+//        for(StorageNameStick stick : stickContainer.values()) {
+//        	stick.close();
+//        }
         
         CloseUtils.closeQuietly(serviceSelectorManager);
         CloseUtils.closeQuietly(zkClient);
