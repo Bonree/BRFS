@@ -195,6 +195,13 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 	readObject.setLength((int) fidObj.getSize());
                 	
                 	byte[] fileContent = fileReader.read(readObject);
+                	return new InputItem() {
+						
+						@Override
+						public byte[] getBytes() {
+							return fileContent;
+						}
+					};
                 	
 //                	CompletableFuture<ByteArrayOutputStream> future = new CompletableFuture<ByteArrayOutputStream>();
 //                	fileReader.sendMessage(readObject, new ResponseHandler<FileContentPart>() {
@@ -221,14 +228,14 @@ public class DefaultStorageNameStick implements StorageNameStick {
 //					});
                 	
 //                	ByteArrayOutputStream byteStream = future.get();
-                	FileContent content = FileDecoder.contents(fileContent);
-                    return new InputItem() {
-
-                        @Override
-                        public byte[] getBytes() {
-                        	return content.getData().toByteArray();
-                        }
-                    };
+//                	FileContent content = FileDecoder.contents(fileContent);
+//                    return new InputItem() {
+//
+//                        @Override
+//                        public byte[] getBytes() {
+//                        	return content.getData().toByteArray();
+//                        }
+//                    };
                 	
 //					if (response != null && response.isReponseOK()) {
 //						FileContent content = FileDecoder.contents(response.getResponseBody());
