@@ -59,15 +59,15 @@ public class DefaultStorageNameStick implements StorageNameStick {
     private FileSystemConfig config;
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
     
-    private ConnectionPool connectionPool;
+//    private ConnectionPool connectionPool;
+    private ReadConnectionPool connectionPool;
     
     private Map<String, Long> durationCache = new HashMap<>();
     private Table<Long, Integer, String> intervalCache = HashBasedTable.create();
 
     public DefaultStorageNameStick(String storageName, int storageId,
     		HttpClient client, DiskServiceSelectorCache selector,
-    		RegionNodeSelector regionNodeSelector, FileSystemConfig config,
-    		ConnectionPool connectionPool) {
+    		RegionNodeSelector regionNodeSelector, FileSystemConfig config) {
         this.storageName = storageName;
         this.storageId = storageId;
         this.client = client;
@@ -78,7 +78,8 @@ public class DefaultStorageNameStick implements StorageNameStick {
         this.defaultHeaders.put("username", config.getName());
         this.defaultHeaders.put("password", config.getPasswd());
         
-        this.connectionPool = connectionPool;
+//        this.connectionPool = connectionPool;
+        this.connectionPool = new ReadConnectionPool();
     }
 
     @Override
@@ -178,7 +179,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
                     throw new BRFSException("none disknode!!!");
                 }
                 
-                TcpClient<ReadObject, FileContentPart> fileReader = connectionPool.getConnection(service);
+                ReadConnection fileReader = connectionPool.getConnection(service);
 //                URI uri = new URIBuilder().setScheme(config.getUrlSchema())
 //                		.setHost(service.getHost()).setPort(service.getPort())
 //                		.setPath(config.getDiskUrlRoot() + FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot()))
@@ -193,32 +194,34 @@ public class DefaultStorageNameStick implements StorageNameStick {
                 	readObject.setOffset(fidObj.getOffset());
                 	readObject.setLength((int) fidObj.getSize());
                 	
-                	CompletableFuture<ByteArrayOutputStream> future = new CompletableFuture<ByteArrayOutputStream>();
-                	fileReader.sendMessage(readObject, new ResponseHandler<FileContentPart>() {
-                		ByteArrayOutputStream byteOutput = new ByteArrayOutputStream(readObject.getLength());
-						
-						@Override
-						public void handle(FileContentPart response) {
-							try {
-								byteOutput.write(response.content());
-							} catch (IOException e) {
-								future.completeExceptionally(e);
-								return;
-							}
-							
-							if(response.endOfContent()) {
-								future.complete(byteOutput);
-							}
-						}
-						
-						@Override
-						public void error(Throwable e) {
-							future.completeExceptionally(e);
-						}
-					});
+                	byte[] fileContent = fileReader.read(readObject);
                 	
-                	ByteArrayOutputStream byteStream = future.get();
-                	FileContent content = FileDecoder.contents(byteStream.toByteArray());
+//                	CompletableFuture<ByteArrayOutputStream> future = new CompletableFuture<ByteArrayOutputStream>();
+//                	fileReader.sendMessage(readObject, new ResponseHandler<FileContentPart>() {
+//                		ByteArrayOutputStream byteOutput = new ByteArrayOutputStream(readObject.getLength());
+//						
+//						@Override
+//						public void handle(FileContentPart response) {
+//							try {
+//								byteOutput.write(response.content());
+//							} catch (IOException e) {
+//								future.completeExceptionally(e);
+//								return;
+//							}
+//							
+//							if(response.endOfContent()) {
+//								future.complete(byteOutput);
+//							}
+//						}
+//						
+//						@Override
+//						public void error(Throwable e) {
+//							future.completeExceptionally(e);
+//						}
+//					});
+                	
+//                	ByteArrayOutputStream byteStream = future.get();
+                	FileContent content = FileDecoder.contents(fileContent);
                     return new InputItem() {
 
                         @Override

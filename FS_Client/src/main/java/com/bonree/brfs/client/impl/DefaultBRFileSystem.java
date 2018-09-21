@@ -47,8 +47,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
     
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
     
-    private AsyncFileReaderGroup clientGroup;
-    private ConnectionPool connectionPool;
+//    private AsyncFileReaderGroup clientGroup;
+//    private ConnectionPool connectionPool;
 
     public DefaultBRFileSystem(FileSystemConfig config) throws Exception {
     	this.config = config;
@@ -80,8 +80,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
         
         this.regionNodeSelector = new RegionNodeSelector(serviceManager, config.getDuplicateServiceGroup());
         
-        this.clientGroup = new AsyncFileReaderGroup(config.getHandleThreadNum());
-        this.connectionPool = new ConnectionPool(config.getConnectionPoolSize(), clientGroup);
+//        this.clientGroup = new AsyncFileReaderGroup(config.getHandleThreadNum());
+//        this.connectionPool = new ConnectionPool(config.getConnectionPoolSize(), clientGroup);
     }
 
     @Override
@@ -249,7 +249,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		            		DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
     	    		            stick = new DefaultStorageNameStick(storageName, storageId,
     	    		            		httpClient, cache, regionNodeSelector,
-    	    		            		config, connectionPool);
+    	    		            		config);
     	    		            stickContainer.put(storageName, stick);
     	    		            
     	    		            return stick;
@@ -277,7 +277,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         CloseUtils.closeQuietly(serviceSelectorManager);
         CloseUtils.closeQuietly(zkClient);
         CloseUtils.closeQuietly(httpClient);
-        CloseUtils.closeQuietly(clientGroup);
+//        CloseUtils.closeQuietly(clientGroup);
     }
 
 }
