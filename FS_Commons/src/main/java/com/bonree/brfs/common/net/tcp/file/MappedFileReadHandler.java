@@ -1,6 +1,7 @@
 package com.bonree.brfs.common.net.tcp.file;
 
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -10,6 +11,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -30,16 +32,20 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 	private static final Logger LOG = LoggerFactory.getLogger(MappedFileReadHandler.class);
 	
 	private ReadObjectTranslator translator;
-	private LoadingCache<String, MappedByteBuffer> bufferCache = (LoadingCache<String, MappedByteBuffer>) CacheBuilder.newBuilder()
+	
+	private LinkedList<MappedByteBuffer> releaseList = new LinkedList<MappedByteBuffer>();
+	private LoadingCache<String, MappedByteBuffer> bufferCache = CacheBuilder.newBuilder()
 			.concurrencyLevel(Runtime.getRuntime().availableProcessors())
-			.maximumSize(20)
+			.maximumSize(0)
 			.initialCapacity(10)
 			.expireAfterAccess(30, TimeUnit.SECONDS)
 			.removalListener(new RemovalListener<String, MappedByteBuffer>() {
 
 				@Override
 				public void onRemoval(RemovalNotification<String, MappedByteBuffer> notification) {
-					BufferUtils.release(notification.getValue());
+					synchronized (releaseList) {
+						releaseList.addLast(notification.getValue());
+					}
 				}
 			})
 			.build(new CacheLoader<String, MappedByteBuffer>() {
@@ -76,13 +82,24 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			
 			int readableLength = (int) Math.min(readLength, fileLength - readOffset);
 			
+			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength), new byte[readableLength]));
+			
 			ByteBuffer contentBuffer = fileBuffer.slice();
 			contentBuffer.position((int) readOffset);
 			contentBuffer.limit((int) (readOffset + readableLength));
 			
-	        ctx.writeAndFlush(Unpooled.wrappedBuffer(ByteBuffer.wrap(Ints.toByteArray(readObject.getToken())),
-	        		ByteBuffer.wrap(Ints.toByteArray(readableLength)),
-	        		contentBuffer.slice())).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+			ctx.write(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
+			ctx.writeAndFlush(Unpooled.wrappedBuffer(contentBuffer.slice())).addListener(new ChannelFutureListener() {
+				
+				@Override
+				public void operationComplete(ChannelFuture future) throws Exception {
+					synchronized (releaseList) {
+						while(!releaseList.isEmpty()) {
+							BufferUtils.release(releaseList.removeFirst());
+						}
+					}
+				}
+			}).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 		} catch (ExecutionException e) {
 			LOG.error("can not open file channel for {}", filePath, e);
 			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
@@ -103,5 +120,4 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 		LOG.error("file read error", cause);
 		ctx.close();
 	}
-
 }
