@@ -37,7 +37,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 	private LinkedList<MappedByteBuffer> releaseList = new LinkedList<MappedByteBuffer>();
 	private LoadingCache<String, MappedByteBuffer> bufferCache = CacheBuilder.newBuilder()
 			.concurrencyLevel(Runtime.getRuntime().availableProcessors())
-			.maximumSize(0)
+			.maximumSize(20)
 			.initialCapacity(10)
 			.expireAfterAccess(30, TimeUnit.SECONDS)
 			.removalListener(new RemovalListener<String, MappedByteBuffer>() {
