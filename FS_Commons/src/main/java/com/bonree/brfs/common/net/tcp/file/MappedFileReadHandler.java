@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.LinkedList;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -43,9 +44,11 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
 				@Override
 				public void onRemoval(RemovalNotification<String, MappedByteBuffer> notification) {
-					synchronized (releaseList) {
-						releaseList.addLast(notification.getValue());
-					}
+					CompletableFuture.runAsync(() -> {
+						synchronized (releaseList) {
+							releaseList.addLast(notification.getValue());
+						}
+					});
 				}
 			})
 			.build(new CacheLoader<String, MappedByteBuffer>() {
@@ -93,11 +96,13 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 				
 				@Override
 				public void operationComplete(ChannelFuture future) throws Exception {
-					synchronized (releaseList) {
-						while(!releaseList.isEmpty()) {
-							BufferUtils.release(releaseList.removeFirst());
+					CompletableFuture.runAsync(() -> {
+						synchronized (releaseList) {
+							while(!releaseList.isEmpty()) {
+								BufferUtils.release(releaseList.removeFirst());
+							}
 						}
-					}
+					});
 				}
 			}).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 		} catch (ExecutionException e) {
