@@ -11,10 +11,12 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,16 +36,16 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 	
 	private ReadObjectTranslator translator;
 	
-	private LinkedList<MappedByteBuffer> releaseList = new LinkedList<MappedByteBuffer>();
-	private LoadingCache<String, MappedByteBuffer> bufferCache = CacheBuilder.newBuilder()
+	private LinkedList<BufferRef> releaseList = new LinkedList<BufferRef>();
+	private LoadingCache<String, BufferRef> bufferCache = CacheBuilder.newBuilder()
 			.concurrencyLevel(Runtime.getRuntime().availableProcessors())
 			.maximumSize(20)
 			.initialCapacity(10)
 			.expireAfterAccess(30, TimeUnit.SECONDS)
-			.removalListener(new RemovalListener<String, MappedByteBuffer>() {
+			.removalListener(new RemovalListener<String, BufferRef>() {
 
 				@Override
-				public void onRemoval(RemovalNotification<String, MappedByteBuffer> notification) {
+				public void onRemoval(RemovalNotification<String, BufferRef> notification) {
 					CompletableFuture.runAsync(() -> {
 						synchronized (releaseList) {
 							releaseList.addLast(notification.getValue());
@@ -51,11 +53,11 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 					});
 				}
 			})
-			.build(new CacheLoader<String, MappedByteBuffer>() {
+			.build(new CacheLoader<String, BufferRef>() {
 
 				@Override
-				public MappedByteBuffer load(String filePath) throws Exception {
-					return Files.map(new File(filePath), MapMode.READ_ONLY);
+				public BufferRef load(String filePath) throws Exception {
+					return new BufferRef(Files.map(new File(filePath), MapMode.READ_ONLY));
 				}
 				
 			});
@@ -71,7 +73,8 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 		
 		MappedByteBuffer fileBuffer = null;
 		try {
-			fileBuffer = bufferCache.get(filePath);
+			BufferRef ref = bufferCache.get(filePath).retain();
+			fileBuffer = ref.buffer();
 			
 			long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
 			int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
@@ -96,10 +99,16 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 				
 				@Override
 				public void operationComplete(ChannelFuture future) throws Exception {
+					ref.release();
 					CompletableFuture.runAsync(() -> {
 						synchronized (releaseList) {
-							while(!releaseList.isEmpty()) {
-								BufferUtils.release(releaseList.removeFirst());
+							Iterator<BufferRef> iter = releaseList.iterator();
+							while(iter.hasNext()) {
+								BufferRef bufferRef = iter.next();
+								if(bufferRef.refCount() == 0) {
+									BufferUtils.release(bufferRef.buffer());
+									iter.remove();
+								}
 							}
 						}
 					});
@@ -124,5 +133,32 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		LOG.error("file read error", cause);
 		ctx.close();
+	}
+	
+	private class BufferRef {
+		private AtomicInteger refCount;
+		private final MappedByteBuffer buffer;
+		
+		public BufferRef(MappedByteBuffer buffer) {
+			this.buffer = buffer;
+			this.refCount = new AtomicInteger(0);
+		}
+		
+		public MappedByteBuffer buffer() {
+			return this.buffer;
+		}
+		
+		public int refCount() {
+			return this.refCount.get();
+		}
+		
+		public BufferRef retain() {
+			refCount.incrementAndGet();
+			return this;
+		}
+		
+		public boolean release() {
+			return refCount.decrementAndGet() == 0;
+		}
 	}
 }
