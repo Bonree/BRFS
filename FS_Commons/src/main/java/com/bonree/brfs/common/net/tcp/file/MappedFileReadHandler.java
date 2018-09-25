@@ -100,19 +100,19 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 				
 				@Override
 				public void operationComplete(ChannelFuture future) throws Exception {
-//					ref.release();
-//					CompletableFuture.runAsync(() -> {
-//						synchronized (releaseList) {
-//							Iterator<BufferRef> iter = releaseList.iterator();
-//							while(iter.hasNext()) {
-//								BufferRef bufferRef = iter.next();
-//								if(bufferRef.refCount() == 0) {
-//									BufferUtils.release(bufferRef.buffer());
-//									iter.remove();
-//								}
-//							}
-//						}
-//					});
+					ref.release();
+					CompletableFuture.runAsync(() -> {
+						synchronized (releaseList) {
+							Iterator<BufferRef> iter = releaseList.iterator();
+							while(iter.hasNext()) {
+								BufferRef bufferRef = iter.next();
+								if(bufferRef.refCount() == 0) {
+									BufferUtils.release(bufferRef.buffer());
+									iter.remove();
+								}
+							}
+						}
+					});
 				}
 			}).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 		} catch (ExecutionException e) {
