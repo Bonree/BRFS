@@ -96,10 +96,10 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			contentBuffer.limit((int) (readOffset + readableLength));
 			
 			ctx.write(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
-			ctx.writeAndFlush(Unpooled.wrappedBuffer(contentBuffer.slice()));//.addListener(new ChannelFutureListener() {
+			ctx.writeAndFlush(Unpooled.wrappedBuffer(contentBuffer.slice())).addListener(new ChannelFutureListener() {
 				
-//				@Override
-//				public void operationComplete(ChannelFuture future) throws Exception {
+				@Override
+				public void operationComplete(ChannelFuture future) throws Exception {
 //					ref.release();
 //					CompletableFuture.runAsync(() -> {
 //						synchronized (releaseList) {
@@ -113,8 +113,8 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 //							}
 //						}
 //					});
-//				}
-//			}).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+				}
+			}).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 		} catch (ExecutionException e) {
 			LOG.error("can not open file channel for {}", filePath, e);
 			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
