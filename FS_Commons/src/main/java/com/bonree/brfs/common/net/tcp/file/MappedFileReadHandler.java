@@ -27,7 +27,6 @@ import com.bonree.brfs.common.utils.BufferUtils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.io.Files;
@@ -60,17 +59,9 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 				@Override
 				public void onRemoval(RemovalNotification<String, BufferRef> notification) {
 					LOG.info("remove file mapping of [{}] from cache", notification.getKey());
-					if(notification.getCause() == RemovalCause.SIZE) {
-						releaseRunner.execute(() -> {
-							synchronized (releaseList) {
-								releaseList.addLast(notification.getValue());
-							}
-						});
-						
-						return;
+					synchronized (releaseList) {
+						releaseList.addLast(notification.getValue());
 					}
-					
-					BufferUtils.release(notification.getValue().buffer());
 				}
 			})
 			.build(new CacheLoader<String, BufferRef>() {
@@ -85,6 +76,24 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 	
 	public MappedFileReadHandler(ReadObjectTranslator translator) {
 		this.translator = translator;
+		this.releaseRunner.execute(() -> {
+			while(true) {
+				Iterator<BufferRef> iter = releaseList.iterator();
+				while(iter.hasNext()) {
+					BufferRef bufferRef = iter.next();
+					if(bufferRef.refCount() == 0) {
+						BufferUtils.release(bufferRef.buffer());
+						iter.remove();
+					}
+				}
+				
+				try {
+					Thread.sleep(1000);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 	@Override
@@ -119,18 +128,6 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 				@Override
 				public void operationComplete(ChannelFuture future) throws Exception {
 					ref.release();
-					releaseRunner.execute(() -> {
-						synchronized (releaseList) {
-							Iterator<BufferRef> iter = releaseList.iterator();
-							while(iter.hasNext()) {
-								BufferRef bufferRef = iter.next();
-								if(bufferRef.refCount() == 0) {
-									BufferUtils.release(bufferRef.buffer());
-									iter.remove();
-								}
-							}
-						}
-					});
 				}
 			}).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 		} catch (ExecutionException e) {
