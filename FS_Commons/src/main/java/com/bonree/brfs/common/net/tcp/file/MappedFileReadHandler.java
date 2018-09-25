@@ -8,14 +8,15 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.io.File;
-import java.io.FilePermission;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -26,6 +27,7 @@ import com.bonree.brfs.common.utils.BufferUtils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.io.Files;
@@ -36,8 +38,18 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 	private static final Logger LOG = LoggerFactory.getLogger(MappedFileReadHandler.class);
 	
 	private ReadObjectTranslator translator;
+	private ExecutorService releaseRunner = Executors.newSingleThreadExecutor(new ThreadFactory() {
+		
+		@Override
+		public Thread newThread(Runnable r) {
+			Thread thread = new Thread(r, "map_release_t");
+			thread.setDaemon(true);
+			
+			return thread;
+		}
+	});
 	
-	private LinkedList<BufferRef> releaseList = new LinkedList<BufferRef>();
+	private LinkedList<BufferRef> releaseList = new LinkedList<>();
 	private LoadingCache<String, BufferRef> bufferCache = CacheBuilder.newBuilder()
 			.concurrencyLevel(Runtime.getRuntime().availableProcessors())
 			.maximumSize(20)
@@ -48,11 +60,17 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 				@Override
 				public void onRemoval(RemovalNotification<String, BufferRef> notification) {
 					LOG.info("remove file mapping of [{}] from cache", notification.getKey());
-					CompletableFuture.runAsync(() -> {
-						synchronized (releaseList) {
-							releaseList.addLast(notification.getValue());
-						}
-					});
+					if(notification.getCause() == RemovalCause.SIZE) {
+						releaseRunner.execute(() -> {
+							synchronized (releaseList) {
+								releaseList.addLast(notification.getValue());
+							}
+						});
+						
+						return;
+					}
+					
+					BufferUtils.release(notification.getValue().buffer());
 				}
 			})
 			.build(new CacheLoader<String, BufferRef>() {
@@ -101,7 +119,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 				@Override
 				public void operationComplete(ChannelFuture future) throws Exception {
 					ref.release();
-					CompletableFuture.runAsync(() -> {
+					releaseRunner.execute(() -> {
 						synchronized (releaseList) {
 							Iterator<BufferRef> iter = releaseList.iterator();
 							while(iter.hasNext()) {
