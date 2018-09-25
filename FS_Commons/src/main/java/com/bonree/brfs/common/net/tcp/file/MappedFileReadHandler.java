@@ -8,6 +8,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.io.File;
+import java.io.FilePermission;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
@@ -46,6 +47,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
 				@Override
 				public void onRemoval(RemovalNotification<String, BufferRef> notification) {
+					LOG.info("remove file mapping of [{}] from cache", notification.getKey());
 					CompletableFuture.runAsync(() -> {
 						synchronized (releaseList) {
 							releaseList.addLast(notification.getValue());
@@ -57,6 +59,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
 				@Override
 				public BufferRef load(String filePath) throws Exception {
+					LOG.info("loading file[{}] to memory...", filePath);
 					return new BufferRef(Files.map(new File(filePath), MapMode.READ_ONLY));
 				}
 				
@@ -92,7 +95,8 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			contentBuffer.position((int) readOffset);
 			contentBuffer.limit((int) (readOffset + readableLength));
 			
-			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength), new byte[readableLength]));
+			ctx.write(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
+			ctx.writeAndFlush(Unpooled.wrappedBuffer(new byte[readableLength]));
 //			ctx.writeAndFlush(Unpooled.wrappedBuffer(contentBuffer.slice())).addListener(new ChannelFutureListener() {
 //				
 //				@Override
