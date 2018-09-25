@@ -92,26 +92,26 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			contentBuffer.position((int) readOffset);
 			contentBuffer.limit((int) (readOffset + readableLength));
 			
-			ctx.write(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
-			ctx.writeAndFlush(Unpooled.wrappedBuffer(contentBuffer.slice())).addListener(new ChannelFutureListener() {
-				
-				@Override
-				public void operationComplete(ChannelFuture future) throws Exception {
-					ref.release();
-					CompletableFuture.runAsync(() -> {
-						synchronized (releaseList) {
-							Iterator<BufferRef> iter = releaseList.iterator();
-							while(iter.hasNext()) {
-								BufferRef bufferRef = iter.next();
-								if(bufferRef.refCount() == 0) {
-									BufferUtils.release(bufferRef.buffer());
-									iter.remove();
-								}
-							}
-						}
-					});
-				}
-			}).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+			ctx.write(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength), new byte[readableLength]));
+//			ctx.writeAndFlush(Unpooled.wrappedBuffer(contentBuffer.slice())).addListener(new ChannelFutureListener() {
+//				
+//				@Override
+//				public void operationComplete(ChannelFuture future) throws Exception {
+//					ref.release();
+//					CompletableFuture.runAsync(() -> {
+//						synchronized (releaseList) {
+//							Iterator<BufferRef> iter = releaseList.iterator();
+//							while(iter.hasNext()) {
+//								BufferRef bufferRef = iter.next();
+//								if(bufferRef.refCount() == 0) {
+//									BufferUtils.release(bufferRef.buffer());
+//									iter.remove();
+//								}
+//							}
+//						}
+//					});
+//				}
+//			}).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 		} catch (ExecutionException e) {
 			LOG.error("can not open file channel for {}", filePath, e);
 			ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
