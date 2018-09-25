@@ -96,9 +96,8 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			contentBuffer.limit((int) (readOffset + readableLength));
 			
 			ctx.write(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
-			ctx.writeAndFlush(Unpooled.wrappedBuffer(new byte[readableLength]));
-//			ctx.writeAndFlush(Unpooled.wrappedBuffer(contentBuffer.slice())).addListener(new ChannelFutureListener() {
-//				
+			ctx.writeAndFlush(Unpooled.wrappedBuffer(contentBuffer.slice()));//.addListener(new ChannelFutureListener() {
+				
 //				@Override
 //				public void operationComplete(ChannelFuture future) throws Exception {
 //					ref.release();
