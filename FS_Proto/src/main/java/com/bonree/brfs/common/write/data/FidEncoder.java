@@ -26,7 +26,7 @@ public class FidEncoder {
      * @throws Exception
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static String build(Fid fid) throws Exception {
+    public static String buildOld(Fid fid) throws Exception {
         ReturnCodeEnum valicateCode = validate(fid);
         if (!ReturnCodeEnum.SUCCESS.equals(valicateCode)) {
             throw new Exception("Fid encoder failed! " + valicateCode);
@@ -45,6 +45,10 @@ public class FidEncoder {
         output.write(duration(fid.getDuration()));
         // 封装fid
         return Base64.encodeToString(output.toByteArray(), Base64.DEFAULT).trim();
+    }
+    
+    public static String build(Fid fid) {
+    	return Base64.encodeToString(fid.toByteArray(), Base64.DEFAULT).trim();
     }
 
     /**

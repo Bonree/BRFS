@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.bonree.brfs.common.data.utils.Base64;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
  * *****************************************************************************
@@ -28,7 +29,7 @@ public class FidDecoder {
      * @throws Exception
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static Fid build(String fidStr) throws Exception {
+    public static Fid buildOld(String fidStr) throws Exception {
         Fid.Builder fid = Fid.newBuilder();
         if (fidStr != null) {
             ByteArrayInputStream input  = new ByteArrayInputStream(Base64.decode(fidStr, Base64.DEFAULT));
@@ -59,6 +60,10 @@ public class FidDecoder {
             fid.setDuration(duration(input));
         }
         return fid.build();
+    }
+    
+    public static Fid build(String fid) throws Exception {
+    	return Fid.parseFrom(Base64.decode(fid, Base64.DEFAULT));
     }
 
     /**
