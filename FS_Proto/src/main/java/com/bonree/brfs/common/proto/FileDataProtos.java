@@ -5473,9 +5473,9 @@ public final class FileDataProtos {
     boolean hasCompress();
     int getCompress();
     
-    // optional int64 storageNameCode = 3;
+    // optional int32 storageNameCode = 3;
     boolean hasStorageNameCode();
-    long getStorageNameCode();
+    int getStorageNameCode();
     
     // optional string uuid = 4;
     boolean hasUuid();
@@ -5485,9 +5485,9 @@ public final class FileDataProtos {
     boolean hasTime();
     long getTime();
     
-    // optional string duration = 6;
+    // optional int64 duration = 6;
     boolean hasDuration();
-    String getDuration();
+    long getDuration();
     
     // repeated int32 serverId = 7;
     java.util.List<java.lang.Integer> getServerIdList();
@@ -5551,13 +5551,13 @@ public final class FileDataProtos {
       return compress_;
     }
     
-    // optional int64 storageNameCode = 3;
+    // optional int32 storageNameCode = 3;
     public static final int STORAGENAMECODE_FIELD_NUMBER = 3;
-    private long storageNameCode_;
+    private int storageNameCode_;
     public boolean hasStorageNameCode() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    public long getStorageNameCode() {
+    public int getStorageNameCode() {
       return storageNameCode_;
     }
     
@@ -5603,36 +5603,14 @@ public final class FileDataProtos {
       return time_;
     }
     
-    // optional string duration = 6;
+    // optional int64 duration = 6;
     public static final int DURATION_FIELD_NUMBER = 6;
-    private java.lang.Object duration_;
+    private long duration_;
     public boolean hasDuration() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
-    public String getDuration() {
-      java.lang.Object ref = duration_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          duration_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getDurationBytes() {
-      java.lang.Object ref = duration_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        duration_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public long getDuration() {
+      return duration_;
     }
     
     // repeated int32 serverId = 7;
@@ -5672,10 +5650,10 @@ public final class FileDataProtos {
     private void initFields() {
       version_ = 0;
       compress_ = 0;
-      storageNameCode_ = 0L;
+      storageNameCode_ = 0;
       uuid_ = "";
       time_ = 0L;
-      duration_ = "";
+      duration_ = 0L;
       serverId_ = java.util.Collections.emptyList();;
       offset_ = 0L;
       size_ = 0L;
@@ -5699,7 +5677,7 @@ public final class FileDataProtos {
         output.writeInt32(2, compress_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeInt64(3, storageNameCode_);
+        output.writeInt32(3, storageNameCode_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeBytes(4, getUuidBytes());
@@ -5708,7 +5686,7 @@ public final class FileDataProtos {
         output.writeInt64(5, time_);
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        output.writeBytes(6, getDurationBytes());
+        output.writeInt64(6, duration_);
       }
       for (int i = 0; i < serverId_.size(); i++) {
         output.writeInt32(7, serverId_.get(i));
@@ -5738,7 +5716,7 @@ public final class FileDataProtos {
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, storageNameCode_);
+          .computeInt32Size(3, storageNameCode_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
@@ -5750,7 +5728,7 @@ public final class FileDataProtos {
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(6, getDurationBytes());
+          .computeInt64Size(6, duration_);
       }
       {
         int dataSize = 0;
@@ -5897,13 +5875,13 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000001);
         compress_ = 0;
         bitField0_ = (bitField0_ & ~0x00000002);
-        storageNameCode_ = 0L;
+        storageNameCode_ = 0;
         bitField0_ = (bitField0_ & ~0x00000004);
         uuid_ = "";
         bitField0_ = (bitField0_ & ~0x00000008);
         time_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000010);
-        duration_ = "";
+        duration_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000020);
         serverId_ = java.util.Collections.emptyList();;
         bitField0_ = (bitField0_ & ~0x00000040);
@@ -6079,7 +6057,7 @@ public final class FileDataProtos {
             }
             case 24: {
               bitField0_ |= 0x00000004;
-              storageNameCode_ = input.readInt64();
+              storageNameCode_ = input.readInt32();
               break;
             }
             case 34: {
@@ -6092,9 +6070,9 @@ public final class FileDataProtos {
               time_ = input.readInt64();
               break;
             }
-            case 50: {
+            case 48: {
               bitField0_ |= 0x00000020;
-              duration_ = input.readBytes();
+              duration_ = input.readInt64();
               break;
             }
             case 56: {
@@ -6169,15 +6147,15 @@ public final class FileDataProtos {
         return this;
       }
       
-      // optional int64 storageNameCode = 3;
-      private long storageNameCode_ ;
+      // optional int32 storageNameCode = 3;
+      private int storageNameCode_ ;
       public boolean hasStorageNameCode() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      public long getStorageNameCode() {
+      public int getStorageNameCode() {
         return storageNameCode_;
       }
-      public Builder setStorageNameCode(long value) {
+      public Builder setStorageNameCode(int value) {
         bitField0_ |= 0x00000004;
         storageNameCode_ = value;
         onChanged();
@@ -6185,7 +6163,7 @@ public final class FileDataProtos {
       }
       public Builder clearStorageNameCode() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        storageNameCode_ = 0L;
+        storageNameCode_ = 0;
         onChanged();
         return this;
       }
@@ -6247,40 +6225,25 @@ public final class FileDataProtos {
         return this;
       }
       
-      // optional string duration = 6;
-      private java.lang.Object duration_ = "";
+      // optional int64 duration = 6;
+      private long duration_ ;
       public boolean hasDuration() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
-      public String getDuration() {
-        java.lang.Object ref = duration_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          duration_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
+      public long getDuration() {
+        return duration_;
       }
-      public Builder setDuration(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000020;
+      public Builder setDuration(long value) {
+        bitField0_ |= 0x00000020;
         duration_ = value;
         onChanged();
         return this;
       }
       public Builder clearDuration() {
         bitField0_ = (bitField0_ & ~0x00000020);
-        duration_ = getDefaultInstance().getDuration();
+        duration_ = 0L;
         onChanged();
         return this;
-      }
-      void setDuration(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000020;
-        duration_ = value;
-        onChanged();
       }
       
       // repeated int32 serverId = 7;
@@ -6455,8 +6418,8 @@ public final class FileDataProtos {
       "cFlag\030\001 \001(\010\022\024\n\014crcCheckCode\030\002 \001(\003\022\023\n\013des" +
       "cription\030\003 \001(\t\022\014\n\004data\030\004 \001(\014\022\020\n\010compress" +
       "\030\005 \001(\005\"\237\001\n\003Fid\022\017\n\007version\030\001 \001(\005\022\020\n\010compr" +
-      "ess\030\002 \001(\005\022\027\n\017storageNameCode\030\003 \001(\003\022\014\n\004uu" +
-      "id\030\004 \001(\t\022\014\n\004time\030\005 \001(\003\022\020\n\010duration\030\006 \001(\t" +
+      "ess\030\002 \001(\005\022\027\n\017storageNameCode\030\003 \001(\005\022\014\n\004uu" +
+      "id\030\004 \001(\t\022\014\n\004time\030\005 \001(\003\022\020\n\010duration\030\006 \001(\003" +
       "\022\020\n\010serverId\030\007 \003(\005\022\016\n\006offset\030\010 \001(\003\022\014\n\004si" +
       "ze\030\t \001(\003B1\n\034com.bonree.brfs.common.proto" +
       "B\016FileDataProtos\210\001\000"

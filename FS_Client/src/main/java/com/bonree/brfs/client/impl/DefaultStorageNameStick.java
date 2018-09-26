@@ -61,9 +61,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
     
 //    private ConnectionPool connectionPool;
     private ReadConnectionPool connectionPool;
-    
-    private Map<String, Long> durationCache = new HashMap<>();
-    private Table<Long, Integer, String> intervalCache = HashBasedTable.create();
 
     public DefaultStorageNameStick(String storageName, int storageId,
     		HttpClient client, DiskServiceSelectorCache selector,
@@ -151,19 +148,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
             parts.add(String.valueOf(serverId));
         }
         
-        Long duration = durationCache.get(fidObj.getDuration());
-        if(duration == null) {
-        	duration = Duration.parse(fidObj.getDuration()).toMillis();
-        	durationCache.put(fidObj.getDuration(), duration);
-        }
-        
-        int count = (int) (fidObj.getTime() / duration);
-        String interval = intervalCache.get(duration, count);
-        if(interval == null) {
-        	interval = TimeUtils.timeInterval(fidObj.getTime(), duration);
-        	intervalCache.put(duration, count, interval);
-        }
-        
         try {
         	List<Integer> excludePot = new ArrayList<Integer>();
             // 最大尝试副本数个server
@@ -190,7 +174,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 //                	LOG.info("read url:" + uri);
 //					final HttpResponse response = client.executeGet(uri, defaultHeaders);
                 	ReadObject readObject = new ReadObject();
-                	readObject.setFilePath(FilePathBuilder.buildPath(fidObj, interval, storageName, serviceMetaInfo.getReplicatPot()));
+                	readObject.setFilePath(FilePathBuilder.buildPath(fidObj, storageName, serviceMetaInfo.getReplicatPot()));
                 	readObject.setOffset(fidObj.getOffset());
                 	readObject.setLength((int) fidObj.getSize());
                 	

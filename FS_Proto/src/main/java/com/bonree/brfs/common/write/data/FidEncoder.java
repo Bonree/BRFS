@@ -26,26 +26,26 @@ public class FidEncoder {
      * @throws Exception
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static String buildOld(Fid fid) throws Exception {
-        ReturnCodeEnum valicateCode = validate(fid);
-        if (!ReturnCodeEnum.SUCCESS.equals(valicateCode)) {
-            throw new Exception("Fid encoder failed! " + valicateCode);
-        }
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        output.write(FSCode.start);
-        output.write(header(fid.getVersion(), fid.getCompress()));
-        output.write(storageName(fid.getStorageNameCode()));
-        output.write(uuid(fid.getUuid()));
-        output.write(time(fid.getTime() / 1000 / 60));
-        output.write(offset(fid.getOffset()));
-        output.write(size(fid.getSize()));
-        output.write(serverId(fid.getServerIdList()));
-        output.write(FSCode.tail);
-        output.write(new byte[]{0x0});
-        output.write(duration(fid.getDuration()));
-        // 封装fid
-        return Base64.encodeToString(output.toByteArray(), Base64.DEFAULT).trim();
-    }
+//    public static String buildOld(Fid fid) throws Exception {
+//        ReturnCodeEnum valicateCode = validate(fid);
+//        if (!ReturnCodeEnum.SUCCESS.equals(valicateCode)) {
+//            throw new Exception("Fid encoder failed! " + valicateCode);
+//        }
+//        ByteArrayOutputStream output = new ByteArrayOutputStream();
+//        output.write(FSCode.start);
+//        output.write(header(fid.getVersion(), fid.getCompress()));
+//        output.write(storageName(fid.getStorageNameCode()));
+//        output.write(uuid(fid.getUuid()));
+//        output.write(time(fid.getTime() / 1000 / 60));
+//        output.write(offset(fid.getOffset()));
+//        output.write(size(fid.getSize()));
+//        output.write(serverId(fid.getServerIdList()));
+//        output.write(FSCode.tail);
+//        output.write(new byte[]{0x0});
+//        output.write(duration(fid.getDuration()));
+//        // 封装fid
+//        return Base64.encodeToString(output.toByteArray(), Base64.DEFAULT).trim();
+//    }
     
     public static String build(Fid fid) {
     	return Base64.encodeToString(fid.toByteArray(), Base64.DEFAULT).replaceAll("\n", "");
@@ -70,9 +70,9 @@ public class FidEncoder {
         if (fid.getUuid() == null || fid.getUuid().length() > 32 || fid.getUuid().length() % 2 != 0) { // uuid长度为32字节
             return ReturnCodeEnum.FID_UUID_ERROR;
         }
-        if (fid.getTime() <= 0 || fid.getTime() > 4701945540000L) { // time取值范围可到2118-12-31 23:59
-            return ReturnCodeEnum.FID_TIME_ERROR;
-        }
+//        if (fid.getTime() <= 0 || fid.getTime() > 4701945540000L) { // time取值范围可到2118-12-31 23:59
+//            return ReturnCodeEnum.FID_TIME_ERROR;
+//        }
         if (fid.getServerIdCount() == 0) {
             return ReturnCodeEnum.FID_SERVERID_ERROR;
         } else {

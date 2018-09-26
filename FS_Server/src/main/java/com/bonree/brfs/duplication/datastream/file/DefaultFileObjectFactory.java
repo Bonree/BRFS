@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.datastream.file;
 
+import java.time.Duration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +54,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 				.setServiceGroup(service.getServiceGroup())
 				.setName(FileNameBuilder.createFile(idManager, storageRegion, nodes))
 				.setDuplicateNodes(nodes)
-				.setTimeDuration(storageRegion.getFilePartitionDuration());
+				.setTimeDuration(Duration.parse(storageRegion.getFilePartitionDuration()).toMillis());
 		
 		long capacity = -1;
 		for(DuplicateNode node : nodes) {

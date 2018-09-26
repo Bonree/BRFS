@@ -1,7 +1,5 @@
 package com.bonree.brfs.duplication.filenode;
 
-import java.time.Duration;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +29,7 @@ public class FilePathBuilder {
 		.append(PATH_SEPARATOR)
 		.append(index)
 		.append(PATH_SEPARATOR)
-		.append(TimeUtils.timeInterval(fileNode.getCreateTime(), Duration.parse(fileNode.getTimeDuration()).toMillis()))
+		.append(TimeUtils.timeInterval(fileNode.getCreateTime(), fileNode.getTimeDuration()))
 		.append(PATH_SEPARATOR)
 		.append(fileNode.getName());
 		

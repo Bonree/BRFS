@@ -29,38 +29,38 @@ public class FidDecoder {
      * @throws Exception
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
-    public static Fid buildOld(String fidStr) throws Exception {
-        Fid.Builder fid = Fid.newBuilder();
-        if (fidStr != null) {
-            ByteArrayInputStream input  = new ByteArrayInputStream(Base64.decode(fidStr, Base64.DEFAULT));
-            byte[] bytes = new byte[16];
-            input.read(bytes, 0, 1);
-            //跳过开头
-            
-            input.read(bytes, 0, 1);
-            fid.setVersion(version(bytes));
-            fid.setCompress(compress(bytes));
-            
-            input.read(bytes, 0, 2);
-            fid.setStorageNameCode(storageName(bytes));
-            
-            input.read(bytes, 0, 16);
-            fid.setUuid(uuid(bytes));
-            
-            input.read(bytes, 0, 5);
-            fid.setTime(time(bytes));
-            
-            input.read(bytes, 0, 4);
-            fid.setOffset(offset(bytes));
-            
-            input.read(bytes, 0, 4);
-            fid.setSize(size(bytes));
-            
-            fid.addAllServerId(serverId(input));
-            fid.setDuration(duration(input));
-        }
-        return fid.build();
-    }
+//    public static Fid buildOld(String fidStr) throws Exception {
+//        Fid.Builder fid = Fid.newBuilder();
+//        if (fidStr != null) {
+//            ByteArrayInputStream input  = new ByteArrayInputStream(Base64.decode(fidStr, Base64.DEFAULT));
+//            byte[] bytes = new byte[16];
+//            input.read(bytes, 0, 1);
+//            //跳过开头
+//            
+//            input.read(bytes, 0, 1);
+//            fid.setVersion(version(bytes));
+//            fid.setCompress(compress(bytes));
+//            
+//            input.read(bytes, 0, 2);
+//            fid.setStorageNameCode(storageName(bytes));
+//            
+//            input.read(bytes, 0, 16);
+//            fid.setUuid(uuid(bytes));
+//            
+//            input.read(bytes, 0, 5);
+//            fid.setTime(time(bytes));
+//            
+//            input.read(bytes, 0, 4);
+//            fid.setOffset(offset(bytes));
+//            
+//            input.read(bytes, 0, 4);
+//            fid.setSize(size(bytes));
+//            
+//            fid.addAllServerId(serverId(input));
+//            fid.setDuration(duration(input));
+//        }
+//        return fid.build();
+//    }
     
     public static Fid build(String fid) throws Exception {
     	return Fid.parseFrom(Base64.decode(fid, Base64.DEFAULT));

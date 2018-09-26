@@ -42,6 +42,7 @@ public final class TimeUtils {
 	public static String formatTimeStamp(long time) {
 		return new DateTime(time).toString(TIME_FORMAT);
 	}
+	
 	public static String formatTimeStamp(long time, String timeFormate) {
 		return new DateTime(time).toString(timeFormate);
 	}

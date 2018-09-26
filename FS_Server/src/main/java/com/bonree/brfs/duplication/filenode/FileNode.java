@@ -18,7 +18,7 @@ public class FileNode {
 	private long createTime;
 	//所在的时间间隔长度
 	@JsonProperty("time_duration")
-	private String timeDuration;
+	private long timeDurationMillis;
 	//文件转移时值会更新
 	@JsonProperty("service_time")
 	private long serviceTime;
@@ -56,8 +56,8 @@ public class FileNode {
 		return createTime;
 	}
 
-	public String getTimeDuration() {
-		return timeDuration;
+	public long getTimeDuration() {
+		return timeDurationMillis;
 	}
 
 	public long getServiceTime() {
@@ -101,7 +101,7 @@ public class FileNode {
 			node.storageId = other.storageId;
 			node.storageName = other.storageName;
 			node.createTime = other.createTime;
-			node.timeDuration = other.timeDuration;
+			node.timeDurationMillis = other.timeDurationMillis;
 			node.serviceTime = other.serviceTime;
 			node.serviceGroup = other.serviceGroup;
 			node.serviceId = other.serviceId;
@@ -129,8 +129,8 @@ public class FileNode {
 			return this;
 		}
 
-		public Builder setTimeDuration(String timeDuration) {
-			node.timeDuration = timeDuration;
+		public Builder setTimeDuration(long timeDuration) {
+			node.timeDurationMillis = timeDuration;
 			return this;
 		}
 
