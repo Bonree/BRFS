@@ -48,7 +48,7 @@ public class FidEncoder {
     }
     
     public static String build(Fid fid) {
-    	return Base64.encodeToString(fid.toByteArray(), Base64.DEFAULT).trim();
+    	return Base64.encodeToString(fid.toByteArray(), Base64.DEFAULT).replaceAll("\n", "");
     }
 
     /**
