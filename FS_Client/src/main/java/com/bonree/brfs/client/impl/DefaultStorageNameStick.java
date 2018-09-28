@@ -5,6 +5,7 @@ import java.net.URI;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -185,15 +186,13 @@ public class DefaultStorageNameStick implements StorageNameStick {
             throw new IllegalAccessException("Storage name of fid is not legal!");
         }
         
-        String[] serverList = new String[fidObj.getServerIdCount()];
-        serverList = fidObj.getServerIdList().toArray(serverList);
-        
         try {
             // 最大尝试副本数个server
-            for (int i = 0; i < serverList.length; i++) {
+        	List<String> serverList = fidObj.getServerIdList();
+            for (int i = 0; i < serverList.size(); i++) {
                 ServiceMetaInfo serviceMetaInfo = selector.selectService(fidObj.getUuid(), serverList);
                 if(serviceMetaInfo.getFirstServer() == null) {
-                	serverList[serviceMetaInfo.getReplicatPot() - 1] = null;
+                	serverList.set(serviceMetaInfo.getReplicatPot() - 1, null);
                 	continue;
                 }
                 
@@ -272,7 +271,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 //	                }
 				} catch (Exception e) {
 					// 使用选择的server没有读取到数据，需要进行排除
-					serverList[serviceMetaInfo.getReplicatPot() - 1] = null;
+					serverList.set(serviceMetaInfo.getReplicatPot() - 1, null);
 					continue;
 				}
             }
