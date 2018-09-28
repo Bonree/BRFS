@@ -8,6 +8,7 @@ import com.bonree.brfs.client.utils.FilePathBuilder;
 import com.bonree.brfs.common.net.tcp.file.ReadObject;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.utils.InputUtils;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.write.data.FidDecoder;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -21,7 +22,7 @@ public class SimpleClient {
         Fid fidObj = FidDecoder.build(fid);
 
         ReadObject readObject = new ReadObject();
-    	readObject.setFilePath(FilePathBuilder.buildPath(fidObj,
+    	readObject.setFilePath(FilePathBuilder.buildPath(fidObj, TimeUtils.timeInterval(fidObj.getTime(), fidObj.getDuration()),
     			sr, index));
     	readObject.setOffset(fidObj.getOffset());
     	readObject.setLength((int) fidObj.getSize());
