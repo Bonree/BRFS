@@ -5489,10 +5489,10 @@ public final class FileDataProtos {
     boolean hasDuration();
     long getDuration();
     
-    // repeated int32 serverId = 7;
-    java.util.List<java.lang.Integer> getServerIdList();
+    // repeated string serverId = 7;
+    java.util.List<String> getServerIdList();
     int getServerIdCount();
-    int getServerId(int index);
+    String getServerId(int index);
     
     // optional int64 offset = 8;
     boolean hasOffset();
@@ -5613,17 +5613,17 @@ public final class FileDataProtos {
       return duration_;
     }
     
-    // repeated int32 serverId = 7;
+    // repeated string serverId = 7;
     public static final int SERVERID_FIELD_NUMBER = 7;
-    private java.util.List<java.lang.Integer> serverId_;
-    public java.util.List<java.lang.Integer>
+    private com.google.protobuf.LazyStringList serverId_;
+    public java.util.List<String>
         getServerIdList() {
       return serverId_;
     }
     public int getServerIdCount() {
       return serverId_.size();
     }
-    public int getServerId(int index) {
+    public String getServerId(int index) {
       return serverId_.get(index);
     }
     
@@ -5654,7 +5654,7 @@ public final class FileDataProtos {
       uuid_ = "";
       time_ = 0L;
       duration_ = 0L;
-      serverId_ = java.util.Collections.emptyList();;
+      serverId_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       offset_ = 0L;
       size_ = 0L;
     }
@@ -5689,7 +5689,7 @@ public final class FileDataProtos {
         output.writeInt64(6, duration_);
       }
       for (int i = 0; i < serverId_.size(); i++) {
-        output.writeInt32(7, serverId_.get(i));
+        output.writeBytes(7, serverId_.getByteString(i));
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeInt64(8, offset_);
@@ -5734,7 +5734,7 @@ public final class FileDataProtos {
         int dataSize = 0;
         for (int i = 0; i < serverId_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeInt32SizeNoTag(serverId_.get(i));
+            .computeBytesSizeNoTag(serverId_.getByteString(i));
         }
         size += dataSize;
         size += 1 * getServerIdList().size();
@@ -5883,7 +5883,7 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000010);
         duration_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000020);
-        serverId_ = java.util.Collections.emptyList();;
+        serverId_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000040);
         offset_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000080);
@@ -5952,7 +5952,8 @@ public final class FileDataProtos {
         }
         result.duration_ = duration_;
         if (((bitField0_ & 0x00000040) == 0x00000040)) {
-          serverId_ = java.util.Collections.unmodifiableList(serverId_);
+          serverId_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              serverId_);
           bitField0_ = (bitField0_ & ~0x00000040);
         }
         result.serverId_ = serverId_;
@@ -6075,18 +6076,9 @@ public final class FileDataProtos {
               duration_ = input.readInt64();
               break;
             }
-            case 56: {
-              ensureServerIdIsMutable();
-              serverId_.add(input.readInt32());
-              break;
-            }
             case 58: {
-              int length = input.readRawVarint32();
-              int limit = input.pushLimit(length);
-              while (input.getBytesUntilLimit() > 0) {
-                addServerId(input.readInt32());
-              }
-              input.popLimit(limit);
+              ensureServerIdIsMutable();
+              serverId_.add(input.readBytes());
               break;
             }
             case 64: {
@@ -6246,49 +6238,60 @@ public final class FileDataProtos {
         return this;
       }
       
-      // repeated int32 serverId = 7;
-      private java.util.List<java.lang.Integer> serverId_ = java.util.Collections.emptyList();;
+      // repeated string serverId = 7;
+      private com.google.protobuf.LazyStringList serverId_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureServerIdIsMutable() {
         if (!((bitField0_ & 0x00000040) == 0x00000040)) {
-          serverId_ = new java.util.ArrayList<java.lang.Integer>(serverId_);
+          serverId_ = new com.google.protobuf.LazyStringArrayList(serverId_);
           bitField0_ |= 0x00000040;
          }
       }
-      public java.util.List<java.lang.Integer>
+      public java.util.List<String>
           getServerIdList() {
         return java.util.Collections.unmodifiableList(serverId_);
       }
       public int getServerIdCount() {
         return serverId_.size();
       }
-      public int getServerId(int index) {
+      public String getServerId(int index) {
         return serverId_.get(index);
       }
       public Builder setServerId(
-          int index, int value) {
-        ensureServerIdIsMutable();
+          int index, String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureServerIdIsMutable();
         serverId_.set(index, value);
         onChanged();
         return this;
       }
-      public Builder addServerId(int value) {
-        ensureServerIdIsMutable();
+      public Builder addServerId(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureServerIdIsMutable();
         serverId_.add(value);
         onChanged();
         return this;
       }
       public Builder addAllServerId(
-          java.lang.Iterable<? extends java.lang.Integer> values) {
+          java.lang.Iterable<String> values) {
         ensureServerIdIsMutable();
         super.addAll(values, serverId_);
         onChanged();
         return this;
       }
       public Builder clearServerId() {
-        serverId_ = java.util.Collections.emptyList();;
+        serverId_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000040);
         onChanged();
         return this;
+      }
+      void addServerId(com.google.protobuf.ByteString value) {
+        ensureServerIdIsMutable();
+        serverId_.add(value);
+        onChanged();
       }
       
       // optional int64 offset = 8;
@@ -6420,7 +6423,7 @@ public final class FileDataProtos {
       "\030\005 \001(\005\"\237\001\n\003Fid\022\017\n\007version\030\001 \001(\005\022\020\n\010compr" +
       "ess\030\002 \001(\005\022\027\n\017storageNameCode\030\003 \001(\005\022\014\n\004uu" +
       "id\030\004 \001(\t\022\014\n\004time\030\005 \001(\003\022\020\n\010duration\030\006 \001(\003" +
-      "\022\020\n\010serverId\030\007 \003(\005\022\016\n\006offset\030\010 \001(\003\022\014\n\004si" +
+      "\022\020\n\010serverId\030\007 \003(\t\022\016\n\006offset\030\010 \001(\003\022\014\n\004si" +
       "ze\030\t \001(\003B1\n\034com.bonree.brfs.common.proto" +
       "B\016FileDataProtos\210\001\000"
     };

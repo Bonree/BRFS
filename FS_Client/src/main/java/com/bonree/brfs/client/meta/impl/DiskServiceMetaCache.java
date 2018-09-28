@@ -10,13 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.client.meta.ServiceMetaCache;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
-public class DiskServiceMetaCache implements ServiceMetaCache {
+public class DiskServiceMetaCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiskServiceMetaCache.class);
 
@@ -67,7 +66,6 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
      * @param service
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    @Override
     public void addService(Service service) {
         // serverID信息加载
         LOG.info("addService");
@@ -82,7 +80,6 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
      * @param service
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    @Override
     public void removeService(Service service) {
         firstServerCache.remove(service.getServiceId(), service);
         // 移除1级SID对应的2级SID
@@ -134,13 +131,6 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
         };
     }
 
-    public Service getRandomService() {
-        List<String> firstIDs = new ArrayList<String>(firstServerCache.keySet());
-        Random random = new Random();
-        String randomFirstID = firstIDs.get(random.nextInt(firstIDs.size()));
-        return firstServerCache.get(randomFirstID);
-    }
-
     public List<String> listSecondID() {
         return new ArrayList<String>(secondServerCache.keySet());
     }
@@ -149,11 +139,6 @@ public class DiskServiceMetaCache implements ServiceMetaCache {
         return new ArrayList<String>(firstServerCache.keySet());
     }
 
-    public int getSnIndex() {
-        return snIndex;
-    }
-
-    @Override
     public Map<String, Service> getServerCache() {
         return firstServerCache;
     }

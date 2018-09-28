@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.client.BRFileSystem;
 import com.bonree.brfs.client.StorageNameStick;
-import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.ServiceSelectorManager;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
@@ -24,7 +23,6 @@ import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
-import com.bonree.brfs.common.net.tcp.file.client.AsyncFileReaderGroup;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
@@ -75,8 +73,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         this.serviceManager.start();
         
         this.serviceSelectorManager = new ServiceSelectorManager(zkClient, zkPaths.getBaseClusterName().substring(1),
-        		zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath(), serviceManager,
-        		config.getDuplicateServiceGroup(), config.getDiskServiceGroup());
+        		zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath(), serviceManager, config.getDiskServiceGroup());
         
         this.regionNodeSelector = new RegionNodeSelector(serviceManager, config.getDuplicateServiceGroup());
         
@@ -247,9 +244,8 @@ public class DefaultBRFileSystem implements BRFileSystem {
     		            	if(response.isReponseOK()) {
     		            		int storageId = Ints.fromByteArray(response.getResponseBody());
     		            		
-    		            		DiskServiceSelectorCache cache = serviceSelectorManager.useDiskSelector(storageId);
     	    		            stick = new DefaultStorageNameStick(storageName, storageId,
-    	    		            		httpClient, cache, regionNodeSelector,
+    	    		            		httpClient, serviceSelectorManager.useDiskSelector(storageId), regionNodeSelector,
     	    		            		config);
 //    	    		            stickContainer.put(storageName, stick);
     	    		            

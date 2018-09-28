@@ -18,7 +18,7 @@ public final class FilePathBuilder {
 		.append(PATH_SEPARATOR)
 		.append(fid.getUuid().toLowerCase());
 		
-		for(Integer serverId : fid.getServerIdList()) {
+		for(String serverId : fid.getServerIdList()) {
 			builder.append("_").append(serverId);
 		}
 		

@@ -1,16 +1,12 @@
 package com.bonree.brfs.client.impl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
-import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.joda.time.DateTime;
@@ -19,32 +15,23 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.client.InputItem;
 import com.bonree.brfs.client.StorageNameStick;
-import com.bonree.brfs.client.route.DiskServiceSelectorCache;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
+import com.bonree.brfs.client.route.impl.ReaderServiceSelector;
 import com.bonree.brfs.client.utils.FilePathBuilder;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.exception.BRFSException;
 import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
-import com.bonree.brfs.common.net.tcp.client.ResponseHandler;
-import com.bonree.brfs.common.net.tcp.client.TcpClient;
 import com.bonree.brfs.common.net.tcp.file.ReadObject;
-import com.bonree.brfs.common.net.tcp.file.client.FileContentPart;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
-import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.write.data.FidDecoder;
-import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.common.write.data.WriteDataMessage;
-import com.google.common.base.Joiner;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
 
 public class DefaultStorageNameStick implements StorageNameStick {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageNameStick.class);
@@ -52,7 +39,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
     private final String storageName;
     private final int storageId;
 
-    private DiskServiceSelectorCache selector;
+    private ReaderServiceSelector selector;
     private RegionNodeSelector regionNodeSelector;
     private HttpClient client;
     
@@ -61,9 +48,10 @@ public class DefaultStorageNameStick implements StorageNameStick {
     
 //    private ConnectionPool connectionPool;
     private ReadConnectionPool connectionPool;
+    
 
     public DefaultStorageNameStick(String storageName, int storageId,
-    		HttpClient client, DiskServiceSelectorCache selector,
+    		HttpClient client, ReaderServiceSelector selector,
     		RegionNodeSelector regionNodeSelector, FileSystemConfig config) {
         this.storageName = storageName;
         this.storageId = storageId;
@@ -141,27 +129,21 @@ public class DefaultStorageNameStick implements StorageNameStick {
         if (fidObj.getStorageNameCode() != storageId) {
             throw new IllegalAccessException("Storage name of fid is not legal!");
         }
-
-        List<String> parts = new ArrayList<String>();
-        parts.add(fidObj.getUuid());
-        for (int serverId : fidObj.getServerIdList()) {
-            parts.add(String.valueOf(serverId));
-        }
+        
+        String[] serverList = new String[fidObj.getServerIdCount()];
+        serverList = fidObj.getServerIdList().toArray(serverList);
         
         try {
-        	List<Integer> excludePot = new ArrayList<Integer>();
             // 最大尝试副本数个server
-            for (int i = 0; i < parts.size() - 1; i++) {
-                ServiceMetaInfo serviceMetaInfo = selector.readerService(Joiner.on('_').join(parts), excludePot);
-                if(serviceMetaInfo == null) {
+            for (int i = 0; i < serverList.length; i++) {
+                ServiceMetaInfo serviceMetaInfo = selector.selectService(fidObj.getUuid(), serverList);
+                if(serviceMetaInfo.getFirstServer() == null) {
+                	serverList[serviceMetaInfo.getReplicatPot() - 1] = null;
                 	continue;
                 }
                 
                 Service service = serviceMetaInfo.getFirstServer();
                 LOG.info("read service[{}]", service);
-                if (service == null) {
-                    throw new BRFSException("none disknode!!!");
-                }
                 
                 ReadConnection fileReader = connectionPool.getConnection(service);
 //                URI uri = new URIBuilder().setScheme(config.getUrlSchema())
@@ -233,7 +215,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 //	                }
 				} catch (Exception e) {
 					// 使用选择的server没有读取到数据，需要进行排除
-	                excludePot.add(serviceMetaInfo.getReplicatPot());
+					serverList[serviceMetaInfo.getReplicatPot() - 1] = null;
 					continue;
 				}
             }

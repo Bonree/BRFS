@@ -21,7 +21,7 @@ public class RouteParser {
         this.routeCache = routeCache;
     }
 
-    public String findServerID(String searchServerID, String fid, String separator, List<String> aliveServers) {
+    public String findServerID(String searchServerID, String namePart, String[] serverIds, List<String> aliveServers) {
 
         // fid分为单副本serverID,多副本serverID,虚拟serverID。
         // 单副本不需要查找路由
@@ -52,19 +52,19 @@ public class RouteParser {
             return null; // 不是存活的secondid，并没有发生迁移，返回null，标识不可用
         }
 
-        // 对文件名进行分割处理
-        String[] metaArr = fid.split(separator);
-        // 提取出用于hash的部分
-        String namePart = metaArr[0];
         // 提取副本数
-        int replicas = metaArr.length - 1;
+        int replicas = serverIds.length;
         // 提取出该文件所存储的服务
         List<String> fileServerIds = new ArrayList<>();
 
-        for (int j = 1; j < metaArr.length; j++) {
+        for (String serverId : serverIds) {
+        	if(serverId == null) {
+        		continue;
+        	}
+        	
             // virtual server ID 分为已经解析或者还未解析的
-            if (Constants.VIRTUAL_ID == metaArr[j].charAt(0)) {
-                if (metaArr[j].equals(searchServerID)) { // 前面解析过
+            if (Constants.VIRTUAL_ID == serverId.charAt(0)) {
+                if (serverId.equals(searchServerID)) { // 前面解析过
                     fileServerIds.add(secondID);
                 } else { // 需要解析
                     VirtualRoute virtualRoute = routeCache.getVirtualRoute(secondID);
@@ -115,7 +115,7 @@ public class RouteParser {
                     selectableServerList = RebalanceUtils.getSelectedList(recoverableServerList, exceptionServerIds);
                     int index = RebalanceUtils.hashFileName(namePart, selectableServerList.size());
                     selectMultiId = selectableServerList.get(index);
-                    LOG.debug("2260 partFile:" + fid + "," + "deadserver:" + deadServer + "to " + "newServer:" + selectMultiId);
+                    LOG.debug("2260 partFile:" + namePart + "," + "deadserver:" + deadServer + "to " + "newServer:" + selectMultiId);
                     fileServerIds.set(pot, selectMultiId);
 
                     // 判断选取的新节点是否存活

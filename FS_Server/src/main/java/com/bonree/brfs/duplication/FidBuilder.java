@@ -26,7 +26,7 @@ public class FidBuilder {
 		List<String> nameParts = Splitter.on("_").splitToList(node.getName());
 		builder.setUuid(nameParts.get(0));
 		for(int i = 1; i < nameParts.size(); i++) {
-			builder.addServerId(Integer.parseInt(nameParts.get(i)));
+			builder.addServerId(nameParts.get(i));
 		}
 		
 		Fid fid = builder.build();

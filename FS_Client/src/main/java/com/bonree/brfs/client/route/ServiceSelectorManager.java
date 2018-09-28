@@ -7,11 +7,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 
-import com.bonree.brfs.client.meta.ServiceMetaListener;
 import com.bonree.brfs.client.meta.impl.DiskServiceMetaCache;
-import com.bonree.brfs.client.meta.impl.DuplicaServiceMetaCache;
+import com.bonree.brfs.client.route.impl.ReaderServiceSelector;
 import com.bonree.brfs.client.route.listener.RouteCacheListener;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 public class ServiceSelectorManager implements Closeable {
@@ -19,18 +20,15 @@ public class ServiceSelectorManager implements Closeable {
     private String zkServerIDPath;
     private String baseRoutePath;
     private ServiceManager serviceManager;
-    private Map<Integer, DiskServiceSelectorCache> diskServiceSelectorCachaMap = new ConcurrentHashMap<>();
-    private DuplicaServiceSelector duplicaServiceSelector = null;
+    private Map<Integer, ReaderServiceSelector> diskServiceSelectorCachaMap = new ConcurrentHashMap<>();
     private CuratorClient curatorClient;
     private TreeCache treeCache;
     
-    private final String duplicateServiceGroup;
     private final String diskServiceGroup;
 
     public ServiceSelectorManager(final CuratorFramework client, String nameSpace, final String zkServerIDPath,
     		final String baseRoutePath,
     		ServiceManager serviceManager,
-    		String duplicateServiceGroup,
     		String diskServiceGroup) throws Exception {
         this.zkServerIDPath = zkServerIDPath;
         this.baseRoutePath = baseRoutePath;
@@ -39,7 +37,6 @@ public class ServiceSelectorManager implements Closeable {
         
         this.serviceManager = serviceManager;
         
-        this.duplicateServiceGroup = duplicateServiceGroup;
         this.diskServiceGroup = diskServiceGroup;
     }
 
@@ -49,16 +46,25 @@ public class ServiceSelectorManager implements Closeable {
      * @throws Exception
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public DiskServiceSelectorCache useDiskSelector(int snIndex) throws Exception {
-        DiskServiceSelectorCache diskServiceSelectorCache = diskServiceSelectorCachaMap.get(snIndex);
-        if (diskServiceSelectorCache != null) {
-            return diskServiceSelectorCache;
+    public ReaderServiceSelector useDiskSelector(int snIndex) throws Exception {
+    	ReaderServiceSelector readServerSelector = diskServiceSelectorCachaMap.get(snIndex);
+        if (readServerSelector != null) {
+            return readServerSelector;
         }
 
-        DiskServiceMetaCache diskServiceMetaCache = new DiskServiceMetaCache(curatorClient, zkServerIDPath, snIndex,
-        		diskServiceGroup);
-        ServiceMetaListener diskListener = new ServiceMetaListener(diskServiceMetaCache);
-        serviceManager.addServiceStateListener(diskServiceGroup, diskListener);
+        DiskServiceMetaCache diskServiceMetaCache = new DiskServiceMetaCache(curatorClient, zkServerIDPath, snIndex, diskServiceGroup);
+        serviceManager.addServiceStateListener(diskServiceGroup, new ServiceStateListener() {
+			
+			@Override
+			public void serviceRemoved(Service service) {
+				diskServiceMetaCache.addService(service);
+			}
+			
+			@Override
+			public void serviceAdded(Service service) {
+				diskServiceMetaCache.removeService(service);
+			}
+		});
         
         diskServiceMetaCache.loadMetaCachae(serviceManager);
 
@@ -66,30 +72,13 @@ public class ServiceSelectorManager implements Closeable {
         RouteParser routeParser = new RouteParser(routeCache);
 
         // 兼容余鹏的client读取
-        diskServiceSelectorCache = new DiskServiceSelectorCache(diskServiceMetaCache, routeParser);
+        readServerSelector = new ReaderServiceSelector(diskServiceMetaCache, routeParser);
 
         RouteCacheListener cacheListener = new RouteCacheListener(routeCache);
         treeCache.getListenable().addListener(cacheListener);
 
-        diskServiceSelectorCachaMap.put(snIndex, diskServiceSelectorCache);
-        return diskServiceSelectorCache;
-    }
-
-    public DuplicaServiceSelector useDuplicaSelector() throws Exception {
-        if (duplicaServiceSelector != null) {
-            return duplicaServiceSelector;
-        }
-
-        DuplicaServiceMetaCache duplicaServiceMetaCache = new DuplicaServiceMetaCache(duplicateServiceGroup);
-
-        // 监听duplicaServiceCachecache
-        ServiceMetaListener listener = new ServiceMetaListener(duplicaServiceMetaCache);
-        serviceManager.addServiceStateListener(duplicateServiceGroup, listener);
-
-        duplicaServiceMetaCache.loadMetaCachae(serviceManager);
-
-        duplicaServiceSelector = new DuplicaServiceSelector(duplicaServiceMetaCache);
-        return duplicaServiceSelector;
+        diskServiceSelectorCachaMap.put(snIndex, readServerSelector);
+        return readServerSelector;
     }
 
     @Override

@@ -76,8 +76,8 @@ public class FidEncoder {
         if (fid.getServerIdCount() == 0) {
             return ReturnCodeEnum.FID_SERVERID_ERROR;
         } else {
-            for (int sid : fid.getServerIdList()) {
-                if (sid > 16383) { // serverId取值范围是0~16383
+            for (String sid : fid.getServerIdList()) {
+                if (Integer.parseInt(sid) > 16383) { // serverId取值范围是0~16383
                     return ReturnCodeEnum.FID_SERVERID_ERROR;
                 }
             }
