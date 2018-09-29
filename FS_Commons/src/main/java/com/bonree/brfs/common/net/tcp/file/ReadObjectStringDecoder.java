@@ -17,11 +17,17 @@ public class ReadObjectStringDecoder extends ByteToMessageDecoder {
 		in.skipBytes(in.readableBytes());
 		
 		ReadObject object = new ReadObject();
-		object.setFilePath(parts.get(0));
-		object.setOffset(Long.parseLong(parts.get(1)));
-		object.setLength(Integer.parseInt(parts.get(2)));
-		object.setRaw(Integer.parseInt(parts.get(3)));
-		object.setToken(Integer.parseInt(parts.get(4)));
+		int index = 0;
+		object.setSn(parts.get(index++));
+		object.setIndex(Integer.parseInt(parts.get(index++)));
+		object.setTime(Long.parseLong(parts.get(index++)));
+		object.setDuration(Long.parseLong(parts.get(index++)));
+		object.setFileName(parts.get(index++));
+		object.setFilePath(parts.get(index++));
+		object.setOffset(Long.parseLong(parts.get(index++)));
+		object.setLength(Integer.parseInt(parts.get(index++)));
+		object.setRaw(Integer.parseInt(parts.get(index++)));
+		object.setToken(Integer.parseInt(parts.get(index++)));
 		
 		out.add(object);
 	}

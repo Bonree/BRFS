@@ -19,8 +19,13 @@ public class ReadObjectEncoder extends MessageToByteEncoder<TokenMessage<ReadObj
 		readObject.setToken(object.messageToken());
 //		out.writeBytes(JsonUtils.toJsonBytes(object.message()));
 		
-		out.writeBytes(Joiner.on(';')
-				.join(readObject.getFilePath(),
+		out.writeBytes(Joiner.on(';').useForNull("-")
+				.join(readObject.getSn(),
+						readObject.getIndex(),
+						readObject.getTime(),
+						readObject.getDuration(),
+						readObject.getFileName(),
+						readObject.getFilePath(),
 						readObject.getOffset(),
 						readObject.getLength(),
 						readObject.getRaw(),

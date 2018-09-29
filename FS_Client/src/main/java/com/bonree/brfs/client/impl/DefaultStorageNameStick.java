@@ -53,58 +53,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 //    private ConnectionPool connectionPool;
     private ReadConnectionPool connectionPool;
     
-    private static class TimePair {
-    	private final long time;
-    	private final long duration;
-    	
-    	public TimePair(long time, long duration) {
-    		this.time = time;
-    		this.duration = duration;
-    	}
-    	
-    	public long time() {
-    		return this.time;
-    	}
-    	
-    	public long duration() {
-    		return this.duration;
-    	}
-    	
-    	@Override
-		public int hashCode() {
-			return (int) (this.time * 37 + this.duration);
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if(obj == null) {
-				return false;
-			}
-			
-			if(!(obj instanceof TimePair)) {
-				return false;
-			}
-			
-			TimePair oth = (TimePair) obj; 
-			
-			return this.time == oth.time && this.duration == oth.duration;
-		}
-    }
     
-    
-    private LoadingCache<TimePair, String> timeCache = CacheBuilder.newBuilder()
-    		.maximumSize(1024)
-    		.build(new CacheLoader<TimePair, String>() {
-
-				@Override
-				public String load(TimePair pair) throws Exception {
-					StringBuilder builder = new StringBuilder();
-					builder.append(TimeUtils.formatTimeStamp(pair.time()))
-					.append('_')
-					.append(TimeUtils.formatTimeStamp(pair.time() + pair.duration()));
-					return builder.toString();
-				}
-			});
 
     public DefaultStorageNameStick(String storageName, int storageId,
     		HttpClient client, ReaderServiceSelector selector,
@@ -186,6 +135,9 @@ public class DefaultStorageNameStick implements StorageNameStick {
             throw new IllegalAccessException("Storage name of fid is not legal!");
         }
         
+        StringBuilder nameBuilder = new StringBuilder(fidObj.getUuid());
+    	fidObj.getServerIdList().forEach(id -> nameBuilder.append('_').append(id));
+        
         try {
             // 最大尝试副本数个server
         	List<String> serverList = fidObj.getServerIdList();
@@ -210,9 +162,15 @@ public class DefaultStorageNameStick implements StorageNameStick {
 //                	LOG.info("read url:" + uri);
 //					final HttpResponse response = client.executeGet(uri, defaultHeaders);
                 	ReadObject readObject = new ReadObject();
-                	readObject.setFilePath(FilePathBuilder.buildPath(fidObj,
-                			timeCache.get(new TimePair(TimeUtils.prevTimeStamp(fidObj.getTime(), fidObj.getDuration()), fidObj.getDuration())),
-                			storageName, serviceMetaInfo.getReplicatPot()));
+                	readObject.setSn(storageName);
+                	readObject.setIndex(serviceMetaInfo.getReplicatPot());
+                	readObject.setTime(fidObj.getTime());
+                	readObject.setDuration(fidObj.getDuration());
+                	readObject.setFileName(nameBuilder.toString());
+                	
+//                	readObject.setFilePath(FilePathBuilder.buildPath(fidObj,
+//                			timeCache.get(new TimePair(TimeUtils.prevTimeStamp(fidObj.getTime(), fidObj.getDuration()), fidObj.getDuration())),
+//                			storageName, serviceMetaInfo.getReplicatPot()));
                 	readObject.setOffset(fidObj.getOffset());
                 	readObject.setLength((int) fidObj.getSize());
                 	
