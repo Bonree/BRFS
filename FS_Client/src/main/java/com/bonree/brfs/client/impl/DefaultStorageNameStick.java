@@ -140,7 +140,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
         for(int i = 0; i < fidObj.getServerIdCount(); i++) {
         	String id = fidObj.getServerId(i);
         	nameBuilder.append('_').append(id);
-        	serverList[i] = id;;
+        	serverList[i] = id;
         }
         
         try {

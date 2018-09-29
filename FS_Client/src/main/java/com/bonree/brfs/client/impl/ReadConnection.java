@@ -21,7 +21,13 @@ public class ReadConnection implements Closeable {
 	
 	public byte[] read(ReadObject readObject) throws Exception {
 		socket.getOutputStream().write(Joiner.on(';')
-				.join(readObject.getFilePath(),
+				.useForNull("-")
+				.join(readObject.getSn(),
+						readObject.getIndex(),
+						readObject.getTime(),
+						readObject.getDuration(),
+						readObject.getFileName(),
+						readObject.getFilePath(),
 						readObject.getOffset(),
 						readObject.getLength(),
 						readObject.getRaw(),
