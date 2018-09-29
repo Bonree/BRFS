@@ -24,27 +24,27 @@ public class ReaderServiceSelector {
         this.routeParser = routeParser;
     }
 
-    public ServiceMetaInfo selectService(String uuid, List<String> serverIdList) {
+    public ServiceMetaInfo selectService(String uuid, String[] serverIdList) {
         List<String> aliveServices = diskServiceMetaCache.listSecondID();
         LOG.debug("2260 get aliver second server!!!");
 
-        if (serverIdList.size() == 1) { // 一个副本
+        if (serverIdList.length == 1) { // 一个副本
             LOG.debug("2260 this file has 1 replica,get the aliver server");
-            return diskServiceMetaCache.getFirstServerCache(serverIdList.get(0));
+            return diskServiceMetaCache.getFirstServerCache(serverIdList[0]);
         }
         
         // 多个副本时，选择一个副本
-        int index = rand.nextInt(serverIdList.size());
-        for(int i = 0; i < serverIdList.size(); i++) {
-        	if(serverIdList.get(index) != null) {
+        int index = rand.nextInt(serverIdList.length);
+        for(int i = 0; i < serverIdList.length; i++) {
+        	if(serverIdList[index] != null) {
         		break;
         	}
         	
-        	index = ++index % serverIdList.size();
+        	index = ++index % serverIdList.length;
         }
         
         final int pos = index + 1;
-        String aliveSecondID = routeParser.findServerID(serverIdList.get(index), uuid, serverIdList, aliveServices);
+        String aliveSecondID = routeParser.findServerID(serverIdList[index], uuid, serverIdList, aliveServices);
         
         if (aliveSecondID != null) {
             return diskServiceMetaCache.getSecondServerCache(aliveSecondID, pos);

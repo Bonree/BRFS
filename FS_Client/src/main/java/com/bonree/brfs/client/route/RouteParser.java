@@ -21,7 +21,7 @@ public class RouteParser {
         this.routeCache = routeCache;
     }
 
-    public String findServerID(String searchServerID, String namePart, List<String> serverIds, List<String> aliveServers) {
+    public String findServerID(String searchServerID, String namePart, String[] serverIds, List<String> aliveServers) {
 
         // fid分为单副本serverID,多副本serverID,虚拟serverID。
         // 单副本不需要查找路由
@@ -53,7 +53,7 @@ public class RouteParser {
         }
 
         // 提取副本数
-        int replicas = serverIds.size();
+        int replicas = serverIds.length;
         // 提取出该文件所存储的服务
         List<String> fileServerIds = new ArrayList<>();
 

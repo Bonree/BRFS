@@ -136,15 +136,19 @@ public class DefaultStorageNameStick implements StorageNameStick {
         }
         
         StringBuilder nameBuilder = new StringBuilder(fidObj.getUuid());
-    	fidObj.getServerIdList().forEach(id -> nameBuilder.append('_').append(id));
+        String[] serverList = new String[fidObj.getServerIdCount()];
+        for(int i = 0; i < fidObj.getServerIdCount(); i++) {
+        	String id = fidObj.getServerId(i);
+        	nameBuilder.append('_').append(id);
+        	serverList[i] = id;;
+        }
         
         try {
             // 最大尝试副本数个server
-        	List<String> serverList = fidObj.getServerIdList();
-            for (int i = 0; i < serverList.size(); i++) {
+            for (int i = 0; i < serverList.length; i++) {
                 ServiceMetaInfo serviceMetaInfo = selector.selectService(fidObj.getUuid(), serverList);
                 if(serviceMetaInfo.getFirstServer() == null) {
-                	serverList.set(serviceMetaInfo.getReplicatPot() - 1, null);
+                	serverList[serviceMetaInfo.getReplicatPot() - 1] = null;
                 	continue;
                 }
                 
@@ -229,7 +233,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 //	                }
 				} catch (Exception e) {
 					// 使用选择的server没有读取到数据，需要进行排除
-					serverList.set(serviceMetaInfo.getReplicatPot() - 1, null);
+					serverList[serviceMetaInfo.getReplicatPot() - 1] = null;
 					continue;
 				}
             }
