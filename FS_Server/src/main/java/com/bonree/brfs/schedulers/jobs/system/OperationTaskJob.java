@@ -113,7 +113,6 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				}
 				if(TaskType.SYSTEM_CHECK.equals(taskType)){
 					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName(),dataPath);
-					LOG.error("[TEST TIP] : task : [{}], pattern:[{}], runTask:[{}]",JsonUtils.toJsonString(task),JsonUtils.toJsonString(runPattern),JsonUtils.toJsonString(sumbitTask));
 				}
 				if(TaskType.USER_DELETE.equals(taskType)){
 					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), UserDeleteJob.class.getCanonicalName(),dataPath);

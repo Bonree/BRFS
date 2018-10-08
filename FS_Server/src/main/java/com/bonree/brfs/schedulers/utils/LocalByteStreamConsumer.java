@@ -52,23 +52,22 @@ public class LocalByteStreamConsumer implements ByteConsumer {
 			output.write(data);
 			output.flush();
 		}catch (FileNotFoundException e) {
-			LOG.error("write byte error {}", e);
+			LOG.error("write byte error ", e);
 		} catch (IOException e) {
-			LOG.error("write byte error {}", e);
+			LOG.error("write byte error ", e);
 		}finally {
 			try {
 				output.close();
 			}
 			catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOG.error("close error ",e);
 			}
 		}
 	}
 
 	@Override
 	public void error(Throwable e) {
-		LOG.error("recovery file error!! clear data !!! {}", e);
+		LOG.error("recovery file error!! clear data !!! ", e);
 		result.completeExceptionally(e);
 	}
 	public String getLocalPath() {

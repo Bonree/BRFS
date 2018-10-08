@@ -246,7 +246,9 @@ public class CopyRecovery {
 			}
 			remotePath = "/"+snName + "/" + remoteIndex + "/" + dirName + "/" + fileName;
 			isSuccess = copyFrom(remoteService.getHost(), remoteService.getPort(),remoteService.getExtraPort(),5000, remotePath, dataPath + localPath);
-			LOG.info("remote address [{}:{}], remote [{}], local [{}], stat [{}]",remoteService.getHost(),remoteService.getPort(), remotePath, localPath,isSuccess ? "success" :"fail");
+			LOG.info("remote address [{}: {} ：{}], remote [{}], local [{}], stat [{}]",
+				remoteService.getHost(), remoteService.getPort(), remoteService.getExtraPort(), 
+				remotePath, localPath, isSuccess ? "success" :"fail");
 			if(isSuccess){
 				return true;
 			}
@@ -301,8 +303,10 @@ public class CopyRecovery {
 	}
 	/**
 	 * 概述：恢复数据文件
-	 * @param host
-	 * @param port
+	 * @param host 远程主机
+	 * @param port 端口
+	 * @param export
+	 * @param timeout
 	 * @param remotePath
 	 * @param localPath
 	 * @return
@@ -335,10 +339,11 @@ public class CopyRecovery {
 		finally {
 			if (client != null) {
 				try {
+					client.closeFile(remotePath);
 					client.close();
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					LOG.error("close error ", e);
 				}
 			}
 			
