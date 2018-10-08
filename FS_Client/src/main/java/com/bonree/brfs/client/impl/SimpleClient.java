@@ -20,10 +20,23 @@ public class SimpleClient {
 	
 	public SimpleClient(String fid, String ip, int port, String sr, int index) throws Exception {
         Fid fidObj = FidDecoder.build(fid);
+        
+        StringBuilder nameBuilder = new StringBuilder(fidObj.getUuid());
+        String[] serverList = new String[fidObj.getServerIdCount()];
+        for(int i = 0; i < fidObj.getServerIdCount(); i++) {
+        	String id = fidObj.getServerId(i);
+        	nameBuilder.append('_').append(id);
+        	serverList[i] = id;
+        }
 
         ReadObject readObject = new ReadObject();
-    	readObject.setFilePath(FilePathBuilder.buildPath(fidObj, TimeUtils.timeInterval(fidObj.getTime(), fidObj.getDuration()),
-    			sr, index));
+        readObject.setSn(sr);
+    	readObject.setIndex(index);
+    	readObject.setTime(fidObj.getTime());
+    	readObject.setDuration(fidObj.getDuration());
+    	readObject.setFileName(nameBuilder.toString());
+//    	readObject.setFilePath(FilePathBuilder.buildPath(fidObj, TimeUtils.timeInterval(fidObj.getTime(), fidObj.getDuration()),
+//    			sr, index));
     	readObject.setOffset(fidObj.getOffset());
     	readObject.setLength((int) fidObj.getSize());
     	
