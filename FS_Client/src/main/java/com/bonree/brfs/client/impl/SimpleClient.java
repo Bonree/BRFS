@@ -30,7 +30,12 @@ public class SimpleClient {
     	readObject.setToken(0);
 //    	request = JsonUtils.toJsonBytes(readObject);
     	request = Joiner.on(';')
-				.join(readObject.getFilePath(),
+				.join(readObject.getSn(),
+						readObject.getIndex(),
+						readObject.getTime(),
+						readObject.getDuration(),
+						readObject.getFileName(),
+						readObject.getFilePath(),
 						readObject.getOffset(),
 						readObject.getLength(),
 						readObject.getRaw(),
