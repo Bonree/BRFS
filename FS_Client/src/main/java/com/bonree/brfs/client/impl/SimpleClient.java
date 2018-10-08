@@ -42,7 +42,7 @@ public class SimpleClient {
     	
     	readObject.setToken(0);
 //    	request = JsonUtils.toJsonBytes(readObject);
-    	request = Joiner.on(';')
+    	request = Joiner.on(';').useForNull("-")
 				.join(readObject.getSn(),
 						readObject.getIndex(),
 						readObject.getTime(),
