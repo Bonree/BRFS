@@ -40,6 +40,7 @@
 					<artifactId>commons-lang3</artifactId>
 				</exclusion>
 
+                <!-- 
 				<exclusion>
 					<groupId>io.protostuff</groupId>
 					<artifactId>protostuff-core</artifactId>
@@ -48,6 +49,7 @@
 					<groupId>io.protostuff</groupId>
 					<artifactId>protostuff-runtime</artifactId>
 				</exclusion>
+				 -->
 
 				<exclusion>
 					<groupId>io.netty</groupId>
