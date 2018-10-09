@@ -55,11 +55,6 @@
 				</exclusion>
 
 				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-
-				<exclusion>
 					<groupId>org.apache.httpcomponents</groupId>
 					<artifactId>httpasyncclient</artifactId>
 				</exclusion>
