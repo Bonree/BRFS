@@ -35,10 +35,6 @@
 					<groupId>ch.qos.logback</groupId>
 					<artifactId>logback-classic</artifactId>
 				</exclusion>
-				<exclusion>
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-lang3</artifactId>
-				</exclusion>
 
                 <!-- 
 				<exclusion>
@@ -56,10 +52,16 @@
 					<artifactId>netty-all</artifactId>
 				</exclusion>
 
+                <!--
 				<exclusion>
 					<groupId>org.apache.httpcomponents</groupId>
 					<artifactId>httpasyncclient</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+				-->
 
 				<exclusion>
 					<groupId>org.apache.commons</groupId>

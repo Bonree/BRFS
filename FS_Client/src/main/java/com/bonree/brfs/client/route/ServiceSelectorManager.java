@@ -57,12 +57,13 @@ public class ServiceSelectorManager implements Closeable {
 			
 			@Override
 			public void serviceRemoved(Service service) {
-				diskServiceMetaCache.addService(service);
+				diskServiceMetaCache.removeService(service);
 			}
 			
 			@Override
 			public void serviceAdded(Service service) {
-				diskServiceMetaCache.removeService(service);
+				diskServiceMetaCache.addService(service);
+				
 			}
 		});
         

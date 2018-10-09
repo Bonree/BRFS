@@ -37,6 +37,7 @@ public class DiskServiceMetaCache {
         this.zkServerIDPath = zkServerIDPath;
         this.snIndex = snIndex;
         this.group = group;
+        this.zkClient = curatorClient;
     }
     
     private void loadSecondServerId(String serviceId) {
