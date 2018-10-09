@@ -2,7 +2,8 @@ package com.bonree.brfs.client;
 
 import java.io.Closeable;
 import java.text.ParseException;
-import java.util.Date;
+
+import org.joda.time.DateTime;
 
 public interface StorageNameStick extends Closeable {
 	String[] writeData(InputItem[] itemArrays);
@@ -34,5 +35,5 @@ public interface StorageNameStick extends Closeable {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	boolean deleteData(long startTime, long endTime);
-	boolean deleteData(Date startTime, Date endTime);
+	boolean deleteData(DateTime startTime, DateTime endTime);
 }

@@ -4,42 +4,50 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.client.route.ServiceMetaInfo;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 public class DiskServiceMetaCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiskServiceMetaCache.class);
-
-    private static final String SEPARATOR = "/";
-
+    
     private String zkServerIDPath;
 
     private int snIndex;
 
     private String group;
 
-    private CuratorClient curatorClient;
+    private CuratorFramework zkClient;
 
     private Map<String, Service> firstServerCache;
 
     private Map<String, String> secondServerCache;
 
-    public DiskServiceMetaCache(final CuratorClient curatorClient, final String zkServerIDPath, final int snIndex, String group) {
+    public DiskServiceMetaCache(CuratorFramework curatorClient, String zkServerIDPath, int snIndex, String group) {
         firstServerCache = new ConcurrentHashMap<>();
         secondServerCache = new ConcurrentHashMap<>();
-        this.curatorClient = curatorClient;
         this.zkServerIDPath = zkServerIDPath;
         this.snIndex = snIndex;
         this.group = group;
+    }
+    
+    private void loadSecondServerId(String serviceId) {
+    	try {
+        	byte[] data = zkClient.getData().forPath(ZKPaths.makePath(zkServerIDPath, serviceId, String.valueOf(snIndex)));
+        	if(data != null) {
+        		secondServerCache.put(new String(data, "utf-8"), serviceId);
+        	}
+		} catch (Exception e) {
+			LOG.warn("load server id error", e);
+		}
     }
 
     /** 概述：加载所有关于该SN的2级SID对应的1级SID
@@ -47,18 +55,11 @@ public class DiskServiceMetaCache {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void loadMetaCachae(ServiceManager sm) {
-        // 加载元数据信息
-        List<Service> diskServices = sm.getServiceListByGroup(group);
         // load 1级serverid
-        for (Service service : diskServices) {
+        for (Service service : sm.getServiceListByGroup(group)) {
             firstServerCache.put(service.getServiceId(), service);
             // load 2级serverid
-            String snPath = zkServerIDPath + SEPARATOR + service.getServiceId() + SEPARATOR + snIndex;
-            if (!curatorClient.checkExists(snPath)) {
-                continue;
-            }
-            String secondID = new String(curatorClient.getData(snPath));
-            secondServerCache.put(secondID, service.getServiceId());
+            loadSecondServerId(service.getServiceId());
         }
     }
 
@@ -70,10 +71,8 @@ public class DiskServiceMetaCache {
         // serverID信息加载
         LOG.info("addService");
         firstServerCache.put(service.getServiceId(), service);
-        String firstID = service.getServiceId();
-        String snPath = zkServerIDPath + SEPARATOR + firstID + SEPARATOR + snIndex;
-        String secondID = new String(curatorClient.getData(snPath));
-        secondServerCache.put(secondID, firstID);
+        
+        loadSecondServerId(service.getServiceId());
     }
 
     /** 概述：移除该SN对应的2级SID对应的1级SID

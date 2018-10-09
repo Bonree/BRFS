@@ -4,15 +4,14 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import com.bonree.brfs.client.utils.FilePathBuilder;
+import org.apache.curator.shaded.com.google.common.base.Charsets;
+import org.apache.curator.shaded.com.google.common.base.Joiner;
+import org.apache.curator.shaded.com.google.common.primitives.Ints;
+
 import com.bonree.brfs.common.net.tcp.file.ReadObject;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.utils.InputUtils;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.write.data.FidDecoder;
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.primitives.Ints;
 
 public class SimpleClient {
 	private byte[] request;
@@ -41,7 +40,6 @@ public class SimpleClient {
     	readObject.setLength((int) fidObj.getSize());
     	
     	readObject.setToken(0);
-//    	request = JsonUtils.toJsonBytes(readObject);
     	request = Joiner.on(';').useForNull("-")
 				.join(readObject.getSn(),
 						readObject.getIndex(),

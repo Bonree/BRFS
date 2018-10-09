@@ -13,7 +13,6 @@ import com.bonree.brfs.client.route.listener.RouteCacheListener;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 public class ServiceSelectorManager implements Closeable {
 
@@ -21,18 +20,19 @@ public class ServiceSelectorManager implements Closeable {
     private String baseRoutePath;
     private ServiceManager serviceManager;
     private Map<Integer, ReaderServiceSelector> diskServiceSelectorCachaMap = new ConcurrentHashMap<>();
-    private CuratorClient curatorClient;
+    
+    private CuratorFramework zkClient;
     private TreeCache treeCache;
     
     private final String diskServiceGroup;
 
-    public ServiceSelectorManager(final CuratorFramework client, String nameSpace, final String zkServerIDPath,
-    		final String baseRoutePath,
+    public ServiceSelectorManager(CuratorFramework client, String nameSpace, String zkServerIDPath,
+    		String baseRoutePath,
     		ServiceManager serviceManager,
     		String diskServiceGroup) throws Exception {
         this.zkServerIDPath = zkServerIDPath;
         this.baseRoutePath = baseRoutePath;
-        this.curatorClient = CuratorClient.wrapClient(client);
+        this.zkClient = client;
         treeCache = new TreeCache(client, baseRoutePath);
         
         this.serviceManager = serviceManager;
@@ -52,7 +52,7 @@ public class ServiceSelectorManager implements Closeable {
             return readServerSelector;
         }
 
-        DiskServiceMetaCache diskServiceMetaCache = new DiskServiceMetaCache(curatorClient, zkServerIDPath, snIndex, diskServiceGroup);
+        DiskServiceMetaCache diskServiceMetaCache = new DiskServiceMetaCache(zkClient, zkServerIDPath, snIndex, diskServiceGroup);
         serviceManager.addServiceStateListener(diskServiceGroup, new ServiceStateListener() {
 			
 			@Override
@@ -68,7 +68,7 @@ public class ServiceSelectorManager implements Closeable {
         
         diskServiceMetaCache.loadMetaCachae(serviceManager);
 
-        RouteRoleCache routeCache = new RouteRoleCache(curatorClient, snIndex, baseRoutePath);
+        RouteRoleCache routeCache = new RouteRoleCache(zkClient, snIndex, baseRoutePath);
         RouteParser routeParser = new RouteParser(routeCache);
 
         // 兼容余鹏的client读取

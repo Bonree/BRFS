@@ -1,6 +1,6 @@
 package com.bonree.brfs.client.impl;
 
-import com.google.common.base.Preconditions;
+import org.apache.curator.shaded.com.google.common.base.Preconditions;
 
 public class FileSystemConfig {
 	private String name;

@@ -119,7 +119,7 @@ public class RouteParser {
                     fileServerIds.set(pot, selectMultiId);
 
                     // 判断选取的新节点是否存活
-                    if (RebalanceUtils.isAlive(selectMultiId, aliveServers)) {
+                    if (aliveServers.contains(selectMultiId)) {
                         // 判断选取的新节点是否为本节点，该serverID是否在相应的位置
                         if (pot == serverIDPot) {
                             LOG.debug("2260 select a right server id : {} , for indexPot:{}", selectMultiId, serverIDPot);

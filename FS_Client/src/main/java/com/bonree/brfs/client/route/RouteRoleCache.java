@@ -4,12 +4,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.JsonUtils.JsonException;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -20,8 +24,9 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
  * @Description: 
  ******************************************************************************/
 public class RouteRoleCache {
+	private static final Logger LOG = LoggerFactory.getLogger(RouteRoleCache.class);
 
-    private CuratorClient curatorClient;
+	private CuratorFramework zkClient;
     private String baseRoutePath;
 
     private int storageIndex;
@@ -30,8 +35,8 @@ public class RouteRoleCache {
 
     private Map<String, VirtualRoute> virtualRouteDetail;
 
-    public RouteRoleCache(CuratorClient curatorClient, int storageIndex, String baseRoutePath) throws JsonException {
-        this.curatorClient = curatorClient;
+    public RouteRoleCache(CuratorFramework curatorClient, int storageIndex, String baseRoutePath) throws JsonException {
+        this.zkClient = curatorClient;
         this.storageIndex = storageIndex;
         this.baseRoutePath = baseRoutePath;
         virtualRouteDetail = new ConcurrentHashMap<>();
@@ -41,28 +46,44 @@ public class RouteRoleCache {
 
     private void loadRouteRole() throws JsonException {
             // load virtual id
-            String virtualPath = baseRoutePath + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE + Constants.SEPARATOR + storageIndex;
-            List<String> virtualNodes = curatorClient.getChildren(virtualPath);
-            if (virtualNodes != null && !virtualNodes.isEmpty()) {
-                for (String virtualNode : virtualNodes) {
-                    String dataPath = virtualPath + Constants.SEPARATOR + virtualNode;
-                    byte[] data = curatorClient.getData(dataPath);
-                    VirtualRoute virtual = JsonUtils.toObject(data, VirtualRoute.class);
-                    virtualRouteDetail.put(virtual.getVirtualID(), virtual);
+            try {
+            	String virtualPath = ZKPaths.makePath(baseRoutePath, Constants.VIRTUAL_ROUTE, String.valueOf(storageIndex));
+            	List<String> virtualNodes = zkClient.getChildren().forPath(virtualPath);
+            	
+            	if (virtualNodes != null && !virtualNodes.isEmpty()) {
+                    for (String virtualNode : virtualNodes) {
+                    	try {
+                    		byte[] data = zkClient.getData().forPath(ZKPaths.makePath(virtualPath, virtualNode));
+                    		VirtualRoute virtual = JsonUtils.toObject(data, VirtualRoute.class);
+                            virtualRouteDetail.put(virtual.getVirtualID(), virtual);
+						} catch (Exception e) {
+							LOG.error("load virtual route[{}] error", virtualNode, e);
+						}
+                    }
                 }
-            }
+			} catch (Exception e) {
+				LOG.error("get virtual nodes error", e);
+			}
 
             // load normal id
-            String normalPath = baseRoutePath + Constants.SEPARATOR + Constants.NORMAL_ROUTE + Constants.SEPARATOR + storageIndex;
-            List<String> normalNodes = curatorClient.getChildren(normalPath);
-            if (normalNodes != null && !normalNodes.isEmpty()) {
-                for (String normalNode : normalNodes) {
-                    String dataPath = normalPath + Constants.SEPARATOR + normalNode;
-                    byte[] data = curatorClient.getData(dataPath);
-                    NormalRoute normal =JsonUtils.toObject(data, NormalRoute.class);
-                    normalRouteDetail.put(normal.getSecondID(), normal);
+            try {
+            	String normalPath = ZKPaths.makePath(baseRoutePath, Constants.NORMAL_ROUTE, String.valueOf(storageIndex));
+            	List<String> normalNodes = zkClient.getChildren().forPath(normalPath);
+            	
+            	if (normalNodes != null && !normalNodes.isEmpty()) {
+                    for (String normalNode : normalNodes) {
+                    	try {
+                    		byte[] data = zkClient.getData().forPath(ZKPaths.makePath(normalPath, normalNode));
+                    		NormalRoute normal = JsonUtils.toObject(data, NormalRoute.class);
+                            normalRouteDetail.put(normal.getSecondID(), normal);
+						} catch (Exception e) {
+							LOG.error("load normal route[{}] error", normalNode, e);
+						}
+                    }
                 }
-            }
+			} catch (Exception e) {
+				LOG.error("get normal nodes error", e);
+			}
     }
 
     public int getStorageIndex() {

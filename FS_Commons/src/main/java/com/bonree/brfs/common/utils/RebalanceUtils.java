@@ -22,14 +22,6 @@ public class RebalanceUtils {
         return sum;
     }
 
-    public static boolean isAlive(String serverId, List<String> aliveServers) {
-        if (aliveServers.contains(serverId)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     /** 概述：判断是否需要恢复
      * @param serverIds
      * @param replicaPot
