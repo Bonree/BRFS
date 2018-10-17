@@ -81,11 +81,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
 				@Override
 				public String load(TimePair pair) throws Exception {
-					StringBuilder builder = new StringBuilder();
-					builder.append(TimeUtils.formatTimeStamp(pair.time()))
-					.append('_')
-					.append(TimeUtils.formatTimeStamp(pair.time() + pair.duration()));
-					return builder.toString();
+					return TimeUtils.timeInterval(pair.time, pair.duration);
 				}
 			});
 	
