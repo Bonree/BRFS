@@ -9,11 +9,11 @@ import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
-import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.JsonUtils.JsonException;
+import com.bonree.brfs.common.utils.BrStringUtils;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -35,7 +35,7 @@ public class RouteRoleCache {
 
     private Map<String, VirtualRoute> virtualRouteDetail;
 
-    public RouteRoleCache(CuratorFramework curatorClient, int storageIndex, String baseRoutePath) throws JsonException {
+    public RouteRoleCache(CuratorFramework curatorClient, int storageIndex, String baseRoutePath) throws Exception {
         this.zkClient = curatorClient;
         this.storageIndex = storageIndex;
         this.baseRoutePath = baseRoutePath;
@@ -44,7 +44,7 @@ public class RouteRoleCache {
         loadRouteRole();
     }
 
-    private void loadRouteRole() throws JsonException {
+    private void loadRouteRole() throws Exception {
             // load virtual id
             try {
             	String virtualPath = ZKPaths.makePath(baseRoutePath, Constants.VIRTUAL_ROUTE, String.valueOf(storageIndex));
@@ -54,7 +54,7 @@ public class RouteRoleCache {
                     for (String virtualNode : virtualNodes) {
                     	try {
                     		byte[] data = zkClient.getData().forPath(ZKPaths.makePath(virtualPath, virtualNode));
-                    		VirtualRoute virtual = JsonUtils.toObject(data, VirtualRoute.class);
+                    		VirtualRoute virtual = JSON.parseObject(BrStringUtils.fromUtf8Bytes(data), VirtualRoute.class);
                             virtualRouteDetail.put(virtual.getVirtualID(), virtual);
 						} catch (Exception e) {
 							LOG.error("load virtual route[{}] error", virtualNode, e);
@@ -74,7 +74,7 @@ public class RouteRoleCache {
                     for (String normalNode : normalNodes) {
                     	try {
                     		byte[] data = zkClient.getData().forPath(ZKPaths.makePath(normalPath, normalNode));
-                    		NormalRoute normal = JsonUtils.toObject(data, NormalRoute.class);
+                    		NormalRoute normal = JSON.parseObject(BrStringUtils.fromUtf8Bytes(data), NormalRoute.class);
                             normalRouteDetail.put(normal.getSecondID(), normal);
 						} catch (Exception e) {
 							LOG.error("load normal route[{}] error", normalNode, e);

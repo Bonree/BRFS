@@ -3,6 +3,7 @@ package com.bonree.brfs.client.impl;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.joda.time.DateTime;
@@ -11,6 +12,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.client.InputItem;
 import com.bonree.brfs.client.StorageNameStick;
 import com.bonree.brfs.client.route.ServiceMetaInfo;
@@ -25,7 +27,6 @@ import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.write.data.FidDecoder;
 import com.bonree.brfs.common.write.data.WriteDataMessage;
@@ -102,8 +103,9 @@ public class DefaultStorageNameStick implements StorageNameStick {
 				}
 
 				if (response.isReponseOK()) {
-					return JsonUtils.toObject(response.getResponseBody(),
-							String[].class);
+					List<String> results = JSON.parseArray(BrStringUtils.fromUtf8Bytes(response.getResponseBody()), String.class);
+					String[] fids = new String[results.size()];
+					return results.toArray(fids);
 				}
 			}
 		} catch (Exception e) {

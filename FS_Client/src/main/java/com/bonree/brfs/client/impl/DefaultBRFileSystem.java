@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.client.BRFileSystem;
 import com.bonree.brfs.client.StorageNameStick;
 import com.bonree.brfs.client.route.ServiceSelectorManager;
-import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.exception.BRFSException;
 import com.bonree.brfs.common.net.http.client.ClientConfig;
@@ -32,21 +31,16 @@ import com.bonree.brfs.common.utils.CloseUtils;
 public class DefaultBRFileSystem implements BRFileSystem {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBRFileSystem.class);
     
-    private HttpClient httpClient; 
+    private HttpClient httpClient;
     private CuratorFramework zkClient;
 
     private ServiceManager serviceManager;
     private ServiceSelectorManager serviceSelectorManager;
     private RegionNodeSelector regionNodeSelector;
     
-//    private Map<String, StorageNameStick> stickContainer = new HashMap<String, StorageNameStick>();
-    
     private FileSystemConfig config;
     
     private Map<String, String> defaultHeaders = new HashMap<String, String>();
-    
-//    private AsyncFileReaderGroup clientGroup;
-//    private ConnectionPool connectionPool;
 
     public DefaultBRFileSystem(FileSystemConfig config) throws Exception {
     	this.config = config;
@@ -76,9 +70,6 @@ public class DefaultBRFileSystem implements BRFileSystem {
         		zkPaths.getBaseServerIdPath(), zkPaths.getBaseRoutePath(), serviceManager, config.getDiskServiceGroup());
         
         this.regionNodeSelector = new RegionNodeSelector(serviceManager, config.getDuplicateServiceGroup());
-        
-//        this.clientGroup = new AsyncFileReaderGroup(config.getHandleThreadNum());
-//        this.connectionPool = new ConnectionPool(config.getConnectionPoolSize(), clientGroup);
     }
 
     @Override
@@ -113,9 +104,6 @@ public class DefaultBRFileSystem implements BRFileSystem {
             	if(response.isReponseOK()) {
         			return true;
         		}
-        		
-        		String code = new String(response.getResponseBody());
-                ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
         	}
         } catch (Exception e) {
             LOG.error("createStorageName error", e);
@@ -160,9 +148,6 @@ public class DefaultBRFileSystem implements BRFileSystem {
             	if(response.isReponseOK()) {
         			return true;
         		}
-        		
-        		String code = new String(response.getResponseBody());
-        		ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
         	}
         } catch (Exception e) {
         	LOG.error("updateStorageName error", e);
@@ -199,9 +184,6 @@ public class DefaultBRFileSystem implements BRFileSystem {
             	if(response.isReponseOK()) {
         			return true;
         		}
-        		
-        		String code = new String(response.getResponseBody());
-        		ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
         	}
         } catch (Exception e) {
         	LOG.error("deleteStorageName error", e);
@@ -211,70 +193,59 @@ public class DefaultBRFileSystem implements BRFileSystem {
     }
 
     @Override
-    public StorageNameStick openStorageName(String storageName) {
-//    	StorageNameStick stick = stickContainer.get(storageName);
-    	StorageNameStick stick = null;
-//    	if(stick == null) {
-//    		synchronized (stickContainer) {
-//    			stick = stickContainer.get(storageName);
-//    			if(stick == null) {
-    				try {
-    					Service[] serviceList = regionNodeSelector.select(regionNodeSelector.serviceNum());
-    		            if (serviceList.length == 0) {
-    		        		throw new BRFSException("none disknode!!!");
-    		        	}
-    		        	
-    		        	for(Service service : serviceList) {
-    		        		URI uri = new URIBuilder().setScheme(config.getUrlSchema())
-    		        				.setHost(service.getHost()).setPort(service.getPort())
-    		        				.setPath(config.getStorageUrlRoot() + "/" + storageName).build();
-    		            	
-    		                HttpResponse response = null;
-    		            	try {
-    		            		response = httpClient.executeGet(uri, defaultHeaders);
-    		    			} catch (Exception e) {
-    		    				LOG.warn("openStorageName http request failed", e);
-    		    				continue;
-    		    			}
-    		            	
-    		            	if(response == null) {
-    		            		throw new Exception("can not get response for deleteStorageName!");
-    		            	}
-    		            	
-    		            	if(response.isReponseOK()) {
-    		            		int storageId = Ints.fromByteArray(response.getResponseBody());
-    		            		
-    	    		            stick = new DefaultStorageNameStick(storageName, storageId,
-    	    		            		httpClient, serviceSelectorManager.useDiskSelector(storageId), regionNodeSelector,
-    	    		            		config);
-//    	    		            stickContainer.put(storageName, stick);
-    	    		            
-    	    		            return stick;
-    		        		}
-    		        		
-    		        		String code = new String(response.getResponseBody());
-    		        		ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
-    		        	}
-    		        } catch (Exception e) {
-    		        	LOG.error("openStorageName error", e);
-    		        }
-//    			}
-//			}
-//    	}
+	public StorageNameStick openStorageName(String storageName) {
+		StorageNameStick stick = null;
+		try {
+			Service[] serviceList = regionNodeSelector.select(regionNodeSelector.serviceNum());
+			if (serviceList.length == 0) {
+				throw new BRFSException("none disknode!!!");
+			}
 
-        return stick;
-    }
+			for (Service service : serviceList) {
+				URI uri = new URIBuilder()
+						.setScheme(config.getUrlSchema())
+						.setHost(service.getHost())
+						.setPort(service.getPort())
+						.setPath(config.getStorageUrlRoot() + "/" + storageName)
+						.build();
+
+				HttpResponse response = null;
+				try {
+					response = httpClient.executeGet(uri, defaultHeaders);
+				} catch (Exception e) {
+					LOG.warn("openStorageName http request failed", e);
+					continue;
+				}
+
+				if (response == null) {
+					throw new Exception(
+							"can not get response for deleteStorageName!");
+				}
+
+				if (response.isReponseOK()) {
+					int storageId = Ints.fromByteArray(response
+							.getResponseBody());
+
+					stick = new DefaultStorageNameStick(storageName, storageId,
+							httpClient,
+							serviceSelectorManager.useDiskSelector(storageId),
+							regionNodeSelector, config);
+
+					return stick;
+				}
+			}
+		} catch (Exception e) {
+			LOG.error("openStorageName error", e);
+		}
+
+		return stick;
+	}
 
     @Override
     public void close() throws IOException {
-//        for(StorageNameStick stick : stickContainer.values()) {
-//        	stick.close();
-//        }
-        
         CloseUtils.closeQuietly(serviceSelectorManager);
         CloseUtils.closeQuietly(zkClient);
         CloseUtils.closeQuietly(httpClient);
-//        CloseUtils.closeQuietly(clientGroup);
     }
 
 }

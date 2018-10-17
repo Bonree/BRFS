@@ -39,3 +39,6 @@ FS_ResouceSchedule/.project
 FS_ResouceSchedule/bin/
 FS_ResouceSchedule/target/
 FS_ResouceSchedule/.settings/
+config/server.properties
+ids/
+libs/
