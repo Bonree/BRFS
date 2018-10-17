@@ -1,5 +1,7 @@
 package com.bonree.brfs.common.utils;
 
+import java.io.File;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -16,11 +18,8 @@ public final class TimeUtils {
 	 * @return
 	 */
 	public static String timeInterval(long now, long interval) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(formatTimeStamp(prevTimeStamp(now, interval)))
-		.append('_')
-		.append(formatTimeStamp(nextTimeStamp(now, interval)));
-		return builder.toString();
+		return new DateTime(prevTimeStamp(now, interval))
+		.toString("yyyy-MM-dd-HH_mm_ss").replaceAll("-", File.pathSeparator);
 	}
 	
 	public static long prevTimeStamp(long time, long interval) {
