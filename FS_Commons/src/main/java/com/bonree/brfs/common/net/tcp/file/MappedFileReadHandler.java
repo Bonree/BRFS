@@ -139,7 +139,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			int readLength = (readObject.getRaw() & ReadObject.RAW_LENGTH) == 0 ? translator.length(readObject.getLength()) : readObject.getLength();
 			long fileLength = fileBuffer.capacity();
 			if(readOffset < 0 || readOffset > fileLength) {
-				LOG.error("unexcepted file offset : {}", readOffset);
+				LOG.error("unexcepted file[{}] offset : {}, file length : {}", filePath, readOffset, fileLength);
 				ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
 				.addListener(ChannelFutureListener.CLOSE);
 				return;
