@@ -19,7 +19,7 @@ public final class TimeUtils {
 	 */
 	public static String timeInterval(long now, long interval) {
 		return new DateTime(prevTimeStamp(now, interval))
-		.toString("yyyy-MM-dd-HH_mm_ss").replaceAll("-", File.separator);
+		.toString("yyyy-MM-dd-HH_mm_ss").replaceAll("-", FileUtils.FILE_SEPARATOR);
 	}
 	
 	public static long prevTimeStamp(long time, long interval) {
