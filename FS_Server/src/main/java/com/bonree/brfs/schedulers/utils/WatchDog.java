@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.bonree.brfs.common.utils.BRFSFileUtil;
+import com.bonree.brfs.common.utils.BRFSPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +65,7 @@ public class WatchDog{
 		int snId = -1;
 		SecondIDParser parser = null;
 		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts);
+		Map<String,String> snMap = null;
 		for(StorageRegion sn : sns) {
 			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
 				LOG.info("<searchPreys> SKip search data because there is one");
@@ -75,15 +78,23 @@ public class WatchDog{
 			if(sn.getReplicateNum()<=1) {
 				continue;
 			}
+			snMap.put(BRFSPath.STORAGEREGION,sn.getName());
 			// 收集sn文件信息
-			files = collectFood(dataPath, sn, limitTime, granule);
-			// 找到多余的文件 猎物
-			partPreys = FileCollection.crimeFiles(files, snId, sim,parser);
-			LOG.info("{},{}",sn.getName(),partPreys);
-			if(partPreys ==null || partPreys.isEmpty()) {
-				continue;
-			}
-			preys.addAll(partPreys);
+//			files = collectFood(dataPath, sn, limitTime, granule);
+//			// 找到多余的文件 猎物
+//			partPreys = FileCollection.crimeFiles(files, snId, sim,parser);
+            List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(sim,parser,sn));
+            if(sfiles == null || sfiles.isEmpty()){
+                continue;
+            }
+            for(BRFSPath brfsPath : sfiles){
+                preys.add(dataPath+FileUtils.FILE_SEPARATOR+brfsPath.toString());
+            }
+//			LOG.info("{},{}",sn.getName(),partPreys);
+//			if(partPreys ==null || partPreys.isEmpty()) {
+//				continue;
+//			}
+//			preys.addAll(partPreys);
 		}
 		//若见采集结果不为空则调用删除线程
 		if(preys.size() > 0) {

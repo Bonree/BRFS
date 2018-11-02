@@ -17,21 +17,7 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
 
 public class LocalFileUtils {
-	/**
-	 * 收集指定时间段的目录
-	 * @param dataPath
-	 * @param snName
-	 * @param startTime
-	 * @param endTime
-	 * @return
-	 */
-	public  static List<String> collectDucationTimeDirs(String dataPath, String snName, long startTime, long endTime){
-		List<String> parDirs = collectPartitionDirs(dataPath,snName);
-		if(parDirs == null || parDirs.isEmpty()){
-			return null;
-		}
-		return LocalFileUtils.collectTimeDirs(parDirs, startTime,endTime,1,false);
-	}
+
 	/**
 	 * 收集指定时间段的目录名称
 	 * @param dataPath

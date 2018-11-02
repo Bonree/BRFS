@@ -1,18 +1,19 @@
 
 package com.bonree.brfs.schedulers.jobs.biz;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import ch.qos.logback.core.util.FileUtil;
+import com.bonree.brfs.common.files.impl.BRFSTimeFilter;
+import com.bonree.brfs.common.utils.*;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.FileUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
@@ -103,19 +104,22 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		long granule = atom.getGranule();
 		long startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
-		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, patitionNum);
 		AtomTaskResultModel atomR = AtomTaskResultModel.getInstance(null, snName, startTime, endTime, "", patitionNum);
-		if(partDirs == null || partDirs.isEmpty()) {
-			return atomR;
-		}
-		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 0, false);
+        //		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, patitionNum);
+//		if(partDirs == null || partDirs.isEmpty()) {
+//			return atomR;
+//		}
+//		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 0, false);
+        Map<String,String> snMap = new HashMap<>();
+        snMap.put(BRFSPath.STORAGEREGION, snName);
+        List<BRFSPath> deleteDirs = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSTimeFilter(0,endTime));
 		if(deleteDirs == null || deleteDirs.isEmpty()) {
 			return atomR;
 		}
 		atomR.setOperationFileCount(deleteDirs.size());
 		boolean isSuccess = true;
-		for(String deleteDir : deleteDirs) {
-			isSuccess = isSuccess && FileUtils.deleteDir(deleteDir, true);
+		for(BRFSPath deleteDir : deleteDirs) {
+			isSuccess = isSuccess && FileUtils.deleteDir(dataPath+ FileUtils.FILE_SEPARATOR+deleteDir.toString(), true);
 			LOG.info("delete :{} status :{} ",deleteDir, isSuccess);
 		}
 		atomR.setSuccess(isSuccess);

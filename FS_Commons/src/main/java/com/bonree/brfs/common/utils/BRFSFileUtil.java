@@ -1,4 +1,5 @@
 package com.bonree.brfs.common.utils;
+import com.bonree.brfs.common.files.FileFilterInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,6 +154,118 @@ public class BRFSFileUtil{
         }
         return files;
     }
+
+    /**
+     * 获取在该时间段的目录，
+     * @param root
+     * @param map
+     * @param startTime
+     * @param endTime
+     * @param pathlevel
+     * @param index
+     * @return
+     */
+    public static List<BRFSPath> scanDurationDirs(String root,  Map<String,String> map, final Map<String,String> startTime, final Map<String,String> endTime, final List<String> pathlevel, int index){
+        String path = createPath(root, map);
+        File file = new File(path);
+        if(!file.exists()) {
+            return null;
+        }
+        int size = pathlevel.size();
+        List<BRFSPath> files = new ArrayList<>();
+        // 符合要求的添加到队列中
+        if(index == size){
+           return null;
+        }
+        String key = pathlevel.get(index);
+        // 当为目录时
+        if(file.isDirectory()) {
+            String[] dirs = file.list();
+            if(dirs == null || dirs.length == 0) {
+                return files;
+            }
+            List<BRFSPath> tmpList = null;
+            Map<String, String> tmp = null;
+            BRFSPath nPath = null;
+            for(String dir : dirs) {
+                tmp = new HashMap<>();
+                tmp.putAll(map);
+                tmp.put(key,dir);
+                if(isNeed(key,dir,startTime,endTime)){
+                    nPath = BRFSPath.getInstance(tmp);
+                    files.add(nPath);
+                    continue;
+                }
+                tmpList = listFiles(root,tmp,pathlevel,index +1);
+                if(tmpList == null || tmpList.isEmpty()){
+                    continue;
+                }
+                files.addAll(tmpList);
+            }
+
+        }
+        return files;
+    }
+    public static boolean isNeed(String key, String value, Map<String,String> startMap, Map<String,String> endMap){
+        if(value == null || value.trim().isEmpty()){
+            return false;
+        }
+        String start = startMap.get(key);
+        String end = endMap.get(key);
+        if(start == null && end == null){
+            return false;
+        }
+        if(start != null && start.equals(end)){
+            return false;
+        }
+        if(start != null && start.compareTo(value) > 0 ){
+            return false;
+        }
+        return end.compareTo(value) > 0;
+    }
+    //扫描非法文件及目录
+    public static List<BRFSPath> scanBRFSFiles(String root,Map<String,String> map, int index, FileFilterInterface filter){
+        String path = createPath(root, map);
+        File file = new File(path);
+        if(!file.exists()) {
+            return null;
+        }
+       List<BRFSPath> files = new ArrayList<>();
+        // 当为目录时
+        if(file.isDirectory()) {
+            // 添加本目录
+            if(filter.isAdd(root, map, false)){
+                files.add(BRFSPath.getInstance(map));
+            }
+            if(!filter.isDeep(index,map)){
+                return files;
+            }
+            // 添加子目录
+            String[] dirs = file.list();
+            if(dirs == null || dirs.length == 0) {
+                return files;
+            }
+            String key = filter.getKey(index);
+
+            List<BRFSPath> tmpList = null;
+            Map<String, String> tmp = null;
+            for(String dir : dirs) {
+                tmp = new HashMap<>(map);
+                tmp.put(key,dir);
+                tmpList = scanBRFSFiles(root,tmp,index +1,filter);
+                if(tmpList == null || tmpList.isEmpty()){
+                    continue;
+                }
+                files.addAll(tmpList);
+            }
+        }
+        //文件
+        if(file.isFile() && filter.isAdd(root,map,true)){
+            files.add(BRFSPath.getInstance(map));
+        }
+        return files;
+    }
+
 
     public static String createPath(String rootPath, Map<String, String> paths){
         StringBuilder pathBuilder = new StringBuilder();

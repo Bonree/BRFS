@@ -1,6 +1,11 @@
 package com.bonree.brfs.common.utils;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +19,12 @@ public class BRFSPath{
     public final static String TIME = "TIME";
     public final static String FILE = "FILE";
     public final static List<String> PATHLIST = Arrays.asList(new String[] { STORAGEREGION, INDEX, YEAR, MONTH, DAY, TIME, FILE });
+
+    private final static DateTimeFormatter yearDate = DateTimeFormat.forPattern("yyyy");
+    private final static DateTimeFormatter yearMonth = DateTimeFormat.forPattern("yyyy-MM");
+    private final static DateTimeFormatter yearMonthDay = DateTimeFormat.forPattern("yyyy-MM-dd");
+    private final static DateTimeFormatter yearMonthDayTime = DateTimeFormat.forPattern("yyyy-MM-dd HH_mm_ss");
+
     private String storageRegion=null;
     private String index = null;
     private String year = null;
@@ -171,5 +182,60 @@ public class BRFSPath{
             obj.setFileName(content.get(FILE));
         }
         return obj;
+    }
+    public long toTimeMile(){
+        Map<String,String> timeMap = new HashMap<>();
+
+        if(year != null){
+            timeMap.put(YEAR,year);
+        }
+        if(month != null){
+            timeMap.put(MONTH,month);
+        }
+        if(day != null){
+            timeMap.put(DAY,day);
+        }
+        if(hourMinSecond != null){
+            timeMap.put(TIME,hourMinSecond);
+        }
+        return convertTime(timeMap);
+    }
+    public static long convertTime(Map<String, String> map){
+        StringBuilder timestr = new StringBuilder();
+        String time = null;
+        DateTime date = new DateTime();
+        try{
+            if(map.containsKey(YEAR)){
+                timestr.append(map.get(YEAR));
+            }else{
+                return Long.MAX_VALUE;
+            }
+            if(map.containsKey(MONTH)){
+                timestr.append("-").append(map.get(MONTH));
+            }else{
+                time = timestr.toString();
+                return yearDate.parseDateTime(time).getMillis();
+
+            }
+            if(map.containsKey(BRFSPath.DAY)){
+                timestr.append("-").append(map.get(BRFSPath.DAY));
+            }else{
+                time = timestr.toString();
+                return yearMonth.parseDateTime(time).getMillis();
+
+            }
+
+            if(map.containsKey(TIME)){
+                timestr.append(" ").append(map.get(TIME));
+            }else{
+                time = timestr.toString();
+                return yearMonthDay.parseDateTime(time).getMillis();
+            }
+            time = timestr.toString();
+            return yearMonthDayTime.parseDateTime(time).getMillis();
+        } catch(Exception e){
+            e.printStackTrace();
+            return Long.MAX_VALUE;
+        }
     }
 }

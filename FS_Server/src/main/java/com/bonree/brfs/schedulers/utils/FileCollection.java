@@ -82,8 +82,6 @@ public class FileCollection {
 	}
 	/**
 	 * 概述：
-	 * @param files
-	 * @param sn
 	 * @param sim
 	 * @param parser
 	 * @return

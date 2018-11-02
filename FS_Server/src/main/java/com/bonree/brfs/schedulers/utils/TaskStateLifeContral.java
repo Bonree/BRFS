@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import com.bonree.brfs.common.files.impl.BRFSTimeFilter;
+import com.bonree.brfs.common.utils.*;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -13,10 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
@@ -231,22 +229,46 @@ public class TaskStateLifeContral {
 		long endTime = 0L;
 		String snName = null;
 		int partNum = 0;
+		Map<String,String> map = null;
 		for(AtomTaskModel atom : mAtoms){
 			startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 			endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
 			snName = atom.getStorageName();
 			partNum = atom.getPatitionNum();
-			List<String> dirs = LocalFileUtils.collectDucationTimeDirNames(dataPath, snName, startTime, endTime);
-			dirs = filterRepeadDirs(dirs);
-			List<Pair<Long,Long>> pDirs = LocalFileUtils.converPairByUniqueness(dirs);
-			List<Pair<Long,Long>> batchTimes = LocalFileUtils.sortTime(pDirs);
-			for(Pair<Long,Long> pair : batchTimes) {
-				rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, pair.getFirst(), pair.getSecond(), 0);
-				changeTask.addAtom(rAtom);
-			}
+			//TODO: 修改扫描文件
+            map.put(BRFSPath.STORAGEREGION,snName);
+            List<BRFSPath> dirPaths = BRFSFileUtil.scanBRFSFiles(dataPath,map,map.size(), new BRFSTimeFilter(startTime, endTime));
+            List<Long> times = filterRepeatDirs(dirPaths);
+            for(Long time : times){
+                rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, time, time+atom.getGranule(), 0);
+                changeTask.addAtom(rAtom);
+            }
+            //			List<String> dirs = LocalFileUtils.collectDucationTimeDirNames(dataPath, snName, startTime, endTime);
+
+//			dirs = filterRepeadDirs(dirs);
+//			List<Pair<Long,Long>> pDirs = LocalFileUtils.converPairByUniqueness(dirs);
+//			List<Pair<Long,Long>> batchTimes = LocalFileUtils.sortTime(pDirs);
+//			for(Pair<Long,Long> pair : batchTimes) {
+//				rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, pair.getFirst(), pair.getSecond(), 0);
+//				changeTask.addAtom(rAtom);
+//			}
 		}
 		return changeTask;
 	}
+	public static List<Long> filterRepeatDirs(List<BRFSPath> files){
+        if(files == null || files.isEmpty()) {
+            return new ArrayList<Long>();
+        }
+        List<Long> nFiles = new ArrayList<Long>();
+        long time = 0l;
+        for(BRFSPath file : files) {
+            time = file.toTimeMile();
+            if(!nFiles.contains(time)) {
+                nFiles.add(time);
+            }
+        }
+        return nFiles;
+    }
 	public static List<String> filterRepeadDirs(List<String> files){
 		if(files == null || files.isEmpty()) {
 			return new ArrayList<String>();

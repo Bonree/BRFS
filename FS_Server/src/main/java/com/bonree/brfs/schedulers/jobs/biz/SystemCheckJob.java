@@ -1,25 +1,24 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.bonree.brfs.common.utils.*;
+import com.bonree.brfs.schedulers.utils.*;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.schedulers.utils.FileCollection;
-import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
-import com.bonree.brfs.schedulers.utils.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateWithZKTask;
-import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
+
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -94,24 +93,32 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		int partitionNum = atom.getPatitionNum();
 		long startTime = TimeUtils.getMiles(atom.getDataStartTime(),TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE);
-		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
-		List<String> checkDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1, false);
-		LOG.debug("CHECKJOB-0 start: {}, end : {}", atom.getDataStartTime(), atom.getDataStopTime());
-		LOG.debug("CHECKJOB-1 list dir :{}", partDirs);
-		LOG.debug("CHECKJOB-2 check List: {}", checkDirs);
-		List<String> errors = null;
+//		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
+//		List<String> checkDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1, false);
+//		LOG.debug("CHECKJOB-0 start: {}, end : {}", atom.getDataStartTime(), atom.getDataStopTime());
+//		LOG.debug("CHECKJOB-1 list dir :{}", partDirs);
+//		LOG.debug("CHECKJOB-2 check List: {}", checkDirs);
+        Map<String,String> snMap = new HashMap<>();
+        snMap.put(BRFSPath.STORAGEREGION,snName);
+        List<BRFSPath> eFiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSCheckFilter(startTime,endTime));
+
+		List<String> errors = new ArrayList<>();
+		for(BRFSPath brfsPath: eFiles){
+		    errors.add(brfsPath.getFileName());
+        }
 		TaskResultModel result = new TaskResultModel();
-		AtomTaskResultModel atomR = null;
-		for(String checkDir :checkDirs) {
-			errors = FileCollection.checkDirs(checkDir);
-			LOG.info("CHECKJOB-3 error List: {}", errors);
-			atomR = AtomTaskResultModel.getInstance(errors, snName, startTime, endTime, "", partitionNum);
-			if(errors !=null && !errors.isEmpty()) {
-				atomR.setSuccess(false);
-				result.setSuccess(false);
-			}
-			result.add(atomR);
-		}
+		AtomTaskResultModel  atomR = AtomTaskResultModel.getInstance(errors, snName, startTime, endTime, "", partitionNum);
+        result.add(atomR);
+		//  for(String checkDir :checkDirs) {
+//            errors = FileCollection.checkDirs(checkDir);
+//            LOG.info("CHECKJOB-3 error List: {}", errors);
+//			if(errors !=null && !errors.isEmpty()) {
+//				atomR.setSuccess(false);
+//				result.setSuccess(false);
+//			}
+//            atomR = AtomTaskResultModel.getInstance(errors, snName, startTime, endTime, "", partitionNum);
+//			result.add(atomR);
+//		}
 		LOG.debug("result : {}",JsonUtils.toJsonStringQuietly(result));
 		return result;
 	}

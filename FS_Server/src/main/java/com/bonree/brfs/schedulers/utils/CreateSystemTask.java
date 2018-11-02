@@ -97,10 +97,8 @@ public class CreateSystemTask {
 			return null;
 		}
 		String snName = null;
-		long cTime = 0;
 		long startTime = 0;
 		long endTime = 0;
-		int copyCount = 1;
 		long currentTime = System.currentTimeMillis();
 		List<AtomTaskModel> sumAtoms = new ArrayList<AtomTaskModel>();
 		long ttl = 0;
@@ -110,14 +108,12 @@ public class CreateSystemTask {
 		}
 		List<String> files = null;
 		AtomTaskModel atom = null;
-		String dir = null;
 		long cGraTime = 0;
 		long granule = 0;
 		for(StorageRegion sn : needSn) {
 			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 			cGraTime = currentTime - ( currentTime % granule );
 			snName = sn.getName();
-			cTime = sn.getCreateTime();
 			// 获取开始时间
 			if(snTimes.containsKey(snName)) {
 				startTime = snTimes.get(snName);
@@ -147,7 +143,6 @@ public class CreateSystemTask {
 				files = snFiles.get(snName);
 			}
 			if(files != null && !files.isEmpty()) {
-				dir = TimeUtils.timeInterval(startTime, granule);
 				atom = AtomTaskModel.getInstance(files, snName, taskOperation, sn.getReplicateNum(), startTime, endTime, granule);
 				sumAtoms.add(atom);
 			}
@@ -173,7 +168,6 @@ public class CreateSystemTask {
 		long cTime = 0;
 		long startTime = 0;
 		long endTime = 0;
-		int copyCount = 1;
 		long currentTime = System.currentTimeMillis();
 		List<AtomTaskModel> sumAtoms = new ArrayList<AtomTaskModel>();
 		long ttl = 0;
@@ -209,7 +203,6 @@ public class CreateSystemTask {
 			if(cGraTime == startTime) {
 				continue;
 			}
-			copyCount = sn.getReplicateNum();
 			atom  =  AtomTaskModel.getInstance(null, snName, "", sn.getReplicateNum(), startTime, endTime, granule);
 			if(atom == null) {
 				continue;

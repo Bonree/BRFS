@@ -66,7 +66,7 @@ public class CopyRecovery {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		ServerIDManager sim = mcf.getSim();
 		ServiceManager sm = mcf.getSm();
-		Service localServer = sm.getServiceById(mcf.getGroupName(), mcf.getServerId());
+//		Service localServer = sm.getServiceById(mcf.getGroupName(), mcf.getServerId());
 		StorageRegionManager snm = mcf.getSnm();
 		
 		DiskNodeClient client = new LocalDiskNodeClient();
@@ -75,7 +75,7 @@ public class CopyRecovery {
 		SecondIDParser parser = null;
 		String snName = null;
 		int snId = 0;
-		String snSId = null;
+//		String snSId = null;
 		AtomTaskResultModel atomR = null;
 		List<String> errors = null;
 		for (AtomTaskModel atom : atoms) {
@@ -92,7 +92,7 @@ public class CopyRecovery {
 				continue;
 			}
 			snId = sn.getId();
-			snSId = sim.getSecondServerID(snId);
+//			snSId = sim.getSecondServerID(snId);
 			parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
 			parser.updateRoute();
 			errors = recoveryFiles(sm, sim, parser, sn, atom,dataPath);
@@ -141,7 +141,7 @@ public class CopyRecovery {
 		String snName = atom.getStorageName();
 		long start = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
-		long granule = endTime -start;
+		long granule = endTime - start;
 		String dirName = TimeUtils.timeInterval(start, granule);
 		List<String> fileNames = atom.getFiles();
 		if (fileNames == null || fileNames.isEmpty()) {
@@ -182,7 +182,7 @@ public class CopyRecovery {
 		int remoteIndex = 0;
 		int localIndex = 0;
 		String remotePath = null;
-		String serverId = sim.getFirstServerID();
+//		String serverId = sim.getFirstServerID();
 		boolean isSuccess = true;
 		String snName = snNode.getName();
 		int snId = snNode.getId();
