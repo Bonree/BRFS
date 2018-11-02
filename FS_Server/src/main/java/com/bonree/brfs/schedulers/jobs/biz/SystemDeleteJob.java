@@ -114,11 +114,13 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
         snMap.put(BRFSPath.STORAGEREGION, snName);
         List<BRFSPath> deleteDirs = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSTimeFilter(0,endTime));
 		if(deleteDirs == null || deleteDirs.isEmpty()) {
+		    LOG.info("delete dir {} - {} is empty ",TimeUtils.timeInterval(startTime,granule), TimeUtils.timeInterval(endTime,granule));
 			return atomR;
 		}
 		atomR.setOperationFileCount(deleteDirs.size());
 		boolean isSuccess = true;
 		for(BRFSPath deleteDir : deleteDirs) {
+
 			isSuccess = isSuccess && FileUtils.deleteDir(dataPath+ FileUtils.FILE_SEPARATOR+deleteDir.toString(), true);
 			LOG.info("delete :{} status :{} ",deleteDir, isSuccess);
 		}

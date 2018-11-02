@@ -38,7 +38,6 @@ public class WatchDog{
 	/**
 	 * 概述：获取
 	 * @param sim
-	 * @param parser
 	 * @param sns
 	 * @param dataPath
 	 * @param limitTime

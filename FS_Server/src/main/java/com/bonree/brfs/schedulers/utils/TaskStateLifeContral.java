@@ -226,15 +226,21 @@ public class TaskStateLifeContral {
 		String snName = null;
 		int partNum = 0;
 		Map<String,String> map = null;
+		long granule = 0L;
 		for(AtomTaskModel atom : mAtoms){
 			startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 			endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
 			snName = atom.getStorageName();
 			partNum = atom.getPatitionNum();
+			granule = atom.getGranule();
 
             map = new HashMap<>();
             map.put(BRFSPath.STORAGEREGION,snName);
             List<BRFSPath> dirPaths = BRFSFileUtil.scanBRFSFiles(dataPath,map,map.size(), new BRFSTimeFilter(startTime, endTime));
+            if(dirPaths == null || dirPaths.isEmpty()){
+                LOG.info("It's no dir to take task [{}]:[{}]-[{}]",snName,TimeUtils.timeInterval(startTime,granule),TimeUtils.timeInterval(endTime,granule));
+                continue;
+            }
             List<Long> times = filterRepeatDirs(dirPaths);
             for(Long time : times){
                 rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, time, time+atom.getGranule(), 0);

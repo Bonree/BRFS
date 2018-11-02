@@ -101,12 +101,13 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
         Map<String,String> snMap = new HashMap<>();
         snMap.put(BRFSPath.STORAGEREGION,snName);
         List<BRFSPath> eFiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSCheckFilter(startTime,endTime));
-
-		List<String> errors = new ArrayList<>();
-		for(BRFSPath brfsPath: eFiles){
-		    errors.add(brfsPath.getFileName());
+        List<String> errors = new ArrayList<>();
+        if(eFiles != null ){
+            for(BRFSPath brfsPath: eFiles){
+                errors.add(brfsPath.getFileName());
+            }
         }
-		TaskResultModel result = new TaskResultModel();
+        TaskResultModel result = new TaskResultModel();
 		AtomTaskResultModel  atomR = AtomTaskResultModel.getInstance(errors, snName, startTime, endTime, "", partitionNum);
         result.add(atomR);
 		//  for(String checkDir :checkDirs) {
