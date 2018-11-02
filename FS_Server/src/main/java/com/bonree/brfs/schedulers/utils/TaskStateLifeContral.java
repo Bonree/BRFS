@@ -1,10 +1,6 @@
 package com.bonree.brfs.schedulers.utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.bonree.brfs.common.files.impl.BRFSTimeFilter;
 import com.bonree.brfs.common.utils.*;
@@ -235,7 +231,8 @@ public class TaskStateLifeContral {
 			endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
 			snName = atom.getStorageName();
 			partNum = atom.getPatitionNum();
-			//TODO: 修改扫描文件
+
+            map = new HashMap<>();
             map.put(BRFSPath.STORAGEREGION,snName);
             List<BRFSPath> dirPaths = BRFSFileUtil.scanBRFSFiles(dataPath,map,map.size(), new BRFSTimeFilter(startTime, endTime));
             List<Long> times = filterRepeatDirs(dirPaths);

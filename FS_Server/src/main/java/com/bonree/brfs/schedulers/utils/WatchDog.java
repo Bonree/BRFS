@@ -1,10 +1,6 @@
 package com.bonree.brfs.schedulers.utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -78,6 +74,7 @@ public class WatchDog{
 			if(sn.getReplicateNum()<=1) {
 				continue;
 			}
+			snMap = new HashMap<>();
 			snMap.put(BRFSPath.STORAGEREGION,sn.getName());
 			// 收集sn文件信息
 //			files = collectFood(dataPath, sn, limitTime, granule);
