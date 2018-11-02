@@ -3,6 +3,7 @@ package com.bonree.brfs.rebalance.recover;
 
 public class FileRecoverMeta {
 
+    private final String filePath;
     private final String fileName;
     private final String storageName;
     private final String time;
@@ -10,8 +11,9 @@ public class FileRecoverMeta {
     private final int pot;
     private final String firstServerID;
 
-    public FileRecoverMeta(String fileName, String storageName, String time, int replica,int pot, String firstServerID) {
+    public FileRecoverMeta(String filePath,String fileName, String storageName, String time, int replica,int pot, String firstServerID) {
         super();
+        this.filePath = filePath;
         this.fileName = fileName;
         this.storageName = storageName;
         this.time = time;
@@ -42,6 +44,11 @@ public class FileRecoverMeta {
     
     public int getReplica() {
         return replica;
+    }
+    
+
+    public String getFilePath() {
+        return filePath;
     }
 
     @Override

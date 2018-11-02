@@ -20,8 +20,6 @@ import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.utils.BRFSFileUtil;
-import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.common.utils.CompareFromName;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
@@ -48,9 +46,9 @@ import com.bonree.brfs.server.identification.ServerIDManager;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 副本恢复
  ******************************************************************************/
-public class MultiRecover implements DataRecover {
+public class MultiRecover3 implements DataRecover {
 
-    private Logger LOG = LoggerFactory.getLogger(MultiRecover.class);
+    private Logger LOG = LoggerFactory.getLogger(MultiRecover3.class);
 
     private static final String NAME_SEPARATOR = "_";
 
@@ -125,7 +123,7 @@ public class MultiRecover implements DataRecover {
 
     }
 
-    public MultiRecover(BalanceTaskSummary summary, ServerIDManager idManager, ServiceManager serviceManager, String taskNode, CuratorClient client, String dataDir, String storageName, String baseRoutesPath) {
+    public MultiRecover3(BalanceTaskSummary summary, ServerIDManager idManager, ServiceManager serviceManager, String taskNode, CuratorClient client, String dataDir, String storageName, String baseRoutesPath) {
         this.balanceSummary = summary;
         this.idManager = idManager;
         this.serviceManager = serviceManager;
@@ -247,34 +245,24 @@ public class MultiRecover implements DataRecover {
             finishTask();
             return;
         }
-
-        List<BRFSPath> allPaths = BRFSFileUtil.scanDirs(dataDir, storageName);
-
-        int fileCounts = allPaths.size();
+        int timeFileCounts = 0;
+        List<String> replicasNames = FileUtils.listFileNames(snDataDir);
+        for (String replicasName : replicasNames) {
+            String replicasPath = snDataDir + FileUtils.FILE_SEPARATOR + replicasName;
+            timeFileCounts += FileUtils.listFileNames(replicasPath).size();
+        }
 
         // 启动消费队列
         Thread cosumerThread = new Thread(consumerQueue());
         cosumerThread.start();
 
-        detail.setTotalDirectories(fileCounts);
+        detail.setTotalDirectories(timeFileCounts);
         updateDetail(selfNode, detail);
 
         LOG.info("deal the local server:" + idManager.getSecondServerID(balanceSummary.getStorageIndex()));
 
         // 遍历副本文件
-        // dealReplicas(replicasNames, snDataDir);
-        for (BRFSPath brfsPath : allPaths) {
-            if (status.get().equals(TaskStatus.CANCEL)) {
-                return;
-            }
-            String perFile = dataDir + FileUtils.FILE_SEPARATOR + brfsPath.toString();
-            String timeFile = brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
-                    .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
-                            .getHourMinSecond();
-            if(!perFile.endsWith(".rd")) {
-                dealFile(perFile, brfsPath.getFileName(), timeFile, Integer.valueOf(brfsPath.getIndex()));
-            }
-        }
+        dealReplicas(replicasNames, snDataDir);
 
         overFlag = true;
         LOG.info("wait cosumer !!");
@@ -430,12 +418,10 @@ public class MultiRecover implements DataRecover {
                         } else if (status.get().equals(TaskStatus.RUNNING)) {
                             fileRecover = fileRecoverQueue.poll(1, TimeUnit.SECONDS);
                             if (fileRecover != null) {
-                                String localDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover
-                                        .getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
+                                // String localDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover.getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
                                 String remoteDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover
                                         .getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
-                                String localFilePath = dataDir + FileUtils.FILE_SEPARATOR + localDir + FileUtils.FILE_SEPARATOR + fileRecover
-                                        .getFileName();
+                                // String localFilePath = dataDir + FileUtils.FILE_SEPARATOR + localDir + FileUtils.FILE_SEPARATOR + fileRecover.getFileName();
                                 Service service = serviceManager.getServiceById(Configs.getConfiguration()
                                         .GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), fileRecover
                                                 .getFirstServerID());
@@ -450,7 +436,7 @@ public class MultiRecover implements DataRecover {
                                         break;
                                     }
                                     // if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
-                                    success = secureCopyTo(service, localFilePath, remoteDir, fileRecover
+                                    success = secureCopyTo(service, fileRecover.getFilePath(), remoteDir, fileRecover
                                             .getFileName());
                                     // }
                                     if (success) {
