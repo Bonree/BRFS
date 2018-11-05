@@ -27,7 +27,10 @@ public class BRFSTimeFilter extends BRFSFileBaseFilter{
         if(index >= keyMap.size()){
             return false;
         }
-        if(!values.containsKey(BRFSPath.YEAR)){
+        if(!values.containsKey(BRFSPath.YEAR)
+            ||!values.containsKey(BRFSPath.MONTH)
+            ||!values.containsKey(BRFSPath.DAY)
+            ||!values.containsKey(BRFSPath.TIME)){
             return true;
         }
         long time = BRFSPath.convertTime(values);
