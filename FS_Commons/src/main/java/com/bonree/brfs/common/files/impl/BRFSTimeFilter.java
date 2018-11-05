@@ -1,11 +1,7 @@
 package com.bonree.brfs.common.files.impl;
 
 import com.bonree.brfs.common.utils.BRFSPath;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class BRFSTimeFilter extends BRFSFileBaseFilter{

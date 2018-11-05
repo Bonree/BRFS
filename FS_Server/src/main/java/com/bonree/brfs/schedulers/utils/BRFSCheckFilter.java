@@ -24,7 +24,7 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
 
     @Override
     public boolean isAdd(String root, Map<String, String> values, boolean isFile){
-        if(values.size() != keyMap.size() - 1){
+        if(values.size() != keyMap.size()){
             return false;
         }
         if(!isFile){

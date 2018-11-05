@@ -3,6 +3,8 @@ package com.bonree.brfs.common.utils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class BRFSPath{
+    private static final Logger LOG = LoggerFactory.getLogger(BRFSPath.class);
     public final static String FILE_SEPARATOR = "/";
     public final static String STORAGEREGION = "SOTRAGE_REGION";
     public final static String INDEX = "INDEX";
@@ -234,7 +237,7 @@ public class BRFSPath{
             time = timestr.toString();
             return yearMonthDayTime.parseDateTime(time).getMillis();
         } catch(Exception e){
-            e.printStackTrace();
+            LOG.info("invail path : {}",timestr.toString(),e);
             return Long.MAX_VALUE;
         }
     }
