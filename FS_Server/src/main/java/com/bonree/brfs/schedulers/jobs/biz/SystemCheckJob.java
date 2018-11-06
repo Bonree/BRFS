@@ -109,7 +109,11 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
         }
         TaskResultModel result = new TaskResultModel();
 		AtomTaskResultModel  atomR = AtomTaskResultModel.getInstance(errors, snName, startTime, endTime, "", partitionNum);
-        result.add(atomR);
+        if(errors !=null && !errors.isEmpty()) {
+            atomR.setSuccess(false);
+            result.setSuccess(false);
+        }
+		result.add(atomR);
 		//  for(String checkDir :checkDirs) {
 //            errors = FileCollection.checkDirs(checkDir);
 //            LOG.info("CHECKJOB-3 error List: {}", errors);

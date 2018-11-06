@@ -38,6 +38,9 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
             return false;
         }
         String fileName = values.get(BRFSPath.FILE);
+        if(fileName.contains(".")|| !fileName.contains("_")){
+            return false;
+        }
         if(fileName.contains(".rd")){
             return false;
         }
