@@ -260,7 +260,7 @@ public class BRFSFileUtil{
             }
         }
         //文件
-        if(file.isFile() && filter.isAdd(root,map,true)){
+        if( filter.isAdd(root,map,file.isFile())){
             files.add(BRFSPath.getInstance(map));
         }
         return files;
