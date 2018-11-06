@@ -202,8 +202,7 @@ public class VirtualRecover implements DataRecover {
         String virtualID = balanceSummary.getServerId();
 
         LOG.info("balance virtual serverId:" + virtualID);
-        List<BRFSPath> allPaths = BRFSFileUtil.scanDirs(dataDir, storageName);
-
+        List<BRFSPath> allPaths = BRFSFileUtil.scanFile(dataDir, storageName);
         for (BRFSPath brfsPath : allPaths) {
             if (status.get().equals(TaskStatus.CANCEL)) {
                 break;
@@ -288,9 +287,15 @@ public class VirtualRecover implements DataRecover {
                             boolean success = false;
                             LOG.info("transfer :" + fileRecover);
                             String firstID = fileRecover.getFirstServerID();
-                            Service service = serviceManager.getServiceById(Configs.getConfiguration()
-                                    .GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
+
                             while (true) {
+                                Service service = serviceManager.getServiceById(Configs.getConfiguration()
+                                        .GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
+                                if (service == null) {
+                                    LOG.warn("first id is {},maybe down!", firstID);
+                                    Thread.sleep(1000);
+                                    continue;
+                                }
 
                                 // if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
                                 success = sucureCopyTo(service, localFilePath, remoteDir, fileRecover.getFileName());
@@ -322,6 +327,7 @@ public class VirtualRecover implements DataRecover {
         boolean success = true;
         try {
             if (!FileUtils.isExist(localPath + ".rd")) {
+
                 fileClient.sendFile(service.getHost(), service.getPort() + 20, localPath, remoteDir, fileName);
             }
         } catch (Exception e) {
