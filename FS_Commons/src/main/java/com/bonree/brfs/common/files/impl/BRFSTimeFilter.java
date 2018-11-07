@@ -48,7 +48,7 @@ public class BRFSTimeFilter extends BRFSFileBaseFilter{
         if(startTime > 0 && time < startTime){
             return false;
         }
-        if(endTime >0 && time > endTime){
+        if(endTime >0 && time >= endTime){
             return false;
         }
         return true;

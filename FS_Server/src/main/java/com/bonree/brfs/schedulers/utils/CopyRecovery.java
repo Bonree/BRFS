@@ -66,7 +66,6 @@ public class CopyRecovery {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		ServerIDManager sim = mcf.getSim();
 		ServiceManager sm = mcf.getSm();
-//		Service localServer = sm.getServiceById(mcf.getGroupName(), mcf.getServerId());
 		StorageRegionManager snm = mcf.getSnm();
 		
 		DiskNodeClient client = new LocalDiskNodeClient();
@@ -75,7 +74,6 @@ public class CopyRecovery {
 		SecondIDParser parser = null;
 		String snName = null;
 		int snId = 0;
-//		String snSId = null;
 		AtomTaskResultModel atomR = null;
 		List<String> errors = null;
 		for (AtomTaskModel atom : atoms) {
@@ -92,7 +90,6 @@ public class CopyRecovery {
 				continue;
 			}
 			snId = sn.getId();
-//			snSId = sim.getSecondServerID(snId);
 			parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
 			parser.updateRoute();
 			errors = recoveryFiles(sm, sim, parser, sn, atom,dataPath);
@@ -182,7 +179,6 @@ public class CopyRecovery {
 		int remoteIndex = 0;
 		int localIndex = 0;
 		String remotePath = null;
-//		String serverId = sim.getFirstServerID();
 		boolean isSuccess = true;
 		String snName = snNode.getName();
 		int snId = snNode.getId();
@@ -321,7 +317,7 @@ public class CopyRecovery {
 		boolean resultFlag = false;
 		try {
 			client = TcpClientUtils.getClient(host, port, export, timeout);
-			LOG.warn("{}:{},{}:{}, read {} to local{}",host,port,host,export,remotePath,localPath);
+			LOG.warn("{}:{},{}:{}, read {} to local {}",host,port,host,export,remotePath,localPath);
 			LocalByteStreamConsumer consumer = new LocalByteStreamConsumer(localPath);
 			client.readFile(remotePath, consumer);
 			return consumer.getResult().get();

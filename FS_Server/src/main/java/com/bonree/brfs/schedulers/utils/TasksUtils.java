@@ -180,20 +180,7 @@ public class TasksUtils {
 		return tName;
 	}
 	/**
-	 * 概述：
-	 * @param release
-	 * @param taskType
-	 * @param name
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static TaskModel createCopyTask(MetaTaskManagerInterface release, TaskType taskType, String name) {
-		List<TaskServerNodeModel> sList = getServicesInfo(release, taskType, name);
-		if(sList == null) {
-			return null;
-		}
-		return TasksUtils.getErrorFile(sList);
-	}
+
 	/**
 	 * 概述：
 	 * @param release
@@ -219,30 +206,10 @@ public class TasksUtils {
 		}
 		return sTasks;
 	}
-	/**
-	 * 概述：获取sr的副本数
-	 * @param snList
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private static Map<String,Integer> getReplicationMap(List<StorageRegion> snList){
-		if(snList == null || snList.isEmpty()) {
-			return null;
-		}
-		Map<String,Integer> map = new HashMap<String,Integer>();
-		String snName = null;
-		int replicationCount = 0;
-		for(StorageRegion sn : snList) {
-			snName = sn.getName();
-			replicationCount = sn.getReplicateNum();
-			map.put(snName, replicationCount);
-		}
-		return map;
-	}
+
 	/**
 	 * 概述：生成任务信息
 	 * @param taskContents
-	 * @param snMap
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -281,8 +248,9 @@ public class TasksUtils {
 				}
 				emap = rmap.get(snName);
 				key = r.getDataStartTime() + "_"+r.getDataStopTime();
+				long granule = TimeUtils.getMiles(r.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE) - TimeUtils.getMiles(r.getDataStartTime(),TimeUtils.TIME_MILES_FORMATE);
 				if(!emap.containsKey(key)) {
-					atom = AtomTaskModel.getInstance(null,snName,CopyCheckJob.RECOVERY_CRC,r.getPartNum(),r.getDataStartTime(),r.getDataStopTime(),0);
+					atom = AtomTaskModel.getInstance(null,snName,CopyCheckJob.RECOVERY_CRC,r.getPartNum(),r.getDataStartTime(),r.getDataStopTime(),granule);
 					emap.put(key, atom);
 				}
 				atom = emap.get(key);

@@ -34,7 +34,7 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
         if(startTime > 0 && time < startTime){
             return false;
         }
-        if(endTime >0 && time > endTime){
+        if(endTime >0 && time >= endTime){
             return false;
         }
         String fileName = values.get(BRFSPath.FILE);

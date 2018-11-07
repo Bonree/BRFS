@@ -95,9 +95,7 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE);
 //		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
 //		List<String> checkDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1, false);
-//		LOG.debug("CHECKJOB-0 start: {}, end : {}", atom.getDataStartTime(), atom.getDataStopTime());
-//		LOG.debug("CHECKJOB-1 list dir :{}", partDirs);
-//		LOG.debug("CHECKJOB-2 check List: {}", checkDirs);
+
         Map<String,String> snMap = new HashMap<>();
         snMap.put(BRFSPath.STORAGEREGION,snName);
         List<BRFSPath> eFiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSCheckFilter(startTime,endTime));
@@ -116,7 +114,6 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		result.add(atomR);
 		//  for(String checkDir :checkDirs) {
 //            errors = FileCollection.checkDirs(checkDir);
-//            LOG.info("CHECKJOB-3 error List: {}", errors);
 //			if(errors !=null && !errors.isEmpty()) {
 //				atomR.setSuccess(false);
 //				result.setSuccess(false);
