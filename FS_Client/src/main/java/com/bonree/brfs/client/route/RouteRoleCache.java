@@ -48,19 +48,21 @@ public class RouteRoleCache {
             // load virtual id
             try {
             	String virtualPath = ZKPaths.makePath(baseRoutePath, Constants.VIRTUAL_ROUTE, String.valueOf(storageIndex));
-            	List<String> virtualNodes = zkClient.getChildren().forPath(virtualPath);
-            	
-            	if (virtualNodes != null && !virtualNodes.isEmpty()) {
-                    for (String virtualNode : virtualNodes) {
-                    	try {
-                    		byte[] data = zkClient.getData().forPath(ZKPaths.makePath(virtualPath, virtualNode));
-                    		VirtualRoute virtual = JSON.parseObject(BrStringUtils.fromUtf8Bytes(data), VirtualRoute.class);
-                            virtualRouteDetail.put(virtual.getVirtualID(), virtual);
-						} catch (Exception e) {
-							LOG.error("load virtual route[{}] error", virtualNode, e);
-						}
-                    }
-                }
+            	if(zkClient.checkExists().forPath(virtualPath) != null) {
+            	    List<String> virtualNodes = zkClient.getChildren().forPath(virtualPath);
+            	    
+            	    if (virtualNodes != null && !virtualNodes.isEmpty()) {
+            	        for (String virtualNode : virtualNodes) {
+            	            try {
+            	                byte[] data = zkClient.getData().forPath(ZKPaths.makePath(virtualPath, virtualNode));
+            	                VirtualRoute virtual = JSON.parseObject(BrStringUtils.fromUtf8Bytes(data), VirtualRoute.class);
+            	                virtualRouteDetail.put(virtual.getVirtualID(), virtual);
+            	            } catch (Exception e) {
+            	                LOG.error("load virtual route[{}] error", virtualNode, e);
+            	            }
+            	        }
+            	    }
+            	}
 			} catch (Exception e) {
 				LOG.error("get virtual nodes error", e);
 			}
@@ -68,19 +70,21 @@ public class RouteRoleCache {
             // load normal id
             try {
             	String normalPath = ZKPaths.makePath(baseRoutePath, Constants.NORMAL_ROUTE, String.valueOf(storageIndex));
-            	List<String> normalNodes = zkClient.getChildren().forPath(normalPath);
-            	
-            	if (normalNodes != null && !normalNodes.isEmpty()) {
-                    for (String normalNode : normalNodes) {
-                    	try {
-                    		byte[] data = zkClient.getData().forPath(ZKPaths.makePath(normalPath, normalNode));
-                    		NormalRoute normal = JSON.parseObject(BrStringUtils.fromUtf8Bytes(data), NormalRoute.class);
-                            normalRouteDetail.put(normal.getSecondID(), normal);
-						} catch (Exception e) {
-							LOG.error("load normal route[{}] error", normalNode, e);
-						}
-                    }
-                }
+            	if(zkClient.checkExists().forPath(normalPath) != null) {
+            	    List<String> normalNodes = zkClient.getChildren().forPath(normalPath);
+            	    
+            	    if (normalNodes != null && !normalNodes.isEmpty()) {
+            	        for (String normalNode : normalNodes) {
+            	            try {
+            	                byte[] data = zkClient.getData().forPath(ZKPaths.makePath(normalPath, normalNode));
+            	                NormalRoute normal = JSON.parseObject(BrStringUtils.fromUtf8Bytes(data), NormalRoute.class);
+            	                normalRouteDetail.put(normal.getSecondID(), normal);
+            	            } catch (Exception e) {
+            	                LOG.error("load normal route[{}] error", normalNode, e);
+            	            }
+            	        }
+            	    }
+            	}
 			} catch (Exception e) {
 				LOG.error("get normal nodes error", e);
 			}
