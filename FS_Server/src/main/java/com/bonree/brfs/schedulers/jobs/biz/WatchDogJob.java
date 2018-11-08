@@ -47,7 +47,6 @@ public class WatchDogJob extends QuartzOperationStateTask {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		ServerIDManager sim = mcf.getSim();
 		ServiceManager sm = mcf.getSm();
-		Service localServer = sm.getServiceById(mcf.getGroupName(), mcf.getServerId());
 		StorageRegionManager snm = mcf.getSnm();
 		List<StorageRegion> sns = snm.getStorageRegionList();
 		long preTime = System.currentTimeMillis();

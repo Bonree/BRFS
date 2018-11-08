@@ -253,9 +253,9 @@ public class CopyCountCheck {
 		List<String> strs = new ArrayList<>();
 		String path = null;
 		String fileName = null;
-		int lastIndex = 0;
+//		int lastIndex = 0;
 		String dirName = getFileName(dir); 
-//		List<String> errorFiles = new ArrayList<>();
+		List<String> errorFiles = new ArrayList<>();
 		String[] checks = null; 
 		for(FileInfo file : files){
 			path = file.getPath();
@@ -263,22 +263,21 @@ public class CopyCountCheck {
 			if(dirName.equals(fileName)){
 				continue;
 			}
-//			// 排除rd文件
-//			if(fileName.indexOf(".rd") > 0){
-//				fileName = fileName.substring(0, fileName.indexOf(".rd"));
-//				filterRd.add(fileName);
-//				continue;
-//			}
+			// 排除rd文件
+			if(fileName.indexOf(".rd") > 0){
+				fileName = fileName.substring(0, fileName.indexOf(".rd"));
+                errorFiles.add(fileName);
+				continue;
+			}
 			// 排除非法数据
-//			checks = BrStringUtils.getSplit(fileName, "_");
-//			if(checks == null|| checks.length<=1) {
-//				errorFiles.add(fileName);
-//				continue;
-//			}
+			checks = BrStringUtils.getSplit(fileName, "_");
+			if(checks == null|| checks.length<=1) {
+				errorFiles.add(fileName);
+				continue;
+			}
 			strs.add(fileName);
 		}
-//		return filterErrors(strs, errorFiles);
-		return strs;
+		return filterErrors(strs, errorFiles);
 	}
 	/**
 	 * 概述：过滤rd文件

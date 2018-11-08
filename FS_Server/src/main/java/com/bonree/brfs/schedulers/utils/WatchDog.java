@@ -55,8 +55,6 @@ public class WatchDog{
 		}
 		lastTime = System.currentTimeMillis();
 		// sn 目录及文件
-		Map<String,List<String>> files = null;
-		List<String> partPreys = null;
 		int snId = -1;
 		SecondIDParser parser = null;
 		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts);
@@ -75,22 +73,14 @@ public class WatchDog{
 			}
 			snMap = new HashMap<>();
 			snMap.put(BRFSPath.STORAGEREGION,sn.getName());
-			// 收集sn文件信息
-//			files = collectFood(dataPath, sn, limitTime, granule);
-//			// 找到多余的文件 猎物
-//			partPreys = FileCollection.crimeFiles(files, snId, sim,parser);
-            List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(sim,parser,sn));
+            List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(sim,parser,sn,limitTime));
             if(sfiles == null || sfiles.isEmpty()){
                 continue;
             }
             for(BRFSPath brfsPath : sfiles){
                 preys.add(dataPath+FileUtils.FILE_SEPARATOR+brfsPath.toString());
             }
-//			LOG.info("{},{}",sn.getName(),partPreys);
-//			if(partPreys ==null || partPreys.isEmpty()) {
-//				continue;
-//			}
-//			preys.addAll(partPreys);
+
 		}
 		//若见采集结果不为空则调用删除线程
 		if(preys.size() > 0) {
