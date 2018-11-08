@@ -57,7 +57,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			LOG.warn("rebalance task is running !! skip check copy task ,wait next time to check");
 			return;
 		}
-		List services = sm.getServiceListByGroup("disk_group");
+		List services = sm.getServiceListByGroup(mcf.getGroupName());
 		if ((services == null) || (services.isEmpty())) {
 			LOG.info("SKIP create {} task, because service is empty", TaskType.SYSTEM_COPY_CHECK);
 			return;
