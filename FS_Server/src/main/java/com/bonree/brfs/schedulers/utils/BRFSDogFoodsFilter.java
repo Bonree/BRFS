@@ -21,6 +21,7 @@ public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
         super();
         this.sim = sim;
         this.parser = parser;
+        this.parser.updateRoute();
         this.region = storageRegion;
         this.lastTime = lastTime;
     }
