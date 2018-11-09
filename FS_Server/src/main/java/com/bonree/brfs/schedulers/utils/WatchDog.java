@@ -67,6 +67,9 @@ public class WatchDog{
 			snId = sn.getId();
 			LOG.info(" watch dog eat {} :{}", sn.getName(),sn.getId());
 			parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
+			// 使用前必须更新路由规则，否则会解析错误
+			parser.updateRoute();
+
 			// 单个副本的不做检查
 			if(sn.getReplicateNum()<=1) {
 				continue;
