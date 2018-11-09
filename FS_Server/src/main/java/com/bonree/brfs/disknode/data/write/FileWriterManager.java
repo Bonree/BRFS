@@ -135,11 +135,10 @@ public class FileWriterManager implements LifeCycle {
     public void rebuildFileWriterbyDir(String dataDirPath) throws IOException {
 	    Map<String,String> baseMap = new HashMap<>();
 	    List<BRFSPath> rds = BRFSFileUtil.scanBRFSFiles(dataDirPath,baseMap,baseMap.size(),new BRFSRdFileFilter());
-	    StringBuilder pathBuilder = null;
 	    File rdFile = null;
 	    File dataFile = null;
 	    for(BRFSPath path : rds){
-	        rdFile = new File(pathBuilder.append(dataDirPath).append(FileUtils.FILE_SEPARATOR).append(path).toString());
+	        rdFile = new File(new StringBuilder().append(dataDirPath).append(FileUtils.FILE_SEPARATOR).append(path).toString());
 	        dataFile = RecordFileBuilder.reverse(rdFile);
             if(checker.isValid(dataFile.getName())) {
                 LOG.info("reopen file [{}]", dataFile);
