@@ -6,18 +6,20 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bonree.brfs.common.utils.*;
+import com.bonree.brfs.disknode.utils.BRFSRdFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.timer.WheelTimer;
 import com.bonree.brfs.common.timer.WheelTimer.Timeout;
-import com.bonree.brfs.common.utils.ByteUtils;
-import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
@@ -129,36 +131,26 @@ public class FileWriterManager implements LifeCycle {
 			}
 		}
 	}
-	
-	public void rebuildFileWriterbyDir(String dataDirPath) throws IOException {
-		File dataDir = new File(dataDirPath);
-		File[] snDirList = dataDir.listFiles();
-		for(File snDir : snDirList) {
-			for(File serverDir : snDir.listFiles()) {
-				for(File timeDir : serverDir.listFiles()) {
-					File[] recordFileList = timeDir.listFiles(new FilenameFilter() {
-						
-						@Override
-						public boolean accept(File dir, String name) {
-							return RecordFileBuilder.isRecordFile(name);
-						}
-					});
-					
-					for(File recordFile : recordFileList) {
-						File dataFile = RecordFileBuilder.reverse(recordFile);
-						
-						if(checker.isValid(dataFile.getName())) {
-							LOG.info("reopen file [{}]", dataFile);
-							rebuildFileWriter(dataFile);
-						} else {
-							LOG.info("close expired file [{}]", dataFile);
-							recordFile.delete();
-						}
-					}
-				}
-			}
-		}
-	}
+
+    public void rebuildFileWriterbyDir(String dataDirPath) throws IOException {
+	    Map<String,String> baseMap = new HashMap<>();
+	    List<BRFSPath> rds = BRFSFileUtil.scanBRFSFiles(dataDirPath,baseMap,baseMap.size(),new BRFSRdFileFilter());
+	    StringBuilder pathBuilder = null;
+	    File rdFile = null;
+	    File dataFile = null;
+	    for(BRFSPath path : rds){
+	        rdFile = new File(pathBuilder.append(dataDirPath).append(FileUtils.FILE_SEPARATOR).append(path).toString());
+	        dataFile = RecordFileBuilder.reverse(rdFile);
+            if(checker.isValid(dataFile.getName())) {
+                LOG.info("reopen file [{}]", dataFile);
+                rebuildFileWriter(dataFile);
+            } else {
+                LOG.info("close expired file [{}]", dataFile);
+                dataFile.delete();
+            }
+        }
+
+    }
 
 	@Override
 	public void stop() {
