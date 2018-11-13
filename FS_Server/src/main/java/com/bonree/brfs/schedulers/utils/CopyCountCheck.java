@@ -287,6 +287,7 @@ public class CopyCountCheck {
 				continue;
 			}
 			if(isUnlaw(sid, parser, fileName)){
+			    LOG.info("file: [{}] is unlaw", fileName);
 			    continue;
             }
 			strs.add(fileName);
@@ -298,7 +299,11 @@ public class CopyCountCheck {
 	    if(alives == null || alives.length == 0){
 	        return true;
         }
-        return !Arrays.asList(alives).contains(sid);
+        List<String> eles = Arrays.asList(alives);
+	    if(!eles.contains(sid)){
+            LOG.info("file: [{}], server: [{}], serverlist :{}",fileName,sid,eles);
+        }
+        return !eles.contains(sid);
     }
 	/**
 	 * 概述：过滤rd文件
