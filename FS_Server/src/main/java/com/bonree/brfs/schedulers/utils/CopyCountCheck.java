@@ -168,7 +168,7 @@ public class CopyCountCheck {
 					for(int i = 1; i <=reCount; i++){
 						path = "/"+snName+"/"+i+"/"+dirName;
 						LOG.info("<collectionSnFiles> path :{}",path);
-						strs = getFileList(parser, client, path,sid);
+						strs = getFileList(parser, client, path, sid);
 						if(strs == null || strs.isEmpty()) {
 							LOG.debug("<collectionSnFiles> files is empty {}", path);
 							continue;
@@ -239,7 +239,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> getFileList(SecondIDParser parser, DiskNodeClient client, String sid, String path)throws Exception{
+	public static List<String> getFileList(SecondIDParser parser, DiskNodeClient client,  String path, String sid)throws Exception{
 		if(client == null ) {
 		    throw new NullPointerException("disk client is null !!!");
 		}
@@ -264,15 +264,18 @@ public class CopyCountCheck {
 		List<String> strs = new ArrayList<>();
 		String path = null;
 		String fileName = null;
-		String dirName = getFileName(dir);
+//		String dirName = getFileName(dir);
 		List<String> errorFiles = new ArrayList<>();
 		String[] checks = null; 
 		for(FileInfo file : files){
+		    if(file.getType() == FileInfo.TYPE_DIR){
+		        continue;
+            }
 			path = file.getPath();
 			fileName = getFileName(path);
-			if(dirName.equals(fileName)){
-				continue;
-			}
+//			if(dirName.equals(fileName)){
+//				continue;
+//			}
 			// 排除rd文件
 			if(fileName.indexOf(".rd") > 0){
 				fileName = fileName.substring(0, fileName.indexOf(".rd"));
