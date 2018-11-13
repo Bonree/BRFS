@@ -80,41 +80,7 @@ public class FileCollection {
 		}
 		return dirFiles;
 	}
-	/**
-	 * 概述：
-	 * @param sim
-	 * @param parser
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static List<String> crimeFiles(Map<String,List<String>> dirFiles,int snId, ServerIDManager sim,SecondIDParser parser){
-		List<String> crimers = new ArrayList<String>();
-		String secondLocalId = sim.getSecondServerID(snId);
-		if(BrStringUtils.isEmpty(secondLocalId)) {
-			return null;
-		}
-		List<String> secondIds = null;
-		List<String> files = null;
-		String path = null;
-		LOG.debug("watch dog eat {} second id{}",snId,secondLocalId);
-		for(Map.Entry<String, List<String>> entry : dirFiles.entrySet()) {
-			path = entry.getKey();
-			files = entry.getValue();
-			// 无文件，空目录 不检测
-			if(BrStringUtils.isEmpty(path)|| files == null ||files.isEmpty()) {
-				continue;
-			}
-			for(String file : files) {
-				// 1.解析文件名对应目前的二级serverId
-				secondIds = analyseServices(file, parser);
-				LOG.debug("watch dog eat file:{}, secondId :{},alive:{} ",file, secondLocalId,secondIds);
-				if(crimeFile(secondIds, secondLocalId)) {
-					crimers.add(path + "/" +file);
-				}
-			}
-		}
-		return crimers;
-	}
+
 	/**
 	 * 概述：判断单个文件是否非法
 	 * @param aliveSnIds
@@ -176,35 +142,7 @@ public class FileCollection {
 		}
 		return CopyCountCheck.filterErrors(part, filters);
 	}
-	/**
-	 * 概述：收集crc校验错误的文件
-	 * @param dirPath
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-    public static List<String> checkDirs(String dirPath){
-		if(BrStringUtils.isEmpty(dirPath)) {
-			return null;
-		}
-		if(!FileUtils.isExist(dirPath) || !FileUtils.isDirectory(dirPath)) {
-			return null;
-		}
-		List<String> cFileNames = FileUtils.listFileNames(dirPath);
-		cFileNames = filterUnlaw(cFileNames);
-		if(cFileNames == null || cFileNames.isEmpty()) {
-			return null;
-		}
-		List<String> errors = new ArrayList<String>();
-		String cPath = null;
-		for(String cName : cFileNames) {
-			cPath = dirPath + "/"+cName;
-			if(check(cPath)) {
-				continue;
-			}
-			errors.add(cName);
-		}
-		return errors;
-	}
+
 	/**
 	 * 概述：检查单个文件
 	 * @param path

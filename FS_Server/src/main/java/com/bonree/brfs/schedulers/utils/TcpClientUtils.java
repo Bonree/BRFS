@@ -50,18 +50,4 @@ public class TcpClientUtils {
 		});
 		return new TcpDiskNodeClient(tcpClient, readerClient);
 	}
-	public static TcpDiskNodeClient getListClient(String host,int port, int timeout) throws InterruptedException, IOException {		
-		TcpClient<BaseMessage, BaseResponse> tcpClient = group.createClient(new TcpClientConfig() {
-			@Override
-			public SocketAddress remoteAddress() {
-				return new InetSocketAddress(host, port);
-			}
-			
-			@Override
-			public int connectTimeoutMillis() {
-				return timeout;
-			}
-		});
-		return new TcpDiskNodeClient(tcpClient);
-	}
 }

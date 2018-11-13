@@ -2,13 +2,13 @@ package com.bonree.brfs.schedulers.utils;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.rebalance.route.SecondIDParser;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
+import com.bonree.brfs.server.identification.ServerIDManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,11 +140,22 @@ public class CopyCountCheck {
 		List<String> strs = null;
 		long time = 0;
 		String dirName = null;
+        String sid = null;
+        ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+        ServerIDManager sim = mcf.getSim();
+        CuratorClient zkClient = mcf.getClient();
+        SecondIDParser parser = null;
+        String basePath = mcf.getZkPath().getBaseRoutePath();
 		for(Service service : services){
 			try {
 				client = TcpClientUtils.getClient(service.getHost(), service.getPort(), service.getExtraPort(), 5000);
 				long granule = 0;
 				for(StorageRegion sn : snList){
+
+				    parser = new SecondIDParser(zkClient,sn.getId(),basePath);
+				    parser.updateRoute();
+
+				    sid = sim.getOtherSecondID(service.getServiceId(),sn.getId());
 					granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 					reCount = sn.getReplicateNum();
 					snName = sn.getName();
@@ -157,7 +168,7 @@ public class CopyCountCheck {
 					for(int i = 1; i <=reCount; i++){
 						path = "/"+snName+"/"+i+"/"+dirName;
 						LOG.info("<collectionSnFiles> path :{}",path);
-						strs = getFileList(client, path);
+						strs = getFileList(parser, client, path,sid);
 						if(strs == null || strs.isEmpty()) {
 							LOG.debug("<collectionSnFiles> files is empty {}", path);
 							continue;
@@ -230,7 +241,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> getFileList(DiskNodeClient client, String path){
+	public static List<String> getFileList(SecondIDParser parser, DiskNodeClient client, String sid, String path){
 		if(client == null || BrStringUtils.isEmpty(path)) {
 			return null;
 		}
@@ -240,7 +251,7 @@ public class CopyCountCheck {
 			return null;
 		}
 		LOG.debug("<getFileList> file size :{}",files.size());
-		List<String> fileNames = converToStringList(files, path);
+		List<String> fileNames = converToStringList(parser, files, path, sid);
 		return fileNames;
 	}
 	 /**
@@ -249,7 +260,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> converToStringList(List<FileInfo> files,String dir){
+	public static List<String> converToStringList(SecondIDParser parser,List<FileInfo> files,String dir, String sid){
 		List<String> strs = new ArrayList<>();
 		String path = null;
 		String fileName = null;
@@ -275,10 +286,20 @@ public class CopyCountCheck {
 				errorFiles.add(fileName);
 				continue;
 			}
+			if(isUnlaw(sid, parser, fileName)){
+			    continue;
+            }
 			strs.add(fileName);
 		}
 		return filterErrors(strs, errorFiles);
 	}
+	public static boolean isUnlaw(String sid, SecondIDParser parser, String fileName){
+	    String[] alives = parser.getAliveSecondID(fileName);
+	    if(alives == null || alives.length == 0){
+	        return true;
+        }
+        return !Arrays.asList(alives).contains(sid);
+    }
 	/**
 	 * 概述：过滤rd文件
 	 * @param files

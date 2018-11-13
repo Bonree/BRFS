@@ -174,7 +174,6 @@ public class CopyRecovery {
 		String[] sss = null;
 		String remoteName = null;
 		Service remoteService = null;
-		String path = null;
 		String localPath = null;
 		int remoteIndex = 0;
 		int localIndex = 0;
@@ -276,27 +275,7 @@ public class CopyRecovery {
 		return -1;
 	}
 
-	/**
-	 * 概述：获取文件列表
-	 * @param fileName
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static List<String> getSNIds(String fileName) {
-		if (BrStringUtils.isEmpty(fileName)) {
-			return null;
-		}
 
-		String[] tmp = BrStringUtils.getSplit(fileName, "_");
-		if (tmp == null || tmp.length == 0) {
-			return null;
-		}
-		List<String> snIds = new ArrayList<String>();
-		for (int i = 1; i < tmp.length; i++) {
-			snIds.add(tmp[i]);
-		}
-		return snIds;
-	}
 	/**
 	 * 概述：恢复数据文件
 	 * @param host 远程主机
@@ -311,10 +290,6 @@ public class CopyRecovery {
 	public static boolean copyFrom(String host, int port,int export,int timeout, String remotePath, String localPath) {
 		TcpDiskNodeClient client = null;
 		BufferedOutputStream output = null;
-		byte[] crcCode = null;
-		byte[] data = null;
-		int bufferSize = 5 * 1024 * 1024;
-		boolean resultFlag = false;
 		try {
 			client = TcpClientUtils.getClient(host, port, export, timeout);
 			LOG.warn("{}:{},{}:{}, read {} to local {}",host,port,host,export,remotePath,localPath);

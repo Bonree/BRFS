@@ -44,7 +44,6 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger("GATHER");
 	private static Queue<StateMetaServerModel> queue = new ConcurrentLinkedQueue<StateMetaServerModel>();
 	private static StateMetaServerModel prexState = null;
-//	private static ZookeeperClient client = null;
 
 	@Override
 	public void caughtException(JobExecutionContext context) {
@@ -223,28 +222,6 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		return sum;
 	}
 
-//	/**
-//	 * 概述：检查并创建服务信息
-//	 * @param content
-//	 * @param serverId
-//	 * @param dataDir
-//	 * @return
-//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-//	 */
-//	private ServerModel checkAndCreateServerModel(String content, String serverId, String dataDir) {
-//		ServerModel sinfo = null;
-//		if (BrStringUtils.isEmpty(content)) {
-//			sinfo = new ServerModel();
-//		}
-//		sinfo = JsonUtils.toObjectQuietly(content, ServerModel.class);
-//		if (sinfo == null) {
-//			sinfo = new ServerModel();
-//		}
-//		BaseMetaServerModel tmpbase = GatherResource.gatherBase(serverId, dataDir);
-//		sinfo.setBase(tmpbase);
-//		return sinfo;
-//	}
-
 	/***
 	 * 概述：获取storageName的名称
 	 * @param storageNames
@@ -272,37 +249,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	}
 	
 
-	/**
-	 * 概述：计算集群基础信息
-	 * @param serverList
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-//	private BaseMetaServerModel calcBaseCluster(List<BaseMetaServerModel> bases) {
-//		// 2.获取集群基础基础信息
-//		BaseMetaServerModel base = null;
-//		ServerModel sinfo = null;
-//		String content = null;
-//		for (Service server : serverList) {
-//			content = server.getPayload();
-//			// 2-1.过滤掉为空的
-//			sinfo = getServerModel(server);
-//			// 2-2 过滤为null的
-//			if (sinfo == null) {
-//				continue;
-//			}
-//			base = sinfo.getBase();
-//			// 2-3 过滤base为null的
-//			if (base == null) {
-//				continue;
-//			}
-//			bases.add(base);
-//		}
-//		if (bases.isEmpty()) {
-//			return null;
-//		}
-//		return GatherResource.collectBaseMetaServer(bases);
-//	}
+
 	/**
 	 * 概述：获取storageName关系
 	 * @param sns

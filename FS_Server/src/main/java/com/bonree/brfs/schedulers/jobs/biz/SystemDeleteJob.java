@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
-import com.bonree.brfs.schedulers.utils.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
@@ -105,11 +104,6 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		long startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
 		AtomTaskResultModel atomR = AtomTaskResultModel.getInstance(null, snName, startTime, endTime, "", patitionNum);
-        //		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, patitionNum);
-//		if(partDirs == null || partDirs.isEmpty()) {
-//			return atomR;
-//		}
-//		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 0, false);
         Map<String,String> snMap = new HashMap<>();
         snMap.put(BRFSPath.STORAGEREGION, snName);
         List<BRFSPath> deleteDirs = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSTimeFilter(0,endTime));

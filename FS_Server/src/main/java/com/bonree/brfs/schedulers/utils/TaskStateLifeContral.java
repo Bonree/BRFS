@@ -246,15 +246,6 @@ public class TaskStateLifeContral {
                 rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, time, time+atom.getGranule(), 0);
                 changeTask.addAtom(rAtom);
             }
-            //			List<String> dirs = LocalFileUtils.collectDucationTimeDirNames(dataPath, snName, startTime, endTime);
-
-//			dirs = filterRepeadDirs(dirs);
-//			List<Pair<Long,Long>> pDirs = LocalFileUtils.converPairByUniqueness(dirs);
-//			List<Pair<Long,Long>> batchTimes = LocalFileUtils.sortTime(pDirs);
-//			for(Pair<Long,Long> pair : batchTimes) {
-//				rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, pair.getFirst(), pair.getSecond(), 0);
-//				changeTask.addAtom(rAtom);
-//			}
 		}
 		return changeTask;
 	}
@@ -272,18 +263,7 @@ public class TaskStateLifeContral {
         }
         return nFiles;
     }
-	public static List<String> filterRepeadDirs(List<String> files){
-		if(files == null || files.isEmpty()) {
-			return new ArrayList<String>();
-		}
-		List<String> nFiles = new ArrayList<String>();
-		for(String file : files) {
-			if(!nFiles.contains(file)) {
-				nFiles.add(file);
-			}
-		}
-		return nFiles;
-	}
+
 	
 	/**
 	 * 概述：将任务分批

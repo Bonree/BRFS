@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
-import com.bonree.brfs.schedulers.utils.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
@@ -113,11 +112,8 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 			return null;
 		}
 		String snName = atom.getStorageName();
-		int partitionNum = atom.getPatitionNum();
-		long granule = atom.getGranule();
 		long startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
-//		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
 		AtomTaskResultModel atomR = new AtomTaskResultModel();
 		atomR.setDataStartTime(TimeUtils.formatTimeStamp(startTime, TimeUtils.TIME_MILES_FORMATE));
 		atomR.setDataStopTime(TimeUtils.formatTimeStamp(endTime, TimeUtils.TIME_MILES_FORMATE));
@@ -126,12 +122,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		Map<String,String> snMap = new HashMap<>();
 		snMap.put(BRFSPath.STORAGEREGION, snName);
 		List<BRFSPath> deleteDirs = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSTimeFilter(startTime,endTime));
-//		if(partDirs == null || partDirs.isEmpty()) {
-//			atomR.setOperationFileCount(0);
-//			return atomR;
-//		}
-//		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1,false);
-//		LOG.info("collection {}_{} dirs {}",atom.getDataStartTime(),atom.getDataStopTime(),deleteDirs);
+		LOG.info("collection {}_{} dirs {}",atom.getDataStartTime(),atom.getDataStopTime(),deleteDirs);
 		if(deleteDirs == null || deleteDirs.isEmpty()) {
 			atomR.setOperationFileCount(0);
 			return atomR;

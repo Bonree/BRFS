@@ -93,8 +93,6 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		int partitionNum = atom.getPatitionNum();
 		long startTime = TimeUtils.getMiles(atom.getDataStartTime(),TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE);
-//		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
-//		List<String> checkDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1, false);
 
         Map<String,String> snMap = new HashMap<>();
         snMap.put(BRFSPath.STORAGEREGION,snName);
@@ -112,15 +110,6 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
             result.setSuccess(false);
         }
 		result.add(atomR);
-		//  for(String checkDir :checkDirs) {
-//            errors = FileCollection.checkDirs(checkDir);
-//			if(errors !=null && !errors.isEmpty()) {
-//				atomR.setSuccess(false);
-//				result.setSuccess(false);
-//			}
-//            atomR = AtomTaskResultModel.getInstance(errors, snName, startTime, endTime, "", partitionNum);
-//			result.add(atomR);
-//		}
 		LOG.debug("result : {}",JsonUtils.toJsonStringQuietly(result));
 		return result;
 	}

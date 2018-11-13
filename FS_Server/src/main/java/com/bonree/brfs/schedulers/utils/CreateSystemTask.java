@@ -64,26 +64,7 @@ public class CreateSystemTask {
 		}
 		return new Pair<TaskModel,TaskTypeModel>(pair.getFirst(), tmodel);
 	}
-	/***
-	 * 概述：获取任务
-	 * @param release
-	 * @param taskType
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static TaskModel getLastTask(MetaTaskManagerInterface release,TaskType taskType) {
-		String prexTaskName = null;
-		TaskModel prexTask = null;
-		List<String> taskList = null;
-		taskList = release.getTaskList(taskType.name());
-		if(taskList != null && !taskList.isEmpty()){
-			prexTaskName = taskList.get(taskList.size() - 1);
-		}
-		if(!BrStringUtils.isEmpty(prexTaskName)){
-			prexTask = release.getTaskContentNodeInfo(taskType.name(), prexTaskName);
-		}
-		return prexTask;
-	}
+
 	/**
 	 * 概述：创建单个类型任务
 	 * @param snTimes
@@ -241,71 +222,7 @@ public class CreateSystemTask {
 		}
 		return ttl;
 	}
-	/**
-	 * 概述：获取上次执行时间
-	 * @param prex
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static Map<String,Long> getLastTime(TaskModel prex){
-		Map<String,Long> snCurrentTime = new HashMap<String,Long>();
-		if(prex == null) {
-			return snCurrentTime;
-		}
-		List<AtomTaskModel> atoms = prex.getAtomList();
-		if(atoms == null || atoms.isEmpty()) {
-			return snCurrentTime;
-		}
-		String snName = null;
-		long startTime = 0;
-		for(AtomTaskModel atom : atoms) {
-			snName = atom.getStorageName();
-			startTime = TimeUtils.getMiles(atom.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE);
-			if(BrStringUtils.isEmpty(snName)) {
-				continue;
-			}
-			if(startTime < 0 ) {
-				continue;
-			}
-			if(!snCurrentTime.containsKey(snName)) {
-				snCurrentTime.put(snName, startTime);
-			}
-			if(startTime > snCurrentTime.get(snName)) {
-				snCurrentTime.put(snName, startTime);
-			}
-		}
-		return snCurrentTime;
-	}
-	/**
-	 * 概述：过滤不过期的SN
-	 * @param snList
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static List<StorageRegion> fileterNeverTTL(final List<StorageRegion> snList){
-		if(snList == null || snList.isEmpty()) {
-			return null;
-		}
-		List<StorageRegion> filters = new ArrayList<>();
-		long ttl = 0;
-		long cTime = 0;
-		long currentTime = System.currentTimeMillis();
-		for(StorageRegion sn : snList) {
-			//TODO 测试阶段单位为s，正式阶段单位为d
-			ttl = Duration.parse(sn.getDataTtl()).toMillis();
-			cTime = sn.getCreateTime();
-			// 过滤永久保存的sn
-			if(ttl <0) {
-				continue;
-			}
-			// 过滤还不到过期的sn
-			if(ttl > currentTime - cTime) {
-				continue;
-			}
-			filters.add(sn);
-		}
-		return filters;
-	}
+
 	/**
 	 * 概述：将任务信息创建到zk
 	 * @param release

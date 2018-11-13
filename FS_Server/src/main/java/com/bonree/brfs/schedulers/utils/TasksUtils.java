@@ -92,7 +92,6 @@ public class TasksUtils {
 		}
 		long granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 		String snName = sn.getName();
-		int count = sn.getReplicateNum();
 		long startHour = 0;
 		long endHour =  endTime - endTime%granule;
 		// 删除sn
@@ -109,9 +108,7 @@ public class TasksUtils {
 		if(startHour >= endHour) {
 			return null;
 		}
-		String startStr = TimeUtils.formatTimeStamp(startHour, TimeUtils.TIME_MILES_FORMATE);
-		String endStr = TimeUtils.formatTimeStamp(endHour, TimeUtils.TIME_MILES_FORMATE);
-		
+
 		AtomTaskModel atom = AtomTaskModel.getInstance(null, snName, opertationContent, sn.getReplicateNum(), startHour, endHour, granule);
 		storageAtoms.add(atom);
 		task.setAtomList(storageAtoms);
