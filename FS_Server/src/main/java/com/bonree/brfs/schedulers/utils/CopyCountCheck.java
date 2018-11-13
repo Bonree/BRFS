@@ -39,10 +39,10 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,List<String>> collectLossFile(List<StorageRegion> storageNames, List<Service> services, Map<String,Long> snTimes){
+	public static Map<String,List<String>> collectLossFile(List<StorageRegion> storageNames, List<Service> services, Map<String,Long> snTimes) throws Exception{
 		Map<StorageRegion, List<String>> snFiles = collectionSnFiles(services, storageNames,snTimes);
 		if(snFiles == null|| snFiles.isEmpty()) {
-			LOG.debug("<collectLossFile> collection files is empty");
+			LOG.info("brfs system no data !!!");
 			return null;
 		}
 		Map<StorageRegion,Pair<List<String>, List<String>>> copyMap = calcCopyCount(snFiles);
@@ -131,7 +131,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<StorageRegion, List<String>> collectionSnFiles(List<Service> services, List<StorageRegion> snList,final Map<String,Long> snTimes){
+	public static Map<StorageRegion, List<String>> collectionSnFiles(List<Service> services, List<StorageRegion> snList,final Map<String,Long> snTimes)throws Exception{
 		Map<StorageRegion,List<String>> snMap = new HashMap<>();
 		DiskNodeClient client = null;
 		int reCount = 0;
@@ -147,7 +147,7 @@ public class CopyCountCheck {
         SecondIDParser parser = null;
         String basePath = mcf.getZkPath().getBaseRoutePath();
 		for(Service service : services){
-			try {
+            try{
 				client = TcpClientUtils.getClient(service.getHost(), service.getPort(), service.getExtraPort(), 5000);
 				long granule = 0;
 				for(StorageRegion sn : snList){
@@ -180,8 +180,6 @@ public class CopyCountCheck {
 						snMap.get(sn).addAll(strs);
 					}
 				}
-			} catch (Exception e) {
-				LOG.error("{}",e);
 			}finally{
 				if(client != null){
 					try {
@@ -241,16 +239,18 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> getFileList(SecondIDParser parser, DiskNodeClient client, String sid, String path){
-		if(client == null || BrStringUtils.isEmpty(path)) {
-			return null;
+	public static List<String> getFileList(SecondIDParser parser, DiskNodeClient client, String sid, String path)throws Exception{
+		if(client == null ) {
+		    throw new NullPointerException("disk client is null !!!");
 		}
+        if(BrStringUtils.isEmpty(path)) {
+            throw new NullPointerException("path is null !!!");
+        }
 		List<FileInfo> files =client.listFiles(path, 1);
 		if(files == null || files.isEmpty()) {
-			LOG.debug("<getFileList> file size :{}",0);
+			LOG.info("path : [{}] is not data", path);
 			return null;
 		}
-		LOG.debug("<getFileList> file size :{}",files.size());
 		List<String> fileNames = converToStringList(parser, files, path, sid);
 		return fileNames;
 	}
@@ -264,8 +264,7 @@ public class CopyCountCheck {
 		List<String> strs = new ArrayList<>();
 		String path = null;
 		String fileName = null;
-//		int lastIndex = 0;
-		String dirName = getFileName(dir); 
+		String dirName = getFileName(dir);
 		List<String> errorFiles = new ArrayList<>();
 		String[] checks = null; 
 		for(FileInfo file : files){
@@ -278,16 +277,18 @@ public class CopyCountCheck {
 			if(fileName.indexOf(".rd") > 0){
 				fileName = fileName.substring(0, fileName.indexOf(".rd"));
                 errorFiles.add(fileName);
+                LOG.warn("file: [{}] contain rd file !! skip ",fileName);
 				continue;
 			}
 			// 排除非法数据
 			checks = BrStringUtils.getSplit(fileName, "_");
 			if(checks == null|| checks.length<=1) {
 				errorFiles.add(fileName);
+                LOG.warn("file: [{}] is unlaw file !! skip ",fileName);
 				continue;
 			}
 			if(isUnlaw(sid, parser, fileName)){
-			    LOG.info("file: [{}] is unlaw", fileName);
+			    LOG.warn("file: [{}] is not [{}] file", fileName, sid);
 			    continue;
             }
 			strs.add(fileName);
@@ -297,11 +298,12 @@ public class CopyCountCheck {
 	public static boolean isUnlaw(String sid, SecondIDParser parser, String fileName){
 	    String[] alives = parser.getAliveSecondID(fileName);
 	    if(alives == null || alives.length == 0){
+	        LOG.warn("[{}] analys service error !! alives is null !!!", fileName);
 	        return true;
         }
         List<String> eles = Arrays.asList(alives);
 	    if(!eles.contains(sid)){
-            LOG.info("file: [{}], server: [{}], serverlist :{}",fileName,sid,eles);
+            LOG.warn("file: [{}], server: [{}], serverlist :{}",fileName,sid,eles);
         }
         return !eles.contains(sid);
     }

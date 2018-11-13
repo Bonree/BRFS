@@ -184,7 +184,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 	 * @param sourceTimes
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void createSingleTask(MetaTaskManagerInterface release, List<StorageRegion> needSns, List<Service> services, TaskType taskType, Map<String, Long> sourceTimes) {
+	public void createSingleTask(MetaTaskManagerInterface release, List<StorageRegion> needSns, List<Service> services, TaskType taskType, Map<String, Long> sourceTimes) throws Exception {
 		Map losers = CopyCountCheck.collectLossFile(needSns, services, sourceTimes);
 		Pair pair = CreateSystemTask.creatTaskWithFiles(sourceTimes, losers, needSns, taskType, CopyCheckJob.RECOVERY_NUM, 0L);
 		if (pair == null) {
