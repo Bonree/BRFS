@@ -1,5 +1,6 @@
 package com.bonree.brfs.schedulers.utils;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,7 +45,7 @@ public class WatchDog{
 	 * @param granule
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void searchPreys(ServerIDManager sim, Collection<StorageRegion> sns,String zkHosts,String baseRoutesPath, String dataPath, long limitTime, long granule) {
+	public static void searchPreys(ServerIDManager sim, Collection<StorageRegion> sns,String zkHosts,String baseRoutesPath, String dataPath, long limitTime) {
 		if(sns == null || sns.isEmpty() || BrStringUtils.isEmpty(dataPath)) {
 			LOG.info("<searchPreys> SKip search data because is empty");
 			return;
@@ -59,24 +60,28 @@ public class WatchDog{
 		SecondIDParser parser = null;
 		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts);
 		Map<String,String> snMap = null;
+		long granule = 0;
+		long snLimitTime = 0;
 		for(StorageRegion sn : sns) {
 			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
 				LOG.info("<searchPreys> SKip search data because there is one");
 				return;
 			}
 			snId = sn.getId();
+			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();;
+			snLimitTime = limitTime - limitTime%granule;
 			LOG.info(" watch dog eat {} :{}", sn.getName(),sn.getId());
-			parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
-			// 使用前必须更新路由规则，否则会解析错误
-			parser.updateRoute();
 
-			// 单个副本的不做检查
-			if(sn.getReplicateNum()<=1) {
-				continue;
-			}
-			snMap = new HashMap<>();
+            // 单个副本的不做检查
+            if(sn.getReplicateNum()<=1) {
+                continue;
+            }
+            parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
+            // 使用前必须更新路由规则，否则会解析错误
+            parser.updateRoute();
+            snMap = new HashMap<>();
 			snMap.put(BRFSPath.STORAGEREGION,sn.getName());
-            List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(sim,parser,sn,limitTime));
+            List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(sim,parser,sn,snLimitTime));
             if(sfiles == null || sfiles.isEmpty()){
                 continue;
             }

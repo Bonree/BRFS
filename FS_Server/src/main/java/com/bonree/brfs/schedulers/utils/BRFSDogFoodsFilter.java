@@ -39,6 +39,15 @@ public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
         if(isBug(values, false)){
            return false;
         }
+        if(values.containsKey(BRFSPath.STORAGEREGION)){
+            String tmpStorageName = values.get(BRFSPath.STORAGEREGION);
+            if(tmpStorageName == null || tmpStorageName.trim().isEmpty()){
+                return false;
+            }
+            if(!region.getName().equals(tmpStorageName)){
+                return false;
+            }
+        }
         if(values.size() == keyMap.size() -1){
             long tmp = BRFSPath.convertTime(values);
             return tmp < lastTime;
@@ -66,7 +75,6 @@ public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
             LOG.warn("file: [{}]-[{}] contain dot !!",values,isFile);
             return true;
         }
-
         String secondStorage = sim.getSecondServerID(region.getId());
         return CopyCountCheck.isUnlaw(secondStorage,this.parser,fileName);
     }

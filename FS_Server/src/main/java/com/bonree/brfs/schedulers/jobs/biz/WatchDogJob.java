@@ -50,9 +50,8 @@ public class WatchDogJob extends QuartzOperationStateTask {
 		StorageRegionManager snm = mcf.getSnm();
 		List<StorageRegion> sns = snm.getStorageRegionList();
 		long preTime = System.currentTimeMillis();
-		preTime = preTime - preTime%3600000 - 3600000;
 		LOG.info("Scan {} below data !!!",TimeUtils.formatTimeStamp(preTime));
-		WatchDog.searchPreys(sim, sns, zkHosts, dataPath, dataPath, preTime, 3600000);
+		WatchDog.searchPreys(sim, sns, zkHosts, baseRoutPath, dataPath, preTime);
 	}
 
 }
