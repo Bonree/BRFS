@@ -264,7 +264,6 @@ public class CopyCountCheck {
 		List<String> strs = new ArrayList<>();
 		String path = null;
 		String fileName = null;
-//		String dirName = getFileName(dir);
 		List<String> errorFiles = new ArrayList<>();
 		String[] checks = null; 
 		for(FileInfo file : files){
@@ -273,9 +272,7 @@ public class CopyCountCheck {
             }
 			path = file.getPath();
 			fileName = getFileName(path);
-//			if(dirName.equals(fileName)){
-//				continue;
-//			}
+//
 			// 排除rd文件
 			if(fileName.indexOf(".rd") > 0){
 				fileName = fileName.substring(0, fileName.indexOf(".rd"));
@@ -305,10 +302,11 @@ public class CopyCountCheck {
 	        return true;
         }
         List<String> eles = Arrays.asList(alives);
-	    if(!eles.contains(sid)){
+	    boolean status = !eles.contains(sid);
+	    if(status){
             LOG.warn("file: [{}], server: [{}], serverlist :{}",fileName,sid,eles);
         }
-        return !eles.contains(sid);
+        return status;
     }
 	/**
 	 * 概述：过滤rd文件

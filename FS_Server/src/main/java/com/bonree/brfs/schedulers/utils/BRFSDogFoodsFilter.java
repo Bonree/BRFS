@@ -6,12 +6,16 @@ import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
+    private static final Logger LOG = LoggerFactory.getLogger(BRFSDogFoodsFilter.class);
     private ServerIDManager sim = null;
     private SecondIDParser parser = null;
     private StorageRegion  region = null;
@@ -46,6 +50,7 @@ public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
     public boolean isAdd(String root, Map<String, String> values, boolean isFile){
 
         if(isBug(values, isFile)){
+            LOG.warn("file: [{}]-[{}] is bug !!",values,isFile);
             return true;
         }
         if(values.size() != keyMap.size()){
@@ -58,11 +63,12 @@ public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
         }
         String fileName = values.get(BRFSPath.FILE);
         if(fileName.contains(".")){
+            LOG.warn("file: [{}]-[{}] contain dot !!",values,isFile);
             return true;
         }
+
         String secondStorage = sim.getSecondServerID(region.getId());
-        List<String> secondIds = FileCollection.analyseServices(fileName, parser);
-        return FileCollection.crimeFile(secondIds,secondStorage);
+        return CopyCountCheck.isUnlaw(secondStorage,this.parser,fileName);
     }
 
 }
