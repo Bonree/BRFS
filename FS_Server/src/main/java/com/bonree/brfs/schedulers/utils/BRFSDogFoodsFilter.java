@@ -80,7 +80,13 @@ public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
             return true;
         }
         String secondStorage = sim.getSecondServerID(region.getId());
-        return CopyCountCheck.isUnlaw(secondStorage,this.parser,fileName);
+        boolean ulawFlag = CopyCountCheck.isUnlaw(secondStorage,this.parser,fileName);
+        if(ulawFlag){
+            String path = BRFSFileUtil.createPath(root,values);
+            File file = new File(path+".rd");
+            return !file.exists();
+        }
+        return false;
     }
 
 }
