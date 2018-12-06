@@ -71,6 +71,10 @@ public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
             return false;
         }
         String fileName = values.get(BRFSPath.FILE);
+        if(fileName.contains(".rd")){
+            LOG.warn("file: [{}]-[{}] contain .rd !!",values,isFile);
+            return false;
+        }
         if(fileName.contains(".")){
             LOG.warn("file: [{}]-[{}] contain dot !!",values,isFile);
             return true;

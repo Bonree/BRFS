@@ -31,7 +31,7 @@ import com.bonree.brfs.server.identification.ServerIDManager;
  *****************************************************************************
  */
 public class WatchDog{
-	private static final Logger LOG = LoggerFactory.getLogger("WatchDogJob");
+	private static final Logger LOG = LoggerFactory.getLogger(WatchDog.class);
 	private static Queue<String> preys = new ConcurrentLinkedQueue<String>();
 	private static ExecutorService executor = Executors.newFixedThreadPool(1); 
 	private static long lastTime = 0;

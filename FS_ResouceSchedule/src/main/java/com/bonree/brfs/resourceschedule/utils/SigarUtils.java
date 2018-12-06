@@ -60,7 +60,7 @@ public enum SigarUtils {
      * 比较特殊的是CPU总使用率的计算(util),目前的算法是: util = 1 - idle - iowait - steal
      * @return
      * @throws SigarException
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     * @author <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public double gatherCpuRate() throws SigarException {
         Cpu cpu = sigar.getCpu();

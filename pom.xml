@@ -12,7 +12,7 @@
 	<artifactId>BRFS</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
-<repositories>
+    <repositories>
 		<repository>
 			<id>nexus</id>
 			<name>nexus</name>
