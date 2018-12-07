@@ -168,6 +168,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 	}
 	
 	private boolean handleFileNode(FileNode fileNode) {
+	    LOG.info("deal {}", JsonUtils.toJsonStringQuietly(fileNode));
 		List<Service> serviceList = getServiceWithStorageRegionName(fileNode.getStorageName());
 		Service target = serviceSelector.selectWith(fileNode, serviceList);
 		if(target == null) {
@@ -208,6 +209,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 	}
 	
 	private void dispatchWildFileNode() {
+	    LOG.info("wildlist will go new home !!");
 		Iterator<FileNode> iter = wildFileNodes.iterator();
 		while(iter.hasNext()) {
 			if(handleFileNode(iter.next())) {
@@ -228,6 +230,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 					@Override
 					public void childEvent(CuratorFramework client, PathChildrenCacheEvent event)
 							throws Exception {
+					    LOG.info("happen event !!!");
 						executor.submit(new Runnable() {
 							
 							@Override
