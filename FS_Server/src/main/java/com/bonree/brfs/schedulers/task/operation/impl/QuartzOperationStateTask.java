@@ -33,7 +33,7 @@ public abstract class QuartzOperationStateTask implements QuartzOperationStateIn
 		}catch(Exception e){
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
-			LOG.info("{}",e.toString());
+			LOG.info("Run task error {}",e);
 		}
 		
 	}

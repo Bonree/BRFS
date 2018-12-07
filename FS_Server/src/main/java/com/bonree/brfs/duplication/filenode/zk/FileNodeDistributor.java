@@ -2,12 +2,7 @@ package com.bonree.brfs.duplication.filenode.zk;
 
 import java.io.Closeable;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -95,7 +90,10 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 			@Override
 			public void run() {
 				//任务开始前需要先进行文件扫描，确定需要转移的文件
+                int i = 0;
 				for(FileNode fileNode : fileStorer.listFileNodes()) {
+				    i++;
+				    LOG.info("{}st,name : [{}], duplicate: {}", i, fileNode.getName(), Arrays.asList(fileNode.getDuplicateNodes()));
 					Long serviceTime = serviceTimeTable.get(fileNode.getServiceGroup(), fileNode.getServiceId());
 					if(serviceTime == null) {
 						for(Service service : serviceManager.getServiceListByGroup(fileNode.getServiceGroup())) {
