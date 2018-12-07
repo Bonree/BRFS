@@ -93,7 +93,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
                 int i = 0;
 				for(FileNode fileNode : fileStorer.listFileNodes()) {
 				    i++;
-				    LOG.info("{}st,name : [{}], duplicate: {}", i, fileNode.getName(), Arrays.asList(fileNode.getDuplicateNodes()));
+				    LOG.info("{}st,name : [{}], duplicate: {}", i, fileNode.getName(), JsonUtils.toJsonBytesQuietly(fileNode));
 					Long serviceTime = serviceTimeTable.get(fileNode.getServiceGroup(), fileNode.getServiceId());
 					if(serviceTime == null) {
 						for(Service service : serviceManager.getServiceListByGroup(fileNode.getServiceGroup())) {
@@ -104,11 +104,13 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 					}
 					
 					if(serviceTime != null && serviceTime <= fileNode.getServiceTime()) {
+                        LOG.info("{}st,name : [{}], serviceTime {}, duplicate: {}", i,serviceTime fileNode.getName(), JsonUtils.toJsonBytesQuietly(fileNode));
 						continue;
 					}
 					
 					if(timeToLive(fileNode) > 0) {
 						wildFileNodes.add(fileNode);
+                        LOG.info("{}st,name : [{}], add willist duplicate: {}", i, fileNode.getName(), JsonUtils.toJsonBytesQuietly(fileNode));
 						continue;
 					}
 					
