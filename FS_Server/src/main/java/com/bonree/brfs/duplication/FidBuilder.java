@@ -19,7 +19,7 @@ public class FidBuilder {
 				.setCompress(0)
 				.setStorageNameCode(node.getStorageId())
 				.setTime(node.getCreateTime())
-				.setDuration(node.getTimeDuration())
+				.setDuration(node.getTimeDurationMillis())
 				.setOffset(offset)
 				.setSize(size);
 		

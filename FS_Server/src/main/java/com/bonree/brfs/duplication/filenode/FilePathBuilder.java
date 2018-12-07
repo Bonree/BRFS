@@ -29,7 +29,7 @@ public class FilePathBuilder {
 		.append(PATH_SEPARATOR)
 		.append(index)
 		.append(PATH_SEPARATOR)
-		.append(TimeUtils.timeInterval(fileNode.getCreateTime(), fileNode.getTimeDuration()))
+		.append(TimeUtils.timeInterval(fileNode.getCreateTime(), fileNode.getTimeDurationMillis()))
 		.append(PATH_SEPARATOR)
 		.append(fileNode.getName());
 		

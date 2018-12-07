@@ -164,7 +164,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 	}
 	
 	private long timeToLive(FileNode file) {
-		return TimeUtils.nextTimeStamp(System.currentTimeMillis(), file.getTimeDuration()) - file.getCreateTime();
+		return TimeUtils.nextTimeStamp(System.currentTimeMillis(), file.getTimeDurationMillis()) - file.getCreateTime();
 	}
 	
 	private boolean handleFileNode(FileNode fileNode) {
