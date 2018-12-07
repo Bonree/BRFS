@@ -104,7 +104,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 					}
 					
 					if(serviceTime != null && serviceTime <= fileNode.getServiceTime()) {
-                        LOG.info("{}st,name : [{}], serviceTime {}, duplicate: {}", i,serviceTime fileNode.getName(), JsonUtils.toJsonBytesQuietly(fileNode));
+                        LOG.info("{}st,name : [{}], serviceTime {}, duplicate: {}", i,serviceTime, fileNode.getName(), JsonUtils.toJsonBytesQuietly(fileNode));
 						continue;
 					}
 					
