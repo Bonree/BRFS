@@ -1,5 +1,6 @@
 package com.bonree.brfs.common.net.tcp.file;
 
+import com.bonree.brfs.common.utils.ByteUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -150,6 +151,8 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 			ByteBuffer contentBuffer = fileBuffer.slice();
 			contentBuffer.position((int) readOffset);
 			contentBuffer.limit((int) (readOffset + readableLength));
+
+			System.out.println("READ CRC == " + ByteUtils.cyc(contentBuffer.slice()));
 			
 			ctx.write(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
 			ctx.writeAndFlush(Unpooled.wrappedBuffer(contentBuffer.slice())).addListener(new ChannelFutureListener() {
