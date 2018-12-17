@@ -40,6 +40,7 @@ public class ReadConnection implements Closeable {
 		InputUtils.readBytes(socket.getInputStream(), length, 0, length.length);
 		
 		int l = Ints.fromBytes(length[4], length[5], length[6], length[7]);
+        System.out.println("client READ length == " + l);
 		
 		byte[] b = new byte[l];
 		InputUtils.readBytes(socket.getInputStream(), b, 0, b.length);
