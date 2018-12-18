@@ -1,14 +1,5 @@
 package com.bonree.brfs.common.net.tcp.file;
 
-import com.bonree.brfs.common.utils.ByteUtils;
-import io.netty.buffer.CompositeByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -26,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BufferUtils;
+import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -34,6 +26,15 @@ import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 
 @Sharable
 public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObject>{
@@ -139,14 +140,15 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             System.out.println("offset " + readOffset + ", length : " + readableLength);
             System.out.println("READ CRC == " + ByteUtils.cyc(contentBuffer.slice()));
 
-            CompositeByteBuf compositeByteBuf = Unpooled.compositeBuffer();
-            compositeByteBuf.addComponent(true, Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
-            compositeByteBuf.addComponent(true, Unpooled.wrappedBuffer(contentBuffer.slice()));
+            ByteBuf result = Unpooled.wrappedBuffer(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken())),
+            		Unpooled.wrappedBuffer(Ints.toByteArray(readableLength)),
+            		Unpooled.wrappedBuffer(contentBuffer.slice()));
 
-            ctx.writeAndFlush(compositeByteBuf).addListener(new ChannelFutureListener(){
+            ctx.writeAndFlush(result).addListener(new ChannelFutureListener(){
 
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception{
+                	LOG.info("write completed for {}", filePath);
                     ref.release();
                 }
             }).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
