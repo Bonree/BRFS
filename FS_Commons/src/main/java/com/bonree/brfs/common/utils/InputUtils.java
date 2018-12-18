@@ -11,8 +11,6 @@ public class InputUtils {
 		while(length > 0 && (read = input.read(des, offset, length)) >= 0) {
 			offset += read;
 			length -= read;
-			
-			break;
 		}
 	}
 }
