@@ -4,7 +4,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.Socket;
 
-import com.bonree.brfs.common.utils.ByteUtils;
 import org.apache.curator.shaded.com.google.common.base.Charsets;
 import org.apache.curator.shaded.com.google.common.base.Joiner;
 import org.apache.curator.shaded.com.google.common.primitives.Ints;
@@ -40,13 +39,9 @@ public class ReadConnection implements Closeable {
 		InputUtils.readBytes(socket.getInputStream(), length, 0, length.length);
 		
 		int l = Ints.fromBytes(length[4], length[5], length[6], length[7]);
-        System.out.println("client READ token == " + Ints.fromBytes(length[0], length[1], length[2], length[3]));
-        System.out.println("client READ length == " + l);
 		
 		byte[] b = new byte[l];
 		InputUtils.readBytes(socket.getInputStream(), b, 0, b.length);
-
-        System.out.println("client READ CRC == " + ByteUtils.crc(b));
 
 		FileContent content = FileDecoder.contents(b);
         return content.getData().toByteArray();

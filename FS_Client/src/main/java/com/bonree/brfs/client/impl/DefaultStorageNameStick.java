@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.bonree.brfs.common.utils.ByteUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -175,7 +174,6 @@ public class DefaultStorageNameStick implements StorageNameStick {
 					readObject.setLength((int) fidObj.getSize());
 
 					byte[] fileContent = fileReader.read(readObject);
-					System.out.println("CRC == " + ByteUtils.crc(fileContent));
 					return new InputItem() {
 
 						@Override

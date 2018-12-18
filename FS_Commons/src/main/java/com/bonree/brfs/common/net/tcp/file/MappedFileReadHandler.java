@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BufferUtils;
-import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -28,7 +27,6 @@ import com.google.common.io.Files;
 import com.google.common.primitives.Ints;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -137,9 +135,6 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             contentBuffer.position((int) readOffset);
             contentBuffer.limit((int) (readOffset + readableLength));
 
-            System.out.println("offset " + readOffset + ", length : " + readableLength);
-            System.out.println("READ CRC == " + ByteUtils.cyc(contentBuffer.slice()));
-
             ByteBuf result = Unpooled.wrappedBuffer(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken())),
             		Unpooled.wrappedBuffer(Ints.toByteArray(readableLength)),
             		Unpooled.wrappedBuffer(contentBuffer.slice()));
@@ -148,7 +143,6 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception{
-                	LOG.info("write completed for {}", filePath);
                     ref.release();
                 }
             }).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
