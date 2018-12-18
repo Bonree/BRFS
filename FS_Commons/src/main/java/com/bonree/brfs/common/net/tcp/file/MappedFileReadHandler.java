@@ -138,7 +138,6 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
             System.out.println("READ CRC == " + ByteUtils.cyc(contentBuffer.slice()));
 
-            ctx.write(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
             CompositeByteBuf compositeByteBuf = Unpooled.compositeBuffer();
             compositeByteBuf.addComponent(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(readableLength)));
             compositeByteBuf.addComponent(Unpooled.wrappedBuffer(contentBuffer.slice()));
