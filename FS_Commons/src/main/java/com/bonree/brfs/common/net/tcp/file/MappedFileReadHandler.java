@@ -136,6 +136,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             contentBuffer.position((int) readOffset);
             contentBuffer.limit((int) (readOffset + readableLength));
 
+            System.out.println("offset " + readOffset + ", length : " + readableLength);
             System.out.println("READ CRC == " + ByteUtils.cyc(contentBuffer.slice()));
 
             CompositeByteBuf compositeByteBuf = Unpooled.compositeBuffer();
