@@ -32,6 +32,9 @@ public class FileSystemConfig {
 	private static final String DEFAULT_DISK_SERVICE_GROUP = "data_group";
 	private String diskServiceGroup;
 	
+	private static final int DEFAULT_ZK_CONNECT_TIMEOUT_SECONDS = 15;
+	private int zkConnectTimeoutSeconds;
+	
 	private FileSystemConfig() {
 		this.urlSchema = DEFAULT_URL_SCHEMA;
 		this.storageUrlRoot = DEFAULT_STORAGE_URL_ROOT;
@@ -41,6 +44,7 @@ public class FileSystemConfig {
 		this.handleThreadNum = DEFAULT_CONNECTION_HANDLE_THREAD_NUM;
 		this.duplicateServiceGroup = DEFAULT_DUPLICATE_SERVICE_GROUP;
 		this.diskServiceGroup = DEFAULT_DISK_SERVICE_GROUP;
+		this.zkConnectTimeoutSeconds = DEFAULT_ZK_CONNECT_TIMEOUT_SECONDS;
 	}
 	
 	public String getName() {
@@ -89,6 +93,10 @@ public class FileSystemConfig {
 	
 	public String getDiskServiceGroup() {
 		return diskServiceGroup;
+	}
+	
+	public int getZkConnectTimeoutSeconds() {
+		return zkConnectTimeoutSeconds;
 	}
 	
 	public static Builder newBuilder() {
@@ -159,6 +167,11 @@ public class FileSystemConfig {
 		
 		public Builder setDiskServiceGroup(String group) {
 			config.diskServiceGroup = group;
+			return this;
+		}
+		
+		public Builder setZkConnectTimeoutSeconds(int timeoutSeconds) {
+			config.zkConnectTimeoutSeconds = timeoutSeconds;
 			return this;
 		}
 		
