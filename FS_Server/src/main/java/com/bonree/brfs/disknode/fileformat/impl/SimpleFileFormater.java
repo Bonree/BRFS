@@ -2,6 +2,8 @@ package com.bonree.brfs.disknode.fileformat.impl;
 
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.write.data.FileEncoder;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.fileformat.FileHeader;
 import com.bonree.brfs.disknode.fileformat.FileTailer;
@@ -46,7 +48,7 @@ public class SimpleFileFormater implements FileFormater {
 	@Override
 	public byte[] formatData(byte[] data) throws Exception {
 		FileContent content = FileContent.newBuilder()
-				.setCompress(0)
+				.setCompress(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_COMPRESS) ? 1 : 0)
 				.setDescription("")
 				.setData(ByteString.copyFrom(data))
 				.setCrcFlag(false)

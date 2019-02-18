@@ -43,5 +43,7 @@ public final class DataNodeConfigs {
 	public static final ConfigUnit<Integer> CONFIG_FILE_READER_NUM =
 			ConfigUnit.ofInt("datanode.file.reader.num", Runtime.getRuntime().availableProcessors());
 
+	public static final ConfigUnit<Boolean> CONFIG_DATA_COMPRESS =
+			ConfigUnit.ofBoolean("datanode.data.compress", true);
 	private DataNodeConfigs() {}
 }
