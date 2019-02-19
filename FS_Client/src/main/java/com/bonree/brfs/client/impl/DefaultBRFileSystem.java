@@ -49,6 +49,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         		.setMaxConnection(config.getConnectionPoolSize())
         		.setMaxConnectionPerRoute(config.getConnectionPoolSize())
         		.setIOThreadNum(config.getHandleThreadNum())
+        		.setResponseTimeout(60 * 1000)
         		.build());
         
         this.defaultHeaders.put("username", config.getName());
