@@ -7,26 +7,29 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true) 
 public class ResourceModel {
-	/**
+    /**
+     * cpu使用率，本机
+     */
+    private double cpuRate = 0.0;
+    /**
+     * 内存使用率 本机
+     */
+    private double memoryRate = 0.0;
+    /**
+     * 本机磁盘剩余率
+     */
+    /**
 	 * 
 	 */
 	private String serverId = "";
-	/**
+    /**
 	 * 硬盘大小
 	 */
 	private long diskSize = 0;
-	/**
+    /**
 	 * 本机硬盘剩余率
 	 */
 	private double diskRemainRate = 0.0;
-	/**
-	 * cpu使用率，本机
-	 */
-	private double cpuRate = 0.0;
-	/**
-	 * 内存使用率 本机
-	 */
-	private double memoryRate = 0.0;
 	/**
 	 * cpu剩余值
 	 */

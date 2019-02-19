@@ -59,7 +59,7 @@ import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
-import com.bonree.brfs.duplication.filenode.duplicates.ResourceDuplicateNodeSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.impl.ResourceDuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileCoordinatorPaths;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;

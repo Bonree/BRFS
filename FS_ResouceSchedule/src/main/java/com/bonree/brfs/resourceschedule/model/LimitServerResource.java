@@ -2,17 +2,23 @@ package com.bonree.brfs.resourceschedule.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown = true) 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LimitServerResource {
-	
-	/**
-	 * 本机最大硬盘剩余率
-	 */
-	private double remainValue = 0.001;
-	public double getRemainValue() {
-		return remainValue;
+	private double diskRemainRate = 0.05;
+	private double forceDiskRemainRate = 0.01;
+
+	public double getDiskRemainRate() {
+		return diskRemainRate;
 	}
-	public void setRemainValue(double remainValue) {
-		this.remainValue = remainValue;
+	public void setDiskRemainRate(double remainValue) {
+		this.diskRemainRate = remainValue;
 	}
+
+    public double getForceDiskRemainRate(){
+        return forceDiskRemainRate;
+    }
+
+    public void setForceDiskRemainRate(double forceDiskRemainRate){
+        this.forceDiskRemainRate = forceDiskRemainRate;
+    }
 }
