@@ -2,7 +2,6 @@ package com.bonree.brfs.disknode.data.write;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -12,14 +11,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.bonree.brfs.common.utils.*;
-import com.bonree.brfs.disknode.utils.BRFSRdFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.timer.WheelTimer;
 import com.bonree.brfs.common.timer.WheelTimer.Timeout;
+import com.bonree.brfs.common.utils.BRFSFileUtil;
+import com.bonree.brfs.common.utils.BRFSPath;
+import com.bonree.brfs.common.utils.ByteUtils;
+import com.bonree.brfs.common.utils.CloseUtils;
+import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
@@ -34,6 +36,7 @@ import com.bonree.brfs.disknode.data.write.worker.WriteTask;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorkerGroup;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorkerSelector;
+import com.bonree.brfs.disknode.utils.BRFSRdFileFilter;
 import com.bonree.brfs.disknode.utils.Pair;
 import com.google.common.base.Splitter;
 
@@ -106,7 +109,10 @@ public class FileWriterManager implements LifeCycle {
 			@Override
 			protected Void execute() throws Exception {
 				LOG.info("execute flush for file[{}] BEGIN", binding.first().getPath());
-				binding.first().flush();
+				if(runningWriters.containsKey(path)) {
+					binding.first().flush();
+				}
+				
 				return null;
 			}
 
