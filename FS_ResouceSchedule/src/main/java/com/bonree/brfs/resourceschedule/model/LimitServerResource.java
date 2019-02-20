@@ -6,8 +6,26 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class LimitServerResource {
 	private double diskRemainRate = 0.05;
 	private double forceDiskRemainRate = 0.01;
+	private double diskWriteValue = 0.9;
+	private double forceWriteValue = 0.99;
 
-	public double getDiskRemainRate() {
+    public double getForceWriteValue(){
+        return forceWriteValue;
+    }
+
+    public void setForceWriteValue(double forceWriteValue){
+        this.forceWriteValue = forceWriteValue;
+    }
+
+    public double getDiskWriteValue(){
+        return diskWriteValue;
+    }
+
+    public void setDiskWriteValue(double diskWriteValue){
+        this.diskWriteValue = diskWriteValue;
+    }
+
+    public double getDiskRemainRate() {
 		return diskRemainRate;
 	}
 	public void setDiskRemainRate(double remainValue) {
