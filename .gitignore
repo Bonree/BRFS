@@ -42,3 +42,5 @@ FS_ResouceSchedule/.settings/
 config/server.properties
 ids/
 libs/
+.idea/
+FS_Server/src/main/java/com/bonree/brfs/schedulers/Test/

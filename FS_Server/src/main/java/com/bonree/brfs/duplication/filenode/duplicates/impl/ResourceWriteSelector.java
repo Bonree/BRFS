@@ -1,5 +1,9 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
@@ -10,20 +14,24 @@ import com.bonree.brfs.resourceschedule.model.ResourceModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public class ResourceWriteSelector implements DuplicateNodeSelector{
     private static final Logger LOG = LoggerFactory.getLogger(ResourceWriteSelector.class);
     private ClusterResource daemon = null;
     private ServiceSelector resourceSelector = null;
     private StorageRegionManager storageRegionManager = null;
-    private String groupName = null;
-    private ResourceWriteSelector(ClusterResource daemon, ServiceSelector resourceSelector, StorageRegionManager storageRegionManager,String groupName){
+    private String groupName;
+    private DuplicateNodeSelector bakSelector = null;
+    private ResourceWriteSelector(ClusterResource daemon, ServiceSelector resourceSelector, StorageRegionManager storageRegionManager,DuplicateNodeSelector bakSelector,String groupName){
         this.daemon = daemon;
         this.resourceSelector = resourceSelector;
         this.storageRegionManager =storageRegionManager;
         this.groupName = groupName;
+        this.bakSelector = bakSelector;
 
     }
     @Override
@@ -35,9 +43,10 @@ public class ResourceWriteSelector implements DuplicateNodeSelector{
         }
         // 获取资源信息
         Collection<ResourceModel> resources = daemon.getClusterResources();
+        // 采集资源未上传则使用备用选择器
         if(resources == null || resources.isEmpty()){
             LOG.error("[{}] select service list is empty !!!!", groupName);
-            return new DuplicateNode[0];
+            return this.bakSelector.getDuplicationNodes(storageId,nums);
         }
         // 过滤资源异常服务
         Collection<ResourceModel> selectors = this.resourceSelector.filterService(resources,sr.getName());
@@ -63,7 +72,6 @@ public class ResourceWriteSelector implements DuplicateNodeSelector{
         }
         return duplicateNodes;
     }
-
     public static Builder newBuilder(){
         return new Builder();
     }
@@ -72,27 +80,33 @@ public class ResourceWriteSelector implements DuplicateNodeSelector{
         private ServiceSelector resourceSelector = null;
         private StorageRegionManager storageRegionManager = null;
         private String groupName = null;
-        public void setGroupName(String groupName){
+        private DuplicateNodeSelector bakSelector = null;
+        public Builder setGroupName(String groupName){
             this.groupName = groupName;
+            return this;
         }
-
-        private Builder(){
-
-        }
-        public void setDaemon(ClusterResource daemon){
+        public Builder setDaemon(ClusterResource daemon){
             this.daemon = daemon;
+            return this;
         }
 
-        public void setResourceSelector(ServiceSelector resourceSelector){
+        public Builder setResourceSelector(ServiceSelector resourceSelector){
             this.resourceSelector = resourceSelector;
+            return this;
         }
 
-        public void setStorageRegionManager(StorageRegionManager storageRegionManager){
+        public Builder setStorageRegionManager(StorageRegionManager storageRegionManager){
             this.storageRegionManager = storageRegionManager;
+            return this;
+        }
+
+        public Builder setBakSelector(DuplicateNodeSelector bakSelector){
+            this.bakSelector = bakSelector;
+            return this;
         }
 
         public ResourceWriteSelector build(){
-            return new ResourceWriteSelector(this.daemon,this.resourceSelector,this.storageRegionManager,this.groupName);
+            return new ResourceWriteSelector(this.daemon,this.resourceSelector,this.storageRegionManager,this.bakSelector,this.groupName);
         }
     }
 }

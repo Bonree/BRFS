@@ -30,9 +30,10 @@ public class ClusterResource implements Closeable{
         this.pathChildrenCache = pathChildrenCache;
         this.exector = exector;
     }
-    public void start() throws Exception{
+    public ClusterResource start() throws Exception{
         this.pathChildrenCache.start();
         this.pathChildrenCache.getListenable().addListener(new ZkResource(),this.exector);
+        return this;
     }
 
     /**
@@ -99,7 +100,7 @@ public class ClusterResource implements Closeable{
     /**
      * 创建集群监听进程
      */
-    private static class Builder{
+    public static class Builder{
         /**
          * client客户端
          */
@@ -120,20 +121,24 @@ public class ClusterResource implements Closeable{
 
         }
 
-        public void setClient(CuratorFramework client){
+        public Builder setClient(CuratorFramework client){
             this.client = client;
+            return this;
         }
 
-        public void setListenPath(String listenPath){
+        public Builder setListenPath(String listenPath){
             this.listenPath = listenPath;
+            return this;
         }
 
-        public void setCache(boolean cache){
+        public Builder setCache(boolean cache){
             this.cache = cache;
+            return this;
         }
 
-        public void setPool(ExecutorService pool){
+        public Builder setPool(ExecutorService pool){
             this.pool = pool;
+            return this;
         }
         public ClusterResource build(){
             PathChildrenCache pathChildrenCache = new PathChildrenCache(client,listenPath,cache);
