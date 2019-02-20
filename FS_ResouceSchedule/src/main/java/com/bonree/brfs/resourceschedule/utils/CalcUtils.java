@@ -1,6 +1,5 @@
 package com.bonree.brfs.resourceschedule.utils;
 
-import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -135,16 +134,16 @@ public class CalcUtils{
 		return value;
 	}
 	
-	public static long maxDataMap(Map<String,Long> map1){
-		if(map1 == null || map1.isEmpty()){
-			return 0;
-		}
-		long value = 0l;
-		for(long tmp : map1.values()){
-			if(value < tmp){
-				value = tmp;
-			}
-		}
-		return value;
-	}
+//	public static long maxDataMap(Map<String,Long> map1){
+//		if(map1 == null || map1.isEmpty()){
+//			return 0;
+//		}
+//		long value = 0l;
+//		for(long tmp : map1.values()){
+//			if(value < tmp){
+//				value = tmp;
+//			}
+//		}
+//		return value;
+//	}
 }

@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.filenode.duplicates;
+package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,8 +10,10 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
+import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
+import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 
-public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector {
+public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector{
 	private ServiceManager serviceManager;
 	private DiskNodeConnectionPool connectionPool;
 	private Random rand = new Random();

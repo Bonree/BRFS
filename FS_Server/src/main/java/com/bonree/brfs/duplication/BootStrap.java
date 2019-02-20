@@ -7,6 +7,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
+import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.impl.MinimalDuplicateNodeSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.impl.ResourceWriteSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.impl.ServiceResourceWriterSelector;
+import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -59,7 +65,7 @@ import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
-import com.bonree.brfs.duplication.filenode.duplicates.ResourceDuplicateNodeSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.impl.ResourceDuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileCoordinatorPaths;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
@@ -136,16 +142,46 @@ public class BootStrap {
             finalizer.add(tcpClientGroup);
             
             FilePathMaker pathMaker = new IDFilePathMaker(idManager);
-
-//            DuplicateNodeSelector nodeSelector = new MinimalDuplicateNodeSelector(serviceManager, connectionPool);
+            // 资源缓存器
             String diskGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
             String rPath = zookeeperPaths.getBaseResourcesPath()+"/"+diskGroup+"/resource";
-            DuplicateNodeSelector nodeSelector = new ResourceDuplicateNodeSelector().setClient(client, rPath)
-            		.setAvailable(new RandomAvailable(null))
-            		.setConnectionPool(connectionPool)
-            		.setServiceManager(serviceManager)
-            		.setCentSize(Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_CENT_SIZE))
-            		.start();
+            ClusterResource clusterResource = ClusterResource.newBuilder()
+                .setCache(true)
+                .setClient(client)
+                .setListenPath(rPath)
+                .setPool(Executors.newSingleThreadExecutor())
+                .build()
+                .start();
+            // 资源选择策略
+            // 获取限制值
+            double diskRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE);
+            double diskForceRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE);
+            double diskwriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED);
+            double diskForcewriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED);
+
+            LimitServerResource lmit = new LimitServerResource();
+            lmit.setDiskRemainRate(diskRemainRate);
+            lmit.setDiskWriteValue(diskwriteValue);
+            lmit.setForceDiskRemainRate(diskForceRemainRate);
+            lmit.setForceWriteValue(diskForcewriteValue);
+            int centSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_CENT_SIZE);
+            ServiceSelector serviceSelector = new ServiceResourceWriterSelector(connectionPool,serviceManager,lmit,diskGroup,centSize);
+            // 生成备用选择器
+            DuplicateNodeSelector bakSelect = new MinimalDuplicateNodeSelector(serviceManager, connectionPool);
+            // 选择
+            DuplicateNodeSelector nodeSelector = ResourceWriteSelector.newBuilder()
+                .setBakSelector(bakSelect)
+                .setDaemon(clusterResource)
+                .setGroupName(diskGroup)
+                .setStorageRegionManager(storageNameManager)
+                .setResourceSelector(serviceSelector)
+                .build();
+//            DuplicateNodeSelector nodeSelector = new ResourceDuplicateNodeSelector().setClient(client, rPath)
+//            		.setAvailable(new RandomAvailable(null))
+//            		.setConnectionPool(connectionPool)
+//            		.setServiceManager(serviceManager)
+//            		.setCentSize(Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_CENT_SIZE))
+//            		.start();
 
             int workerThreadNum = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_SERVER_IO_THREAD_NUM);
             HttpConfig httpConfig = HttpConfig.newBuilder()

@@ -1,6 +1,9 @@
 package com.bonree.brfs.resourceschedule.service;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
@@ -15,48 +18,58 @@ import com.bonree.brfs.resourceschedule.model.ResourceModel;
  * @Description:可用server接口 
  *****************************************************************************
  */
-public interface AvailableServerInterface {
+public interface ResourceSelector{
 	
 	/**
 	 * 概述：获取可用server集合
+     * 过期 下一版本删除
 	 * @param scene 场景枚举
 	 * @param exceptionServerList 异常server集合
 	 * @return
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,int centSize) throws Exception;
+	@Deprecated
+	List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,int centSize) throws Exception;
 	/**
 	 * 概述：获取可用server集合
+     * 过期 下一版本删除
 	 * @param scene 场景枚举
 	 * @param exceptionServerList 异常server集合
 	 * @return
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList,int centSize) throws Exception;
+	@Deprecated
+	List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList,int centSize) throws Exception;
 	/**
 	 * 概述：设置异常过滤指标
 	 * @param limits
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void setLimitParameter(LimitServerResource limits);
+	void setLimitParameter(LimitServerResource limits);
 	/**
 	 * 概述：更新资源数据
-	 * @param resources key： serverId, resourceModel
+     * 过期 下一版本删除
+	 * @param resource key： serverId, resourceModel
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void update(ResourceModel resource);
+	@Deprecated
+	void update(ResourceModel resource);
 	/***
 	 * 概述：添加资源
+     * 过期 下一版本删除
 	 * @param resources
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void add(ResourceModel resources);
+	@Deprecated
+	void add(ResourceModel resources);
 	/**
 	 * 概述：移除资源
+     * 过期 下一版本删除
 	 * @param resource
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void remove(ResourceModel resource);
+	@Deprecated
+	void remove(ResourceModel resource);
 }

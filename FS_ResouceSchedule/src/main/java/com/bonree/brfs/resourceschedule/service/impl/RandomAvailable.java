@@ -1,9 +1,6 @@
 package com.bonree.brfs.resourceschedule.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -13,9 +10,9 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
+import com.bonree.brfs.resourceschedule.service.ResourceSelector;
 
-public class RandomAvailable implements AvailableServerInterface {
+public class RandomAvailable implements ResourceSelector{
 	private static final Logger LOG = LoggerFactory.getLogger("RandomAvailable");
 	
 	/**
@@ -44,7 +41,7 @@ public class RandomAvailable implements AvailableServerInterface {
 			}
 			if(sence == 1) {
 				remainValue = entry.getValue().getDiskRemainValue(snName);
-				if(remainValue <= limit.getRemainValue()) {
+				if(remainValue <= limit.getDiskRemainRate()) {
 					continue;
 				}
 			}

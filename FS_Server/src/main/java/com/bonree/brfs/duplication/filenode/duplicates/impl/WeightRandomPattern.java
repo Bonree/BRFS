@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.filenode.duplicates;
+package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +31,9 @@ public class WeightRandomPattern {
 		}
 		int randomNum = Math.abs(random.nextInt()%total);
 		int current = 0;
-		int index = 0;
 		for(Pair<String, Integer> ele : source){
 			current += ele.getSecond();
 			if(randomNum > current){
-				index ++;
 				continue;
 			}
 			if(randomNum <=current){
