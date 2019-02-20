@@ -219,17 +219,17 @@ storage.file.capacity = 67108864
 #limit.resource.value.memoryrate = 0.9
 
 #资源限制 磁盘剩余率
-#limit.resource.value.diskremainrate = 0.001
+#limit.resource.value.disk.remain.rate = 0.001
 
 #资源强制限制 磁盘剩余率，磁盘剩余率小于该值，则datanode不参与写服务
-#limit.resource.force.value.diskremainrate = 0.001
+#limit.resource.force.value.disk.remain.rate = 0.001
 
 
 #资源限制 磁盘写入率
-#limit.resource.value.diskwritespeedrate = 0.9
+#limit.resource.value.disk.write.speed.rate = 0.9
 
 #资源强制限制  磁盘写入率， 磁盘写入率大于该值，则datanode不参与写服务
-#limit.resource.force.value.diskwritespeedrate = 0.9
+#limit.resource.force.value.disk.write.speed.rate = 0.9
 
 #资源限制 磁盘读取率
 #limit.resource.value.diskreadspeedrate = 0.9

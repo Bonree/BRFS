@@ -70,14 +70,14 @@ public final class ResourceConfigs {
 			ConfigUnit.ofDouble("limit.resource.value.memoryrate", 0.9);
 	
 	public static final ConfigUnit<Double> CONFIG_LIMIT_DISK_AVAILABLE_RATE =
-			ConfigUnit.ofDouble("limit.resource.value.disakremainrate", 0.01);
+			ConfigUnit.ofDouble("limit.resource.value.disk.remain.rate", 0.01);
     public static final ConfigUnit<Double> CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE =
-        ConfigUnit.ofDouble("limit.resource.force.value.diskremainrate", 0.001);
+        ConfigUnit.ofDouble("limit.resource.force.value.disk.remain.rate", 0.001);
 
     public static final ConfigUnit<Double> CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED =
-        ConfigUnit.ofDouble("limit.resource.force.value.diskwritespeedrate", 0.9);
+        ConfigUnit.ofDouble("limit.resource.force.value.disk.write.speed.rate", 0.9);
 	public static final ConfigUnit<Double> CONFIG_LIMIT_DISK_WRITE_SPEED =
-			ConfigUnit.ofDouble("limit.resource.value.diskwritespeedrate", 0.9);
+			ConfigUnit.ofDouble("limit.resource.value.disk.write.speed.rate", 0.9);
 	
 	public static final ConfigUnit<Double> CONFIG_LIMIT_DISK_READ_SPEED =
 			ConfigUnit.ofDouble("limit.resource.value.diskreadspeedrate", 0.9);
