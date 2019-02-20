@@ -1,12 +1,7 @@
 package com.bonree.brfs.resourceschedule.commons;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.hyperic.sigar.SigarException;
@@ -258,13 +253,15 @@ public class GatherResource {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static ResourceModel calcResourceValue(final BaseMetaServerModel cluster, final StatServerModel stat){
+	public static ResourceModel calcResourceValue(final BaseMetaServerModel cluster, final StatServerModel stat,String serverId,String ip){
 		ResourceModel obj = new ResourceModel();
 		Map<String,Double> cacheMap = null;
 		long cacheNum = 0l;
 		double cpuValue = (1 - stat.getCpuRate()) * stat.getCpuCoreCount() / cluster.getCpuCoreCount();
 		double memoryValue = (1 - stat.getMemoryRate()) * stat.getMemorySize() / cluster.getMemoryTotalSize();
 		double diskRemainRate = stat.getTotalDiskSize() == 0 ? 0.0 : (double)stat.getRemainDiskSize()/stat.getTotalDiskSize();
+		obj.setServerId(serverId);
+		obj.setHost(ip);
 		obj.setCpuRate(stat.getCpuRate());
 		obj.setMemoryRate(stat.getMemoryRate());
 		obj.setDiskSize(stat.getTotalDiskSize());
@@ -275,6 +272,8 @@ public class GatherResource {
 		cacheNum = cluster.getDiskTotalSize();
 		cacheMap = CalcUtils.divDataDoubleMap(stat.getPartitionRemainSizeMap(), cacheNum);
 		obj.setDiskRemainValue(cacheMap);
+		// 设置磁盘剩余sizemap
+		obj.setLocalDiskRemainRate(calcRemainRate(stat.getPartitionRemainSizeMap(),stat.getPartitionTotalSizeMap()));
 		// 磁盘读
 		cacheNum = cluster.getDiskReadMaxSpeed();
 		cacheMap = CalcUtils.divDiffDataDoubleMap(stat.getPartitionReadSpeedMap(), cacheNum);
@@ -294,7 +293,27 @@ public class GatherResource {
 		obj.setStorageNameOnPartitionMap(stat.getStorageNameOnPartitionMap());
 		return obj;
 	}
-
+    public static Map<String,Double> calcRemainRate(Map<String,Long> remain,Map<String,Long> total){
+	    Map<String,Double> doubleMap = new HashMap<>();
+	    if(remain == null || remain.isEmpty() || total == null || total.isEmpty()){
+	        return doubleMap;
+        }
+        String mount = null;
+	    long totalSize = 0L;
+	    long remainSize = 0L;
+	    double rate = 0.0;
+	    for(Map.Entry<String,Long> entry : total.entrySet()){
+	        mount = entry.getKey();
+	        totalSize = entry.getValue();
+	        if(totalSize == 0){
+	            continue;
+            }
+	        remainSize = remain.get(mount);
+            rate = (double)remainSize/totalSize;
+            doubleMap.put(mount,rate);
+        }
+        return doubleMap;
+    }
 	
 	 /**
      * 概述：匹配sn与分区
