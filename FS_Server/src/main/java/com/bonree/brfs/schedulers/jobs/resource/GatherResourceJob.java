@@ -96,24 +96,25 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if (base == null) {
 			return;
 		}
+		String serverId = mcf.getServerId();
 		// 计算资源值
-		ResourceModel resource = GatherResource.calcResourceValue(base, sum);
+		ResourceModel resource = GatherResource.calcResourceValue(base, sum,serverId,ip);
 		if (resource == null) {
 			LOG.warn("calc resource value is null !!!");
 			return;
 		}
-		Map<Integer, String> snIds = getStorageNameIdWithName();
-		resource.setSnIds(snIds);
-		resource.setServerId(mcf.getServerId());
+        resource.setServerId(serverId);
+        Map<Integer, String> snIds = getStorageNameIdWithName();
+        resource.setSnIds(snIds);
 		byte[] rdata= JsonUtils.toJsonBytesQuietly(resource);
-		String rPath = basePath+"/resource/"+mcf.getServerId();;
+		String rPath = basePath+"/resource/"+serverId;
 		if(!saveDataToZK(client, rPath, rdata)) {
 			LOG.error("resource content :{} save to zk fail !!!",JsonUtils.toJsonStringQuietly(resource));
 		}else {
 			LOG.info("RESOURCE: succefull !!!");
 		}
 		
-		BaseMetaServerModel local = GatherResource.gatherBase(mcf.getServerId(), dataDir);
+		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir);
 		if(local == null) {
 			LOG.error("gather base data is empty !!!");
 			return;
@@ -252,7 +253,6 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 
 	/**
 	 * 概述：获取storageName关系
-	 * @param sns
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
