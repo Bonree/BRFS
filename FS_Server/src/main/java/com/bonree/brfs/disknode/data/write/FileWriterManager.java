@@ -146,12 +146,9 @@ public class FileWriterManager implements LifeCycle {
 	    for(BRFSPath path : rds){
 	        rdFile = new File(new StringBuilder().append(dataDirPath).append(FileUtils.FILE_SEPARATOR).append(path).toString());
 	        dataFile = RecordFileBuilder.reverse(rdFile);
-            if(checker.isValid(dataFile.getName())) {
-                LOG.info("reopen file [{}]", dataFile);
-                rebuildFileWriter(dataFile);
-            } else {
-                LOG.info("close expired file [{}]", dataFile);
-                dataFile.delete();
+            rebuildFileWriter(dataFile);
+            if(!checker.isValid(dataFile.getName())) {
+                LOG.error(" file [{}] can't find in zk", dataFile.getAbsolutePath());
             }
         }
 

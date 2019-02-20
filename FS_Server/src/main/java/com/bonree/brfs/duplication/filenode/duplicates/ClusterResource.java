@@ -33,6 +33,7 @@ public class ClusterResource implements Closeable{
     public ClusterResource start() throws Exception{
         this.pathChildrenCache.start();
         this.pathChildrenCache.getListenable().addListener(new ZkResource(),this.exector);
+        LOG.info("daemon resource service work !!");
         return this;
     }
 
