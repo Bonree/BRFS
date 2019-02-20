@@ -39,6 +39,8 @@ public class ServiceResourceWriterSelector implements ServiceSelector{
         Set<ResourceModel> wins = new HashSet<>();
         double diskLimit = this.limit.getForceDiskRemainRate();
         double diskWriteLimit = this.limit.getForceWriteValue();
+        double diskWarnRemain = this.limit.getDiskRemainRate();
+        double diskWarnWrite = this.limit.getDiskWriteValue();
         double diskRemainRate;
         double diskWritValue;
         for(ResourceModel resourceModel : resourceModels){
@@ -48,9 +50,15 @@ public class ServiceResourceWriterSelector implements ServiceSelector{
                 LOG.warn("{}-{} disk remain {} will full refuse it ",resourceModel.getServerId(),path,diskRemainRate);
                 continue;
             }
+            if(diskRemainRate < diskWarnRemain ){
+                LOG.warn("{}-{} disk remain {} will full warn !! ",resourceModel.getServerId(),path,diskRemainRate);
+            }
             if(diskWritValue > diskWriteLimit){
-                LOG.warn("{}-{} disk remain {} will full refuse it ",resourceModel.getServerId(),path,diskWritValue);
+                LOG.warn("{}-{} disk write {} will full refuse it ",resourceModel.getServerId(),path,diskWritValue);
                 continue;
+            }
+            if(diskWritValue > diskWarnWrite){
+                LOG.warn("{}-{} disk write {} will full warn ",resourceModel.getServerId(),path,diskWritValue);
             }
             wins.add(resourceModel);
         }
@@ -66,25 +74,60 @@ public class ServiceResourceWriterSelector implements ServiceSelector{
         Pair<String,Double> tmpResource = null;
         double sum;
         String server;
-        Map<String,ResourceModel> map = new HashMap<>();
         for(ResourceModel resource : resources){
             server = resource.getServerId();
             sum = resource.getDiskRemainValue(path) + resource.getDiskWriteValue(path);
             tmpResource = new Pair<>(server,sum);
             values.add(tmpResource);
-            map.put(server,resource);
         }
         List<Pair<String, Integer>>intValues =  converDoublesToIntegers(values,centSize);
 
+        return selectNode(this.connectionPool,resources,intValues,this.groupName,num);
+    }
+
+    /**
+     * 服务选择
+     * @param resources
+     * @param intValues
+     * @param num
+     * @return
+     */
+    public Collection<ResourceModel> selectNode(DiskNodeConnectionPool pool,Collection<ResourceModel> resources,List<Pair<String, Integer>>intValues,String groupName,int num){
+        Map<String,ResourceModel> map = new HashMap<>();
+        for(ResourceModel resource : resources){
+            map.put(resource.getServerId(),resource);
+        }
         List<ResourceModel> resourceModels = new ArrayList<>();
-        String key = null;
-        for(int i = 0; i< num;i++){
-            key = WeightRandomPattern.getWeightRandom(intValues,new Random(),null);
-            resourceModels.add(map.get(key));
+        String key;
+        String ip;
+        ResourceModel tmp;
+        DiskNodeConnection conn;
+        //ip选中
+        Set<String> ips = new HashSet<>();
+        List<String> uneedServices = new ArrayList<>();
+        int tSize = resources.size();
+        while(resourceModels.size() != num && resourceModels.size() !=tSize && uneedServices.size() !=tSize){
+            key = WeightRandomPattern.getWeightRandom(intValues,new Random(),uneedServices);
+            tmp = map.get(key);
+            ip = tmp.getHost();
+            if(pool != null){
+                conn = pool.getConnection(groupName,key);
+                if(conn == null || !conn.isValid()){
+                    LOG.warn("{} :[{}({})]is unused !!",groupName,key,ip);
+                    uneedServices.add(key);
+                    continue;
+                }
+            }
+            // 不同ip的添加
+            if(ips.add(ip)){
+                resourceModels.add(tmp);
+            }else{
+                LOG.info("{} is selectd !! get next", ip);
+            }
+            uneedServices.add(tmp.getServerId());
         }
         return resourceModels;
     }
-
 
     /**
      * 概述：计算资源比值
