@@ -60,6 +60,10 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder{
 		}
 		
 		byte[] body = decodingMessage.message().getBody();
+		if(body == null) {
+			LOG.error("NONONO, body is null!!!");
+		}
+		
 		if(in.readableBytes() < body.length) {
 			return;
 		}
