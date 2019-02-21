@@ -69,6 +69,26 @@ public class ServiceResourceWriterSelectorTest{
         Collection<ResourceModel> wins = selector.selectNode(null,list,numList,groupName,3);
         show(wins);
     }
+    @Test
+    public void testSelect03(){
+        String groupName = "a";
+        String sn = "11";
+        int centSize = 100;
+        ServiceResourceWriterSelector selector = new ServiceResourceWriterSelector(null,null,null,groupName,centSize);
+        int num =2;
+        List<ResourceModel> list = new ArrayList<>();
+        List<Pair<String, Integer>> numList = new ArrayList<>();
+        ResourceModel obj;
+        for(int i = 0; i<num;i++){
+            obj = new ResourceModel();
+            obj.setHost("192.168.1.1");
+            obj.setServerId(String.valueOf(i));
+            list.add(obj);
+            numList.add(new Pair<>(String.valueOf(i),100));
+        }
+        Collection<ResourceModel> wins = selector.selectNode(null,list,numList,sn,num);
+        show(wins);
+    }
 
     @Test
     public void testFiler01(){

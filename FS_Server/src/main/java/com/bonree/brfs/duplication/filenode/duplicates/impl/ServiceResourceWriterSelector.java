@@ -53,10 +53,10 @@ public class ServiceResourceWriterSelector implements ServiceSelector{
             if(diskRemainRate < diskWarnRemain ){
                 LOG.warn("{}-{} disk remain {} will full warn !! ",resourceModel.getServerId(),path,diskRemainRate);
             }
-            if(diskWritValue > diskWriteLimit){
-                LOG.warn("{}-{} disk write {} will full refuse it ",resourceModel.getServerId(),path,diskWritValue);
-                continue;
-            }
+//            if(diskWritValue > diskWriteLimit){
+//                LOG.warn("{}-{} disk write {} will full refuse it ",resourceModel.getServerId(),path,diskWritValue);
+//                continue;
+//            }
             if(diskWritValue > diskWarnWrite){
                 LOG.warn("{}-{} disk write {} will full warn ",resourceModel.getServerId(),path,diskWritValue);
             }
@@ -76,7 +76,8 @@ public class ServiceResourceWriterSelector implements ServiceSelector{
         String server;
         for(ResourceModel resource : resources){
             server = resource.getServerId();
-            sum = resource.getDiskRemainValue(path) + resource.getDiskWriteValue(path);
+            // 参数调整，disk写入io大的权重低
+            sum = resource.getDiskRemainValue(path) + 1 - resource.getDiskWriteValue(path);
             tmpResource = new Pair<>(server,sum);
             values.add(tmpResource);
         }
