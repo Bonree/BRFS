@@ -189,6 +189,7 @@ public class FileWriterManager implements LifeCycle {
 				recorderManager.getRecordCollection(dataFile, true, recordCacheSize, true),
 						new BufferedFileWriter(dataFile, true, new ByteArrayFileBuffer(dataCacheSize)));
 
+		LOG.info("##################start create binding");
 		Pair<RecordFileWriter, WriteWorker> binding = new Pair<RecordFileWriter, WriteWorker>(
 				writer, workerSelector.select(workerGroup.getWorkerList()));
 		

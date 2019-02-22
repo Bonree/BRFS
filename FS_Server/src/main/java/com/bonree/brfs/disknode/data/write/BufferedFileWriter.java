@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.data.write.buf.FileBuffer;
 
@@ -15,6 +18,7 @@ import com.bonree.brfs.disknode.data.write.buf.FileBuffer;
  *
  */
 public class BufferedFileWriter implements FileWriter {
+	private static final Logger LOG = LoggerFactory.getLogger(BufferedFileWriter.class);
 	private RandomAccessFile file;
 	private String filePath;
 	private FileBuffer buffer;
@@ -49,6 +53,7 @@ public class BufferedFileWriter implements FileWriter {
 		this.filePath = file.getAbsolutePath();
 		this.buffer = buffer;
 		position(append ? this.file.length() : 0);
+		LOG.info("############created BufferedFileWriter for[{}]", file.getAbsolutePath());
 	}
 	
 	@Override
