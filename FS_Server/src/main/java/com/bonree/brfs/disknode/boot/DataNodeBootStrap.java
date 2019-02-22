@@ -66,7 +66,7 @@ public class DataNodeBootStrap implements LifeCycle {
 		writerManager = new FileWriterManager(recorderManager, new FileValidChecker());
 		writerManager.start();
 		
-		writerManager.rebuildFileWriterbyDir(diskContext.getRootDir());
+//		writerManager.rebuildFileWriterbyDir(diskContext.getRootDir());
 		
 		FileFormater fileFormater = new SimpleFileFormater(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY));
 		
