@@ -142,6 +142,12 @@ public class FileWriterManager implements LifeCycle {
 	    for(BRFSPath path : rds){
 	        rdFile = new File(new StringBuilder().append(dataDirPath).append(FileUtils.FILE_SEPARATOR).append(path).toString());
 	        dataFile = RecordFileBuilder.reverse(rdFile);
+	        if(!dataFile.exists()) {
+	        	LOG.error("no data file is attached to a existed rd file[{}]!", rdFile.getAbsolutePath());
+	        	rdFile.delete();
+	        	continue;
+	        }
+	        
             rebuildFileWriter(dataFile);
         }
 
