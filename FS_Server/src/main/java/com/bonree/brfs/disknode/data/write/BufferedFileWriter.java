@@ -49,9 +49,13 @@ public class BufferedFileWriter implements FileWriter {
 	}
 	
 	public BufferedFileWriter(File file, boolean append, FileBuffer buffer) throws IOException {
+		LOG.info("############start create writer for[{}]", file.getAbsolutePath());
 		this.file = new RandomAccessFile(file, "rw");
+		LOG.info("############start 1");
 		this.filePath = file.getAbsolutePath();
+		LOG.info("############start 2");
 		this.buffer = buffer;
+		LOG.info("############start 2");
 		position(append ? this.file.length() : 0);
 		LOG.info("############created BufferedFileWriter for[{}]", file.getAbsolutePath());
 	}
