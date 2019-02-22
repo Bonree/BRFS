@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.net.tcp.MessageChannelInitializer;
 import com.bonree.brfs.common.net.tcp.ServerConfig;
 import com.bonree.brfs.common.net.tcp.TcpServer;
@@ -32,6 +35,8 @@ import com.bonree.brfs.disknode.server.tcp.handler.PingPongMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.WriteFileMessageHandler;
 
 public class DataNodeBootStrap implements LifeCycle {
+	private static final Logger LOG = LoggerFactory.getLogger(DataNodeBootStrap.class);
+	
 	public static final int TYPE_OPEN_FILE = 0;
 	public static final int TYPE_WRITE_FILE = 1;
 	public static final int TYPE_CLOSE_FILE = 2;
@@ -67,6 +72,8 @@ public class DataNodeBootStrap implements LifeCycle {
 		writerManager.start();
 		
 		writerManager.rebuildFileWriterbyDir(diskContext.getRootDir());
+		
+		LOG.info("####################################come here###################################");
 		
 		FileFormater fileFormater = new SimpleFileFormater(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY));
 		
