@@ -150,7 +150,7 @@ public class FileWriterManager implements LifeCycle {
 	        
             try {
 				rebuildFileWriter(dataFile);
-			} catch (IOException e) {
+			} catch (Throwable e) {
 				LOG.error("rebuild file[{}] error!", dataFile.getAbsolutePath(), e);
 			}
         }
