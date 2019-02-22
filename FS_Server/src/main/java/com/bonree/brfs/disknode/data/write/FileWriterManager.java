@@ -25,7 +25,6 @@ import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
-import com.bonree.brfs.disknode.boot.FileValidChecker;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.buf.ByteArrayFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
@@ -47,8 +46,6 @@ public class FileWriterManager implements LifeCycle {
 	private WriteWorkerGroup workerGroup;
 	private WriteWorkerSelector workerSelector;
 	private RecordCollectionManager recorderManager;
-	
-	private FileValidChecker checker;
 
 	private static int recordCacheSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_RECORD_CACHE_SIZE);
 	private static int dataCacheSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_DATA_CACHE_SIZE);
@@ -58,20 +55,19 @@ public class FileWriterManager implements LifeCycle {
 	Duration fileIdleDuration = Duration.parse(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_IDLE_TIME));
 	private WheelTimer<String> timeoutWheel = new WheelTimer<String>((int) fileIdleDuration.getSeconds());
 
-	public FileWriterManager(RecordCollectionManager recorderManager, FileValidChecker checker) {
-		this(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager, checker);
+	public FileWriterManager(RecordCollectionManager recorderManager) {
+		this(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager);
 	}
 
-	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager, FileValidChecker checker) {
-		this(workerNum, new RandomWriteWorkerSelector(), recorderManager, checker);
+	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager) {
+		this(workerNum, new RandomWriteWorkerSelector(), recorderManager);
 	}
 
 	public FileWriterManager(int workerNum, WriteWorkerSelector selector,
-			RecordCollectionManager recorderManager, FileValidChecker checker) {
+			RecordCollectionManager recorderManager) {
 		this.workerGroup = new WriteWorkerGroup(workerNum);
 		this.workerSelector = selector;
 		this.recorderManager = recorderManager;
-		this.checker = checker;
 	}
 
 	@Override
@@ -147,9 +143,6 @@ public class FileWriterManager implements LifeCycle {
 	        rdFile = new File(new StringBuilder().append(dataDirPath).append(FileUtils.FILE_SEPARATOR).append(path).toString());
 	        dataFile = RecordFileBuilder.reverse(rdFile);
             rebuildFileWriter(dataFile);
-            if(!checker.isValid(dataFile.getName())) {
-                LOG.error(" file [{}] can't find in zk", dataFile.getAbsolutePath());
-            }
         }
 
     }
@@ -181,6 +174,7 @@ public class FileWriterManager implements LifeCycle {
 	}
 	
 	public void rebuildFileWriter(File dataFile) throws IOException {
+		LOG.info("rebuilding writer for file[{}]", dataFile.getAbsolutePath());
 		RecordFileWriter writer = new RecordFileWriter(
 				recorderManager.getRecordCollection(dataFile, true, recordCacheSize, true),
 						new BufferedFileWriter(dataFile, true, new ByteArrayFileBuffer(dataCacheSize)));
