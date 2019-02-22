@@ -134,7 +134,7 @@ public class FileWriterManager implements LifeCycle {
 		}
 	}
 
-    public void rebuildFileWriterbyDir(String dataDirPath) throws IOException {
+    public void rebuildFileWriterbyDir(String dataDirPath) {
 	    Map<String,String> baseMap = new HashMap<>();
 	    List<BRFSPath> rds = BRFSFileUtil.scanBRFSFiles(dataDirPath,baseMap,baseMap.size(),new BRFSRdFileFilter());
 	    File rdFile = null;
@@ -148,7 +148,11 @@ public class FileWriterManager implements LifeCycle {
 	        	continue;
 	        }
 	        
-            rebuildFileWriter(dataFile);
+            try {
+				rebuildFileWriter(dataFile);
+			} catch (IOException e) {
+				LOG.error("rebuild file[{}] error!", dataFile.getAbsolutePath(), e);
+			}
         }
 
     }
