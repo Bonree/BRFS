@@ -76,6 +76,6 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder{
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		LOG.error("message protocol decoder failed!", cause);
-		ctx.channel().close();
+		ctx.channel().close().sync();
 	}
 }

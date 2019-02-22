@@ -75,7 +75,7 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
 						}
 						
 					});
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					LOG.error("handle message error", e);
 					
 					ctx.writeAndFlush(new TokenMessage<BaseResponse>() {
