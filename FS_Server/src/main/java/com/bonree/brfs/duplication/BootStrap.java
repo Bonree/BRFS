@@ -226,7 +226,8 @@ public class BootStrap {
             
             FileObjectFactory fileFactory = new DefaultFileObjectFactory(service, storer, nodeSelector, idManager, connectionPool);
             
-            DefaultFileObjectCloser fileCloser = new DefaultFileObjectCloser(1, fileSynchronizer, storer, connectionPool, pathMaker);
+            int closerThreadNum = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_CLOSER_THREAD_NUM);
+            DefaultFileObjectCloser fileCloser = new DefaultFileObjectCloser(closerThreadNum, fileSynchronizer, storer, connectionPool, pathMaker);
             finalizer.add(fileCloser);
             
             FileNodeSinkManager sinkManager = new ZkFileNodeSinkManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)),

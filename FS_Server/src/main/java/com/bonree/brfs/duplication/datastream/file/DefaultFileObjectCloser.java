@@ -77,7 +77,7 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 				DiskNodeClient client = connection.getClient();
 				String filePath = pathMaker.buildPath(fileNode, node);
 				
-				LOG.info("closing file[{}]", filePath);
+				LOG.info("closing file[{}] at node[{}]", filePath, node);
 				long code = client.closeFile(filePath);
 				if(code < 0) {
 					closeAll = false;
