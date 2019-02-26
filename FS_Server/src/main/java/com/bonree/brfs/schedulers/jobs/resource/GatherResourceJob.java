@@ -1,13 +1,14 @@
 
 package com.bonree.brfs.schedulers.jobs.resource;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.brfs.resourceschedule.model.*;
+import com.bonree.mail.worker.MailWorker;
+import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
@@ -23,10 +24,6 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
-import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.brfs.resourceschedule.model.StatServerModel;
-import com.bonree.brfs.resourceschedule.model.StateMetaServerModel;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
@@ -102,6 +99,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			LOG.warn("calc resource value is null !!!");
 			return;
 		}
+		sendWarnEmail(resource,mcf.getLimitServerResource());
         resource.setServerId(serverId);
         Map<Integer, String> snIds = getStorageNameIdWithName();
         resource.setSnIds(snIds);
@@ -124,6 +122,37 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		}
 		saveLocal(client,mcf.getServerId(), dataDir, bPath);
 		
+	}
+	public void sendWarnEmail(ResourceModel resource, LimitServerResource limit){
+		Map<String,Double> remainRate = resource.getLocalDiskRemainRate();
+		Map<String,Long> remainSize = resource.getLocalRemainSizeValue();
+		String mountPoint;
+		long remainsize;
+		double remainrate;
+		Map<String,String> map = new HashMap<>();
+		for(Map.Entry<String,Long> entry : remainSize.entrySet()){
+			mountPoint = entry.getKey();
+			remainsize = entry.getValue();
+			remainrate = remainRate.get(mountPoint);
+			if(remainsize < limit.getRemainForceSize()){
+				map.put(mountPoint,"磁盘剩余量低于限制值 "+ limit.getRemainForceSize()+", 当前剩余值为"+remainsize);
+			}else if(remainsize < limit.getRemainWarnSize()){
+				map.put(mountPoint,"磁盘剩余量低于警告值 "+ limit.getRemainWarnSize()+", 当前剩余值为"+remainsize);
+
+			}else if(remainrate < limit.getForceDiskRemainRate()){
+				map.put(mountPoint,"磁盘可利用率低于危险值 "+ limit.getForceDiskRemainRate()+", 当前剩余值为"+remainrate);
+			}else if(remainrate < limit.getDiskRemainRate()){
+				map.put(mountPoint,"磁盘可利用率低于警告值 "+ limit.getDiskRemainRate()+", 当前剩余值为"+remainrate);
+			}
+		}
+		if(!map.isEmpty()){
+			MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+			builder.setModel(this.getClass().getName()+"模块服务发生错误");
+			builder.setMessage("资源即将不足");
+			builder.setVariable(map);
+			EmailPool.getInstance().sendEmail(builder,false);
+		}
+
 	}
 	public void saveLocal(CuratorClient client,String serverId, String dataDir,String bPath) {
 		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir);

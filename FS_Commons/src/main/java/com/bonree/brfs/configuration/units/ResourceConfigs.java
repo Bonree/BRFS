@@ -78,6 +78,12 @@ public final class ResourceConfigs {
         ConfigUnit.ofDouble("limit.resource.force.value.disk.write.speed.rate", 0.9);
 	public static final ConfigUnit<Double> CONFIG_LIMIT_DISK_WRITE_SPEED =
 			ConfigUnit.ofDouble("limit.resource.value.disk.write.speed.rate", 0.9);
+
+	public static final ConfigUnit<Long> CONFIG_LIMIT_DISK_REMAIN_SIZE =
+			ConfigUnit.ofLong("limit.resource.value.disk.remain.size", 20*1024*1024);
+
+	public static final ConfigUnit<Long> CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE =
+			ConfigUnit.ofLong("limit.resource.value.force.disk.remain.size", 10*1024*1024);
 	
 	public static final ConfigUnit<Double> CONFIG_LIMIT_DISK_READ_SPEED =
 			ConfigUnit.ofDouble("limit.resource.value.diskreadspeedrate", 0.9);

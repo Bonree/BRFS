@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.bonree.brfs.configuration.units.ResourceConfigs;
+import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -65,6 +67,21 @@ public class InitTaskManager {
 		String serverId = sim.getFirstServerID();
 		mcf.setServerId(serverId);
 		mcf.setGroupName(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+		double diskRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE);
+		double diskForceRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE);
+		double diskwriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED);
+		double diskForcewriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED);
+		long diskRemainSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_REMAIN_SIZE);
+		long diskForceRemainSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE);
+
+		LimitServerResource lmit = new LimitServerResource();
+		lmit.setDiskRemainRate(diskRemainRate);
+		lmit.setDiskWriteValue(diskwriteValue);
+		lmit.setForceDiskRemainRate(diskForceRemainRate);
+		lmit.setForceWriteValue(diskForcewriteValue);
+		lmit.setRemainWarnSize(diskRemainSize);
+		lmit.setRemainForceSize(diskForceRemainSize);
+		mcf.setLimitServerResource(lmit);
 		
 		// 工厂类添加服务管理
 		mcf.setSm(sm);

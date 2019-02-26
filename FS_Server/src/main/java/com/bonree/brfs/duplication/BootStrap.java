@@ -200,12 +200,16 @@ public class BootStrap {
             double diskForceRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE);
             double diskwriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED);
             double diskForcewriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED);
+            long diskRemainSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_REMAIN_SIZE);
+            long diskForceRemainSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE);
 
             LimitServerResource lmit = new LimitServerResource();
             lmit.setDiskRemainRate(diskRemainRate);
             lmit.setDiskWriteValue(diskwriteValue);
             lmit.setForceDiskRemainRate(diskForceRemainRate);
             lmit.setForceWriteValue(diskForcewriteValue);
+            lmit.setRemainWarnSize(diskRemainSize);
+            lmit.setRemainForceSize(diskForceRemainSize);
             int centSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_CENT_SIZE);
             long fileSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY)/1024;
             MachineResourceWriterSelector serviceSelector = new MachineResourceWriterSelector(connectionPool,storer, lmit,diskGroup,fileSize,centSize);
