@@ -88,6 +88,7 @@
 		<joda_time>2.9.9</joda_time>
 		<configuration_version>2.2</configuration_version>
 		<beanutils_version>1.9.3</beanutils_version>
+		<bonree_mail_version>0.0.2-SNAPSHOT</bonree_mail_version>
 	</properties>
 
 	<dependencyManagement>
@@ -216,6 +217,11 @@
 				<groupId>commons-beanutils</groupId>
 				<artifactId>commons-beanutils</artifactId>
 				<version>${beanutils_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.bonree</groupId>
+				<artifactId>MailUtil</artifactId>
+				<version>${bonree_mail_version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

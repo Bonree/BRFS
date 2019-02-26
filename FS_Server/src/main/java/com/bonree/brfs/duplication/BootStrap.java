@@ -12,6 +12,7 @@ import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.impl.MinimalDuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.impl.ResourceWriteSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.impl.ServiceResourceWriterSelector;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -92,6 +93,8 @@ public class BootStrap {
     	ProcessFinalizer finalizer = new ProcessFinalizer();
         
         try {
+            // 初始化email发送配置
+            EmailPool.getInstance();
             String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
             String host = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_HOST);
     		int port = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_PORT);

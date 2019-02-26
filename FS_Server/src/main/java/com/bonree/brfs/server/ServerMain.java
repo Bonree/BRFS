@@ -3,6 +3,7 @@ package com.bonree.brfs.server;
 import java.io.Closeable;
 import java.io.IOException;
 
+import com.bonree.brfs.email.EmailPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,8 @@ public class ServerMain {
     	
         try {
             ResourceTaskConfig resourceConfig = ResourceTaskConfig.parse();
-            
+            // 初始化email发送配置
+            EmailPool.getInstance();
             String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
             CuratorClient leaderClient = CuratorClient.getClientInstance(zkAddresses, 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(zkAddresses);

@@ -28,6 +28,10 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.bonree</groupId>
+            <artifactId>MailUtil</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <finalName>FS_Server</finalName>
