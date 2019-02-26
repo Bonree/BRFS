@@ -53,47 +53,41 @@ public class MetadataFetchMessageHandler implements MessageHandler<BaseResponse>
 		String filePath = context.getConcreteFilePath(path);
 		LOG.info("GET metadata of file[{}]", filePath);
 		
-		CompletableFuture.runAsync(new Runnable() {
-			
-			@Override
-			public void run() {
-				List<RecordElement> recordInfo = getRecordElements(filePath);
-				
-				if(recordInfo == null) {
-					LOG.info("can not get record elements of file[{}]", filePath);
-					writer.write(new BaseResponse(ResponseCode.ERROR));
-					return;
-				}
-				
-				//获取所有文件序列号
-				RecordElement lastElement = null;
-				if(recordInfo != null) {
-					for(RecordElement element : recordInfo) {
-						if(lastElement == null) {
-							lastElement = element;
-							continue;
-						}
-						
-						if(lastElement.getOffset() < element.getOffset()) {
-							lastElement = element;
-						}
-					}
-				}
-				
+		List<RecordElement> recordInfo = getRecordElements(filePath);
+		
+		if(recordInfo == null) {
+			LOG.info("can not get record elements of file[{}]", filePath);
+			writer.write(new BaseResponse(ResponseCode.ERROR));
+			return;
+		}
+		
+		//获取所有文件序列号
+		RecordElement lastElement = null;
+		if(recordInfo != null) {
+			for(RecordElement element : recordInfo) {
 				if(lastElement == null) {
-					LOG.info("no available record element of file[{}]", filePath);
-					writer.write(new BaseResponse(ResponseCode.ERROR));
-					return;
+					lastElement = element;
+					continue;
 				}
 				
-				long fileLength = fileFormater.relativeOffset(lastElement.getOffset()) + lastElement.getSize();
-				LOG.info("get file length[{}] from file[{}]", fileLength, filePath);
-				BaseResponse response = new BaseResponse(ResponseCode.OK);
-				response.setBody(Longs.toByteArray(fileLength));
-				
-				writer.write(response);
+				if(lastElement.getOffset() < element.getOffset()) {
+					lastElement = element;
+				}
 			}
-		});
+		}
+		
+		if(lastElement == null) {
+			LOG.info("no available record element of file[{}]", filePath);
+			writer.write(new BaseResponse(ResponseCode.ERROR));
+			return;
+		}
+		
+		long fileLength = fileFormater.relativeOffset(lastElement.getOffset()) + lastElement.getSize();
+		LOG.info("get file length[{}] from file[{}]", fileLength, filePath);
+		BaseResponse response = new BaseResponse(ResponseCode.OK);
+		response.setBody(Longs.toByteArray(fileLength));
+		
+		writer.write(response);
 	}
 	
 	private List<RecordElement> getRecordElements(String filePath) {
