@@ -20,7 +20,7 @@ import java.util.List;
     private String storageName;
     private String dataStartTime;
     private String dataStopTime;
-    private List<String> files = new ArrayList<String>();
+    private List<String> files = new ArrayList<>();
     private String taskOperation;
     private long granule;
     private int patitionNum;

@@ -86,7 +86,6 @@ public class JobDataMapConstract {
 	
 	/**
 	 * 概述：生成采集job需要的参数
-	 * @param server
 	 * @param resource
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -104,7 +103,6 @@ public class JobDataMapConstract {
 	}
 	/**
 	 * 概述：
-	 * @param server
 	 * @param resource
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -129,7 +127,6 @@ public class JobDataMapConstract {
 	}
 	/**
 	 * 概述：创建任务信息
-	 * @param server
 	 * @param resource
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -191,10 +188,6 @@ public class JobDataMapConstract {
 	}
 	/**
 	 * 概述：重启时，检查
-	 * @param switchList
-	 * @param release
-	 * @param isReboot
-	 * @param serverId
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */

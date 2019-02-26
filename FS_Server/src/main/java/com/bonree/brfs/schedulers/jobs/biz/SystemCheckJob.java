@@ -35,9 +35,9 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
-		LOG.info("interrupt ......   " );
-		
+	public void interrupt(){
+
+
 	}
 
 	@Override

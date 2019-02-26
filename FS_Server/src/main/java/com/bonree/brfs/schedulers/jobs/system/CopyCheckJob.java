@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,7 @@ import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 
 public class CopyCheckJob extends QuartzOperationStateTask{
-	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
+	private static final Logger LOG = LoggerFactory.getLogger(CopyCheckJob.class);
 	public static final String RECOVERY_NUM = "1";
 	public static final String RECOVERY_CRC = "0";
 	@Override
@@ -38,14 +37,12 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt(){
 		
 	}
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		
-		long currentTime = System.currentTimeMillis();
 
 		LOG.info("createCheck Copy Job working");
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();

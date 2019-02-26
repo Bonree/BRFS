@@ -1,7 +1,6 @@
 
 package com.bonree.brfs.schedulers;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,10 +56,7 @@ public class InitTaskManager {
 			
 	/**
 	 * 概述：初始化任务服务系统
-	 * @param taskConf
-	 * @param zkConf
-	 * @param serverConf
-	 * @throws ParamsErrorException 
+	 * @throws ParamsErrorException
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static void initManager(ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageRegionManager snm, ServerIDManager sim, CuratorClient client) throws Exception {
@@ -82,12 +78,12 @@ public class InitTaskManager {
 		
 		// 工厂类添加发布接口
 		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
-		String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-		release.setPropreties(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
 		if(release == null) {
 			LOG.error("Meta task is empty");
 			System.exit(1);
 		}
+		String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+		release.setPropreties(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
 		if(client == null) {
 			LOG.error("zk client is empty");
 			System.exit(1);
@@ -102,11 +98,6 @@ public class InitTaskManager {
 		mcf.setZkPath(zkPath);
 		mcf.setSim(sim);
 		
-		Map<String, Boolean> switchMap = managerConfig.getTaskPoolSwitchMap();
-		Map<String, Integer> sizeMap = managerConfig.getTaskPoolSizeMap();
-		Properties prop = null;
-		String poolName = null;
-		
 		// 创建任务线程池
 		if (managerConfig.isTaskFrameWorkSwitch()) {
 			// 1.创建任务管理服务
@@ -115,6 +106,7 @@ public class InitTaskManager {
 			List<TaskType> tasks = managerConfig.getSwitchOnTaskType();
 			if(tasks == null || tasks.isEmpty()){
 				LOG.warn("switch task on  but task type list is empty !!!");
+				return;
 			}
 			createAndStartThreadPool(manager, managerConfig);
 			if(tasks.contains(TaskType.SYSTEM_COPY_CHECK)){
@@ -140,8 +132,7 @@ public class InitTaskManager {
 	 * @param manager
 	 * @param zkPaths
 	 * @param config
-	 * @param serverConfig
-	 * @throws Exception 
+	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config,String serverId) throws Exception{
@@ -179,7 +170,7 @@ public class InitTaskManager {
 			LOG.error("create task operation error !!!");
 			throw new NullPointerException("start task operation error !!!");
 		}
-		Map<String,String> dataMap = new HashMap<>();
+		Map<String,String> dataMap;
 		Map<String,String> switchMap = null;
 		if(isReboot){
 			// 将任务信息不完全的任务补充完整
@@ -226,8 +217,8 @@ public class InitTaskManager {
 		if(swtichList == null || swtichList.isEmpty()){
 			return swtichMap;
 		}
-		String typeName = null;
-		String currentTask = null;
+		String typeName;
+		String currentTask;
 		for(TaskType taskType : swtichList){
 			typeName = taskType.name();
 			currentTask = release.getLastSuccessTaskIndex(typeName, serverId);
@@ -268,27 +259,16 @@ public class InitTaskManager {
 			index = 0;
 		}
 		int size = tasks.size();
-		String taskName = null;
-		List<String> cList = null;
+		String taskName;
+		List<String> cList;
 		TaskServerNodeModel serverNode =  TaskServerNodeModel.getInitInstance();
-		TaskServerNodeModel change = null;
+		TaskServerNodeModel change;
 		for(int i = index; i < size; i++ ){
 			taskName = tasks.get(i);
 			if(BrStringUtils.isEmpty(taskName)){
 				continue;
 			}
 			cList = release.getTaskServerList(taskType, taskName);
-			if(cList.contains(serverId)) {
-				change = release.getTaskServerContentNodeInfo(taskType, taskName, serverId);
-				if(change == null) {
-					change = TaskServerNodeModel.getInitInstance();
-				}
-				if(change.getTaskState() == TaskState.RUN.code()||change.getTaskState() == TaskState.RERUN.code()) {
-					change.setTaskState(TaskState.INIT.code());
-					release.updateServerTaskContentNode(serverId, taskName, taskType, change);
-				}
-			}
-			
 			if(cList == null || cList.isEmpty() || !cList.contains(serverId)){
 				release.updateServerTaskContentNode(serverId, taskName, taskType, serverNode);
 				int stat = release.queryTaskState(taskName, taskType);
@@ -296,6 +276,15 @@ public class InitTaskManager {
 					release.changeTaskContentNodeState(taskName, taskType, TaskState.RERUN.code());
 				}
 				LOG.info("Recover {} task's {} serverId  {} ",taskType, taskName, serverId);
+				continue;
+			}
+			change = release.getTaskServerContentNodeInfo(taskType, taskName, serverId);
+			if(change == null) {
+				change = TaskServerNodeModel.getInitInstance();
+			}
+			if(change.getTaskState() == TaskState.RUN.code()||change.getTaskState() == TaskState.RERUN.code()) {
+				change.setTaskState(TaskState.INIT.code());
+				release.updateServerTaskContentNode(serverId, taskName, taskType, change);
 			}
 		}
 	}
@@ -304,8 +293,7 @@ public class InitTaskManager {
 	 * @param manager
 	 * @param zkPaths
 	 * @param config
-	 * @param serverConfig
-	 * @throws Exception 
+	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	private static void createResourceManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config) throws Exception{
@@ -314,7 +302,6 @@ public class InitTaskManager {
 		// 2.采集基本信息上传到 zk
 		String serverId = ManagerContralFactory.getInstance().getServerId();
 		String zkAddress = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-		String diskGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
 		// 3.创建资源采集线程池
 		Properties  prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);
 		manager.createTaskPool(RESOURCE_MANAGER, prop);
@@ -338,39 +325,35 @@ public class InitTaskManager {
 //			LOG.error("sumbit asyn job fail !!!");
 //		}
 	}
-	/**
-	 * 概述：创建任务执行线程池
-	 * @param manager
-	 * @param zkPaths
-	 * @param config
-	 * @param serverConfig
-	 * @throws ParamsErrorException
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static void createTaskOperationManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config) throws ParamsErrorException{
-		// 1.创建执行线程池
-		Properties  prop = DefaultBaseSchedulers.createSimplePrope(1, 1000);
-		manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
-		manager.startTaskPool(TASK_OPERATION_MANAGER);
-		
-	}
+//	/**
+//	 * 概述：创建任务执行线程池
+//	 * @param manager
+//	 * @param zkPaths
+//	 * @param config
+//	 * @throws ParamsErrorException
+//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+//	 */
+//	public static void createTaskOperationManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config) throws ParamsErrorException{
+//		// 1.创建执行线程池
+//		Properties  prop = DefaultBaseSchedulers.createSimplePrope(1, 1000);
+//		manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
+//		manager.startTaskPool(TASK_OPERATION_MANAGER);
+//
+//	}
 	
 	/**
 	 * 概述：根据switchMap 创建线程池
 	 * @param manager
-	 * @param switchMap
-	 * @param sizeMap
-	 * @throws ParamsErrorException 
+	 * @throws ParamsErrorException
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	private static void createAndStartThreadPool(SchedulerManagerInterface manager,ResourceTaskConfig config ) throws ParamsErrorException{
 		Map<String, Boolean> switchMap = config.getTaskPoolSwitchMap();
 		Map<String, Integer> sizeMap = config.getTaskPoolSizeMap();
-		Properties prop = null;
-		String poolName = null;
+		Properties prop;
+		String poolName;
 		int count = 0;
-		int size = 0;
-		List<TaskType> tasks = new ArrayList<TaskType>();
+		int size;
 		for (TaskType taskType : TaskType.values()) {
 			poolName = taskType.name();
 			if (!switchMap.containsKey(poolName)) {
@@ -389,7 +372,6 @@ public class InitTaskManager {
 			if (createState) {
 				manager.startTaskPool(poolName);
 			}
-			tasks.add(taskType);
 			count++;
 		}
 		LOG.info("pool :{} count: {} started !!!", manager.getAllPoolKey(), count);
@@ -397,8 +379,6 @@ public class InitTaskManager {
 	}
 	/**
 	 * 概述：生成任务信息
-	 * @param taskModel
-	 * @param runPattern
 	 * @param taskName
 	 * @param serverId
 	 * @param clazzName

@@ -50,8 +50,7 @@ public class CopyCountCheck {
 			LOG.info("cluster data is normal !!!");
 			return null;
 		}
-		Map<String,List<String>> results = lossFiles(copyMap);
-		return results;
+		return lossFiles(copyMap);
 	}
 	/**
 	 * 概述：获取缺失副本的
@@ -99,10 +98,10 @@ public class CopyCountCheck {
 		if(snFiles == null || snFiles.isEmpty()){
 			return null;
 		}
-		StorageRegion sn = null;
-		List files = null;
-		Map<String, Integer> fileCopyCount = null;
-		Pair<List<String>,List<String>> result = null;
+		StorageRegion sn;
+		List files;
+		Map fileCopyCount;
+		Pair<List<String>,List<String>> result;
 		Map<StorageRegion,Pair<List<String>, List<String>>> copyMap = new HashMap<StorageRegion,Pair<List<String>, List<String>>>();
 		
 		for(Map.Entry<StorageRegion, List<String>> entry : snFiles.entrySet()){
@@ -134,22 +133,22 @@ public class CopyCountCheck {
 	public static Map<StorageRegion, List<String>> collectionSnFiles(List<Service> services, List<StorageRegion> snList,final Map<String,Long> snTimes)throws Exception{
 		Map<StorageRegion,List<String>> snMap = new HashMap<>();
 		DiskNodeClient client = null;
-		int reCount = 0;
-		String snName = null;
-		String path = null;
-		List<String> strs = null;
-		long time = 0;
-		String dirName = null;
-        String sid = null;
+		int reCount;
+		String snName;
+		String path;
+		List<String> strs;
+		long time;
+		String dirName;
+        String sid;
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
         ServerIDManager sim = mcf.getSim();
         CuratorClient zkClient = mcf.getClient();
-        SecondIDParser parser = null;
+        SecondIDParser parser;
         String basePath = mcf.getZkPath().getBaseRoutePath();
 		for(Service service : services){
             try{
 				client = TcpClientUtils.getClient(service.getHost(), service.getPort(), service.getExtraPort(), 5000);
-				long granule = 0;
+				long granule;
 				for(StorageRegion sn : snList){
 
 				    parser = new SecondIDParser(zkClient,sn.getId(),basePath);
@@ -175,7 +174,7 @@ public class CopyCountCheck {
 						}
 						LOG.debug("Collection dirName :{},{} size :{}",dirName,path, strs.size());
 						if(!snMap.containsKey(sn)){
-							snMap.put(sn, new ArrayList<String>());
+							snMap.put(sn, new ArrayList<>());
 						}
 						snMap.get(sn).addAll(strs);
 					}
@@ -199,8 +198,8 @@ public class CopyCountCheck {
 		if(data == null || data.isEmpty()) {
 			return rMap;
 		}
-		StorageRegion sr = null;
-		List<String> files = null;
+		StorageRegion sr;
+		List<String> files;
 		for(Map.Entry<StorageRegion, List<String>> entry : data.entrySet()) {
 			sr = entry.getKey();
 			files = entry.getValue();
@@ -210,12 +209,12 @@ public class CopyCountCheck {
 		return rMap;
 	}
 	public static List<String> clearUnLawFiles(List<String> files){
-		List<String> rList = new ArrayList<String>();
+		List<String> rList = new ArrayList<>();
 		if(files == null || files.isEmpty()) {
 			return rList;
 		}
-		List<String> errors = new ArrayList<String>();
-		String[] checks = null;
+		List<String> errors = new ArrayList<>();
+		String[] checks;
 		for(String file : files) {
 			// 排除rd文件
 			if(file.indexOf(".rd") > 0){
@@ -227,7 +226,6 @@ public class CopyCountCheck {
 			checks = BrStringUtils.getSplit(file, "_");
 			if(checks == null|| checks.length<=1) {
 				errors.add(file);
-				continue;
 			}
 		}
 		return filterErrors(files, errors);
@@ -251,8 +249,7 @@ public class CopyCountCheck {
 			LOG.info("path : [{}] is not data", path);
 			return null;
 		}
-		List<String> fileNames = converToStringList(parser, files, path, sid);
-		return fileNames;
+		return converToStringList(parser, files, path, sid);
 	}
 	 /**
 	 * 概述：转换集合为str集合
@@ -262,10 +259,10 @@ public class CopyCountCheck {
 	 */
 	public static List<String> converToStringList(SecondIDParser parser,List<FileInfo> files,String dir, String sid){
 		List<String> strs = new ArrayList<>();
-		String path = null;
-		String fileName = null;
+		String path;
+		String fileName;
 		List<String> errorFiles = new ArrayList<>();
-		String[] checks = null; 
+		String[] checks;
 		for(FileInfo file : files){
 		    if(file.getType() == FileInfo.TYPE_DIR){
 		        continue;
@@ -340,13 +337,13 @@ public class CopyCountCheck {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static String getFileName(String path){
-		int lastIndex = 0;
+		int lastIndex;
 		lastIndex = path.lastIndexOf("/");
 		if(lastIndex <0){
 			lastIndex = path.lastIndexOf("\\");
 		}
 		if(lastIndex <0){
-			return new String(path);
+			return path;
 		}
 		return path.substring(lastIndex+1);
 	}
@@ -362,8 +359,8 @@ public class CopyCountCheck {
 		if(sns == null || sns.isEmpty()){
 			return filters;
 		}
-		int count = 0;
-		String snName = null;
+		int count;
+		String snName;
 		for(StorageRegion sn : sns){
 			count = sn.getReplicateNum();
 			snName = sn.getName();
@@ -405,23 +402,23 @@ public class CopyCountCheck {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static Pair<List<String>,List<String>>filterLoser(Map<String,Integer> resultMap, int filterValue){
-		List<String> filterBiggestResult = new ArrayList<String>();
-		List<String> filterLitterResult = new ArrayList<String>();
-		String key = null;
-		int count = 0;
+		List<String> filterBiggestResult = new ArrayList<>();
+		List<String> filterLitterResult = new ArrayList<>();
+		String key;
+		int count;
 		for(Map.Entry<String, Integer> entry : resultMap.entrySet()){
 			count = entry.getValue();
 			key = entry.getKey();
 			if(filterValue == count){
-				continue;
-			} else	if(filterValue > count){
+			   continue;
+			}
+			if(filterValue > count){
 				filterLitterResult.add(key);
-			}else if(filterValue < count){
+			}else {
 				filterBiggestResult.add(key);
 			}
 		}
-		Pair<List<String>,List<String>> result = new Pair<List<String>,List<String>>(filterLitterResult,filterBiggestResult);
-		return result;
+		return new Pair<>(filterLitterResult,filterBiggestResult);
 	}
 	
 	/**
@@ -437,11 +434,11 @@ public class CopyCountCheck {
 			return repairs;
 		}
 		long currentTime = System.currentTimeMillis();
-		String snName = null;
-		long startTime = 0L;
-		long sGra = 0L;
-		long cGra = 0L;
-		long granule = 0;
+		String snName;
+		long startTime;
+		long sGra;
+		long cGra;
+		long granule;
 		for(StorageRegion sn : needSns) {
 			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 			cGra = currentTime - currentTime%granule;

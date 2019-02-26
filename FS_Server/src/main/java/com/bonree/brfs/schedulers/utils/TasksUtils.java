@@ -86,13 +86,13 @@ public class TasksUtils {
 			return null;
 		}
 		TaskModel task = new TaskModel();
-		List<AtomTaskModel> storageAtoms = new ArrayList<AtomTaskModel>();
+		List<AtomTaskModel> storageAtoms = new ArrayList<>();
 		if(endTime == 0 || startTime >= endTime){
 			return null;
 		}
 		long granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 		String snName = sn.getName();
-		long startHour = 0;
+		long startHour;
 		long endHour =  endTime - endTime%granule;
 		// 删除sn
 		boolean isALL = UserDeleteJob.DELETE_SN_ALL.equals(opertationContent);
@@ -166,7 +166,7 @@ public class TasksUtils {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static String createTask(MetaTaskManagerInterface release, List<String> services, String taskType, TaskModel task) {
-		String tName = null;
+		String tName;
 		tName = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
 		if(BrStringUtils.isEmpty(tName)) {
 			return null;
@@ -192,8 +192,8 @@ public class TasksUtils {
 			LOG.error("CRC task [{}] get serviceList is empty!!!",name);
 			return null;
 		}
-		List<TaskServerNodeModel> sTasks = new ArrayList<TaskServerNodeModel>();
-		TaskServerNodeModel sTask = null;
+		List<TaskServerNodeModel> sTasks = new ArrayList<>();
+		TaskServerNodeModel sTask;
 		for(String sName : sNames) {
 			sTask = release.getTaskServerContentNodeInfo(taskType.name(), name, sName);
 			if(sTask == null) {
@@ -214,15 +214,14 @@ public class TasksUtils {
 		if(taskContents == null || taskContents.isEmpty()) {
 			return null;
 		}
-		List<AtomTaskResultModel> atomRs = new ArrayList<AtomTaskResultModel>();
-		TaskResultModel tmpR = null;
-		List<AtomTaskResultModel> tmpRs = null;
-		Map<String,Map<String,AtomTaskModel>> rmap = new HashMap<String,Map<String,AtomTaskModel>>();
-		Map<String,AtomTaskModel> emap = null;
-		String snName = null;
-		String key = null;
-		AtomTaskModel atom = null;
-		Map<String,Integer> snMap = new HashMap<String,Integer>();
+		TaskResultModel tmpR;
+		List<AtomTaskResultModel> tmpRs;
+		Map<String,Map<String,AtomTaskModel>> rmap = new HashMap<>();
+		Map<String,AtomTaskModel> emap;
+		String snName;
+		String key;
+		AtomTaskModel atom;
+		Map<String,Integer> snMap = new HashMap<>();
 		for(TaskServerNodeModel serverModel : taskContents) {
 			tmpR = serverModel.getResult();
 			if(tmpR == null) {
@@ -238,7 +237,7 @@ public class TasksUtils {
 				}
 				snName = r.getSn();
 				if(!rmap.containsKey(snName)) {
-					rmap.put(snName, new HashMap<String,AtomTaskModel>());
+					rmap.put(snName, new HashMap<>());
 				}
 				if(!snMap.containsKey(snName)) {
 					snMap.put(snName, r.getPartNum());
@@ -276,11 +275,11 @@ public class TasksUtils {
 		if(rmap == null || rmap.isEmpty() || snCountMap == null || snCountMap.isEmpty()) {
 			return null;
 		}
-		String snName = null;
-		Map<String,AtomTaskModel> sMap = null;
-		int count = 0;
-		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
-		List<AtomTaskModel> tmp = null;
+		String snName;
+		Map<String,AtomTaskModel> sMap;
+		int count;
+		List<AtomTaskModel> atoms = new ArrayList<>();
+		List<AtomTaskModel> tmp;
 		for(Map.Entry<String, Integer> entry : snCountMap.entrySet()) {
 			snName = entry.getKey();
 			count = entry.getValue();
@@ -313,8 +312,8 @@ public class TasksUtils {
 		if(sMap == null || sMap.isEmpty() || count <=1) {
 			return null;
 		}
-		List<String> eFiles = null;
-		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
+		List<String> eFiles;
+		List<AtomTaskModel> atoms = new ArrayList<>();
 		for(AtomTaskModel atom : sMap.values()) {
 			eFiles = atom.getFiles();
 			if(eFiles == null || eFiles.isEmpty()) {
@@ -341,15 +340,15 @@ public class TasksUtils {
 		if(files == null || files.isEmpty()) {
 			return null;
 		}
-		Map<String,Integer> cMap = new HashMap<String,Integer>();
+		Map<String,Integer> cMap = new HashMap<>();
 		for(String file :files) {
 			if(cMap.containsKey(file)) {
 				cMap.put(file, cMap.get(file) +1);
-			}else {
+			} else {
 				cMap.put(file, 1);
 			}
 		}
-		if(cMap == null || cMap.isEmpty()) {
+		if(cMap.isEmpty()) {
 			return null;
 		}
 		return collectionFiles(cMap, count);
@@ -365,9 +364,9 @@ public class TasksUtils {
 		if(cmap == null || cmap.isEmpty()) {
 			return null;
 		}
-		String fileName = null;
-		int count = 0;
-		List<String> files = new ArrayList<String>();
+		String fileName;
+		int count;
+		List<String> files = new ArrayList<>();
 		for(Map.Entry<String, Integer> entry : cmap.entrySet()) {
 			fileName = entry.getKey();
 			count = entry.getValue();

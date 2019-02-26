@@ -47,7 +47,6 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
 		// 获取当前执行的任务类型
-		int taskType = data.getInt(JobDataMapConstract.TASK_TYPE);
 		if(BrStringUtils.isEmpty(content)) {
 			LOG.warn("batch data is empty !!!");
 			return ;
@@ -63,12 +62,11 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 			LOG.warn("atom task is empty !!!");
 			return;
 		}
-		String snName = null;
+		String snName;
 		TaskResultModel result = new TaskResultModel();
-		TaskResultModel batchResult = null;
-		AtomTaskResultModel usrResult = null;
+		AtomTaskResultModel usrResult;
 		List<String> dSns = new ArrayList<String>();
-		String operation = null;
+		String operation;
 		for(AtomTaskModel atom : atoms){
 			snName = atom.getStorageName();
 			if("1".equals(currentIndex)) {

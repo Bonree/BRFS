@@ -14,7 +14,6 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
@@ -45,7 +44,7 @@ public class CreateSystemTask {
 		if(snList == null || snList.isEmpty()) {
 			return null;
 		}
-		Map<String,Long> snTimes = null;
+		Map<String,Long> snTimes;
 		if(tmodel == null) {
 			return null;
 		}
@@ -62,7 +61,7 @@ public class CreateSystemTask {
 		if(snTimes != null && !snTimes.isEmpty()) {
 			tmodel.putAllSnTimes(snTimes);
 		}
-		return new Pair<TaskModel,TaskTypeModel>(pair.getFirst(), tmodel);
+		return new Pair<>(pair.getFirst(), tmodel);
 	}
 
 	/**
@@ -77,19 +76,16 @@ public class CreateSystemTask {
 		if(needSn == null || snTimes == null) {
 			return null;
 		}
-		String snName = null;
-		long startTime = 0;
-		long endTime = 0;
+		String snName;
+		long startTime;
+		long endTime;
 		long currentTime = System.currentTimeMillis();
-		List<AtomTaskModel> sumAtoms = new ArrayList<AtomTaskModel>();
-		long ttl = 0;
-		Map<String,Long> lastSnTimes = new HashMap<String,Long>();
-		if(snTimes != null) {
-			lastSnTimes.putAll(snTimes);
-		}
+		List<AtomTaskModel> sumAtoms = new ArrayList<>();
+		long ttl;
+		Map<String, Long> lastSnTimes = new HashMap<>(snTimes);
 		List<String> files = null;
-		AtomTaskModel atom = null;
-		long cGraTime = 0;
+		AtomTaskModel atom;
+		long cGraTime;
 		long granule = 0;
 		for(StorageRegion sn : needSn) {
 			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
@@ -130,11 +126,11 @@ public class CreateSystemTask {
 			lastSnTimes.put(snName, endTime);
 		}
 		if(sumAtoms == null || sumAtoms.isEmpty()) {
-			return new Pair<TaskModel,Map<String,Long>>(null, lastSnTimes);
+			return new Pair<>(null, lastSnTimes);
 		}
 		TaskModel task = TaskModel.getInitInstance(taskType, "1", granule);
 		task.putAtom(sumAtoms);
-		return new Pair<TaskModel,Map<String,Long>>(task,lastSnTimes);
+		return new Pair<>(task,lastSnTimes);
 	}
 	/**
 	 * 概述：创建单个类型任务
@@ -145,17 +141,17 @@ public class CreateSystemTask {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static Pair<TaskModel,Map<String,Long>> creatSingleTask(final Map<String,Long> snTimes, List<StorageRegion> needSn, TaskType taskType, long globalTTL) {
-		String snName = null;
-		long cTime = 0;
-		long startTime = 0;
-		long endTime = 0;
+		String snName;
+		long cTime;
+		long startTime;
+		long endTime;
 		long currentTime = System.currentTimeMillis();
-		List<AtomTaskModel> sumAtoms = new ArrayList<AtomTaskModel>();
-		long ttl = 0;
-		Map<String,Long> lastSnTimes = new HashMap<String,Long>(snTimes);
-		long cGraTime = 0;
+		List<AtomTaskModel> sumAtoms = new ArrayList<>();
+		long ttl;
+		Map<String,Long> lastSnTimes = new HashMap<>(snTimes);
+		long cGraTime;
 		long granule = 0;
-		AtomTaskModel atom = null;
+		AtomTaskModel atom;
 		for(StorageRegion sn : needSn) {
 			granule =Duration.parse(sn.getFilePartitionDuration()).toMillis();
 			cGraTime = currentTime - currentTime%granule;
@@ -191,13 +187,13 @@ public class CreateSystemTask {
 			sumAtoms.add(atom);
 			lastSnTimes.put(snName, endTime);
 		}
-		if(sumAtoms == null || sumAtoms.isEmpty()) {
+		if(sumAtoms.isEmpty()) {
 			return null;
 		}
 		TaskModel task = TaskModel.getInitInstance(taskType, "", granule);
 		task.putAtom(sumAtoms);
 		
-		return new Pair<TaskModel,Map<String,Long>>(task,lastSnTimes);
+		return new Pair<>(task,lastSnTimes);
 	}
 	/**
 	 * 概述：首次执行指定任务sn任务创建
@@ -267,7 +263,7 @@ public class CreateSystemTask {
 		if(sList == null || sList.isEmpty()){
 			return sids;
 		}
-		String sid = null;
+		String sid;
 		for(Service server : sList){
 			sid = server.getServiceId();
 			if(BrStringUtils.isEmpty(sid)){

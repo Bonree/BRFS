@@ -5,12 +5,10 @@ import java.util.Map;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
@@ -30,17 +28,17 @@ import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 
 public class OperationTaskJob extends QuartzOperationStateTask {
-	private static final Logger LOG = LoggerFactory.getLogger("OperationTaskJob");
+	private static final Logger LOG = LoggerFactory.getLogger(OperationTaskJob.class);
 	@Override
 	public void caughtException(JobExecutionContext context) {
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt(){
 	}
 
 	@Override
-	public void operation(JobExecutionContext context) throws Exception {
+	public void operation(JobExecutionContext context){
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
@@ -61,19 +59,18 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		if(runTask == null){
 			throw new NullPointerException("RunnableTaskInterface is empty !!!");
 		}
-		String typeName = null;
-		String currentTaskName = null;
-		TaskModel task = null;
-		TaskRunPattern runPattern =null;
-		int poolSize = 0;
-		int sumbitSize = 0;
+		String typeName;
+		String currentTaskName;
+		TaskModel task;
+		TaskRunPattern runPattern;
+		int poolSize;
+		int sumbitSize;
 		String serverId = mcf.getServerId();
-		SumbitTaskInterface sumbitTask = null;
+		SumbitTaskInterface sumbitTask;
 		//判断是否有恢复任务，有恢复任务则不进行创建
 		boolean rebalanceFlag = WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE);
 		for(TaskType taskType : switchList){
 			sumbitTask = null;
-			String prexTaskName = null;
 			try {
 				if(TaskType.SYSTEM_COPY_CHECK.equals(taskType)){
 					continue;

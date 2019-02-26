@@ -40,7 +40,7 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 		// 任务过期时间 ms
 		String ttlTimeStr = data.getString(JobDataMapConstract.TASK_EXPIRED_TIME);
 		LOG.info("task ttl time : {}", ttlTimeStr);
-		long ttlTime = Long.valueOf(ttlTimeStr);
+		long ttlTime = Long.parseLong(ttlTimeStr);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		
 		MetaTaskManagerInterface release = mcf.getTm();

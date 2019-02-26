@@ -23,38 +23,37 @@ public interface RunnableTaskInterface {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public boolean taskRunnable(int taskType, int poolSize, int threadCount) throws Exception;
+	boolean taskRunnable(int taskType, int poolSize, int threadCount) throws Exception;
 	/**
 	 * 概述：任务执行模式
-	 * @param <T1>
 	 * @param task
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public TaskRunPattern taskRunnPattern(TaskModel task) throws Exception;
+	TaskRunPattern taskRunnPattern(TaskModel task) throws Exception;
 	
 	/**
 	 * 概述：更新资源数据
 	 * @param 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void update(StatServerModel resources);
+	void update(StatServerModel resources);
 	/**
 	 * 概述：获取上次更新时间
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public long getLastUpdateTime();
+	long getLastUpdateTime();
 	/**
 	 * 概述：设置异常过滤指标
 	 * @param limits
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void setLimitParameter(TaskExecutablePattern limits);
+	void setLimitParameter(TaskExecutablePattern limits);
 	/**
 	 * 概述：设置任务级别
 	 * @param taskLevel
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void setTaskLevel(Map<Integer,Integer> taskLevel);
+	void setTaskLevel(Map<Integer, Integer> taskLevel);
 }

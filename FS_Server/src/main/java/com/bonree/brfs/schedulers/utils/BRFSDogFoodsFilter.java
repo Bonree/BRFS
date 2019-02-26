@@ -16,10 +16,10 @@ import java.util.Map;
 
 public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
     private static final Logger LOG = LoggerFactory.getLogger(BRFSDogFoodsFilter.class);
-    private ServerIDManager sim = null;
-    private SecondIDParser parser = null;
-    private StorageRegion  region = null;
-    private long lastTime = 0;
+    private ServerIDManager sim;
+    private SecondIDParser parser;
+    private StorageRegion  region;
+    private long lastTime;
 
     public BRFSDogFoodsFilter(ServerIDManager sim, SecondIDParser parser, StorageRegion storageRegion, long lastTime){
         super();

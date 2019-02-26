@@ -185,7 +185,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return false;
 		}
 		try {
-			pool.PausePool();
+			pool.pausePool();
 		}
 		catch (Exception e) {
 			LOG.error("{}",e);

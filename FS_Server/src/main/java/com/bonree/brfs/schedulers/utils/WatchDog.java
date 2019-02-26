@@ -42,7 +42,6 @@ public class WatchDog{
 	 * @param sns
 	 * @param dataPath
 	 * @param limitTime
-	 * @param granule
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static void searchPreys(ServerIDManager sim, Collection<StorageRegion> sns,String zkHosts,String baseRoutesPath, String dataPath, long limitTime) {
@@ -56,12 +55,12 @@ public class WatchDog{
 		}
 		lastTime = System.currentTimeMillis();
 		// sn 目录及文件
-		int snId = -1;
-		SecondIDParser parser = null;
+		int snId;
+		SecondIDParser parser;
 		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts);
-		Map<String,String> snMap = null;
-		long granule = 0;
-		long snLimitTime = 0;
+		Map<String,String> snMap;
+		long granule;
+		long snLimitTime;
 		for(StorageRegion sn : sns) {
 			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
 				LOG.info("<searchPreys> SKip search data because there is one");
@@ -103,7 +102,7 @@ public class WatchDog{
 						return;
 					}
 					int count = 0;
-					String path = null;
+					String path;
 					while(!preys.isEmpty()) {
 						try {
 							path = preys.poll();
@@ -114,7 +113,7 @@ public class WatchDog{
 							}
 							count ++;
 							if(count%100 == 0) {
-								Thread.sleep(1000l);
+								Thread.sleep(1000L);
 							}
 						}catch (Exception e) {
 							LOG.error("{}",e);
@@ -151,8 +150,8 @@ public class WatchDog{
 		}
 		int copyCount = sn.getReplicateNum();
 		String snName = sn.getName();
-		String dirPath = null;
-		Map<String,List<String>> part = null;
+		String dirPath;
+		Map<String,List<String>> part;
 		for(int i = 1; i<=copyCount; i++) {
 			dirPath = datapath + "/" + snName + "/" + i;
 			part = FileCollection.collectLocalFiles(dirPath, limitTime, granule);

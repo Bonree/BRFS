@@ -64,7 +64,7 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
      */
     public boolean check(File file) {
         RandomAccessFile raf = null;
-        MappedByteBuffer buffer = null;
+        MappedByteBuffer buffer;
         String fileName = file.getName();
         try {
             if (!file.exists()) {
@@ -96,7 +96,11 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
             crc.update(buffer);
             raf.seek(raf.length() - 9L);
             byte[] crcBytes = new byte[8];
-            raf.read(crcBytes);
+            int crcLen = raf.read(crcBytes);
+            if(crcLen <=0){
+                LOG.warn("{}: Tailer CRC is empty!", fileName);
+                return false;
+            }
             LOG.debug("calc crc32 code :{}, save crc32 code :{}", crc.getValue(), FSCode.byteToLong(crcBytes));
             if (FSCode.byteToLong(crcBytes) != crc.getValue()) {
                 LOG.warn("{}: Tailer CRC is error!", fileName);

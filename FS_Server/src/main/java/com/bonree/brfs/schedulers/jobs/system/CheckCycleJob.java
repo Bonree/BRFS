@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +30,13 @@ import com.bonree.brfs.schedulers.utils.CreateSystemTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 
 public class CheckCycleJob extends QuartzOperationStateTask {
-	private static final Logger LOG = LoggerFactory.getLogger("CycleCheckJob");
+	private static final Logger LOG = LoggerFactory.getLogger(CheckCycleJob.class);
 	@Override
 	public void caughtException(JobExecutionContext context) {
 		LOG.error("Create Task error !! {}", TaskType.SYSTEM_COPY_CHECK.name());
 	}
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt(){
 	}
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
@@ -62,7 +61,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			LOG.info("SKIP create {} task, because service is empty", TaskType.SYSTEM_COPY_CHECK);
 			return;
 		}
-		List snList = snm.getStorageRegionList();
+		List<StorageRegion> snList = snm.getStorageRegionList();
 		if ((snList == null) || (snList.isEmpty())) {
 			LOG.warn("SKIP storagename list is null");
 			return;
@@ -78,6 +77,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		Map<String,List<Long>> snTimes = collectionTimes(needSns, sGraDay, lGraDay);
 		if(snTimes == null || snTimes.isEmpty()) {
 			LOG.warn("{} - {} time, no data to check copy count", TimeUtils.formatTimeStamp(sGraDay), TimeUtils.formatTimeStamp(lGraDay));
+			return;
 		}
 		List<Map<String,Long>> tTimes = converTimes(snTimes);
 		for(Map<String,Long> sourceTimes : tTimes) {
@@ -99,16 +99,16 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		if(needSns == null || needSns.isEmpty()) {
 			return null;
 		}
-		Map<String,List<Long>> snTimes = new HashMap<String,List<Long>>();
-		List<Long> times = null;
-		long cTime = 0;
-		long granule = 0;
-		String snName = null;
+		Map<String,List<Long>> snTimes = new HashMap<>();
+		List<Long> times;
+		long cTime;
+		long granule;
+		String snName;
 		for(StorageRegion sn : needSns) {
 			snName = sn.getName();
 			cTime = sn.getCreateTime();
 			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
-			times = new ArrayList<Long>();
+			times = new ArrayList<>();
 			for(long start =startTime; start <endTime; start += granule) {
 				if(start < cTime) {
 					continue;
@@ -127,11 +127,10 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 	}
 	public List<Map<String,Long>> converTimes(Map<String,List<Long>> snTime){
 		int maxSize = 0;
-		boolean isOver = false;
 		List<Map<String,Long>> snTimes = new ArrayList<Map<String,Long>>();
-		String snName = null;
-		List<Long> times = null;
-		Map<String,Long> atoms = null;
+		String snName;
+		List<Long> times;
+		Map<String,Long> atoms;
 		for(Map.Entry<String, List<Long>> entry : snTime.entrySet()) {
 			snName = entry.getKey();
 			times = entry.getValue();
@@ -140,7 +139,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			}
 			for(int i = 0; i< times.size(); i++) {
 				if(i >= snTimes.size()) {
-					atoms = new HashMap<String,Long>();
+					atoms = new HashMap<>();
 					snTimes.add(atoms);
 				}
 				atoms = snTimes.get(i);
@@ -149,32 +148,32 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		}
 		return snTimes;
 	}
-	/**
-	 * 概述：填补时间
-	 * @param snList
-	 * @param startTime
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public Map<String, Long> fixTimes(List<StorageRegion> snList, long startTime) {
-		if ((snList == null) || (startTime <= 0L)) {
-			return null;
-		}
-		Map<String,Long> fixMap = new HashMap<String,Long>();
-		long crGra = 0L;
-		String snName = null;
-		long granule = 0;
-		for (StorageRegion sn : snList) {
-			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
-			crGra = sn.getCreateTime() - sn.getCreateTime()%granule;
-			snName = sn.getName();
-			LOG.info("<fixTimes> sn {}, cTime:{}, time:{}", snName,crGra,startTime);
-			if (crGra <= startTime) {
-				fixMap.put(snName, Long.valueOf(startTime));
-			}
-		}
-		return fixMap;
-	}
+//	/**
+//	 * 概述：填补时间
+//	 * @param snList
+//	 * @param startTime
+//	 * @return
+//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+//	 */
+//	public Map<String, Long> fixTimes(List<StorageRegion> snList, long startTime) {
+//		if ((snList == null) || (startTime <= 0L)) {
+//			return null;
+//		}
+//		Map<String,Long> fixMap = new HashMap<String,Long>();
+//		long crGra;
+//		String snName;
+//		long granule;
+//		for (StorageRegion sn : snList) {
+//			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
+//			crGra = sn.getCreateTime() - sn.getCreateTime()%granule;
+//			snName = sn.getName();
+//			LOG.info("<fixTimes> sn {}, cTime:{}, time:{}", snName,crGra,startTime);
+//			if (crGra <= startTime) {
+//				fixMap.put(snName, Long.valueOf(startTime));
+//			}
+//		}
+//		return fixMap;
+//	}
 	/**
 	 * 概述：创建单个任务
 	 * @param release
@@ -194,10 +193,10 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		TaskModel task = (TaskModel) pair.getFirst();
 		String taskName = null;
 		if (task != null) {
-			List servers = CreateSystemTask.getServerIds(services);
+			List<String> servers = CreateSystemTask.getServerIds(services);
 			taskName = CreateSystemTask.updateTask(release, task, servers, TaskType.SYSTEM_COPY_CHECK);
 		}
-		if (!BrStringUtils.isEmpty(taskName).booleanValue()) {
+		if (!BrStringUtils.isEmpty(taskName)) {
 			LOG.info("create {} {} task successfull !!!", taskType, taskName);
 		}
 	}

@@ -35,7 +35,7 @@ public class CopyRecoveryJob extends CycleJobWithZKTask {
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt(){
 
 	}
 

@@ -138,7 +138,7 @@ public interface BaseSchedulerInterface{
 	 * 
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public void PausePool();
+	public void pausePool();
 	/**
 	 * 概述：恢复线程池
 	 * 

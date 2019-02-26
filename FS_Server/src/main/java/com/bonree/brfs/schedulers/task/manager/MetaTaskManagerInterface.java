@@ -87,7 +87,6 @@ public interface MetaTaskManagerInterface {
 	boolean changeTaskServerNodeContentState(String taskName, String taskType,String serverId, int taskState);
 	/**
 	 * 概述：获取任务最新序号
-	 * @param zkUrl
 	 * @param taskType
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -95,7 +94,6 @@ public interface MetaTaskManagerInterface {
 	String getCurrentTaskIndex(String taskType);
 	/**
 	 * 概述：获取任务状态
-	 * @param zkUrl
 	 * @param taskname
 	 * @param taskType
 	 * @return
@@ -171,7 +169,6 @@ public interface MetaTaskManagerInterface {
 	/**
 	 * 概述：获取子任务所有状态
 	 * 当taskName为空时 则为发布任务
-	 * @param data
 	 * @param taskType
 	 * @param taskName
 	 * @return
@@ -217,8 +214,6 @@ public interface MetaTaskManagerInterface {
 	/**
 	 * 概述：设置taskType元信息
 	 * @param taskType
-	 * @param sn
-	 * @param time
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	boolean setTaskTypeModel(String taskType,TaskTypeModel type);

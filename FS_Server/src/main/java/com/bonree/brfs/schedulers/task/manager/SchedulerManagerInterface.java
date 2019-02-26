@@ -32,7 +32,6 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	boolean pauseTask(T1 taskpoolkey,T3 task) throws ParamsErrorException;
 	/**
 	 * 概述：恢复线程池中的任务
-	 * @param taskpoolkey 对应的任务
 	 * @param task 任务信息
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -40,7 +39,6 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	boolean resumeTask(T1 taskpoolKey,T3 task) throws ParamsErrorException;
 	/**
 	 * 概述：删除线程池中的任务
-	 * @param taskpoolkey 对应的任务
 	 * @param task 任务信息
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -48,7 +46,6 @@ public interface SchedulerManagerInterface <T1,T2,T3>{
 	boolean deleteTask(T1 taskpoolKey,T3 task) throws ParamsErrorException;
 	/**
 	 * 概述：销毁任务线程池，相应的key将被移除
-	 * @param taskpoolkey 对应的任务
 	 * @param isWaitTaskCompleted 等待任务完成
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>

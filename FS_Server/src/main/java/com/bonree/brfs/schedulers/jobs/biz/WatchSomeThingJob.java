@@ -1,5 +1,7 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,18 +21,16 @@ import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.WatchDog;
 
 public class WatchSomeThingJob extends QuartzOperationStateTask {
-	private static final Logger LOG = LoggerFactory.getLogger("WatchSomeThingJob");
+	private static final Logger LOG = LoggerFactory.getLogger(WatchSomeThingJob.class);
 	private static Map<Integer,Boolean> StateMap = new ConcurrentHashMap<Integer, Boolean>();
-	public static int RECOVERY_STATUSE = 1;
-	private static CuratorClient curatorClient =null;
-	private static String basePath = null;
+	public static final int RECOVERY_STATUSE = 1;
 	@Override
 	public void caughtException(JobExecutionContext context) {
 		LOG.info("watch task error !!!");
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt(){
 
 	}
 
@@ -39,29 +39,26 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		String zkHost = data.getString(JobDataMapConstract.ZOOKEEPER_ADDRESS);
-		String groupName = mcf.getGroupName();
 		//获取client
-		
+        CuratorClient curatorClient = null;
 		try {
-			if(curatorClient == null){
-				curatorClient = CuratorClient.getClientInstance(zkHost);
-			}
-			if(basePath == null){
-				//获取监听的目录
-				ZookeeperPaths zkPaths = mcf.getZkPath();
-				basePath = zkPaths.getBaseRebalancePath();
-			}
+            curatorClient = CuratorClient.getClientInstance(zkHost);
+            String basePath  = mcf.getZkPath().getBaseRebalancePath();
 			String tasksPath=basePath + Constants.SEPARATOR+Constants.TASKS_NODE;
 			boolean isIt = isRecovery(curatorClient, tasksPath);
 			// 更新map的值
-			this.StateMap.put(RECOVERY_STATUSE, isIt);
+			StateMap.put(RECOVERY_STATUSE, isIt);
 			//发生副本迁移就删除数据
 			if(isIt) {
 				WatchDog.abandonFoods();
 			}
 		}catch (Exception e) {
 			LOG.error("{}",e);
-		}
+		}finally{
+		    if(curatorClient != null){
+		        curatorClient.close();
+            }
+        }
 	}
 	/**
 	 * 概述：恢复任务是否执行判断
@@ -78,11 +75,11 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 		if(paths == null || paths.isEmpty()){
 			return false;
 		}
-		boolean isRun = false;
-		String snPath = null;
-		List<String> cList = null;
-		String tmpPath = null;
-		byte[]data = null;
+		String snPath;
+		List<String> cList;
+		String tmpPath;
+		byte[]data;
+		String dataStr = null;
 		for(String sn : paths){
 			snPath = path + Constants.SEPARATOR +sn;
 			cList = client.getChildren(snPath);
@@ -90,7 +87,12 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 				//TODO 防御日志
 				tmpPath = snPath +"/"+ cList.get(0);
 				data = client.getData(tmpPath);
-				LOG.info("path : {}, data:{}",tmpPath, data == null ? null : new String(data));
+				try{
+					dataStr =data == null ? null : new String(data, StandardCharsets.UTF_8.name());
+				} catch(UnsupportedEncodingException e){
+					LOG.error("switch String error {}",e);
+				}
+				LOG.info("path : {}, data:{}",tmpPath, dataStr);
 				return true;
 			}
 		}

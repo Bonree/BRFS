@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,19 +24,17 @@ import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 
 public class CreateSystemTaskJob extends QuartzOperationStateTask {
-	private static final Logger LOG = LoggerFactory.getLogger("CreateSysTask");
+	private static final Logger LOG = LoggerFactory.getLogger(CreateSystemTaskJob.class);
 	@Override
 	public void caughtException(JobExecutionContext context) {
-		LOG.info("------------create sys task happened Exception !!!-----------------");
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
-		LOG.info(" happened Interrupt !!!");
+	public void interrupt(){
 	}
 
 	@Override
-	public void operation(JobExecutionContext context) throws Exception {
+	public void operation(JobExecutionContext context){
 		LOG.info("-------> create system task working");
 		//判断是否有恢复任务，有恢复任务则不进行创建
 		JobDataMap data = context.getJobDetail().getJobDataMap();
@@ -66,11 +63,11 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			LOG.info("SKIP create system task !!! because storageName is null !!!");
 			return;
 		}
-		TaskModel task = null;
-		String taskName = null;
-		TaskTypeModel tmodel = null;
+		TaskModel task;
+		String taskName;
+		TaskTypeModel tmodel;
 		long ttl = 0;
-		Pair<TaskModel,TaskTypeModel> result = null;
+		Pair<TaskModel,TaskTypeModel> result;
 		List<String> srs = TaskStateLifeContral.getSRs(snm);
 		for(TaskType taskType : switchList){
 			if(TaskType.SYSTEM_COPY_CHECK.equals(taskType)||TaskType.USER_DELETE.equals(taskType)) {

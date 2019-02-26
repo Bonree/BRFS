@@ -55,7 +55,6 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 	@Override
 	public TaskRunPattern taskRunnPattern(TaskModel task) throws Exception {
 		TaskRunPattern runPattern = new TaskRunPattern();
-		int type = task.getTaskType();
 		int dataSize = task.getAtomList().size();
 		int repeadCount = 1;
 		repeadCount = ( dataSize % batchCount == 0 ) ? dataSize/batchCount :(dataSize/batchCount + 1);

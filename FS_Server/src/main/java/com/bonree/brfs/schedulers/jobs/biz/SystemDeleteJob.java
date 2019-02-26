@@ -25,8 +25,7 @@ import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
- * @param <AtomTaskModel>
- * 
+ *
  * @date 2018年5月3日 下午4:29:44
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @Description:系统删除任务 
@@ -37,12 +36,11 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 
 	@Override
 	public void caughtException(JobExecutionContext context) {
-		LOG.info("Error ......   ");
+
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
-		LOG.info("interrupt ......   ");
+	public void interrupt(){
 	}
 
 	@Override
@@ -54,7 +52,6 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		String content = data.getString(currentIndex);
 		LOG.info("batch {}", content);
 		// 获取当前执行的任务类型
-		int taskType = data.getInt(JobDataMapConstract.TASK_TYPE);
 		BatchAtomModel batch = JsonUtils.toObject(content, BatchAtomModel.class);
 		if (batch == null) {
 			LOG.warn("batch data is empty !!!");
@@ -66,11 +63,10 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 			LOG.warn("atom task is empty !!!");
 			return;
 		}
-		String snName = null;
+		String snName;
 		TaskResultModel result = new TaskResultModel();
 		
-		AtomTaskResultModel usrResult = null;
-		String path = null;
+		AtomTaskResultModel usrResult;
 		for (AtomTaskModel atom : atoms) {
 			snName = atom.getStorageName();
 			if (BrStringUtils.isEmpty(snName)) {
@@ -97,7 +93,6 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public AtomTaskResultModel deleteDirs(AtomTaskModel atom, String dataPath) {
-		AtomTaskResultModel atomResult = null;
 		String snName = atom.getStorageName();
 		int patitionNum = atom.getPatitionNum();
 		long granule = atom.getGranule();

@@ -1,10 +1,7 @@
 
 package com.bonree.brfs.schedulers.utils;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,18 +13,13 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.common.write.data.FSCode;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.disknode.client.TcpDiskNodeClient;
-import com.bonree.brfs.disknode.fileformat.impl.SimpleFileHeader;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
@@ -68,14 +60,13 @@ public class CopyRecovery {
 		ServiceManager sm = mcf.getSm();
 		StorageRegionManager snm = mcf.getSnm();
 		
-		DiskNodeClient client = new LocalDiskNodeClient();
 		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts);
-		StorageRegion sn = null;
-		SecondIDParser parser = null;
-		String snName = null;
-		int snId = 0;
-		AtomTaskResultModel atomR = null;
-		List<String> errors = null;
+		StorageRegion sn;
+		SecondIDParser parser;
+		String snName;
+		int snId;
+		AtomTaskResultModel atomR;
+		List<String> errors;
 		for (AtomTaskModel atom : atoms) {
 			atomR = new AtomTaskResultModel();
 			atomR.setFiles(atom.getFiles());
@@ -149,8 +140,8 @@ public class CopyRecovery {
 			LOG.warn("<recoverFiles> {} sn node is empty", snName);
 			return null;
 		}
-		boolean isSuccess = false;
-		List<String> errors = new ArrayList<String>();
+		boolean isSuccess;
+		List<String> errors = new ArrayList<>();
 		for (String fileName : fileNames) {
 			isSuccess = recoveryFileByName( sm, sim, parser, snNode, fileName, dirName, dataPath,atom.getTaskOperation());
 			if(!isSuccess){
@@ -171,13 +162,13 @@ public class CopyRecovery {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageRegion snNode, String fileName,String dirName, String dataPath,String operation){
-		String[] sss = null;
-		String remoteName = null;
-		Service remoteService = null;
-		String localPath = null;
-		int remoteIndex = 0;
-		int localIndex = 0;
-		String remotePath = null;
+		String[] sss;
+		String remoteName;
+		Service remoteService;
+		String localPath;
+		int remoteIndex;
+		int localIndex;
+		String remotePath;
 		boolean isSuccess = true;
 		String snName = snNode.getName();
 		int snId = snNode.getId();
@@ -289,25 +280,15 @@ public class CopyRecovery {
 	 */
 	public static boolean copyFrom(String host, int port,int export,int timeout, String remotePath, String localPath) {
 		TcpDiskNodeClient client = null;
-		BufferedOutputStream output = null;
 		try {
 			client = TcpClientUtils.getClient(host, port, export, timeout);
 			LOG.warn("{}:{},{}:{}, read {} to local {}",host,port,host,export,remotePath,localPath);
 			LocalByteStreamConsumer consumer = new LocalByteStreamConsumer(localPath);
 			client.readFile(remotePath, consumer);
 			return consumer.getResult().get();
-		}catch (InterruptedException e) {
+		}catch (InterruptedException | IOException | ExecutionException e) {
 			return false;
-		}
-		catch (FileNotFoundException e) {
-			return false;
-		}
-		catch (IOException e) {
-			return false;
-		}catch (ExecutionException e) {
-			return false;
-		}
-		finally {
+		} finally {
 			if (client != null) {
 				try {
 					client.closeFile(remotePath);
