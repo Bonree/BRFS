@@ -143,14 +143,11 @@ public enum SigarUtils {
     	}
     	NetInterfaceConfig netConfig = null;
     	NetInterfaceStat  netStat = null;
-    	String tmpIp = null;
-    	String devName = null;
-    	String[] netInfos = sigar.getNetInterfaceList();
+    	String tmpIp;
     	for(String netInfo : ipDevSet){
     		netConfig = sigar.getNetInterfaceConfig(netInfo);
     		tmpIp = netConfig.getAddress();
-    		devName = netConfig.getName();
-    		// 1.过滤网卡不存在的
+            // 1.过滤网卡不存在的
     		if(((netConfig.getFlags() & 1L) <= 0L)){
     			LOG.debug("ip {} is not exists", tmpIp);
     			continue;

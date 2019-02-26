@@ -284,7 +284,7 @@ public class GatherResource {
 		obj.setDiskWriteValue(cacheMap);
 		// 网卡接收
 		cacheNum = cluster.getNetRxMaxSpeed();
-		double netRS = stat.getNetRSpeed()/cacheNum;
+		double netRS = (double)stat.getNetRSpeed()/cacheNum;
 		obj.setNetRxValue(netRS);
 		// 网卡发送
 		cacheNum = cluster.getNetTxMaxSpeed();
