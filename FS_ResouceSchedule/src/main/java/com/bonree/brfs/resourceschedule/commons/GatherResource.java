@@ -256,7 +256,7 @@ public class GatherResource {
 	public static ResourceModel calcResourceValue(final BaseMetaServerModel cluster, final StatServerModel stat,String serverId,String ip){
 		ResourceModel obj = new ResourceModel();
 		Map<String,Double> cacheMap = null;
-		long cacheNum = 0l;
+		long cacheNum = 0L;
 		double cpuValue = (1 - stat.getCpuRate()) * stat.getCpuCoreCount() / cluster.getCpuCoreCount();
 		double memoryValue = (1 - stat.getMemoryRate()) * stat.getMemorySize() / cluster.getMemoryTotalSize();
 		double diskRemainRate = stat.getTotalDiskSize() == 0 ? 0.0 : (double)stat.getRemainDiskSize()/stat.getTotalDiskSize();
@@ -274,6 +274,8 @@ public class GatherResource {
 		obj.setDiskRemainValue(cacheMap);
 		// 设置磁盘剩余sizemap
 		obj.setLocalDiskRemainRate(calcRemainRate(stat.getPartitionRemainSizeMap(),stat.getPartitionTotalSizeMap()));
+		obj.setLocalRemainSizeValue(stat.getPartitionRemainSizeMap());
+		obj.setLocalSizeValue(stat.getPartitionTotalSizeMap());
 		// 磁盘读
 		cacheNum = cluster.getDiskReadMaxSpeed();
 		cacheMap = CalcUtils.divDiffDataDoubleMap(stat.getPartitionReadSpeedMap(), cacheNum);

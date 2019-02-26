@@ -57,6 +57,10 @@ public class ResourceModel{
     private Map<String, Double> diskWriteValue = new ConcurrentHashMap<String, Double>();
     private Map<String, Double> diskReadValue = new ConcurrentHashMap<String, Double>();
     private Map<String, Double> diskRemainValue = new ConcurrentHashMap<String, Double>();
+    private Map<String,Long> localSizeValue = new ConcurrentHashMap<>();
+
+    private Map<String,Long> localRemainSizeValue = new ConcurrentHashMap<>();
+
     private Map<String, Double> localDiskRemainRate = new ConcurrentHashMap<>();
 
 
@@ -168,6 +172,29 @@ public class ResourceModel{
         }
         return this.diskWriteValue.get(mount);
 
+    }
+
+    public Map<String, Long> getLocalSizeValue(){
+        return localSizeValue;
+    }
+
+    public void setLocalSizeValue(Map<String, Long> localSizeValue){
+        this.localSizeValue = localSizeValue;
+    }
+
+    public Map<String, Long> getLocalRemainSizeValue(){
+        return localRemainSizeValue;
+    }
+    public long getLocalRemainSizeValue(String sn){
+        if(BrStringUtils.isEmpty(sn)) {
+            return diskSize;
+        }
+        String mount = getMountedPoint(sn);
+        long size = this.getLocalRemainSizeValue().get(mount);
+        return size <=0 ? diskSize : size;
+    }
+    public void setLocalRemainSizeValue(Map<String, Long> localRemainSizeValue){
+        this.localRemainSizeValue = localRemainSizeValue;
     }
 
     public double getDiskReadValue(String storage){

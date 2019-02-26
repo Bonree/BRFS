@@ -15,7 +15,7 @@ public class MachineResourceWriterSelectorTest{
     public void testSelect(){
         String groupName = "a";
         int centSize = 100;
-        MachineResourceWriterSelector selector = new MachineResourceWriterSelector(null,null,null,groupName,centSize);
+        MachineResourceWriterSelector selector = new MachineResourceWriterSelector(null, null,groupName,centSize);
         int num =3;
         List<ResourceModel> list = new ArrayList<>();
         List<Pair<String, Integer>> numList = new ArrayList<>();
@@ -35,7 +35,7 @@ public class MachineResourceWriterSelectorTest{
     public void testSelect01(){
         String groupName = "a";
         int centSize = 100;
-        MachineResourceWriterSelector selector = new MachineResourceWriterSelector(null,null,null,groupName,centSize);
+        MachineResourceWriterSelector selector = new MachineResourceWriterSelector(null, null,groupName,centSize);
         int num =3;
         List<ResourceModel> list = new ArrayList<>();
         List<Pair<String, Integer>> numList = new ArrayList<>();
@@ -54,7 +54,7 @@ public class MachineResourceWriterSelectorTest{
     public void testSelect02(){
         String groupName = "a";
         int centSize = 100;
-        MachineResourceWriterSelector selector = new MachineResourceWriterSelector(null,null,null,groupName,centSize);
+        MachineResourceWriterSelector selector = new MachineResourceWriterSelector(null, null,groupName,centSize);
         int num =2;
         List<ResourceModel> list = new ArrayList<>();
         List<Pair<String, Integer>> numList = new ArrayList<>();
@@ -74,7 +74,7 @@ public class MachineResourceWriterSelectorTest{
         String groupName = "a";
         String sn = "11";
         int centSize = 100;
-        MachineResourceWriterSelector selector = new MachineResourceWriterSelector(null,null,null,groupName,centSize);
+        MachineResourceWriterSelector selector = new MachineResourceWriterSelector(null, null,groupName,centSize);
         int num =2;
         List<ResourceModel> list = new ArrayList<>();
         List<Pair<String, Integer>> numList = new ArrayList<>();
@@ -99,7 +99,7 @@ public class MachineResourceWriterSelectorTest{
         limit.setForceDiskRemainRate(0.01);
         limit.setDiskWriteValue(0.8);
         limit.setDiskRemainRate(0.05);
-        MachineResourceWriterSelector selector = new MachineResourceWriterSelector(null,null,limit,groupName,centSize);
+        MachineResourceWriterSelector selector = new MachineResourceWriterSelector(null, limit,groupName,centSize);
         int num =1;
         List<ResourceModel> list = new ArrayList<>();
         List<Pair<String, Integer>> numList = new ArrayList<>();

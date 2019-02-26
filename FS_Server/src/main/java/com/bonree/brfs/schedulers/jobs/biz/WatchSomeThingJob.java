@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
+import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
@@ -54,6 +57,12 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 			}
 		}catch (Exception e) {
 			LOG.error("{}",e);
+			MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+			builder.setModel(this.getClass().getName()+"模块服务发生错误");
+			builder.setException(e);
+			builder.setMessage("看门狗发生错误");
+			builder.setVariable(data.getWrappedMap());
+			EmailPool.getInstance().sendEmail(builder,false);
 		}finally{
 		    if(curatorClient != null){
 		        curatorClient.close();

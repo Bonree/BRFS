@@ -55,8 +55,7 @@ public class RandomAvailable implements ResourceSelector{
 	}
 	
 	@Override
-	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,int centSize)
-			throws Exception {
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,int centSize){
 		if(resourceMap.isEmpty()){
 			return null;
 		}
@@ -113,24 +112,22 @@ public class RandomAvailable implements ResourceSelector{
 	 */
 	private List<Pair<String, Integer>> converDoublesToIntegers(final List<Pair<String, Double>> servers, int preCentSize){
 		List<Pair<String,Integer>> dents = new ArrayList<Pair<String,Integer>>();
-		int total = 0;
-		int value = 0;
+        int value;
 		double sum = 0;
 		int centSize = preCentSize<=0 ? 100 : preCentSize;
 		for(Pair<String,Double> pair: servers) {
 			sum +=pair.getSecond();
 		}
-		Pair<String,Integer> tmp = null;
+		Pair<String,Integer> tmp;
 		for(Pair<String,Double> ele : servers){
-			tmp = new Pair<String, Integer>();
+			tmp = new Pair<>();
 			tmp.setFirst(ele.getFirst());
 			value = (int)(ele.getSecond()/sum* centSize);
 			if(value == 0){
 				value = 1;
 			}
 			tmp.setSecond(value);
-			total += value;
-			dents.add(tmp);
+            dents.add(tmp);
 		}
 		return dents;
 	}

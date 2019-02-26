@@ -1,7 +1,10 @@
 package com.bonree.brfs.schedulers.task.operation.impl;
 
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
+import com.bonree.mail.worker.MailWorker;
+import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
@@ -45,6 +48,12 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 			caughtException(context);
 			isSuccess = false;
 			LOG.info("{}",e);
+			MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+			builder.setModel(this.getClass().getName()+"模块服务发生错误");
+			builder.setException(e);
+			builder.setMessage("执行任务发生错误");
+			builder.setVariable(data.getWrappedMap());
+			EmailPool.getInstance().sendEmail(builder,false);
 		}finally{
 			if(data == null){
 				return;
@@ -70,6 +79,12 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 				}
 			} catch (Exception e) {
 				LOG.error("execute error", e);
+				MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+				builder.setModel(this.getClass().getName()+"模块服务发生错误");
+				builder.setException(e);
+				builder.setMessage("更新任务发生错误");
+				builder.setVariable(data.getWrappedMap());
+				EmailPool.getInstance().sendEmail(builder,false);
 			}
 		}
 		

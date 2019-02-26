@@ -3,6 +3,9 @@ package com.bonree.brfs.schedulers.task.operation.impl;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
+import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
@@ -34,6 +37,12 @@ public abstract class QuartzOperationStateTask implements QuartzOperationStateIn
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
 			LOG.info("Run task error {}",e);
+			MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+			builder.setModel(this.getClass().getName()+"模块服务发生错误");
+			builder.setException(e);
+			builder.setMessage("执行发生错误");
+			builder.setVariable(context.getMergedJobDataMap().getWrappedMap());
+			EmailPool.getInstance().sendEmail(builder,false);
 		}
 		
 	}

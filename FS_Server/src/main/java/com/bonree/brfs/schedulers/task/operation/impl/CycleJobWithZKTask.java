@@ -2,8 +2,11 @@ package com.bonree.brfs.schedulers.task.operation.impl;
 
 import java.util.Map;
 
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
+import com.bonree.mail.worker.MailWorker;
+import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -74,6 +77,12 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
 			isSuccess = false;
+			MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+			builder.setModel(this.getClass().getName()+"模块服务发生错误");
+			builder.setException(e);
+			builder.setMessage("执行任务发生错误");
+			builder.setVariable(data.getWrappedMap());
+			EmailPool.getInstance().sendEmail(builder,false);
 		}finally{
 			//判断是否有恢复任务，有恢复任务则不进行创建
 			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)){

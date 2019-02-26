@@ -8,6 +8,8 @@ public class LimitServerResource {
 	private double forceDiskRemainRate = 0.01;
 	private double diskWriteValue = 0.9;
 	private double forceWriteValue = 0.99;
+	private long remainWarnSize = 20*1024*1024;
+	private long remainForceSize = 10*1024*1024;
 
     public double getForceWriteValue(){
         return forceWriteValue;
@@ -38,5 +40,21 @@ public class LimitServerResource {
 
     public void setForceDiskRemainRate(double forceDiskRemainRate){
         this.forceDiskRemainRate = forceDiskRemainRate;
+    }
+
+    public long getRemainWarnSize(){
+        return remainWarnSize;
+    }
+
+    public void setRemainWarnSize(long remainWarnSize){
+        this.remainWarnSize = remainWarnSize;
+    }
+
+    public long getRemainForceSize(){
+        return remainForceSize;
+    }
+
+    public void setRemainForceSize(long remainForceSize){
+        this.remainForceSize = remainForceSize;
     }
 }

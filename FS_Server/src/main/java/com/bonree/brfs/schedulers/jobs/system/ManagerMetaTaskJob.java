@@ -4,6 +4,9 @@ package com.bonree.brfs.schedulers.jobs.system;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
+import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
@@ -53,12 +56,17 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 			LOG.warn("available server list is null");
 			return;
 		}
-		TaskTypeModel typeModel = null;
 		for(TaskType taskType : TaskType.values()){
 			try {
 				release.reviseTaskStat(taskType.name(), ttlTime, serverIds);
 			} catch (Exception e) {
 				LOG.warn("{}", e.getMessage());
+				MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+				builder.setModel(this.getClass().getName()+"模块服务发生错误");
+				builder.setException(e);
+				builder.setMessage("管理任务数据发生错误");
+				builder.setVariable(data.getWrappedMap());
+				EmailPool.getInstance().sendEmail(builder,false);
 			}
 		}
 		LOG.info("revise task success !!!");
