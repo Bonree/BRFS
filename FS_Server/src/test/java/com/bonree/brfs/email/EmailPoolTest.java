@@ -41,4 +41,12 @@ public class EmailPoolTest{
         boolean status = EmailPool.getInstance().sendEmail(builder,true);
         LOG.info("send status :{}",status);
     }
+
+    @Test
+    @SuppressWarnings("all")
+    public void sendmailWaitResultNOException(){
+        MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance()).setMessage("我是谁");
+        boolean status = EmailPool.getInstance().sendEmail(builder,true);
+        LOG.info("send status :{}",status);
+    }
 }
