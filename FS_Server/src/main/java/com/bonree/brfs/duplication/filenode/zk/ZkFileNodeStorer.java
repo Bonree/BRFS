@@ -98,4 +98,13 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 			throw new RuntimeException(e);
 		}
 	}
+
+	@Override
+	public int fileNodeSize() {
+		try {
+			return client.getChildren().forPath(storePath).size();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 }
