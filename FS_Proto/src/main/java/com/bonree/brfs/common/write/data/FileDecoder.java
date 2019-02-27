@@ -160,7 +160,7 @@ public class FileDecoder {
      */
     public static List<String> getOffsets(byte[] bytes) {
         List<String> offsetList = new ArrayList<>();
-        int begin = 2;
+        int begin = 0;
         while (begin < bytes.length) {
             try {
                 int size = getOffsets(begin, bytes);

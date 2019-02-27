@@ -3,7 +3,6 @@ package com.bonree.brfs.disknode.server.tcp.handler;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,8 +121,7 @@ public class MetadataFetchMessageHandler implements MessageHandler<BaseResponse>
 				//到这的唯一机会是，多副本文件关闭时只有部分关闭成功，当磁盘节点恢复正常
 				//后，需要再次进行同步流程让所有副本文件关闭，因为没有日志文件，所以只能
 				//通过解析数据文件生成序列号列表
-				byte[] bytes = DataFileReader.readFile(dataFile, fileFormater.fileHeader().length(),
-						(int) (dataFile.length() - fileFormater.fileTailer().length()));
+				byte[] bytes = DataFileReader.readFile(dataFile, fileFormater.fileHeader().length());
 				List<String> offsetInfos = FileDecoder.getOffsets(bytes);
 				for(String info : offsetInfos) {
 					List<String> parts = Splitter.on('|').splitToList(info);
