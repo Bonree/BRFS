@@ -61,12 +61,13 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 				release.reviseTaskStat(taskType.name(), ttlTime, serverIds);
 			} catch (Exception e) {
 				LOG.warn("{}", e.getMessage());
-				MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+				EmailPool emailPool = EmailPool.getInstance();
+				MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
 				builder.setModel(this.getClass().getSimpleName()+"模块服务发生问题");
 				builder.setException(e);
 				builder.setMessage("管理任务数据发生错误");
 				builder.setVariable(data.getWrappedMap());
-				EmailPool.getInstance().sendEmail(builder);
+				emailPool.sendEmail(builder);
 			}
 		}
 		LOG.info("revise task success !!!");

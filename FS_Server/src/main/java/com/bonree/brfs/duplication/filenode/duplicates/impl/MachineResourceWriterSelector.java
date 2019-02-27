@@ -112,13 +112,14 @@ public class MachineResourceWriterSelector implements ServiceSelector{
             part = sn+"(path:"+resource.getMountedPoint(sn)+")";
             map.put(key,part);
         }
-        MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+        EmailPool emailPool = EmailPool.getInstance();
+        MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
         builder.setModel(this.getClass().getSimpleName()+"服务选择");
         builder.setMessage(messageBuilder.toString());
         if(!map.isEmpty()){
             builder.setVariable(map);
         }
-        EmailPool.getInstance().sendEmail(builder);
+        emailPool.sendEmail(builder);
     }
     /**
      * 随机选择
@@ -153,10 +154,11 @@ public class MachineResourceWriterSelector implements ServiceSelector{
                     continue;
                 }
             }
-            MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance())
+            EmailPool emailPool = EmailPool.getInstance();
+            MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo())
                     .setModel(this.getClass().getSimpleName()+"服务选择")
                     .setMessage("sr ["+sn+"]即将 在 "+key+"("+ip+") 服务 写入重复数据");
-            EmailPool.getInstance().sendEmail(builder);
+            emailPool.sendEmail(builder);
             sids.add(tmp.getServerId());
         }
         return resourceModels;

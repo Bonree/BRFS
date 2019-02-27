@@ -25,20 +25,20 @@ public class EmailPoolTest{
     @Test
     @SuppressWarnings("all")
     public void sendmail(){
-        MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance()).setException(new NullPointerException("none"));
+        MailWorker.Builder builder = MailWorker.newBuilder(EmailPool.getInstance().getProgramInfo()).setException(new NullPointerException("none"));
         EmailPool.getInstance().sendEmail(builder);
     }
     @Test
     @SuppressWarnings("all")
     public void sendmailWaitResult(){
-        MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance()).setException(new NullPointerException("none"));
+        MailWorker.Builder builder = MailWorker.newBuilder(EmailPool.getInstance().getProgramInfo()).setException(new NullPointerException("none"));
         EmailPool.getInstance().sendEmail(builder);
     }
 
     @Test
     @SuppressWarnings("all")
     public void sendmailWaitResultNOException(){
-        MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance()).setMessage("我是谁");
+        MailWorker.Builder builder = MailWorker.newBuilder(EmailPool.getInstance().getProgramInfo()).setMessage("我是谁");
         EmailPool.getInstance().sendEmail(builder);
         try{
             Thread.sleep(1000);

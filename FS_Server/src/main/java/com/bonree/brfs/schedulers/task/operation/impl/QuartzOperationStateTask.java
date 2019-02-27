@@ -21,12 +21,13 @@ public abstract class QuartzOperationStateTask implements QuartzOperationStateIn
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
 			LOG.info("Run task error {}",e);
-			MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+			EmailPool emailPool = EmailPool.getInstance();
+			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
 			builder.setModel(this.getClass().getSimpleName()+"模块服务发生问题");
 			builder.setException(e);
 			builder.setMessage("执行发生错误");
 			builder.setVariable(context.getMergedJobDataMap().getWrappedMap());
-			EmailPool.getInstance().sendEmail(builder);
+			emailPool.sendEmail(builder);
 		}
 		
 	}

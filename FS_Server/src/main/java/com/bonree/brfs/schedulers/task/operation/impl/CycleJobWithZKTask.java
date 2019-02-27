@@ -77,12 +77,13 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
 			isSuccess = false;
-			MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+			EmailPool emailPool = EmailPool.getInstance();
+			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
 			builder.setModel(this.getClass().getSimpleName()+"模块服务发生问题");
 			builder.setException(e);
 			builder.setMessage("执行任务发生错误");
 			builder.setVariable(data.getWrappedMap());
-			EmailPool.getInstance().sendEmail(builder);
+			emailPool.sendEmail(builder);
 		}finally{
 			//判断是否有恢复任务，有恢复任务则不进行创建
 			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)){
