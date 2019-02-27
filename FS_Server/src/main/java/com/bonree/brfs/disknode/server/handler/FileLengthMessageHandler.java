@@ -130,7 +130,7 @@ public class FileLengthMessageHandler implements MessageHandler {
 					//通过解析数据文件生成序列号列表
 					byte[] bytes = DataFileReader.readFile(dataFile, fileFormater.fileHeader().length(),
 							(int) (dataFile.length() - fileFormater.fileTailer().length()));
-					List<String> offsetInfos = FileDecoder.getOffsets(bytes);
+					List<String> offsetInfos = FileDecoder.getDataFileOffsets(bytes);
 					for(String info : offsetInfos) {
 						List<String> parts = Splitter.on('|').splitToList(info);
 						int offset = Integer.parseInt(parts.get(0));

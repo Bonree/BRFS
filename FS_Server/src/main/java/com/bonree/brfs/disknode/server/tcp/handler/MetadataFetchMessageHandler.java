@@ -121,8 +121,8 @@ public class MetadataFetchMessageHandler implements MessageHandler<BaseResponse>
 				//到这的唯一机会是，多副本文件关闭时只有部分关闭成功，当磁盘节点恢复正常
 				//后，需要再次进行同步流程让所有副本文件关闭，因为没有日志文件，所以只能
 				//通过解析数据文件生成序列号列表
-				byte[] bytes = DataFileReader.readFile(dataFile, fileFormater.fileHeader().length());
-				List<String> offsetInfos = FileDecoder.getOffsets(bytes);
+				byte[] bytes = DataFileReader.readFile(dataFile);
+				List<String> offsetInfos = FileDecoder.getDataFileOffsets(fileFormater.fileHeader().length(), bytes);
 				for(String info : offsetInfos) {
 					List<String> parts = Splitter.on('|').splitToList(info);
 					int offset = Integer.parseInt(parts.get(0));

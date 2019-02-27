@@ -221,7 +221,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			message.setBody(ProtoStuffUtils.serialize(writeFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
-			LOG.info("write [{}] datas to data node", dataList.size());
+			LOG.info("write [{}] datas to data node in file[{}]", dataList.size(), path);
 			client.sendMessage(message, new ResponseHandler<BaseResponse>() {
 				
 				@Override

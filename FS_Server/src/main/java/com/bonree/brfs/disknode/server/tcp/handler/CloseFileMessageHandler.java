@@ -75,7 +75,7 @@ public class CloseFileMessageHandler implements MessageHandler<BaseResponse> {
 			
 			LOG.info("start writing file tailer for {}", filePath);
 			binding.first().flush();
-			byte[] fileBytes = DataFileReader.readFile(filePath, 2);
+			byte[] fileBytes = DataFileReader.readFile(filePath, fileFormater.fileHeader().length());
 			long crcCode = ByteUtils.crc(fileBytes);
 			LOG.info("final crc code[{}] by bytes[{}] of file[{}]", crcCode, fileBytes.length, filePath);
 			
