@@ -63,7 +63,7 @@ public class DiskWriterCallback {
 			}
 		}
 		
-		LOG.debug("write result with max valid index[{}] in file[{}]", maxValidIndex, file.node().getName());
+		LOG.info("write result with max valid index[{}] in file[{}]", maxValidIndex, file.node().getName());
 		file.setLength(maxValidIndex < 0 ? file.length() : (maxResult[maxValidIndex].offset() + maxResult[maxValidIndex].length()));
 		callback.writeCompleted(file, writeError);
 		
