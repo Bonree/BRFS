@@ -62,120 +62,115 @@ public class FileRecoveryMessageHandler implements MessageHandler<BaseResponse> 
 	public void handleMessage(BaseMessage baseMessage, ResponseWriter<BaseResponse> writer) {
 		FileRecoveryMessage message = ProtoStuffUtils.deserialize(baseMessage.getBody(), FileRecoveryMessage.class);
 		if(message == null) {
+			LOG.error("decode recover message error");
 			writer.write(new BaseResponse(ResponseCode.ERROR_PROTOCOL));
 			return;
 		}
 		
-		CompletableFuture.runAsync(new Runnable() {
+		String filePath = null;
+		try {
+			filePath = context.getConcreteFilePath(message.getFilePath());
+			LOG.info("starting recover file[{}]", filePath);
 			
-			@Override
-			public void run() {
-				String filePath = null;
+			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
+			if(binding == null) {
+				writer.write(new BaseResponse(ResponseCode.ERROR));
+				return;
+			}
+			
+			binding.first().position(fileFormater.absoluteOffset(message.getOffset()));
+			byte[] bytes = null;
+			for(String stateString : message.getSources()) {
+				FileObjectSyncState state = SyncStateCodec.fromString(stateString);
+				Service service = serviceManager.getServiceById(state.getServiceGroup(), state.getServiceId());
+				if(service == null) {
+					LOG.error("can not get service with[{}:{}]", state.getServiceGroup(), state.getServiceId());
+					continue;
+				}
+				
+				DiskNodeClient client = null;
 				try {
-					filePath = context.getConcreteFilePath(message.getFilePath());
-					LOG.info("starting recover file[{}]", filePath);
-					
-					Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
-					if(binding == null) {
-						writer.write(new BaseResponse(ResponseCode.ERROR));
-						return;
-					}
-					
-					binding.first().position(fileFormater.absoluteOffset(message.getOffset()));
-					byte[] bytes = null;
-					for(String stateString : message.getSources()) {
-						FileObjectSyncState state = SyncStateCodec.fromString(stateString);
-						Service service = serviceManager.getServiceById(state.getServiceGroup(), state.getServiceId());
-						if(service == null) {
-							LOG.error("can not get service with[{}:{}]", state.getServiceGroup(), state.getServiceId());
-							continue;
+					LOG.info("get data from{} to recover...", service);
+					TcpClient<ReadObject, FileContentPart> readClient = clientGroup.createClient(new AsyncFileReaderCreateConfig() {
+						
+						@Override
+						public SocketAddress remoteAddress() {
+							return new InetSocketAddress(service.getHost(), service.getExtraPort());
 						}
 						
-						DiskNodeClient client = null;
-						try {
-							LOG.info("get data from{} to recover...", service);
-							TcpClient<ReadObject, FileContentPart> readClient = clientGroup.createClient(new AsyncFileReaderCreateConfig() {
-								
-								@Override
-								public SocketAddress remoteAddress() {
-									return new InetSocketAddress(service.getHost(), service.getExtraPort());
-								}
-								
-								@Override
-								public int connectTimeoutMillis() {
-									return 3000;
-								}
-								
-								@Override
-								public int maxPendingRead() {
-									return 0;
-								}
-								
-							}, ForkJoinPool.commonPool());
-							
-							client = new TcpDiskNodeClient(null, readClient);
-							
-							long lackBytes = state.getFileLength() - message.getOffset();
-							CompletableFuture<byte[]> byteFuture = new CompletableFuture<byte[]>();
-							ByteArrayOutputStream output = new ByteArrayOutputStream();
-							client.readData(state.getFilePath(), message.getOffset(), (int) lackBytes, new ByteConsumer() {
-								
-								@Override
-								public void error(Throwable e) {
-									byteFuture.completeExceptionally(e);
-								}
-								
-								@Override
-								public void consume(byte[] bytes, boolean endOfConsume) {
-									try {
-										output.write(bytes);
-										if(endOfConsume) {
-											byteFuture.complete(output.toByteArray());
-											output.close();
-										}
-									} catch (Exception e) {
-										byteFuture.completeExceptionally(e);
-									}
-								}
-							});
-							
-							bytes = byteFuture.get();
-							if(bytes != null) {
-								LOG.info("read bytes length[{}], require[{}]", bytes.length, lackBytes);
-								break;
-							}
-						} catch (Exception e) {
-							LOG.error("recover file[{}] error", filePath, e);
-						} finally {
-							CloseUtils.closeQuietly(client);
+						@Override
+						public int connectTimeoutMillis() {
+							return 3000;
 						}
-					}
+						
+						@Override
+						public int maxPendingRead() {
+							return 0;
+						}
+						
+					}, ForkJoinPool.commonPool());
 					
-					if(bytes == null) {
-						writer.write(new BaseResponse(ResponseCode.ERROR));
-						return;
-					}
+					client = new TcpDiskNodeClient(null, readClient);
 					
-					int offset = 0;
-					int size = 0;
-					while((size = FileDecoder.getOffsets(offset, bytes)) > 0) {
-						LOG.info("rewrite data[offset={}, size={}] to file[{}]", offset, size, filePath);
-						binding.first().write(bytes, offset, size);
-						offset += size;
-						size = 0;
-					}
+					long lackBytes = state.getFileLength() - message.getOffset();
+					CompletableFuture<byte[]> byteFuture = new CompletableFuture<byte[]>();
+					ByteArrayOutputStream output = new ByteArrayOutputStream();
+					client.readData(state.getFilePath(), message.getOffset(), (int) lackBytes, new ByteConsumer() {
+						
+						@Override
+						public void error(Throwable e) {
+							byteFuture.completeExceptionally(e);
+						}
+						
+						@Override
+						public void consume(byte[] bytes, boolean endOfConsume) {
+							try {
+								output.write(bytes);
+								if(endOfConsume) {
+									byteFuture.complete(output.toByteArray());
+									output.close();
+								}
+							} catch (Exception e) {
+								byteFuture.completeExceptionally(e);
+							}
+						}
+					});
 					
-					if(offset != bytes.length) {
-						LOG.error("perhaps datas that being recoverd is not correct! get [{}], but recoverd[{}]", bytes.length, offset);
+					bytes = byteFuture.get();
+					if(bytes != null) {
+						LOG.info("read bytes length[{}], require[{}]", bytes.length, lackBytes);
+						break;
 					}
-					
-					writer.write(new BaseResponse(ResponseCode.OK));
 				} catch (Exception e) {
 					LOG.error("recover file[{}] error", filePath, e);
-					writer.write(new BaseResponse(ResponseCode.ERROR));
+				} finally {
+					CloseUtils.closeQuietly(client);
 				}
 			}
-		});
+			
+			if(bytes == null) {
+				writer.write(new BaseResponse(ResponseCode.ERROR));
+				return;
+			}
+			
+			int offset = 0;
+			int size = 0;
+			while((size = FileDecoder.getOffsets(offset, bytes)) > 0) {
+				LOG.info("rewrite data[offset={}, size={}] to file[{}]", offset, size, filePath);
+				binding.first().write(bytes, offset, size);
+				offset += size;
+				size = 0;
+			}
+			
+			if(offset != bytes.length) {
+				LOG.error("perhaps datas that being recoverd is not correct! get [{}], but recoverd[{}]", bytes.length, offset);
+			}
+			
+			writer.write(new BaseResponse(ResponseCode.OK));
+		} catch (Exception e) {
+			LOG.error("recover file[{}] error", filePath, e);
+			writer.write(new BaseResponse(ResponseCode.ERROR));
+		}
 	}
 
 }
