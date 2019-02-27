@@ -17,6 +17,10 @@ public class DataFileReader {
 		return readFile(file.getAbsolutePath(), offset, size);
 	}
 	
+	public static byte[] readFile(File file) {
+		return readFile(file, 0, Integer.MAX_VALUE);
+	}
+	
 	public static byte[] readFile(File file, long offset) {
 		return readFile(file, offset, Integer.MAX_VALUE);
 	}

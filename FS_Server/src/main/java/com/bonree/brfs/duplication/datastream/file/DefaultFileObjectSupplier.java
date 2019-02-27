@@ -123,6 +123,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 		}
 		
 		if(needSync) {
+			LOG.info("error occurred in file[{}]", file.node().getName());
 			exceptedFiles.add(file);
 			
 			fileSynchronizer.synchronize(file, new FileObjectSyncCallback() {

@@ -230,7 +230,7 @@ public class FileWriterManager implements LifeCycle {
 	//获取缺失或多余的日志记录信息
 	private List<RecordElement> validElements(String filepath, List<RecordElement> originElements) {
 		byte[] bytes = DataFileReader.readFile(filepath, 0);
-		List<String> offsets = FileDecoder.getOffsets(bytes);
+		List<String> offsets = FileDecoder.getDataFileOffsets(bytes);
 		
 		List<RecordElement> validElmentList = new ArrayList<RecordElement>();
 		RecordElement element = originElements.get(0);
