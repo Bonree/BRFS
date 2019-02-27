@@ -265,3 +265,7 @@ limit.resource.value.force.disk.remain.size=20971520
 #email.copyright=Copyright ©2007-2019 All rights reserved
 # 发送email线程池大小
 #email.pool.size=3
+
+#kafka地址
+kafka.brokers=192.168.4.114:9092
+kafka.topic=brfs_merit

@@ -2,6 +2,7 @@ package com.bonree.brfs.rebalance.task;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -24,6 +25,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
@@ -544,7 +547,6 @@ public class TaskDispatcher implements Closeable {
         }
 
         // 没有正在执行的任务时，优先处理虚拟迁移任务
-        if (changeSummaries != null && !changeSummaries.isEmpty()) {
             trimTask(changeSummaries);
             // 先检查虚拟serverID
             // 没有找到虚拟serverID迁移的任务，执行普通迁移的任务
@@ -552,7 +554,6 @@ public class TaskDispatcher implements Closeable {
                 // String serverId = changeSummary.getChangeServer();
                 dealNormalTask(changeSummaries);
             }
-        }
 
     }
 
@@ -802,6 +803,7 @@ public class TaskDispatcher implements Closeable {
             Optional<ChangeSummary> runChangeOpt = changeSummaries.stream().filter(x -> x.getChangeID().equals(changeID)).findFirst();
             if (!runChangeOpt.isPresent()) {
                 LOG.error("rebalance metadata is error:" + currentTask);
+                MailWorker.newBuilder(EmailPool.getInstance().getProgramInfo()).setMessage("rebalance metadata is error:" + currentTask);
                 // 尝试修复下
                 LOG.info("fix the metadata!!!");
                 fixTaskMeta(currentTask);
@@ -997,7 +999,7 @@ public class TaskDispatcher implements Closeable {
         // 创建任务
         String taskNode = ZKPaths.makePath(tasksPath, String.valueOf(storageIndex), Constants.TASK_NODE);
         if (!curatorClient.checkExists(taskNode)) {
-            curatorClient.createPersistent(taskNode, true, jsonStr.getBytes());
+            curatorClient.createPersistent(taskNode, true, jsonStr.getBytes(StandardCharsets.UTF_8));
         }
         return true;
     }
