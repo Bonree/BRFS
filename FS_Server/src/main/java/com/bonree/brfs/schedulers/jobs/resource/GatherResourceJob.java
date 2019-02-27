@@ -134,11 +134,8 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			mountPoint = entry.getKey();
 			remainsize = entry.getValue();
 			remainrate = remainRate.get(mountPoint);
-			if(remainsize < limit.getRemainForceSize()){
-				map.put(mountPoint,"磁盘剩余量低于限制值 "+ limit.getRemainForceSize()+", 当前剩余值为"+remainsize);
-			}else if(remainsize < limit.getRemainWarnSize()){
+			if(remainsize < limit.getRemainWarnSize()){
 				map.put(mountPoint,"磁盘剩余量低于警告值 "+ limit.getRemainWarnSize()+", 当前剩余值为"+remainsize);
-
 			}else if(remainrate < limit.getForceDiskRemainRate()){
 				map.put(mountPoint,"磁盘可利用率低于危险值 "+ limit.getForceDiskRemainRate()+", 当前剩余值为"+remainrate);
 			}else if(remainrate < limit.getDiskRemainRate()){
