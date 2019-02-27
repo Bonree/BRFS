@@ -239,27 +239,28 @@ storage.file.capacity = 67108864
 
 #资源限制 网卡接收率
 #limit.resource.value.netrspeedrate = 0.9
-
-#报警邮件配置
+######################
+#####报警邮件配置######
+######################
 # 邮箱服务地址
-email.smtp=mail.bonree.com
+#email.smtp=mail.bonree.com
 # 邮箱服务发送端口
-email.smtp.port=25
+#email.smtp.port=25
 # 邮箱发送者
-email.send.user=redalert@bonree.com
+#email.send.user=redalert@bonree.com
 # 邮箱发送者密码
-email.send.user.password=alert!^*90
+#email.send.user.password=alert!^*90
 # 是否开启ssl发送
-email.use_ssl=false
+#email.use_ssl=false
 # 接收者列表，通过，分割
-email.recipient=zhucg@bonree.com
+#email.recipient=zhucg@bonree.com
 # 邮件内容标题，并非邮件主题
-email.header=BRFS集群
+#email.header=BRFS集群
 # 邮件默认模块
-email.model=brfs
+#email.model=brfs
 # 公司信息
-email.company=北京博睿宏远数据科技股份有限公司 版权所有   京 ICP备 08104257 号 京公网安备 1101051190
+#email.company=北京博睿宏远数据科技股份有限公司 版权所有   京 ICP备 08104257 号 京公网安备 1101051190
 # 版权信息
-email.copyright=Copyright ©2007-2019 All rights reserved
+#email.copyright=Copyright ©2007-2019 All rights reserved
 # 发送email线程池大小
-email.pool.size
+#email.pool.size=3
