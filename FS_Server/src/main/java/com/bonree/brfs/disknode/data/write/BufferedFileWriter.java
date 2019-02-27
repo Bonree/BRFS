@@ -76,9 +76,11 @@ public class BufferedFileWriter implements FileWriter {
 			//如果写入的数据超过了缓存大小，则直接写入文件，这种情况不需要对数据
 			//进行缓存
 			try {
+				LOG.info("direct write data size[{}] to file[{}]", length, filePath);
 				file.getChannel().write(ByteBuffer.wrap(bytes, offset, length));
 				
 				fileLength = file.getChannel().position();
+				LOG.info("file length [{}] file[{}]", fileLength, filePath);
 			} catch (IOException e) {
 				file.getChannel().truncate(fileLength);
 				
