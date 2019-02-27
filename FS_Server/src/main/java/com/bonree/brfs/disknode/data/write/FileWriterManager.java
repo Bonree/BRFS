@@ -231,6 +231,7 @@ public class FileWriterManager implements LifeCycle {
 	private List<RecordElement> validElements(String filepath, List<RecordElement> originElements) {
 		byte[] bytes = DataFileReader.readFile(filepath, 0);
 		List<String> offsets = FileDecoder.getDataFileOffsets(bytes);
+		LOG.info("adjust get [{}] records from data file of [{}]", offsets.size(), filepath);
 		
 		List<RecordElement> validElmentList = new ArrayList<RecordElement>();
 		RecordElement element = originElements.get(0);
@@ -240,15 +241,13 @@ public class FileWriterManager implements LifeCycle {
 		}
 		
 		validElmentList.add(element);
-		int index = 0;
-		int originSize = originElements.size();
-		for(index = 0; index < offsets.size(); index++) {
+		for(int index = 0; index < offsets.size(); index++) {
 			List<String> parts = Splitter.on("|").splitToList(offsets.get(index));
 			int offset = Integer.parseInt(parts.get(0));
 			int size = Integer.parseInt(parts.get(1));
 			long crc = ByteUtils.crc(bytes, offset, size);
 			
-			if(index + 1 >= originSize) {
+			if(index + 1 >= originElements.size()) {
 				//数据文件还有数据，但日志文件没有记录
 				validElmentList.add(new RecordElement(offset, size, crc));
 				continue;
@@ -284,6 +283,7 @@ public class FileWriterManager implements LifeCycle {
 		}
 		
 		List<RecordElement> originElements = binding.first().getRecordCollection().getRecordElementList();
+		LOG.info("adjust get [{}] records from record collection of [{}]", originElements.size(), filePath);
 		if(originElements.isEmpty()) {
 			//没有数据写入成功，不需要任何协调
 			return;
