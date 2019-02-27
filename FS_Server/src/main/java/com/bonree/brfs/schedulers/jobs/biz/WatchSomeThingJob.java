@@ -58,11 +58,11 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 		}catch (Exception e) {
 			LOG.error("{}",e);
 			MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
-			builder.setModel(this.getClass().getName()+"模块服务发生错误");
+			builder.setModel(this.getClass().getSimpleName()+"模块服务发生问题");
 			builder.setException(e);
 			builder.setMessage("看门狗发生错误");
 			builder.setVariable(data.getWrappedMap());
-			EmailPool.getInstance().sendEmail(builder,false);
+			EmailPool.getInstance().sendEmail(builder);
 		}finally{
 		    if(curatorClient != null){
 		        curatorClient.close();

@@ -190,8 +190,13 @@ public class ResourceModel{
             return diskSize;
         }
         String mount = getMountedPoint(sn);
-        long size = this.getLocalRemainSizeValue().get(mount);
-        return size <=0 ? diskSize : size;
+        if(BrStringUtils.isEmpty(mount)){
+            return diskSize;
+        }
+        if(!localRemainSizeValue.containsKey(mount)){
+            return diskSize;
+        }
+        return this.getLocalRemainSizeValue().get(mount);
     }
     public void setLocalRemainSizeValue(Map<String, Long> localRemainSizeValue){
         this.localRemainSizeValue = localRemainSizeValue;

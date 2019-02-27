@@ -42,7 +42,7 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         }
         Set<ResourceModel> wins = new HashSet<>();
         long diskRemainSize;
-        int numSize = this.storer.fileNodeSize();
+        int numSize =this.storer == null ? 0: this.storer.fileNodeSize();
         for(ResourceModel resourceModel : resourceModels){
             diskRemainSize = resourceModel.getLocalRemainSizeValue(path) - numSize *fileSize;
             if(diskRemainSize < this.limit.getRemainForceSize()){
@@ -64,7 +64,7 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         }
         // 如果可选服务少于需要的，发送报警邮件
         int resourceSize = resources.size();
-        boolean lessFlag = resourceSize <= num;
+        boolean lessFlag = resourceSize < num;
         if(lessFlag){
             sendSelectEmail(resources,path,num);
             return resources;
@@ -109,14 +109,16 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         String key;
         for(ResourceModel resource : resourceModels){
             key = resource.getServerId()+"("+resource.getHost()+")";
-            part = resource.getMountedPoint(sn);
+            part = sn+"(path:"+resource.getMountedPoint(sn)+")";
             map.put(key,part);
         }
-        MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance())
-                .setModel(this.getClass().getName()+"服务选择")
-                .setMessage(messageBuilder.toString())
-                .setVariable(map);
-        EmailPool.getInstance().sendEmail(builder,false);
+        MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
+        builder.setModel(this.getClass().getSimpleName()+"服务选择");
+        builder.setMessage(messageBuilder.toString());
+        if(!map.isEmpty()){
+            builder.setVariable(map);
+        }
+        EmailPool.getInstance().sendEmail(builder);
     }
     /**
      * 随机选择
@@ -152,9 +154,9 @@ public class MachineResourceWriterSelector implements ServiceSelector{
                 }
             }
             MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance())
-                    .setModel(this.getClass().getName()+"服务选择")
+                    .setModel(this.getClass().getSimpleName()+"服务选择")
                     .setMessage("sr ["+sn+"]即将 在 "+key+"("+ip+") 服务 写入重复数据");
-            EmailPool.getInstance().sendEmail(builder,false);
+            EmailPool.getInstance().sendEmail(builder);
             sids.add(tmp.getServerId());
         }
         return resourceModels;

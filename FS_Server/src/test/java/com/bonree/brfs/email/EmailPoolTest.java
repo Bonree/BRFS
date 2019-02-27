@@ -26,27 +26,24 @@ public class EmailPoolTest{
     @SuppressWarnings("all")
     public void sendmail(){
         MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance()).setException(new NullPointerException("none"));
-        EmailPool.getInstance().sendEmail(builder,false);
-        LOG.info("----------------------------------------------------");
-        try{
-            Thread.sleep(1000);
-        } catch(InterruptedException e){
-            e.printStackTrace();
-        }
+        EmailPool.getInstance().sendEmail(builder);
     }
     @Test
     @SuppressWarnings("all")
     public void sendmailWaitResult(){
         MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance()).setException(new NullPointerException("none"));
-        boolean status = EmailPool.getInstance().sendEmail(builder,true);
-        LOG.info("send status :{}",status);
+        EmailPool.getInstance().sendEmail(builder);
     }
 
     @Test
     @SuppressWarnings("all")
     public void sendmailWaitResultNOException(){
         MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance()).setMessage("我是谁");
-        boolean status = EmailPool.getInstance().sendEmail(builder,true);
-        LOG.info("send status :{}",status);
+        EmailPool.getInstance().sendEmail(builder);
+        try{
+            Thread.sleep(1000);
+        } catch(InterruptedException e){
+            e.printStackTrace();
+        }
     }
 }

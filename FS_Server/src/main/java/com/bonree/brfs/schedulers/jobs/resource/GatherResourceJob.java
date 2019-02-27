@@ -147,10 +147,10 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		}
 		if(!map.isEmpty()){
 			MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
-			builder.setModel(this.getClass().getName()+"模块服务发生错误");
-			builder.setMessage("资源即将不足");
+			builder.setModel(this.getClass().getSimpleName()+"模块服务告警");
+			builder.setMessage(resource.getServerId()+"("+resource.getHost()+") 磁盘资源即将不足");
 			builder.setVariable(map);
-			EmailPool.getInstance().sendEmail(builder,false);
+			EmailPool.getInstance().sendEmail(builder);
 		}
 
 	}

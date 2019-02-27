@@ -59,25 +59,15 @@ public class EmailPool{
     /**
      * 并发发送邮件，避免因为邮件发送耗时阻塞服务
      * @param builder 邮件消息
-     * @param waitResult 等待发送结果
      */
-    public boolean sendEmail(final MailWorker.Builder builder,boolean waitResult){
-        Callable<Boolean> callable = new Callable<Boolean>(){
+    public void sendEmail(final MailWorker.Builder builder){
+        Runnable callable = new Runnable(){
+            private MailWorker mailWorker = builder.build();
             @Override
-            public Boolean call() throws Exception{
-                return builder.build().sendEmail();
+            public void run(){
+                mailWorker.sendEmail();
             }
         };
-        Future<Boolean> future = this.pool.submit(callable);
-        boolean rFlag = true;
-        if(waitResult){
-            try{
-                rFlag = future.get();
-            } catch(InterruptedException | ExecutionException e){
-                LOG.error("send mail happen exception {}",e);
-                rFlag = false;
-            }
-        }
-        return rFlag;
+        this.pool.submit(callable);
     }
 }

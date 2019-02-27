@@ -49,11 +49,11 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 			isSuccess = false;
 			LOG.info("{}",e);
 			MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
-			builder.setModel(this.getClass().getName()+"模块服务发生错误");
+			builder.setModel(this.getClass().getSimpleName()+" execute 模块服务发生问题");
 			builder.setException(e);
 			builder.setMessage("执行任务发生错误");
 			builder.setVariable(data.getWrappedMap());
-			EmailPool.getInstance().sendEmail(builder,false);
+			EmailPool.getInstance().sendEmail(builder);
 		}finally{
 			if(data == null){
 				return;
@@ -80,11 +80,11 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 			} catch (Exception e) {
 				LOG.error("execute error", e);
 				MailWorker.Builder builder = MailWorker.newBuilder(ProgramInfo.getInstance());
-				builder.setModel(this.getClass().getName()+"模块服务发生错误");
+				builder.setModel(this.getClass().getSimpleName()+"模块服务发生问题");
 				builder.setException(e);
 				builder.setMessage("更新任务发生错误");
 				builder.setVariable(data.getWrappedMap());
-				EmailPool.getInstance().sendEmail(builder,false);
+				EmailPool.getInstance().sendEmail(builder);
 			}
 		}
 		
