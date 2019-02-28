@@ -463,7 +463,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			String[] states = new String[fullstates.size()];
 			recoveryMessage.setSources(fullstates.toArray(states));
 			
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_DELETE_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_RECOVER_FILE);
 			message.setBody(ProtoStuffUtils.serialize(recoveryMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
