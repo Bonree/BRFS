@@ -33,9 +33,9 @@ public class CuratorClient implements ZookeeperClient {
 
     private final static RetryPolicy RETRY_POLICY = new RetryNTimes(1, 1000);
 
-    private final static int SESSION_TIMEOUT_MS = 5 * 1000;
+    private final static int SESSION_TIMEOUT_MS = 300 * 1000;
 
-    private final static int CONNECTION_TIMEOUT_MS = 5 * 1000;
+    private final static int CONNECTION_TIMEOUT_MS = 300 * 1000;
 
     private final static String DEFAULT_VALUE = "";
 
