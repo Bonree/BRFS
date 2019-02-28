@@ -104,6 +104,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		LOG.info("update sn time {}", sourceTimes);
 		createTransferTasks(release);
 	}
+
 	public void createTransferTasks(MetaTaskManagerInterface release) {
 		List<String> taskNames = release.getTransferTask(TaskType.SYSTEM_CHECK.name());
 		if(taskNames == null) {

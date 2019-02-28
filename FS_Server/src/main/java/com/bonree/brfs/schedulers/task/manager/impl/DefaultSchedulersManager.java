@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +49,14 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		}
 		catch (Exception e) {
 			LOG.error("{},{},{}",taskpoolkey,task.getClassInstanceName(),e);
+			EmailPool emailPool = EmailPool.getInstance();
+			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+			builder.setMessage("添加"+taskpoolkey+"任务发生异常 ！！");
+			builder.setVariable(task.getTaskContent());
+			builder.setException(e);
+			builder.setModel(this.getClass().getSimpleName());
+			emailPool.sendEmail(builder);
+
 			return false;
 		}
 	}

@@ -61,7 +61,7 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
 			builder.setModel(this.getClass().getSimpleName()+"模块服务发生问题");
 			builder.setException(e);
-			builder.setMessage("看门狗发生错误");
+			builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 看门狗发生错误");
 			builder.setVariable(data.getWrappedMap());
 			emailPool.sendEmail(builder);
 		}finally{

@@ -6,9 +6,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.mail.worker.MailWorker;
+import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,9 +148,10 @@ public class CopyCountCheck {
         CuratorClient zkClient = mcf.getClient();
         SecondIDParser parser;
         String basePath = mcf.getZkPath().getBaseRoutePath();
+        int timeout = 10000;
 		for(Service service : services){
             try{
-				client = TcpClientUtils.getClient(service.getHost(), service.getPort(), service.getExtraPort(), 5000);
+				client = TcpClientUtils.getClient(service.getHost(), service.getPort(), service.getExtraPort(), timeout);
 				long granule;
 				for(StorageRegion sn : snList){
 
@@ -179,6 +183,19 @@ public class CopyCountCheck {
 						snMap.get(sn).addAll(strs);
 					}
 				}
+            }catch(Exception e){
+				EmailPool emailPool = EmailPool.getInstance();
+				MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+				builder.setModel("collect file execute 模块服务发生问题");
+				builder.setException(e);
+				builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 执行任务时发生问题");
+				Map<String,String> map = new HashedMap();
+				map.put("remote ",service.getHost());
+				map.put("connectTimeout",String.valueOf(timeout));
+				map.put("sn",String.valueOf(timeout));
+				builder.setVariable(map);
+				emailPool.sendEmail(builder);
+				throw  e;
 			}finally{
 				if(client != null){
 					try {

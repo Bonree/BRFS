@@ -5,8 +5,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
+import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -287,6 +291,19 @@ public class CopyRecovery {
 			client.readFile(remotePath, consumer);
 			return consumer.getResult().get();
 		}catch (InterruptedException | IOException | ExecutionException e) {
+			EmailPool emailPool = EmailPool.getInstance();
+			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+			builder.setModel("collect file execute 模块服务发生问题");
+			builder.setException(e);
+			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+			builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 执行任务时发生问题");
+			Map<String,String> map = new HashedMap();
+			map.put("remote ",host);
+			map.put("remote path",remotePath);
+			map.put("local path", localPath);
+			map.put("connectTimeout", String.valueOf(timeout));
+			builder.setVariable(map);
+			emailPool.sendEmail(builder);
 			return false;
 		} finally {
 			if (client != null) {

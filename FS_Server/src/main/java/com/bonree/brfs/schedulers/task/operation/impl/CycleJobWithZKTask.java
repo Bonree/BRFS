@@ -81,7 +81,8 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
 			builder.setModel(this.getClass().getSimpleName()+"模块服务发生问题");
 			builder.setException(e);
-			builder.setMessage("执行任务发生错误");
+			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+			builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 执行任务时发生问题");
 			builder.setVariable(data.getWrappedMap());
 			emailPool.sendEmail(builder);
 		}finally{

@@ -1,6 +1,7 @@
 package com.bonree.brfs.schedulers.task.operation.impl;
 
 import com.bonree.brfs.email.EmailPool;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 import com.bonree.mail.worker.MailWorker;
@@ -52,7 +53,8 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
 			builder.setModel(this.getClass().getSimpleName()+" execute 模块服务发生问题");
 			builder.setException(e);
-			builder.setMessage("执行任务发生错误");
+			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+			builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 执行任务时发生问题");
 			builder.setVariable(data.getWrappedMap());
 			emailPool.sendEmail(builder);
 		}finally{
