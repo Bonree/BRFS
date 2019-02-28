@@ -150,6 +150,12 @@ public class CuratorClient implements ZookeeperClient {
     }
 
     @Override
+    public void useNameSpace(String path) {
+        CuratorFramework tmpClient = client.usingNamespace(path);
+        wrapClient(tmpClient);
+    }
+
+    @Override
     public void close() {
         if (client != null) {
             client.close();

@@ -271,7 +271,7 @@ public class MultiRecover implements DataRecover {
                     .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
                             .getHourMinSecond();
             if (!perFile.endsWith(".rd")) {
-                dealFile(perFile, brfsPath.getFileName(), timeFile, Integer.valueOf(brfsPath.getIndex()));
+                dealFile(perFile, brfsPath.getFileName(), timeFile, Integer.parseInt(brfsPath.getIndex()));
             }
         }
 

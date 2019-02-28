@@ -300,7 +300,7 @@ public class MultiRecover3 implements DataRecover {
             // 需要迁移的文件,按目录的时间从小到大处理
             String replicaPath = snDataDir + FileUtils.FILE_SEPARATOR + replica;
             List<String> timeFileNames = FileUtils.listFileNames(replicaPath);
-            dealTimeFile(timeFileNames, Integer.valueOf(replica), snDataDir);
+            dealTimeFile(timeFileNames, Integer.parseInt(replica), snDataDir);
         }
     }
 
