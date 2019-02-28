@@ -35,22 +35,39 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         this.fileSize = fileSize;
     }
     @Override
-    public Collection<ResourceModel> filterService(Collection<ResourceModel> resourceModels, String path){
+    public Collection<ResourceModel> filterService(Collection<ResourceModel> resourceModels, String sn){
         // 无资源
         if(resourceModels == null|| resourceModels.isEmpty()){
+            LOG.warn("no resource to selector");
             return null;
         }
         Set<ResourceModel> wins = new HashSet<>();
         long diskRemainSize;
         int numSize =this.storer == null ? 0: this.storer.fileNodeSize();
-        for(ResourceModel resourceModel : resourceModels){
-            diskRemainSize = resourceModel.getLocalRemainSizeValue(path) - numSize *fileSize;
+
+        List<ResourceModel> washroom = new ArrayList<>();
+        // 将已经满足条件的服务过滤
+        for(ResourceModel wash : resourceModels){
+            diskRemainSize = wash.getLocalRemainSizeValue(sn);
             if(diskRemainSize < this.limit.getRemainForceSize()){
-                LOG.warn("sn: {} remainsize: {}, force:{} !! will refused",path,diskRemainSize,this.limit.getRemainForceSize());
+                LOG.warn("First sn: {} ip: {}, path: {} remainsize: {}, force:{} !! will refused",
+                              sn,    wash.getHost(),wash.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
+                continue;
+            }
+            washroom.add(wash);
+        }
+        int size = washroom.size();
+        // 预测值，假设现在所有正在写的文件大小为0，通过现有写入的文件的数×配置的文件大小即为集群将要写入的值，再除于可用的服务数，即为当前每台服务正在写入文件占用的磁盘空间，每个服务剩余值都减去该值
+        long writeSize = numSize *fileSize/size;
+        for(ResourceModel resourceModel : washroom){
+            diskRemainSize = resourceModel.getLocalRemainSizeValue(sn) - writeSize;
+            LOG.warn("sn: {} ip: {}, path: {} remainsize: {}({}:{}:{}), force:{} !! ",sn,resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,numSize,fileSize,size,this.limit.getRemainForceSize());
+            if(diskRemainSize < this.limit.getRemainForceSize()){
+                LOG.warn("Second sn: {} ip: {}, path: {} remainsize: {}, force:{} !! will refused",sn,resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
                 continue;
             }
             if(diskRemainSize <this.limit.getRemainWarnSize()){
-                LOG.warn("sn: {} remainsize: {}, force:{} !! will full",path,diskRemainSize,this.limit.getRemainWarnSize());
+                LOG.warn("sn: {} ip: {}, path: {} remainsize: {}, force:{} !! will full",sn,resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
             }
             wins.add(resourceModel);
         }
@@ -79,6 +96,7 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         if(winSize == num){
             return  wins;
         }
+        LOG.warn("will select service in same ip !!!");
         Set<String> sids = selectWins(wins);
         // 二次选择服务
         int sSize = resourceSize > num ? num - winSize : resourceSize - winSize;

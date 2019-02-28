@@ -301,7 +301,6 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			if (BrStringUtils.isEmpty(taskType)) {
 				return -1;
 			}
-			// TODO Auto-generated method stub
 			List<String> nodes = getTaskList(taskType);
 			if(nodes == null || nodes.isEmpty()){
 				return 0;
