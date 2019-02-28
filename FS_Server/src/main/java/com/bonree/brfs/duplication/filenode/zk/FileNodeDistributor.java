@@ -12,6 +12,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,10 +91,13 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 			@Override
 			public void run() {
 				//任务开始前需要先进行文件扫描，确定需要转移的文件
-                int i = 0;
 				for(FileNode fileNode : fileStorer.listFileNodes()) {
-				    i++;
-				    LOG.info("{}st,name : [{}], duplicate: {}", i, fileNode.getName(), JsonUtils.toJsonBytesQuietly(fileNode));
+				    LOG.info("find FileNode[{}], service[{}:{}] create at[{}]",
+				    		fileNode.getName(),
+				    		fileNode.getServiceGroup(),
+				    		fileNode.getServiceId(),
+				    		new DateTime(fileNode.getCreateTime())
+				    		);
 					Long serviceTime = serviceTimeTable.get(fileNode.getServiceGroup(), fileNode.getServiceId());
 					if(serviceTime == null) {
 						for(Service service : serviceManager.getServiceListByGroup(fileNode.getServiceGroup())) {
@@ -104,13 +108,17 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 					}
 					
 					if(serviceTime != null && serviceTime <= fileNode.getServiceTime()) {
-                        LOG.info("{}st,name : [{}], serviceTime {}, duplicate: {}", i,serviceTime, fileNode.getName(), JsonUtils.toJsonBytesQuietly(fileNode));
+                        LOG.info("skip FileNode[{}] with nodeServiceTime[{}] after serviceTime[{}]",
+                        		fileNode.getName(),
+                        		new DateTime(fileNode.getServiceTime()),
+                        		new DateTime(serviceTime)
+                        		);
 						continue;
 					}
 					
 					if(timeToLive(fileNode) > 0) {
 						wildFileNodes.add(fileNode);
-                        LOG.info("{}st,name : [{}], add willist duplicate: {}", i, fileNode.getName(), JsonUtils.toJsonBytesQuietly(fileNode));
+                        LOG.info("add FileNode[{}] to wild file list", fileNode.getName());
 						continue;
 					}
 					
@@ -168,7 +176,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 	}
 	
 	private boolean handleFileNode(FileNode fileNode) {
-	    LOG.info("deal {}", JsonUtils.toJsonStringQuietly(fileNode));
+	    LOG.info("handling wild FileNode[{}]", JsonUtils.toJsonStringQuietly(fileNode));
 		List<Service> serviceList = getServiceWithStorageRegionName(fileNode.getStorageName());
 		Service target = serviceSelector.selectWith(fileNode, serviceList);
 		if(target == null) {
@@ -209,7 +217,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 	}
 	
 	private void dispatchWildFileNode() {
-	    LOG.info("wildlist will go new home !!");
+	    LOG.info("wildlist[size:{}] will go new home !!", wildFileNodes.size());
 		Iterator<FileNode> iter = wildFileNodes.iterator();
 		while(iter.hasNext()) {
 			if(handleFileNode(iter.next())) {
