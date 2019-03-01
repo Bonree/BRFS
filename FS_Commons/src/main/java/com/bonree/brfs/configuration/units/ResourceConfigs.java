@@ -93,7 +93,7 @@ public final class ResourceConfigs {
 	
 	public static final ConfigUnit<Double> CONFIG_LIMIT_NET_RECEIVE =
 			ConfigUnit.ofDouble("limit.resource.value.netrspeedrate", 0.9);
-	
+	public static final ConfigUnit<Long> CONFIG_RESOURCE_EMAIL_INVERT = ConfigUnit.ofLong("resource.email.time",300);
 	public static final ConfigUnit<Long> CONFIG_DATA_CHECK_TTL =
 			ConfigUnit.ofLong("system.check.data.ttl", 3600);
 	

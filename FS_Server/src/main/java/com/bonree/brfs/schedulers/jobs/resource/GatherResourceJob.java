@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.*;
 import com.bonree.mail.worker.MailWorker;
@@ -40,7 +42,8 @@ import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 public class GatherResourceJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(GatherResourceJob.class);
 	private static Queue<StateMetaServerModel> queue = new ConcurrentLinkedQueue<StateMetaServerModel>();
-
+	private static long preTime = 0L;
+	private static long INVERTTIME = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT)*1000;
 	@Override
 	public void caughtException(JobExecutionContext context) {
 	}
@@ -136,19 +139,19 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			remainrate = remainRate.get(mountPoint);
 			if(remainsize < limit.getRemainWarnSize()){
 				map.put(mountPoint,"磁盘剩余量低于警告值 "+ limit.getRemainForceSize()+", 当前剩余值为"+remainsize);
-			}else if(remainrate < limit.getForceDiskRemainRate()){
-				map.put(mountPoint,"磁盘可利用率低于危险值 "+ limit.getForceDiskRemainRate()+", 当前剩余值为"+remainrate);
 			}else if(remainrate < limit.getDiskRemainRate()){
 				map.put(mountPoint,"磁盘可利用率低于警告值 "+ limit.getDiskRemainRate()+", 当前剩余值为"+remainrate);
 			}
 		}
-		if(!map.isEmpty()){
+		long currentTime = System.currentTimeMillis();
+		if(!map.isEmpty()&& (currentTime - preTime) > INVERTTIME){
 			EmailPool emailPool = EmailPool.getInstance();
 			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
 			builder.setModel(this.getClass().getSimpleName()+"模块服务告警");
 			builder.setMessage(resource.getServerId()+"("+resource.getHost()+") 磁盘资源即将不足");
 			builder.setVariable(map);
 			emailPool.sendEmail(builder);
+			preTime = currentTime;
 		}
 
 	}
