@@ -244,63 +244,59 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 		@Override
 		public FileObject call() throws Exception {
 			while(true) {
-				try {
-					recycleFileObjects();
-					
-					Iterator<FileObject> iter = idleFileList.iterator();
-					while(iter.hasNext()) {
-						FileObject file = iter.next();
-						if(file.apply(dataSize)) {
-							iter.remove();
-							busyFileList.add(file);
-							return file;
-						}
-						
-						checkSize(dataSize, file);
-						
-						if((totalSize() >= cleanLimit && Double.compare(file.length(), file.capacity() * cleanFileLengthRatio) >= 0)
-								|| (totalSize() >= forceCleanLimit)) {
-							LOG.info("force clean to file[{}]", file.node().getName());
-							iter.remove();
-							fileCloser.close(file, true);
-						}
-					}
-					
-					List<FileObject> usableBusyFileList = new ArrayList<FileObject>();
-					for(FileObject file : busyFileList) {
-						if(file.free() >= dataSize) {
-							usableBusyFileList.add(file);
-							continue;
-						}
-						
-						checkSize(dataSize, file);
-					}
-					
-					LOG.debug("idle => {}, busy => {}, exception => {}", idleFileList.size(), busyFileList.size(), exceptionFileList.size());
-					if(totalSize() < cleanLimit || (totalSize() < forceCleanLimit && usableBusyFileList.isEmpty())) {
-						FileObject file = fileFactory.createFile(storageRegion);
-						if(file == null) {
-							throw new RuntimeException("can not create file node!");
-						}
-						
-						LOG.info("create file object[{}] with capactiy[{}]", file.node().getName(), file.capacity());
-						if(dataSize > file.capacity()) {
-							idleFileList.add(file);
-							throw new IllegalStateException("data size is too large to save to file, get " + dataSize + ", but max " + file.capacity());
-						}
-						
-						file.apply(dataSize);
+				recycleFileObjects();
+				
+				Iterator<FileObject> iter = idleFileList.iterator();
+				while(iter.hasNext()) {
+					FileObject file = iter.next();
+					if(file.apply(dataSize)) {
+						iter.remove();
 						busyFileList.add(file);
-						
 						return file;
 					}
 					
-					LOG.debug("available busy file count => {}", usableBusyFileList.size());
-					while(recycledFiles.isEmpty() && exceptedFiles.isEmpty()) {
-						Thread.yield();
+					checkSize(dataSize, file);
+					
+					if((totalSize() >= cleanLimit && Double.compare(file.length(), file.capacity() * cleanFileLengthRatio) >= 0)
+							|| (totalSize() >= forceCleanLimit)) {
+						LOG.info("force clean to file[{}]", file.node().getName());
+						iter.remove();
+						fileCloser.close(file, true);
 					}
-				}catch(Throwable t) {
-					LOG.error("fetch error", t);
+				}
+				
+				List<FileObject> usableBusyFileList = new ArrayList<FileObject>();
+				for(FileObject file : busyFileList) {
+					if(file.free() >= dataSize) {
+						usableBusyFileList.add(file);
+						continue;
+					}
+					
+					checkSize(dataSize, file);
+				}
+				
+				LOG.debug("idle => {}, busy => {}, exception => {}", idleFileList.size(), busyFileList.size(), exceptionFileList.size());
+				if(totalSize() < cleanLimit || (totalSize() < forceCleanLimit && usableBusyFileList.isEmpty())) {
+					FileObject file = fileFactory.createFile(storageRegion);
+					if(file == null) {
+						throw new RuntimeException("can not create file node!");
+					}
+					
+					LOG.info("create file object[{}] with capactiy[{}]", file.node().getName(), file.capacity());
+					if(dataSize > file.capacity()) {
+						idleFileList.add(file);
+						throw new IllegalStateException("data size is too large to save to file, get " + dataSize + ", but max " + file.capacity());
+					}
+					
+					file.apply(dataSize);
+					busyFileList.add(file);
+					
+					return file;
+				}
+				
+				LOG.debug("available busy file count => {}", usableBusyFileList.size());
+				while(recycledFiles.isEmpty() && exceptedFiles.isEmpty()) {
+					Thread.yield();
 				}
 			}
 		}

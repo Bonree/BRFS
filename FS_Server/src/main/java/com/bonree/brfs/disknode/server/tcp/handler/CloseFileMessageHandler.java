@@ -64,13 +64,18 @@ public class CloseFileMessageHandler implements MessageHandler<BaseResponse> {
 				}
 				
 				MappedByteBuffer buffer = Files.map(dataFile);
-				buffer.position(fileFormater.fileHeader().length());
-				buffer.limit(filePath.length() - fileFormater.fileTailer().length());
-				BaseResponse response = new BaseResponse(ResponseCode.OK);
-				response.setBody(Longs.toByteArray(ByteUtils.cyc(buffer)));
-				BufferUtils.release(buffer);
-				writer.write(response);
-				return;
+				try {
+					buffer.position(fileFormater.fileHeader().length());
+					buffer.limit(filePath.length() - fileFormater.fileTailer().length());
+					BaseResponse response = new BaseResponse(ResponseCode.OK);
+					response.setBody(Longs.toByteArray(ByteUtils.crc(buffer)));
+					BufferUtils.release(buffer);
+					writer.write(response);
+					return;
+				} finally {
+					BufferUtils.release(buffer);
+				}
+				
 			}
 			
 			binding.second().put(new WriteTask<Long>() {
