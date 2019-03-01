@@ -20,4 +20,12 @@ public class KafkaConfig {
 
     public static final ConfigUnit<String> CONFIG_TOPIC =
             ConfigUnit.ofString("kafka.topic","brfs_merit");
+
+    public static final ConfigUnit<Integer> CONFIG_QUEUE_SIZE =
+            ConfigUnit.ofInt("kafka.queue.size", 200000);
+
+    public static final ConfigUnit<Boolean> CONFIG_KAFKA_SWITCH =
+            ConfigUnit.ofBoolean("kafka.switch", false);
+
+
 }
