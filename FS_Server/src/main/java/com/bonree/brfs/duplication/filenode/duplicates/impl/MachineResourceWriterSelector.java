@@ -55,6 +55,9 @@ public class MachineResourceWriterSelector implements ServiceSelector{
             }
             washroom.add(wash);
         }
+        if(washroom.isEmpty()){
+            return  null;
+        }
         int size = washroom.size();
         // 预测值，假设现在所有正在写的文件大小为0，通过现有写入的文件的数×配置的文件大小即为集群将要写入的值，再除于可用的服务数，即为当前每台服务正在写入文件占用的磁盘空间，每个服务剩余值都减去该值
         long writeSize = numSize *fileSize/size;
