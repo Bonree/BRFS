@@ -257,5 +257,7 @@ resource.email.time = 300
 #email.pool.size=3
 
 #kafka地址
+kafka.switch=false
 kafka.brokers=192.168.4.114:9092
 kafka.topic=brfs_merit
+kafka.queue.size=200000

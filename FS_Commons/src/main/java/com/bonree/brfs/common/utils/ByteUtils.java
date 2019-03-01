@@ -16,7 +16,7 @@ public final class ByteUtils {;
 		return crc32.getValue();
 	}
 	
-	public static long cyc(ByteBuffer buf) {
+	public static long crc(ByteBuffer buf) {
 		CRC32 crc32 = new CRC32();
 		crc32.update(buf);
 		

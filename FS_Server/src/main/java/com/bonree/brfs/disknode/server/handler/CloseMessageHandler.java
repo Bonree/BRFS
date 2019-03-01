@@ -57,12 +57,15 @@ public class CloseMessageHandler implements MessageHandler {
 				}
 				
 				MappedByteBuffer buffer = Files.map(dataFile);
-				buffer.position(fileFormater.fileHeader().length());
-				buffer.limit(filePath.length() - fileFormater.fileTailer().length());
-				result.setData(Longs.toByteArray(ByteUtils.cyc(buffer)));
-				result.setSuccess(true);
-				BufferUtils.release(buffer);
-				return;
+				try {
+					buffer.position(fileFormater.fileHeader().length());
+					buffer.limit(filePath.length() - fileFormater.fileTailer().length());
+					result.setData(Longs.toByteArray(ByteUtils.crc(buffer)));
+					result.setSuccess(true);
+					return;
+				} finally {
+					BufferUtils.release(buffer);
+				}
 			}
 			
 			LOG.info("start writing file tailer for {}", filePath);

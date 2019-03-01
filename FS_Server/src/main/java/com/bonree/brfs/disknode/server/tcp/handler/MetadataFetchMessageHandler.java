@@ -114,7 +114,7 @@ public class MetadataFetchMessageHandler implements MessageHandler<BaseResponse>
 		} else {
 			//到这有两种情况：
 			//1、文件打开操作未成功后进行同步；
-			//2、文件关闭操作未成功进行再次关闭;
+			//2、文件关闭成功后进行文件同步;
 			recordInfo = new ArrayList<RecordElement>();
 			File dataFile = new File(filePath);
 			if(dataFile.exists()) {
