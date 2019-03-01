@@ -82,7 +82,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			return ;
 		}
 		// 更新任务的可执行资源
-		StatServerModel sum = calcStateServer(gatherInveral, dataDir);
+		StatServerModel sum = calcStateServer(gatherInveral, dataDir,count);
 		if (sum != null) {
 			RunnableTaskInterface rt = mcf.getRt();
 			rt.update(sum);
@@ -135,7 +135,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			remainsize = entry.getValue();
 			remainrate = remainRate.get(mountPoint);
 			if(remainsize < limit.getRemainWarnSize()){
-				map.put(mountPoint,"磁盘剩余量低于警告值 "+ limit.getRemainWarnSize()+", 当前剩余值为"+remainsize);
+				map.put(mountPoint,"磁盘剩余量低于警告值 "+ limit.getRemainForceSize()+", 当前剩余值为"+remainsize);
 			}else if(remainrate < limit.getForceDiskRemainRate()){
 				map.put(mountPoint,"磁盘可利用率低于危险值 "+ limit.getForceDiskRemainRate()+", 当前剩余值为"+remainrate);
 			}else if(remainrate < limit.getDiskRemainRate()){
@@ -193,7 +193,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if (childs == null) {
 			return null;
 		}
-		List<BaseMetaServerModel> bases = new ArrayList<BaseMetaServerModel>();
+		List<BaseMetaServerModel> bases = new ArrayList<>();
 		String cPath;
 		byte[] data;
 		BaseMetaServerModel tmp;
@@ -223,10 +223,10 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private StatServerModel calcStateServer(long inverTime, String dataDir) {
+	private StatServerModel calcStateServer(long inverTime, String dataDir,int count) {
 		StatServerModel sum = null;
 		// 0.计算原始状态信息
-		List<StatServerModel> lists = GatherResource.calcState(queue);
+		List<StatServerModel> lists = GatherResource.calcState(queue,count);
 		if (lists == null || lists.isEmpty()) {
 			LOG.warn("server state list is null !!");
 			return sum;
@@ -234,7 +234,6 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 
 		// 1-1初始化storagename管理器
-		// TODO:俞朋 的 获取storageName
 		StorageRegionManager snManager = mcf.getSnm();
 		// 2.获取storage信息
 		List<StorageRegion> storageNames = snManager.getStorageRegionList();

@@ -34,6 +34,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector{
         DuplicateNode[] duplicateNodes;
         try{
             StorageRegion sr = this.storageRegionManager.findStorageRegionById(storageId);
+            String srName = sr.getName();
             if(sr == null){
                 LOG.error("srid : {} is not exist !!!",storageId);
                 return new DuplicateNode[0];
@@ -46,13 +47,13 @@ public class ResourceWriteSelector implements DuplicateNodeSelector{
                 return this.bakSelector.getDuplicationNodes(storageId,nums);
             }
             // 过滤资源异常服务
-            Collection<ResourceModel> selectors = this.resourceSelector.filterService(resources,sr.getName());
+            Collection<ResourceModel> selectors = this.resourceSelector.filterService(resources,srName);
             if(selectors == null || selectors.isEmpty()){
                 LOG.error("[{}] none avaible server to selector !!!",groupName);
                 return new DuplicateNode[0];
             }
             // 按策略获取服务
-            Collection<ResourceModel> wins = this.resourceSelector.selector(selectors,sr.getName(),nums);
+            Collection<ResourceModel> wins = this.resourceSelector.selector(selectors,srName,nums);
             if(wins == null || wins.isEmpty()){
                 LOG.error("[{}] no service can write !!!",groupName);
                 return new DuplicateNode[0];
@@ -70,7 +71,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector{
                 next = iterator.next();
                 duplicateNodes[i] = new DuplicateNode(groupName, next.getServerId());
                 i++;
-                sBuild.append(i).append(":").append(next.getServerId()).append("(").append(next.getHost()).append("), ");
+                sBuild.append(i).append(":").append(next.getServerId()).append("(").append(next.getHost()).append(", remainSize").append(next.getLocalRemainSizeValue(srName)).append("b ), ");
             }
             LOG.info("{}",sBuild.toString());
             return duplicateNodes;

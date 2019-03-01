@@ -9,7 +9,6 @@ import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
 import com.bonree.mail.worker.MailWorker;
-import com.bonree.mail.worker.ProgramInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +49,8 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         for(ResourceModel wash : resourceModels){
             diskRemainSize = wash.getLocalRemainSizeValue(sn);
             if(diskRemainSize < this.limit.getRemainForceSize()){
-                LOG.warn("First sn: {} ip: {}, path: {} remainsize: {}, force:{} !! will refused",
-                              sn,    wash.getHost(),wash.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
+                LOG.warn("First sn: {} {}({}), path: {} remainsize: {}, force:{} !! will refused",
+                              sn,wash.getServerId(),wash.getHost(),wash.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
                 continue;
             }
             washroom.add(wash);
@@ -61,13 +60,13 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         long writeSize = numSize *fileSize/size;
         for(ResourceModel resourceModel : washroom){
             diskRemainSize = resourceModel.getLocalRemainSizeValue(sn) - writeSize;
-            LOG.warn("sn: {} ip: {}, path: {} remainsize: {}({}:{}:{}), force:{} !! ",sn,resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,numSize,fileSize,size,this.limit.getRemainForceSize());
+            LOG.warn("sn: {} {}({}), path: {} remainsize: {}({}:{}:{}), force:{} !! ",sn,resourceModel.getServerId(),resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,numSize,fileSize,size,this.limit.getRemainForceSize());
             if(diskRemainSize < this.limit.getRemainForceSize()){
-                LOG.warn("Second sn: {} ip: {}, path: {} remainsize: {}, force:{} !! will refused",sn,resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
+                LOG.warn("Second sn: {} {}({}), path: {} remainsize: {}, force:{} !! will refused",sn,resourceModel.getServerId(),resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
                 continue;
             }
             if(diskRemainSize <this.limit.getRemainWarnSize()){
-                LOG.warn("sn: {} ip: {}, path: {} remainsize: {}, force:{} !! will full",sn,resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
+                LOG.warn("sn: {} {}({}), path: {} remainsize: {}, force:{} !! will full",sn,resourceModel.getServerId(),resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
             }
             wins.add(resourceModel);
         }
@@ -102,7 +101,6 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         int sSize = resourceSize > num ? num - winSize : resourceSize - winSize;
         Collection<ResourceModel> sWins = selectRandom(this.connectionPool,map,sids,intValues,groupName,path,sSize);
         wins.addAll(sWins);
-        winSize = wins.size();
         // 若依旧不满足则发送邮件
         sendSelectEmail(wins,path,num);
         return wins;
@@ -127,7 +125,7 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         String key;
         for(ResourceModel resource : resourceModels){
             key = resource.getServerId()+"("+resource.getHost()+")";
-            part = sn+"(path:"+resource.getMountedPoint(sn)+")";
+            part = sn+"[path:"+resource.getMountedPoint(sn)+", remainSize: "+resource.getLocalRemainSizeValue(sn)+"b]";
             map.put(key,part);
         }
         EmailPool emailPool = EmailPool.getInstance();

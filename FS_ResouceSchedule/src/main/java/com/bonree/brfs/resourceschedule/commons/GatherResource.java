@@ -148,7 +148,7 @@ public class GatherResource {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<StatServerModel> calcState(Queue<StateMetaServerModel> queue){
+	public static List<StatServerModel> calcState(Queue<StateMetaServerModel> queue, int pollSize){
 		List<StatServerModel> orderList = new ArrayList<StatServerModel>();
 		if(queue == null){
 			return orderList;
@@ -157,20 +157,39 @@ public class GatherResource {
 		if(size < 2){
 			return orderList;
 		}
-		StatServerModel obj = null;
+		StatServerModel obj;
 		StateMetaServerModel pre = null;
-		StateMetaServerModel current = null;
-		for(int i = 0; i < size; i++){
-			if(i == 0 || pre == null){
-				pre = queue.poll();
+		StateMetaServerModel current;
+		if(size > pollSize){
+			int pSize = size - pollSize;
+			for(int i = 0;i <pSize;i++){
+				if(i == 0 || pre == null){
+					pre = queue.poll();
+					continue;
+				}
+				current = queue.poll();
+				obj = current.converObject(pre);
+				orderList.add(obj);
+				pre = current;
+			}
+
+		}
+		if(queue.isEmpty()){
+			return orderList;
+		}
+		Iterator<StateMetaServerModel> iterator = queue.iterator();
+		StateMetaServerModel next;
+		while(iterator.hasNext()){
+			next = iterator.next();
+			if(pre == null){
+				pre = next;
 				continue;
 			}
-			current = queue.poll();
+			current = next;
 			obj = current.converObject(pre);
 			orderList.add(obj);
 			pre = current;
 		}
-		
 		return orderList;
 	}
 	/**
