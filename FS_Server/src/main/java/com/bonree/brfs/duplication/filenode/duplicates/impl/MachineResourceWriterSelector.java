@@ -186,6 +186,7 @@ public class MachineResourceWriterSelector implements ServiceSelector{
                     continue;
                 }
             }
+
             if(sendFlag){
                 EmailPool emailPool = EmailPool.getInstance();
                 MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo())
@@ -193,6 +194,7 @@ public class MachineResourceWriterSelector implements ServiceSelector{
                         .setMessage("sr ["+sn+"]即将 在 "+key+"("+ip+") 服务 写入重复数据");
                 emailPool.sendEmail(builder);
             }
+            resourceModels.add(tmp);
             sids.add(tmp.getServerId());
         }
         return resourceModels;
