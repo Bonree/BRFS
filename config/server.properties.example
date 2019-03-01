@@ -211,26 +211,14 @@ storage.file.capacity = 67108864
 #资源选择的比值大小
 #resource.cent.size=1000
 
-#资源限制
-#资源限制 cpu使用率 暂时未用到
-#limit.resource.value.cpurate = 0.9
-
-#资源限制 内存使用率 暂时未用到
-#limit.resource.value.memoryrate = 0.9
 
 #资源限制 磁盘剩余率
 #limit.resource.value.disk.remain.rate = 0.001
 
-
-#资源磁盘剩余告警值，当分区剩余量低于该值，则会发送告警邮件 单位kb
-limit.resource.value.disk.remain.size=20971520
 #资源磁盘剩余限制值，当分区剩余量低于该值，则不会参与写入服务选择， 单位kb
-limit.resource.value.force.disk.remain.size=20971520
+limit.resource.value.force.disk.remain.size=10485760
 #资源限制 磁盘写入率
 #limit.resource.value.disk.write.speed.rate = 0.9
-
-#资源强制限制  磁盘写入率， 磁盘写入率大于该值，将发送告警邮件
-#limit.resource.force.value.disk.write.speed.rate = 0.9
 
 #资源限制 磁盘读取率
 #limit.resource.value.diskreadspeedrate = 0.9
@@ -240,6 +228,8 @@ limit.resource.value.force.disk.remain.size=20971520
 
 #资源限制 网卡接收率
 #limit.resource.value.netrspeedrate = 0.9
+# 资源报警邮件发送时间间隔控制 单位s
+resource.email.time = 300
 ######################
 #####报警邮件配置######
 ######################

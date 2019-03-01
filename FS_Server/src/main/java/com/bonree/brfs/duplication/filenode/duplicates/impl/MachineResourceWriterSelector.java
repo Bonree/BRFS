@@ -1,6 +1,8 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
@@ -19,7 +21,12 @@ import java.util.*;
  */
 public class MachineResourceWriterSelector implements ServiceSelector{
     private static final Logger LOG = LoggerFactory.getLogger(MachineResourceWriterSelector.class);
-    private DiskNodeConnectionPool connectionPool = null;
+    //记录少于服务时
+    private static long preTime = 0L;
+    //记录重复数值的
+    private static long repeatTime = 0L;
+    private static long INVERTTIME = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT)*1000;
+    private DiskNodeConnectionPool connectionPool;
     private String groupName;
     private int centSize;
     private LimitServerResource limit;
@@ -63,7 +70,7 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         long writeSize = numSize *fileSize/size;
         for(ResourceModel resourceModel : washroom){
             diskRemainSize = resourceModel.getLocalRemainSizeValue(sn) - writeSize;
-            LOG.warn("sn: {} {}({}), path: {} remainsize: {}({}:{}:{}), force:{} !! ",sn,resourceModel.getServerId(),resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,numSize,fileSize,size,this.limit.getRemainForceSize());
+//            LOG.warn("sn: {} {}({}), path: {} remainsize: {}({}:{}:{}), force:{} !! ",sn,resourceModel.getServerId(),resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,numSize,fileSize,size,this.limit.getRemainForceSize());
             if(diskRemainSize < this.limit.getRemainForceSize()){
                 LOG.warn("Second sn: {} {}({}), path: {} remainsize: {}, force:{} !! will refused",sn,resourceModel.getServerId(),resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
                 continue;
@@ -85,7 +92,11 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         int resourceSize = resources.size();
         boolean lessFlag = resourceSize < num;
         if(lessFlag){
-            sendSelectEmail(resources,path,num);
+            long currentTime = System.currentTimeMillis();
+            // 控制邮件发送的间隔，减少不必要的
+            if(currentTime - preTime > INVERTTIME){
+                sendSelectEmail(resources,path,num);
+            }
             return resources;
         }
         // 转换为Map
@@ -161,6 +172,8 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         int tSize = map.size();
         // 按资源选择
         Random random = new Random();
+        boolean sendFlag = System.currentTimeMillis() - repeatTime > INVERTTIME;
+        repeatTime = sendFlag ? System.currentTimeMillis() : repeatTime;
         while(resourceModels.size() != num && resourceModels.size() !=tSize && sids.size() !=tSize){
             key = WeightRandomPattern.getWeightRandom(intValues,random,sids);
             tmp = map.get(key);
@@ -173,11 +186,13 @@ public class MachineResourceWriterSelector implements ServiceSelector{
                     continue;
                 }
             }
-            EmailPool emailPool = EmailPool.getInstance();
-            MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo())
-                    .setModel(this.getClass().getSimpleName()+"服务选择")
-                    .setMessage("sr ["+sn+"]即将 在 "+key+"("+ip+") 服务 写入重复数据");
-            emailPool.sendEmail(builder);
+            if(sendFlag){
+                EmailPool emailPool = EmailPool.getInstance();
+                MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo())
+                        .setModel(this.getClass().getSimpleName()+"服务选择")
+                        .setMessage("sr ["+sn+"]即将 在 "+key+"("+ip+") 服务 写入重复数据");
+                emailPool.sendEmail(builder);
+            }
             sids.add(tmp.getServerId());
         }
         return resourceModels;
