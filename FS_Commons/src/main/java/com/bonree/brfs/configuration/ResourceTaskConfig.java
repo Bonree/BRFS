@@ -40,7 +40,7 @@ public class ResourceTaskConfig {
 	//创建任务执行的时间间隔s
 	private long createTaskIntervalTime = 60;
 	private long executeTaskIntervalTime = 60;
-	private long gatherResourceInveralTime = 60;
+	private long gatherResourceInveralTime =10;
 	private long taskExpiredTime = 7 * 24 * 60 * 60;
 	private int calcResourceValueCount = 2;
 	private boolean taskFrameWorkSwitch = true;

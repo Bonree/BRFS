@@ -49,7 +49,7 @@ public final class ResourceConfigs {
 			ConfigUnit.ofLong("execute.task.inverval.time", 60l);
 	
 	public static final ConfigUnit<Long> CONFIG_RESOURCE_GATHER_INTERVAL =
-			ConfigUnit.ofLong("gather.resource.inveral.time", 60l);
+			ConfigUnit.ofLong("gather.resource.inveral.time", 10l);
 	
 	public static final ConfigUnit<Integer> CONFIG_RESOURCE_CALCULATE_COUNT =
 			ConfigUnit.ofInt("calc.resource.value.count", 5);
