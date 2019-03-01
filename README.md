@@ -24,7 +24,7 @@ BRFS分布式文件系统接收的数据形式可以是快照、图片或者任�
     2个JMeter  qps:12216; cpu:66%; 内存:26%; IO:53% 吞吐量:15MB</br>
     3个JMeter  qps:15767; cpu:72%; 内存:33%; IO:53% 吞吐量:19MB</br>
 
-  读取性能:
+  读取性能:</br>
     1个JMeter  qps:13295; cpu:21%; 内存:19%; IO:3% 吞吐量:7MB</br>
     2个JMeter  qps:40729; cpu:61%; 内存:19%; IO:5% 吞吐量:20MB</br>
     8个JMeter  qps:96000; cpu:80%; 内存:25%; IO:5% 吞吐量:50MB</br>
