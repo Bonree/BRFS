@@ -76,7 +76,7 @@ public class ProducerClient implements Deliver {
     }
 
 
-    public static Deliver getInstance() throws IOException {
+    public static Deliver getInstance() {
         return Holder.client;
     }
 
@@ -91,6 +91,14 @@ public class ProducerClient implements Deliver {
     }
 
     private boolean sendMessage(String type, Map<String, Object> data) {
+        if(delivery == null){
+            try {
+                build();
+            } catch (IOException e) {
+                LOG.error("deliver client build failed!");
+            }
+        }
+
         if (deliverSwitch) {
             DataTuple dt = new DataTuple(type, data);
             boolean successful = msgQueue.offer(dt);
