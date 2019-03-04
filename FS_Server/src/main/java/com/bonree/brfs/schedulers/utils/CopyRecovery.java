@@ -64,7 +64,7 @@ public class CopyRecovery {
 		ServiceManager sm = mcf.getSm();
 		StorageRegionManager snm = mcf.getSnm();
 		
-		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts);
+		CuratorClient curatorClient = mcf.getClient();
 		StorageRegion sn;
 		SecondIDParser parser;
 		String snName;
@@ -97,7 +97,6 @@ public class CopyRecovery {
 			atomR.setSuccess(false);
 			result.setSuccess(false);
 		}
-		curatorClient.close();
 		return result;
 	}
 	/**
@@ -137,11 +136,11 @@ public class CopyRecovery {
 		String dirName = TimeUtils.timeInterval(start, granule);
 		List<String> fileNames = atom.getFiles();
 		if (fileNames == null || fileNames.isEmpty()) {
-			LOG.warn("<recoverFiles> {} files name is empty", snName);
+			LOG.debug("<recoverFiles> {} files name is empty", snName);
 			return null;
 		}
 		if (snNode == null) {
-			LOG.warn("<recoverFiles> {} sn node is empty", snName);
+			LOG.debug("<recoverFiles> {} sn node is empty", snName);
 			return null;
 		}
 		boolean isSuccess;

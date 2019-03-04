@@ -76,11 +76,11 @@ public class BufferedFileWriter implements FileWriter {
 			//如果写入的数据超过了缓存大小，则直接写入文件，这种情况不需要对数据
 			//进行缓存
 			try {
-				LOG.info("direct write data size[{}] to file[{}]", length, filePath);
+				LOG.debug("direct write data size[{}] to file[{}]", length, filePath);
 				file.getChannel().write(ByteBuffer.wrap(bytes, offset, length));
 				
 				fileLength = file.getChannel().position();
-				LOG.info("file length [{}] file[{}]", fileLength, filePath);
+				LOG.debug("file length [{}] file[{}]", fileLength, filePath);
 			} catch (IOException e) {
 				file.getChannel().truncate(fileLength);
 				
@@ -94,13 +94,13 @@ public class BufferedFileWriter implements FileWriter {
 		
 		buffer.write(bytes, offset, length);
 		position += length;
-		LOG.info("write data size[{}] to buffer for file[{}], position become [{}]", length, filePath, position);
+		LOG.debug("write data size[{}] to buffer for file[{}], position become [{}]", length, filePath, position);
 	}
 	
 	@Override
 	public void flush() throws IOException {
 		try {
-			LOG.info("flush data size[{}] to file[{}]", buffer.readableSize(), filePath);
+			LOG.debug("flush data size[{}] to file[{}]", buffer.readableSize(), filePath);
 			buffer.flush(file.getChannel());
 			buffer.clear();
 			

@@ -217,6 +217,8 @@ storage.file.capacity = 67108864
 
 #资源磁盘剩余限制值，当分区剩余量低于该值，则不会参与写入服务选择， 单位kb
 limit.resource.value.force.disk.remain.size=10485760
+#资源磁盘剩余告警值，当分区剩余大小低于该值，则会发送邮件告警，单位KB
+limit.resource.value.disk.remain.size=20971520
 #资源限制 磁盘写入率
 #limit.resource.value.disk.write.speed.rate = 0.9
 

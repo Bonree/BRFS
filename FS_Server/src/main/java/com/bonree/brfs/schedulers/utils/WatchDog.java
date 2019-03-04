@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,8 @@ import com.bonree.brfs.server.identification.ServerIDManager;
 public class WatchDog{
 	private static final Logger LOG = LoggerFactory.getLogger(WatchDog.class);
 	private static Queue<String> preys = new ConcurrentLinkedQueue<String>();
-	private static ExecutorService executor = Executors.newFixedThreadPool(1); 
+	private static ExecutorService executor = Executors.newFixedThreadPool(1);
+	private static CuratorClient curatorClient = null;
 	private static long lastTime = 0;
 	private static boolean isRun = false;
 	/**
@@ -57,7 +59,10 @@ public class WatchDog{
 		// sn 目录及文件
 		int snId;
 		SecondIDParser parser;
-		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts);
+		// 初始化zk连接
+		if(curatorClient == null){
+			curatorClient = ManagerContralFactory.getInstance().getClient();
+		}
 		Map<String,String> snMap;
 		long granule;
 		long snLimitTime;
@@ -124,8 +129,7 @@ public class WatchDog{
 				}
 			});
 		}
-		//关闭zookeeper连接
-		curatorClient.close();
+
 	}
 	public static long getLastTime() {
 		return lastTime;

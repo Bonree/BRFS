@@ -10,14 +10,11 @@ import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.*;
 import com.bonree.mail.worker.MailWorker;
-import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.JsonUtils.JsonException;
@@ -127,20 +124,17 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		
 	}
 	public void sendWarnEmail(ResourceModel resource, LimitServerResource limit){
-		Map<String,Double> remainRate = resource.getLocalDiskRemainRate();
 		Map<String,Long> remainSize = resource.getLocalRemainSizeValue();
 		String mountPoint;
 		long remainsize;
-		double remainrate;
 		Map<String,String> map = new HashMap<>();
 		for(Map.Entry<String,Long> entry : remainSize.entrySet()){
 			mountPoint = entry.getKey();
 			remainsize = entry.getValue();
-			remainrate = remainRate.get(mountPoint);
-			if(remainsize < limit.getRemainWarnSize()){
-				map.put(mountPoint,"磁盘剩余量低于警告值 "+ limit.getRemainForceSize()+", 当前剩余值为"+remainsize);
-			}else if(remainrate < limit.getDiskRemainRate()){
-				map.put(mountPoint,"磁盘可利用率低于警告值 "+ limit.getDiskRemainRate()+", 当前剩余值为"+remainrate);
+			if(remainsize < limit.getRemainForceSize()){
+				map.put(mountPoint,"磁盘剩余量低于限制值 "+ limit.getRemainForceSize()+", 当前剩余值为"+remainsize+" 服务即将参与拒绝写入服务");
+			}else if(remainsize < limit.getRemainWarnSize()){
+				map.put(mountPoint,"磁盘剩余量低于警告值 "+ limit.getRemainWarnSize()+", 当前剩余值为"+remainsize);
 			}
 		}
 		long currentTime = System.currentTimeMillis();
