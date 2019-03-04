@@ -67,7 +67,7 @@ public class MachineResourceWriterSelector implements ServiceSelector{
         }
         int size = washroom.size();
         // 预测值，假设现在所有正在写的文件大小为0，并且每个磁盘节点都写入。通过现有写入的文件的数×配置的文件大小即可得单个数据节点写入数据的大小
-        long writeSize = numSize * fileSize;
+        long writeSize = numSize * fileSize / size;
         for(ResourceModel resourceModel : washroom){
             diskRemainSize = resourceModel.getLocalRemainSizeValue(sn) - writeSize;
             if(diskRemainSize < this.limit.getRemainForceSize()){
