@@ -82,11 +82,11 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 			results = new WriteResult[datas.length];
 			
 			RecordFileWriter writer = binding.first();
-			LOG.info("write [{}] datas to file[{}]", datas.length, writer.getPath());
+			LOG.debug("write [{}] datas to file[{}]", datas.length, writer.getPath());
 			for(int i = 0; i < datas.length; i++) {
 				byte[] contentData = fileFormater.formatData(datas[i].getData());
 				
-				LOG.info("writing file[{}] with data size[{}]", writer.getPath(), contentData.length);
+				LOG.debug("writing file[{}] with data size[{}]", writer.getPath(), contentData.length);
 				
 				WriteResult result = new WriteResult(fileFormater.relativeOffset(writer.position()), contentData.length);
 				writer.write(contentData);
