@@ -1,4 +1,4 @@
-package com.bonree.brfs.delivery;
+package com.bonree.brfs.common.delivery;
 
 import java.io.Closeable;
 import java.util.Map;
@@ -13,7 +13,7 @@ import java.util.Map;
  ******************************************************************************/
 public interface Deliver extends Closeable {
 
-    public boolean sendWriterMetric(Map<String,Object> data);
+    public boolean sendWriterMetric(Map<String, Object> data);
 
-    public boolean sendReaderMetric(Map<String,Object> data);
+    public boolean sendReaderMetric(Map<String, Object> data);
 }

@@ -1,4 +1,4 @@
-package com.bonree.brfs.delivery;
+package com.bonree.brfs.common.delivery;
 
 import com.bonree.bigdata.zeus.delivery.handler.Callback;
 import com.bonree.bigdata.zeus.delivery.handler.Delivery;
@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
