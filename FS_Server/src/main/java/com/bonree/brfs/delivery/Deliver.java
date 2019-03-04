@@ -1,6 +1,7 @@
-package com.bonree.brfs.kafka;
+package com.bonree.brfs.delivery;
 
 import java.io.Closeable;
+import java.util.Map;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -10,9 +11,9 @@ import java.io.Closeable;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description:
  ******************************************************************************/
-public interface KafkaClient extends Closeable {
+public interface Deliver extends Closeable {
 
-    public boolean sendMessage(String msg);
+    public boolean sendWriterMetric(Map<String,Object> data);
 
-//    public void sendMessage(String msg, Call)
+    public boolean sendReaderMetric(Map<String,Object> data);
 }

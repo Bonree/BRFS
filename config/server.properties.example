@@ -259,7 +259,11 @@ resource.email.time = 300
 #email.pool.size=3
 
 #kafka地址
-kafka.switch=false
+deliver.switch=false
 kafka.brokers=192.168.4.114:9092
 kafka.topic=brfs_merit
-kafka.queue.size=200000
+deliver.queue.size=200000
+deliver.meta.url=http://devtest.ibr.cc:20003/v1
+deliver.datasource=sdk_data_brfs
+deliver.table.writer=brfs_writer_metric
+deliver.table.reader=brfs_reader_metric
