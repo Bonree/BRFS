@@ -1,0 +1,106 @@
+package com.bonree.brfs.common.supervisor;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.JsonUtils.JsonException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class WriteMetric {
+	@JsonProperty("monitor_time")
+	private long monitorTime;
+	@JsonProperty("stoage_name")
+	private String storageName;
+	@JsonProperty("region_node_id")
+	private String regionNodeID;
+	@JsonProperty("data_node_id")
+	private String dataNodeID;
+	@JsonProperty("data_count")
+	private int dataCount;
+	@JsonProperty("data_size")
+	private int dataSize;
+	@JsonProperty("elapsed_time")
+	private int elapsedTime;
+
+	public long getMonitorTime() {
+		return monitorTime;
+	}
+
+	public void setMonitorTime(long monitorTime) {
+		this.monitorTime = monitorTime;
+	}
+
+	public String getStorageName() {
+		return storageName;
+	}
+
+	public void setStorageName(String storageName) {
+		this.storageName = storageName;
+	}
+
+	public String getRegionNodeID() {
+		return regionNodeID;
+	}
+
+	public void setRegionNodeID(String regionNodeID) {
+		this.regionNodeID = regionNodeID;
+	}
+
+	public String getDataNodeID() {
+		return dataNodeID;
+	}
+
+	public void setDataNodeID(String dataNodeID) {
+		this.dataNodeID = dataNodeID;
+	}
+
+	public int getDataCount() {
+		return dataCount;
+	}
+
+	public void setDataCount(int dataCount) {
+		this.dataCount = dataCount;
+	}
+	
+	public void incrementDataCount(int count) {
+		this.dataCount += count;
+	}
+
+	public int getDataSize() {
+		return dataSize;
+	}
+
+	public void setDataSize(int dataSize) {
+		this.dataSize = dataSize;
+	}
+	
+	public void incrementDataSize(int size) {
+		this.dataSize += size;
+	}
+
+	public int getElapsedTime() {
+		return elapsedTime;
+	}
+
+	public void setElapsedTime(int elapsedTime) {
+		this.elapsedTime = elapsedTime;
+	}
+
+	public String toJsonString() throws JsonException {
+		return JsonUtils.toJsonString(this);
+	}
+	
+	public Map<String, Object> toMap() {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("monitor_time", monitorTime);
+		map.put("stoage_name", storageName);
+		map.put("region_node_id", regionNodeID);
+		map.put("data_node_id", dataNodeID);
+		map.put("data_count", dataCount);
+		map.put("data_size", dataSize);
+		map.put("elapsed_time", elapsedTime);
+		
+		return map;
+	}
+}
