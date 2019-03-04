@@ -7,10 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.hyperic.sigar.SigarException;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.zookeeper.ZookeeperClient;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;

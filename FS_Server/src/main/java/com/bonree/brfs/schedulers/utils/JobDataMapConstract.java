@@ -1,17 +1,13 @@
 package com.bonree.brfs.schedulers.utils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
@@ -22,7 +18,6 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 
 public class JobDataMapConstract {
-	private static final Logger LOG = LoggerFactory.getLogger("Constract");
 	/**
 	 * zookeeper地址
 	 */

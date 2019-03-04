@@ -169,7 +169,7 @@ public class CreateSystemTask {
 			LOG.info("sn : {} ,ttl:{}, taskType,", sn.getName(),ttl,taskType.name());
 			// 当ttl小于等于0 的sn 跳过
 			if(ttl <= 0) {
-				LOG.info("sn {} don't to create task !!!",snName);
+				LOG.debug("sn {} don't to create task !!!",snName);
 				continue;
 			}
 			// 当未达到过期的跳过

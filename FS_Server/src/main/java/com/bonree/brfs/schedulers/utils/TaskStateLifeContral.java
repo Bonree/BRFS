@@ -43,7 +43,7 @@ public class TaskStateLifeContral {
 			LOG.info("server task is null !!! {} {} {}", taskType,taskname, serverId);
 			sTask = new TaskServerNodeModel();
 		}
-		LOG.info("TaskMessage complete  sTask :{}", JsonUtils.toJsonStringQuietly(sTask));
+		LOG.debug("TaskMessage complete  sTask :{}", JsonUtils.toJsonStringQuietly(sTask));
 		sTask.setResult(taskResult);
 		if(BrStringUtils.isEmpty(sTask.getTaskStartTime())) {
 			sTask.setTaskStartTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));

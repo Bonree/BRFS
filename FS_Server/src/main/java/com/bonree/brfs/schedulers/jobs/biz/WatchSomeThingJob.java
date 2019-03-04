@@ -45,7 +45,7 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 		//获取client
         CuratorClient curatorClient = null;
 		try {
-            curatorClient = CuratorClient.getClientInstance(zkHost);
+            curatorClient = mcf.getClient();
             String basePath  = mcf.getZkPath().getBaseRebalancePath();
 			String tasksPath=basePath + Constants.SEPARATOR+Constants.TASKS_NODE;
 			boolean isIt = isRecovery(curatorClient, tasksPath);
@@ -64,11 +64,7 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 			builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 看门狗发生错误");
 			builder.setVariable(data.getWrappedMap());
 			emailPool.sendEmail(builder);
-		}finally{
-		    if(curatorClient != null){
-		        curatorClient.close();
-            }
-        }
+		}
 	}
 	/**
 	 * 概述：恢复任务是否执行判断

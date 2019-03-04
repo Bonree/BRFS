@@ -10,14 +10,11 @@ import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.*;
 import com.bonree.mail.worker.MailWorker;
-import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.JsonUtils.JsonException;
