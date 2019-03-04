@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -29,7 +30,6 @@ public class ProducerClient implements Deliver {
 
     private String tableWriter;
     private String tableReader;
-
     private int queueSize;
 
     private boolean deliverSwitch;
@@ -49,9 +49,7 @@ public class ProducerClient implements Deliver {
     private static final String USER_NAME = "brfs";
     private static final String TOKEN = "brfs";
 
-
     private ProducerClient() {
-
 
         this.queueSize = //100000;
                 Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_QUEUE_SIZE);
@@ -65,21 +63,31 @@ public class ProducerClient implements Deliver {
         this.tableReader = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_READER_TABLE);
         this.tableWriter = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_WRITER_TABLE);
 
+        try {
+            build();
+        } catch (IOException e) {
+            LOG.error("deliver client build failed!");
+        }
+
+        sendThread = new Thread(new Sender(), "kafka-client");
+        sendThread.setDaemon(true);
+        sendThread.start();
 
     }
 
 
     public static Deliver getInstance() throws IOException {
-        ProducerClient client = new ProducerClient();
-        client.build();
-
-        return client;
-
+        return Holder.client;
     }
 
     @Override
     public void close() throws IOException {
         sendThread.interrupt();
+    }
+
+    private static class Holder {
+        private final static ProducerClient client = new ProducerClient();
+
     }
 
     private boolean sendMessage(String type, Map<String, Object> data) {
@@ -156,13 +164,7 @@ public class ProducerClient implements Deliver {
                         .setProducerParams(props)
                         .setTopic(topic)
                         .setVersion(Delivery.KafkaVersion.VERSION_10).build();
-
-        sendThread = new Thread(new Sender(), "kafka-client");
-        sendThread.setDaemon(true);
-        sendThread.start();
-
         LOG.info("deliver client:{}",toString());
-
     }
 
     @Override
