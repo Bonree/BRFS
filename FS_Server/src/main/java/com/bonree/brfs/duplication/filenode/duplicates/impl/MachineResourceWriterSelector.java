@@ -66,11 +66,10 @@ public class MachineResourceWriterSelector implements ServiceSelector{
             return  null;
         }
         int size = washroom.size();
-        // 预测值，假设现在所有正在写的文件大小为0，通过现有写入的文件的数×配置的文件大小即为集群将要写入的值，再除于可用的服务数，即为当前每台服务正在写入文件占用的磁盘空间，每个服务剩余值都减去该值
-        long writeSize = numSize *fileSize/size;
+        // 预测值，假设现在所有正在写的文件大小为0，并且每个磁盘节点都写入。通过现有写入的文件的数×配置的文件大小即可得单个数据节点写入数据的大小
+        long writeSize = numSize * fileSize;
         for(ResourceModel resourceModel : washroom){
             diskRemainSize = resourceModel.getLocalRemainSizeValue(sn) - writeSize;
-//            LOG.warn("sn: {} {}({}), path: {} remainsize: {}({}:{}:{}), force:{} !! ",sn,resourceModel.getServerId(),resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,numSize,fileSize,size,this.limit.getRemainForceSize());
             if(diskRemainSize < this.limit.getRemainForceSize()){
                 LOG.warn("Second sn: {} {}({}), path: {} remainsize: {}, force:{} !! will refused",sn,resourceModel.getServerId(),resourceModel.getHost(),resourceModel.getMountedPoint(sn),diskRemainSize,this.limit.getRemainForceSize());
                 continue;
