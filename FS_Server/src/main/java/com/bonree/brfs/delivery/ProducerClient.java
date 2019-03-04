@@ -65,24 +65,21 @@ public class ProducerClient implements Deliver {
         this.tableReader = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_READER_TABLE);
         this.tableWriter = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_WRITER_TABLE);
 
-        sendThread = new Thread(new Sender(), "kafka-client");
-        sendThread.setDaemon(true);
-        sendThread.start();
+
     }
 
 
-    public static ProducerClient getInstance() {
-        return Holder.client;
+    public static Deliver getInstance() throws IOException {
+        ProducerClient client = new ProducerClient();
+        client.build();
+
+        return client;
+
     }
 
     @Override
     public void close() throws IOException {
         sendThread.interrupt();
-    }
-
-    private static class Holder {
-        private final static ProducerClient client = new ProducerClient();
-
     }
 
     private boolean sendMessage(String type, Map<String, Object> data) {
@@ -135,7 +132,7 @@ public class ProducerClient implements Deliver {
         }
     }
 
-    private void buildDeliver() throws IOException {
+    private void build() throws IOException {
 
         Map<String, Object> props = new HashMap<>();
         props.put("bootstrap.servers", /*"192.168.107.13:9092"*/Configs.getConfiguration().GetConfig(KafkaConfig
@@ -159,7 +156,12 @@ public class ProducerClient implements Deliver {
                         .setProducerParams(props)
                         .setTopic(topic)
                         .setVersion(Delivery.KafkaVersion.VERSION_10).build();
-        LOG.info("deliever client:{}",toString());
+
+        sendThread = new Thread(new Sender(), "kafka-client");
+        sendThread.setDaemon(true);
+        sendThread.start();
+
+        LOG.info("deliver client:{}",toString());
 
     }
 
