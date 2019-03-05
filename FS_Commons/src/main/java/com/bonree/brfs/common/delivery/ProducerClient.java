@@ -64,7 +64,7 @@ public class ProducerClient implements Deliver {
 
         try {
             build();
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOG.error("deliver client build failed!");
         }
 
@@ -93,7 +93,7 @@ public class ProducerClient implements Deliver {
         if(delivery == null){
             try {
                 build();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOG.error("deliver client build failed!");
             }
         }
@@ -149,7 +149,7 @@ public class ProducerClient implements Deliver {
         }
     }
 
-    private void build() throws IOException {
+    private void build() throws Exception {
 
         Map<String, Object> props = new HashMap<>();
         props.put("bootstrap.servers", /*"192.168.107.13:9092"*/Configs.getConfiguration().GetConfig(KafkaConfig
