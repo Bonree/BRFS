@@ -45,6 +45,8 @@ public class ProducerClient implements Deliver {
 
     private String metaUrl;
 
+    private String brokers;
+
     private static final String USER_NAME = "brfs";
     private static final String TOKEN = "brfs";
 
@@ -61,6 +63,8 @@ public class ProducerClient implements Deliver {
         this.metaUrl = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_META_URL);
         this.tableReader = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_READER_TABLE);
         this.tableWriter = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_WRITER_TABLE);
+
+        this.brokers = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_BROKERS);
 
         try {
             build();
@@ -155,9 +159,7 @@ public class ProducerClient implements Deliver {
     private void build() throws Exception {
         LOG.info("build deliver client:{}",toString());
         Map<String, Object> props = new HashMap<>();
-        props.put("bootstrap.servers", /*"192.168.107.13:9092"*/Configs.getConfiguration().GetConfig(KafkaConfig
-                .CONFIG_BROKERS)
-        );
+        props.put("bootstrap.servers", brokers);
         props.put("linger.ms", "5");
         props.put("max.request.size", "10485760");
         props.put("compression.type", "snappy");
@@ -192,6 +194,7 @@ public class ProducerClient implements Deliver {
                 ", dataSource='" + dataSource + '\'' +
                 ", topic='" + topic + '\'' +
                 ", metaUrl='" + metaUrl + '\'' +
+                ", brokers='" + brokers + '\'' +
                 '}';
     }
 
