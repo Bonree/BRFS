@@ -128,10 +128,11 @@ public class ProducerClient implements Deliver {
                 while (true) {
                     DataTuple dt = msgQueue.poll(1, TimeUnit.SECONDS);
                     if (null != dt && null != dt._2()) {
+                        LOG.info("add data:{}",dt);
                         delivery.add(dt._1(), dt._2(), new Callback() {
                             @Override
                             public void onSuccess(int i) {
-
+                                LOG.info("success:{}",i);
                             }
 
                             @Override
