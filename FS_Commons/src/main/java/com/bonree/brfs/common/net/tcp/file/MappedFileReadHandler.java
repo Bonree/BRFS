@@ -153,7 +153,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception{
-                	readMetric.setMonitorTime(timeWatcher.getElapsedTime());
+                	readMetric.setElapsedTime(timeWatcher.getElapsedTime());
                     ref.release();
                     
                     ProducerClient.getInstance().sendReaderMetric(readMetric.toMap());
