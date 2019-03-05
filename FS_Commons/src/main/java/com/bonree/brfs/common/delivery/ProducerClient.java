@@ -65,7 +65,7 @@ public class ProducerClient implements Deliver {
         try {
             build();
         } catch (Exception e) {
-            LOG.error("deliver client build failed!");
+            LOG.error("deliver client build failed!", e);
         }
 
         sendThread = new Thread(new Sender(), "kafka-client");
@@ -94,7 +94,7 @@ public class ProducerClient implements Deliver {
             try {
                 build();
             } catch (Exception e) {
-                LOG.error("deliver client build failed!");
+                LOG.error("deliver client build failed!", e);
             }
         }
 
