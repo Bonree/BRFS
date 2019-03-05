@@ -105,6 +105,8 @@ public class ProducerClient implements Deliver {
                 LOG.warn("queue is full.");
                 return false;
             }
+            
+            LOG.info("send message {} : {}", type, data);
         }
         return true;
     }
