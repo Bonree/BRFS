@@ -94,6 +94,7 @@ public class ProducerClient implements Deliver {
     }
 
     private boolean sendMessage(String type, Map<String, Object> data) {
+    	LOG.info("start to send message {} : {}", type, data);
         if(delivery == null){
             try {
                 build();
@@ -112,7 +113,7 @@ public class ProducerClient implements Deliver {
                 return false;
             }
             
-            LOG.info("send message {} : {}", type, data);
+            LOG.info("send OK message {} : {}", type, data);
         }
         return true;
     }
