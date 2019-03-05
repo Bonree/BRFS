@@ -150,7 +150,7 @@ public class ProducerClient implements Deliver {
     }
 
     private void build() throws Exception {
-
+        LOG.info("build deliver client:{}",toString());
         Map<String, Object> props = new HashMap<>();
         props.put("bootstrap.servers", /*"192.168.107.13:9092"*/Configs.getConfiguration().GetConfig(KafkaConfig
                 .CONFIG_BROKERS)
