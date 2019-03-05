@@ -66,7 +66,7 @@ public class CloseFileMessageHandler implements MessageHandler<BaseResponse> {
 				MappedByteBuffer buffer = Files.map(dataFile);
 				try {
 					buffer.position(fileFormater.fileHeader().length());
-					buffer.limit(filePath.length() - fileFormater.fileTailer().length());
+					buffer.limit(buffer.capacity() - fileFormater.fileTailer().length());
 					BaseResponse response = new BaseResponse(ResponseCode.OK);
 					response.setBody(Longs.toByteArray(ByteUtils.crc(buffer)));
 					BufferUtils.release(buffer);

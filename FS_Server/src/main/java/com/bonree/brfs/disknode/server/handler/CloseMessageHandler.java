@@ -59,7 +59,7 @@ public class CloseMessageHandler implements MessageHandler {
 				MappedByteBuffer buffer = Files.map(dataFile);
 				try {
 					buffer.position(fileFormater.fileHeader().length());
-					buffer.limit(filePath.length() - fileFormater.fileTailer().length());
+					buffer.limit(buffer.capacity() - fileFormater.fileTailer().length());
 					result.setData(Longs.toByteArray(ByteUtils.crc(buffer)));
 					result.setSuccess(true);
 					return;

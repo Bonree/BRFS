@@ -16,6 +16,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.delivery.ProducerClient;
+import com.bonree.brfs.common.supervisor.ReadMetric;
+import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.BufferUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.google.common.cache.CacheBuilder;
@@ -113,6 +116,12 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             readObject.setFilePath(buildPath(readObject));
         }
 
+        ReadMetric readMetric = new ReadMetric();
+        readMetric.setMonitorTime(System.currentTimeMillis());
+        readMetric.setStorageName(readObject.getSn());
+        readMetric.setDataNodeId(readObject.getFileName().split("_")[readObject.getIndex()]);
+        TimeWatcher timeWatcher = new TimeWatcher();
+        
         String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ? translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
 
         MappedByteBuffer fileBuffer = null;
@@ -130,6 +139,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             }
 
             int readableLength = (int) Math.min(readLength, fileLength - readOffset);
+            readMetric.setDataSize(readableLength);
 
             ByteBuffer contentBuffer = fileBuffer.slice();
             contentBuffer.position((int) readOffset);
@@ -143,7 +153,10 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception{
+                	readMetric.setMonitorTime(timeWatcher.getElapsedTime());
                     ref.release();
+                    
+                    ProducerClient.getInstance().sendReaderMetric(readMetric.toMap());
                 }
             }).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         } catch(ExecutionException e){
