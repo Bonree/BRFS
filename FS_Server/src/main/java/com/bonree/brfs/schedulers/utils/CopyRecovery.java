@@ -3,6 +3,7 @@ package com.bonree.brfs.schedulers.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,13 +51,13 @@ public class CopyRecovery {
 		BatchAtomModel batch = converStringToBatch(content);
 		if(batch == null){
 			result.setSuccess(false);
-			LOG.warn("<recoveryDirs> batch is empty");
+			LOG.warn("batch is empty");
 			return result;
 		}
 		List<AtomTaskModel> atoms = batch.getAtoms();
 		if(atoms == null|| atoms.isEmpty()){
 			result.setSuccess(true);
-			LOG.warn("<recoveryDirs> file is empty");
+			LOG.warn(" files is empty");
 			return result;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
@@ -81,7 +82,7 @@ public class CopyRecovery {
 				atomR.setSuccess(false);
 				result.setSuccess(false);
 				result.add(atomR);
-				LOG.debug("<recoveryDirs> sn == null snName :{}",snName);
+				LOG.debug("sn == null snName :{}",snName);
 				continue;
 			}
 			snId = sn.getId();
@@ -90,7 +91,7 @@ public class CopyRecovery {
 			errors = recoveryFiles(sm, sim, parser, sn, atom,dataPath);
 			if(errors == null || errors.isEmpty()){
 				result.add(atomR);
-				LOG.debug("<recoveryDirs> result is empty snName:{}", snName);
+				LOG.debug("result is empty snName:{}", snName);
 				continue;
 			}
 			atomR.addAll(errors);
@@ -133,14 +134,21 @@ public class CopyRecovery {
 		long start = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
 		long granule = endTime - start;
+		// 过滤过期的数据
+		long ttl = Duration.parse(snNode.getDataTtl()).toMillis();
+		long currentTime = System.currentTimeMillis();
 		String dirName = TimeUtils.timeInterval(start, granule);
+		if(currentTime - endTime > ttl){
+			LOG.info("{}[ttl:{}ms] {} is expired !! skip repaired !!!",snName,ttl,dirName);
+			return null;
+		}
 		List<String> fileNames = atom.getFiles();
 		if (fileNames == null || fileNames.isEmpty()) {
-			LOG.debug("<recoverFiles> {} files name is empty", snName);
+			LOG.debug("{} files name is empty", snName);
 			return null;
 		}
 		if (snNode == null) {
-			LOG.debug("<recoverFiles> {} sn node is empty", snName);
+			LOG.debug(" {} sn node is empty", snName);
 			return null;
 		}
 		boolean isSuccess;

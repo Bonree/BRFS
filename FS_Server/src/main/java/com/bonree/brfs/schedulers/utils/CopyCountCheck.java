@@ -33,7 +33,7 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
  *****************************************************************************
  */
 public class CopyCountCheck {
-	private static final Logger LOG = LoggerFactory.getLogger("CopyCountCheck");
+	private static final Logger LOG = LoggerFactory.getLogger(CopyCountCheck.class);
 	/***
 	 * 概述：获取文件缺失的sn
 	 * @param storageNames
