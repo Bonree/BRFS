@@ -96,10 +96,12 @@ public class ProducerClient implements Deliver {
             } catch (Exception e) {
                 LOG.error("deliver client build failed!", e);
             }
+            return false;
         }
 
         if (deliverSwitch) {
             DataTuple dt = new DataTuple(type, data);
+            LOG.info("input queue, data:{}",dt);
             boolean successful = msgQueue.offer(dt);
             if (!successful) {
                 LOG.warn("queue is full.");
