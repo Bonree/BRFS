@@ -99,6 +99,11 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		sourceTimes = pair.getSecond();
 		// 更新sn临界信息
 		tmodel = release.getTaskTypeInfo(taskType);
+		if(tmodel == null){
+			tmodel = new TaskTypeModel();
+			tmodel.setSwitchFlag(true);
+			LOG.warn("taskType {} metadata loss create against !!",taskType);
+		}
 		tmodel.putAllSnTimes(sourceTimes);
 		release.setTaskTypeModel(taskType, tmodel);
 		LOG.debug("update sn time {}", sourceTimes);

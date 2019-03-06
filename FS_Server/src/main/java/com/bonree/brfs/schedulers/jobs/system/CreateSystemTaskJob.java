@@ -2,6 +2,7 @@ package com.bonree.brfs.schedulers.jobs.system;
 
 import java.util.List;
 
+import com.bonree.brfs.configuration.units.ResourceConfigs;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -80,6 +81,11 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 				ttl = checkTtl;
 			}
 			tmodel = release.getTaskTypeInfo(taskType.name());
+			if(tmodel == null){
+				tmodel = new TaskTypeModel();
+				tmodel.setSwitchFlag(true);
+				LOG.warn("taskType{} is switch but metadata is null");
+			}
 			result = CreateSystemTask.createSystemTask(tmodel,taskType, snList, ttl);
 			if(result == null) {
 				LOG.warn("create sys task is empty {}",taskType.name());
@@ -89,7 +95,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			taskName = CreateSystemTask.updateTask(release, task, serverIds, taskType);
 			if(!BrStringUtils.isEmpty(taskName)) {
 				LOG.info("create {} {} task successfull !!!", taskType.name(), taskName);
-				release.setTaskTypeModel(taskType.name(), result.getSecond());
+				release.setTaskTypeModel(taskType.name(), tmodel);
 			}
 		}
 	}
