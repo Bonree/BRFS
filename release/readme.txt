@@ -39,3 +39,9 @@
   # 不监控的磁盘分区，若brfs数据存储路径上存在多个磁盘分区时，可通过该配置项过滤掉不想监控的磁盘分区
   # 例如brfs数据存储目录为/data/files 其中/目录挂在一个分区，/data目录挂载一个分区，不想监控/目录对应的分区则可以将/放入该配置项中，若存在多个，用，分割。 默认为空
   # unmounitor.partition = /
+
+增加文件关闭线程数设置项：
+regionnode.file.closer.thead_num
+
+增加数据压缩开关：
+datanode.data.compress
