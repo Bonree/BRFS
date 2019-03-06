@@ -86,6 +86,7 @@ public class ProducerClient implements Deliver {
     @Override
     public void close() throws IOException {
         sendThread.interrupt();
+        delivery.close();
     }
 
     private static class Holder {
@@ -94,7 +95,7 @@ public class ProducerClient implements Deliver {
     }
 
     private boolean sendMessage(String type, Map<String, Object> data) {
-    	LOG.debug("start to send message {} : {}", type, data);
+    	LOG.debug("prepare to add data to deliver's queue--{} : {}", type, data);
         if(delivery == null){
             try {
                 build();
@@ -106,25 +107,25 @@ public class ProducerClient implements Deliver {
 
         if (deliverSwitch) {
             DataTuple dt = new DataTuple(type, data);
-            LOG.info("input queue, data:{}",dt);
+            LOG.debug("add data to deliver's queue--{}",dt);
             boolean successful = msgQueue.offer(dt);
             if (!successful) {
-                LOG.warn("queue is full.");
+                LOG.warn("deliver's queue is full, abandon the data:{}", dt);
                 return false;
             }
-            
-            LOG.debug("send OK message {} : {}", type, data);
         }
         return true;
     }
 
     @Override
     public boolean sendWriterMetric(Map<String, Object> data) {
+        LOG.debug("send writer data to deliver,data--{}",data);
         return sendMessage(tableWriter, data);
     }
 
     @Override
     public boolean sendReaderMetric(Map<String, Object> data) {
+        LOG.debug("send reader data to deliver,data--{}",data);
         return sendMessage(tableReader, data);
     }
 
@@ -135,16 +136,16 @@ public class ProducerClient implements Deliver {
                 while (true) {
                     DataTuple dt = msgQueue.poll(1, TimeUnit.SECONDS);
                     if (null != dt && null != dt._2()) {
-                        LOG.info("add data:{}",dt);
+                        LOG.debug("fetch data from deliver'queue. data:{}",dt);
                         delivery.add(dt._1(), dt._2(), new Callback() {
                             @Override
                             public void onSuccess(int i) {
-                                LOG.info("success:{}",i);
+                                LOG.debug("send deliver success:{}",i);
                             }
 
                             @Override
                             public void onFail(Exception e) {
-                                LOG.warn("output to zeus filed, data:{}", dt, e);
+                                LOG.warn("send deliver fail:{}", dt, e);
                             }
                         });
                     }
@@ -158,7 +159,8 @@ public class ProducerClient implements Deliver {
     }
 
     private void build() throws Exception {
-        LOG.info("build deliver client:{}",toString());
+        LOG.info("prepare to build deliver client:{}",toString());
+
         Map<String, Object> props = new HashMap<>();
         props.put("bootstrap.servers", brokers);
         props.put("linger.ms", "5");
@@ -171,6 +173,8 @@ public class ProducerClient implements Deliver {
         props.put("buffer.memory", "104857600");
         props.put("request.timeout.ms", "90000");
 
+        LOG.info("deliver's kafka param is:{}", props);
+
         delivery =
                 new Delivery.Builder().setMetadataURL(metaUrl)
                         .setUsername(USER_NAME)
@@ -179,7 +183,7 @@ public class ProducerClient implements Deliver {
                         .setProducerParams(props)
                         .setTopic(topic)
                         .setVersion(Delivery.KafkaVersion.VERSION_10).build();
-        LOG.info("deliver client:{}",toString());
+        LOG.info("success to build deliver client:{}",toString());
     }
 
     @Override
