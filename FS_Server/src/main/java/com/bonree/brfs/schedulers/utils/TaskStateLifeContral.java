@@ -403,6 +403,10 @@ public class TaskStateLifeContral {
 	 */
 	public static void watchSR(MetaTaskManagerInterface release,List<String> srs, String taskType) {
 		TaskTypeModel  typeModel = release.getTaskTypeInfo(taskType);
+		if(typeModel == null){
+		    LOG.warn("tasktype : {} meta data loss !!!", taskType);
+		    return;
+        }
 		Map<String,Long> snMap = typeModel.getSnTimes();
 		if(snMap == null || snMap.isEmpty()) {
 			return ;
