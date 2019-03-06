@@ -96,13 +96,14 @@ case $1 in
 		;;
 		init)
 			DIR_PATH=/Data01/brfs1
-			java -Xmx2048m -Xms2048m
-			-cp ${DIR_PATH}/libs/FS_Server.jar
-			-Dresource_lib_path=${DIR_PATH}/lib
-			-Dbrfs.home=${DIR_PATH}
-			-Dconfiguration.file=${DIR_PATH}/config/server.properties
+			java -Xmx2048m -Xms2048m \
+			-cp ${DIR_PATH}/libs/FS_Server.jar \
+			-Dresource_lib_path=${DIR_PATH}/lib \
+			-Dbrfs.home=${DIR_PATH} \
+			-Dconfiguration.file=${DIR_PATH}/config/server.properties \
 			com.bonree.brfs.server.InitServer
 			echo "init process completed!"
+		;;
 		*)
 			sh $0 disk
 			sleep 2
