@@ -10,6 +10,7 @@ import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.*;
 import com.bonree.mail.worker.MailWorker;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	private static Queue<StateMetaServerModel> queue = new ConcurrentLinkedQueue<StateMetaServerModel>();
 	private static long preTime = 0L;
 	private static long INVERTTIME = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT)*1000;
+	private static Collection<String> mountPoints = null;
 	@Override
 	public void caughtException(JobExecutionContext context) {
 	}
@@ -51,6 +53,18 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
+		if(mountPoints == null){
+			String[] mounts = StringUtils.split(Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_UNMONITOR_PARTITION),",");
+			if(mounts != null){
+				mountPoints = new ArrayList<>(mounts.length);
+				for(String mount : mounts){
+					if(BrStringUtils.isEmpty(mount)){
+						continue;
+					}
+					mountPoints.add(mount.trim());
+				}
+			}
+		}
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		if (data == null || data.isEmpty()) {
 			throw new NullPointerException("job data map is empty");
@@ -71,7 +85,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		}
 		long gatherInveral = data.getLongValueFromString(JobDataMapConstract.GATHER_INVERAL_TIME);
 		int count = data.getIntFromString(JobDataMapConstract.CALC_RESOURCE_COUNT);
-		StateMetaServerModel metaSource = GatherResource.gatherResource(dataDir, ip);
+		StateMetaServerModel metaSource = GatherResource.gatherResource(dataDir, ip,mountPoints);
 		if (metaSource != null) {
 			queue.add(metaSource);
 			LOG.info("gather stat info !!! {}", queue.size());
@@ -111,7 +125,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			LOG.info("resource: succefull !!!");
 		}
 		
-		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir);
+		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir,mountPoints);
 		if(local == null) {
 			LOG.error("gather base data is empty !!!");
 			return;
@@ -150,7 +164,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 
 	}
 	public void saveLocal(CuratorClient client,String serverId, String dataDir,String bPath) {
-		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir);
+		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir,mountPoints);
 		if(local == null) {
 			LOG.error("gather base data is empty !!!");
 			return;

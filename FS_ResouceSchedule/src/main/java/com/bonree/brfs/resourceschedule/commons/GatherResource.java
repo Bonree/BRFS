@@ -25,58 +25,14 @@ import com.bonree.brfs.resourceschedule.utils.SigarUtils;
  *****************************************************************************
  */
 public class GatherResource {
-	/**
-	 * 概述：采集状态信息
-	 * @param dataDir
-	 * @param ipSet
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-//	public static StateMetaServerModel gatherResource(String dataDir, Collection<String> ipSet){
-//		StateMetaServerModel obj = new StateMetaServerModel();
-//		try {
-//			Set<String> ipDevSet = SigarUtils.instance.gatherBaseNetDevSet(ipSet);
-//			int cpuCore = SigarUtils.instance.gatherCpuCoreCount();
-//			obj.setCpuCoreCount(cpuCore);
-//			double cpuRate = SigarUtils.instance.gatherCpuRate();
-//			obj.setCpuRate(cpuRate);
-//			double memoryRate = SigarUtils.instance.gatherMemoryRate();
-//			obj.setMemoryRate(memoryRate);
-//			long memorySize = SigarUtils.instance.gatherMemSize();
-//			obj.setMemorySize(memorySize);
-//			Map<Integer,Map<String, Long>> netStatMap = SigarUtils.instance.gatherNetStatInfos(ipDevSet);
-//			if(netStatMap.containsKey(0)){
-//				obj.setNetTByteMap(netStatMap.get(0));
-//			}
-//			if(netStatMap.containsKey(1)){
-//				obj.setNetRByteMap(netStatMap.get(1));
-//			}
-//			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir);
-//			if(partition.containsKey(0)){
-//				obj.setPartitionTotalSizeMap(partition.get(0));
-//			}
-//			if(partition.containsKey(1)){
-//				obj.setPartitionRemainSizeMap(partition.get(1));
-//			}
-//			if(partition.containsKey(2)){
-//				obj.setPartitionReadByteMap(partition.get(2));
-//			}
-//			if(partition.containsKey(3)){
-//				obj.setPartitionWriteByteMap(partition.get(3));
-//			}
-//		} catch (SigarException e) {
-//			e.printStackTrace();
-//		}
-//		return obj;
-//	}
-	
+
 	/**
 	 * 概述：采集状态信息
 	 * @param dataDir
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static StateMetaServerModel gatherResource(String dataDir, String ip){
+	public static StateMetaServerModel gatherResource(String dataDir, String ip,Collection<String> mountPoints){
 		StateMetaServerModel obj = new StateMetaServerModel();
 		try {
 			if(BrStringUtils.isEmpty(dataDir) || BrStringUtils.isMathNumeric(ip)){
@@ -95,7 +51,7 @@ public class GatherResource {
 				obj.setNetRByte(netData.getFirst());
 				obj.setNetTByte(netData.getSecond());
 			}
-			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir);
+			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir,mountPoints);
 			if(partition.containsKey(0)){
 				obj.setPartitionTotalSizeMap(partition.get(0));
 			}
@@ -117,11 +73,10 @@ public class GatherResource {
 	/**
 	 * 概述：基本信息
 	 * @param dataDir
-	 * @param ipSet
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static BaseMetaServerModel gatherBase(String serverId, String dataDir){
+	public static BaseMetaServerModel gatherBase(String serverId, String dataDir,Collection<String> mountPoints){
 		BaseMetaServerModel obj = new BaseMetaServerModel();
 		try {
 			int cpuCore = SigarUtils.instance.gatherCpuCoreCount();
@@ -129,7 +84,7 @@ public class GatherResource {
 		
 			long memorySize = SigarUtils.instance.gatherMemSize();
 			obj.setMemoryTotalSize(memorySize);
-			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir);
+			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir,mountPoints);
 			if(partition.containsKey(0)){
 				long totalDiskSize = CalcUtils.collectDataMap(partition.get(0));
 				obj.setDiskTotalSize(totalDiskSize);

@@ -110,6 +110,9 @@ public final class ResourceConfigs {
 			ConfigUnit.ofInt("watch.dog.trigger.interval", 7);
 	public static final ConfigUnit<Integer> CONFIG_RESOURCE_CENT_SIZE = 
 			ConfigUnit.ofInt("resource.cent.size",1000);
-
+	/**
+	 * 不监控的磁盘分区
+	 */
+	public static final ConfigUnit<String> CONFIG_UNMONITOR_PARTITION = ConfigUnit.ofString("unmounitor.partition","");
 	private ResourceConfigs() {}
 }
