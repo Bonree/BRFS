@@ -258,12 +258,19 @@ resource.email.time = 300
 # 发送email线程池大小
 #email.pool.size=3
 
-#kafka地址
+#deliver的开关，false为关闭，不进行推送
 deliver.switch=false
+#kafka的brokers的地址列表
 kafka.brokers=192.168.4.114:9092
-kafka.topic=brfs_merit
+#deliver推送的kafka的topic
+kafka.topic=brfs_metric
+#deliver缓存大小，超过大小后，将丢弃数据
 deliver.queue.size=200000
+#deliver解析字段地址
 deliver.meta.url=http://devtest.ibr.cc:20003/v1
+#deliver数据源
 deliver.datasource=sdk_data_brfs
+#deliver的写性能表
 deliver.table.writer=brfs_writer_metric
+#deliver的读性能表
 deliver.table.reader=brfs_reader_metric

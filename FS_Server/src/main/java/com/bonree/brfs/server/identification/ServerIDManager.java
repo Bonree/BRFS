@@ -86,6 +86,8 @@ public class ServerIDManager {
             }else {
                 LOG.info("ignore  invalid event!!!");
             }
+
+            LOG.info("otherSecondIDCache summary:{}",otherServerIDCache);
         }
 
         private String extractFirstID(String path) {
@@ -276,7 +278,6 @@ public class ServerIDManager {
      * @param storageIndex
      * @param virtualID
      * @param firstID
-     * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void registerFirstID(int storageIndex, String virtualID, String firstId) {

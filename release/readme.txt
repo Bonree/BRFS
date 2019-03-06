@@ -17,3 +17,21 @@
 
 	#资源磁盘剩余限制值，当分区剩余量低于该值，则不会参与写入服务选择， 单位kb
 	limit.resource.value.force.disk.remain.size=10485760
+
+4.增加deliver推送zeus机制，增加参数如下：
+    #deliver的开关，false为关闭，不进行推送
+    deliver.switch=false
+    #kafka的brokers的地址列表
+    kafka.brokers=192.168.4.114:9092
+    #deliver推送的kafka的topic
+    kafka.topic=brfs_metric
+    #deliver缓存大小，超过大小后，将丢弃数据
+    deliver.queue.size=200000
+    #deliver解析字段地址
+    deliver.meta.url=http://devtest.ibr.cc:20003/v1
+    #deliver数据源
+    deliver.datasource=sdk_data_brfs
+    #deliver的写性能表
+    deliver.table.writer=brfs_writer_metric
+    #deliver的读性能表
+    deliver.table.reader=brfs_reader_metric
