@@ -57,8 +57,9 @@ public class SecondLevelServerID {
     			}
     			secondMap.put(BrStringUtils.parseNumber(si, Integer.class), serverID);
     		}
+    		LOG.info("load self second server ID cache:{}", secondMap);
     	}catch (Exception e) {
-    		LOG.error("load second id error!!!",e);
+    		LOG.error("load self second server ID error!!!",e);
 		}
     }
     

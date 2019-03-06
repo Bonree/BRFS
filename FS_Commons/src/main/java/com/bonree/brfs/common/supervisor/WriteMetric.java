@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class WriteMetric {
 	@JsonProperty("monitor_time")
 	private long monitorTime;
-	@JsonProperty("stoage_name")
+	@JsonProperty("storage_name")
 	private String storageName;
 	@JsonProperty("region_node_id")
 	private String regionNodeID;
@@ -94,7 +94,7 @@ public class WriteMetric {
 	public Map<String, Object> toMap() {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("monitor_time", monitorTime);
-		map.put("stoage_name", storageName);
+		map.put("storage_name", storageName);
 		map.put("region_node_id", regionNodeID);
 		map.put("data_node_id", dataNodeID);
 		map.put("data_count", dataCount);

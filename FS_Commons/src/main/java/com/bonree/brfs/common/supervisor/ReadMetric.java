@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ReadMetric {
 	@JsonProperty("monitor_time")
 	private long monitorTime;
-	@JsonProperty("stoage_name")
+	@JsonProperty("storage_name")
 	private String storageName;
 	@JsonProperty("data_node_id")
 	private String dataNodeId;
@@ -76,7 +76,7 @@ public class ReadMetric {
 	public Map<String, Object> toMap() {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("monitor_time", monitorTime);
-		map.put("stoage_name", storageName);
+		map.put("storage_name", storageName);
 		map.put("dataNodeId", dataNodeId);
 		map.put("data_count", dataCount);
 		map.put("data_size", dataSize);
