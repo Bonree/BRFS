@@ -24,7 +24,7 @@ import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 
 public class ManagerMetaTaskJob extends QuartzOperationStateTask {
-	private static final Logger LOG = LoggerFactory.getLogger("ManagerMetaTaskJob");
+	private static final Logger LOG = LoggerFactory.getLogger(ManagerMetaTaskJob.class);
 	
 
 	@Override
@@ -32,13 +32,13 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt(){
 
 	}
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("----------> revise task work");
+		LOG.info("revise task work");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		// 任务过期时间 ms
 		String ttlTimeStr = data.getString(JobDataMapConstract.TASK_EXPIRED_TIME);

@@ -59,7 +59,7 @@ public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
     public boolean isAdd(String root, Map<String, String> values, boolean isFile){
 
         if(isBug(values, isFile)){
-            LOG.warn("file: [{}]-[{}] is bug !!",values,isFile);
+            LOG.warn("file: [{}]-[{}] is dog food !!",values,isFile);
             return true;
         }
         if(values.size() != keyMap.size()){
@@ -72,7 +72,7 @@ public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
         }
         String fileName = values.get(BRFSPath.FILE);
         if(fileName.contains(".rd")){
-            LOG.warn("file: [{}]-[{}] contain .rd !!",values,isFile);
+            LOG.debug("file: [{}]-[{}] contain .rd !!",values,isFile);
             return false;
         }
         if(fileName.contains(".")){

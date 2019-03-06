@@ -29,7 +29,7 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 	public static final int RECOVERY_STATUSE = 1;
 	@Override
 	public void caughtException(JobExecutionContext context) {
-		LOG.info("watch task error !!!");
+		LOG.debug("watch task error !!!");
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 				} catch(UnsupportedEncodingException e){
 					LOG.error("switch String error {}",e);
 				}
-				LOG.info("path : {}, data:{}",tmpPath, dataStr);
+				LOG.debug("path : {}, data:{}",tmpPath, dataStr);
 				return true;
 			}
 		}

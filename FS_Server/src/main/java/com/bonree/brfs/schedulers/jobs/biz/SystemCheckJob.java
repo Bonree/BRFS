@@ -28,7 +28,7 @@ import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateWithZK
  *****************************************************************************
  */
 public class SystemCheckJob extends QuartzOperationStateWithZKTask {
-	private static final Logger LOG = LoggerFactory.getLogger("SystemCheckJob");
+	private static final Logger LOG = LoggerFactory.getLogger(SystemCheckJob.class);
 	@Override
 	public void caughtException(JobExecutionContext context) {
 		LOG.info("Error ......   ");
@@ -42,24 +42,24 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("check task work");
+		LOG.debug("check task work");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
 		
 		if(BrStringUtils.isEmpty(content)){
-			LOG.warn("batch data is empty !!!");
+			LOG.debug("batch data is empty !!!");
 			return;
 		}
 		BatchAtomModel batch = JsonUtils.toObject(content, BatchAtomModel.class);
 		if(batch == null){
-			LOG.warn("batch data is empty !!!");
+			LOG.debug("batch data is empty !!!");
 			return;
 		}
 		List<AtomTaskModel> atoms = batch.getAtoms();
 		if(atoms == null || atoms.isEmpty()){
-			LOG.warn("atom task is empty !!!");
+			LOG.debug("atom task is empty !!!");
 			return;
 		}
 		String snName = null;

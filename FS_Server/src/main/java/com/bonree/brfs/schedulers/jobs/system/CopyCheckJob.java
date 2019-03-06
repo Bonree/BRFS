@@ -59,12 +59,12 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
 		List<Service> services = sm.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 		if(services == null || services.isEmpty()) {
-			LOG.info("SKIP create {} task, because service is empty",taskType);
+			LOG.warn("skip create {} task, because service is empty",taskType);
 			return ;
 		}
 		List<StorageRegion> snList = snm.getStorageRegionList();
 		if( snList== null || snList.isEmpty()) {
-			LOG.info("SKIP storagename list is null");
+			LOG.warn("storagename list is null");
 			return;
 		}
 		// 1.获取sn创建任务的实际那
@@ -75,7 +75,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			release.setTaskTypeModel(taskType, tmodel);
 		}
 		Map<String,Long> sourceTimes = tmodel.getSnTimes();
-		LOG.info("update init sn time :{}", sourceTimes);
+		LOG.debug("update init sn time :{}", sourceTimes);
 		// 2.过滤不符合副本校验的sn信息
 		List<StorageRegion> needSns = CopyCountCheck.filterSn(snList, services.size());
 		// 3.针对第一次出现的sn补充时间
@@ -101,7 +101,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		tmodel = release.getTaskTypeInfo(taskType);
 		tmodel.putAllSnTimes(sourceTimes);
 		release.setTaskTypeModel(taskType, tmodel);
-		LOG.info("update sn time {}", sourceTimes);
+		LOG.debug("update sn time {}", sourceTimes);
 		createTransferTasks(release);
 	}
 

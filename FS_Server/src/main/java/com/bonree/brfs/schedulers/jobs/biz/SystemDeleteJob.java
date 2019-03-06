@@ -32,7 +32,7 @@ import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
  *****************************************************************************
  */
 public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
-	private static final Logger LOG = LoggerFactory.getLogger("SystemDeleteJob");
+	private static final Logger LOG = LoggerFactory.getLogger(SystemDeleteJob.class);
 
 	@Override
 	public void caughtException(JobExecutionContext context) {
@@ -45,22 +45,22 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("----------> system delete work");
+		LOG.debug("----------> system delete work");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
-		LOG.info("batch {}", content);
+		LOG.debug("batch {}", content);
 		// 获取当前执行的任务类型
 		BatchAtomModel batch = JsonUtils.toObject(content, BatchAtomModel.class);
 		if (batch == null) {
-			LOG.warn("batch data is empty !!!");
+			LOG.debug("batch data is empty !!!");
 			return;
 		}
 
 		List<AtomTaskModel> atoms = batch.getAtoms();
 		if (atoms == null || atoms.isEmpty()) {
-			LOG.warn("atom task is empty !!!");
+			LOG.debug("atom task is empty !!!");
 			return;
 		}
 		String snName;
@@ -70,7 +70,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		for (AtomTaskModel atom : atoms) {
 			snName = atom.getStorageName();
 			if (BrStringUtils.isEmpty(snName)) {
-				LOG.warn("sn is empty !!!");
+				LOG.debug("sn is empty !!!");
 				continue;
 			}
 			usrResult = deleteDirs(atom, dataPath);
@@ -103,7 +103,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
         snMap.put(BRFSPath.STORAGEREGION, snName);
         List<BRFSPath> deleteDirs = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSTimeFilter(0,endTime));
 		if(deleteDirs == null || deleteDirs.isEmpty()) {
-		    LOG.info("delete dir {} - {} is empty ",TimeUtils.timeInterval(startTime,granule), TimeUtils.timeInterval(endTime,granule));
+		    LOG.debug("delete dir {} - {} is empty ",TimeUtils.timeInterval(startTime,granule), TimeUtils.timeInterval(endTime,granule));
 			return atomR;
 		}
 		atomR.setOperationFileCount(deleteDirs.size());
@@ -111,7 +111,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		for(BRFSPath deleteDir : deleteDirs) {
 
 			isSuccess = isSuccess && FileUtils.deleteDir(dataPath+ FileUtils.FILE_SEPARATOR+deleteDir.toString(), true);
-			LOG.info("delete :{} status :{} ",deleteDir, isSuccess);
+			LOG.debug("delete :{} status :{} ",deleteDir, isSuccess);
 		}
 		atomR.setSuccess(isSuccess);
 		return atomR;

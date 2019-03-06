@@ -45,7 +45,7 @@ public class CopyCountCheck {
 	public static Map<String,List<String>> collectLossFile(List<StorageRegion> storageNames, List<Service> services, Map<String,Long> snTimes) throws Exception{
 		Map<StorageRegion, List<String>> snFiles = collectionSnFiles(services, storageNames,snTimes);
 		if(snFiles == null|| snFiles.isEmpty()) {
-			LOG.info("brfs system no data !!!");
+			LOG.info("system no data !!!");
 			return null;
 		}
 		Map<StorageRegion,Pair<List<String>, List<String>>> copyMap = calcCopyCount(snFiles);
@@ -66,10 +66,10 @@ public class CopyCountCheck {
 			return null;
 		}
 		Map<String,List<String>> lossMap = new HashMap<String,List<String>>();
-		StorageRegion sn = null;
-		String snName = null;
-		Pair<List<String>,List<String>> cache = null;
-		List<String> losss = null;
+		StorageRegion sn;
+		String snName;
+		Pair<List<String>,List<String>> cache;
+		List<String> losss;
 		for(Map.Entry<StorageRegion,Pair<List<String>, List<String>>> entry: copyMap.entrySet()){
 			sn = entry.getKey();
 			if(sn == null){
@@ -163,17 +163,17 @@ public class CopyCountCheck {
 					reCount = sn.getReplicateNum();
 					snName = sn.getName();
 					if(!snTimes.containsKey(snName)) {
-						LOG.debug("<collectionSnFiles> sntime don't contain {}", snName);
+						LOG.debug("sntime don't contain {}", snName);
 						continue;
 					}
 					time = snTimes.get(snName);
 					dirName = TimeUtils.timeInterval(time, granule);
 					for(int i = 1; i <=reCount; i++){
 						path = "/"+snName+"/"+i+"/"+dirName;
-						LOG.info("<collectionSnFiles> path :{}",path);
+						LOG.debug("path :{}",path);
 						strs = getFileList(parser, client, path, sid);
 						if(strs == null || strs.isEmpty()) {
-							LOG.debug("<collectionSnFiles> files is empty {}", path);
+							LOG.debug("files is empty {}", path);
 							continue;
 						}
 						LOG.debug("Collection dirName :{},{} size :{}",dirName,path, strs.size());
@@ -263,7 +263,7 @@ public class CopyCountCheck {
         }
 		List<FileInfo> files =client.listFiles(path, 1);
 		if(files == null || files.isEmpty()) {
-			LOG.info("path : [{}] is not data", path);
+			LOG.debug("path : [{}] is not data", path);
 			return null;
 		}
 		return converToStringList(parser, files, path, sid);
@@ -382,11 +382,11 @@ public class CopyCountCheck {
 			count = sn.getReplicateNum();
 			snName = sn.getName();
 			if(count == 1){
-				LOG.debug("<filterSn> sn {} {} skip",snName,count);
+				LOG.debug("sn {} {} skip",snName,count);
 				continue;
 			}
 			if(count >size){
-				LOG.debug("<filterSn> sn {} {} {} skip",snName,count, size);
+				LOG.debug("sn {} {} {} skip",snName,count, size);
 				continue;
 			}
 			filters.add(sn);

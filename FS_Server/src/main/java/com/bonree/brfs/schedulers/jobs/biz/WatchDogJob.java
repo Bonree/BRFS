@@ -31,7 +31,7 @@ public class WatchDogJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("watch dog do it >>>>>>>>>>>>>>");
+		LOG.debug("watch dog do it >>>>>>>>>>>>>>");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String zkHosts = data.getString(JobDataMapConstract.ZOOKEEPER_ADDRESS);
 		String baseRoutPath = data.getString(JobDataMapConstract.BASE_ROUTE_PATH);

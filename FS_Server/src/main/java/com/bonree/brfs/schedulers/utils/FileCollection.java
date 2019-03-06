@@ -29,7 +29,7 @@ import com.bonree.brfs.common.write.data.FSCode;
  *****************************************************************************
  */
 public class FileCollection {
-	private static final Logger LOG = LoggerFactory.getLogger("FileCollection");
+	private static final Logger LOG = LoggerFactory.getLogger(FileCollection.class);
 	/**
 	 * 概述：根据路径收集文件名
 	 * @param path
@@ -38,11 +38,11 @@ public class FileCollection {
 	 */
 	public static Map<String,List<String>> collectLocalFiles(String path, long limitTime, long granule){
 		if(!FileUtils.isExist(path)) {
-			LOG.debug("<collFiles> file path is not exists {}",path);
+			LOG.debug("file path is not exists {}",path);
 			return null;
 		}
 		if(!FileUtils.isDirectory(path)) {
-			LOG.debug("<collFiles> file path is not directory {}",path);
+			LOG.debug("file path is not directory {}",path);
 			return null;
 		}
 		String limitStr = limitTime <= 0 ? "END" : TimeUtils.timeInterval(limitTime, granule);
@@ -203,7 +203,7 @@ public class FileCollection {
 			return true;
 		}
 		catch (Exception e) {
-			LOG.error("{}:{}",fileName,e);
+			LOG.error("check error {}:{}",fileName,e);
 		}finally {
 			if (raf != null) {
 				try {

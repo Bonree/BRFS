@@ -41,7 +41,7 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
  *****************************************************************************
  */
 public class DefaultBaseSchedulers implements BaseSchedulerInterface {
-	private static final Logger LOG = LoggerFactory.getLogger("BaseScheduler");
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultBaseSchedulers.class);
 	private StdSchedulerFactory ssf = new StdSchedulerFactory();
 	private String instanceName = "server";
 	private boolean pausePoolFlag = false;
@@ -162,7 +162,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (NumberFormatException | ClassNotFoundException | ParseException | SchedulerException e) {
-			LOG.error("{}",e);
+			LOG.error("add task {}",e);
 		}
 		return false;
 	}
@@ -180,7 +180,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		}
 		catch (Exception e) {
 			// TODO Auto-generated catch block
-			LOG.error("{}",e);
+			LOG.error("start pool {}",e);
 			throw new RuntimeException(this.instanceName + " start fail !!!");
 		}
 	}
@@ -198,7 +198,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			this.pausePoolFlag = false;
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("close pool {}",e);
 			throw new RuntimeException(this.instanceName + " close fail !!!");
 		}
 
@@ -219,7 +219,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return scheduler.isStarted();
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("get start status error {}",e);
 		}
 		return false;
 	}
@@ -234,7 +234,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return scheduler.isShutdown();
 		}
 		catch (SchedulerException e) {
-			LOG.error("{}",e);
+			LOG.error("destory error {}",e);
 		}
 		return false;
 	}
@@ -270,10 +270,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (UnableToInterruptJobException e) {
-			LOG.error("{}",e);
+			LOG.error("delete task error{}",e);
 		}
 		catch (SchedulerException e) {
-			LOG.error("{}",e);
+			LOG.error("scheduler error {}",e);
 		}
 		return false;
 	}
@@ -306,7 +306,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			}
 			return true;
 		} catch (SchedulerException e) {
-			LOG.error("{}",e);
+			LOG.error("pause task error {}",e);
 		}
 		return false;
 	}
@@ -334,7 +334,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (SchedulerException e) {
-			LOG.error("{}",e);
+			LOG.error("resume task error {}",e);
 		}
 		return false;
 	}
@@ -456,7 +456,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			}
 		}
 		catch (SchedulerException e) {
-			LOG.error("{}",e);
+			LOG.error("get status error {}",e);
 			throw new ParamsErrorException(e.getLocalizedMessage());
 		}
 

@@ -85,7 +85,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return nodes[nodes.length - 1];
 			}
 		}catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("update task error {}",e);
 		}
 		return pathNode;
 	}
@@ -100,14 +100,13 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return taskInfos.get(taskInfos.size() - 1);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("get current task index error {}",e);
 		}
 		return null;
 	}
 
 	@Override
 	public int queryTaskState(String taskName, String taskType){
-		// TODO Auto-generated method stub
 		try {
 			if (BrStringUtils.isEmpty(taskName)) {
 				return -1;
@@ -128,7 +127,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			TaskModel tmp = JsonUtils.toObject(data, TaskModel.class);
 			return tmp.getTaskState();
 		}catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("query task status error {}",e);
 		}
 		return -5;
 	}
@@ -165,7 +164,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return true;
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("update server task status error {}",e);
 		}
 		return false;
 	}
@@ -188,7 +187,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return true;
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("update task content node error {}",e);
 		}
 		return false;
 	}
@@ -213,7 +212,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return true;
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("change task server node cotent error {}",e);
 		}
 		return false;
 	}
@@ -290,7 +289,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return true;
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("delete task error {}",e);
 		}
 		return false;
 	}
@@ -331,7 +330,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return count;
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("delete tasks error {}",e);
 		}
 		return -1;
 	}
@@ -362,14 +361,13 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			}
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("get create time error {}",e);
 		}
 		return -5;
 	}
 
 	@Override
 	public boolean isInit() {
-		// TODO Auto-generated method stub
 		if (this.client == null) {
 			return false;
 		}
@@ -399,7 +397,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			client = CuratorClient.getClientInstance(this.zkUrl);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("set property eoor {}",e);
 		}
 	}
 
@@ -426,7 +424,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			counts.setSecond(reviseCount);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("revise task error {}",e);
 		}
 		return counts;
 	}
@@ -503,7 +501,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				
 			}
 		}catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("revise task error {}",e);
 		}
 		return count;
 	}
@@ -552,11 +550,11 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 					count++;
 				}
 			}
-			LOG.info("delete time out task complete from");
+			LOG.info("delete time out task complete ");
 			return count;
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("delete time out task error {}",e);
 		}
 		return 0;
 	}
@@ -607,7 +605,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return JsonUtils.toObject(data, TaskModel.class);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("get task content error {}",e);
 		}
 		return null;
 	}
@@ -632,7 +630,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return JsonUtils.toObject(data, TaskServerNodeModel.class);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("get server task content error {}",e);
 		}
 		return null;
 	}
@@ -700,7 +698,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			return true;
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("change task state by lock error {}",e);
 		}
 		return false;
 	}

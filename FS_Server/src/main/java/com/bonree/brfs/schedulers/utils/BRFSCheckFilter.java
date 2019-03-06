@@ -98,7 +98,7 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
             byte[] crcBytes = new byte[8];
             int crcLen = raf.read(crcBytes);
             if(crcLen <=0){
-                LOG.warn("{}: Tailer CRC is empty!", fileName);
+                LOG.warn("{}: Tailer crc is empty!", fileName);
                 return false;
             }
             LOG.debug("calc crc32 code :{}, save crc32 code :{}", crc.getValue(), FSCode.byteToLong(crcBytes));
@@ -113,7 +113,7 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
             return true;
         }
         catch (Exception e) {
-            LOG.error("{}:{}",fileName,e);
+            LOG.error("check error {}:{}",fileName,e);
         }finally {
             if (raf != null) {
                 try {

@@ -51,13 +51,13 @@ public class CopyRecovery {
 		BatchAtomModel batch = converStringToBatch(content);
 		if(batch == null){
 			result.setSuccess(false);
-			LOG.warn("batch is empty");
+			LOG.debug("batch is empty");
 			return result;
 		}
 		List<AtomTaskModel> atoms = batch.getAtoms();
 		if(atoms == null|| atoms.isEmpty()){
 			result.setSuccess(true);
-			LOG.warn(" files is empty");
+			LOG.debug(" files is empty");
 			return result;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
@@ -185,17 +185,17 @@ public class CopyRecovery {
 		int snId = snNode.getId();
 		sss = parser.getAliveSecondID(fileName);
 		if (sss == null) {
-			LOG.warn("<recoveryFile> alive second Ids is empty");
+			LOG.warn("alive second Ids is empty");
 			return false;
 		}
 		String secondId = sim.getSecondServerID(snId);
 		if (BrStringUtils.isEmpty(secondId)) {
-			LOG.warn("<recoveryFile> {} {} secondid is empty ",snName, snId);
+			LOG.warn("{} {} secondid is empty ",snName, snId);
 			return false;
 		}
 		localIndex = isContain(sss, secondId);
 		if (-1 == localIndex) {
-			LOG.info("<recoveryFile> {} {} {} is not mine !! skip",secondId, snName, fileName );
+			LOG.info("{} {} {} is not mine !! skip",secondId, snName, fileName );
 			return true;
 		}
 		
@@ -204,7 +204,7 @@ public class CopyRecovery {
 		File dir = new File(dataPath + localDir);
 		if(!dir.exists()) {
 			boolean createFlag = dir.mkdirs();
-			LOG.debug("<recoveryFile> create dir :{}, stat:{}",localDir,createFlag);
+			LOG.debug("create dir :{}, stat:{}",localDir,createFlag);
 		}
 		if(CopyCheckJob.RECOVERY_CRC.equals(operation)) {
 			boolean flag = FileCollection.check(dataPath + localPath);
@@ -213,12 +213,12 @@ public class CopyRecovery {
 				return true;
 			}else {
 				boolean status = FileUtils.deleteFile(dataPath+localPath);
-				LOG.info("{} crc is error!! delete {}", localPath,status);
+				LOG.warn("{} crc is error!! delete {}", localPath,status);
 			}
 		}else {
 			File file = new File(dataPath + localPath);
 			if(file.exists()){
-				LOG.info("<recoveryFile> {} {} is exists, skip",snName, fileName);
+				LOG.debug("{} {} is exists, skip",snName, fileName);
 				return true;
 			}
 		}
@@ -227,18 +227,18 @@ public class CopyRecovery {
 			remoteIndex ++;
 			//排除自己
 			if (secondId.equals(snsid)) {
-				LOG.debug("<recoveryFile> my sum is right,not need to do {} {} {}",fileName, secondId,snsid);
+				LOG.debug(" my son is right,not need to do {} {} {}",fileName, secondId,snsid);
 				continue;
 			}
 			
 			remoteName = sim.getOtherFirstID(snsid, snId);
 			if(BrStringUtils.isEmpty(remoteName)){
-				LOG.debug("<recoveryFile> remote name is empty");
+				LOG.warn("remote name is empty");
 				continue;
 			}
 			remoteService = sm.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), remoteName);
 			if(remoteService == null){
-				LOG.debug("<recoveryFile> remote service is empty");
+				LOG.warn("remote service is empty");
 				continue;
 			}
 			remotePath = "/"+snName + "/" + remoteIndex + "/" + dirName + "/" + fileName;
@@ -293,7 +293,7 @@ public class CopyRecovery {
 		TcpDiskNodeClient client = null;
 		try {
 			client = TcpClientUtils.getClient(host, port, export, timeout);
-			LOG.warn("{}:{},{}:{}, read {} to local {}",host,port,host,export,remotePath,localPath);
+			LOG.debug("{}:{},{}:{}, read {} to local {}",host,port,host,export,remotePath,localPath);
 			LocalByteStreamConsumer consumer = new LocalByteStreamConsumer(localPath);
 			client.readFile(remotePath, consumer);
 			return consumer.getResult().get();
@@ -311,6 +311,7 @@ public class CopyRecovery {
 			map.put("connectTimeout", String.valueOf(timeout));
 			builder.setVariable(map);
 			emailPool.sendEmail(builder);
+			LOG.error("copy from error {}",e);
 			return false;
 		} finally {
 			if (client != null) {

@@ -35,7 +35,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context){
-		LOG.info("-------> create system task working");
+		LOG.info("create system task working");
 		//判断是否有恢复任务，有恢复任务则不进行创建
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL);
@@ -60,7 +60,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		StorageRegionManager snm = mcf.getSnm();
 		List<StorageRegion> snList = snm.getStorageRegionList();
 		if(snList == null || snList.isEmpty()) {
-			LOG.info("SKIP create system task !!! because storageName is null !!!");
+			LOG.info("skip create system task !!! because storageName is null !!!");
 			return;
 		}
 		TaskModel task;

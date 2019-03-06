@@ -128,7 +128,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				boolean isSumbit = schd.addTask(typeName, sumbitTask);
 				LOG.info("sumbit type:{}, taskName :{}, state:{}", typeName, currentTaskName, isSumbit);
 				if(!isSumbit){
-					LOG.info("next cycle will sumbit against type : {}, taskName : {}", typeName, currentTaskName);
+					LOG.warn("next cycle will sumbit against type : {}, taskName : {}", typeName, currentTaskName);
 					continue;
 				}
 				// 更新任务状态

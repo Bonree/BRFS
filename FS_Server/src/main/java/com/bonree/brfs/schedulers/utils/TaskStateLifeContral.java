@@ -33,14 +33,14 @@ public class TaskStateLifeContral {
 	 */
 	public static void updateTaskStatusByCompelete(String serverId, String taskname,String taskType,TaskResultModel taskResult){
 		if(BrStringUtils.isEmpty(taskname)){
-			LOG.info("task name is empty !!! {} {} {}", taskType,taskname, serverId);
+			LOG.warn("task name is empty !!! {} {} {}", taskType,taskname, serverId);
 			return;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		TaskServerNodeModel sTask = release.getTaskServerContentNodeInfo(taskType, taskname, serverId);
 		if(sTask == null){
-			LOG.info("server task is null !!! {} {} {}", taskType,taskname, serverId);
+			LOG.debug("server task is null !!! {} {} {}", taskType,taskname, serverId);
 			sTask = new TaskServerNodeModel();
 		}
 		LOG.debug("TaskMessage complete  sTask :{}", JsonUtils.toJsonStringQuietly(sTask));
@@ -58,7 +58,7 @@ public class TaskStateLifeContral {
 		if(cStatus == null || cStatus.isEmpty()){
 			return;
 		}
-		LOG.info("complete c List {}",cStatus);
+		LOG.debug("complete c List {}",cStatus);
 		int cstat;
 		boolean isException = false;
 		int finishCount = 0;
@@ -77,7 +77,7 @@ public class TaskStateLifeContral {
 		}
 		TaskModel task = release.getTaskContentNodeInfo(taskType, taskname);
 		if(task == null){
-			LOG.info("task is null !!! {} {} {}", taskType,taskname);
+			LOG.debug("task is null !!! {} {} {}", taskType,taskname);
 			task = new TaskModel();
 			task.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
 		}
@@ -192,7 +192,7 @@ public class TaskStateLifeContral {
 		//更新异常的次数
 		if(task.getSecond().getFirst() == TaskState.EXCEPTION.code()){
 			TaskServerNodeModel server = release.getTaskServerContentNodeInfo(typeName, task.getFirst(), serverId);
-			LOG.info("TaskMessage get  sTask :{}", JsonUtils.toJsonStringQuietly(server));
+			LOG.debug("TaskMessage get  sTask :{}", JsonUtils.toJsonStringQuietly(server));
 			server.setRetryCount(server.getRetryCount() + 1);
 			release.updateServerTaskContentNode(serverId, task.getFirst(), typeName, server);
 		}
@@ -237,7 +237,7 @@ public class TaskStateLifeContral {
             map.put(BRFSPath.STORAGEREGION,snName);
             List<BRFSPath> dirPaths = BRFSFileUtil.scanBRFSFiles(dataPath,map,map.size(), new BRFSTimeFilter(startTime, endTime));
             if(dirPaths == null || dirPaths.isEmpty()){
-                LOG.info("It's no dir to take task [{}]:[{}]-[{}]",snName,TimeUtils.timeInterval(startTime,granule),TimeUtils.timeInterval(endTime,granule));
+                LOG.debug("It's no dir to take task [{}]:[{}]-[{}]",snName,TimeUtils.timeInterval(startTime,granule),TimeUtils.timeInterval(endTime,granule));
                 continue;
             }
             List<Long> times = filterRepeatDirs(dirPaths);

@@ -48,18 +48,18 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		String content = data.getString(currentIndex);
 		// 获取当前执行的任务类型
 		if(BrStringUtils.isEmpty(content)) {
-			LOG.warn("batch data is empty !!!");
+			LOG.debug("batch data is empty !!!");
 			return ;
 		}
 		BatchAtomModel batch = JsonUtils.toObject(content, BatchAtomModel.class);
 		if(batch == null){
-			LOG.warn("batch data is empty !!!");
+			LOG.debug("batch data is empty !!!");
 			return;
 		}
 		
 		List<AtomTaskModel> atoms = batch.getAtoms();
 		if(atoms == null || atoms.isEmpty()){
-			LOG.warn("atom task is empty !!!");
+			LOG.debug("atom task is empty !!!");
 			return;
 		}
 		String snName;
@@ -71,7 +71,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 			snName = atom.getStorageName();
 			if("1".equals(currentIndex)) {
 				operation = atom.getTaskOperation();
-				LOG.info("task operation {} ", DELETE_SN_ALL.equals(operation) ? "Delete_Storage_Region" : "Delete_Part_Of_Storage_Region_Data");
+				LOG.debug("task operation {} ", DELETE_SN_ALL.equals(operation) ? "Delete_Storage_Region" : "Delete_Part_Of_Storage_Region_Data");
 				if(DELETE_SN_ALL.equals(operation)) {
 					dSns.add(snName);
 				}
@@ -89,7 +89,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		if("1".equals(currentIndex)) {
 			for(String sn : dSns) {
 				if(FileUtils.deleteDir(dataPath+"/"+sn, true)) {
-					LOG.info("deltete {} successfull", sn);
+					LOG.debug("deltete {} successfull", sn);
 				}else {
 					result.setSuccess(false);
 				}
@@ -120,7 +120,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		Map<String,String> snMap = new HashMap<>();
 		snMap.put(BRFSPath.STORAGEREGION, snName);
 		List<BRFSPath> deleteDirs = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSTimeFilter(startTime,endTime));
-		LOG.info("collection {}_{} dirs {}",atom.getDataStartTime(),atom.getDataStopTime(),deleteDirs);
+		LOG.debug("collection {}_{} dirs {}",atom.getDataStartTime(),atom.getDataStopTime(),deleteDirs);
 		if(deleteDirs == null || deleteDirs.isEmpty()) {
 			atomR.setOperationFileCount(0);
 			return atomR;
@@ -128,7 +128,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		boolean isSuccess = true;
 		for(BRFSPath deletePath : deleteDirs) {
 			isSuccess = isSuccess && FileUtils.deleteDir(dataPath+FileUtils.FILE_SEPARATOR+deletePath.toString(), true);
-			LOG.info("delete [{}], status [{}]",deletePath, isSuccess);
+			LOG.debug("delete [{}], status [{}]",deletePath, isSuccess);
 		}
 		atomR.setOperationFileCount(deleteDirs.size());
 		atomR.setSuccess(isSuccess);

@@ -58,7 +58,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		}
 		List services = sm.getServiceListByGroup(mcf.getGroupName());
 		if ((services == null) || (services.isEmpty())) {
-			LOG.info("SKIP create {} task, because service is empty", TaskType.SYSTEM_COPY_CHECK);
+			LOG.warn("SKIP create {} task, because service is empty", TaskType.SYSTEM_COPY_CHECK);
 			return;
 		}
 		List<StorageRegion> snList = snm.getStorageRegionList();

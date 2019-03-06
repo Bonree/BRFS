@@ -108,7 +108,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if(!saveDataToZK(client, rPath, rdata)) {
 			LOG.error("resource content :{} save to zk fail !!!",JsonUtils.toJsonStringQuietly(resource));
 		}else {
-			LOG.info("RESOURCE: succefull !!!");
+			LOG.info("resource: succefull !!!");
 		}
 		
 		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir);
@@ -175,7 +175,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			}
 		}
 		catch (Exception e) {
-			LOG.error("{}", e);
+			LOG.error("save resource to zk {}", e);
 			return false;
 		}
 		return true;
@@ -205,7 +205,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 				bases.add(tmp);
 			}
 			catch (JsonException e) {
-				LOG.error("{}", e);
+				LOG.error("get base from zk error {}", e);
 			}
 		}
 		// 2.计算集群基础基础信息

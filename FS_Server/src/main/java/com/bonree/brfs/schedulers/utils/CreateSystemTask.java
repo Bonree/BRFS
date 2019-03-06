@@ -31,7 +31,7 @@ import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
  *****************************************************************************
  */
 public class CreateSystemTask {
-	private static final Logger LOG = LoggerFactory.getLogger("CreateSystemTask");
+	private static final Logger LOG = LoggerFactory.getLogger(CreateSystemTask.class);
 	/***
 	 * 概述：创建系统任务model
 	 * @param taskType
@@ -112,7 +112,7 @@ public class CreateSystemTask {
 			}
 			// 当前粒度不允许操作
 			if(cGraTime == startTime) {
-				LOG.debug("current time is forbid to check !!!");
+				LOG.warn("current time is forbid to check !!!");
 				continue;
 			}
 			// 当无文件不操作
@@ -166,7 +166,7 @@ public class CreateSystemTask {
 			// 获取有效的过期时间
 			ttl = getTTL(sn, taskType, globalTTL);
 			endTime = startTime + granule;
-			LOG.info("sn : {} ,ttl:{}, taskType,", sn.getName(),ttl,taskType.name());
+			LOG.debug("sn : {} ,ttl:{}, taskType,", sn.getName(),ttl,taskType.name());
 			// 当ttl小于等于0 的sn 跳过
 			if(ttl <= 0) {
 				LOG.debug("sn {} don't to create task !!!",snName);

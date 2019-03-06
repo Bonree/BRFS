@@ -14,7 +14,7 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 
 public class DefaultRunnableTask implements RunnableTaskInterface {
-	private static final Logger LOG = LoggerFactory.getLogger("DefaultRunnableTask");
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultRunnableTask.class);
 	private long updateTime = 0;
 	private StatServerModel stat = null;
 	private TaskExecutablePattern  limit= null;

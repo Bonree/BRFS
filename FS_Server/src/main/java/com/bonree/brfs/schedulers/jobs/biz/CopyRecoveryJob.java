@@ -15,7 +15,7 @@ import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 public class CopyRecoveryJob extends CycleJobWithZKTask {
 	private static final Logger LOG = LoggerFactory.getLogger(CopyRecoveryJob.class);
 	@Override
-	public void operation(JobExecutionContext context) throws Exception {
+	public void operation(JobExecutionContext context){
 		
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
@@ -25,7 +25,7 @@ public class CopyRecoveryJob extends CycleJobWithZKTask {
 		TaskResultModel result = null;
 		String content = data.getString(currentIndex);
 		result = CopyRecovery.recoveryDirs(content,zkHosts, baseRoutPath,dataPath);
-		LOG.info("CURRENT_INDEX: {} status:{}",currentIndex, result.isSuccess());
+		LOG.debug("CURRENT_INDEX: {} status:{}",currentIndex, result.isSuccess());
 		TaskStateLifeContral.updateMapTaskMessage(context, result);
 	}
 

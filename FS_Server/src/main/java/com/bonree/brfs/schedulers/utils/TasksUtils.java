@@ -33,7 +33,7 @@ import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 public class TasksUtils {
-	private static final Logger LOG = LoggerFactory.getLogger("TasksUtils");
+	private static final Logger LOG = LoggerFactory.getLogger(TasksUtils.class);
 	/**
 	 * 概述：
 	 * @param services

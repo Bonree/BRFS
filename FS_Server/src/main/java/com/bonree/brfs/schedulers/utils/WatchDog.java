@@ -48,11 +48,11 @@ public class WatchDog{
 	 */
 	public static void searchPreys(ServerIDManager sim, Collection<StorageRegion> sns,String zkHosts,String baseRoutesPath, String dataPath, long limitTime) {
 		if(sns == null || sns.isEmpty() || BrStringUtils.isEmpty(dataPath)) {
-			LOG.info("<searchPreys> SKip search data because is empty");
+			LOG.debug("skip search data because is empty");
 			return;
 		}
 		if(isRun) {
-			LOG.info("<searchPreys> SKip search data because there is one");
+			LOG.info("SKip search data because there is one");
 			return;
 		}
 		lastTime = System.currentTimeMillis();
@@ -68,7 +68,7 @@ public class WatchDog{
 		long snLimitTime;
 		for(StorageRegion sn : sns) {
 			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
-				LOG.info("<searchPreys> SKip search data because there is one");
+				LOG.warn("skip search data because there is one reblance");
 				return;
 			}
 			snId = sn.getId();
@@ -103,7 +103,7 @@ public class WatchDog{
 				public void run() {
 					// 为空跳出
 					if(preys == null) {
-						LOG.info("queue is empty skip !!!");
+						LOG.debug("queue is empty skip !!!");
 						return;
 					}
 					int count = 0;
@@ -112,7 +112,7 @@ public class WatchDog{
 						try {
 							path = preys.poll();
 							boolean deleteFlag = FileUtils.deleteFile(path);
-							LOG.info("file : {} deleting!",path);
+							LOG.debug("file : {} deleting!",path);
 							if(!deleteFlag) {
 								LOG.info("file : {} cann't delete !!!",path);
 							}
@@ -121,7 +121,7 @@ public class WatchDog{
 								Thread.sleep(1000L);
 							}
 						}catch (Exception e) {
-							LOG.error("{}",e);
+							LOG.error("watch dog delete file error {}",e);
 						}
 					}
 					isRun = false;
@@ -149,7 +149,7 @@ public class WatchDog{
 	private static Map<String,List<String>> collectFood(String datapath,StorageRegion sn,long limitTime, long granule){
 		Map<String,List<String>> foods = new ConcurrentHashMap<String,List<String>>();
 		if(sn == null || BrStringUtils.isEmpty(datapath)) {
-			LOG.info("<collectFood> sn or dataPath is empty !!! ");
+			LOG.info("sn or dataPath is empty !!! ");
 			return foods;
 		}
 		int copyCount = sn.getReplicateNum();
@@ -160,7 +160,7 @@ public class WatchDog{
 			dirPath = datapath + "/" + snName + "/" + i;
 			part = FileCollection.collectLocalFiles(dirPath, limitTime, granule);
 			if(part == null || part.isEmpty()) {
-				LOG.info("<collectFood> part is empty !!!");
+				LOG.debug(" part is empty !!!");
 				continue;
 			}
 			foods.putAll(part);
