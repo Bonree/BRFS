@@ -77,7 +77,7 @@ public class ReadMetric {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("monitor_time", monitorTime);
 		map.put("storage_name", storageName);
-		map.put("dataNodeId", dataNodeId);
+		map.put("data_node_id", dataNodeId);
 		map.put("data_count", dataCount);
 		map.put("data_size", dataSize);
 		map.put("elapsed_time", elapsedTime);
