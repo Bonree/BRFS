@@ -120,6 +120,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         readMetric.setMonitorTime(System.currentTimeMillis());
         readMetric.setStorageName(readObject.getSn());
         readMetric.setDataNodeId(readObject.getFileName().split("_")[readObject.getIndex()]);
+        readMetric.setDataCount(1);
         TimeWatcher timeWatcher = new TimeWatcher();
         
         String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ? translator.filePath(readObject.getFilePath()) : readObject.getFilePath();

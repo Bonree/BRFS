@@ -14,6 +14,8 @@ public class ReadMetric {
 	private String storageName;
 	@JsonProperty("data_node_id")
 	private String dataNodeId;
+	@JsonProperty("data_count")
+	private int dataCount;
 	@JsonProperty("data_size")
 	private int dataSize;
 	@JsonProperty("elapsed_time")
@@ -43,6 +45,14 @@ public class ReadMetric {
 		this.dataNodeId = dataNodeId;
 	}
 
+	public int getDataCount() {
+		return dataCount;
+	}
+
+	public void setDataCount(int dataCount) {
+		this.dataCount = dataCount;
+	}
+
 	public int getDataSize() {
 		return dataSize;
 	}
@@ -68,6 +78,7 @@ public class ReadMetric {
 		map.put("monitor_time", monitorTime);
 		map.put("stoage_name", storageName);
 		map.put("dataNodeId", dataNodeId);
+		map.put("data_count", dataCount);
 		map.put("data_size", dataSize);
 		map.put("elapsed_time", elapsedTime);
 		
