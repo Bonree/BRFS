@@ -193,7 +193,7 @@ public class CopyCountCheck {
 				Map<String,String> map = new HashedMap();
 				map.put("remote ",service.getHost());
 				map.put("connectTimeout",String.valueOf(timeout));
-				map.put("sn", StringUtils.isEmpty(snName) ? "":snName,snName);
+				map.put("sn", StringUtils.isEmpty(snName) ? "" :snName);
 				builder.setVariable(map);
 				emailPool.sendEmail(builder);
 				throw  e;
