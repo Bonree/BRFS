@@ -203,7 +203,7 @@ storage.file.capacity = 67108864
 ###############################################
 #资源采集
 #资源采集的时间间隔 单位s
-#gather.resource.inveral.time = 60
+#gather.resource.inveral.time = 10
 
 #当有N个采样点时，计算资源值，最小值为2
 #calc.resource.value.count = 5

@@ -4,24 +4,24 @@
     <parent>
         <groupId>com.bonree.fs</groupId>
         <artifactId>BRFS</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.2-SNAPSHOT</version>
     </parent>
     <artifactId>FS_Server</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.bonree.fs</groupId>
             <artifactId>FS_Commons</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.bonree.fs</groupId>
             <artifactId>FS_Proto</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.bonree.fs</groupId>
             <artifactId>FS_ResouceSchedule</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
