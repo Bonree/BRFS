@@ -66,16 +66,18 @@ public class ProducerClient implements Deliver {
 
         this.brokers = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_BROKERS);
 
-        try {
-            build();
-        } catch (Exception e) {
-            LOG.error("deliver client build failed!", e);
+        if (deliverSwitch) {
+            try {
+                build();
+            } catch (Exception e) {
+                LOG.error("deliver client build failed!", e);
+            }
+
+            sendThread = new Thread(new Sender(), "kafka-client");
+            sendThread.setDaemon(true);
+            sendThread.start();
+
         }
-
-        sendThread = new Thread(new Sender(), "kafka-client");
-        sendThread.setDaemon(true);
-        sendThread.start();
-
     }
 
 
@@ -95,8 +97,11 @@ public class ProducerClient implements Deliver {
     }
 
     private boolean sendMessage(String type, Map<String, Object> data) {
-    	LOG.debug("prepare to add data to deliver's queue--{} : {}", type, data);
-        if(delivery == null){
+        if (!deliverSwitch) {
+            return true;
+        }
+        LOG.debug("prepare to add data to deliver's queue--{} : {}", type, data);
+        if (delivery == null) {
             try {
                 build();
             } catch (Exception e) {
@@ -105,27 +110,25 @@ public class ProducerClient implements Deliver {
             return false;
         }
 
-        if (deliverSwitch) {
-            DataTuple dt = new DataTuple(type, data);
-            LOG.debug("add data to deliver's queue--{}",dt);
-            boolean successful = msgQueue.offer(dt);
-            if (!successful) {
-                LOG.warn("deliver's queue is full, abandon the data:{}", dt);
-                return false;
-            }
+        DataTuple dt = new DataTuple(type, data);
+        LOG.debug("add data to deliver's queue--{}", dt);
+        boolean successful = msgQueue.offer(dt);
+        if (!successful) {
+            LOG.warn("deliver's queue is full, abandon the data:{}", dt);
+            return false;
         }
         return true;
     }
 
     @Override
     public boolean sendWriterMetric(Map<String, Object> data) {
-        LOG.debug("send writer data to deliver,data--{}",data);
+        LOG.debug("send writer data to deliver,data--{}", data);
         return sendMessage(tableWriter, data);
     }
 
     @Override
     public boolean sendReaderMetric(Map<String, Object> data) {
-        LOG.debug("send reader data to deliver,data--{}",data);
+        LOG.debug("send reader data to deliver,data--{}", data);
         return sendMessage(tableReader, data);
     }
 
@@ -136,11 +139,11 @@ public class ProducerClient implements Deliver {
                 while (true) {
                     DataTuple dt = msgQueue.poll(1, TimeUnit.SECONDS);
                     if (null != dt && null != dt._2()) {
-                        LOG.debug("fetch data from deliver'queue. data:{}",dt);
+                        LOG.debug("fetch data from deliver'queue. data:{}", dt);
                         delivery.add(dt._1(), dt._2(), new Callback() {
                             @Override
                             public void onSuccess(int i) {
-                                LOG.debug("send deliver success:{}",i);
+                                LOG.debug("send deliver success:{}", i);
                             }
 
                             @Override
@@ -159,7 +162,7 @@ public class ProducerClient implements Deliver {
     }
 
     private void build() throws Exception {
-        LOG.info("prepare to build deliver client:{}",toString());
+        LOG.info("prepare to build deliver client:{}", toString());
 
         Map<String, Object> props = new HashMap<>();
         props.put("bootstrap.servers", brokers);
@@ -183,7 +186,7 @@ public class ProducerClient implements Deliver {
                         .setProducerParams(props)
                         .setTopic(topic)
                         .setVersion(Delivery.KafkaVersion.VERSION_10).build();
-        LOG.info("success to build deliver client:{}",toString());
+        LOG.info("success to build deliver client:{}", toString());
     }
 
     @Override
