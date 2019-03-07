@@ -115,7 +115,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		if(taskNames == null) {
 			return;
 		}
-		String result = null;
+		String result;
 		for(String name : taskNames) {
 			result = TasksUtils.createCopyTask(name);
 			if(BrStringUtils.isEmpty(result)) {

@@ -88,10 +88,15 @@ public class WatchSomeThingJob extends QuartzOperationStateTask {
 		String dataStr = null;
 		for(String sn : paths){
 			snPath = path + Constants.SEPARATOR +sn;
+			if(!client.checkExists(snPath)){
+				continue;
+			}
 			cList = client.getChildren(snPath);
 			if(cList !=null && !cList.isEmpty()){
-				//TODO 防御日志
 				tmpPath = snPath +"/"+ cList.get(0);
+				if(!client.checkExists(tmpPath)){
+					continue;
+				}
 				data = client.getData(tmpPath);
 				try{
 					dataStr =data == null ? null : new String(data, StandardCharsets.UTF_8.name());

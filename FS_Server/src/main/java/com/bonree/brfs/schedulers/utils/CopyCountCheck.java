@@ -12,6 +12,7 @@ import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.bonree.mail.worker.MailWorker;
 import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,7 +138,7 @@ public class CopyCountCheck {
 		Map<StorageRegion,List<String>> snMap = new HashMap<>();
 		DiskNodeClient client = null;
 		int reCount;
-		String snName;
+		String snName = null;
 		String path;
 		List<String> strs;
 		long time;
@@ -192,7 +193,7 @@ public class CopyCountCheck {
 				Map<String,String> map = new HashedMap();
 				map.put("remote ",service.getHost());
 				map.put("connectTimeout",String.valueOf(timeout));
-				map.put("sn",String.valueOf(timeout));
+				map.put("sn", StringUtils.isEmpty(snName) ? "",snName);
 				builder.setVariable(map);
 				emailPool.sendEmail(builder);
 				throw  e;
