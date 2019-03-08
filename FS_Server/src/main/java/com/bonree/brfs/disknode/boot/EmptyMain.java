@@ -67,7 +67,7 @@ public class EmptyMain implements LifeCycle {
 		createRootDirIfNeeded(diskContext.getRootDir());
 		
 		RecordCollectionManager recorderManager = new RecordCollectionManager();
-		writerManager = new FileWriterManager(recorderManager, new FileValidChecker());
+		writerManager = new FileWriterManager(recorderManager);
 		writerManager.start();
 		
 		writerManager.rebuildFileWriterbyDir(diskContext.getRootDir());

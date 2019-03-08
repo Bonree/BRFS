@@ -4,6 +4,9 @@ package com.bonree.brfs.schedulers.jobs.system;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
+import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
@@ -21,7 +24,7 @@ import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 
 public class ManagerMetaTaskJob extends QuartzOperationStateTask {
-	private static final Logger LOG = LoggerFactory.getLogger("ManagerMetaTaskJob");
+	private static final Logger LOG = LoggerFactory.getLogger(ManagerMetaTaskJob.class);
 	
 
 	@Override
@@ -29,18 +32,18 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt(){
 
 	}
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("----------> revise task work");
+		LOG.info("revise task work");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		// 任务过期时间 ms
 		String ttlTimeStr = data.getString(JobDataMapConstract.TASK_EXPIRED_TIME);
 		LOG.info("task ttl time : {}", ttlTimeStr);
-		long ttlTime = Long.valueOf(ttlTimeStr);
+		long ttlTime = Long.parseLong(ttlTimeStr);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		
 		MetaTaskManagerInterface release = mcf.getTm();
@@ -53,12 +56,18 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 			LOG.warn("available server list is null");
 			return;
 		}
-		TaskTypeModel typeModel = null;
 		for(TaskType taskType : TaskType.values()){
 			try {
 				release.reviseTaskStat(taskType.name(), ttlTime, serverIds);
 			} catch (Exception e) {
 				LOG.warn("{}", e.getMessage());
+				EmailPool emailPool = EmailPool.getInstance();
+				MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+				builder.setModel(this.getClass().getSimpleName()+"模块服务发生问题");
+				builder.setException(e);
+				builder.setMessage("管理任务数据发生错误");
+				builder.setVariable(data.getWrappedMap());
+				emailPool.sendEmail(builder);
 			}
 		}
 		LOG.info("revise task success !!!");

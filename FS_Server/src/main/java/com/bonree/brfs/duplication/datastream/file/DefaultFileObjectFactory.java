@@ -68,6 +68,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 			String serverId = idManager.getOtherSecondID(node.getId(), storageRegion.getId());
 			String filePath = FilePathBuilder.buildFilePath(fileNodeBuilder.build(), serverId);
 			
+			LOG.info("client opening file [{}]", filePath);
 			long result = connection.getClient().openFile(filePath, storageRegion.getFileCapacity());
 			if(result < 0) {
 				continue;

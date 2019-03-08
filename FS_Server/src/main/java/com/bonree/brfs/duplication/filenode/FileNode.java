@@ -55,8 +55,7 @@ public class FileNode {
 	public long getCreateTime() {
 		return createTime;
 	}
-
-	public long getTimeDuration() {
+	public long getTimeDurationMillis() {
 		return timeDurationMillis;
 	}
 

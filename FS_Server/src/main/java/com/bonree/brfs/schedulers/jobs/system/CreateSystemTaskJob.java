@@ -2,9 +2,9 @@ package com.bonree.brfs.schedulers.jobs.system;
 
 import java.util.List;
 
+import com.bonree.brfs.configuration.units.ResourceConfigs;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,20 +25,18 @@ import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 
 public class CreateSystemTaskJob extends QuartzOperationStateTask {
-	private static final Logger LOG = LoggerFactory.getLogger("CreateSysTask");
+	private static final Logger LOG = LoggerFactory.getLogger(CreateSystemTaskJob.class);
 	@Override
 	public void caughtException(JobExecutionContext context) {
-		LOG.info("------------create sys task happened Exception !!!-----------------");
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
-		LOG.info(" happened Interrupt !!!");
+	public void interrupt(){
 	}
 
 	@Override
-	public void operation(JobExecutionContext context) throws Exception {
-		LOG.info("-------> create system task working");
+	public void operation(JobExecutionContext context){
+		LOG.info("create system task working");
 		//判断是否有恢复任务，有恢复任务则不进行创建
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL);
@@ -63,14 +61,14 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 		StorageRegionManager snm = mcf.getSnm();
 		List<StorageRegion> snList = snm.getStorageRegionList();
 		if(snList == null || snList.isEmpty()) {
-			LOG.info("SKIP create system task !!! because storageName is null !!!");
+			LOG.info("skip create system task !!! because storageName is null !!!");
 			return;
 		}
-		TaskModel task = null;
-		String taskName = null;
-		TaskTypeModel tmodel = null;
+		TaskModel task;
+		String taskName;
+		TaskTypeModel tmodel;
 		long ttl = 0;
-		Pair<TaskModel,TaskTypeModel> result = null;
+		Pair<TaskModel,TaskTypeModel> result;
 		List<String> srs = TaskStateLifeContral.getSRs(snm);
 		for(TaskType taskType : switchList){
 			if(TaskType.SYSTEM_COPY_CHECK.equals(taskType)||TaskType.USER_DELETE.equals(taskType)) {
@@ -83,6 +81,11 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 				ttl = checkTtl;
 			}
 			tmodel = release.getTaskTypeInfo(taskType.name());
+			if(tmodel == null){
+				tmodel = new TaskTypeModel();
+				tmodel.setSwitchFlag(true);
+				LOG.warn("taskType{} is switch but metadata is null");
+			}
 			result = CreateSystemTask.createSystemTask(tmodel,taskType, snList, ttl);
 			if(result == null) {
 				LOG.warn("create sys task is empty {}",taskType.name());
@@ -92,7 +95,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
 			taskName = CreateSystemTask.updateTask(release, task, serverIds, taskType);
 			if(!BrStringUtils.isEmpty(taskName)) {
 				LOG.info("create {} {} task successfull !!!", taskType.name(), taskName);
-				release.setTaskTypeModel(taskType.name(), result.getSecond());
+				release.setTaskTypeModel(taskType.name(), tmodel);
 			}
 		}
 	}

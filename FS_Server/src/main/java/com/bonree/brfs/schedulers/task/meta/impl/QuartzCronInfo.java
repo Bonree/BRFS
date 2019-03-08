@@ -26,37 +26,31 @@ public class QuartzCronInfo implements SumbitTaskInterface {
 	}
 	@Override
 	public String getTaskName() {
-		// TODO Auto-generated method stub
 		return this.taskName;
 	}
 
 	@Override
 	public String getTaskGroupName() {
-		// TODO Auto-generated method stub
 		return this.taskGroupName;
 	}
 
 	@Override
 	public String getClassInstanceName() {
-		// TODO Auto-generated method stub
 		return this.classInstanceName;
 	}
 
 	@Override
 	public String getCycleContent() {
-		// TODO Auto-generated method stub
 		return this.cronTime;
 	}
 
 	@Override
 	public Map<String, String> getTaskContent() {
-		// TODO Auto-generated method stub
 		return taskContent;
 	}
 
 	@Override
 	public int getTaskKind() {
-		// TODO Auto-generated method stub
 		return this.taskKind;
 	}
 

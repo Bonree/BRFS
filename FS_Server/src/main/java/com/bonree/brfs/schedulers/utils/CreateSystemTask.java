@@ -14,7 +14,6 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
@@ -32,7 +31,7 @@ import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
  *****************************************************************************
  */
 public class CreateSystemTask {
-	private static final Logger LOG = LoggerFactory.getLogger("CreateSystemTask");
+	private static final Logger LOG = LoggerFactory.getLogger(CreateSystemTask.class);
 	/***
 	 * 概述：创建系统任务model
 	 * @param taskType
@@ -45,7 +44,7 @@ public class CreateSystemTask {
 		if(snList == null || snList.isEmpty()) {
 			return null;
 		}
-		Map<String,Long> snTimes = null;
+		Map<String,Long> snTimes;
 		if(tmodel == null) {
 			return null;
 		}
@@ -62,28 +61,9 @@ public class CreateSystemTask {
 		if(snTimes != null && !snTimes.isEmpty()) {
 			tmodel.putAllSnTimes(snTimes);
 		}
-		return new Pair<TaskModel,TaskTypeModel>(pair.getFirst(), tmodel);
+		return new Pair<>(pair.getFirst(), tmodel);
 	}
-	/***
-	 * 概述：获取任务
-	 * @param release
-	 * @param taskType
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static TaskModel getLastTask(MetaTaskManagerInterface release,TaskType taskType) {
-		String prexTaskName = null;
-		TaskModel prexTask = null;
-		List<String> taskList = null;
-		taskList = release.getTaskList(taskType.name());
-		if(taskList != null && !taskList.isEmpty()){
-			prexTaskName = taskList.get(taskList.size() - 1);
-		}
-		if(!BrStringUtils.isEmpty(prexTaskName)){
-			prexTask = release.getTaskContentNodeInfo(taskType.name(), prexTaskName);
-		}
-		return prexTask;
-	}
+
 	/**
 	 * 概述：创建单个类型任务
 	 * @param snTimes
@@ -96,28 +76,21 @@ public class CreateSystemTask {
 		if(needSn == null || snTimes == null) {
 			return null;
 		}
-		String snName = null;
-		long cTime = 0;
-		long startTime = 0;
-		long endTime = 0;
-		int copyCount = 1;
+		String snName;
+		long startTime;
+		long endTime;
 		long currentTime = System.currentTimeMillis();
-		List<AtomTaskModel> sumAtoms = new ArrayList<AtomTaskModel>();
-		long ttl = 0;
-		Map<String,Long> lastSnTimes = new HashMap<String,Long>();
-		if(snTimes != null) {
-			lastSnTimes.putAll(snTimes);
-		}
+		List<AtomTaskModel> sumAtoms = new ArrayList<>();
+		long ttl;
+		Map<String, Long> lastSnTimes = new HashMap<>(snTimes);
 		List<String> files = null;
-		AtomTaskModel atom = null;
-		String dir = null;
-		long cGraTime = 0;
+		AtomTaskModel atom;
+		long cGraTime;
 		long granule = 0;
 		for(StorageRegion sn : needSn) {
 			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 			cGraTime = currentTime - ( currentTime % granule );
 			snName = sn.getName();
-			cTime = sn.getCreateTime();
 			// 获取开始时间
 			if(snTimes.containsKey(snName)) {
 				startTime = snTimes.get(snName);
@@ -139,7 +112,7 @@ public class CreateSystemTask {
 			}
 			// 当前粒度不允许操作
 			if(cGraTime == startTime) {
-				LOG.debug("current time is forbid to check !!!");
+				LOG.warn("current time is forbid to check !!!");
 				continue;
 			}
 			// 当无文件不操作
@@ -147,18 +120,17 @@ public class CreateSystemTask {
 				files = snFiles.get(snName);
 			}
 			if(files != null && !files.isEmpty()) {
-				dir = TimeUtils.timeInterval(startTime, granule);
 				atom = AtomTaskModel.getInstance(files, snName, taskOperation, sn.getReplicateNum(), startTime, endTime, granule);
 				sumAtoms.add(atom);
 			}
 			lastSnTimes.put(snName, endTime);
 		}
 		if(sumAtoms == null || sumAtoms.isEmpty()) {
-			return new Pair<TaskModel,Map<String,Long>>(null, lastSnTimes);
+			return new Pair<>(null, lastSnTimes);
 		}
 		TaskModel task = TaskModel.getInitInstance(taskType, "1", granule);
 		task.putAtom(sumAtoms);
-		return new Pair<TaskModel,Map<String,Long>>(task,lastSnTimes);
+		return new Pair<>(task,lastSnTimes);
 	}
 	/**
 	 * 概述：创建单个类型任务
@@ -169,18 +141,17 @@ public class CreateSystemTask {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static Pair<TaskModel,Map<String,Long>> creatSingleTask(final Map<String,Long> snTimes, List<StorageRegion> needSn, TaskType taskType, long globalTTL) {
-		String snName = null;
-		long cTime = 0;
-		long startTime = 0;
-		long endTime = 0;
-		int copyCount = 1;
+		String snName;
+		long cTime;
+		long startTime;
+		long endTime;
 		long currentTime = System.currentTimeMillis();
-		List<AtomTaskModel> sumAtoms = new ArrayList<AtomTaskModel>();
-		long ttl = 0;
-		Map<String,Long> lastSnTimes = new HashMap<String,Long>(snTimes);
-		long cGraTime = 0;
+		List<AtomTaskModel> sumAtoms = new ArrayList<>();
+		long ttl;
+		Map<String,Long> lastSnTimes = new HashMap<>(snTimes);
+		long cGraTime;
 		long granule = 0;
-		AtomTaskModel atom = null;
+		AtomTaskModel atom;
 		for(StorageRegion sn : needSn) {
 			granule =Duration.parse(sn.getFilePartitionDuration()).toMillis();
 			cGraTime = currentTime - currentTime%granule;
@@ -195,10 +166,10 @@ public class CreateSystemTask {
 			// 获取有效的过期时间
 			ttl = getTTL(sn, taskType, globalTTL);
 			endTime = startTime + granule;
-			LOG.info("sn : {} ,ttl:{}, taskType,", sn.getName(),ttl,taskType.name());
+			LOG.debug("sn : {} ,ttl:{}, taskType,", sn.getName(),ttl,taskType.name());
 			// 当ttl小于等于0 的sn 跳过
 			if(ttl <= 0) {
-				LOG.info("sn {} don't to create task !!!",snName);
+				LOG.debug("sn {} don't to create task !!!",snName);
 				continue;
 			}
 			// 当未达到过期的跳过
@@ -209,7 +180,6 @@ public class CreateSystemTask {
 			if(cGraTime == startTime) {
 				continue;
 			}
-			copyCount = sn.getReplicateNum();
 			atom  =  AtomTaskModel.getInstance(null, snName, "", sn.getReplicateNum(), startTime, endTime, granule);
 			if(atom == null) {
 				continue;
@@ -217,13 +187,13 @@ public class CreateSystemTask {
 			sumAtoms.add(atom);
 			lastSnTimes.put(snName, endTime);
 		}
-		if(sumAtoms == null || sumAtoms.isEmpty()) {
+		if(sumAtoms.isEmpty()) {
 			return null;
 		}
 		TaskModel task = TaskModel.getInitInstance(taskType, "", granule);
 		task.putAtom(sumAtoms);
 		
-		return new Pair<TaskModel,Map<String,Long>>(task,lastSnTimes);
+		return new Pair<>(task,lastSnTimes);
 	}
 	/**
 	 * 概述：首次执行指定任务sn任务创建
@@ -248,71 +218,7 @@ public class CreateSystemTask {
 		}
 		return ttl;
 	}
-	/**
-	 * 概述：获取上次执行时间
-	 * @param prex
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static Map<String,Long> getLastTime(TaskModel prex){
-		Map<String,Long> snCurrentTime = new HashMap<String,Long>();
-		if(prex == null) {
-			return snCurrentTime;
-		}
-		List<AtomTaskModel> atoms = prex.getAtomList();
-		if(atoms == null || atoms.isEmpty()) {
-			return snCurrentTime;
-		}
-		String snName = null;
-		long startTime = 0;
-		for(AtomTaskModel atom : atoms) {
-			snName = atom.getStorageName();
-			startTime = TimeUtils.getMiles(atom.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE);
-			if(BrStringUtils.isEmpty(snName)) {
-				continue;
-			}
-			if(startTime < 0 ) {
-				continue;
-			}
-			if(!snCurrentTime.containsKey(snName)) {
-				snCurrentTime.put(snName, startTime);
-			}
-			if(startTime > snCurrentTime.get(snName)) {
-				snCurrentTime.put(snName, startTime);
-			}
-		}
-		return snCurrentTime;
-	}
-	/**
-	 * 概述：过滤不过期的SN
-	 * @param snList
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static List<StorageRegion> fileterNeverTTL(final List<StorageRegion> snList){
-		if(snList == null || snList.isEmpty()) {
-			return null;
-		}
-		List<StorageRegion> filters = new ArrayList<>();
-		long ttl = 0;
-		long cTime = 0;
-		long currentTime = System.currentTimeMillis();
-		for(StorageRegion sn : snList) {
-			//TODO 测试阶段单位为s，正式阶段单位为d
-			ttl = Duration.parse(sn.getDataTtl()).toMillis();
-			cTime = sn.getCreateTime();
-			// 过滤永久保存的sn
-			if(ttl <0) {
-				continue;
-			}
-			// 过滤还不到过期的sn
-			if(ttl > currentTime - cTime) {
-				continue;
-			}
-			filters.add(sn);
-		}
-		return filters;
-	}
+
 	/**
 	 * 概述：将任务信息创建到zk
 	 * @param release
@@ -357,7 +263,7 @@ public class CreateSystemTask {
 		if(sList == null || sList.isEmpty()){
 			return sids;
 		}
-		String sid = null;
+		String sid;
 		for(Service server : sList){
 			sid = server.getServiceId();
 			if(BrStringUtils.isEmpty(sid)){

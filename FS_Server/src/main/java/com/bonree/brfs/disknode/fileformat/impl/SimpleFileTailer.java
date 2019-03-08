@@ -12,7 +12,7 @@ public class SimpleFileTailer implements FileTailer {
 
 	@Override
 	public int length() {
-		return 11;
+		return 9;
 	}
 
 }

@@ -1,21 +1,13 @@
 package com.bonree.brfs.resourceschedule.commons;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.hyperic.sigar.SigarException;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.zookeeper.ZookeeperClient;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
@@ -33,59 +25,14 @@ import com.bonree.brfs.resourceschedule.utils.SigarUtils;
  *****************************************************************************
  */
 public class GatherResource {
+
 	/**
 	 * 概述：采集状态信息
 	 * @param dataDir
-	 * @param ipSet
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static StateMetaServerModel gatherResource(String dataDir, Collection<String> ipSet){
-		StateMetaServerModel obj = new StateMetaServerModel();
-		try {
-			Set<String> ipDevSet = SigarUtils.instance.gatherBaseNetDevSet(ipSet);
-			int cpuCore = SigarUtils.instance.gatherCpuCoreCount();
-			obj.setCpuCoreCount(cpuCore);
-			double cpuRate = SigarUtils.instance.gatherCpuRate();
-			obj.setCpuRate(cpuRate);
-			double memoryRate = SigarUtils.instance.gatherMemoryRate();
-			obj.setMemoryRate(memoryRate);
-			long memorySize = SigarUtils.instance.gatherMemSize();
-			obj.setMemorySize(memorySize);
-			Map<Integer,Map<String, Long>> netStatMap = SigarUtils.instance.gatherNetStatInfos(ipDevSet);
-			if(netStatMap.containsKey(0)){
-				obj.setNetTByteMap(netStatMap.get(0));
-			}
-			if(netStatMap.containsKey(1)){
-				obj.setNetRByteMap(netStatMap.get(1));
-			}
-			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir);
-			if(partition.containsKey(0)){
-				obj.setPartitionTotalSizeMap(partition.get(0));
-			}
-			if(partition.containsKey(1)){
-				obj.setPartitionRemainSizeMap(partition.get(1));
-			}
-			if(partition.containsKey(2)){
-				obj.setPartitionReadByteMap(partition.get(2));
-			}
-			if(partition.containsKey(3)){
-				obj.setPartitionWriteByteMap(partition.get(3));
-			}
-		} catch (SigarException e) {
-			e.printStackTrace();
-		}
-		return obj;
-	}
-	
-	/**
-	 * 概述：采集状态信息
-	 * @param dataDir
-	 * @param ipSet
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static StateMetaServerModel gatherResource(String dataDir, String ip){
+	public static StateMetaServerModel gatherResource(String dataDir, String ip,Collection<String> mountPoints){
 		StateMetaServerModel obj = new StateMetaServerModel();
 		try {
 			if(BrStringUtils.isEmpty(dataDir) || BrStringUtils.isMathNumeric(ip)){
@@ -104,7 +51,7 @@ public class GatherResource {
 				obj.setNetRByte(netData.getFirst());
 				obj.setNetTByte(netData.getSecond());
 			}
-			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir);
+			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir,mountPoints);
 			if(partition.containsKey(0)){
 				obj.setPartitionTotalSizeMap(partition.get(0));
 			}
@@ -126,11 +73,10 @@ public class GatherResource {
 	/**
 	 * 概述：基本信息
 	 * @param dataDir
-	 * @param ipSet
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static BaseMetaServerModel gatherBase(String serverId, String dataDir){
+	public static BaseMetaServerModel gatherBase(String serverId, String dataDir,Collection<String> mountPoints){
 		BaseMetaServerModel obj = new BaseMetaServerModel();
 		try {
 			int cpuCore = SigarUtils.instance.gatherCpuCoreCount();
@@ -138,7 +84,7 @@ public class GatherResource {
 		
 			long memorySize = SigarUtils.instance.gatherMemSize();
 			obj.setMemoryTotalSize(memorySize);
-			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir);
+			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir,mountPoints);
 			if(partition.containsKey(0)){
 				long totalDiskSize = CalcUtils.collectDataMap(partition.get(0));
 				obj.setDiskTotalSize(totalDiskSize);
@@ -154,7 +100,7 @@ public class GatherResource {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<StatServerModel> calcState(Queue<StateMetaServerModel> queue){
+	public static List<StatServerModel> calcState(Queue<StateMetaServerModel> queue, int pollSize){
 		List<StatServerModel> orderList = new ArrayList<StatServerModel>();
 		if(queue == null){
 			return orderList;
@@ -163,20 +109,39 @@ public class GatherResource {
 		if(size < 2){
 			return orderList;
 		}
-		StatServerModel obj = null;
+		StatServerModel obj;
 		StateMetaServerModel pre = null;
-		StateMetaServerModel current = null;
-		for(int i = 0; i < size; i++){
-			if(i == 0 || pre == null){
-				pre = queue.poll();
+		StateMetaServerModel current;
+		if(size > pollSize){
+			int pSize = size - pollSize;
+			for(int i = 0;i <pSize;i++){
+				if(i == 0 || pre == null){
+					pre = queue.poll();
+					continue;
+				}
+				current = queue.poll();
+				obj = current.converObject(pre);
+				orderList.add(obj);
+				pre = current;
+			}
+
+		}
+		if(queue.isEmpty()){
+			return orderList;
+		}
+		Iterator<StateMetaServerModel> iterator = queue.iterator();
+		StateMetaServerModel next;
+		while(iterator.hasNext()){
+			next = iterator.next();
+			if(pre == null){
+				pre = next;
 				continue;
 			}
-			current = queue.poll();
+			current = next;
 			obj = current.converObject(pre);
 			orderList.add(obj);
 			pre = current;
 		}
-		
 		return orderList;
 	}
 	/**
@@ -213,29 +178,29 @@ public class GatherResource {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void selectMaxValue(final Collection<StatServerModel> source, BaseMetaServerModel base){
-		if(source == null){
-			return ;
-		}
-		for(StatServerModel stat : source){
-			long mNetRx = stat.getNetRSpeed();
-			if(base.getNetRxMaxSpeed() < mNetRx){
-				base.setNetRxMaxSpeed(mNetRx);
-			}
-			long mNetTx = stat.getNetTSpeed();
-			if(base.getNetTxMaxSpeed() < mNetTx){
-				base.setNetTxMaxSpeed(mNetTx);
-			}
-			long mDiskW = CalcUtils.maxDataMap(stat.getPartitionWriteSpeedMap());
-			if(base.getDiskWriteMaxSpeed() < mDiskW){
-				base.setDiskWriteMaxSpeed(mDiskW);
-			}
-			long mDiskR = CalcUtils.maxDataMap(stat.getPartitionReadSpeedMap());
-			if(base.getDiskReadMaxSpeed() < mDiskR){
-				base.setDiskReadMaxSpeed(mDiskR);
-			}
-		}
-	}
+//	public static void selectMaxValue(final Collection<StatServerModel> source, BaseMetaServerModel base){
+//		if(source == null){
+//			return ;
+//		}
+//		for(StatServerModel stat : source){
+//			long mNetRx = stat.getNetRSpeed();
+//			if(base.getNetRxMaxSpeed() < mNetRx){
+//				base.setNetRxMaxSpeed(mNetRx);
+//			}
+//			long mNetTx = stat.getNetTSpeed();
+//			if(base.getNetTxMaxSpeed() < mNetTx){
+//				base.setNetTxMaxSpeed(mNetTx);
+//			}
+//			long mDiskW = CalcUtils.maxDataMap(stat.getPartitionWriteSpeedMap());
+//			if(base.getDiskWriteMaxSpeed() < mDiskW){
+//				base.setDiskWriteMaxSpeed(mDiskW);
+//			}
+//			long mDiskR = CalcUtils.maxDataMap(stat.getPartitionReadSpeedMap());
+//			if(base.getDiskReadMaxSpeed() < mDiskR){
+//				base.setDiskReadMaxSpeed(mDiskR);
+//			}
+//		}
+//	}
 	/**
 	 * 概述：汇总基础信息
 	 * @param source
@@ -254,19 +219,20 @@ public class GatherResource {
 	}
 	/***
 	 * 概述：计算resource
-	 * @param local
 	 * @param cluster
 	 * @param stat
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static ResourceModel calcResourceValue(final BaseMetaServerModel cluster, final StatServerModel stat){
+	public static ResourceModel calcResourceValue(final BaseMetaServerModel cluster, final StatServerModel stat,String serverId,String ip){
 		ResourceModel obj = new ResourceModel();
 		Map<String,Double> cacheMap = null;
-		long cacheNum = 0l;
+		long cacheNum = 0L;
 		double cpuValue = (1 - stat.getCpuRate()) * stat.getCpuCoreCount() / cluster.getCpuCoreCount();
 		double memoryValue = (1 - stat.getMemoryRate()) * stat.getMemorySize() / cluster.getMemoryTotalSize();
 		double diskRemainRate = stat.getTotalDiskSize() == 0 ? 0.0 : (double)stat.getRemainDiskSize()/stat.getTotalDiskSize();
+		obj.setServerId(serverId);
+		obj.setHost(ip);
 		obj.setCpuRate(stat.getCpuRate());
 		obj.setMemoryRate(stat.getMemoryRate());
 		obj.setDiskSize(stat.getTotalDiskSize());
@@ -277,6 +243,10 @@ public class GatherResource {
 		cacheNum = cluster.getDiskTotalSize();
 		cacheMap = CalcUtils.divDataDoubleMap(stat.getPartitionRemainSizeMap(), cacheNum);
 		obj.setDiskRemainValue(cacheMap);
+		// 设置磁盘剩余sizemap
+		obj.setLocalDiskRemainRate(calcRemainRate(stat.getPartitionRemainSizeMap(),stat.getPartitionTotalSizeMap()));
+		obj.setLocalRemainSizeValue(stat.getPartitionRemainSizeMap());
+		obj.setLocalSizeValue(stat.getPartitionTotalSizeMap());
 		// 磁盘读
 		cacheNum = cluster.getDiskReadMaxSpeed();
 		cacheMap = CalcUtils.divDiffDataDoubleMap(stat.getPartitionReadSpeedMap(), cacheNum);
@@ -287,7 +257,7 @@ public class GatherResource {
 		obj.setDiskWriteValue(cacheMap);
 		// 网卡接收
 		cacheNum = cluster.getNetRxMaxSpeed();
-		double netRS = stat.getNetRSpeed()/cacheNum;
+		double netRS = (double)stat.getNetRSpeed()/cacheNum;
 		obj.setNetRxValue(netRS);
 		// 网卡发送
 		cacheNum = cluster.getNetTxMaxSpeed();
@@ -296,6 +266,27 @@ public class GatherResource {
 		obj.setStorageNameOnPartitionMap(stat.getStorageNameOnPartitionMap());
 		return obj;
 	}
+    public static Map<String,Double> calcRemainRate(Map<String,Long> remain,Map<String,Long> total){
+	    Map<String,Double> doubleMap = new HashMap<>();
+	    if(remain == null || remain.isEmpty() || total == null || total.isEmpty()){
+	        return doubleMap;
+        }
+        String mount = null;
+	    long totalSize = 0L;
+	    long remainSize = 0L;
+	    double rate = 0.0;
+	    for(Map.Entry<String,Long> entry : total.entrySet()){
+	        mount = entry.getKey();
+	        totalSize = entry.getValue();
+	        if(totalSize == 0){
+	            continue;
+            }
+	        remainSize = remain.get(mount);
+            rate = (double)remainSize/totalSize;
+            doubleMap.put(mount,rate);
+        }
+        return doubleMap;
+    }
 	
 	 /**
      * 概述：匹配sn与分区
@@ -333,18 +324,18 @@ public class GatherResource {
      * @param zkUrl
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static void updateBaseInfo(String serverID, String dataDir, String bZkNode,String zkUrl){
-		BaseMetaServerModel local = GatherResource.gatherBase(serverID, dataDir);
-		byte[] content = JsonUtils.toJsonBytesQuietly(local);
-		ZookeeperClient client =  CuratorClient.getClientInstance(zkUrl);
-		String baseNode = bZkNode + "/"+serverID;
-		if(client.checkExists(baseNode)){
-			client.setData(baseNode, content);
-		}else{
-			client.createPersistent(baseNode, true, content);
-		}
-		client.close();
-	}
+//    public static void updateBaseInfo(String serverID, String dataDir, String bZkNode,String zkUrl){
+//		BaseMetaServerModel local = GatherResource.gatherBase(serverID, dataDir);
+//		byte[] content = JsonUtils.toJsonBytesQuietly(local);
+//		ZookeeperClient client =  CuratorClient.getClientInstance(zkUrl);
+//		String baseNode = bZkNode + "/"+serverID;
+//		if(client.checkExists(baseNode)){
+//			client.setData(baseNode, content);
+//		}else{
+//			client.createPersistent(baseNode, true, content);
+//		}
+//		client.close();
+//	}
     /**
      * 概述：获取资源
      * @param zkUrl
@@ -352,32 +343,32 @@ public class GatherResource {
      * @return
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static List<ResourceModel> getResourceS(final String zkUrl, final String resourcePath){
-    	
-		List<ResourceModel> dataList = new ArrayList<ResourceModel>();
-		if(BrStringUtils.isEmpty(zkUrl)|| BrStringUtils.isEmpty(resourcePath)){
-			return dataList;
-		}
-		ZookeeperClient client = CuratorClient.getClientInstance(zkUrl);
-		List<String> baseNodes = client.getChildren(resourcePath);
-		if(baseNodes == null || baseNodes.isEmpty()){
-			return dataList;
-		}
-		String pathNode = null;
-		byte[] data = null;
-		ResourceModel tmpBase = null;
-		for(String base : baseNodes){
-			pathNode = resourcePath + "/" + base;
-			data = client.getData(pathNode);
-			if(data == null){
-				continue;
-			}
-			tmpBase = JsonUtils.toObjectQuietly(data, ResourceModel.class);
-			dataList.add(tmpBase);
-		}
-		client.close();
-		return dataList;
-	}
+//    public static List<ResourceModel> getResourceS(final String zkUrl, final String resourcePath){
+//
+//		List<ResourceModel> dataList = new ArrayList<ResourceModel>();
+//		if(BrStringUtils.isEmpty(zkUrl)|| BrStringUtils.isEmpty(resourcePath)){
+//			return dataList;
+//		}
+//		ZookeeperClient client = CuratorClient.getClientInstance(zkUrl);
+//		List<String> baseNodes = client.getChildren(resourcePath);
+//		if(baseNodes == null || baseNodes.isEmpty()){
+//			return dataList;
+//		}
+//		String pathNode = null;
+//		byte[] data = null;
+//		ResourceModel tmpBase = null;
+//		for(String base : baseNodes){
+//			pathNode = resourcePath + "/" + base;
+//			data = client.getData(pathNode);
+//			if(data == null){
+//				continue;
+//			}
+//			tmpBase = JsonUtils.toObjectQuietly(data, ResourceModel.class);
+//			dataList.add(tmpBase);
+//		}
+//		client.close();
+//		return dataList;
+//	}
     /**
      * 概述：获取基础信息
      * @param zkUrl
@@ -385,32 +376,32 @@ public class GatherResource {
      * @return
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static List<BaseMetaServerModel> getClusterBase(final String zkUrl, final String basePath){
-    	
-		List<BaseMetaServerModel> dataList = new ArrayList<BaseMetaServerModel>();
-		if(BrStringUtils.isEmpty(zkUrl) || BrStringUtils.isEmpty(basePath)){
-			return dataList;
-		}
-		ZookeeperClient client = CuratorClient.getClientInstance(zkUrl);
-		List<String> baseNodes = client.getChildren(basePath);
-		if(baseNodes == null || baseNodes.isEmpty()){
-			return dataList;
-		}
-		String pathNode = null;
-		byte[] data = null;
-		BaseMetaServerModel tmpBase = null;
-		for(String base : baseNodes){
-			pathNode = basePath + "/" + base;
-			data = client.getData(pathNode);
-			if(data == null){
-				continue;
-			}
-			tmpBase = JsonUtils.toObjectQuietly(data, BaseMetaServerModel.class);
-			dataList.add(tmpBase);
-		}
-		client.close();
-		return dataList;
-	}
+//    public static List<BaseMetaServerModel> getClusterBase(final String zkUrl, final String basePath){
+//
+//		List<BaseMetaServerModel> dataList = new ArrayList<BaseMetaServerModel>();
+//		if(BrStringUtils.isEmpty(zkUrl) || BrStringUtils.isEmpty(basePath)){
+//			return dataList;
+//		}
+//		ZookeeperClient client = CuratorClient.getClientInstance(zkUrl);
+//		List<String> baseNodes = client.getChildren(basePath);
+//		if(baseNodes == null || baseNodes.isEmpty()){
+//			return dataList;
+//		}
+//		String pathNode = null;
+//		byte[] data = null;
+//		BaseMetaServerModel tmpBase = null;
+//		for(String base : baseNodes){
+//			pathNode = basePath + "/" + base;
+//			data = client.getData(pathNode);
+//			if(data == null){
+//				continue;
+//			}
+//			tmpBase = JsonUtils.toObjectQuietly(data, BaseMetaServerModel.class);
+//			dataList.add(tmpBase);
+//		}
+//		client.close();
+//		return dataList;
+//	}
    
     
 }

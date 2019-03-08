@@ -40,7 +40,7 @@ public class ResourceTaskConfig {
 	//创建任务执行的时间间隔s
 	private long createTaskIntervalTime = 60;
 	private long executeTaskIntervalTime = 60;
-	private long gatherResourceInveralTime = 60;
+	private long gatherResourceInveralTime =10;
 	private long taskExpiredTime = 7 * 24 * 60 * 60;
 	private int calcResourceValueCount = 2;
 	private boolean taskFrameWorkSwitch = true;
@@ -149,8 +149,8 @@ public class ResourceTaskConfig {
 	    if ((times == null) || (times.length != 2) || (!BrStringUtils.isNumeric(times[0])) || (!BrStringUtils.isNumeric(times[1]))) {
 	      throw new ConfigParseException("cycle.check.copy.count.time : " + content + " is error!! please check it");
 	    }
-	    int iHour = Integer.valueOf(times[0]).intValue();
-	    int iMin = Integer.valueOf(times[1]).intValue();
+	    int iHour = Integer.parseInt(times[0]);
+	    int iMin = Integer.parseInt(times[1]);
 	    if ((iHour < 0) || (iHour >= 24) || (iMin < 0) || (iMin >= 60)) {
 	      throw new ConfigParseException("cycle.check.copy.count.time : " + content + " is error!! please check it");
 	    }

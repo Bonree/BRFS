@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,9 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 		try {
 			byte[] bytes = client.getData().forPath(fileNodePath);
 			return JsonUtils.toObject(bytes, FileNode.class);
+		} catch(NoNodeException e) {
+			LOG.warn("no node is find in zk storer for file[{}]", fileName);
+			return null;
 		} catch (Exception e) {
 			LOG.error("get file node[{}] error", fileName, e);
 			throw new RuntimeException(e);
@@ -81,6 +85,10 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 		List<FileNode> fileNodes = new ArrayList<FileNode>();
 		for(String fileName : getFileNameList()) {
 			FileNode node = getFileNode(fileName);
+			if(node == null) {
+				continue;
+			}
+			
 			if(filter != null && !filter.filter(node)) {
 				continue;
 			}
@@ -94,6 +102,15 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 	private List<String> getFileNameList() {
 		try {
 			return client.getChildren().forPath(storePath);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public int fileNodeSize() {
+		try {
+			return client.getChildren().forPath(storePath).size();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

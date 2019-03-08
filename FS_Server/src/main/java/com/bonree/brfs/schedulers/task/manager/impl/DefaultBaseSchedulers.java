@@ -5,7 +5,6 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import org.quartz.CronScheduleBuilder;
 import org.quartz.Job;
@@ -42,7 +41,7 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
  *****************************************************************************
  */
 public class DefaultBaseSchedulers implements BaseSchedulerInterface {
-	private static final Logger LOG = LoggerFactory.getLogger("BaseScheduler");
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultBaseSchedulers.class);
 	private StdSchedulerFactory ssf = new StdSchedulerFactory();
 	private String instanceName = "server";
 	private boolean pausePoolFlag = false;
@@ -66,12 +65,8 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			ssf.initialize(prop);
 			Scheduler ssh = ssf.getScheduler();
 			this.instanceName = ssh.getSchedulerName();
-			this.poolSize = Integer.valueOf(prop.getProperty("org.quartz.threadPool.threadCount"));
-		}
-		catch (NumberFormatException e) {
-			LOG.error("{}",e);
-		}
-		catch (SchedulerException e) {
+			this.poolSize = Integer.parseInt(prop.getProperty("org.quartz.threadPool.threadCount"));
+		} catch (NumberFormatException | SchedulerException e) {
 			LOG.error("{}",e);
 		}
 	}
@@ -130,10 +125,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 				if (cycles.length != 5) {
 					throw new NullPointerException("simple trigger cycle time is error !!! content : " + cycleContent);
 				}
-				long interval = Long.valueOf(cycles[0]);
-				int repeateCount = Integer.valueOf(cycles[1]);
+				long interval = Long.parseLong(cycles[0]);
+				int repeateCount = Integer.parseInt(cycles[1]);
 				repeateCount = repeateCount -1;
-				long delayTime = Long.valueOf(cycles[2]);
+				long delayTime = Long.parseLong(cycles[2]);
 				boolean rightNow = Boolean.valueOf(cycles[3]);
 				boolean cycleFlag = Boolean.valueOf(cycles[4]);
 				SimpleScheduleBuilder builder = SimpleScheduleBuilder.simpleSchedule();
@@ -166,17 +161,8 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			scheduler.scheduleJob(jobDetail, trigger);
 			return true;
 		}
-		catch (NumberFormatException e) {
-			LOG.error("{}",e);
-		}
-		catch (ClassNotFoundException e) {
-			LOG.error("{}",e);
-		}
-		catch (ParseException e) {
-			LOG.error("{}",e);
-		}
-		catch (SchedulerException e) {
-			LOG.error("{}",e);
+		catch (NumberFormatException | ClassNotFoundException | ParseException | SchedulerException e) {
+			LOG.error("add task {}",e);
 		}
 		return false;
 	}
@@ -194,7 +180,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 		}
 		catch (Exception e) {
 			// TODO Auto-generated catch block
-			LOG.error("{}",e);
+			LOG.error("start pool {}",e);
 			throw new RuntimeException(this.instanceName + " start fail !!!");
 		}
 	}
@@ -212,7 +198,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			this.pausePoolFlag = false;
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("close pool {}",e);
 			throw new RuntimeException(this.instanceName + " close fail !!!");
 		}
 
@@ -233,7 +219,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return scheduler.isStarted();
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("get start status error {}",e);
 		}
 		return false;
 	}
@@ -248,7 +234,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return scheduler.isShutdown();
 		}
 		catch (SchedulerException e) {
-			LOG.error("{}",e);
+			LOG.error("destory error {}",e);
 		}
 		return false;
 	}
@@ -284,10 +270,10 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (UnableToInterruptJobException e) {
-			LOG.error("{}",e);
+			LOG.error("delete task error{}",e);
 		}
 		catch (SchedulerException e) {
-			LOG.error("{}",e);
+			LOG.error("scheduler error {}",e);
 		}
 		return false;
 	}
@@ -319,12 +305,8 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 				}
 			}
 			return true;
-		}
-		catch (UnableToInterruptJobException e) {
-			LOG.error("{}",e);
-		}
-		catch (SchedulerException e) {
-			LOG.error("{}",e);
+		} catch (SchedulerException e) {
+			LOG.error("pause task error {}",e);
 		}
 		return false;
 	}
@@ -352,7 +334,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			return true;
 		}
 		catch (SchedulerException e) {
-			LOG.error("{}",e);
+			LOG.error("resume task error {}",e);
 		}
 		return false;
 	}
@@ -368,7 +350,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			if (!scheduler.isShutdown()) {
 				// 1.停止触发器
 				scheduler.pauseAll();
-				JobKey currentJob = null;
+				JobKey currentJob;
 				// 2.中断所有执行的任务
 				for (JobExecutionContext jobExecut : scheduler.getCurrentlyExecutingJobs()) {
 					currentJob = jobExecut.getJobDetail().getKey();
@@ -474,7 +456,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 			}
 		}
 		catch (SchedulerException e) {
-			LOG.error("{}",e);
+			LOG.error("get status error {}",e);
 			throw new ParamsErrorException(e.getLocalizedMessage());
 		}
 
@@ -487,6 +469,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	 * @throws SchedulerException
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
+	@Override
 	public boolean isExecuting(SumbitTaskInterface task) throws ParamsErrorException {
 		checkTask(task);
 		return getTaskStat(task) == 4;
@@ -546,7 +529,7 @@ public class DefaultBaseSchedulers implements BaseSchedulerInterface {
 	}
 
 	@Override
-	public void PausePool() {
+	public void pausePool() {
 		this.pausePoolFlag = true;
 	}
 

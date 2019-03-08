@@ -60,6 +60,10 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder{
 		}
 		
 		byte[] body = decodingMessage.message().getBody();
+		if(body == null) {
+			LOG.error("NONONO, body is null!!!");
+		}
+		
 		if(in.readableBytes() < body.length) {
 			return;
 		}
@@ -72,6 +76,6 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder{
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		LOG.error("message protocol decoder failed!", cause);
-		ctx.channel().close();
+		ctx.channel().close().sync();
 	}
 }

@@ -2,11 +2,12 @@ package com.bonree.brfs.disknode.data.write;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,12 +17,14 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.timer.WheelTimer;
 import com.bonree.brfs.common.timer.WheelTimer.Timeout;
+import com.bonree.brfs.common.utils.BRFSFileUtil;
+import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
+import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.write.data.FileDecoder;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
-import com.bonree.brfs.disknode.boot.FileValidChecker;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.buf.ByteArrayFileBuffer;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
@@ -32,6 +35,7 @@ import com.bonree.brfs.disknode.data.write.worker.WriteTask;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorkerGroup;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorkerSelector;
+import com.bonree.brfs.disknode.utils.BRFSRdFileFilter;
 import com.bonree.brfs.disknode.utils.Pair;
 import com.google.common.base.Splitter;
 
@@ -42,8 +46,6 @@ public class FileWriterManager implements LifeCycle {
 	private WriteWorkerGroup workerGroup;
 	private WriteWorkerSelector workerSelector;
 	private RecordCollectionManager recorderManager;
-	
-	private FileValidChecker checker;
 
 	private static int recordCacheSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_RECORD_CACHE_SIZE);
 	private static int dataCacheSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_DATA_CACHE_SIZE);
@@ -53,20 +55,19 @@ public class FileWriterManager implements LifeCycle {
 	Duration fileIdleDuration = Duration.parse(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_IDLE_TIME));
 	private WheelTimer<String> timeoutWheel = new WheelTimer<String>((int) fileIdleDuration.getSeconds());
 
-	public FileWriterManager(RecordCollectionManager recorderManager, FileValidChecker checker) {
-		this(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager, checker);
+	public FileWriterManager(RecordCollectionManager recorderManager) {
+		this(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager);
 	}
 
-	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager, FileValidChecker checker) {
-		this(workerNum, new RandomWriteWorkerSelector(), recorderManager, checker);
+	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager) {
+		this(workerNum, new RandomWriteWorkerSelector(), recorderManager);
 	}
 
 	public FileWriterManager(int workerNum, WriteWorkerSelector selector,
-			RecordCollectionManager recorderManager, FileValidChecker checker) {
+			RecordCollectionManager recorderManager) {
 		this.workerGroup = new WriteWorkerGroup(workerNum);
 		this.workerSelector = selector;
 		this.recorderManager = recorderManager;
-		this.checker = checker;
 	}
 
 	@Override
@@ -104,7 +105,10 @@ public class FileWriterManager implements LifeCycle {
 			@Override
 			protected Void execute() throws Exception {
 				LOG.info("execute flush for file[{}] BEGIN", binding.first().getPath());
-				binding.first().flush();
+				if(runningWriters.containsKey(path)) {
+					binding.first().flush();
+				}
+				
 				return null;
 			}
 
@@ -129,36 +133,29 @@ public class FileWriterManager implements LifeCycle {
 			}
 		}
 	}
-	
-	public void rebuildFileWriterbyDir(String dataDirPath) throws IOException {
-		File dataDir = new File(dataDirPath);
-		File[] snDirList = dataDir.listFiles();
-		for(File snDir : snDirList) {
-			for(File serverDir : snDir.listFiles()) {
-				for(File timeDir : serverDir.listFiles()) {
-					File[] recordFileList = timeDir.listFiles(new FilenameFilter() {
-						
-						@Override
-						public boolean accept(File dir, String name) {
-							return RecordFileBuilder.isRecordFile(name);
-						}
-					});
-					
-					for(File recordFile : recordFileList) {
-						File dataFile = RecordFileBuilder.reverse(recordFile);
-						
-						if(checker.isValid(dataFile.getName())) {
-							LOG.info("reopen file [{}]", dataFile);
-							rebuildFileWriter(dataFile);
-						} else {
-							LOG.info("close expired file [{}]", dataFile);
-							recordFile.delete();
-						}
-					}
-				}
+
+    public void rebuildFileWriterbyDir(String dataDirPath) {
+	    Map<String,String> baseMap = new HashMap<>();
+	    List<BRFSPath> rds = BRFSFileUtil.scanBRFSFiles(dataDirPath,baseMap,baseMap.size(),new BRFSRdFileFilter());
+	    File rdFile = null;
+	    File dataFile = null;
+	    for(BRFSPath path : rds){
+	        rdFile = new File(new StringBuilder().append(dataDirPath).append(FileUtils.FILE_SEPARATOR).append(path).toString());
+	        dataFile = RecordFileBuilder.reverse(rdFile);
+	        if(!dataFile.exists()) {
+	        	LOG.error("no data file is attached to a existed rd file[{}]!", rdFile.getAbsolutePath());
+	        	rdFile.delete();
+	        	continue;
+	        }
+	        
+            try {
+				rebuildFileWriter(dataFile);
+			} catch (Throwable e) {
+				LOG.error("rebuild file[{}] error!", dataFile.getAbsolutePath(), e);
 			}
-		}
-	}
+        }
+
+    }
 
 	@Override
 	public void stop() {
@@ -187,6 +184,7 @@ public class FileWriterManager implements LifeCycle {
 	}
 	
 	public void rebuildFileWriter(File dataFile) throws IOException {
+		LOG.info("rebuilding writer for file[{}]", dataFile.getAbsolutePath());
 		RecordFileWriter writer = new RecordFileWriter(
 				recorderManager.getRecordCollection(dataFile, true, recordCacheSize, true),
 						new BufferedFileWriter(dataFile, true, new ByteArrayFileBuffer(dataCacheSize)));
@@ -232,7 +230,8 @@ public class FileWriterManager implements LifeCycle {
 	//获取缺失或多余的日志记录信息
 	private List<RecordElement> validElements(String filepath, List<RecordElement> originElements) {
 		byte[] bytes = DataFileReader.readFile(filepath, 0);
-		List<String> offsets = FileDecoder.getOffsets(bytes);
+		List<String> offsets = FileDecoder.getDataFileOffsets(bytes);
+		LOG.info("adjust get [{}] records from data file of [{}]", offsets.size(), filepath);
 		
 		List<RecordElement> validElmentList = new ArrayList<RecordElement>();
 		RecordElement element = originElements.get(0);
@@ -242,15 +241,13 @@ public class FileWriterManager implements LifeCycle {
 		}
 		
 		validElmentList.add(element);
-		int index = 0;
-		int originSize = originElements.size();
-		for(index = 0; index < offsets.size(); index++) {
+		for(int index = 0; index < offsets.size(); index++) {
 			List<String> parts = Splitter.on("|").splitToList(offsets.get(index));
 			int offset = Integer.parseInt(parts.get(0));
 			int size = Integer.parseInt(parts.get(1));
 			long crc = ByteUtils.crc(bytes, offset, size);
 			
-			if(index + 1 >= originSize) {
+			if(index + 1 >= originElements.size()) {
 				//数据文件还有数据，但日志文件没有记录
 				validElmentList.add(new RecordElement(offset, size, crc));
 				continue;
@@ -286,6 +283,7 @@ public class FileWriterManager implements LifeCycle {
 		}
 		
 		List<RecordElement> originElements = binding.first().getRecordCollection().getRecordElementList();
+		LOG.info("adjust get [{}] records from record collection of [{}]", originElements.size(), filePath);
 		if(originElements.isEmpty()) {
 			//没有数据写入成功，不需要任何协调
 			return;

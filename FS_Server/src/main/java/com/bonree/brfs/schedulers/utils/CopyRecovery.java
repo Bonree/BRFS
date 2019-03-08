@@ -1,33 +1,30 @@
 
 package com.bonree.brfs.schedulers.utils;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
+import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.common.write.data.FSCode;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.disknode.client.DiskNodeClient;
-import com.bonree.brfs.disknode.client.LocalDiskNodeClient;
 import com.bonree.brfs.disknode.client.TcpDiskNodeClient;
-import com.bonree.brfs.disknode.fileformat.impl.SimpleFileHeader;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
@@ -54,30 +51,27 @@ public class CopyRecovery {
 		BatchAtomModel batch = converStringToBatch(content);
 		if(batch == null){
 			result.setSuccess(false);
-			LOG.warn("<recoveryDirs> batch is empty");
+			LOG.debug("batch is empty");
 			return result;
 		}
 		List<AtomTaskModel> atoms = batch.getAtoms();
 		if(atoms == null|| atoms.isEmpty()){
 			result.setSuccess(true);
-			LOG.warn("<recoveryDirs> file is empty");
+			LOG.debug(" files is empty");
 			return result;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		ServerIDManager sim = mcf.getSim();
 		ServiceManager sm = mcf.getSm();
-		Service localServer = sm.getServiceById(mcf.getGroupName(), mcf.getServerId());
 		StorageRegionManager snm = mcf.getSnm();
 		
-		DiskNodeClient client = new LocalDiskNodeClient();
-		CuratorClient curatorClient = CuratorClient.getClientInstance(zkHosts);
-		StorageRegion sn = null;
-		SecondIDParser parser = null;
-		String snName = null;
-		int snId = 0;
-		String snSId = null;
-		AtomTaskResultModel atomR = null;
-		List<String> errors = null;
+		CuratorClient curatorClient = mcf.getClient();
+		StorageRegion sn;
+		SecondIDParser parser;
+		String snName;
+		int snId;
+		AtomTaskResultModel atomR;
+		List<String> errors;
 		for (AtomTaskModel atom : atoms) {
 			atomR = new AtomTaskResultModel();
 			atomR.setFiles(atom.getFiles());
@@ -88,24 +82,22 @@ public class CopyRecovery {
 				atomR.setSuccess(false);
 				result.setSuccess(false);
 				result.add(atomR);
-				LOG.debug("<recoveryDirs> sn == null snName :{}",snName);
+				LOG.debug("sn == null snName :{}",snName);
 				continue;
 			}
 			snId = sn.getId();
-			snSId = sim.getSecondServerID(snId);
 			parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
 			parser.updateRoute();
 			errors = recoveryFiles(sm, sim, parser, sn, atom,dataPath);
 			if(errors == null || errors.isEmpty()){
 				result.add(atomR);
-				LOG.debug("<recoveryDirs> result is empty snName:{}", snName);
+				LOG.debug("result is empty snName:{}", snName);
 				continue;
 			}
 			atomR.addAll(errors);
 			atomR.setSuccess(false);
 			result.setSuccess(false);
 		}
-		curatorClient.close();
 		return result;
 	}
 	/**
@@ -141,19 +133,26 @@ public class CopyRecovery {
 		String snName = atom.getStorageName();
 		long start = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
-		long granule = endTime -start;
+		long granule = endTime - start;
+		// 过滤过期的数据
+		long ttl = Duration.parse(snNode.getDataTtl()).toMillis();
+		long currentTime = System.currentTimeMillis();
 		String dirName = TimeUtils.timeInterval(start, granule);
+		if(currentTime - endTime > ttl){
+			LOG.info("{}[ttl:{}ms] {} is expired !! skip repaired !!!",snName,ttl,dirName);
+			return null;
+		}
 		List<String> fileNames = atom.getFiles();
 		if (fileNames == null || fileNames.isEmpty()) {
-			LOG.warn("<recoverFiles> {} files name is empty", snName);
+			LOG.debug("{} files name is empty", snName);
 			return null;
 		}
 		if (snNode == null) {
-			LOG.warn("<recoverFiles> {} sn node is empty", snName);
+			LOG.debug(" {} sn node is empty", snName);
 			return null;
 		}
-		boolean isSuccess = false;
-		List<String> errors = new ArrayList<String>();
+		boolean isSuccess;
+		List<String> errors = new ArrayList<>();
 		for (String fileName : fileNames) {
 			isSuccess = recoveryFileByName( sm, sim, parser, snNode, fileName, dirName, dataPath,atom.getTaskOperation());
 			if(!isSuccess){
@@ -174,31 +173,29 @@ public class CopyRecovery {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageRegion snNode, String fileName,String dirName, String dataPath,String operation){
-		String[] sss = null;
-		String remoteName = null;
-		Service remoteService = null;
-		String path = null;
-		String localPath = null;
-		int remoteIndex = 0;
-		int localIndex = 0;
-		String remotePath = null;
-		String serverId = sim.getFirstServerID();
+		String[] sss;
+		String remoteName;
+		Service remoteService;
+		String localPath;
+		int remoteIndex;
+		int localIndex;
+		String remotePath;
 		boolean isSuccess = true;
 		String snName = snNode.getName();
 		int snId = snNode.getId();
 		sss = parser.getAliveSecondID(fileName);
 		if (sss == null) {
-			LOG.warn("<recoveryFile> alive second Ids is empty");
+			LOG.warn("alive second Ids is empty");
 			return false;
 		}
 		String secondId = sim.getSecondServerID(snId);
 		if (BrStringUtils.isEmpty(secondId)) {
-			LOG.warn("<recoveryFile> {} {} secondid is empty ",snName, snId);
+			LOG.warn("{} {} secondid is empty ",snName, snId);
 			return false;
 		}
 		localIndex = isContain(sss, secondId);
 		if (-1 == localIndex) {
-			LOG.info("<recoveryFile> {} {} {} is not mine !! skip",secondId, snName, fileName );
+			LOG.info("{} {} {} is not mine !! skip",secondId, snName, fileName );
 			return true;
 		}
 		
@@ -207,7 +204,7 @@ public class CopyRecovery {
 		File dir = new File(dataPath + localDir);
 		if(!dir.exists()) {
 			boolean createFlag = dir.mkdirs();
-			LOG.debug("<recoveryFile> create dir :{}, stat:{}",localDir,createFlag);
+			LOG.debug("create dir :{}, stat:{}",localDir,createFlag);
 		}
 		if(CopyCheckJob.RECOVERY_CRC.equals(operation)) {
 			boolean flag = FileCollection.check(dataPath + localPath);
@@ -216,12 +213,12 @@ public class CopyRecovery {
 				return true;
 			}else {
 				boolean status = FileUtils.deleteFile(dataPath+localPath);
-				LOG.info("{} crc is error!! delete {}", localPath,status);
+				LOG.warn("{} crc is error!! delete {}", localPath,status);
 			}
 		}else {
 			File file = new File(dataPath + localPath);
 			if(file.exists()){
-				LOG.info("<recoveryFile> {} {} is exists, skip",snName, fileName);
+				LOG.debug("{} {} is exists, skip",snName, fileName);
 				return true;
 			}
 		}
@@ -230,18 +227,18 @@ public class CopyRecovery {
 			remoteIndex ++;
 			//排除自己
 			if (secondId.equals(snsid)) {
-				LOG.debug("<recoveryFile> my sum is right,not need to do {} {} {}",fileName, secondId,snsid);
+				LOG.debug(" my son is right,not need to do {} {} {}",fileName, secondId,snsid);
 				continue;
 			}
 			
 			remoteName = sim.getOtherFirstID(snsid, snId);
 			if(BrStringUtils.isEmpty(remoteName)){
-				LOG.debug("<recoveryFile> remote name is empty");
+				LOG.warn("remote name is empty");
 				continue;
 			}
 			remoteService = sm.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), remoteName);
 			if(remoteService == null){
-				LOG.debug("<recoveryFile> remote service is empty");
+				LOG.warn("remote service is empty");
 				continue;
 			}
 			remotePath = "/"+snName + "/" + remoteIndex + "/" + dirName + "/" + fileName;
@@ -280,27 +277,7 @@ public class CopyRecovery {
 		return -1;
 	}
 
-	/**
-	 * 概述：获取文件列表
-	 * @param fileName
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static List<String> getSNIds(String fileName) {
-		if (BrStringUtils.isEmpty(fileName)) {
-			return null;
-		}
 
-		String[] tmp = BrStringUtils.getSplit(fileName, "_");
-		if (tmp == null || tmp.length == 0) {
-			return null;
-		}
-		List<String> snIds = new ArrayList<String>();
-		for (int i = 1; i < tmp.length; i++) {
-			snIds.add(tmp[i]);
-		}
-		return snIds;
-	}
 	/**
 	 * 概述：恢复数据文件
 	 * @param host 远程主机
@@ -314,29 +291,29 @@ public class CopyRecovery {
 	 */
 	public static boolean copyFrom(String host, int port,int export,int timeout, String remotePath, String localPath) {
 		TcpDiskNodeClient client = null;
-		BufferedOutputStream output = null;
-		byte[] crcCode = null;
-		byte[] data = null;
-		int bufferSize = 5 * 1024 * 1024;
-		boolean resultFlag = false;
 		try {
 			client = TcpClientUtils.getClient(host, port, export, timeout);
-			LOG.warn("{}:{},{}:{}, read {} to local{}",host,port,host,export,remotePath,localPath);
+			LOG.debug("{}:{},{}:{}, read {} to local {}",host,port,host,export,remotePath,localPath);
 			LocalByteStreamConsumer consumer = new LocalByteStreamConsumer(localPath);
 			client.readFile(remotePath, consumer);
 			return consumer.getResult().get();
-		}catch (InterruptedException e) {
+		}catch (InterruptedException | IOException | ExecutionException e) {
+			EmailPool emailPool = EmailPool.getInstance();
+			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+			builder.setModel("collect file execute 模块服务发生问题");
+			builder.setException(e);
+			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+			builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 执行任务时发生问题");
+			Map<String,String> map = new HashedMap();
+			map.put("remote ",host);
+			map.put("remote path",remotePath);
+			map.put("local path", localPath);
+			map.put("connectTimeout", String.valueOf(timeout));
+			builder.setVariable(map);
+			emailPool.sendEmail(builder);
+			LOG.error("copy from error {}",e);
 			return false;
-		}
-		catch (FileNotFoundException e) {
-			return false;
-		}
-		catch (IOException e) {
-			return false;
-		}catch (ExecutionException e) {
-			return false;
-		}
-		finally {
+		} finally {
 			if (client != null) {
 				try {
 					client.closeFile(remotePath);

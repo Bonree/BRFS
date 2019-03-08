@@ -82,6 +82,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 			results = new WriteResult[datas.length];
 			
 			RecordFileWriter writer = binding.first();
+			LOG.debug("write [{}] datas to file[{}]", datas.length, writer.getPath());
 			for(int i = 0; i < datas.length; i++) {
 				byte[] contentData = fileFormater.formatData(datas[i].getData());
 				
@@ -114,6 +115,8 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 
 		@Override
 		protected void onFailed(Throwable cause) {
+			LOG.error("write datas to file[{}] error", message.getFilePath(), cause);
+			
 			try {
 				BaseResponse response = new BaseResponse(ResponseCode.OK);
 				WriteResultList resultList = new WriteResultList();

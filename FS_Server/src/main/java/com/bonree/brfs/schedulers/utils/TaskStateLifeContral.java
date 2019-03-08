@@ -1,11 +1,9 @@
 package com.bonree.brfs.schedulers.utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.bonree.brfs.common.files.impl.BRFSTimeFilter;
+import com.bonree.brfs.common.utils.*;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -13,10 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
@@ -28,7 +22,7 @@ import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 public class TaskStateLifeContral {
-	private static final Logger LOG = LoggerFactory.getLogger("TaskLife");
+	private static final Logger LOG = LoggerFactory.getLogger(TaskStateLifeContral.class);
 	
 	/**
 	 * 概述：更新任务状态
@@ -39,17 +33,17 @@ public class TaskStateLifeContral {
 	 */
 	public static void updateTaskStatusByCompelete(String serverId, String taskname,String taskType,TaskResultModel taskResult){
 		if(BrStringUtils.isEmpty(taskname)){
-			LOG.info("task name is empty !!! {} {} {}", taskType,taskname, serverId);
+			LOG.warn("task name is empty !!! {} {} {}", taskType,taskname, serverId);
 			return;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		TaskServerNodeModel sTask = release.getTaskServerContentNodeInfo(taskType, taskname, serverId);
 		if(sTask == null){
-			LOG.info("server task is null !!! {} {} {}", taskType,taskname, serverId);
+			LOG.debug("server task is null !!! {} {} {}", taskType,taskname, serverId);
 			sTask = new TaskServerNodeModel();
 		}
-		LOG.info("TaskMessage complete  sTask :{}", JsonUtils.toJsonStringQuietly(sTask));
+		LOG.debug("TaskMessage complete  sTask :{}", JsonUtils.toJsonStringQuietly(sTask));
 		sTask.setResult(taskResult);
 		if(BrStringUtils.isEmpty(sTask.getTaskStartTime())) {
 			sTask.setTaskStartTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
@@ -64,8 +58,8 @@ public class TaskStateLifeContral {
 		if(cStatus == null || cStatus.isEmpty()){
 			return;
 		}
-		LOG.info("complete c List {}",cStatus);
-		int cstat = -1;
+		LOG.debug("complete c List {}",cStatus);
+		int cstat;
 		boolean isException = false;
 		int finishCount = 0;
 		int size = cStatus.size();
@@ -83,7 +77,7 @@ public class TaskStateLifeContral {
 		}
 		TaskModel task = release.getTaskContentNodeInfo(taskType, taskname);
 		if(task == null){
-			LOG.info("task is null !!! {} {} {}", taskType,taskname);
+			LOG.debug("task is null !!! {} {} {}", taskType,taskname);
 			task = new TaskModel();
 			task.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
 		}
@@ -124,9 +118,8 @@ public class TaskStateLifeContral {
 		if(result == null){
 			return;
 		}
-		int taskStat = -1;
 		boolean isSuccess = result.isSuccess();
-		TaskResultModel sumResult = null;
+		TaskResultModel sumResult;
 		String content = null;
 		if(data.containsKey(JobDataMapConstract.TASK_RESULT)){
 			content = data.getString(JobDataMapConstract.TASK_RESULT);
@@ -199,12 +192,12 @@ public class TaskStateLifeContral {
 		//更新异常的次数
 		if(task.getSecond().getFirst() == TaskState.EXCEPTION.code()){
 			TaskServerNodeModel server = release.getTaskServerContentNodeInfo(typeName, task.getFirst(), serverId);
-			LOG.info("TaskMessage get  sTask :{}", JsonUtils.toJsonStringQuietly(server));
+			LOG.debug("TaskMessage get  sTask :{}", JsonUtils.toJsonStringQuietly(server));
 			server.setRetryCount(server.getRetryCount() + 1);
 			release.updateServerTaskContentNode(serverId, task.getFirst(), typeName, server);
 		}
 		
-		return new Pair<String,TaskModel>(task.getFirst(), cTask);
+		return new Pair<>(task.getFirst(), cTask);
 	}
 	public static TaskModel changeRunTaskModel(final TaskModel message, String dataPath){
 		if(message == null){
@@ -226,39 +219,50 @@ public class TaskStateLifeContral {
 			return null;
 		}
 		// 循环atom，封装atom
-		AtomTaskModel rAtom = null;
-		long startTime = 0L;
-		long endTime = 0L;
-		String snName = null;
-		int partNum = 0;
+		AtomTaskModel rAtom;
+		long startTime;
+		long endTime;
+		String snName;
+		int partNum;
+		Map<String,String> map;
+		long granule;
 		for(AtomTaskModel atom : mAtoms){
 			startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 			endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
 			snName = atom.getStorageName();
 			partNum = atom.getPatitionNum();
-			List<String> dirs = LocalFileUtils.collectDucationTimeDirNames(dataPath, snName, startTime, endTime);
-			dirs = filterRepeadDirs(dirs);
-			List<Pair<Long,Long>> pDirs = LocalFileUtils.converPairByUniqueness(dirs);
-			List<Pair<Long,Long>> batchTimes = LocalFileUtils.sortTime(pDirs);
-			for(Pair<Long,Long> pair : batchTimes) {
-				rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, pair.getFirst(), pair.getSecond(), 0);
-				changeTask.addAtom(rAtom);
-			}
+			granule = atom.getGranule();
+
+            map = new HashMap<>();
+            map.put(BRFSPath.STORAGEREGION,snName);
+            List<BRFSPath> dirPaths = BRFSFileUtil.scanBRFSFiles(dataPath,map,map.size(), new BRFSTimeFilter(startTime, endTime));
+            if(dirPaths == null || dirPaths.isEmpty()){
+                LOG.debug("It's no dir to take task [{}]:[{}]-[{}]",snName,TimeUtils.timeInterval(startTime,granule),TimeUtils.timeInterval(endTime,granule));
+                continue;
+            }
+            List<Long> times = filterRepeatDirs(dirPaths);
+            for(Long time : times){
+                rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, time, time+atom.getGranule(), 0);
+                changeTask.addAtom(rAtom);
+            }
 		}
 		return changeTask;
 	}
-	public static List<String> filterRepeadDirs(List<String> files){
-		if(files == null || files.isEmpty()) {
-			return new ArrayList<String>();
-		}
-		List<String> nFiles = new ArrayList<String>();
-		for(String file : files) {
-			if(!nFiles.contains(file)) {
-				nFiles.add(file);
-			}
-		}
-		return nFiles;
-	}
+	public static List<Long> filterRepeatDirs(List<BRFSPath> files){
+        if(files == null || files.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Long> nFiles = new ArrayList<>();
+        long time;
+        for(BRFSPath file : files) {
+            time = file.toTimeMile();
+            if(!nFiles.contains(time)) {
+                nFiles.add(time);
+            }
+        }
+        return nFiles;
+    }
+
 	
 	/**
 	 * 概述：将任务分批
@@ -281,15 +285,15 @@ public class TaskStateLifeContral {
 			return changeTask;
 		}
 		List<AtomTaskModel> atoms = message.getAtomList();
-		AtomTaskModel atom = null;
+		AtomTaskModel atom;
 		if(atoms == null || atoms.isEmpty()) {
 			return changeTask;
 		}
-		long startTime = 0;
-		long endTime = 0;
-		String snName = null;
-		String operation = null;
-		long granule = 0;
+		long startTime;
+		long endTime;
+		String snName;
+		String operation;
+		long granule;
 		for(AtomTaskModel aTask : atoms) {
 			startTime = TimeUtils.getMiles(aTask.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 			endTime = TimeUtils.getMiles(aTask.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
@@ -317,13 +321,13 @@ public class TaskStateLifeContral {
 	 */
 	public static List<Pair<String,Pair<Integer,Integer>>> getServerState(MetaTaskManagerInterface release, String typeName, String serverId){
 		List<String> taskNames = release.getTaskList(typeName);
-		List<Pair<String,Pair<Integer,Integer>>> sTaskStatuss = new ArrayList<Pair<String,Pair<Integer,Integer>>>();
+		List<Pair<String,Pair<Integer,Integer>>> sTaskStatuss = new ArrayList<>();
 		if(taskNames == null || taskNames.isEmpty()){
 			return sTaskStatuss;
 		}
-		Pair<String,Pair<Integer,Integer>> sTaskStatus = null;
-		Pair<Integer,Integer> codeAndCount = null;
-		TaskServerNodeModel server = null;
+		Pair<String,Pair<Integer,Integer>> sTaskStatus;
+		Pair<Integer,Integer> codeAndCount;
+		TaskServerNodeModel server;
 		for(String taskName : taskNames){
 			server = release.getTaskServerContentNodeInfo(typeName, taskName, serverId);
 			if(server == null){
@@ -332,8 +336,8 @@ public class TaskStateLifeContral {
 			if(server.getTaskState() == TaskState.FINISH.code()){
 				continue;
 			}
-			codeAndCount = new Pair<Integer, Integer>(server.getTaskState(), server.getRetryCount());
-			sTaskStatus = new Pair<String,Pair<Integer,Integer>>(taskName,codeAndCount);
+			codeAndCount = new Pair<>(server.getTaskState(), server.getRetryCount());
+			sTaskStatus = new Pair<>(taskName,codeAndCount);
 			sTaskStatuss.add(sTaskStatus);
 		}
 		return sTaskStatuss;
@@ -349,8 +353,8 @@ public class TaskStateLifeContral {
 		if(tasks == null || tasks.isEmpty()){
 			return null;
 		}
-		List<Pair<String,Pair<Integer,Integer>>> eTasks = new ArrayList<Pair<String,Pair<Integer,Integer>>>();
-		Pair<Integer,Integer> codeAndCount = null;
+		List<Pair<String,Pair<Integer,Integer>>> eTasks = new ArrayList<>();
+		Pair<Integer,Integer> codeAndCount;
 		for(Pair<String,Pair<Integer,Integer>> task : tasks){
 			codeAndCount = task.getSecond();
 			if(codeAndCount == null){
@@ -358,7 +362,8 @@ public class TaskStateLifeContral {
 			}
 			if(codeAndCount.getFirst() == TaskState.FINISH.code()|| codeAndCount.getFirst() == TaskState.RUN.code()||codeAndCount.getFirst() == TaskState.RERUN.code()){
 				continue;
-			}else if(codeAndCount.getFirst() == TaskState.INIT.code()){
+			}
+			if(codeAndCount.getFirst() == TaskState.INIT.code()){
 				return task;
 			}else if(codeAndCount.getFirst() == TaskState.EXCEPTION.code() && limtCount > 0){
 				if(codeAndCount.getSecond() >limtCount){
@@ -368,26 +373,24 @@ public class TaskStateLifeContral {
 				}
 			}
 		}
-		if(eTasks == null || eTasks.isEmpty()|| limtCount <= 0){
+		if(eTasks.isEmpty()){
 			return null;
 		}
-		Collections.sort(eTasks, new Comparator<Pair<String,Pair<Integer,Integer>>>() {
-			public int compare(Pair<String,Pair<Integer,Integer>> o1, Pair<String,Pair<Integer,Integer>> o2) {
-				if(o1 == null|| o1.getSecond() == null ){
-					return -1;
-				}
-				if(o2 == null || o2.getSecond() == null){
-					return 1;
-				}
-				if(o1.getSecond().getSecond() > o2.getSecond().getSecond()){
-					return -1;
-				}else if(o1.getSecond().getSecond() == o2.getSecond().getSecond()){
-					return 0;
-				}else{
-					return 1;
-				}
-				
+		eTasks.sort((o1, o2) -> {
+			if(o1 == null || o1.getSecond() == null) {
+				return -1;
 			}
+			if(o2 == null || o2.getSecond() == null) {
+				return 1;
+			}
+			if(o1.getSecond().getSecond() > o2.getSecond().getSecond()) {
+				return -1;
+			} else if(o1.getSecond().getSecond().equals(o2.getSecond().getSecond())) {
+				return 0;
+			} else {
+				return 1;
+			}
+
 		});
 		return eTasks.get(eTasks.size() -1);
 	}
@@ -400,18 +403,22 @@ public class TaskStateLifeContral {
 	 */
 	public static void watchSR(MetaTaskManagerInterface release,List<String> srs, String taskType) {
 		TaskTypeModel  typeModel = release.getTaskTypeInfo(taskType);
+		if(typeModel == null){
+		    LOG.warn("tasktype : {} meta data loss !!!", taskType);
+		    return;
+        }
 		Map<String,Long> snMap = typeModel.getSnTimes();
 		if(snMap == null || snMap.isEmpty()) {
 			return ;
 		}
-		List<String> deleteSRs = new ArrayList<String>();
+		List<String> deleteSRs = new ArrayList<>();
 		for(String srName : snMap.keySet()) {
 			if(srs.contains(srName)) {
 				continue;
 			}
 			deleteSRs.add(srName);
 		}
-		if(deleteSRs == null || deleteSRs.isEmpty()) {
+		if(deleteSRs.isEmpty()) {
 			return;
 		}
 		for(String str : deleteSRs) {
@@ -427,11 +434,11 @@ public class TaskStateLifeContral {
 	 */
 	public static List<String> getSRs(StorageRegionManager srm){
 		List<StorageRegion> srList = srm.getStorageRegionList();
-		List<String> srs = new ArrayList<String>();
+		List<String> srs = new ArrayList<>();
 		if(srList == null || srList.isEmpty()) {
 			return srs;
 		}
-		String srName = null;
+		String srName;
 		for(StorageRegion sr : srList) {
 			srName = sr.getName();
 			if(BrStringUtils.isEmpty(srName)) {

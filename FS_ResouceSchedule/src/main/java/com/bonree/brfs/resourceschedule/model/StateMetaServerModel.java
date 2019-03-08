@@ -80,7 +80,7 @@ public class StateMetaServerModel {
 		// 分区大小
 		obj.setPartitionTotalSizeMap(this.partitionTotalSizeMap);
 		
-		// 2.替换数据
+		// 2.分区剩余数据
 		obj.setPartitionRemainSizeMap(this.partitionRemainSizeMap);
 		
 		// 3.汇总数据
@@ -98,6 +98,7 @@ public class StateMetaServerModel {
 		// 分区写入速度
 		Map<String,Long> diskWriteSpeedMap = CalcUtils.diffDataMap(this.partitionWriteByteMap, t1.getPartitionWriteByteMap());
 		obj.setPartitionWriteSpeedMap(diskWriteSpeedMap);
+
 		// 网卡发送速度
 //		Map<String,Long> netTxSpeedMap = CalcUtils.diffDataMap(this.netTByteMap, t1.getNetTByteMap());
 //		obj.setNetTSpeedMap(netTxSpeedMap);

@@ -1,28 +1,16 @@
 package com.bonree.brfs.schedulers.task.operation.impl;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import org.quartz.JobDataMap;
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
+import com.bonree.mail.worker.MailWorker;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.task.TaskState;
-import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.RegionNodeConfigs;
-import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.model.TaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskResultModel;
-import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.operation.QuartzOperationStateInterface;
-import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
+
 
 public abstract class QuartzOperationStateTask implements QuartzOperationStateInterface {
 	private static final Logger LOG = LoggerFactory.getLogger(QuartzOperationStateTask.class);
@@ -33,7 +21,15 @@ public abstract class QuartzOperationStateTask implements QuartzOperationStateIn
 		}catch(Exception e){
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
-			LOG.info("{}",e.toString());
+			LOG.info("Run task error {}",e);
+			EmailPool emailPool = EmailPool.getInstance();
+			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+			builder.setModel(this.getClass().getSimpleName()+"模块服务发生问题");
+			builder.setException(e);
+			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+			builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 执行任务时发生问题");
+			builder.setVariable(context.getMergedJobDataMap().getWrappedMap());
+			emailPool.sendEmail(builder);
 		}
 		
 	}

@@ -1,6 +1,7 @@
-package com.bonree.brfs.duplication.filenode.duplicates;
+package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -13,7 +14,7 @@ public class WeightRandomPattern {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static String getWeightRandom(final List<Pair<String, Integer>> dents, final Random random, List<String> unNeeds){
+	public static String getWeightRandom(final List<Pair<String, Integer>> dents, final Random random, Collection<String> unNeeds){
 		if(dents == null|| dents.isEmpty()|| random == null) {
 			return null;
 		}
@@ -31,11 +32,9 @@ public class WeightRandomPattern {
 		}
 		int randomNum = Math.abs(random.nextInt()%total);
 		int current = 0;
-		int index = 0;
 		for(Pair<String, Integer> ele : source){
 			current += ele.getSecond();
 			if(randomNum > current){
-				index ++;
 				continue;
 			}
 			if(randomNum <=current){

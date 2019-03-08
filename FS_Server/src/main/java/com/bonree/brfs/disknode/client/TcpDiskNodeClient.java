@@ -221,7 +221,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			message.setBody(ProtoStuffUtils.serialize(writeFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
-			LOG.info("write [{}] datas to data node", dataList.size());
+			LOG.debug("write [{}] datas to data node in file[{}]", dataList.size(), path);
 			client.sendMessage(message, new ResponseHandler<BaseResponse>() {
 				
 				@Override
@@ -463,7 +463,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			String[] states = new String[fullstates.size()];
 			recoveryMessage.setSources(fullstates.toArray(states));
 			
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_DELETE_FILE);
+			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_RECOVER_FILE);
 			message.setBody(ProtoStuffUtils.serialize(recoveryMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();

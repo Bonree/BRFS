@@ -1,7 +1,11 @@
 package com.bonree.brfs.schedulers.task.operation.impl;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
+import com.bonree.mail.worker.MailWorker;
+import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
@@ -35,21 +39,30 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 			if(!data.containsKey(JobDataMapConstract.CURRENT_INDEX)){
 				data.put(JobDataMapConstract.CURRENT_INDEX, repeatCount + "");
 				TaskStateLifeContral.updateTaskRunState(serverId, taskName, taskTypeName);
+				LOG.info("task {}-{} run",taskTypeName,taskName);
 			}
 			currentIndex = data.getInt(JobDataMapConstract.CURRENT_INDEX);
-			LOG.info("taskType [{}],taskname [{}],batch id[{}], data :[{}]", taskTypeName, taskName,currentIndex,data.getString(currentIndex+""));
+			LOG.debug("taskType [{}],taskname [{}],batch id[{}], data :[{}]", taskTypeName, taskName,currentIndex,data.getString(currentIndex+""));
 			operation(context);
 			
 		}catch(Exception e){
 			context.put("ExceptionMessage", e.getMessage());
 			caughtException(context);
 			isSuccess = false;
-			LOG.info("{}",e);
+			LOG.error("task {}-{} happen exception:{}",taskTypeName,taskName,e);
+			EmailPool emailPool = EmailPool.getInstance();
+			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+			builder.setModel(this.getClass().getSimpleName()+" execute 模块服务发生问题");
+			builder.setException(e);
+			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+			builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 执行任务时发生问题");
+			builder.setVariable(data.getWrappedMap());
+			emailPool.sendEmail(builder);
 		}finally{
 			if(data == null){
 				return;
 			}
-			LOG.info("operation batch id {}",currentIndex);
+			LOG.debug("operation batch id {}",currentIndex);
 			try {
 				// 更新任务状态
 				TaskResultModel resultTask = new TaskResultModel();
@@ -67,9 +80,17 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 					}
 					TaskStateLifeContral.updateTaskStatusByCompelete(serverId, taskName, taskTypeName, tResult);
 					data.put(JobDataMapConstract.CURRENT_INDEX, (currentIndex-1)+"" );
+					LOG.info("task {}-{}:{} end!!",taskTypeName,taskName,tResult.isSuccess());
 				}
 			} catch (Exception e) {
 				LOG.error("execute error", e);
+				EmailPool emailPool = EmailPool.getInstance();
+				MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+				builder.setModel(this.getClass().getSimpleName()+"模块服务发生问题");
+				builder.setException(e);
+				builder.setMessage("更新任务发生错误");
+				builder.setVariable(data.getWrappedMap());
+				emailPool.sendEmail(builder);
 			}
 		}
 		

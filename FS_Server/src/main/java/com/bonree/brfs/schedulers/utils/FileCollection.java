@@ -6,7 +6,6 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -20,8 +19,6 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.write.data.FSCode;
-import com.bonree.brfs.rebalance.route.SecondIDParser;
-import com.bonree.brfs.server.identification.ServerIDManager;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -32,7 +29,7 @@ import com.bonree.brfs.server.identification.ServerIDManager;
  *****************************************************************************
  */
 public class FileCollection {
-	private static final Logger LOG = LoggerFactory.getLogger("FileCollection");
+	private static final Logger LOG = LoggerFactory.getLogger(FileCollection.class);
 	/**
 	 * 概述：根据路径收集文件名
 	 * @param path
@@ -41,25 +38,21 @@ public class FileCollection {
 	 */
 	public static Map<String,List<String>> collectLocalFiles(String path, long limitTime, long granule){
 		if(!FileUtils.isExist(path)) {
-			LOG.debug("<collFiles> file path is not exists {}",path);
+			LOG.debug("file path is not exists {}",path);
 			return null;
 		}
 		if(!FileUtils.isDirectory(path)) {
-			LOG.debug("<collFiles> file path is not directory {}",path);
+			LOG.debug("file path is not directory {}",path);
 			return null;
 		}
 		String limitStr = limitTime <= 0 ? "END" : TimeUtils.timeInterval(limitTime, granule);
 		List<String> dirs = FileUtils.listFileNames(path);
 		//升序排列任务
 		
-		Collections.sort(dirs, new Comparator<String>() {
-			public int compare(String o1, String o2) {
-				return o1.compareTo(o2);
-			}
-		});
-		Map<String,List<String>> dirFiles = new ConcurrentHashMap<String,List<String>>();
-		List<String> parts = null;
-		String tmpPath = null;
+		dirs.sort(Comparator.naturalOrder());
+		Map<String,List<String>> dirFiles = new ConcurrentHashMap<>();
+		List<String> parts;
+		String tmpPath;
 		for(String dir : dirs) {
 			if(dir.compareTo(limitStr) >= 0) {
 				continue;
@@ -80,76 +73,40 @@ public class FileCollection {
 		}
 		return dirFiles;
 	}
-	/**
-	 * 概述：
-	 * @param files
-	 * @param sn
-	 * @param sim
-	 * @param parser
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static List<String> crimeFiles(Map<String,List<String>> dirFiles,int snId, ServerIDManager sim,SecondIDParser parser){
-		List<String> crimers = new ArrayList<String>();
-		String secondLocalId = sim.getSecondServerID(snId);
-		if(BrStringUtils.isEmpty(secondLocalId)) {
-			return null;
-		}
-		List<String> secondIds = null;
-		List<String> files = null;
-		String path = null;
-		LOG.debug("watch dog eat {} second id{}",snId,secondLocalId);
-		for(Map.Entry<String, List<String>> entry : dirFiles.entrySet()) {
-			path = entry.getKey();
-			files = entry.getValue();
-			// 无文件，空目录 不检测
-			if(BrStringUtils.isEmpty(path)|| files == null ||files.isEmpty()) {
-				continue;
-			}
-			for(String file : files) {
-				// 1.解析文件名对应目前的二级serverId
-				secondIds = analyseServices(file, parser);
-				LOG.debug("watch dog eat file:{}, secondId :{},alive:{} ",file, secondLocalId,secondIds);
-				if(crimeFile(secondIds, secondLocalId)) {
-					crimers.add(path + "/" +file);
-				}
-			}
-		}
-		return crimers;
-	}
-	/**
-	 * 概述：判断单个文件是否非法
-	 * @param aliveSnIds
-	 * @param secondLocalId
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static boolean crimeFile(List<String> aliveSnIds, String secondLocalId) {
-		if(aliveSnIds == null || aliveSnIds.isEmpty() || BrStringUtils.isEmpty(secondLocalId)) {
-			return true;
-		}
-		return !aliveSnIds.contains(secondLocalId);		
-	}
-	/**
-	 * 概述：解析文件名汇总的serverId
-	 * @param fileName
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static List<String> analyseServices(String fileName, SecondIDParser parser) {
-		List<String> snIds = new ArrayList<String>();
-		if(BrStringUtils.isEmpty(fileName)) {
-			return snIds;
-		}
-		String[] tmps = parser.getAliveSecondID(fileName);
-		if(tmps == null || tmps.length <= 1) {
-			return snIds;
-		}
-		for(int i = 0 ; i < tmps.length; i++) {
-			snIds.add(tmps[i]);
-		}
-		return snIds;
-	}
+
+//	/**
+//	 * 概述：判断单个文件是否非法
+//	 * @param aliveSnIds
+//	 * @param secondLocalId
+//	 * @return
+//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+//	 */
+//	public static boolean crimeFile(List<String> aliveSnIds, String secondLocalId) {
+//		if(aliveSnIds == null || aliveSnIds.isEmpty() || BrStringUtils.isEmpty(secondLocalId)) {
+//			return true;
+//		}
+//		return !aliveSnIds.contains(secondLocalId);
+//	}
+//	/**
+//	 * 概述：解析文件名汇总的serverId
+//	 * @param fileName
+//	 * @return
+//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+//	 */
+//	public static List<String> analyseServices(String fileName, SecondIDParser parser) {
+//		List<String> snIds = new ArrayList<String>();
+//		if(BrStringUtils.isEmpty(fileName)) {
+//			return snIds;
+//		}
+//		String[] tmps = parser.getAliveSecondID(fileName);
+//		if(tmps == null || tmps.length <= 1) {
+//			return snIds;
+//		}
+//		for(int i = 0 ; i < tmps.length; i++) {
+//			snIds.add(tmps[i]);
+//		}
+//		return snIds;
+//	}
 	/***
 	 * 概述：过滤rd文件
 	 * @param part
@@ -157,12 +114,12 @@ public class FileCollection {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	private static List<String> filterUnlaw(final List<String> part){
-		List<String> filters = new ArrayList<String>();
+		List<String> filters = new ArrayList<>();
 		if(part == null || part.isEmpty()) {
 			return null;
 		}
 		String fileName = null;
-		String checks[] = null;
+		String checks[];
 		for(String file : part) {
 			if(file.indexOf(".rd") >= 0) {
 				fileName = file.substring(0, file.indexOf(".rd"));
@@ -172,41 +129,11 @@ public class FileCollection {
 			checks = BrStringUtils.getSplit(file, "_");
 			if(checks == null|| checks.length <=1) {
 				filters.add(fileName);
-				continue;
 			}
-			
 		}
 		return CopyCountCheck.filterErrors(part, filters);
 	}
-	/**
-	 * 概述：收集crc校验错误的文件
-	 * @param dirPath
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-    public static List<String> checkDirs(String dirPath){
-		if(BrStringUtils.isEmpty(dirPath)) {
-			return null;
-		}
-		if(!FileUtils.isExist(dirPath) || !FileUtils.isDirectory(dirPath)) {
-			return null;
-		}
-		List<String> cFileNames = FileUtils.listFileNames(dirPath);
-		cFileNames = filterUnlaw(cFileNames);
-		if(cFileNames == null || cFileNames.isEmpty()) {
-			return null;
-		}
-		List<String> errors = new ArrayList<String>();
-		String cPath = null;
-		for(String cName : cFileNames) {
-			cPath = dirPath + "/"+cName;
-			if(check(cPath)) {
-				continue;
-			}
-			errors.add(cName);
-		}
-		return errors;
-	}
+
 	/**
 	 * 概述：检查单个文件
 	 * @param path
@@ -228,7 +155,7 @@ public class FileCollection {
 	 */
 	public static boolean check(File file) {
 		RandomAccessFile raf = null;
-		MappedByteBuffer buffer = null;
+		MappedByteBuffer buffer;
 		String fileName = file.getName();
 		try {
 			if (!file.exists()) {
@@ -260,7 +187,10 @@ public class FileCollection {
 			crc.update(buffer);
 			raf.seek(raf.length() - 9L);
 			byte[] crcBytes = new byte[8];
-			raf.read(crcBytes);
+			int crcLen = raf.read(crcBytes);
+			if(crcLen <=0){
+				LOG.warn("{}: Tailer CRC is empty !!", fileName);
+			}
 			LOG.debug("calc crc32 code :{}, save crc32 code :{}", crc.getValue(), FSCode.byteToLong(crcBytes));
 			if (FSCode.byteToLong(crcBytes) != crc.getValue()) {
 				LOG.warn("{}: Tailer CRC is error!", fileName);
@@ -273,7 +203,7 @@ public class FileCollection {
 			return true;
 		}
 		catch (Exception e) {
-			LOG.error("{}:{}",fileName,e);
+			LOG.error("check error {}:{}",fileName,e);
 		}finally {
 			if (raf != null) {
 				try {

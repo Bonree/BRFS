@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.utils.BRFSFileUtil;
+import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
@@ -171,7 +173,6 @@ public class VirtualRecover implements DataRecover {
             LOG.error("task back time count interrupt!!", e);
         }
 
-
         detail.setStatus(ExecutionStatus.RECOVER);
         LOG.info("update:" + selfNode + "-------------" + detail);
         updateDetail(selfNode, detail);
@@ -199,40 +200,36 @@ public class VirtualRecover implements DataRecover {
         String remoteSecondId = balanceSummary.getInputServers().get(0);
         String remoteFirstID = idManager.getOtherFirstID(remoteSecondId, balanceSummary.getStorageIndex());
         String virtualID = balanceSummary.getServerId();
+
         LOG.info("balance virtual serverId:" + virtualID);
-        QUIT: for (String replicasName : replicasNames) { // 处理的副本编号
-            String replicaPath = snDataDir + FileUtils.FILE_SEPARATOR + replicasName;
-            List<String> timeFileNames = FileUtils.listFileNames(replicaPath);
-            for (String timeFileName : timeFileNames) {// 时间文件
-                String timeFilePath = replicaPath + FileUtils.FILE_SEPARATOR + timeFileName;
-                // String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
-                try {
-                    // simpleWriter = new SimpleRecordWriter(recordPath);
-                    List<String> fileNames = FileUtils.listFileNames(timeFilePath, ".rd");
-                    for (String fileName : fileNames) {
-
-                        if (status.get().equals(TaskStatus.CANCEL)) {
-                            break QUIT;
-                        }
-
-                        int replicaPot = 0;
-                        String[] metaArr = fileName.split(NAME_SEPARATOR);
-                        List<String> fileServerIds = new ArrayList<>();
-                        for (int j = 1; j < metaArr.length; j++) {
-                            fileServerIds.add(metaArr[j]);
-                        }
-                        if (fileServerIds.contains(virtualID)) {
-                            // 此处位置需要加1，副本数从1开始
-                            replicaPot = fileServerIds.indexOf(virtualID) + 1;
-                            FileRecoverMeta fileMeta = new FileRecoverMeta(fileName, storageName, timeFileName, Integer.parseInt(replicasName), replicaPot, remoteFirstID);
-                            try {
-                                fileRecoverQueue.put(fileMeta);
-                            } catch (InterruptedException e) {
-                                LOG.error("put file: " + fileMeta, e);
-                            }
-                        }
+        List<BRFSPath> allPaths = BRFSFileUtil.scanFile(dataDir, storageName);
+        for (BRFSPath brfsPath : allPaths) {
+            if (status.get().equals(TaskStatus.CANCEL)) {
+                break;
+            }
+            String perFile = dataDir + FileUtils.FILE_SEPARATOR + brfsPath.toString();
+            if (!perFile.endsWith(".rd")) {
+                String timeFileName = brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
+                        .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
+                                .getHourMinSecond();
+                String fileName = brfsPath.getFileName();
+                int replicaPot = 0;
+                String[] metaArr = fileName.split(NAME_SEPARATOR);
+                List<String> fileServerIds = new ArrayList<>();
+                for (int j = 1; j < metaArr.length; j++) {
+                    fileServerIds.add(metaArr[j]);
+                }
+                if (fileServerIds.contains(virtualID)) {
+                    // 此处位置需要加1，副本数从1开始
+                    replicaPot = fileServerIds.indexOf(virtualID) + 1;
+                    FileRecoverMeta fileMeta = new FileRecoverMeta(perFile, fileName, storageName, timeFileName, Integer
+                            .parseInt(brfsPath.getIndex()), replicaPot, remoteFirstID);
+                    try {
+                        fileRecoverQueue.put(fileMeta);
+                    } catch (InterruptedException e) {
+                        LOG.error("put file: " + fileMeta, e);
                     }
-                } finally {}
+                }
             }
         }
 
@@ -281,14 +278,24 @@ public class VirtualRecover implements DataRecover {
                         }
                         fileRecover = fileRecoverQueue.poll(100, TimeUnit.MILLISECONDS);
                         if (fileRecover != null) {
-                            String logicPath = storageName + FileUtils.FILE_SEPARATOR + fileRecover.getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
-                            String remoteDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover.getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
-                            String localFilePath = dataDir + FileUtils.FILE_SEPARATOR + logicPath + FileUtils.FILE_SEPARATOR + fileRecover.getFileName();
+                            String logicPath = storageName + FileUtils.FILE_SEPARATOR + fileRecover
+                                    .getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
+                            String remoteDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover
+                                    .getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
+                            String localFilePath = dataDir + FileUtils.FILE_SEPARATOR + logicPath + FileUtils.FILE_SEPARATOR + fileRecover
+                                    .getFileName();
                             boolean success = false;
                             LOG.info("transfer :" + fileRecover);
                             String firstID = fileRecover.getFirstServerID();
-                            Service service = serviceManager.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
+
                             while (true) {
+                                Service service = serviceManager.getServiceById(Configs.getConfiguration()
+                                        .GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
+                                if (service == null) {
+                                    LOG.warn("first id is {},maybe down!", firstID);
+                                    Thread.sleep(1000);
+                                    continue;
+                                }
 
                                 // if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
                                 success = sucureCopyTo(service, localFilePath, remoteDir, fileRecover.getFileName());
@@ -320,6 +327,7 @@ public class VirtualRecover implements DataRecover {
         boolean success = true;
         try {
             if (!FileUtils.isExist(localPath + ".rd")) {
+
                 fileClient.sendFile(service.getHost(), service.getPort() + 20, localPath, remoteDir, fileName);
             }
         } catch (Exception e) {
@@ -351,17 +359,17 @@ public class VirtualRecover implements DataRecover {
     public TaskDetail registerNodeDetail(String node) {
         TaskDetail detail = null;
         try {
-        	if (!client.checkExists(node)) {
+            if (!client.checkExists(node)) {
                 detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
                 client.createPersistent(node, false, JsonUtils.toJsonBytes(detail));
             } else {
                 byte[] data = client.getData(node);
                 detail = JsonUtils.toObject(data, TaskDetail.class);
             }
-        } catch(Exception e) {
-        	e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        
+
         return detail;
 
     }

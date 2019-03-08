@@ -24,6 +24,7 @@ public class SecondIDParser {
         this.snID = snID;
         this.curatorClient = curatorClient;
         this.baseRoutesPath = baseRoutesPath;
+        updateRoute();
 
     }
 

@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -48,6 +49,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         		.setMaxConnection(config.getConnectionPoolSize())
         		.setMaxConnectionPerRoute(config.getConnectionPoolSize())
         		.setIOThreadNum(config.getHandleThreadNum())
+        		.setResponseTimeout(60 * 1000)
         		.build());
         
         this.defaultHeaders.put("username", config.getName());
@@ -56,7 +58,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         this.zkClient = CuratorFrameworkFactory.newClient(config.getZkAddresses(), 3000, 15000, retryPolicy);
         zkClient.start();
-        zkClient.blockUntilConnected();
+        zkClient.blockUntilConnected(config.getZkConnectTimeoutSeconds(), TimeUnit.SECONDS);
         
         ZookeeperPaths zkPaths = ZookeeperPaths.getBasePath(config.getClusterName(), config.getZkAddresses());
         if(zkClient.checkExists().forPath(zkPaths.getBaseClusterName()) == null) {

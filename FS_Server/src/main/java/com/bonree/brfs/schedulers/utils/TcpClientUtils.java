@@ -17,8 +17,8 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.disknode.client.TcpDiskNodeClient;
 
 public class TcpClientUtils {
-	public static AsyncTcpClientGroup group = new AsyncTcpClientGroup(4);
-	public static AsyncFileReaderGroup group2 = new AsyncFileReaderGroup(4);
+	public static final AsyncTcpClientGroup group = new AsyncTcpClientGroup(4);
+	public static final AsyncFileReaderGroup group2 = new AsyncFileReaderGroup(4);
 	
 	public static TcpDiskNodeClient getClient(String host,int port, int export, int timeout) throws InterruptedException, IOException {		
 		TcpClient<BaseMessage, BaseResponse> tcpClient = group.createClient(new TcpClientConfig() {
@@ -49,19 +49,5 @@ public class TcpClientUtils {
 			}
 		});
 		return new TcpDiskNodeClient(tcpClient, readerClient);
-	}
-	public static TcpDiskNodeClient getListClient(String host,int port, int timeout) throws InterruptedException, IOException {		
-		TcpClient<BaseMessage, BaseResponse> tcpClient = group.createClient(new TcpClientConfig() {
-			@Override
-			public SocketAddress remoteAddress() {
-				return new InetSocketAddress(host, port);
-			}
-			
-			@Override
-			public int connectTimeoutMillis() {
-				return timeout;
-			}
-		});
-		return new TcpDiskNodeClient(tcpClient);
 	}
 }

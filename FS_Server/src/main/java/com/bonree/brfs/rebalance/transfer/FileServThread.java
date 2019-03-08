@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
 
@@ -57,7 +58,7 @@ class FileServThread implements Runnable {
     public void writeOutInfo(Socket sock, String infoStr) throws Exception// 将信息反馈给服务端
     {
         OutputStream sockOut = sock.getOutputStream();
-        sockOut.write(infoStr.getBytes());
+        sockOut.write(infoStr.getBytes(StandardCharsets.UTF_8));
     }
 
     public File getClientFileName(InputStream sockIn) throws Exception // 获取文件名并创建
@@ -66,7 +67,7 @@ class FileServThread implements Runnable {
         byte[] bufName = new byte[1024];
         int lenInfo = 0;
         lenInfo = sockIn.read(bufName);  // 获取文件名
-        String fileName = new String(bufName, 0, lenInfo);
+        String fileName = new String(bufName, 0, lenInfo ,StandardCharsets.UTF_8);
 
         String filePath = dataDir + FileUtils.FILE_SEPARATOR + fileName;
 

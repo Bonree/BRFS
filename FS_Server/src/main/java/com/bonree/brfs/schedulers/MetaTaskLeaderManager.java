@@ -8,7 +8,6 @@ import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
@@ -37,8 +36,8 @@ import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
  */
 public class MetaTaskLeaderManager implements LeaderLatchListener {
 	private static final Logger LOG = LoggerFactory.getLogger(MetaTaskLeaderManager.class);
-	public static final String META_TASK_MANAGER = "META_TASK_MANAGER";
-	public static final String COPY_CYCLE_POOL = "COPY_CYCLE_POOL";
+	private static final String META_TASK_MANAGER = "META_TASK_MANAGER";
+	private static final String COPY_CYCLE_POOL = "COPY_CYCLE_POOL";
 	private SchedulerManagerInterface manager;
 	private ResourceTaskConfig config;
 
@@ -56,7 +55,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 				LOG.warn("SchedulerManagerInterface is null, Loss biggerst !!!");
 				return;
 			}
-			Properties prop = DefaultBaseSchedulers.createSimplePrope(3, 1000l);
+			Properties prop = DefaultBaseSchedulers.createSimplePrope(3, 1000L);
 			boolean createFlag;
 			createFlag = this.manager.createTaskPool(META_TASK_MANAGER, prop);
 			// 若创建不成功则返回
@@ -105,9 +104,9 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		Map<String, Boolean> switchTask = config.getTaskPoolSwitchMap();
-		TaskTypeModel type = null;
-		String taskTypeName = null;
-		boolean flag = false;
+		TaskTypeModel type;
+		String taskTypeName;
+		boolean flag;
 		for (Map.Entry<String, Boolean> entry : switchTask.entrySet()) {
 			taskTypeName = entry.getKey();
 			flag = entry.getValue();

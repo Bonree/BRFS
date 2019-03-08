@@ -14,7 +14,7 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 
 public class DefaultRunnableTask implements RunnableTaskInterface {
-	private static final Logger LOG = LoggerFactory.getLogger("DefaultRunnableTask");
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultRunnableTask.class);
 	private long updateTime = 0;
 	private StatServerModel stat = null;
 	private TaskExecutablePattern  limit= null;
@@ -55,7 +55,6 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
 	@Override
 	public TaskRunPattern taskRunnPattern(TaskModel task) throws Exception {
 		TaskRunPattern runPattern = new TaskRunPattern();
-		int type = task.getTaskType();
 		int dataSize = task.getAtomList().size();
 		int repeadCount = 1;
 		repeadCount = ( dataSize % batchCount == 0 ) ? dataSize/batchCount :(dataSize/batchCount + 1);

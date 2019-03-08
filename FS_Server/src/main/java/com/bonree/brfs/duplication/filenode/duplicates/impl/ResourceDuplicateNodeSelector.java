@@ -1,4 +1,4 @@
-package com.bonree.brfs.duplication.filenode.duplicates;
+package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,6 +9,8 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
+import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -29,19 +31,19 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
+import com.bonree.brfs.resourceschedule.service.ResourceSelector;
 
-public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
+public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector{
 	private static final Logger LOG = LoggerFactory.getLogger(ResourceDuplicateNodeSelector.class);
 	private String zkPath = null;
-	private AvailableServerInterface available = null;
+	private ResourceSelector available = null;
 	private CuratorFramework client = null;
 	private PathChildrenCache pathCache = null;
 	private ServiceManager serviceManager = null;
 	private DiskNodeConnectionPool connectionPool = null;
 	private Random rand = new Random();
 	private int centSize = 1000;
-	public ResourceDuplicateNodeSelector(int centSize, String zkPath,ServiceManager serviceManager, DiskNodeConnectionPool connectionPool,CuratorFramework client,AvailableServerInterface available) {
+	public ResourceDuplicateNodeSelector(int centSize, String zkPath,ServiceManager serviceManager, DiskNodeConnectionPool connectionPool,CuratorFramework client, ResourceSelector available) {
 		this.centSize = centSize <=0 ? 1000: centSize;
 		this.zkPath = zkPath;
 		this.serviceManager = serviceManager;
@@ -212,7 +214,7 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector {
 		return this;
 	}
 
-	public ResourceDuplicateNodeSelector setAvailable(AvailableServerInterface available) {
+	public ResourceDuplicateNodeSelector setAvailable(ResourceSelector available) {
 		this.available = available;
 		return this;
 	}

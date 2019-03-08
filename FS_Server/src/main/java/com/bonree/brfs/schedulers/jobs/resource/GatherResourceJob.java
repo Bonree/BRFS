@@ -1,20 +1,21 @@
 
 package com.bonree.brfs.schedulers.jobs.resource;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.ResourceConfigs;
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.brfs.resourceschedule.model.*;
+import com.bonree.mail.worker.MailWorker;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.JsonUtils.JsonException;
@@ -23,10 +24,6 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
-import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.brfs.resourceschedule.model.StatServerModel;
-import com.bonree.brfs.resourceschedule.model.StateMetaServerModel;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
@@ -41,21 +38,33 @@ import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
  *****************************************************************************
  */
 public class GatherResourceJob extends QuartzOperationStateTask {
-	private static final Logger LOG = LoggerFactory.getLogger("GATHER");
+	private static final Logger LOG = LoggerFactory.getLogger(GatherResourceJob.class);
 	private static Queue<StateMetaServerModel> queue = new ConcurrentLinkedQueue<StateMetaServerModel>();
-	private static StateMetaServerModel prexState = null;
-//	private static ZookeeperClient client = null;
-
+	private static long preTime = 0L;
+	private static long INVERTTIME = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT)*1000;
+	private static Collection<String> mountPoints = null;
 	@Override
 	public void caughtException(JobExecutionContext context) {
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt(){
 	}
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
+		if(mountPoints == null){
+			String[] mounts = StringUtils.split(Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_UNMONITOR_PARTITION),",");
+			if(mounts != null){
+				mountPoints = new ArrayList<>(mounts.length);
+				for(String mount : mounts){
+					if(BrStringUtils.isEmpty(mount)){
+						continue;
+					}
+					mountPoints.add(mount.trim());
+				}
+			}
+		}
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		if (data == null || data.isEmpty()) {
 			throw new NullPointerException("job data map is empty");
@@ -76,7 +85,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		}
 		long gatherInveral = data.getLongValueFromString(JobDataMapConstract.GATHER_INVERAL_TIME);
 		int count = data.getIntFromString(JobDataMapConstract.CALC_RESOURCE_COUNT);
-		StateMetaServerModel metaSource = GatherResource.gatherResource(dataDir, ip);
+		StateMetaServerModel metaSource = GatherResource.gatherResource(dataDir, ip,mountPoints);
 		if (metaSource != null) {
 			queue.add(metaSource);
 			LOG.info("gather stat info !!! {}", queue.size());
@@ -87,7 +96,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			return ;
 		}
 		// 更新任务的可执行资源
-		StatServerModel sum = calcStateServer(gatherInveral, dataDir);
+		StatServerModel sum = calcStateServer(gatherInveral, dataDir,count);
 		if (sum != null) {
 			RunnableTaskInterface rt = mcf.getRt();
 			rt.update(sum);
@@ -97,24 +106,26 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if (base == null) {
 			return;
 		}
+		String serverId = mcf.getServerId();
 		// 计算资源值
-		ResourceModel resource = GatherResource.calcResourceValue(base, sum);
+		ResourceModel resource = GatherResource.calcResourceValue(base, sum,serverId,ip);
 		if (resource == null) {
 			LOG.warn("calc resource value is null !!!");
 			return;
 		}
-		Map<Integer, String> snIds = getStorageNameIdWithName();
-		resource.setSnIds(snIds);
-		resource.setServerId(mcf.getServerId());
+		sendWarnEmail(resource,mcf.getLimitServerResource());
+        resource.setServerId(serverId);
+        Map<Integer, String> snIds = getStorageNameIdWithName();
+        resource.setSnIds(snIds);
 		byte[] rdata= JsonUtils.toJsonBytesQuietly(resource);
-		String rPath = basePath+"/resource/"+mcf.getServerId();;
+		String rPath = basePath+"/resource/"+serverId;
 		if(!saveDataToZK(client, rPath, rdata)) {
 			LOG.error("resource content :{} save to zk fail !!!",JsonUtils.toJsonStringQuietly(resource));
 		}else {
-			LOG.info("RESOURCE: succefull !!!");
+			LOG.info("resource: succefull !!!");
 		}
 		
-		BaseMetaServerModel local = GatherResource.gatherBase(mcf.getServerId(), dataDir);
+		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir,mountPoints);
 		if(local == null) {
 			LOG.error("gather base data is empty !!!");
 			return;
@@ -126,8 +137,34 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		saveLocal(client,mcf.getServerId(), dataDir, bPath);
 		
 	}
+	public void sendWarnEmail(ResourceModel resource, LimitServerResource limit){
+		Map<String,Long> remainSize = resource.getLocalRemainSizeValue();
+		String mountPoint;
+		long remainsize;
+		Map<String,String> map = new HashMap<>();
+		for(Map.Entry<String,Long> entry : remainSize.entrySet()){
+			mountPoint = entry.getKey();
+			remainsize = entry.getValue();
+			if(remainsize < limit.getRemainForceSize()){
+				map.put(mountPoint,"磁盘剩余量低于限制值 "+ limit.getRemainForceSize()+", 当前剩余值为"+remainsize+" 服务即将参与拒绝写入服务");
+			}else if(remainsize < limit.getRemainWarnSize()){
+				map.put(mountPoint,"磁盘剩余量低于警告值 "+ limit.getRemainWarnSize()+", 当前剩余值为"+remainsize);
+			}
+		}
+		long currentTime = System.currentTimeMillis();
+		if(!map.isEmpty()&& (currentTime - preTime) > INVERTTIME){
+			EmailPool emailPool = EmailPool.getInstance();
+			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+			builder.setModel(this.getClass().getSimpleName()+"模块服务告警");
+			builder.setMessage(resource.getServerId()+"("+resource.getHost()+") 磁盘资源即将不足");
+			builder.setVariable(map);
+			emailPool.sendEmail(builder);
+			preTime = currentTime;
+		}
+
+	}
 	public void saveLocal(CuratorClient client,String serverId, String dataDir,String bPath) {
-		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir);
+		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir,mountPoints);
 		if(local == null) {
 			LOG.error("gather base data is empty !!!");
 			return;
@@ -152,7 +189,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			}
 		}
 		catch (Exception e) {
-			LOG.error("{}", e);
+			LOG.error("save resource to zk {}", e);
 			return false;
 		}
 		return true;
@@ -167,10 +204,10 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if (childs == null) {
 			return null;
 		}
-		List<BaseMetaServerModel> bases = new ArrayList<BaseMetaServerModel>();
-		String cPath = null;
-		byte[] data = null;
-		BaseMetaServerModel tmp = null;
+		List<BaseMetaServerModel> bases = new ArrayList<>();
+		String cPath;
+		byte[] data;
+		BaseMetaServerModel tmp;
 		for (String child : childs) {
 			try {
 				cPath = basePath + "/" + child;
@@ -182,7 +219,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 				bases.add(tmp);
 			}
 			catch (JsonException e) {
-				LOG.error("{}", e);
+				LOG.error("get base from zk error {}", e);
 			}
 		}
 		// 2.计算集群基础基础信息
@@ -197,24 +234,18 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private StatServerModel calcStateServer(long inverTime, String dataDir) {
+	private StatServerModel calcStateServer(long inverTime, String dataDir,int count) {
 		StatServerModel sum = null;
 		// 0.计算原始状态信息
-		List<StatServerModel> lists = GatherResource.calcState(queue);
+		List<StatServerModel> lists = GatherResource.calcState(queue,count);
 		if (lists == null || lists.isEmpty()) {
 			LOG.warn("server state list is null !!");
 			return sum;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		String groupName = mcf.getGroupName();
-		String serverId = mcf.getServerId();
 
 		// 1-1初始化storagename管理器
-		// TODO:俞朋 的 获取storageName
 		StorageRegionManager snManager = mcf.getSnm();
-		// 1-2.初始化service管理器
-		ServiceManager sManager = mcf.getSm();
-
 		// 2.获取storage信息
 		List<StorageRegion> storageNames = snManager.getStorageRegionList();
 		List<String> storagenameList = getStorageNames(storageNames);
@@ -223,28 +254,6 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		return sum;
 	}
 
-//	/**
-//	 * 概述：检查并创建服务信息
-//	 * @param content
-//	 * @param serverId
-//	 * @param dataDir
-//	 * @return
-//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-//	 */
-//	private ServerModel checkAndCreateServerModel(String content, String serverId, String dataDir) {
-//		ServerModel sinfo = null;
-//		if (BrStringUtils.isEmpty(content)) {
-//			sinfo = new ServerModel();
-//		}
-//		sinfo = JsonUtils.toObjectQuietly(content, ServerModel.class);
-//		if (sinfo == null) {
-//			sinfo = new ServerModel();
-//		}
-//		BaseMetaServerModel tmpbase = GatherResource.gatherBase(serverId, dataDir);
-//		sinfo.setBase(tmpbase);
-//		return sinfo;
-//	}
-
 	/***
 	 * 概述：获取storageName的名称
 	 * @param storageNames
@@ -252,12 +261,12 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	private List<String> getStorageNames(List<StorageRegion> storageNames) {
-		List<String> snList = new ArrayList<String>();
+		List<String> snList = new ArrayList<>();
 
 		if (storageNames == null || storageNames.isEmpty()) {
 			return snList;
 		}
-		String tmp = null;
+		String tmp;
 		for (StorageRegion sn : storageNames) {
 			if (sn == null) {
 				continue;
@@ -272,40 +281,9 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	}
 	
 
-	/**
-	 * 概述：计算集群基础信息
-	 * @param serverList
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-//	private BaseMetaServerModel calcBaseCluster(List<BaseMetaServerModel> bases) {
-//		// 2.获取集群基础基础信息
-//		BaseMetaServerModel base = null;
-//		ServerModel sinfo = null;
-//		String content = null;
-//		for (Service server : serverList) {
-//			content = server.getPayload();
-//			// 2-1.过滤掉为空的
-//			sinfo = getServerModel(server);
-//			// 2-2 过滤为null的
-//			if (sinfo == null) {
-//				continue;
-//			}
-//			base = sinfo.getBase();
-//			// 2-3 过滤base为null的
-//			if (base == null) {
-//				continue;
-//			}
-//			bases.add(base);
-//		}
-//		if (bases.isEmpty()) {
-//			return null;
-//		}
-//		return GatherResource.collectBaseMetaServer(bases);
-//	}
+
 	/**
 	 * 概述：获取storageName关系
-	 * @param sns
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -313,12 +291,12 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		StorageRegionManager snm = mcf.getSnm();
 		List<StorageRegion> sns = snm.getStorageRegionList();
-		Map<Integer,String> snToId = new ConcurrentHashMap<Integer,String>();
+		Map<Integer,String> snToId = new ConcurrentHashMap<>();
 		if(sns == null || sns.isEmpty()){
 			return snToId;
 		}
-		int id = -1;
-		String name = null;
+		int id;
+		String name;
 		for (StorageRegion sn : sns) {
 			if (sn == null) {
 				continue;

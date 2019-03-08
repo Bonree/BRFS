@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +28,7 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
  */
 public class DefaultSchedulersManager implements SchedulerManagerInterface<String, BaseSchedulerInterface, SumbitTaskInterface>{
 	Map<String,BaseSchedulerInterface> taskPoolMap = new ConcurrentHashMap<String,BaseSchedulerInterface>();
-	private static final Logger LOG = LoggerFactory.getLogger("TaskManagerServer");
+	private static final Logger LOG = LoggerFactory.getLogger(DefaultSchedulersManager.class);
 	private static class SingletonInstance {
 		public static DefaultSchedulersManager instance = new DefaultSchedulersManager();
 	}
@@ -46,7 +48,15 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return pool.addTask(task);
 		}
 		catch (Exception e) {
-			LOG.error("{},{},{}",taskpoolkey,task.getClassInstanceName(),e);
+			LOG.error("add task error {},{},{}",taskpoolkey,task.getClassInstanceName(),e);
+			EmailPool emailPool = EmailPool.getInstance();
+			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+			builder.setMessage("添加"+taskpoolkey+"任务发生异常 ！！");
+			builder.setVariable(task.getTaskContent());
+			builder.setException(e);
+			builder.setModel(this.getClass().getSimpleName());
+			emailPool.sendEmail(builder);
+
 			return false;
 		}
 	}
@@ -62,7 +72,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.pauseTask(task);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("pause task error {}",e);
 			return false;
 		}
 		return true;
@@ -79,7 +89,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.resumeTask(task);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("resume task error {}",e);
 			return false;
 		}
 		return true;
@@ -96,7 +106,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.deleteTask(task);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("delete task error {}",e);
 			return false;
 		}
 		return true;
@@ -120,7 +130,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			this.taskPoolMap.put(taskpoolKey, pool);
 		}
 		catch (Exception e) {
-			LOG.error("Exception : {}",e);
+			LOG.error("create task pool error {}",e);
 			return false;
 		}
 		return true;
@@ -145,7 +155,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.start();
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("start task pool error {}",e);
 			return false;
 		}
 		return true;
@@ -166,7 +176,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.reStart();
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("restart task pool error {}",e);
 			return false;
 		}
 		return true;
@@ -185,10 +195,10 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return false;
 		}
 		try {
-			pool.PausePool();
+			pool.pausePool();
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("pauset task pool error {}",e);
 			return false;
 		}
 		return true;
@@ -210,7 +220,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.resumePool();
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("resume task pool error {}",e);
 			return false;
 		}
 		return true;
@@ -329,7 +339,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			this.taskPoolMap.remove(taskpoolKey);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("destory task pool error {}",e);
 			return false;
 		}
 		return true;
@@ -350,7 +360,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.close(isWaitTaskCompleted);
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("closet task pool error {}",e);
 			return false;
 		}
 		return true;
@@ -371,7 +381,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.pauseAllTask();
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("pause all task error {}",e);
 			return false;
 		}
 		return true;
@@ -392,7 +402,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			pool.resumeAllTask();
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("resume task error {}",e);
 			return false;
 		}
 		return true;
@@ -416,7 +426,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 			return pool.getSumbitTaskCount();
 		}
 		catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("get sumbit task count error {}",e);
 			return 0;
 		}
 	}
@@ -438,7 +448,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
 		try {
 			return pool.getPoolSize();
 		}catch (Exception e) {
-			LOG.error("{}",e);
+			LOG.error("get task pool size error {}",e);
 			return 0;
 		}
 	}

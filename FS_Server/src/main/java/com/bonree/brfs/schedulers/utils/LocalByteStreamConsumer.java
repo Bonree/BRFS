@@ -6,21 +6,16 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.bonree.brfs.common.utils.ByteUtils;
-import com.bonree.brfs.common.write.data.FSCode;
 import com.bonree.brfs.disknode.client.DiskNodeClient.ByteConsumer;
-import com.bonree.brfs.disknode.fileformat.impl.SimpleFileHeader;
 
 public class LocalByteStreamConsumer implements ByteConsumer {
-	private static final Logger LOG = LoggerFactory.getLogger("LocalConsumer");
+	private static final Logger LOG = LoggerFactory.getLogger(LocalByteStreamConsumer.class);
 	private CompletableFuture<Boolean> result = new CompletableFuture<>();
-	private String localPath = null; 
-	private int bufferSize = 5*1024*1024;
+	private String localPath;
+	private int bufferSize;
 	private BufferedOutputStream output = null;
 	private ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 	public LocalByteStreamConsumer(String localPath, int bufferSize) {
@@ -28,7 +23,7 @@ public class LocalByteStreamConsumer implements ByteConsumer {
 		this.bufferSize = bufferSize;
 	}
 	public LocalByteStreamConsumer(String localPath) {
-		this.localPath = localPath;
+		this(localPath,5*1024*1024);
 	}
 	@Override
 	public void consume(byte[] bytes, boolean endOfConsume) {
@@ -51,13 +46,13 @@ public class LocalByteStreamConsumer implements ByteConsumer {
 			}
 			output.write(data);
 			output.flush();
-		}catch (FileNotFoundException e) {
-			LOG.error("write byte error ", e);
 		} catch (IOException e) {
 			LOG.error("write byte error ", e);
 		}finally {
 			try {
-				output.close();
+				if(output != null){
+					output.close();
+				}
 			}
 			catch (IOException e) {
 				LOG.error("close error ",e);

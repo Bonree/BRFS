@@ -2,13 +2,17 @@ package com.bonree.brfs.schedulers.utils;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.brfs.rebalance.route.SecondIDParser;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
+import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.mail.worker.MailWorker;
+import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +34,7 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
  *****************************************************************************
  */
 public class CopyCountCheck {
-	private static final Logger LOG = LoggerFactory.getLogger("CopyCountCheck");
+	private static final Logger LOG = LoggerFactory.getLogger(CopyCountCheck.class);
 	/***
 	 * 概述：获取文件缺失的sn
 	 * @param storageNames
@@ -39,10 +43,10 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<String,List<String>> collectLossFile(List<StorageRegion> storageNames, List<Service> services, Map<String,Long> snTimes){
+	public static Map<String,List<String>> collectLossFile(List<StorageRegion> storageNames, List<Service> services, Map<String,Long> snTimes) throws Exception{
 		Map<StorageRegion, List<String>> snFiles = collectionSnFiles(services, storageNames,snTimes);
 		if(snFiles == null|| snFiles.isEmpty()) {
-			LOG.debug("<collectLossFile> collection files is empty");
+			LOG.info("system no data !!!");
 			return null;
 		}
 		Map<StorageRegion,Pair<List<String>, List<String>>> copyMap = calcCopyCount(snFiles);
@@ -50,8 +54,7 @@ public class CopyCountCheck {
 			LOG.info("cluster data is normal !!!");
 			return null;
 		}
-		Map<String,List<String>> results = lossFiles(copyMap);
-		return results;
+		return lossFiles(copyMap);
 	}
 	/**
 	 * 概述：获取缺失副本的
@@ -64,10 +67,10 @@ public class CopyCountCheck {
 			return null;
 		}
 		Map<String,List<String>> lossMap = new HashMap<String,List<String>>();
-		StorageRegion sn = null;
-		String snName = null;
-		Pair<List<String>,List<String>> cache = null;
-		List<String> losss = null;
+		StorageRegion sn;
+		String snName;
+		Pair<List<String>,List<String>> cache;
+		List<String> losss;
 		for(Map.Entry<StorageRegion,Pair<List<String>, List<String>>> entry: copyMap.entrySet()){
 			sn = entry.getKey();
 			if(sn == null){
@@ -99,10 +102,10 @@ public class CopyCountCheck {
 		if(snFiles == null || snFiles.isEmpty()){
 			return null;
 		}
-		StorageRegion sn = null;
-		List files = null;
-		Map<String, Integer> fileCopyCount = null;
-		Pair<List<String>,List<String>> result = null;
+		StorageRegion sn;
+		List files;
+		Map fileCopyCount;
+		Pair<List<String>,List<String>> result;
 		Map<StorageRegion,Pair<List<String>, List<String>>> copyMap = new HashMap<StorageRegion,Pair<List<String>, List<String>>>();
 		
 		for(Map.Entry<StorageRegion, List<String>> entry : snFiles.entrySet()){
@@ -131,46 +134,69 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static Map<StorageRegion, List<String>> collectionSnFiles(List<Service> services, List<StorageRegion> snList,final Map<String,Long> snTimes){
+	public static Map<StorageRegion, List<String>> collectionSnFiles(List<Service> services, List<StorageRegion> snList,final Map<String,Long> snTimes)throws Exception{
 		Map<StorageRegion,List<String>> snMap = new HashMap<>();
 		DiskNodeClient client = null;
-		int reCount = 0;
+		int reCount;
 		String snName = null;
-		String path = null;
-		List<String> strs = null;
-		long time = 0;
-		String dirName = null;
+		String path;
+		List<String> strs;
+		long time;
+		String dirName;
+        String sid;
+        ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+        ServerIDManager sim = mcf.getSim();
+        CuratorClient zkClient = mcf.getClient();
+        SecondIDParser parser;
+        String basePath = mcf.getZkPath().getBaseRoutePath();
+        int timeout = 10000;
 		for(Service service : services){
-			try {
-				client = TcpClientUtils.getClient(service.getHost(), service.getPort(), service.getExtraPort(), 5000);
-				long granule = 0;
+            try{
+				client = TcpClientUtils.getClient(service.getHost(), service.getPort(), service.getExtraPort(), timeout);
+				long granule;
 				for(StorageRegion sn : snList){
+
+				    parser = new SecondIDParser(zkClient,sn.getId(),basePath);
+				    parser.updateRoute();
+
+				    sid = sim.getOtherSecondID(service.getServiceId(),sn.getId());
 					granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 					reCount = sn.getReplicateNum();
 					snName = sn.getName();
 					if(!snTimes.containsKey(snName)) {
-						LOG.debug("<collectionSnFiles> sntime don't contain {}", snName);
+						LOG.debug("sntime don't contain {}", snName);
 						continue;
 					}
 					time = snTimes.get(snName);
 					dirName = TimeUtils.timeInterval(time, granule);
 					for(int i = 1; i <=reCount; i++){
 						path = "/"+snName+"/"+i+"/"+dirName;
-						LOG.info("<collectionSnFiles> path :{}",path);
-						strs = getFileList(client, path);
+						LOG.debug("path :{}",path);
+						strs = getFileList(parser, client, path, sid);
 						if(strs == null || strs.isEmpty()) {
-							LOG.debug("<collectionSnFiles> files is empty {}", path);
+							LOG.debug("files is empty {}", path);
 							continue;
 						}
 						LOG.debug("Collection dirName :{},{} size :{}",dirName,path, strs.size());
 						if(!snMap.containsKey(sn)){
-							snMap.put(sn, new ArrayList<String>());
+							snMap.put(sn, new ArrayList<>());
 						}
 						snMap.get(sn).addAll(strs);
 					}
 				}
-			} catch (Exception e) {
-				LOG.error("{}",e);
+            }catch(Exception e){
+				EmailPool emailPool = EmailPool.getInstance();
+				MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
+				builder.setModel("collect file execute 模块服务发生问题");
+				builder.setException(e);
+				builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 执行任务时发生问题");
+				Map<String,String> map = new HashedMap();
+				map.put("remote ",service.getHost());
+				map.put("connectTimeout",String.valueOf(timeout));
+				map.put("sn", StringUtils.isEmpty(snName) ? "" :snName);
+				builder.setVariable(map);
+				emailPool.sendEmail(builder);
+				throw  e;
 			}finally{
 				if(client != null){
 					try {
@@ -190,8 +216,8 @@ public class CopyCountCheck {
 		if(data == null || data.isEmpty()) {
 			return rMap;
 		}
-		StorageRegion sr = null;
-		List<String> files = null;
+		StorageRegion sr;
+		List<String> files;
 		for(Map.Entry<StorageRegion, List<String>> entry : data.entrySet()) {
 			sr = entry.getKey();
 			files = entry.getValue();
@@ -201,12 +227,12 @@ public class CopyCountCheck {
 		return rMap;
 	}
 	public static List<String> clearUnLawFiles(List<String> files){
-		List<String> rList = new ArrayList<String>();
+		List<String> rList = new ArrayList<>();
 		if(files == null || files.isEmpty()) {
 			return rList;
 		}
-		List<String> errors = new ArrayList<String>();
-		String[] checks = null;
+		List<String> errors = new ArrayList<>();
+		String[] checks;
 		for(String file : files) {
 			// 排除rd文件
 			if(file.indexOf(".rd") > 0){
@@ -218,7 +244,6 @@ public class CopyCountCheck {
 			checks = BrStringUtils.getSplit(file, "_");
 			if(checks == null|| checks.length<=1) {
 				errors.add(file);
-				continue;
 			}
 		}
 		return filterErrors(files, errors);
@@ -230,18 +255,19 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> getFileList(DiskNodeClient client, String path){
-		if(client == null || BrStringUtils.isEmpty(path)) {
-			return null;
+	public static List<String> getFileList(SecondIDParser parser, DiskNodeClient client,  String path, String sid)throws Exception{
+		if(client == null ) {
+		    throw new NullPointerException("disk client is null !!!");
 		}
+        if(BrStringUtils.isEmpty(path)) {
+            throw new NullPointerException("path is null !!!");
+        }
 		List<FileInfo> files =client.listFiles(path, 1);
 		if(files == null || files.isEmpty()) {
-			LOG.debug("<getFileList> file size :{}",0);
+			LOG.debug("path : [{}] is not data", path);
 			return null;
 		}
-		LOG.debug("<getFileList> file size :{}",files.size());
-		List<String> fileNames = converToStringList(files, path);
-		return fileNames;
+		return converToStringList(parser, files, path, sid);
 	}
 	 /**
 	 * 概述：转换集合为str集合
@@ -249,37 +275,54 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> converToStringList(List<FileInfo> files,String dir){
+	public static List<String> converToStringList(SecondIDParser parser,List<FileInfo> files,String dir, String sid){
 		List<String> strs = new ArrayList<>();
-		String path = null;
-		String fileName = null;
-		int lastIndex = 0;
-		String dirName = getFileName(dir); 
-//		List<String> errorFiles = new ArrayList<>();
-		String[] checks = null; 
+		String path;
+		String fileName;
+		List<String> errorFiles = new ArrayList<>();
+		String[] checks;
 		for(FileInfo file : files){
+		    if(file.getType() == FileInfo.TYPE_DIR){
+		        continue;
+            }
 			path = file.getPath();
 			fileName = getFileName(path);
-			if(dirName.equals(fileName)){
+//
+			// 排除rd文件
+			if(fileName.indexOf(".rd") > 0){
+				fileName = fileName.substring(0, fileName.indexOf(".rd"));
+                errorFiles.add(fileName);
+                LOG.warn("file: [{}] contain rd file !! skip ",fileName);
 				continue;
 			}
-//			// 排除rd文件
-//			if(fileName.indexOf(".rd") > 0){
-//				fileName = fileName.substring(0, fileName.indexOf(".rd"));
-//				filterRd.add(fileName);
-//				continue;
-//			}
 			// 排除非法数据
-//			checks = BrStringUtils.getSplit(fileName, "_");
-//			if(checks == null|| checks.length<=1) {
-//				errorFiles.add(fileName);
-//				continue;
-//			}
+			checks = BrStringUtils.getSplit(fileName, "_");
+			if(checks == null|| checks.length<=1) {
+				errorFiles.add(fileName);
+                LOG.warn("file: [{}] is unlaw file !! skip ",fileName);
+				continue;
+			}
+			if(isUnlaw(sid, parser, fileName)){
+			    LOG.warn("file: [{}] is not [{}] file", fileName, sid);
+			    continue;
+            }
 			strs.add(fileName);
 		}
-//		return filterErrors(strs, errorFiles);
-		return strs;
+		return filterErrors(strs, errorFiles);
 	}
+	public static boolean isUnlaw(String sid, SecondIDParser parser, String fileName){
+	    String[] alives = parser.getAliveSecondID(fileName);
+	    if(alives == null || alives.length == 0){
+	        LOG.warn("[{}] analys service error !! alives is null !!!", fileName);
+	        return true;
+        }
+        List<String> eles = Arrays.asList(alives);
+	    boolean status = !eles.contains(sid);
+	    if(status){
+            LOG.warn("file: [{}], server: [{}], serverlist :{}",fileName,sid,eles);
+        }
+        return status;
+    }
 	/**
 	 * 概述：过滤rd文件
 	 * @param files
@@ -312,13 +355,13 @@ public class CopyCountCheck {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static String getFileName(String path){
-		int lastIndex = 0;
+		int lastIndex;
 		lastIndex = path.lastIndexOf("/");
 		if(lastIndex <0){
 			lastIndex = path.lastIndexOf("\\");
 		}
 		if(lastIndex <0){
-			return new String(path);
+			return path;
 		}
 		return path.substring(lastIndex+1);
 	}
@@ -334,17 +377,17 @@ public class CopyCountCheck {
 		if(sns == null || sns.isEmpty()){
 			return filters;
 		}
-		int count = 0;
-		String snName = null;
+		int count;
+		String snName;
 		for(StorageRegion sn : sns){
 			count = sn.getReplicateNum();
 			snName = sn.getName();
 			if(count == 1){
-				LOG.info("<filterSn> sn {} {} skip",snName,count);
+				LOG.debug("sn {} {} skip",snName,count);
 				continue;
 			}
 			if(count >size){
-				LOG.info("<filterSn> sn {} {} {} skip",snName,count, size);
+				LOG.debug("sn {} {} {} skip",snName,count, size);
 				continue;
 			}
 			filters.add(sn);
@@ -377,23 +420,23 @@ public class CopyCountCheck {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static Pair<List<String>,List<String>>filterLoser(Map<String,Integer> resultMap, int filterValue){
-		List<String> filterBiggestResult = new ArrayList<String>();
-		List<String> filterLitterResult = new ArrayList<String>();
-		String key = null;
-		int count = 0;
+		List<String> filterBiggestResult = new ArrayList<>();
+		List<String> filterLitterResult = new ArrayList<>();
+		String key;
+		int count;
 		for(Map.Entry<String, Integer> entry : resultMap.entrySet()){
 			count = entry.getValue();
 			key = entry.getKey();
 			if(filterValue == count){
-				continue;
-			} else	if(filterValue > count){
+			   continue;
+			}
+			if(filterValue > count){
 				filterLitterResult.add(key);
-			}else if(filterValue < count){
+			}else {
 				filterBiggestResult.add(key);
 			}
 		}
-		Pair<List<String>,List<String>> result = new Pair<List<String>,List<String>>(filterLitterResult,filterBiggestResult);
-		return result;
+		return new Pair<>(filterLitterResult,filterBiggestResult);
 	}
 	
 	/**
@@ -409,11 +452,11 @@ public class CopyCountCheck {
 			return repairs;
 		}
 		long currentTime = System.currentTimeMillis();
-		String snName = null;
-		long startTime = 0L;
-		long sGra = 0L;
-		long cGra = 0L;
-		long granule = 0;
+		String snName;
+		long startTime;
+		long sGra;
+		long cGra;
+		long granule;
 		for(StorageRegion sn : needSns) {
 			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 			cGra = currentTime - currentTime%granule;

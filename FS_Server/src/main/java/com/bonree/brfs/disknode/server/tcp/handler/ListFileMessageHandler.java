@@ -20,7 +20,7 @@ import com.bonree.brfs.disknode.server.tcp.handler.data.ListFileMessage;
 
 public class ListFileMessageHandler implements MessageHandler<BaseResponse> {
 	private static final Logger LOG = LoggerFactory.getLogger(ListFileMessageHandler.class);
-	
+	//TODO : 二期优化副本数校验任务，希望只返回与brfs文件系统有关的文件及目录
 	private DiskContext context;
 	
 	private LinkedList<FileInfo> fileList = new LinkedList<FileInfo>();

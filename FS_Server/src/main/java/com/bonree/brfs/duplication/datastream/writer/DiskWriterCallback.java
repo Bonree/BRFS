@@ -51,7 +51,7 @@ public class DiskWriterCallback {
 				}
 				
 				if(j != dupResult.length - 1) {
-					LOG.error("data write error from index[{}] to index[{}]", j + 1, dupResult.length - 1);
+					LOG.error("data write error from index[{}] to index[{}] in file[{}]", j + 1, dupResult.length - 1, file.node().getName());
 				}
 				
 				if(maxValidIndex < j) {
@@ -63,7 +63,7 @@ public class DiskWriterCallback {
 			}
 		}
 		
-		LOG.debug("write result with max valid index[{}]", maxValidIndex);
+		LOG.debug("write result with max valid index[{}] in file[{}]", maxValidIndex, file.node().getName());
 		file.setLength(maxValidIndex < 0 ? file.length() : (maxResult[maxValidIndex].offset() + maxResult[maxValidIndex].length()));
 		callback.writeCompleted(file, writeError);
 		

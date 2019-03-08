@@ -1,20 +1,19 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.bonree.brfs.common.files.impl.BRFSTimeFilter;
+import com.bonree.brfs.common.utils.*;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.FileUtils;
-import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
-import com.bonree.brfs.schedulers.utils.LocalFileUtils;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
@@ -48,33 +47,31 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
 		// 获取当前执行的任务类型
-		int taskType = data.getInt(JobDataMapConstract.TASK_TYPE);
 		if(BrStringUtils.isEmpty(content)) {
-			LOG.warn("batch data is empty !!!");
+			LOG.debug("batch data is empty !!!");
 			return ;
 		}
 		BatchAtomModel batch = JsonUtils.toObject(content, BatchAtomModel.class);
 		if(batch == null){
-			LOG.warn("batch data is empty !!!");
+			LOG.debug("batch data is empty !!!");
 			return;
 		}
 		
 		List<AtomTaskModel> atoms = batch.getAtoms();
 		if(atoms == null || atoms.isEmpty()){
-			LOG.warn("atom task is empty !!!");
+			LOG.debug("atom task is empty !!!");
 			return;
 		}
-		String snName = null;
+		String snName;
 		TaskResultModel result = new TaskResultModel();
-		TaskResultModel batchResult = null;
-		AtomTaskResultModel usrResult = null;
+		AtomTaskResultModel usrResult;
 		List<String> dSns = new ArrayList<String>();
-		String operation = null;
+		String operation;
 		for(AtomTaskModel atom : atoms){
 			snName = atom.getStorageName();
 			if("1".equals(currentIndex)) {
 				operation = atom.getTaskOperation();
-				LOG.info("task operation {} ", DELETE_SN_ALL.equals(operation) ? "Delete_Storage_Region" : "Delete_Part_Of_Storage_Region_Data");
+				LOG.debug("task operation {} ", DELETE_SN_ALL.equals(operation) ? "Delete_Storage_Region" : "Delete_Part_Of_Storage_Region_Data");
 				if(DELETE_SN_ALL.equals(operation)) {
 					dSns.add(snName);
 				}
@@ -92,7 +89,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		if("1".equals(currentIndex)) {
 			for(String sn : dSns) {
 				if(FileUtils.deleteDir(dataPath+"/"+sn, true)) {
-					LOG.info("deltete {} successfull", sn);
+					LOG.debug("deltete {} successfull", sn);
 				}else {
 					result.setSuccess(false);
 				}
@@ -113,30 +110,25 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 			return null;
 		}
 		String snName = atom.getStorageName();
-		int partitionNum = atom.getPatitionNum();
-		long granule = atom.getGranule();
 		long startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
-		List<String> partDirs = LocalFileUtils.getPartitionDirs(dataPath, snName, partitionNum);
 		AtomTaskResultModel atomR = new AtomTaskResultModel();
 		atomR.setDataStartTime(TimeUtils.formatTimeStamp(startTime, TimeUtils.TIME_MILES_FORMATE));
 		atomR.setDataStopTime(TimeUtils.formatTimeStamp(endTime, TimeUtils.TIME_MILES_FORMATE));
 		atomR.setPartNum(atom.getPatitionNum());
 		atomR.setSn(snName);
-		if(partDirs == null || partDirs.isEmpty()) {
-			atomR.setOperationFileCount(0);
-			return atomR;
-		}
-		List<String> deleteDirs = LocalFileUtils.collectTimeDirs(partDirs, startTime, endTime, 1,false);
-		LOG.info("collection {}_{} dirs {}",atom.getDataStartTime(),atom.getDataStopTime(),deleteDirs);
+		Map<String,String> snMap = new HashMap<>();
+		snMap.put(BRFSPath.STORAGEREGION, snName);
+		List<BRFSPath> deleteDirs = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSTimeFilter(startTime,endTime));
+		LOG.debug("collection {}_{} dirs {}",atom.getDataStartTime(),atom.getDataStopTime(),deleteDirs);
 		if(deleteDirs == null || deleteDirs.isEmpty()) {
 			atomR.setOperationFileCount(0);
 			return atomR;
 		}
 		boolean isSuccess = true;
-		for(String deletePath : deleteDirs) {
-			isSuccess = isSuccess && FileUtils.deleteDir(deletePath, true);
-			LOG.info("delete [{}], status [{}]",deletePath, isSuccess);
+		for(BRFSPath deletePath : deleteDirs) {
+			isSuccess = isSuccess && FileUtils.deleteDir(dataPath+FileUtils.FILE_SEPARATOR+deletePath.toString(), true);
+			LOG.debug("delete [{}], status [{}]",deletePath, isSuccess);
 		}
 		atomR.setOperationFileCount(deleteDirs.size());
 		atomR.setSuccess(isSuccess);

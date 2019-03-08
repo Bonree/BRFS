@@ -1,33 +1,24 @@
 package com.bonree.brfs.common.zookeeper.curator;
 
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
+import junit.framework.TestCase;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.api.BackgroundCallback;
-import org.apache.curator.framework.api.CuratorEvent;
-import org.apache.curator.framework.api.CuratorListener;
+import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.Watcher.Event.EventType;
 
-import junit.framework.TestCase;
+import java.nio.charset.StandardCharsets;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年3月12日 下午6:40:06
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
- * @Description: 
+ * @Description:
  ******************************************************************************/
 public class CuratorZookeeperClientTest extends TestCase {
 
-    private final static String zkUrl = "192.168.101.86:2181";
+    private final static String zkUrl = "192.168.4.114:2181";
 
     private final static RetryPolicy retry = new RetryNTimes(1, 1000);
 
@@ -113,39 +104,66 @@ public class CuratorZookeeperClientTest extends TestCase {
 //
 //    }
 
-    public void testCuratorListener() throws Exception {
-        final CuratorClient client = CuratorClient.getClientInstance(zkUrl);
-        CuratorFramework curatorClient = client.getInnerClient();
-//        curatorClient.getChildren().inBackground(new BackgroundCallback() {
+    //    public void testCuratorListener() throws Exception {
+//        final CuratorClient client = CuratorClient.getClientInstance(zkUrl);
+//        CuratorFramework curatorClient = client.getInnerClient();
+////        curatorClient.getChildren().inBackground(new BackgroundCallback() {
+////
+////            @Override
+////            public void processResult(CuratorFramework client, CuratorEvent event) throws Exception {
+////                System.out.println("aaaaa" + event.getChildren());
+////            }
+////        }).forPath("/brfs/wz");
+//
+//        curatorClient.getCuratorListenable().addListener(new CuratorListener() {
 //
 //            @Override
-//            public void processResult(CuratorFramework client, CuratorEvent event) throws Exception {
-//                System.out.println("aaaaa" + event.getChildren());
+//            public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
+//                System.out.println("CuratorListener1--" + event.getPath()+"--" + event.getWatchedEvent());
+//
 //            }
-//        }).forPath("/brfs/wz");
+//        });
+//
+//        curatorClient.getCuratorListenable().addListener(new CuratorListener() {
+//
+//            @Override
+//            public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
+//                System.out.println("CuratorListener2--" + event.getPath()+"--" + event.getWatchedEvent());
+//            }
+//        });
+//
+//        curatorClient.setData().inBackground().forPath("/yupeng/yupeng/yupeng","aaa".getBytes());
+//
+//        Thread.sleep(2000);
+//        client.close();
+//
+//    }
+    public static void main(String[] args) throws Exception {
 
-        curatorClient.getCuratorListenable().addListener(new CuratorListener() {
+//        CuratorClient client = CuratorClient.getClientInstance(zkUrl);
+//        client.useNameSpace("aaa");
+//        client.createPersistent("/bbb",true,"wz".getBytes(StandardCharsets.UTF_8));
+        try {
 
-            @Override
-            public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
-                System.out.println("CuratorListener1--" + event.getPath()+"--" + event.getWatchedEvent());
+            CuratorFramework client = CuratorFrameworkFactory.newClient(zkUrl,retry);
+            client.start();
+//            client = client.usingNamespace("1");
+//            client.create().creatingParentsIfNeeded().forPath("/bbb");
+//            client = client.usingNamespace("2/bbb");
+//            client.create().creatingParentsIfNeeded().forPath("/aaa");
+//            client = client.usingNamespace("3");
+//            client.create().creatingParentsIfNeeded().forPath("/aaa");
+//            client = client.usingNamespace("4");
+//            Thread.sleep(60000);
 
-            }
-        });
+            client.create().creatingParentsIfNeeded().forPath("/aaa");
+            client.close();
+        }catch (Exception e){
 
-        curatorClient.getCuratorListenable().addListener(new CuratorListener() {
+        }
 
-            @Override
-            public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
-                System.out.println("CuratorListener2--" + event.getPath()+"--" + event.getWatchedEvent());
-            }
-        });
-
-        curatorClient.setData().inBackground().forPath("/yupeng/yupeng/yupeng","aaa".getBytes());
-
-        Thread.sleep(2000);
-        client.close();
 
     }
+
 
 }

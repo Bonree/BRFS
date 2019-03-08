@@ -42,7 +42,7 @@ public class ReadConnection implements Closeable {
 		
 		byte[] b = new byte[l];
 		InputUtils.readBytes(socket.getInputStream(), b, 0, b.length);
-		
+
 		FileContent content = FileDecoder.contents(b);
         return content.getData().toByteArray();
 	}

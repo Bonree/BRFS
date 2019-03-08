@@ -51,6 +51,12 @@ public interface FileNodeStorer {
 	List<FileNode> listFileNodes();
 	
 	/**
+	 * 获取仓库中filenode的数量
+	 * @return
+	 */
+	int fileNodeSize();
+	
+	/**
 	 * 列举当前仓库中的文件节点，可以使用过滤器对
 	 * 节点进行筛选
 	 * 

@@ -10,7 +10,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 public class MessageChannelInitializer extends ChannelInitializer<SocketChannel> {
 	private MessageDispatcher messageDispatcher;
 	
-	private static final int DEFAULT_READ_IDLE_TIMEOUT_SECONDS = 10;
+	private static final int DEFAULT_READ_IDLE_TIMEOUT_SECONDS = 30;
 	
 	public MessageChannelInitializer(Executor executor) {
 		this.messageDispatcher = new MessageDispatcher(executor);

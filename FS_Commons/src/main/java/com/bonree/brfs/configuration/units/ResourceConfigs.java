@@ -49,7 +49,7 @@ public final class ResourceConfigs {
 			ConfigUnit.ofLong("execute.task.inverval.time", 60l);
 	
 	public static final ConfigUnit<Long> CONFIG_RESOURCE_GATHER_INTERVAL =
-			ConfigUnit.ofLong("gather.resource.inveral.time", 60l);
+			ConfigUnit.ofLong("gather.resource.inveral.time", 10l);
 	
 	public static final ConfigUnit<Integer> CONFIG_RESOURCE_CALCULATE_COUNT =
 			ConfigUnit.ofInt("calc.resource.value.count", 5);
@@ -70,10 +70,20 @@ public final class ResourceConfigs {
 			ConfigUnit.ofDouble("limit.resource.value.memoryrate", 0.9);
 	
 	public static final ConfigUnit<Double> CONFIG_LIMIT_DISK_AVAILABLE_RATE =
-			ConfigUnit.ofDouble("limit.resource.value.disakremainrate", 0.01);
-	
+			ConfigUnit.ofDouble("limit.resource.value.disk.remain.rate", 0.01);
+    public static final ConfigUnit<Double> CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE =
+        ConfigUnit.ofDouble("limit.resource.force.value.disk.remain.rate", 0.001);
+
+    public static final ConfigUnit<Double> CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED =
+        ConfigUnit.ofDouble("limit.resource.force.value.disk.write.speed.rate", 0.9);
 	public static final ConfigUnit<Double> CONFIG_LIMIT_DISK_WRITE_SPEED =
-			ConfigUnit.ofDouble("limit.resource.value.diskwritespeedrate", 0.9);
+			ConfigUnit.ofDouble("limit.resource.value.disk.write.speed.rate", 0.9);
+
+	public static final ConfigUnit<Long> CONFIG_LIMIT_DISK_REMAIN_SIZE =
+			ConfigUnit.ofLong("limit.resource.value.disk.remain.size", 20*1024*1024);
+
+	public static final ConfigUnit<Long> CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE =
+			ConfigUnit.ofLong("limit.resource.value.force.disk.remain.size", 10*1024*1024);
 	
 	public static final ConfigUnit<Double> CONFIG_LIMIT_DISK_READ_SPEED =
 			ConfigUnit.ofDouble("limit.resource.value.diskreadspeedrate", 0.9);
@@ -83,7 +93,7 @@ public final class ResourceConfigs {
 	
 	public static final ConfigUnit<Double> CONFIG_LIMIT_NET_RECEIVE =
 			ConfigUnit.ofDouble("limit.resource.value.netrspeedrate", 0.9);
-	
+	public static final ConfigUnit<Long> CONFIG_RESOURCE_EMAIL_INVERT = ConfigUnit.ofLong("resource.email.time",300);
 	public static final ConfigUnit<Long> CONFIG_DATA_CHECK_TTL =
 			ConfigUnit.ofLong("system.check.data.ttl", 3600);
 	
@@ -100,6 +110,9 @@ public final class ResourceConfigs {
 			ConfigUnit.ofInt("watch.dog.trigger.interval", 7);
 	public static final ConfigUnit<Integer> CONFIG_RESOURCE_CENT_SIZE = 
 			ConfigUnit.ofInt("resource.cent.size",1000);
-
+	/**
+	 * 不监控的磁盘分区
+	 */
+	public static final ConfigUnit<String> CONFIG_UNMONITOR_PARTITION = ConfigUnit.ofString("unmounitor.partition","");
 	private ResourceConfigs() {}
 }

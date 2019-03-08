@@ -3,7 +3,6 @@ package com.bonree.brfs.disknode.server.tcp.handler;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,47 +52,41 @@ public class MetadataFetchMessageHandler implements MessageHandler<BaseResponse>
 		String filePath = context.getConcreteFilePath(path);
 		LOG.info("GET metadata of file[{}]", filePath);
 		
-		CompletableFuture.runAsync(new Runnable() {
-			
-			@Override
-			public void run() {
-				List<RecordElement> recordInfo = getRecordElements(filePath);
-				
-				if(recordInfo == null) {
-					LOG.info("can not get record elements of file[{}]", filePath);
-					writer.write(new BaseResponse(ResponseCode.ERROR));
-					return;
-				}
-				
-				//获取所有文件序列号
-				RecordElement lastElement = null;
-				if(recordInfo != null) {
-					for(RecordElement element : recordInfo) {
-						if(lastElement == null) {
-							lastElement = element;
-							continue;
-						}
-						
-						if(lastElement.getOffset() < element.getOffset()) {
-							lastElement = element;
-						}
-					}
-				}
-				
+		List<RecordElement> recordInfo = getRecordElements(filePath);
+		
+		if(recordInfo == null) {
+			LOG.info("can not get record elements of file[{}]", filePath);
+			writer.write(new BaseResponse(ResponseCode.ERROR));
+			return;
+		}
+		
+		//获取所有文件序列号
+		RecordElement lastElement = null;
+		if(recordInfo != null) {
+			for(RecordElement element : recordInfo) {
 				if(lastElement == null) {
-					LOG.info("no available record element of file[{}]", filePath);
-					writer.write(new BaseResponse(ResponseCode.ERROR));
-					return;
+					lastElement = element;
+					continue;
 				}
 				
-				long fileLength = fileFormater.relativeOffset(lastElement.getOffset()) + lastElement.getSize();
-				LOG.info("get file length[{}] from file[{}]", fileLength, filePath);
-				BaseResponse response = new BaseResponse(ResponseCode.OK);
-				response.setBody(Longs.toByteArray(fileLength));
-				
-				writer.write(response);
+				if(lastElement.getOffset() < element.getOffset()) {
+					lastElement = element;
+				}
 			}
-		});
+		}
+		
+		if(lastElement == null) {
+			LOG.info("no available record element of file[{}]", filePath);
+			writer.write(new BaseResponse(ResponseCode.ERROR));
+			return;
+		}
+		
+		long fileLength = fileFormater.relativeOffset(lastElement.getOffset()) + lastElement.getSize();
+		LOG.info("get file length[{}] from file[{}]", fileLength, filePath);
+		BaseResponse response = new BaseResponse(ResponseCode.OK);
+		response.setBody(Longs.toByteArray(fileLength));
+		
+		writer.write(response);
 	}
 	
 	private List<RecordElement> getRecordElements(String filePath) {
@@ -121,16 +114,15 @@ public class MetadataFetchMessageHandler implements MessageHandler<BaseResponse>
 		} else {
 			//到这有两种情况：
 			//1、文件打开操作未成功后进行同步；
-			//2、文件关闭操作未成功进行再次关闭;
+			//2、文件关闭成功后进行文件同步;
 			recordInfo = new ArrayList<RecordElement>();
 			File dataFile = new File(filePath);
 			if(dataFile.exists()) {
 				//到这的唯一机会是，多副本文件关闭时只有部分关闭成功，当磁盘节点恢复正常
 				//后，需要再次进行同步流程让所有副本文件关闭，因为没有日志文件，所以只能
 				//通过解析数据文件生成序列号列表
-				byte[] bytes = DataFileReader.readFile(dataFile, fileFormater.fileHeader().length(),
-						(int) (dataFile.length() - fileFormater.fileTailer().length()));
-				List<String> offsetInfos = FileDecoder.getOffsets(bytes);
+				byte[] bytes = DataFileReader.readFile(dataFile);
+				List<String> offsetInfos = FileDecoder.getDataFileOffsets(fileFormater.fileHeader().length(), bytes);
 				for(String info : offsetInfos) {
 					List<String> parts = Splitter.on('|').splitToList(info);
 					int offset = Integer.parseInt(parts.get(0));

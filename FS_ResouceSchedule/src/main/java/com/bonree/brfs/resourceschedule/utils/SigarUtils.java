@@ -60,7 +60,7 @@ public enum SigarUtils {
      * 比较特殊的是CPU总使用率的计算(util),目前的算法是: util = 1 - idle - iowait - steal
      * @return
      * @throws SigarException
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     * @author <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public double gatherCpuRate() throws SigarException {
         Cpu cpu = sigar.getCpu();
@@ -143,14 +143,11 @@ public enum SigarUtils {
     	}
     	NetInterfaceConfig netConfig = null;
     	NetInterfaceStat  netStat = null;
-    	String tmpIp = null;
-    	String devName = null;
-    	String[] netInfos = sigar.getNetInterfaceList();
+    	String tmpIp;
     	for(String netInfo : ipDevSet){
     		netConfig = sigar.getNetInterfaceConfig(netInfo);
     		tmpIp = netConfig.getAddress();
-    		devName = netConfig.getName();
-    		// 1.过滤网卡不存在的
+            // 1.过滤网卡不存在的
     		if(((netConfig.getFlags() & 1L) <= 0L)){
     			LOG.debug("ip {} is not exists", tmpIp);
     			continue;
@@ -200,8 +197,8 @@ public enum SigarUtils {
      * @throws SigarException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public Map<Integer,Map<String,Long>> gatherPartitionInfo(String rootPath) throws SigarException {
-        Map<Integer,Map<String,Long>> objMap = new ConcurrentHashMap<Integer, Map<String, Long>>();
+    public Map<Integer,Map<String,Long>> gatherPartitionInfo(String rootPath,Collection<String> mountPoints) throws SigarException {
+        Map<Integer,Map<String,Long>> objMap = new ConcurrentHashMap<>();
         if(BrStringUtils.isEmpty(rootPath)){
             return objMap;
         }
@@ -211,8 +208,8 @@ public enum SigarUtils {
             return objMap;
         }
         FileSystem[] fileSystems = sigar.getFileSystemList();
-        String mountedPoint = null;
-        FileSystemUsage usage = null;
+        String mountedPoint;
+        FileSystemUsage usage;
         int type = -1;
         for(FileSystem fileSystem : fileSystems){
             mountedPoint = fileSystem.getDirName();
@@ -222,6 +219,10 @@ public enum SigarUtils {
             }
             //目录无关的分区
             if(!mountedPoint.contains(file.getAbsolutePath()) && !file.getAbsolutePath().contains(mountedPoint)){
+                continue;
+            }
+            // 过滤无关的磁盘
+            if(mountPoints != null && mountPoints.contains(mountedPoint)){
                 continue;
             }
             if(type == 2||type == 3){

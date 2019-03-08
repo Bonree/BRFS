@@ -20,6 +20,7 @@ import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
+import com.bonree.brfs.disknode.data.write.worker.WriteTask;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.utils.Pair;
@@ -48,9 +49,8 @@ public class CloseFileMessageHandler implements MessageHandler<BaseResponse> {
 			return;
 		}
 		
-		String filePath = null;
 		try {
-			filePath = diskContext.getConcreteFilePath(path);
+			final String filePath = diskContext.getConcreteFilePath(path);
 			LOG.info("CLOSE file[{}]", filePath);
 			
 			Pair<RecordFileWriter, WriteWorker> binding = writerManager.getBinding(filePath, false);
@@ -64,34 +64,56 @@ public class CloseFileMessageHandler implements MessageHandler<BaseResponse> {
 				}
 				
 				MappedByteBuffer buffer = Files.map(dataFile);
-				buffer.position(fileFormater.fileHeader().length());
-				buffer.limit(filePath.length() - fileFormater.fileTailer().length());
-				BaseResponse response = new BaseResponse(ResponseCode.OK);
-				response.setBody(Longs.toByteArray(ByteUtils.cyc(buffer)));
-				BufferUtils.release(buffer);
-				writer.write(response);
-				return;
+				try {
+					buffer.position(fileFormater.fileHeader().length());
+					buffer.limit(buffer.capacity() - fileFormater.fileTailer().length());
+					BaseResponse response = new BaseResponse(ResponseCode.OK);
+					response.setBody(Longs.toByteArray(ByteUtils.crc(buffer)));
+					BufferUtils.release(buffer);
+					writer.write(response);
+					return;
+				} finally {
+					BufferUtils.release(buffer);
+				}
+				
 			}
 			
-			LOG.info("start writing file tailer for {}", filePath);
-			binding.first().flush();
-			byte[] fileBytes = DataFileReader.readFile(filePath, 2);
-			long crcCode = ByteUtils.crc(fileBytes);
-			LOG.info("final crc code[{}] by bytes[{}] of file[{}]", crcCode, fileBytes.length, filePath);
-			
-			byte[] tailer = Bytes.concat(FileEncoder.validate(crcCode), FileEncoder.tail());
-			
-			binding.first().write(tailer);
-			binding.first().flush();
-			
-			LOG.info("close over for file[{}]", filePath);
-			writerManager.close(filePath);
-			
-			BaseResponse response = new BaseResponse(ResponseCode.OK);
-			response.setBody(Longs.toByteArray(crcCode));
-			writer.write(response);
+			binding.second().put(new WriteTask<Long>() {
+
+				@Override
+				protected Long execute() throws Exception {
+					LOG.info("start writing file tailer for {}", filePath);
+					binding.first().flush();
+					byte[] fileBytes = DataFileReader.readFile(filePath, fileFormater.fileHeader().length());
+					long crcCode = ByteUtils.crc(fileBytes);
+					LOG.info("final crc code[{}] by bytes[{}] of file[{}]", crcCode, fileBytes.length, filePath);
+					
+					byte[] tailer = Bytes.concat(FileEncoder.validate(crcCode), FileEncoder.tail());
+					
+					binding.first().write(tailer);
+					binding.first().flush();
+					
+					LOG.info("close over for file[{}]", filePath);
+					writerManager.close(filePath);
+					
+					return crcCode;
+				}
+
+				@Override
+				protected void onPostExecute(Long result) {
+					BaseResponse response = new BaseResponse(ResponseCode.OK);
+					response.setBody(Longs.toByteArray(result));
+					writer.write(response);
+				}
+
+				@Override
+				protected void onFailed(Throwable e) {
+					BaseResponse response = new BaseResponse(ResponseCode.ERROR);
+					writer.write(response);
+				}
+			});
 		} catch (IOException e) {
-			LOG.error("close file[{}] error!", filePath);
+			LOG.error("close file[{}] error!", path);
 			writer.write(new BaseResponse(ResponseCode.ERROR));
 		}
 	}

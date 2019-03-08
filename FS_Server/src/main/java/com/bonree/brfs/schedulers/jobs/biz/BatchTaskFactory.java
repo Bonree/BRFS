@@ -15,10 +15,7 @@ import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 public class BatchTaskFactory {
 	/**
 	 * 概述：
-	 * @param release
 	 * @param task
-	 * @param taskName
-	 * @param serverId
 	 * @param batchSize
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -28,7 +25,6 @@ public class BatchTaskFactory {
 		if(task == null){
 			return batchDatas;
 		}
-		TaskType taskType = TaskType.valueOf(task.getTaskType());
 		List<AtomTaskModel> atoms = convernTaskModel(task);
 		if (atoms == null|| atoms.isEmpty()) {
 			return batchDatas;

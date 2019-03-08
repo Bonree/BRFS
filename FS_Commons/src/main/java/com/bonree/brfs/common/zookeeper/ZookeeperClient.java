@@ -53,5 +53,7 @@ public interface ZookeeperClient {
 
     boolean isConnected();
 
+    void useNameSpace(String path);
+
     void close();
 }

@@ -22,6 +22,6 @@ public class FileObjectSyncTask {
 	
 	public boolean isExpired() {
 		return file.node().getCreateTime() < TimeUtils.prevTimeStamp(System.currentTimeMillis(),
-				file.node().getTimeDuration());
+				file.node().getTimeDurationMillis());
 	}
 }

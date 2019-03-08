@@ -1,9 +1,6 @@
 package com.bonree.brfs.resourceschedule.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -13,9 +10,9 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.brfs.resourceschedule.service.AvailableServerInterface;
+import com.bonree.brfs.resourceschedule.service.ResourceSelector;
 
-public class RandomAvailable implements AvailableServerInterface {
+public class RandomAvailable implements ResourceSelector{
 	private static final Logger LOG = LoggerFactory.getLogger("RandomAvailable");
 	
 	/**
@@ -44,7 +41,7 @@ public class RandomAvailable implements AvailableServerInterface {
 			}
 			if(sence == 1) {
 				remainValue = entry.getValue().getDiskRemainValue(snName);
-				if(remainValue <= limit.getRemainValue()) {
+				if(remainValue <= limit.getDiskRemainRate()) {
 					continue;
 				}
 			}
@@ -58,8 +55,7 @@ public class RandomAvailable implements AvailableServerInterface {
 	}
 	
 	@Override
-	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,int centSize)
-			throws Exception {
+	public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,int centSize){
 		if(resourceMap.isEmpty()){
 			return null;
 		}
@@ -116,24 +112,22 @@ public class RandomAvailable implements AvailableServerInterface {
 	 */
 	private List<Pair<String, Integer>> converDoublesToIntegers(final List<Pair<String, Double>> servers, int preCentSize){
 		List<Pair<String,Integer>> dents = new ArrayList<Pair<String,Integer>>();
-		int total = 0;
-		int value = 0;
+        int value;
 		double sum = 0;
 		int centSize = preCentSize<=0 ? 100 : preCentSize;
 		for(Pair<String,Double> pair: servers) {
 			sum +=pair.getSecond();
 		}
-		Pair<String,Integer> tmp = null;
+		Pair<String,Integer> tmp;
 		for(Pair<String,Double> ele : servers){
-			tmp = new Pair<String, Integer>();
+			tmp = new Pair<>();
 			tmp.setFirst(ele.getFirst());
 			value = (int)(ele.getSecond()/sum* centSize);
 			if(value == 0){
 				value = 1;
 			}
 			tmp.setSecond(value);
-			total += value;
-			dents.add(tmp);
+            dents.add(tmp);
 		}
 		return dents;
 	}

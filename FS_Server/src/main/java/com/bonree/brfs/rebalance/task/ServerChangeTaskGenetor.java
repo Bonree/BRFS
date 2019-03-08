@@ -1,10 +1,13 @@
 package com.bonree.brfs.rebalance.task;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
@@ -92,8 +95,12 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
                         ChangeSummary tsm = new ChangeSummary(snModel.getId(), genChangeID(), type, secondID, currentServers);
                         String jsonStr = JsonUtils.toJsonString(tsm);
                         String snTaskNode = ZKPaths.makePath(changesPath, String.valueOf(snModel.getId()), tsm.getChangeID());
-                        client.createPersistent(snTaskNode, true, jsonStr.getBytes());
+                        client.createPersistent(snTaskNode, true, jsonStr.getBytes(StandardCharsets.UTF_8));
                         LOG.info("generator a change record:" + jsonStr + ", for storageRegion:" + snModel);
+                        if(ChangeType.REMOVE == type){
+                            EmailPool emailPool = EmailPool.getInstance();
+                            emailPool.sendEmail(MailWorker.newBuilder(emailPool.getProgramInfo()).setMessage(jsonStr));
+                        }
                     } catch (Exception e) {
                         LOG.error("generator a change record failed for storageRegion:" + snModel, e);
                         e.printStackTrace();

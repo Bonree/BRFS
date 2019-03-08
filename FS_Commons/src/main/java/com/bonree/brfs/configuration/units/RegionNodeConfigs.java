@@ -38,5 +38,8 @@ public final class RegionNodeConfigs {
 	public static final ConfigUnit<String> CONFIG_DATA_ENGINE_IDLE_TIME =
 			ConfigUnit.ofString("regionnode.dataengine.idle.time", "PT1H");
 	
+	public static final ConfigUnit<Integer> CONFIG_CLOSER_THREAD_NUM =
+			ConfigUnit.ofInt("regionnode.file.closer.thead_num", 1);
+	
 	private RegionNodeConfigs() {}
 }

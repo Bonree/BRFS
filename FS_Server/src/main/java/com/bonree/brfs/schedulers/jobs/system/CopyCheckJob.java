@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,23 +28,21 @@ import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 
 public class CopyCheckJob extends QuartzOperationStateTask{
-	private static final Logger LOG = LoggerFactory.getLogger("CopyCheckJob");
+	private static final Logger LOG = LoggerFactory.getLogger(CopyCheckJob.class);
 	public static final String RECOVERY_NUM = "1";
 	public static final String RECOVERY_CRC = "0";
 	@Override
 	public void caughtException(JobExecutionContext context) {
-		LOG.error("Create Task error !! {}",TaskType.SYSTEM_COPY_CHECK.name());
+		LOG.error("Create Task error !! {} {}",TaskType.SYSTEM_COPY_CHECK.name(),context.get("ExceptionMessage"));
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt(){
 		
 	}
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		
-		long currentTime = System.currentTimeMillis();
 
 		LOG.info("createCheck Copy Job working");
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
@@ -62,12 +59,12 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		String taskType = TaskType.SYSTEM_COPY_CHECK.name();
 		List<Service> services = sm.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 		if(services == null || services.isEmpty()) {
-			LOG.info("SKIP create {} task, because service is empty",taskType);
+			LOG.warn("skip create {} task, because service is empty",taskType);
 			return ;
 		}
 		List<StorageRegion> snList = snm.getStorageRegionList();
 		if( snList== null || snList.isEmpty()) {
-			LOG.info("SKIP storagename list is null");
+			LOG.warn("storagename list is null");
 			return;
 		}
 		// 1.获取sn创建任务的实际那
@@ -78,7 +75,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			release.setTaskTypeModel(taskType, tmodel);
 		}
 		Map<String,Long> sourceTimes = tmodel.getSnTimes();
-		LOG.info("update init sn time :{}", sourceTimes);
+		LOG.debug("update init sn time :{}", sourceTimes);
 		// 2.过滤不符合副本校验的sn信息
 		List<StorageRegion> needSns = CopyCountCheck.filterSn(snList, services.size());
 		// 3.针对第一次出现的sn补充时间
@@ -102,17 +99,23 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		sourceTimes = pair.getSecond();
 		// 更新sn临界信息
 		tmodel = release.getTaskTypeInfo(taskType);
+		if(tmodel == null){
+			tmodel = new TaskTypeModel();
+			tmodel.setSwitchFlag(true);
+			LOG.warn("taskType {} metadata loss create against !!",taskType);
+		}
 		tmodel.putAllSnTimes(sourceTimes);
 		release.setTaskTypeModel(taskType, tmodel);
-		LOG.info("update sn time {}", sourceTimes);
+		LOG.debug("update sn time {}", sourceTimes);
 		createTransferTasks(release);
 	}
+
 	public void createTransferTasks(MetaTaskManagerInterface release) {
 		List<String> taskNames = release.getTransferTask(TaskType.SYSTEM_CHECK.name());
 		if(taskNames == null) {
 			return;
 		}
-		String result = null;
+		String result;
 		for(String name : taskNames) {
 			result = TasksUtils.createCopyTask(name);
 			if(BrStringUtils.isEmpty(result)) {

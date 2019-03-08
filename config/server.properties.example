@@ -203,7 +203,7 @@ storage.file.capacity = 67108864
 ###############################################
 #资源采集
 #资源采集的时间间隔 单位s
-#gather.resource.inveral.time = 60
+#gather.resource.inveral.time = 10
 
 #当有N个采样点时，计算资源值，最小值为2
 #calc.resource.value.count = 5
@@ -211,18 +211,16 @@ storage.file.capacity = 67108864
 #资源选择的比值大小
 #resource.cent.size=1000
 
-#资源限制
-#资源限制 cpu使用率
-#limit.resource.value.cpurate = 0.9
-
-#资源限制 内存使用率
-#limit.resource.value.memoryrate = 0.9
 
 #资源限制 磁盘剩余率
-#limit.resource.value.disakremainrate = 0.001
+#limit.resource.value.disk.remain.rate = 0.001
 
+#资源磁盘剩余限制值，当分区剩余量低于该值，则不会参与写入服务选择， 单位kb
+limit.resource.value.force.disk.remain.size=10485760
+#资源磁盘剩余告警值，当分区剩余大小低于该值，则会发送邮件告警，单位KB
+limit.resource.value.disk.remain.size=20971520
 #资源限制 磁盘写入率
-#limit.resource.value.diskwritespeedrate = 0.9
+#limit.resource.value.disk.write.speed.rate = 0.9
 
 #资源限制 磁盘读取率
 #limit.resource.value.diskreadspeedrate = 0.9
@@ -232,3 +230,50 @@ storage.file.capacity = 67108864
 
 #资源限制 网卡接收率
 #limit.resource.value.netrspeedrate = 0.9
+# 资源报警邮件发送时间间隔控制 单位s
+resource.email.time = 300
+# 不监控的磁盘分区，若brfs数据存储路径上存在多个磁盘分区时，可通过该配置项过滤掉不想监控的磁盘分区
+# 例如brfs数据存储目录为/data/files 其中/目录挂在一个分区，/data目录挂载一个分区，不想监控/目录对应的分区则可以将/放入该配置项中，若存在多个，用，分割。 默认为空
+# unmounitor.partition = /
+######################
+#####报警邮件配置######
+######################
+# 邮箱服务地址
+#email.smtp=mail.bonree.com
+# 邮箱服务发送端口
+#email.smtp.port=25
+# 邮箱发送者
+#email.send.user=redalert@bonree.com
+# 邮箱发送者密码
+#email.send.user.password=alert!^*90
+# 是否开启ssl发送
+#email.use_ssl=false
+# 接收者列表，通过，分割
+#email.recipient=zhucg@bonree.com
+# 邮件内容标题，并非邮件主题
+#email.header=BRFS集群
+# 邮件默认模块
+#email.model=brfs
+# 公司信息
+#email.company=北京博睿宏远数据科技股份有限公司 版权所有   京 ICP备 08104257 号 京公网安备 1101051190
+# 版权信息
+#email.copyright=Copyright ©2007-2019 All rights reserved
+# 发送email线程池大小
+#email.pool.size=3
+
+#deliver的开关，false为关闭，不进行推送
+deliver.switch=false
+#kafka的brokers的地址列表
+kafka.brokers=192.168.4.114:9092
+#deliver推送的kafka的topic
+kafka.topic=brfs_metric
+#deliver缓存大小，超过大小后，将丢弃数据
+deliver.queue.size=200000
+#deliver解析字段地址
+deliver.meta.url=http://devtest.ibr.cc:20003/v1
+#deliver数据源
+deliver.datasource=sdk_data_brfs
+#deliver的写性能表
+deliver.table.writer=brfs_writer_metric
+#deliver的读性能表
+deliver.table.reader=brfs_reader_metric

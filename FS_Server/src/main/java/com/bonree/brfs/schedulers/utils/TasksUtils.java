@@ -33,7 +33,7 @@ import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 
 public class TasksUtils {
-	private static final Logger LOG = LoggerFactory.getLogger("TasksUtils");
+	private static final Logger LOG = LoggerFactory.getLogger(TasksUtils.class);
 	/**
 	 * 概述：
 	 * @param services
@@ -86,14 +86,13 @@ public class TasksUtils {
 			return null;
 		}
 		TaskModel task = new TaskModel();
-		List<AtomTaskModel> storageAtoms = new ArrayList<AtomTaskModel>();
+		List<AtomTaskModel> storageAtoms = new ArrayList<>();
 		if(endTime == 0 || startTime >= endTime){
 			return null;
 		}
 		long granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 		String snName = sn.getName();
-		int count = sn.getReplicateNum();
-		long startHour = 0;
+		long startHour;
 		long endHour =  endTime - endTime%granule;
 		// 删除sn
 		boolean isALL = UserDeleteJob.DELETE_SN_ALL.equals(opertationContent);
@@ -109,9 +108,7 @@ public class TasksUtils {
 		if(startHour >= endHour) {
 			return null;
 		}
-		String startStr = TimeUtils.formatTimeStamp(startHour, TimeUtils.TIME_MILES_FORMATE);
-		String endStr = TimeUtils.formatTimeStamp(endHour, TimeUtils.TIME_MILES_FORMATE);
-		
+
 		AtomTaskModel atom = AtomTaskModel.getInstance(null, snName, opertationContent, sn.getReplicateNum(), startHour, endHour, granule);
 		storageAtoms.add(atom);
 		task.setAtomList(storageAtoms);
@@ -169,7 +166,7 @@ public class TasksUtils {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	public static String createTask(MetaTaskManagerInterface release, List<String> services, String taskType, TaskModel task) {
-		String tName = null;
+		String tName;
 		tName = release.updateTaskContentNode(task, TaskType.SYSTEM_COPY_CHECK.name(), null);
 		if(BrStringUtils.isEmpty(tName)) {
 			return null;
@@ -180,20 +177,7 @@ public class TasksUtils {
 		return tName;
 	}
 	/**
-	 * 概述：
-	 * @param release
-	 * @param taskType
-	 * @param name
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static TaskModel createCopyTask(MetaTaskManagerInterface release, TaskType taskType, String name) {
-		List<TaskServerNodeModel> sList = getServicesInfo(release, taskType, name);
-		if(sList == null) {
-			return null;
-		}
-		return TasksUtils.getErrorFile(sList);
-	}
+
 	/**
 	 * 概述：
 	 * @param release
@@ -208,8 +192,8 @@ public class TasksUtils {
 			LOG.error("CRC task [{}] get serviceList is empty!!!",name);
 			return null;
 		}
-		List<TaskServerNodeModel> sTasks = new ArrayList<TaskServerNodeModel>();
-		TaskServerNodeModel sTask = null;
+		List<TaskServerNodeModel> sTasks = new ArrayList<>();
+		TaskServerNodeModel sTask;
 		for(String sName : sNames) {
 			sTask = release.getTaskServerContentNodeInfo(taskType.name(), name, sName);
 			if(sTask == null) {
@@ -219,30 +203,10 @@ public class TasksUtils {
 		}
 		return sTasks;
 	}
-	/**
-	 * 概述：获取sr的副本数
-	 * @param snList
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	private static Map<String,Integer> getReplicationMap(List<StorageRegion> snList){
-		if(snList == null || snList.isEmpty()) {
-			return null;
-		}
-		Map<String,Integer> map = new HashMap<String,Integer>();
-		String snName = null;
-		int replicationCount = 0;
-		for(StorageRegion sn : snList) {
-			snName = sn.getName();
-			replicationCount = sn.getReplicateNum();
-			map.put(snName, replicationCount);
-		}
-		return map;
-	}
+
 	/**
 	 * 概述：生成任务信息
 	 * @param taskContents
-	 * @param snMap
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
@@ -250,15 +214,14 @@ public class TasksUtils {
 		if(taskContents == null || taskContents.isEmpty()) {
 			return null;
 		}
-		List<AtomTaskResultModel> atomRs = new ArrayList<AtomTaskResultModel>();
-		TaskResultModel tmpR = null;
-		List<AtomTaskResultModel> tmpRs = null;
-		Map<String,Map<String,AtomTaskModel>> rmap = new HashMap<String,Map<String,AtomTaskModel>>();
-		Map<String,AtomTaskModel> emap = null;
-		String snName = null;
-		String key = null;
-		AtomTaskModel atom = null;
-		Map<String,Integer> snMap = new HashMap<String,Integer>();
+		TaskResultModel tmpR;
+		List<AtomTaskResultModel> tmpRs;
+		Map<String,Map<String,AtomTaskModel>> rmap = new HashMap<>();
+		Map<String,AtomTaskModel> emap;
+		String snName;
+		String key;
+		AtomTaskModel atom;
+		Map<String,Integer> snMap = new HashMap<>();
 		for(TaskServerNodeModel serverModel : taskContents) {
 			tmpR = serverModel.getResult();
 			if(tmpR == null) {
@@ -274,15 +237,16 @@ public class TasksUtils {
 				}
 				snName = r.getSn();
 				if(!rmap.containsKey(snName)) {
-					rmap.put(snName, new HashMap<String,AtomTaskModel>());
+					rmap.put(snName, new HashMap<>());
 				}
 				if(!snMap.containsKey(snName)) {
 					snMap.put(snName, r.getPartNum());
 				}
 				emap = rmap.get(snName);
 				key = r.getDataStartTime() + "_"+r.getDataStopTime();
+				long granule = TimeUtils.getMiles(r.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE) - TimeUtils.getMiles(r.getDataStartTime(),TimeUtils.TIME_MILES_FORMATE);
 				if(!emap.containsKey(key)) {
-					atom = AtomTaskModel.getInstance(null,snName,CopyCheckJob.RECOVERY_CRC,r.getPartNum(),r.getDataStartTime(),r.getDataStopTime(),0);
+					atom = AtomTaskModel.getInstance(null,snName,CopyCheckJob.RECOVERY_CRC,r.getPartNum(),r.getDataStartTime(),r.getDataStopTime(),granule);
 					emap.put(key, atom);
 				}
 				atom = emap.get(key);
@@ -311,11 +275,11 @@ public class TasksUtils {
 		if(rmap == null || rmap.isEmpty() || snCountMap == null || snCountMap.isEmpty()) {
 			return null;
 		}
-		String snName = null;
-		Map<String,AtomTaskModel> sMap = null;
-		int count = 0;
-		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
-		List<AtomTaskModel> tmp = null;
+		String snName;
+		Map<String,AtomTaskModel> sMap;
+		int count;
+		List<AtomTaskModel> atoms = new ArrayList<>();
+		List<AtomTaskModel> tmp;
 		for(Map.Entry<String, Integer> entry : snCountMap.entrySet()) {
 			snName = entry.getKey();
 			count = entry.getValue();
@@ -348,8 +312,8 @@ public class TasksUtils {
 		if(sMap == null || sMap.isEmpty() || count <=1) {
 			return null;
 		}
-		List<String> eFiles = null;
-		List<AtomTaskModel> atoms = new ArrayList<AtomTaskModel>();
+		List<String> eFiles;
+		List<AtomTaskModel> atoms = new ArrayList<>();
 		for(AtomTaskModel atom : sMap.values()) {
 			eFiles = atom.getFiles();
 			if(eFiles == null || eFiles.isEmpty()) {
@@ -376,15 +340,15 @@ public class TasksUtils {
 		if(files == null || files.isEmpty()) {
 			return null;
 		}
-		Map<String,Integer> cMap = new HashMap<String,Integer>();
+		Map<String,Integer> cMap = new HashMap<>();
 		for(String file :files) {
 			if(cMap.containsKey(file)) {
 				cMap.put(file, cMap.get(file) +1);
-			}else {
+			} else {
 				cMap.put(file, 1);
 			}
 		}
-		if(cMap == null || cMap.isEmpty()) {
+		if(cMap.isEmpty()) {
 			return null;
 		}
 		return collectionFiles(cMap, count);
@@ -400,9 +364,9 @@ public class TasksUtils {
 		if(cmap == null || cmap.isEmpty()) {
 			return null;
 		}
-		String fileName = null;
-		int count = 0;
-		List<String> files = new ArrayList<String>();
+		String fileName;
+		int count;
+		List<String> files = new ArrayList<>();
 		for(Map.Entry<String, Integer> entry : cmap.entrySet()) {
 			fileName = entry.getKey();
 			count = entry.getValue();

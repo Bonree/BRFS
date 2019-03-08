@@ -1,6 +1,7 @@
 package com.bonree.brfs.server.identification;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -55,11 +56,38 @@ public class ServerIDManager {
         public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
             if (event.getType() == Type.NODE_ADDED && event.getData() != null && event.getData().getData() != null) {
                 String path = event.getData().getPath();
-                String data = new String(event.getData().getData());
+                String firstID = extractFirstID(path);
+                String sn = extractSnIndex(path);
+                String data = new String(event.getData().getData(), StandardCharsets.UTF_8);
                 if (!"".equals(data)) {
-                    otherServerIDCache.put(extractSnIndex(path) + SEPARATOR + data, extractFirstID(path));
+                    LOG.info("add otherServerIDCache:{}", sn + SEPARATOR + data);
+                    otherServerIDCache.put(sn + SEPARATOR + data, firstID);
                 }
+            } else if (event.getType() == Type.NODE_REMOVED && event.getData() != null) {
+                String path = event.getData().getPath();
+                String firstID = extractFirstID(path);
+                String sn = extractSnIndex(path);
+                String secondID = getOtherSecondID(firstID, Integer.parseInt(sn));
+                LOG.info("remove otherServerIDCache:{}", sn + SEPARATOR + secondID);
+                otherServerIDCache.remove(sn + SEPARATOR + secondID);
+            } else if(event.getType() == Type.NODE_UPDATED && event.getData() != null && event.getData().getData() != null){
+                String path = event.getData().getPath();
+                String firstID = extractFirstID(path);
+                String sn = extractSnIndex(path);
+                String secondID = getOtherSecondID(firstID, Integer.parseInt(sn));
+                LOG.info("update remove otherServerIDCache:{}", sn + SEPARATOR + secondID);
+                otherServerIDCache.remove(sn + SEPARATOR + secondID);
+
+                String data = new String(event.getData().getData(), StandardCharsets.UTF_8);
+                if (!"".equals(data)) {
+                    LOG.info("update add otherServerIDCache:{}", sn + SEPARATOR + data);
+                    otherServerIDCache.put(sn + SEPARATOR + data, firstID);
+                }
+            }else {
+                LOG.info("ignore  invalid event!!!");
             }
+
+            LOG.info("otherSecondIDCache summary:{}",otherServerIDCache);
         }
 
         private String extractFirstID(String path) {
@@ -108,6 +136,7 @@ public class ServerIDManager {
 					}
                 }
             }
+            LOG.info("load all second server ID cache:{}", otherServerIDCache);
 		} catch (Exception e) {
 			LOG.error("get server id list error", e);
 		}
@@ -249,7 +278,6 @@ public class ServerIDManager {
      * @param storageIndex
      * @param virtualID
      * @param firstID
-     * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void registerFirstID(int storageIndex, String virtualID, String firstId) {

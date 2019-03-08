@@ -31,19 +31,16 @@ public class QuartzSimpleInfo implements SumbitTaskInterface {
 	}
 	@Override
 	public String getTaskName() {
-		// TODO Auto-generated method stub
 		return this.taskName;
 	}
 
 	@Override
 	public String getTaskGroupName() {
-		// TODO Auto-generated method stub
 		return this.taskGroupName;
 	}
 
 	@Override
 	public String getClassInstanceName() {
-		// TODO Auto-generated method stub
 		return this.classInstanceName;
 	}
 

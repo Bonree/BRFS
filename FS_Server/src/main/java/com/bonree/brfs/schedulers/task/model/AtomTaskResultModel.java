@@ -13,7 +13,7 @@ public class AtomTaskResultModel {
 	private int partNum;
 	private boolean isSuccess = true;
 	
-	private List<String> files = new ArrayList<String>();
+	private List<String> files = new ArrayList<>();
 	private int operationFileCount = 0;
 	private String message;
 	

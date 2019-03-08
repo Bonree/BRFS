@@ -158,9 +158,13 @@ public class FileDecoder {
      * @param bytes 文件内容
      * @return
      */
-    public static List<String> getOffsets(byte[] bytes) {
-        List<String> offsetList = new ArrayList<>();
-        int begin = 2;
+    public static List<String> getDataFileOffsets(byte[] bytes) {
+        return getDataFileOffsets(2, bytes);
+    }
+
+    public static List<String> getDataFileOffsets(int startOffset, byte[] bytes) {
+    	List<String> offsetList = new ArrayList<>();
+        int begin = startOffset;
         while (begin < bytes.length) {
             try {
                 int size = getOffsets(begin, bytes);
@@ -175,5 +179,4 @@ public class FileDecoder {
         }
         return offsetList;
     }
-
 }

@@ -1,17 +1,13 @@
 package com.bonree.brfs.schedulers.utils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
@@ -22,7 +18,6 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 
 public class JobDataMapConstract {
-	private static final Logger LOG = LoggerFactory.getLogger("Constract");
 	/**
 	 * zookeeper地址
 	 */
@@ -86,7 +81,6 @@ public class JobDataMapConstract {
 	
 	/**
 	 * 概述：生成采集job需要的参数
-	 * @param server
 	 * @param resource
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -104,7 +98,6 @@ public class JobDataMapConstract {
 	}
 	/**
 	 * 概述：
-	 * @param server
 	 * @param resource
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -129,7 +122,6 @@ public class JobDataMapConstract {
 	}
 	/**
 	 * 概述：创建任务信息
-	 * @param server
 	 * @param resource
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -191,10 +183,6 @@ public class JobDataMapConstract {
 	}
 	/**
 	 * 概述：重启时，检查
-	 * @param switchList
-	 * @param release
-	 * @param isReboot
-	 * @param serverId
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */

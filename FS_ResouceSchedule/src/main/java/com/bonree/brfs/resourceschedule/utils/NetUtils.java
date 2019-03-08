@@ -37,7 +37,7 @@ public class NetUtils {
         	if(!BrStringUtils.isMathNumeric(ipEle)){
         		return true;
         	}
-        	long value = Long.valueOf(ipEle);
+        	long value = Long.parseLong(ipEle);
         	if(value < 0 || value >255){
         		return true;
         	}
