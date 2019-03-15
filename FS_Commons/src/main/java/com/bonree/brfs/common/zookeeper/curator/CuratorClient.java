@@ -1,5 +1,6 @@
 package com.bonree.brfs.common.zookeeper.curator;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -164,12 +165,12 @@ public class CuratorClient implements ZookeeperClient {
 
     @Override
     public String createPersistent(String path, boolean isRecursion) {
-        return createPersistent(path, isRecursion, DEFAULT_VALUE.getBytes());
+        return createPersistent(path, isRecursion, DEFAULT_VALUE.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
     public String createEphemeral(String path, boolean isRecursion) {
-        return createEphemeral(path, isRecursion, DEFAULT_VALUE.getBytes());
+        return createEphemeral(path, isRecursion, DEFAULT_VALUE.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
@@ -199,7 +200,7 @@ public class CuratorClient implements ZookeeperClient {
 
     @Override
     public String createPersistentSequential(String path, boolean isRecursion) {
-        return createPersistentSequential(path, isRecursion, DEFAULT_VALUE.getBytes());
+        return createPersistentSequential(path, isRecursion, DEFAULT_VALUE.getBytes(StandardCharsets.UTF_8));
 
     }
 
@@ -232,7 +233,7 @@ public class CuratorClient implements ZookeeperClient {
 
     @Override
     public String createEphemeralSequential(String path, boolean isRecursion) {
-        return createEphemeralSequential(path, isRecursion, DEFAULT_VALUE.getBytes());
+        return createEphemeralSequential(path, isRecursion, DEFAULT_VALUE.getBytes(StandardCharsets.UTF_8));
 
     }
 

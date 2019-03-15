@@ -1,5 +1,6 @@
 package com.bonree.brfs.common.utils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -93,7 +94,7 @@ public class RebalanceUtils {
         if (event.getData() != null) {
             sb.append(",").append("path:").append(event.getData().getPath());
             if (event.getData().getData() != null && event.getData().getData().length > 0) {
-                sb.append(",").append("data:").append(new String(event.getData().getData()));
+                sb.append(",").append("data:").append(new String(event.getData().getData(), StandardCharsets.UTF_8));
             }
         }
         sb.append("]");

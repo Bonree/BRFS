@@ -129,7 +129,7 @@ public class SimpleAuthentication implements UserOperation {
         LOG.info("init SimpleAuthentication...");
         if (auth == null) {
             synchronized (SimpleAuthentication.class) {
-                if (auth == null) {
+                if (null == auth) {
                     auth = new SimpleAuthentication(basePath, lockPath, client);
                 }
 

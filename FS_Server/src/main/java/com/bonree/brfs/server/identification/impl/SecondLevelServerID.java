@@ -1,6 +1,8 @@
 package com.bonree.brfs.server.identification.impl;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -34,7 +36,7 @@ public class SecondLevelServerID {
 
     private String baseRoutes;
 
-    private ConcurrentHashMap<Integer, String> secondMap = new ConcurrentHashMap<Integer, String>();
+    private Map<Integer, String> secondMap = new ConcurrentHashMap<Integer, String>();
 
     public SecondLevelServerID(CuratorFramework client, String selfFirstPath, String seqPath, String baseRoutes) {
         this.client = client;
@@ -53,7 +55,7 @@ public class SecondLevelServerID {
     			String serverID = BrStringUtils.fromUtf8Bytes(data);
     			if (isExpire(si, serverID)) { // 判断secondServerID是否过期，过期需要重新生成
     				serverID = secondServerIDOpt.genLevelID();
-    				client.setData().forPath(node, serverID.getBytes());
+    				client.setData().forPath(node, serverID.getBytes(StandardCharsets.UTF_8));
     			}
     			secondMap.put(BrStringUtils.parseNumber(si, Integer.class), serverID);
     		}

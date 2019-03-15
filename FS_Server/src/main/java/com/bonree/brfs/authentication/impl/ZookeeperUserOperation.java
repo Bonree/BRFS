@@ -1,5 +1,6 @@
 package com.bonree.brfs.authentication.impl;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +45,7 @@ public class ZookeeperUserOperation implements UserOperation {
     		 	String userNode = ZKPaths.makePath(basePath, user.getUserName());
     	        String jsonStr = JsonUtils.toJsonString(user);
     	        if (!curatorClient.checkExists(userNode)) {
-    	            curatorClient.createPersistent(userNode, false, jsonStr.getBytes());
+    	            curatorClient.createPersistent(userNode, false, jsonStr.getBytes(StandardCharsets.UTF_8));
     	        } else {
     	            LOG.warn("the user:" + user.getUserName() + " is exist!");
     	        }
@@ -68,7 +69,7 @@ public class ZookeeperUserOperation implements UserOperation {
     	try {
     		String userNode = ZKPaths.makePath(basePath, user.getUserName());
             String jsonStr = JsonUtils.toJsonString(user);
-            curatorClient.setData(userNode, jsonStr.getBytes());
+            curatorClient.setData(userNode, jsonStr.getBytes(StandardCharsets.UTF_8));
 		} catch (Exception e) {
 			LOG.error("updateUser", e);
 		}
@@ -80,7 +81,7 @@ public class ZookeeperUserOperation implements UserOperation {
         if (!curatorClient.checkExists(userNode)) {
             return null;
         }
-        String jsonStr = new String(curatorClient.getData(userNode));
+        String jsonStr = new String(curatorClient.getData(userNode), StandardCharsets.UTF_8);
 		try {
 			return JsonUtils.toObject(jsonStr, UserModel.class);
 		} catch (JsonException e) {
