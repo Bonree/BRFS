@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -84,7 +85,7 @@ public class FileUtils {
         BufferedReader br = null;
         String line = null;
         try {
-            reader = new InputStreamReader(new FileInputStream(file));
+            reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8);
             br = new BufferedReader(reader);
             while ((line = br.readLine()) != null) {
                 if (StringUtils.isNotEmpty(line)) {
@@ -173,7 +174,6 @@ public class FileUtils {
         }
         // 资源回收，强制删除
 
-        System.gc();
         return file.delete();
     }
 

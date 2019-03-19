@@ -125,7 +125,9 @@ public class ServerIDManager {
                             for (String sn : sns) {
                             	try {
                             		byte[] secondServerID = client.getData().forPath(ZKPaths.makePath(serverIDsPath, firstServerID, sn));
-                                    otherServerIDCache.put(sn + SEPARATOR + new String(secondServerID), firstServerID);
+                                    otherServerIDCache.put(sn + SEPARATOR + new String(secondServerID,
+                                                    StandardCharsets.UTF_8),
+                                            firstServerID);
 								} catch (Exception e) {
 									LOG.error("get second server id error", e);
 								}

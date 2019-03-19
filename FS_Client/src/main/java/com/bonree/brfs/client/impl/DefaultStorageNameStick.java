@@ -2,6 +2,7 @@ package com.bonree.brfs.client.impl;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -244,7 +245,7 @@ public class DefaultStorageNameStick implements StorageNameStick {
 					return true;
 				}
 
-				String code = new String(response.getResponseBody());
+				String code = new String(response.getResponseBody(), StandardCharsets.UTF_8);
 				ReturnCode returnCode = ReturnCode.checkCode(storageName, code);
 				LOG.info("returnCode:" + returnCode);
 			}

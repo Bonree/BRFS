@@ -2,6 +2,7 @@ package com.bonree.brfs.common.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.StringTokenizer;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +19,7 @@ public class BrStringUtils {
     public static String trimBasePath(String basePath) {
         String newBasePath = null;
         if (!org.apache.commons.lang3.StringUtils.isEmpty(basePath)) {
-            byte ch = basePath.getBytes()[basePath.length() - 1];
+            byte ch = basePath.getBytes(StandardCharsets.UTF_8)[basePath.length() - 1];
             if (ch == SEPARATOR_DIR) {
                 newBasePath = basePath.substring(0, basePath.length() - 1);
             } else {
@@ -36,7 +37,7 @@ public class BrStringUtils {
     public static String normalBasePath(String basePath) {
         String newBasePath = null;
         if (!org.apache.commons.lang3.StringUtils.isEmpty(basePath)) {
-            byte ch = basePath.getBytes()[basePath.length() - 1];
+            byte ch = basePath.getBytes(StandardCharsets.UTF_8)[basePath.length() - 1];
             if (ch == SEPARATOR_DIR) {
                 newBasePath = basePath;
             } else {
