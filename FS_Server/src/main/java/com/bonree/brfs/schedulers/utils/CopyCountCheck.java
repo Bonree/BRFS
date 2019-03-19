@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
@@ -194,6 +195,9 @@ public class CopyCountCheck {
 				map.put("remote ",service.getHost());
 				map.put("connectTimeout",String.valueOf(timeout));
 				map.put("sn", StringUtils.isEmpty(snName) ? "" :snName);
+				if(snTimes != null && !snTimes.isEmpty()){
+					map.put("sntime", JSON.toJSONString(snTimes));
+				}
 				builder.setVariable(map);
 				emailPool.sendEmail(builder);
 				throw  e;
