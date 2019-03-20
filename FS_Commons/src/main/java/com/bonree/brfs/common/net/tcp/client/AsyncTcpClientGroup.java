@@ -38,7 +38,7 @@ public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResp
 	private EventLoopGroup group;
 	private List<Channel> channelList = Collections.synchronizedList(new ArrayList<Channel>());
 	
-	private static final int DEFAULT_WRITE_IDLE_TIMEOUT_SECONDS = 5;
+	private static final int DEFAULT_WRITE_IDLE_TIMEOUT_SECONDS = 60;
 
 	public AsyncTcpClientGroup(int workerNum) {
 		this.group = new NioEventLoopGroup(workerNum, new PooledThreadFactory("async_client"));

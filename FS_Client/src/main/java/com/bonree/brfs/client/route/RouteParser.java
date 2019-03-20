@@ -31,7 +31,7 @@ public class RouteParser {
             LOG.debug("2260 a virtual serverid : {}", secondID);
             VirtualRoute virtualRoute = routeCache.getVirtualRoute(secondID);
             if (virtualRoute == null) {
-                LOG.debug("2260 no virtualRoute: {}", virtualRoute);
+                LOG.debug("2260 no virtualRoute");
                 return null; // 虚拟serverID没有进行迁移，所以返回null，标识找不到可用的server
             }
             secondID = virtualRoute.getNewSecondID();
@@ -48,7 +48,7 @@ public class RouteParser {
         // secondID不存活，需要寻找该secondID的存活ID
         NormalRoute routeRole = routeCache.getRouteRole(secondID);
         if (routeRole == null) { // 若没有迁移记录，可能没有迁移完成
-            LOG.debug("2260 no normalRoute: {}", routeRole);
+            LOG.debug("2260 no normalRoute");
             return null; // 不是存活的secondid，并没有发生迁移，返回null，标识不可用
         }
 

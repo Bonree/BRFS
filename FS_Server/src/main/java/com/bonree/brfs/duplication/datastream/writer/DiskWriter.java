@@ -92,6 +92,7 @@ public class DiskWriter implements Closeable {
 				writeMetric.setDataNodeID(node.getId());
 				writeMetric.setDataCount(0);
 				writeMetric.setDataSize(0);
+				writeMetric.setDataMaxSize(0);
 				
 				WriteResult[] results = null;
 				TimeWatcher timeWatcher = new TimeWatcher();
@@ -112,6 +113,7 @@ public class DiskWriter implements Closeable {
 						final WriteResult result = results[i];
 						writeMetric.incrementDataCount(1);
 						writeMetric.incrementDataSize(result.getSize());
+						writeMetric.updateDataMaxSize(result.getSize());
 						dataOuts[i] = new DataOut() {
 							
 							@Override
@@ -127,6 +129,7 @@ public class DiskWriter implements Closeable {
 					}
 				}
 				
+				writeMetric.setAvgElapsedTime(writeMetric.getElapsedTime() / writeMetric.getDataCount());
 				ProducerClient.getInstance().sendWriterMetric(writeMetric.toMap());
 			} finally {
 				callback.complete(file, index, dataOuts);

@@ -22,6 +22,10 @@ public class WriteMetric {
 	private int dataSize;
 	@JsonProperty("elapsed_time")
 	private int elapsedTime;
+	@JsonProperty("data_max_size")
+	private int dataMaxSize;
+	@JsonProperty("elapsed_max_time")
+	private int avgElapsedTime;
 
 	public long getMonitorTime() {
 		return monitorTime;
@@ -87,6 +91,26 @@ public class WriteMetric {
 		this.elapsedTime = elapsedTime;
 	}
 
+	public int getDataMaxSize() {
+		return dataMaxSize;
+	}
+
+	public void setDataMaxSize(int dataMaxSize) {
+		this.dataMaxSize = dataMaxSize;
+	}
+	
+	public void updateDataMaxSize(int dataMaxSize) {
+		this.dataMaxSize = dataMaxSize > this.dataMaxSize ? dataMaxSize : this.dataMaxSize;
+	}
+
+	public int getAvgElapsedTime() {
+		return avgElapsedTime;
+	}
+
+	public void setAvgElapsedTime(int avgElapsedTime) {
+		this.avgElapsedTime = avgElapsedTime;
+	}
+
 	public String toJsonString() throws JsonException {
 		return JsonUtils.toJsonString(this);
 	}
@@ -100,6 +124,8 @@ public class WriteMetric {
 		map.put("data_count", dataCount);
 		map.put("data_size", dataSize);
 		map.put("elapsed_time", elapsedTime);
+		map.put("data_max_size", dataMaxSize);
+		map.put("elapsed_max_time", avgElapsedTime);
 		
 		return map;
 	}
