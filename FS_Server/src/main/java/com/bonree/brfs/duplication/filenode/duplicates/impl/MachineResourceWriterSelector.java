@@ -249,7 +249,7 @@ public class MachineResourceWriterSelector implements ServiceSelector{
             if(pool != null){
                 conn = pool.getConnection(groupName,key);
                 if(conn == null || !conn.isValid()){
-                    LOG.warn("{} :[{}({})]is unused !!",groupName,key,ip);
+                    LOG.warn("{} :[{}({})]is unused !! is null {}!!",groupName,key,ip,conn == null);
                     uneedServices.add(key);
                     continue;
                 }

@@ -114,5 +114,8 @@ public final class ResourceConfigs {
 	 * 不监控的磁盘分区
 	 */
 	public static final ConfigUnit<String> CONFIG_UNMONITOR_PARTITION = ConfigUnit.ofString("unmounitor.partition","");
+	public static final ConfigUnit<Integer> CONFIG_DEFAULT_IDLE_TIME_OUT = ConfigUnit.ofInt("task.idle.timeout",60);
+	public static final ConfigUnit<Integer> CONFIG_DEFAULT_READ_IDLE_TIME_OUT = ConfigUnit.ofInt("task.read.idle.timeout",30);
+	public static final ConfigUnit<Integer> CONFIG_DEFAULT_WRITE_IDLE_TIME_OUT = ConfigUnit.ofInt("task.write.idle.timeout",30);
 	private ResourceConfigs() {}
 }
