@@ -102,6 +102,7 @@ public class DiskWriter implements Closeable {
 					LOG.error("write file[{}] to disk error!", file.node().getName());
 				}
 				
+				LOG.info("write datalist[{}] take [{}] ms", dataList.size(), timeWatcher.getElapsedTime());
 				writeMetric.setElapsedTime(timeWatcher.getElapsedTime());
 				
 				if(results != null) {

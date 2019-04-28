@@ -11,6 +11,7 @@ import com.bonree.brfs.common.net.tcp.MessageHandler;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
 import com.bonree.brfs.common.net.tcp.ResponseWriter;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
+import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.client.WriteResult;
 import com.bonree.brfs.disknode.client.WriteResultList;
@@ -77,6 +78,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 
 		@Override
 		protected WriteResult[] execute() throws Exception {
+			TimeWatcher timeWatcher = new TimeWatcher();
 			WriteFileData[] datas = message.getDatas();
 			
 			results = new WriteResult[datas.length];
@@ -95,6 +97,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 				results[i] = result;
 			}
 			
+			LOG.info("write [{}] datas take [{}] ms", datas.length, timeWatcher.getElapsedTime());
 			return results;
 		}
 
