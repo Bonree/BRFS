@@ -40,7 +40,7 @@ public class TaskStateLifeContral {
 		MetaTaskManagerInterface release = mcf.getTm();
 		TaskServerNodeModel sTask = release.getTaskServerContentNodeInfo(taskType, taskname, serverId);
 		if(sTask == null){
-			LOG.debug("server task is null !!! {} {} {}", taskType,taskname, serverId);
+			LOG.warn("server task is null !!! {} {} {}", taskType,taskname, serverId);
 			sTask = new TaskServerNodeModel();
 		}
 		LOG.debug("TaskMessage complete  sTask :{}", JsonUtils.toJsonStringQuietly(sTask));
@@ -77,7 +77,7 @@ public class TaskStateLifeContral {
 		}
 		TaskModel task = release.getTaskContentNodeInfo(taskType, taskname);
 		if(task == null){
-			LOG.debug("task is null !!! {} {} {}", taskType,taskname);
+			LOG.warn("task is null !!! {} {} {}", taskType,taskname);
 			task = new TaskModel();
 			task.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
 		}

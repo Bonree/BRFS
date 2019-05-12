@@ -41,12 +41,11 @@ public class CopyRecovery {
 	/**
 	 * 概述：修复目录
 	 * @param content
-	 * @param zkHosts
 	 * @param baseRoutesPath
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static TaskResultModel recoveryDirs(String content, String zkHosts, String baseRoutesPath,String dataPath) {
+	public static TaskResultModel recoveryDirs(String content, String baseRoutesPath,String dataPath) {
 		TaskResultModel result = new TaskResultModel();
 		BatchAtomModel batch = converStringToBatch(content);
 		if(batch == null){

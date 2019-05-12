@@ -334,29 +334,8 @@ public class InitTaskManager {
 			LOG.error("sumbit gather job fail !!!");
 		}
 		LOG.info("GATHER successful !!!");
-		// 2.创建同步信息
-//		Map<String,String> syncMap = JobDataMapConstract.createAsynResourceDataMap(config);
-//		SumbitTaskInterface syncInterface = QuartzSimpleInfo.createCycleTaskInfo(AsynJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, syncMap, AsynJob.class);
-//		taskFlag = manager.addTask(RESOURCE_MANAGER, syncInterface);
-//		if(!taskFlag){
-//			LOG.error("sumbit asyn job fail !!!");
-//		}
 	}
-//	/**
-//	 * 概述：创建任务执行线程池
-//	 * @param manager
-//	 * @param zkPaths
-//	 * @param config
-//	 * @throws ParamsErrorException
-//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-//	 */
-//	public static void createTaskOperationManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config) throws ParamsErrorException{
-//		// 1.创建执行线程池
-//		Properties  prop = DefaultBaseSchedulers.createSimplePrope(1, 1000);
-//		manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
-//		manager.startTaskPool(TASK_OPERATION_MANAGER);
-//
-//	}
+
 	
 	/**
 	 * 概述：根据switchMap 创建线程池

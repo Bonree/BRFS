@@ -92,11 +92,10 @@ public class CreateSystemTask {
 			cGraTime = currentTime - ( currentTime % granule );
 			snName = sn.getName();
 			// 获取开始时间
-			if(snTimes.containsKey(snName)) {
-				startTime = snTimes.get(snName);
-			}else{
+			if(!snTimes.containsKey(snName)) {
 				continue;
 			}
+			startTime = snTimes.get(snName);
 			// 获取有效的过期时间
 			ttl = getTTL(sn, taskType, globalTTL);
 			endTime = startTime + granule;

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -67,13 +68,14 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			return;
 		}
 		long currentTime = System.currentTimeMillis();
-		long lGraDay = currentTime - currentTime % 86400000L;
+		long lGraDay = new DateTime(currentTime).withTimeAtStartOfDay().getMillis();
 		long sGraDay = lGraDay - day * 86400000L;
 		List<StorageRegion> needSns = CopyCountCheck.filterSn(snList, services.size());
 		if(needSns == null|| needSns.isEmpty()) {
 			LOG.warn("no storagename need check copy count ! ");
 			return ;
 		}
+		LOG.info("[{}] Check the number of data copies [{} - {}]",TimeUtils.formatTimeStamp(currentTime),TimeUtils.formatTimeStamp(sGraDay),TimeUtils.formatTimeStamp(lGraDay));
 		Map<String,List<Long>> snTimes = collectionTimes(needSns, sGraDay, lGraDay);
 		if(snTimes == null || snTimes.isEmpty()) {
 			LOG.warn("{} - {} time, no data to check copy count", TimeUtils.formatTimeStamp(sGraDay), TimeUtils.formatTimeStamp(lGraDay));
@@ -108,6 +110,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			snName = sn.getName();
 			cTime = sn.getCreateTime();
 			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
+			cTime = cTime - cTime%granule;
 			times = new ArrayList<>();
 			for(long start =startTime; start <endTime; start += granule) {
 				if(start < cTime) {
@@ -148,32 +151,6 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		}
 		return snTimes;
 	}
-//	/**
-//	 * 概述：填补时间
-//	 * @param snList
-//	 * @param startTime
-//	 * @return
-//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-//	 */
-//	public Map<String, Long> fixTimes(List<StorageRegion> snList, long startTime) {
-//		if ((snList == null) || (startTime <= 0L)) {
-//			return null;
-//		}
-//		Map<String,Long> fixMap = new HashMap<String,Long>();
-//		long crGra;
-//		String snName;
-//		long granule;
-//		for (StorageRegion sn : snList) {
-//			granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
-//			crGra = sn.getCreateTime() - sn.getCreateTime()%granule;
-//			snName = sn.getName();
-//			LOG.info("<fixTimes> sn {}, cTime:{}, time:{}", snName,crGra,startTime);
-//			if (crGra <= startTime) {
-//				fixMap.put(snName, Long.valueOf(startTime));
-//			}
-//		}
-//		return fixMap;
-//	}
 	/**
 	 * 概述：创建单个任务
 	 * @param release

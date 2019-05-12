@@ -99,7 +99,7 @@ public final class ResourceConfigs {
 	
 	public static final ConfigUnit<String> CONFIG_SCHED_COPY_CHECK_CLOCK =
 			ConfigUnit.ofString("cycle.check.copy.count.time", "2:30");
-	
+	public static final ConfigUnit<String> CONFIG_TEST_COUNT_CRON_STR =  ConfigUnit.ofString("cycle.check.copy.cron.str","");
 	public static final ConfigUnit<Integer> CONFIG_SCHED_COPY_CHECK_RANGE =
 			ConfigUnit.ofInt("cycle.check.copy.count.time.range", 7);
 	

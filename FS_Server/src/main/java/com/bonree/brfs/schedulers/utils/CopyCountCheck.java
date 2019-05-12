@@ -178,7 +178,7 @@ public class CopyCountCheck {
 							LOG.debug("files is empty {}", path);
 							continue;
 						}
-						LOG.debug("Collection dirName :{},{} size :{}",dirName,path, strs.size());
+						LOG.info("Collection dirName :{},{} size :{}",dirName,path, strs.size());
 						if(!snMap.containsKey(sn)){
 							snMap.put(sn, new ArrayList<>());
 						}

@@ -130,8 +130,13 @@ public class ResourceTaskConfig {
 		conf.setCheckTtl(TimeUnit.SECONDS.toMillis(config.GetConfig(ResourceConfigs.CONFIG_DATA_CHECK_TTL)));
 		
 	    String cronStr = analyseCronStr(config.GetConfig(ResourceConfigs.CONFIG_SCHED_COPY_CHECK_CLOCK), 0);
-	    conf.setCheckCronStr(cronStr);
-	    
+		String tmpCronStr = config.GetConfig(ResourceConfigs.CONFIG_TEST_COUNT_CRON_STR);
+		if(BrStringUtils.isEmpty(tmpCronStr)){
+			conf.setCheckCronStr(cronStr);
+		}else{
+			conf.setCheckCronStr(tmpCronStr);
+		}
+
 	    int day = config.GetConfig(ResourceConfigs.CONFIG_SCHED_COPY_CHECK_RANGE);
 	    if (day <= 0) {
 	      throw new ConfigParseException("cycle.check.copy.count.time.range : " + day + " is error!! please check it");
