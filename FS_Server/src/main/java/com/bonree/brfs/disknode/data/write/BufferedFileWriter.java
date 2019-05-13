@@ -73,20 +73,20 @@ public class BufferedFileWriter implements FileWriter {
 			TimeWatcher tw = new TimeWatcher();
 			flush();
 			
-			LOG.info("TIME_TEST flush take {} ms", tw.getElapsedTime());
+			LOG.info("TIME_TEST flush for file[{}] take {} ms", filePath, tw.getElapsedTime());
 		}
 		
 		if(length > buffer.capacity()) {
 			//如果写入的数据超过了缓存大小，则直接写入文件，这种情况不需要对数据
 			//进行缓存
 			try {
-				LOG.debug("direct write data size[{}] to file[{}]", length, filePath);
+				LOG.info("direct write data size[{}] to file[{}]", length, filePath);
 				TimeWatcher tw = new TimeWatcher();
 				file.getChannel().write(ByteBuffer.wrap(bytes, offset, length));
-				LOG.info("TIME_TEST channel write take {} ms", tw.getElapsedTimeAndRefresh());
+				LOG.info("TIME_TEST channel write for file[{}] take {} ms", filePath, tw.getElapsedTimeAndRefresh());
 				
 				fileLength = file.getChannel().position();
-				LOG.info("TIME_TEST get position take {} ms", tw.getElapsedTime());
+				LOG.info("TIME_TEST get position for file[{}] take {} ms", filePath, tw.getElapsedTime());
 				
 				LOG.debug("file length [{}] file[{}]", fileLength, filePath);
 			} catch (IOException e) {
@@ -103,7 +103,7 @@ public class BufferedFileWriter implements FileWriter {
 		TimeWatcher tw = new TimeWatcher();
 		buffer.write(bytes, offset, length);
 		position += length;
-		LOG.info("TIME_TEST buffer write take {} ms", tw.getElapsedTime());
+		LOG.info("TIME_TEST buffer write for file[{}] take {} ms", filePath, tw.getElapsedTime());
 		LOG.debug("write data size[{}] to buffer for file[{}], position become [{}]", length, filePath, position);
 	}
 	

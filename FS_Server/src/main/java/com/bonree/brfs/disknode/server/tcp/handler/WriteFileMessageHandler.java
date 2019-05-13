@@ -97,7 +97,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 				results[i] = result;
 			}
 			
-			LOG.info("TIME_TEST write [{}] datas take [{}] ms", datas.length, timeWatcher.getElapsedTime());
+			LOG.info("TIME_TEST write [{}] datas to file[{}] take {} ms", datas.length, writer.getPath(), timeWatcher.getElapsedTime());
 			return results;
 		}
 

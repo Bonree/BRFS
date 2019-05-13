@@ -47,11 +47,11 @@ public class RecordFileWriter implements FileWriter {
 		RecordElement element = new RecordElement(delegate.position(), size, ByteUtils.crc(bytes, offset, size));
 		recorder.put(element);
 		
-		LOG.info("TIME_TEST record take {} ms", tw.getElapsedTimeAndRefresh());
+		LOG.info("TIME_TEST record for file[{}] take {} ms", delegate.getPath(), tw.getElapsedTimeAndRefresh());
 		
 		delegate.write(bytes, offset, size);
 		
-		LOG.info("TIME_TEST delegate take {} ms", tw.getElapsedTimeAndRefresh());
+		LOG.info("TIME_TEST delegate for file[{}] take {} ms", delegate.getPath(), tw.getElapsedTimeAndRefresh());
 	}
 
 	@Override
