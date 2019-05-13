@@ -1,7 +1,7 @@
 package com.bonree.brfs.common.supervisor;
 
 public class TimeWatcher {
-	private final long startTime;
+	private volatile long startTime;
 	
 	public TimeWatcher() {
 		this.startTime = System.currentTimeMillis();
@@ -9,5 +9,13 @@ public class TimeWatcher {
 	
 	public int getElapsedTime() {
 		return (int) (System.currentTimeMillis() - startTime);
+	}
+	
+	public int getElapsedTimeAndRefresh() {
+		try {
+			return getElapsedTime();
+		} finally {
+			this.startTime = System.currentTimeMillis();
+		}
 	}
 }

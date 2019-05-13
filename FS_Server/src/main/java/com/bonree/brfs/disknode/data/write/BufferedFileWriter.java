@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.data.write.buf.FileBuffer;
 
@@ -69,7 +70,10 @@ public class BufferedFileWriter implements FileWriter {
 	@Override
 	public void write(byte[] bytes, int offset, int length) throws IOException {
 		if(length > buffer.writableSize() && buffer.readableSize() > 0) {
+			TimeWatcher tw = new TimeWatcher();
 			flush();
+			
+			LOG.info("TIME_TEST flush take {} ms", tw.getElapsedTime());
 		}
 		
 		if(length > buffer.capacity()) {
@@ -77,9 +81,13 @@ public class BufferedFileWriter implements FileWriter {
 			//进行缓存
 			try {
 				LOG.debug("direct write data size[{}] to file[{}]", length, filePath);
+				TimeWatcher tw = new TimeWatcher();
 				file.getChannel().write(ByteBuffer.wrap(bytes, offset, length));
+				LOG.info("TIME_TEST channel write take {} ms", tw.getElapsedTimeAndRefresh());
 				
 				fileLength = file.getChannel().position();
+				LOG.info("TIME_TEST get position take {} ms", tw.getElapsedTime());
+				
 				LOG.debug("file length [{}] file[{}]", fileLength, filePath);
 			} catch (IOException e) {
 				file.getChannel().truncate(fileLength);
@@ -92,8 +100,10 @@ public class BufferedFileWriter implements FileWriter {
 			return;
 		}
 		
+		TimeWatcher tw = new TimeWatcher();
 		buffer.write(bytes, offset, length);
 		position += length;
+		LOG.info("TIME_TEST buffer write take {} ms", tw.getElapsedTime());
 		LOG.debug("write data size[{}] to buffer for file[{}], position become [{}]", length, filePath, position);
 	}
 	

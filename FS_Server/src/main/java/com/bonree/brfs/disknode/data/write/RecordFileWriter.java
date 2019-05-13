@@ -2,6 +2,10 @@ package com.bonree.brfs.disknode.data.write;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
@@ -13,6 +17,8 @@ import com.bonree.brfs.disknode.data.write.record.RecordElement;
  *
  */
 public class RecordFileWriter implements FileWriter {
+	private static final Logger LOG = LoggerFactory.getLogger(RecordFileWriter.class);
+	
 	private FileWriter delegate;
 	private RecordCollection recorder;
 	
@@ -37,10 +43,15 @@ public class RecordFileWriter implements FileWriter {
 
 	@Override
 	public void write(byte[] bytes, int offset, int size) throws IOException {
+		TimeWatcher tw = new TimeWatcher();
 		RecordElement element = new RecordElement(delegate.position(), size, ByteUtils.crc(bytes, offset, size));
 		recorder.put(element);
 		
+		LOG.info("TIME_TEST record take {} ms", tw.getElapsedTimeAndRefresh());
+		
 		delegate.write(bytes, offset, size);
+		
+		LOG.info("TIME_TEST delegate take {} ms", tw.getElapsedTimeAndRefresh());
 	}
 
 	@Override
