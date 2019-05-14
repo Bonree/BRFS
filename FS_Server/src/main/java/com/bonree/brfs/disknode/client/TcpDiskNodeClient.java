@@ -241,7 +241,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			
 			BaseResponse response = future.get();
 			
-			LOG.info("TIME_TEST write datalist[{}] to file[{}] take {} ms", dataList.size(), path, tw.getElapsedTime());
+			LOG.info("TIME_TEST write datalist[{}] to file[{}] take {} ms", dataList.size(), path, tw.getElapsedTimeAndRefresh());
 			
 			if(response != null && response.getCode() == ResponseCode.OK) {
 				WriteResultList resultList = ProtoStuffUtils.deserialize(response.getBody(), WriteResultList.class);
