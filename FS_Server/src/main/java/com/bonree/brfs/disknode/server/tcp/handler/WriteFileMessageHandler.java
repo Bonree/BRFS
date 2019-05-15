@@ -79,11 +79,13 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 		@Override
 		protected WriteResult[] execute() throws Exception {
 			TimeWatcher timeWatcher = new TimeWatcher();
+			TimeWatcher stepTw = new TimeWatcher();
 			WriteFileData[] datas = message.getDatas();
 			
 			results = new WriteResult[datas.length];
 			
 			RecordFileWriter writer = binding.first();
+			LOG.info("TIME_TEST before for of file[{}] take {} ms", writer.getPath(), stepTw.getElapsedTimeAndRefresh());
 			LOG.debug("write [{}] datas to file[{}]", datas.length, writer.getPath());
 			for(int i = 0; i < datas.length; i++) {
 				byte[] contentData = fileFormater.formatData(datas[i].getData());
@@ -91,8 +93,10 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 				LOG.debug("writing file[{}] with data size[{}]", writer.getPath(), contentData.length);
 				
 				WriteResult result = new WriteResult(fileFormater.relativeOffset(writer.position()), contentData.length);
+				LOG.info("TIME_TEST before write of[{}] take {} ms", writer.getPath(), stepTw.getElapsedTimeAndRefresh());
 				writer.write(contentData);
 				
+				LOG.info("TIME_TEST after write of[{}] take {} ms", writer.getPath(), stepTw.getElapsedTimeAndRefresh());
 				writerManager.flushIfNeeded(writer.getPath());
 				results[i] = result;
 			}
