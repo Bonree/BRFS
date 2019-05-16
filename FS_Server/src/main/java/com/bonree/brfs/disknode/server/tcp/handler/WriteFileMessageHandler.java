@@ -39,6 +39,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 
 	@Override
 	public void handleMessage(BaseMessage baseMessage, ResponseWriter<BaseResponse> writer) {
+		TimeWatcher tw = new TimeWatcher();
 		WriteFileMessage message = ProtoStuffUtils.deserialize(baseMessage.getBody(), WriteFileMessage.class);
 		if(message == null) {
 			writer.write(new BaseResponse(ResponseCode.ERROR_PROTOCOL));
@@ -57,6 +58,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 				return;
 			}
 			
+			LOG.info("TIME_TEST before put task of file[{}] to thread take {} ms", realPath, tw.getElapsedTime());
 			binding.second().put(new DataWriteTask(binding, message, writer));
 		} catch (Exception e) {
 			LOG.error("EEEERRRRRR", e);
@@ -78,13 +80,14 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 
 		@Override
 		protected WriteResult[] execute() throws Exception {
+			RecordFileWriter writer = binding.first();
+			LOG.info("TIME_TEST start to execute task of file[{}]", writer.getPath());
 			TimeWatcher timeWatcher = new TimeWatcher();
 			TimeWatcher stepTw = new TimeWatcher();
 			WriteFileData[] datas = message.getDatas();
 			
 			results = new WriteResult[datas.length];
 			
-			RecordFileWriter writer = binding.first();
 			LOG.info("TIME_TEST before for of file[{}] take {} ms", writer.getPath(), stepTw.getElapsedTimeAndRefresh());
 			LOG.debug("write [{}] datas to file[{}]", datas.length, writer.getPath());
 			for(int i = 0; i < datas.length; i++) {
