@@ -18,6 +18,7 @@ public class EmailPool{
     private static final Logger LOG = LoggerFactory.getLogger(EmailPool.class);
     private static String COMMA = ",";
     private static EmailPool instance = null;
+    public static boolean EMAIL_SWITCH = Configs.getConfiguration().GetConfig(EmailConfigs.CONFIG_EMAIL_SWITCH);
 
     public ProgramInfo getProgramInfo(){
         return programInfo;
@@ -26,7 +27,9 @@ public class EmailPool{
     private ProgramInfo programInfo = null;
     private ExecutorService pool = null;
     private EmailPool(){
-        initEmailBuilder();
+        if(EMAIL_SWITCH){
+            initEmailBuilder();
+        }
     }
 
     public static EmailPool getInstance(){
@@ -79,14 +82,16 @@ public class EmailPool{
      * @param builder 邮件消息
      */
     public void sendEmail(final MailWorker.Builder builder){
-        Runnable callable = new Runnable(){
-            private MailWorker mailWorker = builder.build();
+        if(EMAIL_SWITCH){
+            Runnable callable = new Runnable(){
+                private MailWorker mailWorker = builder.build();
 
-            @Override
-            public void run(){
-                mailWorker.sendEmail();
-            }
-        };
-        this.pool.submit(callable);
+                @Override
+                public void run(){
+                    mailWorker.sendEmail();
+                }
+            };
+            this.pool.submit(callable);
+        }
     }
 }

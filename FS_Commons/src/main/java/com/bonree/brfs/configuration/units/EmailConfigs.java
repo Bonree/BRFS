@@ -64,6 +64,6 @@ public class EmailConfigs{
     public static final ConfigUnit<Integer> CONFIG_POOL_SIZE =
             ConfigUnit.ofInt("email.pool.size", 3);
 
-
+    public static final ConfigUnit<Boolean> CONFIG_EMAIL_SWITCH = ConfigUnit.ofBoolean("email.switch",false);
 
 }

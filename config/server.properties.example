@@ -238,6 +238,8 @@ resource.email.time = 300
 ######################
 #####报警邮件配置######
 ######################
+# 邮件开关，true发送邮件，false不发送邮件 默认为不开启
+# email.switch=false
 # 邮箱服务地址
 #email.smtp=mail.bonree.com
 # 邮箱服务发送端口
