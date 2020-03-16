@@ -2,15 +2,9 @@ package com.bonree.brfs.common.rebalance.route.v2;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.LocateRouteServerInterface;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javafx.util.Pair;
 
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.*;
-import java.util.stream.Collector;
-
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -144,7 +138,7 @@ public class NormalRouteV2 implements LocateRouteServerInterface {
     public String locateNormalServer(String fileUUID, Collection<String> services) {
         List<Pair<String,Integer>> selectArray = new ArrayList<>();
         // 1.找出不参与选择的服务
-        Pair<Integer,Collection<String>> filterPair = collectUnusdServer(services);
+        Pair<Integer, Collection<String>> filterPair = collectUnusdServer(services);
 
         int total = filterPair.getKey();
         Collection<String> filterServers = filterPair.getValue();
@@ -155,6 +149,7 @@ public class NormalRouteV2 implements LocateRouteServerInterface {
         int index = searchIndex(filterServers,indexValue);
         // 4.检查合法性，若不合法，则检索失败，此处路由规则存在问题，会导致严重的数据丢失问题。
         if(index<0||index>this.newSecondIDRatios.size()){
+            // todo 定义抛出异常的格式
             throw new IllegalFormatWidthException(1);
         }
         return this.newSecondIDRatios.get(index).getKey();
