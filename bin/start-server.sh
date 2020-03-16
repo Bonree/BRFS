@@ -99,13 +99,10 @@ case $1 in
 			echo 'Startup disk server complete!'
 		;;
 		init)
-			DIR_PATH=/Data01/brfs1
-			java -Xmx2048m -Xms2048m \
-			-cp ${DIR_PATH}/libs/FS_Server.jar \
-			-Dresource_lib_path=${DIR_PATH}/lib \
-			-Dbrfs.home=${DIR_PATH} \
-			-Dconfiguration.file=${DIR_PATH}/config/server.properties \
-			com.bonree.brfs.server.InitServer
+			java -Dbrfs.home=${BRFS_HOME} \
+			-Dconfiguration.file=${SERVER_CONFIG} \
+			-Dresource_lib_path=${RESOURCE_LIB_PATH} \
+			-cp ${CP} "com.bonree.brfs.server.InitServer"
 			echo "init process completed!"
 		;;
 		*)
