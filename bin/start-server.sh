@@ -22,9 +22,13 @@ fi
 
 CP=.
 #程序jar全路径
-for file in `ls $BRFS_HOME/libs`
+for file in `ls $BRFS_HOME/lib`
 do
-  CP=$CP:$BRFS_HOME/libs/$file
+  if [ -d $file ];then
+    echo $file is directory will not add class path
+  else
+     CP=$CP:$BRFS_HOME/libs/$file
+  fi
 done
 
 ###################配置文件信息########################
@@ -53,7 +57,7 @@ fi
 JVM_PARAMS=`grep -v "^#.*$" $BRFS_HOME/config/jvm.config | cat`
 
 #资源管理lib路径
-RESOURCE_LIB_PATH=$BRFS_HOME/lib
+RESOURCE_LIB_PATH=$BRFS_HOME/lib/native
 
 #网络参数设置
 DISK_NET_BACKLOG=2048
