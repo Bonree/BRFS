@@ -27,7 +27,7 @@ do
   if [ -d $file ];then
     echo $file is directory will not add class path
   else
-     CP=$CP:$BRFS_HOME/libs/$file
+     CP=$CP:$BRFS_HOME/lib/$file
   fi
 done
 
