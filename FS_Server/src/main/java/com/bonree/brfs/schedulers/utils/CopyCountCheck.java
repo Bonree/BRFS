@@ -170,6 +170,7 @@ public class CopyCountCheck {
 					}
 					time = snTimes.get(snName);
 					dirName = TimeUtils.timeInterval(time, granule);
+					LOG.info("[TEST 2 copyTaskCreator ] sn: {} time: {} path:{}",snName,TimeUtils.formatTimeStamp(time),dirName);
 					for(int i = 1; i <=reCount; i++){
 						path = "/"+snName+"/"+i+"/"+dirName;
 						LOG.debug("path :{}",path);
@@ -478,6 +479,7 @@ public class CopyCountCheck {
 				LOG.info("skip {} create copy check task!! because forbid check current time ",snName);
 				continue;
 			}
+			LOG.info("[TEST 1 copyTaskCreator ] currentTime {},sn: {}, checkTime: {}",TimeUtils.formatTimeStamp(currentTime),snName,TimeUtils.formatTimeStamp(sGra));
 			repairs.put(snName, sGra);
 		}
 		return repairs;

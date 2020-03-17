@@ -75,7 +75,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 			release.setTaskTypeModel(taskType, tmodel);
 		}
 		Map<String,Long> sourceTimes = tmodel.getSnTimes();
-		LOG.debug("update init sn time :{}", sourceTimes);
+		LOG.info("update init sn time :{}", sourceTimes);
 		// 2.过滤不符合副本校验的sn信息
 		List<StorageRegion> needSns = CopyCountCheck.filterSn(snList, services.size());
 		// 3.针对第一次出现的sn补充时间
