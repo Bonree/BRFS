@@ -1,7 +1,11 @@
 {
-  "changeID": "1",
+  "changeID": "123456",
   "storageIndex": 0,
-  "secondID": 10,
-  "newSecondIDRatios":[{"key":"11","value":1},{"key":"12","value":2},{"key":"13","value":3}],
+  "secondID": "10",
+  "newSecondIDs": {
+    "11": 1,
+    "12": 2,
+    "13": 3
+  },
   "version": "V2"
 }
