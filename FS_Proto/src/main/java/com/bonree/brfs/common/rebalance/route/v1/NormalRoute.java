@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.rebalance.route;
+package com.bonree.brfs.common.rebalance.route.v1;
 
 import java.util.List;
 

@@ -6,12 +6,15 @@ import java.util.List;
 import java.util.Map;
 
 import com.bonree.brfs.common.rebalance.Constants;
-import com.bonree.brfs.common.rebalance.route.NormalRoute;
+import com.bonree.brfs.common.rebalance.route.v1.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.RebalanceUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
+/**
+ *  二级serverId解析类
+ */
 public class SecondIDParser {
 
     private int snID;

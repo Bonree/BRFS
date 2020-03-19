@@ -6,12 +6,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.shaded.com.google.common.collect.Maps;
 import org.apache.curator.utils.ZKPaths;
 
-import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.JsonUtils.JsonException;
+import com.bonree.brfs.common.data.utils.JsonUtils;
+import com.bonree.brfs.common.data.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.google.common.collect.Lists;
 
