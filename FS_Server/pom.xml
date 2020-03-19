@@ -38,6 +38,10 @@
             <groupId>com.bonree</groupId>
             <artifactId>MailUtil</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.rocksdb</groupId>
+            <artifactId>rocksdbjni</artifactId>
+        </dependency>
         <!--<dependency>-->
             <!--<groupId>org.apache.kafka</groupId>-->
             <!--<artifactId>kafka-clients</artifactId>-->

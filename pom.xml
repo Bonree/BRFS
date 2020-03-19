@@ -94,6 +94,7 @@
 		<configuration_version>2.2</configuration_version>
 		<beanutils_version>1.9.3</beanutils_version>
 		<bonree_mail_version>0.0.2-SNAPSHOT</bonree_mail_version>
+		<rocksdb_version>5.18.3</rocksdb_version>
 	</properties>
 
 	<dependencyManagement>
@@ -227,6 +228,11 @@
 				<groupId>com.bonree</groupId>
 				<artifactId>MailUtil</artifactId>
 				<version>${bonree_mail_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.rocksdb</groupId>
+				<artifactId>rocksdbjni</artifactId>
+				<version>${rocksdb_version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
