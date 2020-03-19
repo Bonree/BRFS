@@ -8,9 +8,34 @@
 
 package com.bonree.brfs.common.rebalance.route;
 
+import com.bonree.brfs.common.rebalance.TaskVersion;
+
 import java.util.Collection;
 
-public interface LocateRouteServerInterface {
+public interface NormalRouteInterface {
+    /**
+     * 获取 storageRegion id
+     * @return
+     */
+    int getStorageRegionIndex();
+
+    /**
+     * 获取 路由规则的serverId
+     * @return
+     */
+    String getBaseSecondId();
+
+    /**
+     * 获取变更Id
+     * @return
+     */
+    String getChangeId();
+
+    /**
+     * 获取版本信息
+     * @return
+     */
+    TaskVersion getRouteVersion();
     /**
      * 通过路由规则定位
      * @param fileUUID 文件块的uuid

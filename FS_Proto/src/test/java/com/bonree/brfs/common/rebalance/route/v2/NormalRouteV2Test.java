@@ -8,8 +8,7 @@
 
 package com.bonree.brfs.common.rebalance.route.v2;
 
-import com.bonree.brfs.common.rebalance.route.AbstractNormalRoute;
-import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.data.utils.JsonUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -71,6 +70,7 @@ public class NormalRouteV2Test {
     public void testDeserializeV2()throws IOException{
         byte[] datas = readBytesFromFile(V2RouteFile);
         NormalRouteV2 routeV2 = JsonUtils.toObjectQuietly(datas,NormalRouteV2.class);
+        Map<String,Object> map = JsonUtils.toObjectQuietly(datas,Map.class);
     }
     /**
      * 执行NormalRouteV2的内部方法 searchIndex

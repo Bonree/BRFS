@@ -1,13 +1,10 @@
 package com.bonree.brfs.common.rebalance.route.v2;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
-import com.bonree.brfs.common.rebalance.route.AbstractNormalRoute;
-import com.bonree.brfs.common.rebalance.route.LocateRouteServerInterface;
+import com.bonree.brfs.common.rebalance.route.SuperNormalRoute;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javafx.util.Pair;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -17,71 +14,17 @@ import java.util.function.Predicate;
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @Description: 2级serverID的迁移记录
  ******************************************************************************/
-public class NormalRouteV2 extends AbstractNormalRoute {
+public class NormalRouteV2 extends SuperNormalRoute {
     private static final TaskVersion CURRENT_VERSION = TaskVersion.V2;
-    @JsonProperty("changeID")
-    private String changeID;
-
-    @JsonProperty("storageIndex")
-    private int storageIndex;
-
-    @JsonProperty("secondID")
-    private String secondID;
-
-    @JsonProperty("newSecondIDs")
     private Map<String, Integer> newSecondIDs;
 
-    @JsonProperty("version")
-    private TaskVersion version;
-
-
-    @SuppressWarnings("unused")
-    private NormalRouteV2() {
-    }
-
-    public NormalRouteV2(String changeID, int storageIndex, String secondID, Map<String, Integer> newSecondIDs) {
-        this.changeID = changeID;
-        this.storageIndex = storageIndex;
-        this.secondID = secondID;
+    public NormalRouteV2(@JsonProperty("changeID")String changeID, @JsonProperty("storageIndex")int storageIndex, @JsonProperty("secondID")String secondID,  @JsonProperty("newSecondIDs")Map<String, Integer> newSecondIDs) {
+        super(changeID,storageIndex,secondID,CURRENT_VERSION);
         this.newSecondIDs = newSecondIDs;
-        this.newSecondIDs = newSecondIDs;
-        this.version = CURRENT_VERSION;
-    }
-
-    public static TaskVersion getCurrentVersion() {
-        return CURRENT_VERSION;
-    }
-
-    public String getChangeID() {
-        return changeID;
-    }
-
-    public int getStorageIndex() {
-        return storageIndex;
-    }
-
-    public String getSecondID() {
-        return secondID;
     }
 
     public Map<String, Integer> getNewSecondIDs() {
         return newSecondIDs;
-    }
-
-    public TaskVersion getVersion() {
-        return version;
-    }
-
-    public void setChangeID(String changeID) {
-        this.changeID = changeID;
-    }
-
-    public void setStorageIndex(int storageIndex) {
-        this.storageIndex = storageIndex;
-    }
-
-    public void setSecondID(String secondID) {
-        this.secondID = secondID;
     }
 
     public void setNewSecondIDs(Map<String, Integer> newSecondIDs) {
@@ -160,5 +103,16 @@ public class NormalRouteV2 extends AbstractNormalRoute {
         }
         // 3.若tmp为-1 则表明未匹配上service，则其权值计算无效，范围-1
         return tmp == -1 ? -1 : weight;
+    }
+
+    @Override
+    public String toString() {
+        return "NormalRouteV2{" +
+                "newSecondIDs=" + newSecondIDs +
+                ", changeID='" + changeID + '\'' +
+                ", storageIndex=" + storageIndex +
+                ", secondID='" + secondID + '\'' +
+                ", version=" + version +
+                '}';
     }
 }

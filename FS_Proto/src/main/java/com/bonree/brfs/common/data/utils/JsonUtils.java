@@ -1,4 +1,12 @@
-package com.bonree.brfs.common.utils;
+/*******************************************************************************
+ * 版权信息： 北京博睿宏远数据科技股份有限公司
+ * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
+ * @date 2020年03月18日 18:29:49
+ * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
+ * @description:
+ ******************************************************************************/
+
+package com.bonree.brfs.common.data.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

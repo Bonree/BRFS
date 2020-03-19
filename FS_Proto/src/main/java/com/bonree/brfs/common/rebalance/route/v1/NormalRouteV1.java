@@ -9,47 +9,46 @@
 package com.bonree.brfs.common.rebalance.route.v1;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
-import com.bonree.brfs.common.rebalance.route.AbstractNormalRoute;
+import com.bonree.brfs.common.rebalance.route.SuperNormalRoute;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.*;
 
-public class NormalRouteV1 extends AbstractNormalRoute {
+public class NormalRouteV1 extends SuperNormalRoute {
     private static final TaskVersion CURRENT_VERSION = TaskVersion.V1;
-    @JsonProperty("changeID")
-    private String changeID;
-
-    @JsonProperty("storageIndex")
-    private int storageIndex;
-
-    @JsonProperty("secondID")
-    private String secondID;
-
-    @JsonProperty("newSecondIDs")
     private List<String> newSecondIDs;
 
-    @JsonProperty("version")
-    private TaskVersion version;
-
-    @SuppressWarnings("unused")
-    private NormalRouteV1() {
-    }
-
-    public NormalRouteV1(String changeID, int storageIndex, String secondID, List<String> newSecondIDs) {
-        this.changeID = changeID;
-        this.storageIndex = storageIndex;
-        this.secondID = secondID;
+    public NormalRouteV1(@JsonProperty("changeID")String changeID, @JsonProperty("storageIndex")int storageIndex, @JsonProperty("secondID")String secondID,  @JsonProperty("newSecondIDs")List<String> newSecondIDs) {
+        super(changeID, storageIndex, secondID, CURRENT_VERSION);
         this.newSecondIDs = newSecondIDs;
-        this.version = CURRENT_VERSION;
     }
 
     @Override
     public String locateNormalServer(String fileUUID, Collection<String> services) {
         // 去掉不需要的服务
-        List<String> selectors = filterService(this.newSecondIDs,services);
+        List<String> selectors = filterService(this.newSecondIDs, services);
         // 在可用服务中获取id
-        int index = hashFileName(fileUUID,selectors.size());
+        int index = hashFileName(fileUUID, selectors.size());
         // 返回选区的结果
         return selectors.get(index);
+    }
+
+    public List<String> getNewSecondIDs() {
+        return newSecondIDs;
+    }
+
+    public void setNewSecondIDs(List<String> newSecondIDs) {
+        this.newSecondIDs = newSecondIDs;
+    }
+
+    @Override
+    public String toString() {
+        return "NormalRouteV1{" +
+                "newSecondIDs=" + newSecondIDs +
+                ", changeID='" + changeID + '\'' +
+                ", storageIndex=" + storageIndex +
+                ", secondID='" + secondID + '\'' +
+                ", version=" + version +
+                '}';
     }
 }

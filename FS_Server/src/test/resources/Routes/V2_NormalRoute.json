@@ -1,0 +1,11 @@
+{
+  "changeID": "123456",
+  "storageIndex": 0,
+  "secondID": "10",
+  "newSecondIDs": {
+    "11": 1,
+    "12": 2,
+    "13": 3
+  },
+  "version": "V2"
+}
