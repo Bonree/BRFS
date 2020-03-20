@@ -1,16 +1,17 @@
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
- * @date 2020年03月18日 18:04:17
+ * @date 2020年03月20日 17:24:34
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description:
  ******************************************************************************/
 
-package com.bonree.brfs.common.rebalance.route;
+package com.bonree.brfs.common.rebalance.route.impl;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
-import com.bonree.brfs.common.rebalance.route.v1.NormalRouteV1;
-import com.bonree.brfs.common.rebalance.route.v2.NormalRouteV2;
+import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
+import com.bonree.brfs.common.rebalance.route.impl.v1.NormalRouteV1;
+import com.bonree.brfs.common.rebalance.route.impl.v2.NormalRouteV2;
 import com.fasterxml.jackson.annotation.*;
 
 import java.util.*;

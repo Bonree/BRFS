@@ -11,7 +11,7 @@ import org.apache.curator.shaded.com.google.common.collect.Lists;
 import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.client.route.RouteRoleCache;
 import com.bonree.brfs.common.rebalance.Constants;
-import com.bonree.brfs.common.rebalance.route.v1.NormalRoute;
+import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.BrStringUtils;
 

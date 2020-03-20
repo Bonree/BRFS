@@ -1,4 +1,12 @@
-package com.bonree.brfs.common.rebalance.route.v1;
+/*******************************************************************************
+ * 版权信息： 北京博睿宏远数据科技股份有限公司
+ * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
+ * @date 2020年03月20日 17:31:39
+ * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
+ * @description:
+ ******************************************************************************/
+
+package com.bonree.brfs.common.rebalance.route;
 
 import java.util.List;
 
@@ -6,14 +14,7 @@ import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 
-/*******************************************************************************
- * 版权信息：博睿宏远科技发展有限公司
- * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
- * @date 2018年4月25日 下午5:19:02
- * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
- * @Description: 2级serverID的迁移记录
- ******************************************************************************/
+@Deprecated
 public class NormalRoute {
     @JsonProperty("changeID")
     private String changeID;

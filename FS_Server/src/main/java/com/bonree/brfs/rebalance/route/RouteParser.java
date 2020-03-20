@@ -64,7 +64,7 @@ public class RouteParser {
     }
 
     /**
-     * 返回fileBocker 块可用的Ids，注意其与旧版本有区别，旧版本包含uuid，本方法不包含uuid，只包含二级serverid
+     * 返回fileBocker 块可用的Ids，注意其与旧版本有区别
      * @param fileBocker
      * @return serverids
      */
