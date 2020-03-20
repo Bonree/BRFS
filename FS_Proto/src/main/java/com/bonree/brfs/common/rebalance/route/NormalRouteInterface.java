@@ -38,9 +38,9 @@ public interface NormalRouteInterface {
     TaskVersion getRouteVersion();
     /**
      * 通过路由规则定位
-     * @param fileUUID 文件块的uuid
+     * @param fileUUIDCode 文件块的uuidcode
      * @param services
      * @return
      */
-     String locateNormalServer(String fileUUID, Collection<String> services);
+     String locateNormalServer(int fileUUIDCode, Collection<String> services);
 }

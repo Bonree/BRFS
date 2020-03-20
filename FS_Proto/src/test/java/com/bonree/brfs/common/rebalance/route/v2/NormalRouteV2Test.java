@@ -182,52 +182,6 @@ public class NormalRouteV2Test {
         int index = searchIndexRunCase(fileName,services,weight);
         Assert.assertEquals(expectIndex,index);
     }
-
-    /**
-     * NormalRouteV2内部方法测试，方法hashFileName
-     * @param fileName
-     * @param uuid
-     * @param weight
-     * @return
-     */
-    private int hashFileNameRunCase(String fileName,String uuid,int weight){
-        // 加载对象信息
-        NormalRouteV2 routeV2 =null;
-        routeV2 = getNormalRouteV2(fileName);
-
-        try {
-            Method searchMethod = routeV2.getClass().getSuperclass().getDeclaredMethod("hashFileName", String.class,int.class);
-            searchMethod.setAccessible(true);
-            Object index = searchMethod.invoke(routeV2,uuid,weight);
-            return (int) index;
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-            Assert.fail("Run Method happen error ! " +e);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            Assert.fail("Run Method happen error ! " +e);
-        } catch (InvocationTargetException e) {
-            Assert.fail("Run Method happen error ! " +e);
-        }
-        return Integer.MIN_VALUE;
-    }
-
-    /**
-     * hashFilename功能测试
-     * uuid： "A"
-     * 权值： 3
-     * 预期： 2
-     */
-   @Test
-    public void HashFileNameNormalTest(){
-        String fileName = V2RouteFile;
-        String uuid="A";
-        int weightCode=3;
-        int expectIndex =2;
-        int hashCode = hashFileNameRunCase(fileName,uuid,weightCode);
-        Assert.assertEquals(expectIndex,hashCode);
-   }
-
     /**
      * NormalRouteV2内部方法测试，方法calcWeight
      * @param fileName
@@ -393,8 +347,8 @@ public class NormalRouteV2Test {
         String uuid="A";
         List<String> servers=Arrays.asList("11");
         String expectServer = "12";
-        String server = route.locateNormalServer(uuid,servers);
-        Assert.assertEquals(expectServer,server);
+        int code = sumName(uuid);
+        route.locateNormalServer(code,servers);
     }
     /**
      * 方法 locateNormalServer 无服务测试
@@ -408,7 +362,20 @@ public class NormalRouteV2Test {
         NormalRouteV2 route = getNormalRouteV2(V2RouteFile);
         String uuid="A";
         List<String> servers=Arrays.asList("11","12","13");
-        route.locateNormalServer(uuid,servers);
+        int code = sumName(uuid);
+        route.locateNormalServer(code,servers);
 
+    }
+    /**
+     * 根据文件名生成code
+     * @param name
+     * @return
+     */
+    protected int sumName(String name) {
+        int sum = 0;
+        for (int i = 0; i < name.length(); i++) {
+            sum = sum + name.charAt(i);
+        }
+        return sum;
     }
 }

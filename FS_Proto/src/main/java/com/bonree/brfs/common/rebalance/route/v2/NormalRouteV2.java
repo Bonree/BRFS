@@ -32,14 +32,14 @@ public class NormalRouteV2 extends SuperNormalRoute {
     }
 
     @Override
-    public String locateNormalServer(String fileUUID, Collection<String> services) {
+    public String locateNormalServer(int fileUUIDCode, Collection<String> services) {
 
         // 1.找出参与选择的服务
         List<String> chosenService = filterService(services);
         // 2. 获取计算的权重
         int weight = calcWeight(chosenService);
         // 3.根据权重计算权值
-        int weightValue = hashFileName(fileUUID, weight);
+        int weightValue = hashFileName(fileUUIDCode, weight);
         // 4 根据权值确定数组的序号
         int index = searchIndex(chosenService, weightValue);
         // 5.返回serverid

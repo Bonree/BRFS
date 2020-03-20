@@ -24,11 +24,11 @@ public class NormalRouteV1 extends SuperNormalRoute {
     }
 
     @Override
-    public String locateNormalServer(String fileUUID, Collection<String> services) {
+    public String locateNormalServer(int fileUUIDCode, Collection<String> services) {
         // 去掉不需要的服务
         List<String> selectors = filterService(this.newSecondIDs, services);
         // 在可用服务中获取id
-        int index = hashFileName(fileUUID, selectors.size());
+        int index = hashFileName(fileUUIDCode, selectors.size());
         // 返回选区的结果
         return selectors.get(index);
     }
