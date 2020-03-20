@@ -11,10 +11,7 @@ package com.bonree.brfs.common.rebalance.route;
 import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.v1.NormalRouteV1;
 import com.bonree.brfs.common.rebalance.route.v2.NormalRouteV2;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.*;
 
 import java.util.*;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY,property = "version")
@@ -50,28 +47,16 @@ public abstract class SuperNormalRoute implements NormalRouteInterface {
     /**
      * 文件名生成数值 V1版本使用的。V2兼容
      *
-     * @param fileName
+     * @param fileCode
      * @param size
      * @return
      */
-    protected int hashFileName(String fileName, int size) {
-        int nameSum = sumName(fileName);
-        int matchSm = nameSum % size;
+    protected int hashFileName(int fileCode, int size) {
+        int matchSm = fileCode % size;
         return matchSm;
     }
 
-    /**
-     * 根据文件名生成code
-     * @param name
-     * @return
-     */
-    protected int sumName(String name) {
-        int sum = 0;
-        for (int i = 0; i < name.length(); i++) {
-            sum = sum + name.charAt(i);
-        }
-        return sum;
-    }
+
 
     /**
      * 过滤
@@ -139,21 +124,25 @@ public abstract class SuperNormalRoute implements NormalRouteInterface {
     }
 
     @Override
+    @JsonIgnore
     public int getStorageRegionIndex() {
         return getStorageIndex();
     }
 
     @Override
+    @JsonIgnore
     public String getBaseSecondId() {
         return getSecondID();
     }
 
     @Override
+    @JsonIgnore
     public String getChangeId() {
         return getChangeID();
     }
 
     @Override
+    @JsonIgnore
     public TaskVersion getRouteVersion() {
         return getVersion();
     }

@@ -27,18 +27,18 @@ public class RouteParser {
     private String virtualRoutePath;
 
 
-    public RouteParser(int storageRegionID, CuratorClient curatorClient, String routePath)throws Exception{
+    public RouteParser(int storageRegionID, CuratorClient curatorClient, String routePath){
         this.storageRegionID = storageRegionID;
         this.curatorClient = curatorClient;
-        this.normalRoutePath = routePath + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE + Constants.SEPARATOR + storageRegionID;
-        this.virtualRoutePath = routePath+ Constants.SEPARATOR + Constants.NORMAL_ROUTE + Constants.SEPARATOR+storageRegionID;
+        this.normalRoutePath = routePath + Constants.SEPARATOR + Constants.NORMAL_ROUTE + Constants.SEPARATOR + storageRegionID;
+        this.virtualRoutePath = routePath+ Constants.SEPARATOR + Constants.VIRTUAL_ROUTE + Constants.SEPARATOR+storageRegionID;
         load();
     }
 
     /**
      * 从zookeeper加载路由规则
      */
-    public void load()throws Exception{
+    public void load(){
         if (curatorClient.checkExists(virtualRoutePath)) {
             List<String> virtualNodes = curatorClient.getChildren(virtualRoutePath);
             if (virtualNodes != null && !virtualNodes.isEmpty()) {
@@ -77,11 +77,12 @@ public class RouteParser {
         if(secondIds == null || secondIds.isEmpty() || StringUtils.isEmpty(uuid)||StringUtils.isBlank(uuid)){
             throw new IllegalStateException("fileBocker is invaild !! content:"+fileBocker);
         }
+        int fileCode =sumName(uuid);
         String source = null;
         String dent =null;
         for(int index = 0; index<secondIds.size();index++){
             source = secondIds.get(index);
-            dent = search(uuid,source,secondIds);
+            dent = search(fileCode,source,secondIds);
             if(!dent.equals(source)){
                 secondIds.set(index,dent);
             }
@@ -91,12 +92,13 @@ public class RouteParser {
 
     /**
      * 单个服务检索
-     * @param uuid
+     * todo 性能可以进一步提升，uuid事先计算出数值
+     * @param fileCode
      * @param secondId
      * @param excludeSecondIds
      * @return
      */
-    private String search(String uuid, String secondId, Collection<String> excludeSecondIds){
+    private String search(int fileCode, String secondId, Collection<String> excludeSecondIds){
         String tmpSecondId = secondId;
         List<String> excludes = new ArrayList<>();
         // 1.判断secondId的类型，若为虚拟serverid 并且未迁移 则返回null
@@ -105,7 +107,6 @@ public class RouteParser {
             //2. 判断secondId的类型，若为虚拟serverid 并发生迁移则进行转换。
         }else if(secondId.charAt(0) == Constants.VIRTUAL_ID){
             tmpSecondId = virtualRouteRelationship.get(secondId).getNewSecondID();
-            excludes.add(tmpSecondId);
         }
         excludes.addAll(excludeSecondIds);
 
@@ -114,22 +115,22 @@ public class RouteParser {
             return secondId;
         }
         // 4. 检索正常的路由规则
-        return searchNormalRouteTree(uuid,secondId,excludes);
+        return searchNormalRouteTree(fileCode,tmpSecondId,excludes);
     }
 
     /**
      * 检索正常的路由规则
-     * @param uuid
+     * @param fileCode
      * @param secondId
      * @param excludes
      * @return
      */
-    private String searchNormalRouteTree(String uuid,String secondId,Collection<String> excludes){
+    private String searchNormalRouteTree(int fileCode,String secondId,Collection<String> excludes){
         if(this.normalRouteTree.get(secondId) == null){
             return secondId;
         }else{
-            String tmpSI = this.normalRouteTree.get(secondId).locateNormalServer(uuid,excludes);
-            return searchNormalRouteTree(uuid,tmpSI,excludes);
+            String tmpSI = this.normalRouteTree.get(secondId).locateNormalServer(fileCode,excludes);
+            return searchNormalRouteTree(fileCode,tmpSI,excludes);
         }
     }
 
@@ -146,5 +147,18 @@ public class RouteParser {
             fileServerIDs.add(splitStr[i]);
         }
         return new Pair<>(fileUUID,fileServerIDs);
+    }
+
+    /**
+     * 根据文件名生成code
+     * @param name
+     * @return
+     */
+    protected int sumName(String name) {
+        int sum = 0;
+        for (int i = 0; i < name.length(); i++) {
+            sum = sum + name.charAt(i);
+        }
+        return sum;
     }
 }

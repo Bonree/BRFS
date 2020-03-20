@@ -52,12 +52,12 @@ public class SingleRouteFactory {
      * @return
      * @throws JsonUtils.JsonException
      */
-    public static VirtualRoute createVirtualRoute(byte[] data)throws JsonUtils.JsonException {
+    public static VirtualRoute createVirtualRoute(byte[] data) {
         //1. 输入参数检查，若参数为空则抛出异常
         if(data == null || data.length ==0){
             throw new IllegalArgumentException("Invalid input !! It's null or empty !!");
         }
         // 2.反序列化
-        return JsonUtils.toObject(data,VirtualRoute.class);
+        return JsonUtils.toObjectQuietly(data,VirtualRoute.class);
     }
 }

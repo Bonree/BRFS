@@ -26,6 +26,7 @@ public class SingleRouteFactoryTest {
     private String NO_VERSION_File = "No_Version_NormalRoute.json";
     private String NO_File = "NO_NormalRoute.json";
     private String OTHER_File = "OtherJson.json";
+    private String VIRTUAL_FILE = "VirtualRoute.json";
     /**
      * 检查测试资源，若不存在则测试不进行
      */
@@ -109,5 +110,15 @@ public class SingleRouteFactoryTest {
     public void deserializeOtherJson(){
         byte[] data =readBytesFromFile(OTHER_File);
         SingleRouteFactory.createRoute(data);
+    }
+
+    /**
+     * TestCase 7: 虚拟id迁移规则的反序列化
+     * @throws Exception
+     */
+    @Test
+    public void deserializeVirtualRoute()throws Exception{
+        byte[] data = readBytesFromFile(VIRTUAL_FILE);
+        SingleRouteFactory.createVirtualRoute(data);
     }
 }
