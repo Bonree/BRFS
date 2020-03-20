@@ -127,7 +127,12 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public byte[] read(String columnFamily, byte[] key) throws Exception {
+    public byte[] read(String columnFamily, byte[] key) {
+        if (null == columnFamily || columnFamily.isEmpty() || null == key) {
+            LOG.warn("read column family is empty or key is null!");
+            return null;
+        }
+
         try {
             return DB.get(this.CF_HANDLES.get(columnFamily), READ_OPTIONS, key);
         } catch (RocksDBException e) {
@@ -137,7 +142,35 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
+    public List<byte[]> readByPrefix(String columnFamily, byte[] prefixKey) {
+        if (null == columnFamily || columnFamily.isEmpty() || null == prefixKey) {
+            LOG.warn("read by prefix column family is empty or prefixKey is null!");
+            return null;
+        }
+
+        List<byte[]> values = new ArrayList<>();
+        try {
+            RocksIterator iterator = this.newIterator(this.CF_HANDLES.get(columnFamily));
+            for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
+                if (new String(iterator.key()).startsWith(new String(prefixKey))) {
+                    values.add(iterator.value());
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("read by prefix occur error, cf:{}, prefix:{}", columnFamily, new String(prefixKey));
+            return null;
+        }
+
+        return values;
+    }
+
+    @Override
     public WriteStatus write(String columnFamily, byte[] key, byte[] value) throws Exception {
+        if (null == columnFamily || columnFamily.isEmpty() || null == key || null == value) {
+            LOG.warn("write column family is empty or key/value is null!");
+            return WriteStatus.FAILED;
+        }
+
         return this.write(this.CF_HANDLES.get(columnFamily), WRITE_OPTIONS_ASYNC, key, value);
     }
 
@@ -152,8 +185,27 @@ public class DefaultRocksDBManager implements RocksDBManager {
         return write(columnFamily, key, value);
     }
 
+    private WriteStatus write(final ColumnFamilyHandle cfh, final WriteOptions writeOptions, final byte[] key, final byte[] value) throws RocksDBException {
+        try {
+            this.DB.put(cfh, writeOptions, key, value);
+        } catch (RocksDBException e) {
+            LOG.error("write occur error, cf:{}, key:{}, value:{}", new String(cfh.getName()), new String(key), new String(value), e);
+            return WriteStatus.FAILED;
+        }
+        return WriteStatus.SUCCESS;
+    }
+
+    private RocksIterator newIterator(ColumnFamilyHandle cfh) {
+        return this.DB.newIterator(cfh, READ_OPTIONS);
+    }
+
     @Override
     public void createColumnFamilyWithTtl(String columnFamily, int ttl) throws Exception {
+        if (null == columnFamily || columnFamily.isEmpty()) {
+            LOG.warn("column family is empty or null!");
+            return;
+        }
+
         try {
             ColumnFamilyHandle handle = this.DB.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), COLUMN_FAMILY_OPTIONS), ttl);
             this.CF_HANDLES.put(columnFamily, handle);
@@ -167,7 +219,17 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     @Override
     public void deleteColumnFamily(String columnFamily) throws Exception {
+        if (null == columnFamily || columnFamily.isEmpty()) {
+            LOG.warn("column family is empty or null!");
+            return;
+        }
+
         try {
+            if (!this.CF_HANDLES.containsKey(columnFamily)) {
+                LOG.warn("column family not exists!");
+                return;
+            }
+
             this.DB.dropColumnFamily(this.CF_HANDLES.get(columnFamily));
             this.CF_HANDLES.remove(columnFamily);
             LOG.info("remove column family complete, cf:{}", columnFamily);
@@ -175,16 +237,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
         } catch (Exception e) {
             LOG.error("create column family error", e);
             throw e;
-        }
-    }
-
-    private WriteStatus write(final ColumnFamilyHandle cfh, final WriteOptions writeOptions, final byte[] key, final byte[] value) throws RocksDBException {
-        try {
-            this.DB.put(cfh, writeOptions, key, value);
-            return WriteStatus.SUCCESS;
-        } catch (RocksDBException e) {
-            LOG.error("write occur error, cf:{}, key:{}, value:{}", new String(cfh.getName()), new String(key), new String(value), e);
-            return WriteStatus.FAILED;
         }
     }
 

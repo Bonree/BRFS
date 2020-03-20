@@ -2,6 +2,8 @@ package com.bonree.brfs.duplication.rocksdb;
 
 import com.bonree.brfs.common.process.LifeCycle;
 
+import java.util.List;
+
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
@@ -18,7 +20,15 @@ public interface RocksDBManager extends LifeCycle {
      * @return value       返回null则表示key不存在或异常
      * @description: 从RocksDB中获取列族为columnFamily的key值
      */
-    byte[] read(String columnFamily, byte[] key) throws Exception;
+    byte[] read(String columnFamily, byte[] key);
+
+    /**
+     * @param columnFamily 列族名称，对应到SN名称
+     * @param prefixKey    key前缀
+     * @return value       返回null则异常
+     * @description: 从RocksDB中获取列族为columnFamily的前缀为prefixKey的所有值
+     */
+    List<byte[]> readByPrefix(String columnFamily, byte[] prefixKey);
 
     /**
      * @param columnFamily 列族名称
