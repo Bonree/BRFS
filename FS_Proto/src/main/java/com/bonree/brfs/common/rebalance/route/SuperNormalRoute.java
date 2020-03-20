@@ -23,16 +23,21 @@ import java.util.*;
         @JsonSubTypes.Type(value = NormalRouteV2.class, name = "V2")
 })
 public abstract class SuperNormalRoute implements NormalRouteInterface {
-    @JsonProperty("changeID")
+    /**
+     * 变更ID
+     */
     protected String changeID;
-
-    @JsonProperty("storageIndex")
+    /**
+     * storageregion 的id
+     */
     protected int storageIndex;
-
-    @JsonProperty("secondID")
+    /**
+     * 二级serverid
+     */
     protected String secondID;
-
-    @JsonProperty("version")
+    /**
+     * 系统版本
+     */
     protected TaskVersion version;
     @JsonCreator
     public SuperNormalRoute( @JsonProperty("changeID")String changeID, @JsonProperty("storageIndex")int storageIndex, @JsonProperty("secondID")String secondID, @JsonProperty("version")TaskVersion version) {

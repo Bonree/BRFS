@@ -10,9 +10,6 @@ package com.bonree.brfs.rebalance.route.factory;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
-import com.bonree.brfs.common.rebalance.route.v1.NormalRoute;
-import com.bonree.brfs.common.rebalance.route.v1.NormalRouteV1;
-import com.bonree.brfs.common.rebalance.route.v2.NormalRouteV2;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,7 +18,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
-public class RouteFactoryTest {
+public class SingleRouteFactoryTest {
     private String resourcePath = this.getClass().getResource("/Routes").getPath();
     private String V1_File = "V1_NormalRoute.json";
     private String V2_File = "V2_NormalRoute.json";
@@ -64,7 +61,7 @@ public class RouteFactoryTest {
     @Test
     public void deserializeV2(){
         byte[] data =readBytesFromFile(V2_File);
-        NormalRouteInterface route =  RouteFactory.createRoute(data);
+        NormalRouteInterface route =  SingleRouteFactory.createRoute(data);
         Assert.assertEquals(TaskVersion.V2,route.getRouteVersion());
     }
 
@@ -74,7 +71,7 @@ public class RouteFactoryTest {
     @Test
     public void deserializeV1(){
         byte[] data =readBytesFromFile(V1_File);
-        NormalRouteInterface route =  RouteFactory.createRoute(data);
+        NormalRouteInterface route =  SingleRouteFactory.createRoute(data);
         Assert.assertEquals(TaskVersion.V1,route.getRouteVersion());
     }
 
@@ -84,7 +81,7 @@ public class RouteFactoryTest {
     @Test(expected = IllegalArgumentException.class)
     public void deserializeBiggerV2(){
         byte[] data =readBytesFromFile(V3_File);
-        NormalRouteInterface route =  RouteFactory.createRoute(data);
+        SingleRouteFactory.createRoute(data);
     }
 
     /**
@@ -93,7 +90,7 @@ public class RouteFactoryTest {
     @Test(expected = IllegalArgumentException.class)
     public void deserializeNoVersion(){
         byte[] data =readBytesFromFile(NO_VERSION_File);
-        NormalRouteInterface route =  RouteFactory.createRoute(data);
+        SingleRouteFactory.createRoute(data);
     }
 
     /**
@@ -102,7 +99,7 @@ public class RouteFactoryTest {
     @Test(expected = IllegalArgumentException.class)
     public void deserializeNoJson(){
         byte[] data =readBytesFromFile(NO_File);
-        NormalRouteInterface route =  RouteFactory.createRoute(data);
+        SingleRouteFactory.createRoute(data);
     }
 
     /**
@@ -111,6 +108,6 @@ public class RouteFactoryTest {
     @Test(expected = IllegalArgumentException.class)
     public void deserializeOtherJson(){
         byte[] data =readBytesFromFile(OTHER_File);
-        NormalRouteInterface route =  RouteFactory.createRoute(data);
+        SingleRouteFactory.createRoute(data);
     }
 }
