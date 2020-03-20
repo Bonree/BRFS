@@ -8,6 +8,7 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.duplication.rocksdb.RocksDBConfig;
 import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
+import com.bonree.brfs.duplication.rocksdb.WriteStatus;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.*;
 import org.rocksdb.util.SizeUnit;
@@ -131,21 +132,21 @@ public class DefaultRocksDBManager implements RocksDBManager {
             return DB.get(this.CF_HANDLES.get(columnFamily), READ_OPTIONS, key);
         } catch (RocksDBException e) {
             LOG.error("read occur error, cf:{}, key:{}", columnFamily, new String(key), e);
-            throw e;
+            return null;
         }
     }
 
     @Override
-    public boolean write(String columnFamily, byte[] key, byte[] value) throws Exception {
+    public WriteStatus write(String columnFamily, byte[] key, byte[] value) throws Exception {
         return this.write(this.CF_HANDLES.get(columnFamily), WRITE_OPTIONS_ASYNC, key, value);
     }
 
     @Override
-    public boolean write(String columnFamily, byte[] key, byte[] value, boolean force) throws Exception {
+    public WriteStatus write(String columnFamily, byte[] key, byte[] value, boolean force) throws Exception {
         if (!force) {
             byte[] res = read(columnFamily, key);
             if (res != null) {
-                return false;
+                return WriteStatus.KEY_EXISTS;
             }
         }
         return write(columnFamily, key, value);
@@ -154,7 +155,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     @Override
     public void createColumnFamilyWithTtl(String columnFamily, int ttl) throws Exception {
         try {
-            this.DB.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), COLUMN_FAMILY_OPTIONS), ttl);
+            ColumnFamilyHandle handle = this.DB.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), COLUMN_FAMILY_OPTIONS), ttl);
+            this.CF_HANDLES.put(columnFamily, handle);
             LOG.info("create column family complete, name:{}, ttl:{}", columnFamily, ttl);
             // 更新ZK信息
         } catch (Exception e) {
@@ -176,14 +178,14 @@ public class DefaultRocksDBManager implements RocksDBManager {
         }
     }
 
-    private boolean write(final ColumnFamilyHandle cfh, final WriteOptions writeOptions, final byte[] key, final byte[] value) throws RocksDBException {
+    private WriteStatus write(final ColumnFamilyHandle cfh, final WriteOptions writeOptions, final byte[] key, final byte[] value) throws RocksDBException {
         try {
             this.DB.put(cfh, writeOptions, key, value);
+            return WriteStatus.SUCCESS;
         } catch (RocksDBException e) {
             LOG.error("write occur error, cf:{}, key:{}, value:{}", new String(cfh.getName()), new String(key), new String(value), e);
-            throw e;
+            return WriteStatus.FAILED;
         }
-        return true;
     }
 
     /**
