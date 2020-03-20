@@ -14,7 +14,7 @@ import com.bonree.brfs.common.rebalance.route.SuperNormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
 
-public class RouteFactory {
+public class SingleRouteFactory {
     private final static String VERSION_FIELD = "version";
     /**
      * 生成正常的路由规则
