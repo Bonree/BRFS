@@ -9,7 +9,7 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年4月10日 下午1:56:42
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: brfs的zookeeper公共路径维护
@@ -39,8 +39,10 @@ public class ZookeeperPaths {
     public final static String USERS = "users";
 
     public final static String TASKS = "tasks";
-    
+
     public final static String RESOURCES = "resources";
+
+    public final static String ROCKSDB = "rocksdb";
 
     private final String clusterName;
 
@@ -63,8 +65,10 @@ public class ZookeeperPaths {
     private String baseUserPath;
 
     private String baseTaskPath;
-    
+
     private String baseResourcesPath;
+
+    private String baseRocksDBPath;
 
     private ZookeeperPaths(final String clusterName, final String zkHosts) {
         this.clusterName = clusterName;
@@ -142,14 +146,23 @@ public class ZookeeperPaths {
     public void setBaseSequencesPath(String baseSequencesPath) {
         this.baseSequencesPath = baseSequencesPath;
     }
-    
-    public String getBaseResourcesPath() {
-		return baseResourcesPath;
-	}
 
-	public void setBaseResourcesPath(String baseResourcesPath) {
-		this.baseResourcesPath = baseResourcesPath;
-	}
+    public String getBaseResourcesPath() {
+        return baseResourcesPath;
+    }
+
+    public void setBaseResourcesPath(String baseResourcesPath) {
+        this.baseResourcesPath = baseResourcesPath;
+    }
+
+    public String getBaseRocksDBPath() {
+        return baseRocksDBPath;
+    }
+
+    public void setBaseRocksDBPath(String baseRocksDBPath) {
+        this.baseRocksDBPath = baseRocksDBPath;
+    }
+
     public void createZkPath() {
         CuratorClient client = null;
         try {
@@ -164,7 +177,7 @@ public class ZookeeperPaths {
             createPathIfNotExist(client, baseUserPath);
             createPathIfNotExist(client, baseTaskPath);
             createPathIfNotExist(client, baseResourcesPath);
-            
+            createPathIfNotExist(client, baseRocksDBPath);
         } finally {
             client.close();
         }
@@ -190,7 +203,8 @@ public class ZookeeperPaths {
         setBaseRoutePath(baseClusterName + SEPARATOR + ROUTES);
         setBaseUserPath(baseClusterName + SEPARATOR + USERS);
         setBaseTaskPath(baseClusterName + SEPARATOR + TASKS);
-        setBaseResourcesPath(baseClusterName + SEPARATOR + RESOURCES); 
+        setBaseResourcesPath(baseClusterName + SEPARATOR + RESOURCES);
+        setBaseRocksDBPath(baseClusterName + SEPARATOR + ROCKSDB);
     }
 
     public static ZookeeperPaths create(final String clusterName, final String zkHosts) {
@@ -202,13 +216,12 @@ public class ZookeeperPaths {
         return zkPaths;
     }
 
-    public static ZookeeperPaths getBasePath(final String clusterName,final String zkHosts) {
+    public static ZookeeperPaths getBasePath(final String clusterName, final String zkHosts) {
         BrStringUtils.checkNotEmpty(clusterName, clusterName + " is empty!!!");
         ZookeeperPaths zkPaths = new ZookeeperPaths(clusterName, zkHosts);
         zkPaths.createPath();
         return zkPaths;
     }
 
-	
 
 }
