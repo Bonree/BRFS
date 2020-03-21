@@ -50,6 +50,13 @@ public interface RocksDBManager extends LifeCycle {
     WriteStatus write(String columnFamily, byte[] key, byte[] value, boolean force) throws Exception;
 
     /**
+     * @param dataUnit 数据单元
+     * @return 写入状态
+     * @description: 该接口主要供其他RocksDB节点同步数据时使用，正常写入不可用该接口
+     */
+    WriteStatus write(RocksDBDataUnit dataUnit) throws Exception;
+
+    /**
      * @param columnFamily 列族名称
      * @param ttl          该列族下数据的过期时间，单位秒，如果ttl值为0或者负数则永不过期
      * @description: 创建列族

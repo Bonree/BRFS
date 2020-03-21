@@ -11,6 +11,10 @@ import com.bonree.brfs.configuration.units.*;
 import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
 import com.bonree.brfs.duplication.filenode.duplicates.impl.*;
 import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
+import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
+import com.bonree.brfs.duplication.rocksdb.connection.http.HttpRegionNodeConnectionPool;
+import com.bonree.brfs.duplication.rocksdb.handler.PingRequestHandler;
+import com.bonree.brfs.duplication.rocksdb.handler.RocksDBWriteRequestHandler;
 import com.bonree.brfs.duplication.rocksdb.impl.DefaultRocksDBManager;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
@@ -85,6 +89,10 @@ public class BootStrap {
 
 	private static final String URI_STORAGE_REGION_ROOT = "/sr";
 
+    private static final String URI_PING_ROOT = "/ping";
+
+    private static final String URI_ROCKSDB_ROOT = "/rocksdb";
+
     public static void main(String[] args) {
     	ProcessFinalizer finalizer = new ProcessFinalizer();
 
@@ -108,11 +116,6 @@ public class BootStrap {
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(clusterName, zkAddresses);
             ServerIDManager idManager = new ServerIDManager(client, zookeeperPaths);
 
-//            String rocksDBPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
-//            RocksDBManager rocksDBManager = new DefaultRocksDBManager(rocksDBPath, client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
-//            rocksDBManager.start();
-//            finalizer.add(rocksDBManager);
-
             SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(),zookeeperPaths.getBaseLocksPath(), client);
             UserModel model = simpleAuthentication.getUser("root");
             if (model == null) {
@@ -120,8 +123,10 @@ public class BootStrap {
                 System.exit(1);
             }
 
-    		Service service = new Service(UUID.randomUUID().toString(),
-            		Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME),
+            String regionGroupName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
+            String localServiceId = UUID.randomUUID().toString();
+            Service service = new Service(localServiceId,
+                    regionGroupName,
             		host, port);
             ServiceManager serviceManager = new DefaultServiceManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
             serviceManager.start();
@@ -255,6 +260,17 @@ public class BootStrap {
 
             finalizer.add(engineManager);
 
+//            RegionNodeConnectionPool regionNodeConnectionPool = new HttpRegionNodeConnectionPool(serviceManager);
+
+//            String rocksDBPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
+//            RocksDBManager rocksDBManager = new DefaultRocksDBManager(rocksDBPath,
+//                    client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)),
+//                    localServiceId,
+//                    serviceManager,
+//                    regionNodeConnectionPool);
+//            rocksDBManager.start();
+//            finalizer.add(rocksDBManager);
+
             DefaultStorageRegionWriter writer = new DefaultStorageRegionWriter(engineManager);
 
             NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
@@ -269,6 +285,14 @@ public class BootStrap {
             snRequestHandler.addMessageHandler("GET", new OpenStorageRegionMessageHandler(storageNameManager));
             snRequestHandler.addMessageHandler("DELETE", new DeleteStorageRegionMessageHandler(zookeeperPaths, storageNameManager, serviceManager));
             httpServer.addContextHandler(URI_STORAGE_REGION_ROOT, snRequestHandler);
+
+//            NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+//            pingRequestHandler.addMessageHandler("GET", new PingRequestHandler());
+//            httpServer.addContextHandler(URI_PING_ROOT, pingRequestHandler);
+//
+//            NettyHttpRequestHandler rocksDBRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+//            rocksDBRequestHandler.addMessageHandler("POST", new RocksDBWriteRequestHandler(rocksDBManager));
+//            httpServer.addContextHandler(URI_ROCKSDB_ROOT, rocksDBRequestHandler);
 
             httpServer.start();
 
