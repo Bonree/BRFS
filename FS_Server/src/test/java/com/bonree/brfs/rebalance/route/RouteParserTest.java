@@ -9,8 +9,7 @@
 package com.bonree.brfs.rebalance.route;
 
 import com.bonree.brfs.common.rebalance.Constants;
-import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
-import com.bonree.brfs.common.rebalance.route.SuperNormalRoute;
+import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
@@ -23,7 +22,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
