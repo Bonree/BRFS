@@ -1,8 +1,11 @@
 package com.bonree.brfs.duplication.rocksdb;
 
 import com.bonree.brfs.common.process.LifeCycle;
+import org.rocksdb.RocksDB;
+import org.rocksdb.TtlDB;
 
 import java.util.List;
+import java.util.Map;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -69,4 +72,14 @@ public interface RocksDBManager extends LifeCycle {
      */
     void deleteColumnFamily(String columnFamily) throws Exception;
 
+    /**
+     * @param columnFamilyMap ZK上的列族信息
+     * @description: 更新本地列族信息缓存
+     */
+    void updateColumnFamilyHandles(Map<String, Integer> columnFamilyMap) throws Exception;
+
+    /**
+     * @description: 获取RocksDB连接对象
+     */
+    RocksDB getRocksDB();
 }

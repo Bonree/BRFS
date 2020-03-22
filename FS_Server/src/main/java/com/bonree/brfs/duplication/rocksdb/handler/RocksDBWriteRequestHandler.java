@@ -50,7 +50,7 @@ public class RocksDBWriteRequestHandler implements MessageHandler {
             }
             callback.completed(result);
         } catch (Exception e) {
-            LOG.error("sync rocksdb data exception, data:{}", dataUnit);
+            LOG.error("sync rocksdb data exception, data:{}", dataUnit, e);
             result.setSuccess(false);
             callback.completed(result);
         }

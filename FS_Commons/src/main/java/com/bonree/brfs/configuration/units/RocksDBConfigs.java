@@ -21,6 +21,9 @@ public class RocksDBConfigs {
     public static final ConfigUnit<String> ROCKSDB_BACKUP_PATH =
             ConfigUnit.ofString("rocksdb.backup.path", "/tmp/backup");
 
+    public static final ConfigUnit<Long> ROCKSDB_BACKUP_CYCLE =
+            ConfigUnit.ofLong("rocksdb.backup.cycle", 10 * 60 * 1000);
+
     public static final ConfigUnit<Integer> ROCKSDB_MAX_BACKGROUND_FLUSH =
             ConfigUnit.ofInt("rocksdb.max.background.flush", 2);
 
