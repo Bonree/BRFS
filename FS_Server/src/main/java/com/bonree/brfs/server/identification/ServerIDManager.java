@@ -33,11 +33,15 @@ import com.bonree.brfs.server.identification.impl.VirtualServerIDImpl;
  ******************************************************************************/
 public class ServerIDManager {
 	private static final Logger LOG = LoggerFactory.getLogger(ServerIDManager.class);
-	
+    /**
+     * 一级serverId注册序列
+     */
     private FirstLevelServerIDImpl firstLevelServerID;
     
     private final String firstServerId;
-    
+    /**
+     * 二级serverId
+     */
     private SecondLevelServerID secondServerID;
 
     private VirtualServerID virtualServerID;
@@ -114,6 +118,11 @@ public class ServerIDManager {
         secondServerID.loadServerID();
     }
 
+    /**
+     * 加载 sn二级serverid 对应的一级serverId
+     * @param client
+     * @param serverIDsPath
+     */
     private void loadSecondServerIDCache(CuratorFramework client, String serverIDsPath) {
     	try {
     		List<String> firstServerIDs = client.getChildren().forPath(serverIDsPath);

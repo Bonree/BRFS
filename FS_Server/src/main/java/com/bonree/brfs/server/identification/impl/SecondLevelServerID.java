@@ -86,6 +86,7 @@ public class SecondLevelServerID {
 
     public String getServerID(int storageIndex) {
         String serverID = secondMap.get(storageIndex);
+        // zookeeper注册二级serverId过程
         if (serverID == null) {
         	String node = ZKPaths.makePath(selfFirstPath, String.valueOf(storageIndex));
         	serverID = secondServerIDOpt.genLevelID();
