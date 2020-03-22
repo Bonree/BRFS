@@ -1,10 +1,9 @@
 package com.bonree.brfs.duplication.rocksdb.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
-import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
@@ -15,16 +14,16 @@ import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
 import com.bonree.brfs.duplication.rocksdb.WriteStatus;
 import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
+import com.bonree.brfs.duplication.rocksdb.zk.ColumnFamilyInfoManager;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Sets;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.*;
 import org.rocksdb.util.SizeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /*******************************************************************************
@@ -56,6 +55,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private ServiceManager serviceManager;
     private String regionGroupName;
     private RegionNodeConnectionPool regionNodeConnectionPool;
+    private ColumnFamilyInfoManager columnFamilyInfoManager;
 
     public DefaultRocksDBManager(String rocksDBPath, CuratorFramework client, String localServiceId, ServiceManager serviceManager, RegionNodeConnectionPool regionNodeConnectionPool) {
         this.rocksDBPath = rocksDBPath;
@@ -64,6 +64,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         this.serviceManager = serviceManager;
         this.regionGroupName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
         this.regionNodeConnectionPool = regionNodeConnectionPool;
+        this.columnFamilyInfoManager = new ColumnFamilyInfoManager(this.client);
 
         DB_OPTIONS = new DBOptions();
         READ_OPTIONS = new ReadOptions();
@@ -143,6 +144,11 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
+    public RocksDB getRocksDB() {
+        return this.DB;
+    }
+
+    @Override
     public byte[] read(String columnFamily, byte[] key) {
         if (null == columnFamily || columnFamily.isEmpty() || null == key) {
             LOG.warn("read column family is empty or key is null!");
@@ -173,7 +179,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 }
             }
         } catch (Exception e) {
-            LOG.error("read by prefix occur error, cf:{}, prefix:{}", columnFamily, new String(prefixKey));
+            LOG.error("read by prefix occur error, cf:{}, prefix:{}", columnFamily, new String(prefixKey), e);
             return null;
         }
 
@@ -182,7 +188,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     @Override
     public WriteStatus write(RocksDBDataUnit unit) throws RocksDBException {
-       return this.write(this.CF_HANDLES.get(unit.getColumnFamily()), WRITE_OPTIONS_ASYNC, unit.getKey(), unit.getValue());
+        return this.write(this.CF_HANDLES.get(unit.getColumnFamily()), WRITE_OPTIONS_ASYNC, unit.getKey(), unit.getValue());
     }
 
     @Override
@@ -250,6 +256,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             this.CF_HANDLES.put(columnFamily, handle);
             LOG.info("create column family complete, name:{}, ttl:{}", columnFamily, ttl);
             // 更新ZK信息
+            this.columnFamilyInfoManager.initOrAddColumnFamilyInfo(columnFamily, ttl);
         } catch (Exception e) {
             LOG.error("create column family error, cf:{}, ttl:{}", columnFamily, ttl, e);
             throw e;
@@ -273,6 +280,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             this.CF_HANDLES.remove(columnFamily);
             LOG.info("remove column family complete, cf:{}", columnFamily);
             // 更新ZK信息
+            this.columnFamilyInfoManager.deleteColumnFamilyInfo(columnFamily);
         } catch (Exception e) {
             LOG.error("create column family error", e);
             throw e;
@@ -285,14 +293,22 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private Pair<List<ColumnFamilyDescriptor>, List<Integer>> loadColumnFamilyInfo() throws Exception {
         Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo = new Pair<>();
         try {
-            byte[] bytes = this.client.getData().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO);
-            JSONObject jsonObject = JSONObject.parseObject(BrStringUtils.fromUtf8Bytes(bytes));
 
             List<ColumnFamilyDescriptor> cfDescriptors = new ArrayList<>();
             List<Integer> cfTtlList = new ArrayList<>();
-            for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
-                cfDescriptors.add(new ColumnFamilyDescriptor(entry.getKey().getBytes(), COLUMN_FAMILY_OPTIONS));
-                cfTtlList.add(Integer.parseInt(entry.getValue().toString()));
+            // 添加默认列族信息，这是必须的
+            cfDescriptors.add(new ColumnFamilyDescriptor("default".getBytes(), COLUMN_FAMILY_OPTIONS));
+            cfTtlList.add(-1);
+
+            if (this.client.checkExists().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO) != null) {
+                byte[] bytes = this.client.getData().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO);
+                Map<String, Integer> cfMap = JsonUtils.toObject(bytes, new TypeReference<Map<String, Integer>>() {
+                });
+
+                for (Map.Entry<String, Integer> entry : cfMap.entrySet()) {
+                    cfDescriptors.add(new ColumnFamilyDescriptor(entry.getKey().getBytes(), COLUMN_FAMILY_OPTIONS));
+                    cfTtlList.add(Integer.parseInt(entry.getValue().toString()));
+                }
             }
 
             columnFamilyInfo.setFirst(cfDescriptors);
@@ -314,15 +330,40 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
+    public void updateColumnFamilyHandles(Map<String, Integer> columnFamilyMap) {
+        try {
+            columnFamilyMap.put("default", -1);  // CF_HANDLE中默认有default列族，所以比较前需要先put
+            Set<String> cfSet = columnFamilyMap.keySet();
+            Set<String> handleSet = this.CF_HANDLES.keySet();
+            Sets.SetView<String> difference1 = Sets.difference(cfSet, handleSet);
+            Sets.SetView<String> difference2 = Sets.difference(handleSet, cfSet);
+
+            for (String d1 : difference1) {
+                ColumnFamilyHandle handle = this.DB.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(d1.getBytes(), COLUMN_FAMILY_OPTIONS), columnFamilyMap.get(d1));
+                this.CF_HANDLES.put(d1, handle);
+            }
+
+            for (String d2 : difference2) {
+                this.CF_HANDLES.remove(d2);
+            }
+
+            LOG.info("update column family handle, cfs:{}", this.CF_HANDLES.keySet());
+        } catch (RocksDBException e) {
+            LOG.error("update column family handle err", e);
+        }
+    }
+
+    @Override
     public void stop() throws Exception {
         this.DB_OPTIONS.close();
         this.WRITE_OPTIONS_SYNC.close();
         this.WRITE_OPTIONS_ASYNC.close();
         this.READ_OPTIONS.close();
         this.COLUMN_FAMILY_OPTIONS.close();
-        this.CF_HANDLES.forEach((x, y) -> {
-            y.close();
-        });
+        Collection<ColumnFamilyHandle> handles = this.CF_HANDLES.values();
+        for (ColumnFamilyHandle handle : handles) {
+            handle.close();
+        }
         if (DB != null) {
             DB.close();
         }
