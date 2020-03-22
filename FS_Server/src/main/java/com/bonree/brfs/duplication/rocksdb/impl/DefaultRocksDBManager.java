@@ -1,14 +1,20 @@
 package com.bonree.brfs.duplication.rocksdb.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.duplication.rocksdb.RocksDBConfig;
+import com.bonree.brfs.duplication.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
 import com.bonree.brfs.duplication.rocksdb.WriteStatus;
+import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnection;
+import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.*;
 import org.rocksdb.util.SizeUnit;
@@ -46,10 +52,19 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private String rocksDBPath;
     private RocksDBConfig config;
     private CuratorFramework client;
+    private String localServiceId;
+    private ServiceManager serviceManager;
+    private String regionGroupName;
+    private RegionNodeConnectionPool regionNodeConnectionPool;
 
-    public DefaultRocksDBManager(String rocksDBPath, CuratorFramework client) {
+    public DefaultRocksDBManager(String rocksDBPath, CuratorFramework client, String localServiceId, ServiceManager serviceManager, RegionNodeConnectionPool regionNodeConnectionPool) {
         this.rocksDBPath = rocksDBPath;
         this.client = client;
+        this.localServiceId = localServiceId;
+        this.serviceManager = serviceManager;
+        this.regionGroupName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
+        this.regionNodeConnectionPool = regionNodeConnectionPool;
+
         DB_OPTIONS = new DBOptions();
         READ_OPTIONS = new ReadOptions();
         WRITE_OPTIONS_SYNC = new WriteOptions();
@@ -72,6 +87,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 .setTargetFileSizeBase(Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_TARGET_FILE_SIZE_BASE))
                 .setMaxBytesLevelBase(Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_MAX_BYTES_LEVEL_BASE))
                 .build();
+        LOG.info("RocksDB configs:{}", this.config);
     }
 
     @Override
@@ -82,7 +98,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 .setMaxBackgroundCompactions(this.config.getMaxBackgroundCompaction())
                 .setMaxOpenFiles(this.config.getMaxOpenFiles())
                 .setRowCache(new LRUCache(this.config.getBlockCache() * SizeUnit.MB, 6, true, 5))
-                .setMaxSubcompactions(4);
+                .setMaxSubcompactions(this.config.getMaxSubCompaction());
         READ_OPTIONS.setPrefixSameAsStart(true);
         WRITE_OPTIONS_SYNC.setSync(true);
         WRITE_OPTIONS_ASYNC.setSync(false);
@@ -165,13 +181,20 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
+    public WriteStatus write(RocksDBDataUnit unit) throws RocksDBException {
+       return this.write(this.CF_HANDLES.get(unit.getColumnFamily()), WRITE_OPTIONS_ASYNC, unit.getKey(), unit.getValue());
+    }
+
+    @Override
     public WriteStatus write(String columnFamily, byte[] key, byte[] value) throws Exception {
         if (null == columnFamily || columnFamily.isEmpty() || null == key || null == value) {
             LOG.warn("write column family is empty or key/value is null!");
             return WriteStatus.FAILED;
         }
 
-        return this.write(this.CF_HANDLES.get(columnFamily), WRITE_OPTIONS_ASYNC, key, value);
+        WriteStatus writeStatus = this.write(this.CF_HANDLES.get(columnFamily), WRITE_OPTIONS_ASYNC, key, value);
+        writeToAnotherService(columnFamily, key, value);
+        return writeStatus;
     }
 
     @Override
@@ -193,6 +216,22 @@ public class DefaultRocksDBManager implements RocksDBManager {
             return WriteStatus.FAILED;
         }
         return WriteStatus.SUCCESS;
+    }
+
+    private void writeToAnotherService(String columnFamily, byte[] key, byte[] value) throws Exception {
+        List<Service> services = serviceManager.getServiceListByGroup(regionGroupName);
+        RegionNodeConnection connection = this.regionNodeConnectionPool.getConnection(regionGroupName, this.localServiceId);
+        if (connection == null || connection.getClient() == null) {
+            LOG.warn("region node connection/client is null! serviceId:{}", localServiceId);
+            return;
+        }
+
+        RocksDBDataUnit dataUnit = new RocksDBDataUnit(columnFamily, key, value);
+        for (Service service : services) {
+            if (!localServiceId.equals(service.getServiceId())) {
+                connection.getClient().writeData(dataUnit);
+            }
+        }
     }
 
     private RocksIterator newIterator(ColumnFamilyHandle cfh) {

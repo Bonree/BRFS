@@ -145,4 +145,21 @@ public class RocksDBConfig {
             return this.rocksDBConfig;
         }
     }
+
+    @Override
+    public String toString() {
+        return "RocksDBConfig{" +
+                "maxBackgroundFlush=" + maxBackgroundFlush +
+                ", maxBackgroundCompaction=" + maxBackgroundCompaction +
+                ", maxOpenFiles=" + maxOpenFiles +
+                ", maxSubCompaction=" + maxSubCompaction +
+                ", blockCache=" + blockCache +
+                ", writeBufferSize=" + writeBufferSize +
+                ", maxWriteBufferNumber=" + maxWriteBufferNumber +
+                ", minWriteBufferNumToMerge=" + minWriteBufferNumToMerge +
+                ", level0FileNumCompactionTrigger=" + level0FileNumCompactionTrigger +
+                ", targetFileSizeBase=" + targetFileSizeBase +
+                ", maxBytesLevelBase=" + maxBytesLevelBase +
+                '}';
+    }
 }
