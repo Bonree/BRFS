@@ -6,7 +6,7 @@
  * @description: 解析路由规则测试类，采用Junit
  ******************************************************************************/
 
-package com.bonree.brfs.common.rebalance.route.v2;
+package com.bonree.brfs.common.rebalance.route.impl.v2;
 
 import com.bonree.brfs.common.data.utils.JsonUtils;
 import org.apache.commons.io.FileUtils;

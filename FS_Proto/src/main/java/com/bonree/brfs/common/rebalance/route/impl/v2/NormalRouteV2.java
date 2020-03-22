@@ -1,7 +1,7 @@
-package com.bonree.brfs.common.rebalance.route.v2;
+package com.bonree.brfs.common.rebalance.route.impl.v2;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
-import com.bonree.brfs.common.rebalance.route.SuperNormalRoute;
+import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.*;

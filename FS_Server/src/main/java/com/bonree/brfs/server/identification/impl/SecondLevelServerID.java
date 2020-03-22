@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.rebalance.Constants;
-import com.bonree.brfs.common.rebalance.route.v1.NormalRoute;
+import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.server.identification.LevelServerIDGen;
@@ -86,6 +86,7 @@ public class SecondLevelServerID {
 
     public String getServerID(int storageIndex) {
         String serverID = secondMap.get(storageIndex);
+        // zookeeper注册二级serverId过程
         if (serverID == null) {
         	String node = ZKPaths.makePath(selfFirstPath, String.valueOf(storageIndex));
         	serverID = secondServerIDOpt.genLevelID();

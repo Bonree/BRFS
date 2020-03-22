@@ -3,7 +3,7 @@
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
  * @date 2020年03月19日 16:49:14
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @description: 路由解析器，
+ * @description: 单个StorageRegion路由解析器，
  ******************************************************************************/
 
 package com.bonree.brfs.rebalance.route;
@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 public class RouteParser {
+    // todo 需要集群级别的二级serverId管理
     private int storageRegionID;
     private Map<String, NormalRouteInterface> normalRouteTree = new HashMap<>();
     private Map<String, VirtualRoute> virtualRouteRelationship = new HashMap<>();
@@ -64,7 +65,7 @@ public class RouteParser {
     }
 
     /**
-     * 返回fileBocker 块可用的Ids，注意其与旧版本有区别，旧版本包含uuid，本方法不包含uuid，只包含二级serverid
+     * 返回fileBocker 块可用的Ids，注意其与旧版本有区别
      * @param fileBocker
      * @return serverids
      */

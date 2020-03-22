@@ -6,10 +6,10 @@
  * @description: 适配路由规则，将V1版本的路由规则增加解析接口
  ******************************************************************************/
 
-package com.bonree.brfs.common.rebalance.route.v1;
+package com.bonree.brfs.common.rebalance.route.impl.v1;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
-import com.bonree.brfs.common.rebalance.route.SuperNormalRoute;
+import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.*;
