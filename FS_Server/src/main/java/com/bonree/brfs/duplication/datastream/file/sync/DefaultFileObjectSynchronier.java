@@ -9,9 +9,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
@@ -32,19 +36,24 @@ public class DefaultFileObjectSynchronier implements FileObjectSynchronizer, Lif
 	private LinkedBlockingQueue<FileObjectSyncTask> readyTasks = new LinkedBlockingQueue<FileObjectSyncTask>();
 	private List<FileObjectSyncTask> delayedTaskList = new ArrayList<FileObjectSyncTask>();
 	
+	@Inject
+	public DefaultFileObjectSynchronier(FileObjectSyncProcessor processor, ServiceManager serviceManager) {
+	    this(processor, serviceManager, 10, TimeUnit.SECONDS);
+	}
+	
 	public DefaultFileObjectSynchronier(FileObjectSyncProcessor processor, ServiceManager serviceManager, long checkPeriod, TimeUnit unit) {
 		this.processor = processor;
 		this.serviceManager = serviceManager;
 		this.checkMillis = unit.toMillis(checkPeriod);
 	}
 
-	@Override
+	@LifecycleStart
 	public void start() throws Exception {
 		mainThread.start();
 		scheduler.scheduleAtFixedRate(new DelayedTaskChecker(), 0, checkMillis, TimeUnit.MILLISECONDS);
 	}
 
-	@Override
+	@LifecycleStop
 	public void stop() throws Exception {
 		scheduler.shutdown();
 		mainThread.interrupt();

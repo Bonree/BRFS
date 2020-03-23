@@ -13,6 +13,7 @@
             <artifactId>FS_Commons</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        
         <dependency>
             <groupId>com.bonree.fs</groupId>
             <artifactId>FS_Proto</artifactId>
@@ -23,6 +24,26 @@
             <artifactId>FS_ResouceSchedule</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        
+        <dependency>
+                <groupId>io.airlift</groupId>
+                <artifactId>airline</artifactId>
+                <version>0.9</version>
+                <exclusions>
+                    <exclusion>
+                        <!--LGPL licenced library-->
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>annotations</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+        
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.2.2</version>
+        </dependency>
+        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

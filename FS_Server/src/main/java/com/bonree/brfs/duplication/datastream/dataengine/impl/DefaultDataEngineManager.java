@@ -6,9 +6,12 @@ import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngine;
@@ -32,6 +35,7 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
 	
 	private LoadingCache<Integer, Optional<DataEngine>> dataEngineContainer;
 	
+	@Inject
 	public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory) {
 		this(storageRegionManager, factory,
 				Duration.parse(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_DATA_ENGINE_IDLE_TIME)));
@@ -118,6 +122,7 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
 	}
 	
 
+	@LifecycleStop
 	@Override
 	public void close() throws IOException {
 		if(dataEngineContainer == null) {

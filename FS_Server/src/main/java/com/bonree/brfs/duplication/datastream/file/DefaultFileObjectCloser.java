@@ -5,10 +5,15 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
@@ -30,6 +35,19 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 	
 	private FilePathMaker pathMaker;
 	
+	@Inject
+	public DefaultFileObjectCloser(
+	        FileObjectSynchronizer fileSynchronizer,
+                FileNodeStorer fileNodeStorer,
+                DiskNodeConnectionPool connectionPool,
+                FilePathMaker pathMaker) {
+	    this(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_CLOSER_THREAD_NUM),
+	            fileSynchronizer,
+	            fileNodeStorer,
+	            connectionPool,
+	            pathMaker);
+	}
+	
 	public DefaultFileObjectCloser(int threadNum,
 			FileObjectSynchronizer fileSynchronizer,
 			FileNodeStorer fileNodeStorer,
@@ -42,6 +60,7 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 		this.pathMaker = pathMaker;
 	}
 	
+	@LifecycleStop
 	@Override
 	public void close() throws IOException {
 		closeThreads.shutdown();

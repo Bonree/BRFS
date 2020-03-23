@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.inject.Inject;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
@@ -105,6 +107,7 @@ public class ServerIDManager {
 
     }
 
+    @Inject
     public ServerIDManager(CuratorFramework client, ZookeeperPaths zkBasePaths) {
         firstLevelServerID = new FirstLevelServerIDImpl(client, zkBasePaths.getBaseServerIdPath(), SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath());
         virtualServerID = new VirtualServerIDImpl(client, zkBasePaths.getBaseServerIdSeqPath());

@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.inject.Inject;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -17,6 +19,9 @@ import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
@@ -45,14 +50,17 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 	
 	private CopyOnWriteArrayList<StateListener> stateListeners = new CopyOnWriteArrayList<FileNodeSinkManager.StateListener>();
 
-	public ZkFileNodeSinkManager(CuratorFramework client,
+	@Inject
+	public ZkFileNodeSinkManager(
+	        CuratorFramework client,
+	        ZookeeperPaths paths,
 			Service service,
 			ServiceManager serviceManager,
 			TimeExchangeEventEmitter timeEventEmitter,
 			FileNodeStorer storer,
 			FileNodeSinkSelector selector,
 			FileObjectCloser fileCloser) {
-		this.client = client;
+		this.client = client.usingNamespace(paths.getBaseClusterName().substring(1));
 		this.service = service;
 		this.distributor = new FileNodeDistributor(client, storer, serviceManager, selector, timeEventEmitter, fileCloser);
 		this.selector = new LeaderSelector(client, ZKPaths.makePath(
@@ -60,13 +68,13 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 				new SinkManagerLeaderListener());
 	}
 
-	@Override
+	@LifecycleStart
 	public void start() throws Exception {
 		selector.autoRequeue();
 		selector.start();
 	}
 
-	@Override
+	@LifecycleStop
 	public void stop() throws Exception {
 		selector.close();
 	}

@@ -3,6 +3,8 @@ package com.bonree.brfs.duplication.datastream.file.sync;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +24,7 @@ public class DefaultFileObjectSyncProcessor implements FileObjectSyncProcessor {
 	private DiskNodeConnectionPool connectionPool;
 	private FilePathMaker pathMaker;
 	
+	@Inject
 	public DefaultFileObjectSyncProcessor(DiskNodeConnectionPool connectionPool, FilePathMaker pathMaker) {
 		this.connectionPool = connectionPool;
 		this.pathMaker = pathMaker;

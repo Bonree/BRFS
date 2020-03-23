@@ -62,7 +62,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
 	private static final String TIMEOUT_CHECK_DURATION = "PT10M";
 	private TimeExchangeEventEmitter timeEventEmitter;
 	
-	private ExecutorService executor = Executors.newSingleThreadExecutor(new PooledThreadFactory("file_distributor"));
+	private ExecutorService executor;
 	
 	private AtomicBoolean running = new AtomicBoolean(false);
 	

@@ -8,6 +8,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.inject.Inject;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -19,6 +21,10 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
@@ -48,6 +54,7 @@ import com.google.common.cache.RemovalNotification;
  * @author chen
  *
  */
+@ManageLifecycle
 public class DefaultStorageRegionManager implements StorageRegionManager {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageRegionManager.class);
     
@@ -66,8 +73,9 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
 
     private StorageRegionIdBuilder idBuilder;
 
-    public DefaultStorageRegionManager(CuratorFramework client, StorageRegionIdBuilder idBuilder) {
-        this.zkClient = client;
+    @Inject
+    public DefaultStorageRegionManager(CuratorFramework client, ZookeeperPaths paths, StorageRegionIdBuilder idBuilder) {
+        this.zkClient = client.usingNamespace(paths.getBaseClusterName().substring(1));
         this.idBuilder = idBuilder;
         this.storageRegionCache = CacheBuilder.newBuilder()
         		.maximumSize(DEFAULT_MAX_CACHE_SIZE)
@@ -78,14 +86,14 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         		false);
     }
 
-    @Override
+    @LifecycleStart
     public void start() throws Exception {
         zkClient.createContainers(ZKPaths.makePath(StorageRegionZkPaths.DEFAULT_PATH_STORAGE_REGION_ROOT, DEFAULT_PATH_STORAGE_REGION_NODES));
         childrenCache.getListenable().addListener(new StorageRegionNodeStateListener());
         childrenCache.start();
     }
 
-    @Override
+    @LifecycleStop
     public void stop() throws Exception {
         childrenCache.close();
         executor.shutdown();

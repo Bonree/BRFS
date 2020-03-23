@@ -7,17 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.bonree.brfs.configuration.units.*;
-import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
-import com.bonree.brfs.duplication.filenode.duplicates.impl.*;
-import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
-import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.connection.http.HttpRegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.handler.PingRequestHandler;
-import com.bonree.brfs.duplication.rocksdb.handler.RocksDBWriteRequestHandler;
-import com.bonree.brfs.duplication.rocksdb.impl.DefaultRocksDBManager;
-import com.bonree.brfs.email.EmailPool;
-import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -43,6 +32,10 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
+import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
+import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.connection.tcp.TcpDiskNodeConnectionPool;
@@ -66,7 +59,11 @@ import com.bonree.brfs.duplication.datastream.writer.DefaultStorageRegionWriter;
 import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.impl.MachineResourceWriterSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.impl.MinimalDuplicateNodeSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.impl.ResourceWriteSelector;
 import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileCoordinatorPaths;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
@@ -79,15 +76,16 @@ import com.bonree.brfs.duplication.storageregion.handler.OpenStorageRegionMessag
 import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.server.identification.ServerIDManager;
-import sun.security.krb5.Config;
 
 public class BootStrap {
     private static final Logger LOG = LoggerFactory.getLogger(BootStrap.class);
 
     private static final String URI_DATA_ROOT = "/data";
-
-	private static final String URI_STORAGE_REGION_ROOT = "/sr";
+    
+    private static final String URI_STORAGE_REGION_ROOT = "/sr";
 
     private static final String URI_PING_ROOT = "/ping";
 
@@ -99,6 +97,8 @@ public class BootStrap {
         try {
             // 初始化email发送配置
             EmailPool.getInstance();
+            
+            /** Module Managed **/
             String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
             String host = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_HOST);
     		int port = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_PORT);
@@ -109,20 +109,26 @@ public class BootStrap {
             client.blockUntilConnected();
 
             finalizer.add(client);
+            /********************/
 
             CuratorCacheFactory.init(zkAddresses);
 
+            /** Module Managed **/
             String clusterName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME);
-            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(clusterName, zkAddresses);
+            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(clusterName, client);
             ServerIDManager idManager = new ServerIDManager(client, zookeeperPaths);
+            /********************/
 
+            /** Module Managed **/
             SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(),zookeeperPaths.getBaseLocksPath(), client);
             UserModel model = simpleAuthentication.getUser("root");
             if (model == null) {
                 LOG.error("please init server!!!");
                 System.exit(1);
             }
+            /********************/
 
+            /** Module Managed **/
             String regionGroupName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
             String localServiceId = UUID.randomUUID().toString();
             Service service = new Service(localServiceId,
@@ -132,25 +138,32 @@ public class BootStrap {
             serviceManager.start();
 
             finalizer.add(serviceManager);
+            /********************/
 
-            TimeExchangeEventEmitter timeEventEmitter = new TimeExchangeEventEmitter(2);
+            /** Module Managed **/
+            TimeExchangeEventEmitter timeEventEmitter = new TimeExchangeEventEmitter();
 
             finalizer.add(timeEventEmitter);
+            /********************/
 
-            StorageRegionIdBuilder storageIdBuilder = new ZkStorageRegionIdBuilder(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
-            StorageRegionManager storageNameManager = new DefaultStorageRegionManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), storageIdBuilder);
+            /** Module Managed **/
+            StorageRegionIdBuilder storageIdBuilder = new ZkStorageRegionIdBuilder(client, zookeeperPaths);
+            StorageRegionManager storageNameManager = new DefaultStorageRegionManager(client, zookeeperPaths, storageIdBuilder);
             storageNameManager.start();
 
             finalizer.add(storageNameManager);
+            /********************/
 
 //            HttpDiskNodeConnectionPool connectionPool = new HttpDiskNodeConnectionPool(serviceManager);
 //            finalizer.add(connectionPool);
 
+            /** Module Managed **/
             AsyncTcpClientGroup tcpClientGroup = new AsyncTcpClientGroup(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM));
             TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup);
             finalizer.add(tcpClientGroup);
 
             FilePathMaker pathMaker = new IDFilePathMaker(idManager);
+            /********************/
 
 
             int workerThreadNum = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_SERVER_IO_THREAD_NUM);
@@ -186,14 +199,19 @@ public class BootStrap {
 				}
 			});
 
+            /** Module Managed **/
             FileObjectSyncProcessor processor = new DefaultFileObjectSyncProcessor(connectionPool, pathMaker);
             DefaultFileObjectSynchronier fileSynchronizer = new DefaultFileObjectSynchronier(processor, serviceManager, 10, TimeUnit.SECONDS);
             fileSynchronizer.start();
 
             finalizer.add(fileSynchronizer);
+            /********************/
 
+            /** Module Managed **/
             FileNodeStorer storer = new ZkFileNodeStorer(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), ZkFileCoordinatorPaths.COORDINATOR_FILESTORE);
-
+            /********************/
+            
+            /** Module Managed **/
             // 资源缓存器
             String diskGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
             String rPath = zookeeperPaths.getBaseResourcesPath()+"/"+diskGroup+"/resource";
@@ -233,20 +251,29 @@ public class BootStrap {
                     .setStorageRegionManager(storageNameManager)
                     .setResourceSelector(serviceSelector)
                     .build();
+            /********************/
 
-
+            /** Module Managed **/
             FileObjectFactory fileFactory = new DefaultFileObjectFactory(service, storer, nodeSelector, idManager, connectionPool);
+            /********************/
 
+            /** Module Managed **/
             int closerThreadNum = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_CLOSER_THREAD_NUM);
             DefaultFileObjectCloser fileCloser = new DefaultFileObjectCloser(closerThreadNum, fileSynchronizer, storer, connectionPool, pathMaker);
             finalizer.add(fileCloser);
+            /********************/
 
-            FileNodeSinkManager sinkManager = new ZkFileNodeSinkManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)),
+            /** Module Managed **/
+            FileNodeSinkManager sinkManager = new ZkFileNodeSinkManager(
+                    client,
+                    zookeeperPaths,
             		service, serviceManager, timeEventEmitter, storer, new RandomFileNodeSinkSelector(), fileCloser);
             sinkManager.start();
 
             finalizer.add(sinkManager);
+            /********************/
 
+            /** Module Managed **/
             DataPoolFactory dataPoolFactory = new BlockingQueueDataPoolFactory(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_DATA_POOL_CAPACITY));
             FileObjectSupplierFactory fileSupplierFactory = new DefaultFileObjectSupplierFactory(fileFactory,
             		fileCloser, fileSynchronizer, sinkManager, timeEventEmitter);
@@ -259,6 +286,7 @@ public class BootStrap {
             DefaultDataEngineManager engineManager = new DefaultDataEngineManager(storageNameManager, engineFactory);
 
             finalizer.add(engineManager);
+            /********************/
 
 //            RegionNodeConnectionPool regionNodeConnectionPool = new HttpRegionNodeConnectionPool(serviceManager);
 
@@ -271,7 +299,9 @@ public class BootStrap {
 //            rocksDBManager.start();
 //            finalizer.add(rocksDBManager);
 
+            /** Module Managed **/
             DefaultStorageRegionWriter writer = new DefaultStorageRegionWriter(engineManager);
+            /********************/
 
             NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
             requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(writer));
@@ -298,6 +328,7 @@ public class BootStrap {
 
             finalizer.add(httpServer);
 
+            /** Module Managed **/
             serviceManager.registerService(service);
 
             finalizer.add(new Closeable() {
@@ -311,6 +342,7 @@ public class BootStrap {
 					}
 				}
 			});
+            /********************/
         } catch (Exception e) {
             LOG.error("launch server error!!!", e);
             System.exit(1);

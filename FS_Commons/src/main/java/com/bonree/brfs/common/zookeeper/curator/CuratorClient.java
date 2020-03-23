@@ -41,11 +41,7 @@ public class CuratorClient implements ZookeeperClient {
     private final static String DEFAULT_VALUE = "";
 
     public static CuratorClient wrapClient(CuratorFramework client) {
-        if(!client.isStarted()) {
-            client.start();
-        }
-        CuratorClient curatorClient = new CuratorClient(client);
-        return curatorClient;
+        return new CuratorClient(client);
     }
 
     public static CuratorClient getClientInstance(String zkHosts) {

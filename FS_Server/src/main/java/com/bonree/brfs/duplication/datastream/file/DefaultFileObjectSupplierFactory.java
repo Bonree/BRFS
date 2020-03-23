@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.datastream.file;
 
+import javax.inject.Inject;
+
 import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizer;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
@@ -12,6 +14,7 @@ public class DefaultFileObjectSupplierFactory implements FileObjectSupplierFacto
 	private FileNodeSinkManager fileNodeSinkManager;
 	private TimeExchangeEventEmitter timeEventEmitter;
 	
+	@Inject
 	public DefaultFileObjectSupplierFactory(FileObjectFactory fileFactory,
 			FileObjectCloser fileCloser,
 			FileObjectSynchronizer fileSynchronizer,

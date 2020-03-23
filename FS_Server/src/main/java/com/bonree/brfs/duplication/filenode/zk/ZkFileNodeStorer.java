@@ -2,6 +2,9 @@ package com.bonree.brfs.duplication.filenode.zk;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
@@ -9,6 +12,7 @@ import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.filenode.FileNode;
 import com.bonree.brfs.duplication.filenode.FileNodeFilter;
@@ -19,6 +23,12 @@ public class ZkFileNodeStorer implements FileNodeStorer {
 	
 	private CuratorFramework client;
 	private String storePath;
+	
+	@Inject
+	public ZkFileNodeStorer(CuratorFramework client, ZookeeperPaths paths) throws Exception {
+	    this(client.usingNamespace(paths.getBaseClusterName().substring(1)),
+	            ZkFileCoordinatorPaths.COORDINATOR_FILESTORE);
+	}
 
 	public ZkFileNodeStorer(CuratorFramework client, String nodePath) throws Exception {
 		this.client = client;

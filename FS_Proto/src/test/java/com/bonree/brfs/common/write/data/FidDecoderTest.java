@@ -6,14 +6,15 @@ import org.junit.Test;
 public class FidDecoderTest{
     @Test
     public void testDecoderFids(){
-        String fid = "CAAQABgAIiA0ZGY4MTgwOTMxYTY0ZjNlYTVmYzQwMjEzY2NjZDdkMijqwd37+ywwwM8kOgIyMjoCMjBAqIFLSIeQAw==";
+        String fid = "CAAQABgNIiAxY2EwOTE4N2JkNjE0YTJiYTU1M2VlZDc2ZGRiMTU2ZCit7Nqe5i0wgN3bAToDMjI3OgMyMjZAAEhX";
         System.out.println("fid length "+fid.length());
-        int count = 1000000;
+        int count = 1;
         FileDataProtos.Fid fids = null;
         long start = System.currentTimeMillis();
         for(int i = 0;i <count;i++){
             try{
                 fids = FidDecoder.build(fid);
+                System.out.println(fids);
             } catch(Exception e){
                 e.printStackTrace();
             }

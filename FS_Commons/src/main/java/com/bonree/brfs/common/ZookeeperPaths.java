@@ -1,5 +1,8 @@
 package com.bonree.brfs.common;
 
+import java.util.Objects;
+
+import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +49,7 @@ public class ZookeeperPaths {
 
     private final String clusterName;
 
-    private final String zkHosts;
+    private final CuratorFramework zkClient;
 
     private String baseClusterName;
 
@@ -69,10 +72,10 @@ public class ZookeeperPaths {
     private String baseResourcesPath;
 
     private String baseRocksDBPath;
-
-    private ZookeeperPaths(final String clusterName, final String zkHosts) {
+    
+    private ZookeeperPaths(final String clusterName, final CuratorFramework zkClient) {
         this.clusterName = clusterName;
-        this.zkHosts = zkHosts;
+        this.zkClient = zkClient;
     }
 
     public String getBaseServerIdSeqPath() {
@@ -166,7 +169,7 @@ public class ZookeeperPaths {
     public void createZkPath() {
         CuratorClient client = null;
         try {
-            client = CuratorClient.getClientInstance(zkHosts);
+            client = CuratorClient.wrapClient(zkClient);
             createPathIfNotExist(client, baseClusterName);
             createPathIfNotExist(client, baseLocksPath);
             createPathIfNotExist(client, baseSequencesPath);
@@ -207,18 +210,18 @@ public class ZookeeperPaths {
         setBaseRocksDBPath(baseClusterName + SEPARATOR + ROCKSDB);
     }
 
-    public static ZookeeperPaths create(final String clusterName, final String zkHosts) {
-        BrStringUtils.checkNotEmpty(clusterName, clusterName + " is empty!!!");
-        BrStringUtils.checkNotEmpty(zkHosts, zkHosts + " is empty!!!");
-        ZookeeperPaths zkPaths = new ZookeeperPaths(clusterName, zkHosts);
+    public static ZookeeperPaths create(final String clusterName, final CuratorFramework zkClient) {
+        BrStringUtils.checkNotEmpty(clusterName, "clusterName is empty!!!");
+        Objects.requireNonNull(zkClient, "zkClient is empty!!!");
+        ZookeeperPaths zkPaths = new ZookeeperPaths(clusterName, zkClient);
         zkPaths.createPath();
         zkPaths.createZkPath();
         return zkPaths;
     }
 
-    public static ZookeeperPaths getBasePath(final String clusterName, final String zkHosts) {
+    public static ZookeeperPaths getBasePath(final String clusterName,final CuratorFramework zkClient) {
         BrStringUtils.checkNotEmpty(clusterName, clusterName + " is empty!!!");
-        ZookeeperPaths zkPaths = new ZookeeperPaths(clusterName, zkHosts);
+        ZookeeperPaths zkPaths = new ZookeeperPaths(clusterName, zkClient);
         zkPaths.createPath();
         return zkPaths;
     }

@@ -14,9 +14,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.google.common.base.Supplier;
@@ -40,9 +43,10 @@ public class TimeExchangeEventEmitter implements Closeable {
 				}
 			});
 	
-	public TimeExchangeEventEmitter(int threadNum) {
+	@Inject
+	public TimeExchangeEventEmitter() {
 		this.timer = Executors.newSingleThreadScheduledExecutor();
-		this.eventExecutor = Executors.newFixedThreadPool(threadNum, new PooledThreadFactory("time_event_runner"));
+		this.eventExecutor = Executors.newFixedThreadPool(2, new PooledThreadFactory("time_event_runner"));
 	}
 	
 	public long getStartTime(String durationExpression) {
@@ -54,6 +58,7 @@ public class TimeExchangeEventEmitter implements Closeable {
 	}
 
 	@Override
+	@LifecycleStop
 	public void close() {
 		clearDurations();
 		

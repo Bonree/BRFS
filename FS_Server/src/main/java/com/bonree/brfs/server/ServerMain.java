@@ -46,7 +46,9 @@ public class ServerMain {
             CuratorClient client = CuratorClient.getClientInstance(zkAddresses);
 
             CuratorCacheFactory.init(zkAddresses);
-            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME), zkAddresses);
+            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(
+                    Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME),
+                    client.getInnerClient());
             
             SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), zookeeperPaths.getBaseLocksPath(), client.getInnerClient());
             UserModel model = authentication.getUser("root");
@@ -58,7 +60,7 @@ public class ServerMain {
             ServerIDManager idManager = new ServerIDManager(client.getInnerClient(), zookeeperPaths);
             idManager.getFirstServerID();
 
-            StorageRegionManager snManager = new DefaultStorageRegionManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)), null);
+            StorageRegionManager snManager = new DefaultStorageRegionManager(client.getInnerClient(), zookeeperPaths, null);
             snManager.addStorageRegionStateListener(new StorageRegionStateListener() {
                 @Override
                 public void storageRegionAdded(StorageRegion node) {

@@ -7,13 +7,18 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.delivery.ProducerClient;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.supervisor.WriteMetric;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.disknode.client.WriteResult;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
@@ -30,6 +35,13 @@ public class DiskWriter implements Closeable {
 	
 	private FilePathMaker pathMaker;
 	
+	@Inject
+	public DiskWriter(DiskNodeConnectionPool connectionPool, FilePathMaker pathMaker) {
+	    this(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM),
+	            connectionPool,
+	            pathMaker);
+	}
+	
 	public DiskWriter(int workerNum, DiskNodeConnectionPool connectionPool, FilePathMaker pathMaker) {
 		this.writeWorkers = Executors.newFixedThreadPool(workerNum, new PooledThreadFactory("disk_write_worker"));
 		this.connectionPool = connectionPool;
@@ -45,6 +57,7 @@ public class DiskWriter implements Closeable {
 		}
 	}
 	
+	@LifecycleStop
 	@Override
 	public void close() {
 		writeWorkers.shutdown();
