@@ -7,6 +7,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
+import com.bonree.brfs.duplication.rocksdb.connection.http.HttpRegionNodeConnectionPool;
+import com.bonree.brfs.duplication.rocksdb.handler.EstablishSocketRequestHandler;
+import com.bonree.brfs.duplication.rocksdb.handler.PingRequestHandler;
+import com.bonree.brfs.duplication.rocksdb.handler.RocksDBWriteRequestHandler;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -289,6 +294,7 @@ public class BootStrap {
             /********************/
 
 //            RegionNodeConnectionPool regionNodeConnectionPool = new HttpRegionNodeConnectionPool(serviceManager);
+//            finalizer.add(regionNodeConnectionPool);
 
 //            String rocksDBPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
 //            RocksDBManager rocksDBManager = new DefaultRocksDBManager(rocksDBPath,
@@ -318,8 +324,9 @@ public class BootStrap {
 
 //            NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 //            pingRequestHandler.addMessageHandler("GET", new PingRequestHandler());
+//            pingRequestHandler.addMessageHandler("POST", new EstablishSocketRequestHandler());
 //            httpServer.addContextHandler(URI_PING_ROOT, pingRequestHandler);
-//
+
 //            NettyHttpRequestHandler rocksDBRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 //            rocksDBRequestHandler.addMessageHandler("POST", new RocksDBWriteRequestHandler(rocksDBManager));
 //            httpServer.addContextHandler(URI_ROCKSDB_ROOT, rocksDBRequestHandler);

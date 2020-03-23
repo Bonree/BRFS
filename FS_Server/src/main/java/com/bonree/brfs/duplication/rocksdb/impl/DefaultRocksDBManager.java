@@ -226,14 +226,16 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     private void writeToAnotherService(String columnFamily, byte[] key, byte[] value) throws Exception {
         List<Service> services = serviceManager.getServiceListByGroup(regionGroupName);
-        RegionNodeConnection connection = this.regionNodeConnectionPool.getConnection(regionGroupName, this.localServiceId);
-        if (connection == null || connection.getClient() == null) {
-            LOG.warn("region node connection/client is null! serviceId:{}", localServiceId);
-            return;
-        }
+        RegionNodeConnection connection;
 
         RocksDBDataUnit dataUnit = new RocksDBDataUnit(columnFamily, key, value);
         for (Service service : services) {
+            connection = this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());
+            if (connection == null || connection.getClient() == null) {
+                LOG.warn("region node connection/client is null! serviceId:{}", service.getServiceId());
+                continue;
+            }
+
             if (!localServiceId.equals(service.getServiceId())) {
                 connection.getClient().writeData(dataUnit);
             }

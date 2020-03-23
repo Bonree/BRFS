@@ -11,7 +11,6 @@ import com.google.common.collect.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -27,7 +26,7 @@ import java.util.function.Consumer;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description:
  ******************************************************************************/
-public class HttpRegionNodeConnectionPool implements RegionNodeConnectionPool, Closeable {
+public class HttpRegionNodeConnectionPool implements RegionNodeConnectionPool {
     private static final Logger LOG = LoggerFactory.getLogger(HttpRegionNodeConnectionPool.class);
 
     private static final int DEFAULT_CONNECTION_STATE_CHECK_INTERVAL = 5;

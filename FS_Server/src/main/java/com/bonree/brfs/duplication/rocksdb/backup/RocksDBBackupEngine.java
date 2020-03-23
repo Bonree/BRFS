@@ -2,6 +2,7 @@ package com.bonree.brfs.duplication.rocksdb.backup;
 
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.configuration.Configs;
@@ -40,19 +41,20 @@ public class RocksDBBackupEngine implements LifeCycle {
 
     private BackupableDBOptions backupableDBOptions;
     private BackupEngine backupEngine;
-    private String backupPath;
-    private long backupCycle;
 
     public RocksDBBackupEngine(CuratorFramework client, Service service, RocksDBManager rocksDBManager) {
         this.rocksDBManager = rocksDBManager;
         this.heartBeatManager = new BackupHeartBeatManager(client, service);
-        this.backupPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
-        this.backupCycle = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_CYCLE);
         this.executor = Executors.newScheduledThreadPool(1, new PooledThreadFactory("rocksdb_backup_executor"));
     }
 
     @Override
     public void start() throws Exception {
+
+        TimeWatcher watcher = new TimeWatcher();
+        String backupPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
+        long backupCycle = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_CYCLE);
+
         this.executor.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
@@ -62,17 +64,20 @@ public class RocksDBBackupEngine implements LifeCycle {
                 backupableDBOptions = new BackupableDBOptions(currBackupPath);
 
                 try {
+                    watcher.getElapsedTimeAndRefresh();
                     backupEngine = BackupEngine.open(Env.getDefault(), backupableDBOptions);
                     backupEngine.createNewBackup(rocksDBManager.getRocksDB());
+                    LOG.info("current backup cost time:{}, backup path:{}", watcher.getElapsedTimeAndRefresh(), currBackupPath);
+
                     heartBeatManager.updateBackupHeartBeat(prevTimeStamp);
                 } catch (RocksDBException e) {
                     LOG.error("generate backup engine err, path:{}", currBackupPath, e);
                 } finally {
-                    if (backupableDBOptions != null) {
-                        backupableDBOptions.close();
-                    }
                     if (backupEngine != null) {
                         backupEngine.close();
+                    }
+                    if (backupableDBOptions != null) {
+                        backupableDBOptions.close();
                     }
                 }
 
@@ -99,11 +104,11 @@ public class RocksDBBackupEngine implements LifeCycle {
 
     @Override
     public void stop() throws Exception {
-        if (backupableDBOptions != null) {
-            backupableDBOptions.close();
-        }
         if (backupEngine != null) {
             backupEngine.close();
+        }
+        if (backupableDBOptions != null) {
+            backupableDBOptions.close();
         }
         this.executor.shutdown();
     }
