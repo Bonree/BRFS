@@ -11,10 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.plugin;
+package com.bonree.brfs;
 
-import com.google.inject.Module;
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
+import org.junit.Test;
 
-public interface BrfsModule extends Module {
+public class UriTest {
+    
+    @Test
+    public void test() {
+        System.out.println(new JerseyUriBuilder().path("/").build());
+    }
 
 }

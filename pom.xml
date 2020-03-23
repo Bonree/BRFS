@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -12,7 +14,7 @@
 	<artifactId>BRFS</artifactId>
 	<version>1.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
-    <repositories>
+	<repositories>
 		<repository>
 			<id>nexus</id>
 			<name>nexus</name>
@@ -44,6 +46,8 @@
 		<module>FS_Proto</module>
 		<module>FS_Server</module>
 		<module>FS_ResouceSchedule</module>
+		<module>brfs-http-api</module>
+		<module>brfs-http-netty</module>
 	</modules>
 
 	<name>${project.artifactId}</name>
@@ -240,7 +244,7 @@
 		<developer>
 			<id>bonree.com/brfs</id>
 			<name>The BRFS Project Contributors</name>
-			<email></email>
+			<email />
 			<url>http://bonree.com/brfs</url>
 			<organization>The BRFS Project</organization>
 			<organizationUrl>http://bonree.com/brfs</organizationUrl>

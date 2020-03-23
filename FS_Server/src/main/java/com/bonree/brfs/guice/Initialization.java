@@ -16,8 +16,9 @@ package com.bonree.brfs.guice;
 import com.bonree.brfs.common.guice.ConfigModule;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
+import com.bonree.brfs.common.plugin.BrfsModule;
 import com.bonree.brfs.common.zookeeper.curator.CuratorModule;
-import com.bonree.brfs.plugin.BrfsModule;
+import com.bonree.brfs.jaxrs.JaxrsModule;
 import com.bonree.brfs.plugin.PluginConfig;
 import com.bonree.brfs.plugin.PluginInitializer;
 import com.google.common.collect.ImmutableList;
@@ -40,7 +41,7 @@ public class Initialization {
 
     public static Injector makeInjectorWithModules(final Injector baseInjector, Iterable<? extends Module> modules) {
         ImmutableList.Builder<Module> defaultModules = ImmutableList.<Module>builder()
-//        .add(new JaxrsModule())
+        .add(new JaxrsModule())
         .add(new LifecycleModule())
         .add(new CuratorModule())
         .add(baseInjector.getInstance(InitModule.class));
