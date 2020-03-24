@@ -45,7 +45,7 @@ public class ServerMain {
             CuratorClient leaderClient = CuratorClient.getClientInstance(zkAddresses, 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(zkAddresses);
 
-            CuratorCacheFactory.init(zkAddresses);
+            CuratorCacheFactory.init(client.getInnerClient());
             ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(
                     Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME),
                     client.getInnerClient());
