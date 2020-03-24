@@ -1,0 +1,7 @@
+{
+  "id": 10,
+  "diskNodeIds": {
+    "10": {"path": "D:/","dev": "abc","total": 10},
+    "11": {"path": "C:/","dev": "abc","total": 10},
+  }
+}

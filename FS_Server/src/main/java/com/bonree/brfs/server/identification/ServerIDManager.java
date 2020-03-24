@@ -153,7 +153,7 @@ public class ServerIDManager {
 		}
     }
 
-    /** 概述：获取本服务的1级serverID
+    /** 概述：获取本服务的1级serverID todo 获取磁盘id
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
@@ -162,6 +162,7 @@ public class ServerIDManager {
     }
 
     /** 概述：获取本服务的某个SN的2级serverID
+     * todo 影响范围比较大，需要指定当前的磁盘节点
      * @param storageIndex
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
