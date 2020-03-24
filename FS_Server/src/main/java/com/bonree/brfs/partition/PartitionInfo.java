@@ -16,23 +16,25 @@ public class PartitionInfo {
     // 磁盘分区的服务组
     private String partitionGroup;
     // 磁盘分区的id
-    private String nodeId;
+    private String partitionId;
     // 磁盘分区的总大小
     private double totalSize;
     // 磁盘分区的剩余大小
     private double freeSize;
     // 磁盘节点分区的注册时间
     private long registerTime;
+    // 版本信息
+    private int version=1;
 
     public PartitionInfo(double freeSize) {
         this.freeSize = freeSize;
     }
 
-    public PartitionInfo(String serviceGroup, String serviceId, String partitionGroup, String nodeId, double totalSize, double freeSize, long registerTime) {
+    public PartitionInfo(String serviceGroup, String serviceId, String partitionGroup, String partitionId, double totalSize, double freeSize, long registerTime) {
         this.serviceGroup = serviceGroup;
         this.serviceId = serviceId;
         this.partitionGroup = partitionGroup;
-        this.nodeId = nodeId;
+        this.partitionId = partitionId;
         this.totalSize = totalSize;
         this.freeSize = freeSize;
         this.registerTime = registerTime;
@@ -62,12 +64,12 @@ public class PartitionInfo {
         this.partitionGroup = partitionGroup;
     }
 
-    public String getNodeId() {
-        return nodeId;
+    public String getPartitionId() {
+        return partitionId;
     }
 
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
+    public void setPartitionId(String partitionId) {
+        this.partitionId = partitionId;
     }
 
     public double getTotalSize() {
@@ -94,15 +96,24 @@ public class PartitionInfo {
         this.registerTime = registerTime;
     }
 
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         return  builder.append("{serviceGroup='" ).append(serviceGroup )
                 .append("', serviceId='" ).append(serviceId )
                 .append("', partitionGroup='" ).append(partitionGroup )
-                .append("', nodeId='" ).append(nodeId )
+                .append("', nodeId='" ).append(partitionId)
                 .append("', totalSize=" ).append(totalSize)
                 .append(", freeSize=" ).append(freeSize)
-                .append(", registerTime=" ).append(registerTime).append("}").toString();
+                .append(", registerTime=" ).append(registerTime)
+                .append(",version=").append(version).append("}").toString();
     }
 }
