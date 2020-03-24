@@ -1,6 +1,7 @@
 package com.bonree.brfs.configuration.units;
 
 import com.bonree.brfs.configuration.ConfigUnit;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -14,6 +15,9 @@ public class RocksDBConfigs {
 
     private RocksDBConfigs() {
     }
+
+    public static final ConfigUnit<Boolean> ROCKSDB_SWITCH =
+            ConfigUnit.ofBoolean("rocksdb.switch", true);
 
     public static final ConfigUnit<String> ROCKSDB_STORAGE_PATH =
             ConfigUnit.ofString("rocksdb.storage.path", "/tmp/rocksdb");
