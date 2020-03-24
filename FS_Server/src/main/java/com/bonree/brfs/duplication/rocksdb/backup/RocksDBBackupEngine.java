@@ -51,9 +51,15 @@ public class RocksDBBackupEngine implements LifeCycle {
     @Override
     public void start() throws Exception {
 
+        LOG.info("start rocksdb backup engine...");
         TimeWatcher watcher = new TimeWatcher();
         String backupPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
         long backupCycle = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_CYCLE);
+
+        File file = new File(backupPath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
 
         this.executor.scheduleWithFixedDelay(new Runnable() {
             @Override

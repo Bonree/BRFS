@@ -5,6 +5,7 @@ import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
 import com.bonree.brfs.duplication.rocksdb.WriteStatus;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
@@ -20,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@ChannelHandler.Sharable
 public class RocksDBHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocksDBHandler.class);
