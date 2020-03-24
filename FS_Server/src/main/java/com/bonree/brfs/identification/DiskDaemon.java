@@ -1,5 +1,7 @@
 package com.bonree.brfs.identification;
 
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.partition.PartitionInfoRegister;
 import com.bonree.brfs.server.identification.LevelServerIDGen;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -25,9 +27,17 @@ public class DiskDaemon {
 	 * id自增序列
 	 */
     private LevelServerIDGen diskNodeServerId;
+	/**
+	 * 磁盘节点更新work
+	 */
+	private PartitionInfoRegister worker;
+	/**
+	 * 本地
+	 */
+	private Service localService;
 
 	/**
-	 * 服务内部文件，存储ben
+	 * 服务内部文件，存储本地磁盘信息，此配置文件为基准
 	 */
 	private String diskNodeIDFile;
 
@@ -40,7 +50,7 @@ public class DiskDaemon {
         this.diskNodeZKPath = diskNodeZKPath;
         this.diskNodeIDFile = diskNodeIDFile;
         diskNodeServerId = new DiskNodeIDImpl(client, seqZkPath);
-        initOrLoadServerID();
+
     }
 
     /** 概述：加载一级ServerID
@@ -49,27 +59,27 @@ public class DiskDaemon {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public String initOrLoadServerID() {
-    	String firstServerID = null;
+    public String initDiskNodeID(String diskNodePath) {
+    	String diskNodeId = null;
     	
     	File idFile = new File(diskNodeIDFile);
     	if(idFile.exists()) {
     		try {
-    			firstServerID = Files.asCharSource(idFile, Charsets.UTF_8).readFirstLine();
+    			diskNodeId = Files.asCharSource(idFile, Charsets.UTF_8).readFirstLine();
 			} catch (IOException e) {
 				LOG.error("read server id file[{}] error", idFile.getAbsolutePath(), e);
 			}
     		
-    		if(firstServerID == null) {
+    		if(diskNodeId == null) {
     			throw new RuntimeException("can not load server id from local file[" + idFile.getAbsolutePath() + "]");
     		}
     		
-    		LOG.info("load server id from local file : {}", firstServerID);
-    		return firstServerID;
+    		LOG.info("load server id from local file : {}", diskNodeId);
+    		return diskNodeId;
     	}
     	
-    	firstServerID = diskNodeServerId.genLevelID();
-    	if(firstServerID == null) {
+    	diskNodeId = diskNodeServerId.genLevelID();
+    	if(diskNodeId == null) {
 			throw new RuntimeException("can not get server id[" + idFile.getAbsolutePath() + "]");
 		}
 		
@@ -77,16 +87,16 @@ public class DiskDaemon {
 			client.create()
 			.creatingParentContainersIfNeeded()
 			.withMode(CreateMode.PERSISTENT)
-			.forPath(ZKPaths.makePath(diskNodeZKPath, firstServerID),"HelloWorld".getBytes());
+			.forPath(ZKPaths.makePath(diskNodeZKPath, diskNodeId),"HelloWorld".getBytes());
 			
 			Files.createParentDirs(idFile);
-			Files.asCharSink(idFile, Charsets.UTF_8).write(firstServerID);
+			Files.asCharSink(idFile, Charsets.UTF_8).write(diskNodeId);
 		} catch (Exception e) {
 			LOG.error("can not persist server id[{}]", idFile.getAbsolutePath(), e);
 			
 			throw new RuntimeException("can not persist server id", e);
 		}
 		
-		return firstServerID;
+		return diskNodeId;
     }
 }
