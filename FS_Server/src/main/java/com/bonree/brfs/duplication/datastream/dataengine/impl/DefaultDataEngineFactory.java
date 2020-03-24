@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.datastream.dataengine.impl;
 
+import javax.inject.Inject;
+
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngine;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplier;
@@ -13,6 +15,7 @@ public class DefaultDataEngineFactory implements DataEngineFactory {
 	private FileObjectSupplierFactory fileSupplierFactory;
 	private DiskWriter diskWriter;
 	
+	@Inject
 	public DefaultDataEngineFactory(DataPoolFactory dataPoolFactory,
 			FileObjectSupplierFactory fileSupplierFactory,
 			DiskWriter diskWriter) {

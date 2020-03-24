@@ -34,6 +34,11 @@ public class PluginInitializer {
 
     public static <T> Set<T> loadPlugins(Class<T> serviceCls, PluginConfig config) {
         Path pluginDir = config.getPluginDir();
+        if(!Files.exists(pluginDir)) {
+            // TODO should throw a exception
+            return ImmutableSet.of();
+        }
+        
         if(!Files.isDirectory(pluginDir)) {
             throw new IllegalStateException(StringUtils.format("configured plugin root dir[%s] should be directory", pluginDir));
         }

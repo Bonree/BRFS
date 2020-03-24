@@ -7,11 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.connection.http.HttpRegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.handler.EstablishSocketRequestHandler;
-import com.bonree.brfs.duplication.rocksdb.handler.PingRequestHandler;
-import com.bonree.brfs.duplication.rocksdb.handler.RocksDBWriteRequestHandler;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -101,7 +96,9 @@ public class BootStrap {
 
         try {
             // 初始化email发送配置
+            /** Module Managed **/
             EmailPool.getInstance();
+            /********************/
             
             /** Module Managed **/
             String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
@@ -116,7 +113,9 @@ public class BootStrap {
             finalizer.add(client);
             /********************/
 
+            /** Module Managed **/
             CuratorCacheFactory.init(zkAddresses);
+            /********************/
 
             /** Module Managed **/
             String clusterName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME);
@@ -125,7 +124,8 @@ public class BootStrap {
             /********************/
 
             /** Module Managed **/
-            SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(),zookeeperPaths.getBaseLocksPath(), client);
+            SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseLocksPath(), client);
+            simpleAuthentication.init(zookeeperPaths.getBaseUserPath());
             UserModel model = simpleAuthentication.getUser("root");
             if (model == null) {
                 LOG.error("please init server!!!");
@@ -294,7 +294,6 @@ public class BootStrap {
             /********************/
 
 //            RegionNodeConnectionPool regionNodeConnectionPool = new HttpRegionNodeConnectionPool(serviceManager);
-//            finalizer.add(regionNodeConnectionPool);
 
 //            String rocksDBPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
 //            RocksDBManager rocksDBManager = new DefaultRocksDBManager(rocksDBPath,
@@ -324,9 +323,8 @@ public class BootStrap {
 
 //            NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 //            pingRequestHandler.addMessageHandler("GET", new PingRequestHandler());
-//            pingRequestHandler.addMessageHandler("POST", new EstablishSocketRequestHandler());
 //            httpServer.addContextHandler(URI_PING_ROOT, pingRequestHandler);
-
+//
 //            NettyHttpRequestHandler rocksDBRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
 //            rocksDBRequestHandler.addMessageHandler("POST", new RocksDBWriteRequestHandler(rocksDBManager));
 //            httpServer.addContextHandler(URI_ROCKSDB_ROOT, rocksDBRequestHandler);
