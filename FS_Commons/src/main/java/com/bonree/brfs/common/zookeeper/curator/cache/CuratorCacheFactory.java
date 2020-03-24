@@ -1,5 +1,8 @@
 package com.bonree.brfs.common.zookeeper.curator.cache;
 
+import javax.inject.Inject;
+
+import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,11 +28,10 @@ public class CuratorCacheFactory {
     private static volatile CuratorPathCache pathCache = null;
 
     private static CuratorClient client = null;
-
-    public synchronized static void init(String zkHosts) {
-        if (client == null) {
-            client = CuratorClient.getClientInstance(zkHosts);
-        }
+    
+    @Inject
+    public static void init(CuratorFramework framework) {
+        client = CuratorClient.wrapClient(framework);
     }
 
     public static CuratorTreeCache getTreeCache() {

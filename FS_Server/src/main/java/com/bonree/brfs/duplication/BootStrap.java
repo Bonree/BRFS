@@ -114,7 +114,7 @@ public class BootStrap {
             /********************/
 
             /** Module Managed **/
-            CuratorCacheFactory.init(zkAddresses);
+            CuratorCacheFactory.init(client);
             /********************/
 
             /** Module Managed **/

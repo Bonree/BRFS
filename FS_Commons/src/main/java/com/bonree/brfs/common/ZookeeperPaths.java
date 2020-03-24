@@ -167,23 +167,18 @@ public class ZookeeperPaths {
     }
 
     public void createZkPath() {
-        CuratorClient client = null;
-        try {
-            client = CuratorClient.wrapClient(zkClient);
-            createPathIfNotExist(client, baseClusterName);
-            createPathIfNotExist(client, baseLocksPath);
-            createPathIfNotExist(client, baseSequencesPath);
-            createPathIfNotExist(client, baseServerIdSeqPath);
-            createPathIfNotExist(client, baseServerIdPath);
-            createPathIfNotExist(client, baseRebalancePath);
-            createPathIfNotExist(client, baseRoutePath);
-            createPathIfNotExist(client, baseUserPath);
-            createPathIfNotExist(client, baseTaskPath);
-            createPathIfNotExist(client, baseResourcesPath);
-            createPathIfNotExist(client, baseRocksDBPath);
-        } finally {
-            client.close();
-        }
+        CuratorClient client = CuratorClient.wrapClient(zkClient);
+        createPathIfNotExist(client, baseClusterName);
+        createPathIfNotExist(client, baseLocksPath);
+        createPathIfNotExist(client, baseSequencesPath);
+        createPathIfNotExist(client, baseServerIdSeqPath);
+        createPathIfNotExist(client, baseServerIdPath);
+        createPathIfNotExist(client, baseRebalancePath);
+        createPathIfNotExist(client, baseRoutePath);
+        createPathIfNotExist(client, baseUserPath);
+        createPathIfNotExist(client, baseTaskPath);
+        createPathIfNotExist(client, baseResourcesPath);
+        createPathIfNotExist(client, baseRocksDBPath);
     }
 
     public void createPathIfNotExist(CuratorClient client, String path) {
