@@ -82,18 +82,18 @@ public class RocksDBRestoreEngine {
             }
 
             String tmpFileName = UUID.randomUUID().toString() + ".zip";
-            boolean isOk = connection.getClient().establishSocket(tmpFileName, backupPath, this.service.getHost(), this.service.getPort() + 30, missedBackupFiles);
-            if (isOk) {
-                try {
-                    fileServer = new SimpleFileServer(this.service.getPort() + 30, rocksDBPath, 1);
-                    fileServer.start();
-                } catch (IOException e) {
-                    LOG.error("simple file server err", e);
-                }
+            try {
+                fileServer = new SimpleFileServer(this.service.getPort() + 30, rocksDBPath, 1);
+                fileServer.start();
+            } catch (IOException e) {
+                LOG.error("simple file server err", e);
             }
 
+            boolean isOk = connection.getClient().establishSocket(tmpFileName, backupPath, this.service.getHost(), this.service.getPort() + 30, missedBackupFiles);
             String tmpFilePath = backupPath + "/" + tmpFileName;
-            ZipUtils.unZip(tmpFilePath, backupPath);
+            if (isOk) {
+                ZipUtils.unZip(tmpFilePath, backupPath);
+            }
             if (new File(tmpFilePath).delete()) {
                 LOG.info("server delete tmp transfer file :{}", tmpFilePath);
             }
