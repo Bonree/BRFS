@@ -287,7 +287,7 @@
 ##############RocksDB Config###################
 ###############################################
 #rocksdb开关
-rocksdb.switch=true
+rocksdb.switch=false
 # rocksdb存储自定义文件名和FID的磁盘路径
 rocksdb.storage.path = /tmp/rocksdb
 # rocksdb的数据备份磁盘路径
