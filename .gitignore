@@ -8,7 +8,10 @@
 .project
 /brfs/*
 /brfs
-*pom.xml
+*/.classpath
+*/.project
+*/.settings/
+*/target/
 FS_Server/.classpath
 FS_Server/.project
 FS_Server/.settings/
