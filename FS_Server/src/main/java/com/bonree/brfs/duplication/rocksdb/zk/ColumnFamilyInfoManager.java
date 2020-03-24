@@ -48,11 +48,11 @@ public class ColumnFamilyInfoManager {
                 });
                 cfMap.put(columnFamily, ttl);
                 this.client.setData().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, JsonUtils.toJsonBytes(cfMap));
-                LOG.info("update column family info complete:{}", cfMap);
+                LOG.info("update zk column family info complete:{}", cfMap);
             }
 
         } catch (Exception e) {
-            LOG.error("init or add column family info err, cf:{}, ttl:{}", columnFamily, ttl, e);
+            LOG.error("init or add zk column family info err, cf:{}, ttl:{}", columnFamily, ttl, e);
         }
     }
 
@@ -67,9 +67,9 @@ public class ColumnFamilyInfoManager {
             });
             cfMap.remove(columnFamily);
             this.client.setData().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, JsonUtils.toJsonBytes(cfMap));
-            LOG.info("delete column family info complete:{}", cfMap);
+            LOG.info("delete zk column family info complete: {}", cfMap);
         } catch (Exception e) {
-            LOG.error("delete column family info err", e);
+            LOG.error("delete zk column family info err", e);
         }
 
     }

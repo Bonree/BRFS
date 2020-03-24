@@ -228,7 +228,11 @@ public class DefaultRocksDBManager implements RocksDBManager {
         List<Service> services = serviceManager.getServiceListByGroup(regionGroupName);
         RegionNodeConnection connection;
 
-        RocksDBDataUnit dataUnit = new RocksDBDataUnit(columnFamily, key, value);
+        RocksDBDataUnit dataUnit = new RocksDBDataUnit();
+        dataUnit.setColumnFamily(columnFamily);
+        dataUnit.setKey(key);
+        dataUnit.setValue(value);
+
         for (Service service : services) {
             connection = this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());
             if (connection == null || connection.getClient() == null) {
@@ -254,6 +258,11 @@ public class DefaultRocksDBManager implements RocksDBManager {
         }
 
         try {
+            if (this.CF_HANDLES.containsKey(columnFamily)) {
+                LOG.warn("column family [{}] already exists!", columnFamily);
+                return;
+            }
+
             ColumnFamilyHandle handle = this.DB.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), COLUMN_FAMILY_OPTIONS), ttl);
             this.CF_HANDLES.put(columnFamily, handle);
             LOG.info("create column family complete, name:{}, ttl:{}", columnFamily, ttl);
@@ -274,7 +283,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
         try {
             if (!this.CF_HANDLES.containsKey(columnFamily)) {
-                LOG.warn("column family not exists!");
+                LOG.warn("column family [{}] not exists!", columnFamily);
                 return;
             }
 
@@ -346,6 +355,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             }
 
             for (String d2 : difference2) {
+                this.DB.dropColumnFamily(this.CF_HANDLES.get(d2));
                 this.CF_HANDLES.remove(d2);
             }
 

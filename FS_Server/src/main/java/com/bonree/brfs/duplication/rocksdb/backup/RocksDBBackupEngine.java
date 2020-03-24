@@ -67,6 +67,11 @@ public class RocksDBBackupEngine implements LifeCycle {
                 long prevTimeStamp = TimeUtils.prevTimeStamp(System.currentTimeMillis(), backupCycle);
 
                 String currBackupPath = backupPath + "/" + prevTimeStamp;
+                File backupFile = new File(backupPath);
+                if (backupFile.mkdir()) {
+                    LOG.info("create backup dir: {}, prepare backup task", backupPath);
+                }
+
                 backupableDBOptions = new BackupableDBOptions(currBackupPath);
 
                 try {
