@@ -45,6 +45,8 @@ public class SimpleAuthentication implements UserOperation {
 
     private CuratorPathCache pathCache;
     private UserCacheListener userListener;
+    
+    private final CuratorFramework client;
 
     class UserCacheListener extends AbstractPathChildrenCacheListener {
     	private String userLockPath;
@@ -103,10 +105,14 @@ public class SimpleAuthentication implements UserOperation {
         }
     }
 
-    private SimpleAuthentication(String basePath,String lockPath, CuratorFramework client) {
-        String userPath = BrStringUtils.trimBasePath(basePath);
+    private SimpleAuthentication(String lockPath, CuratorFramework client) {
+        this.client = client;
         this.userLockPath = ZKPaths.makePath(BrStringUtils.trimBasePath(lockPath), USER_LOCK);
         userCache = new ConcurrentHashMap<String, UserModel>();
+    }
+    
+    public void init(String basePath) {
+        String userPath = BrStringUtils.trimBasePath(basePath);
         userOpt = new ZookeeperUserOperation(client, userPath);
         List<UserModel> userList = userOpt.getUserList();
         for (UserModel user : userList) {
@@ -125,12 +131,12 @@ public class SimpleAuthentication implements UserOperation {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public static SimpleAuthentication getAuthInstance(String basePath,String lockPath, CuratorFramework client) {
+    public static SimpleAuthentication getAuthInstance(String lockPath, CuratorFramework client) {
         LOG.info("init SimpleAuthentication...");
         if (auth == null) {
             synchronized (SimpleAuthentication.class) {
                 if (null == auth) {
-                    auth = new SimpleAuthentication(basePath, lockPath, client);
+                    auth = new SimpleAuthentication(lockPath, client);
                 }
 
             }

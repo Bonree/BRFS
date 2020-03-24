@@ -18,6 +18,7 @@ import java.util.List;
 
 import javax.inject.Singleton;
 
+import org.apache.curator.ensemble.fixed.FixedEnsembleProvider;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.CuratorFrameworkFactory.Builder;
@@ -68,6 +69,7 @@ public class CuratorModule implements Module {
         }
         
         final CuratorFramework framework = builder
+                .ensembleProvider(new FixedEnsembleProvider(config.getAddresses()))
                 .sessionTimeoutMs(config.getZkSessionTimeoutMs())
                 .retryPolicy(new BoundedExponentialBackoffRetry(BASE_SLEEP_TIME_MS, MAX_SLEEP_TIME_MS, MAX_RETRIES))
                 .aclProvider(config.isEnableAcl() ? new SecuredACLProvider() : new DefaultACLProvider())
@@ -88,7 +90,7 @@ public class CuratorModule implements Module {
             @Override
             public void start() throws Exception {
                 log.info("start curator framework");
-                framework.start();
+                //framework.start();
             }
             
             @Override
@@ -97,6 +99,15 @@ public class CuratorModule implements Module {
                 framework.close();
             }
         });
+        
+        try {
+            // the design of first release requires that connection to
+            // zookeeper should be established before building other instances
+            framework.start();
+            framework.blockUntilConnected();
+        } catch (InterruptedException e1) {
+            throw new RuntimeException(e1);
+        }
         
         return framework;
     }

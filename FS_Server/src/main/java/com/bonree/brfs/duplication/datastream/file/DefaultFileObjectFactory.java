@@ -2,6 +2,8 @@ package com.bonree.brfs.duplication.datastream.file;
 
 import java.time.Duration;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +28,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 	private ServerIDManager idManager;
 	private DiskNodeConnectionPool connectionPool;
 	
+	@Inject
 	public DefaultFileObjectFactory(Service service,
 			FileNodeStorer fileNodeStorer,
 			DuplicateNodeSelector duplicationNodeSelector,

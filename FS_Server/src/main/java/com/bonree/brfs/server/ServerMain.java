@@ -50,7 +50,8 @@ public class ServerMain {
                     Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME),
                     client.getInnerClient());
             
-            SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(), zookeeperPaths.getBaseLocksPath(), client.getInnerClient());
+            SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseLocksPath(), client.getInnerClient());
+            authentication.init(zookeeperPaths.getBaseUserPath());
             UserModel model = authentication.getUser("root");
             if(model == null) {
                 LOG.error("please init server!!!");

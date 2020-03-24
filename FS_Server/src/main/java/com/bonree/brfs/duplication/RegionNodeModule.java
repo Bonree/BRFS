@@ -129,7 +129,6 @@ public class RegionNodeModule implements Module {
     @Singleton
     public SimpleAuthentication getSimpleAuthentication(CuratorFramework zkClient, ZookeeperPaths paths, Lifecycle lifecycle) {
         SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(
-                paths.getBaseUserPath(),
                 paths.getBaseLocksPath(),
                 zkClient);
         

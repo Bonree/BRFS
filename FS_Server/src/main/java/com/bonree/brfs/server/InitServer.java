@@ -36,7 +36,8 @@ public class InitServer {
                 }
             }
             
-            SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseUserPath(),zookeeperPaths.getBaseLocksPath(), client.getInnerClient());
+            SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseLocksPath(), client.getInnerClient());
+            authentication.init(zookeeperPaths.getBaseUserPath());
             UserModel user = new UserModel("root", passwd, (byte)0);
             authentication.createUser(user);
             System.out.println("init server successfully!!");
