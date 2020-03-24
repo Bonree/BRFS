@@ -67,9 +67,9 @@ public class RocksDBBackupEngine implements LifeCycle {
                 long prevTimeStamp = TimeUtils.prevTimeStamp(System.currentTimeMillis(), backupCycle);
 
                 String currBackupPath = backupPath + "/" + prevTimeStamp;
-                File backupFile = new File(backupPath);
+                File backupFile = new File(currBackupPath);
                 if (backupFile.mkdir()) {
-                    LOG.info("create backup dir: {}, prepare backup task", backupPath);
+                    LOG.info("create backup dir: {}, prepare backup task", currBackupPath);
                 }
 
                 backupableDBOptions = new BackupableDBOptions(currBackupPath);
@@ -104,13 +104,25 @@ public class RocksDBBackupEngine implements LifeCycle {
         for (File f : Objects.requireNonNull(file.listFiles())) {
             long tmpTime = Long.parseLong(f.getName());
             if (tmpTime < prevTimeStamp) {
-                if (f.delete()) {
-                    LOG.info("clear expired backup file:{}", f.getAbsolutePath());
-                } else {
-                    LOG.warn("delete expired backup file failed:{}", f.getAbsolutePath());
-                }
+                deleteFile(f);
+                LOG.info("clear expired backup file:{}", f.getAbsolutePath());
             }
         }
+    }
+
+    public void deleteFile(File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
+        File[] files = file.listFiles();
+        for (File f : files) {
+            if (f.isDirectory()) {
+                deleteFile(f);
+            } else {
+                f.delete();
+            }
+        }
+        file.delete();
     }
 
     @Override

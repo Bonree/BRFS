@@ -359,8 +359,8 @@ public class BootStrap {
                 backupEngine.start();
                 finalizer.add(backupEngine);
 
-                RocksDBRestoreEngine restoreEngine = new RocksDBRestoreEngine(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), serviceManager, service, regionNodeConnectionPool);
-                restoreEngine.restore();
+//                RocksDBRestoreEngine restoreEngine = new RocksDBRestoreEngine(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), serviceManager, service, regionNodeConnectionPool);
+//                restoreEngine.restore();
 
                 ColumnFamilyInfoListener listener = new ColumnFamilyInfoListener(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), rocksDBManager);
                 listener.start();
