@@ -53,11 +53,11 @@ public class RocksDBHandler extends SimpleChannelInboundHandler<FullHttpRequest>
         LOG.info("req params:{}", params);
         HttpResponseStatus status = null;
         String content = null;
-        if (reqUri.equals("write")) {
+        if (reqUri.startsWith("/write?")) {
             WriteStatus writeStatus = this.rocksDBManager.write(params.get("cf"), params.get("key").getBytes(), params.get("value").getBytes());
             status = writeStatus == WriteStatus.SUCCESS ? HttpResponseStatus.OK : HttpResponseStatus.INTERNAL_SERVER_ERROR;
             content = writeStatus == WriteStatus.SUCCESS ? "write success" : "write failed";
-        } else if (reqUri.equals("read")) {
+        } else if (reqUri.startsWith("/read?")) {
             byte[] result = this.rocksDBManager.read(params.get("cf"), params.get("key").getBytes());
             status = result != null ? HttpResponseStatus.OK : HttpResponseStatus.INTERNAL_SERVER_ERROR;
             content = result != null ? new String(result) : "null";

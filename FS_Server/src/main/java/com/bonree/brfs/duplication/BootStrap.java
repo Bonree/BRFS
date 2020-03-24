@@ -345,8 +345,9 @@ public class BootStrap {
                 restoreEngine.restore();
 
                 // 临时服务测试RocksDB读写
-                RocksDBTest rocksDBTest = new RocksDBTest();
-                rocksDBTest.startServer(new RocksDBHandler(rocksDBManager));
+                RocksDBTest rocksDBTest = new RocksDBTest(new RocksDBHandler(rocksDBManager));
+                rocksDBTest.start();
+                finalizer.add(rocksDBTest);
             }
 
             httpServer.start();
