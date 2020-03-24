@@ -1,6 +1,17 @@
 package com.bonree.brfs.partition;
 
 import com.bonree.brfs.common.process.LifeCycle;
+import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.identification.DiskNodeIDImpl;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.server.identification.LevelServerIDGen;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -11,6 +22,27 @@ import com.bonree.brfs.common.process.LifeCycle;
  ******************************************************************************/
 
 public class DiskDaemon implements LifeCycle {
+    /**
+     * 磁盘id生成器
+     */
+    private LevelServerIDGen idGen;
+    /**
+     * 路径对应id号
+     */
+    private Map<String,String> idPathMap;
+    /**
+     * 配置文件的目录
+     */
+    private List<String> dataDirs;
+    /**
+     * 有效的分区map
+     */
+    private Map<String,LocalPartitionInfo> vaildPartitionMap;
+
+    /**
+     *
+     * @throws Exception
+     */
     @Override
     public void start() throws Exception {
 
@@ -21,10 +53,5 @@ public class DiskDaemon implements LifeCycle {
 
     }
 
-    public String getPartitionPath(int storageRegionId,String secondId){
-        return null;
-    }
-    public String  getPartitionPath(String diskNodeId){
-        return null;
-    }
+
 }

@@ -26,8 +26,8 @@ public class PartitionInfo {
     // 版本信息
     private int version=1;
 
-    public PartitionInfo(double freeSize) {
-        this.freeSize = freeSize;
+    public PartitionInfo() {
+
     }
 
     public PartitionInfo(String serviceGroup, String serviceId, String partitionGroup, String partitionId, double totalSize, double freeSize, long registerTime) {

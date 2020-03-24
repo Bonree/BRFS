@@ -9,6 +9,7 @@ package com.bonree.brfs.partition.model;
  ******************************************************************************/
 
 public class LocalPartitionInfo {
+    private String partitionGroup;
     private String partitionId;
     private String devName;
     private String mountPoint;
@@ -24,6 +25,14 @@ public class LocalPartitionInfo {
         this.mountPoint = mountPoint;
         this.dataDir = dataDir;
         this.totalSize = totalSize;
+    }
+
+    public String getPartitionGroup() {
+        return partitionGroup;
+    }
+
+    public void setPartitionGroup(String partitionGroup) {
+        this.partitionGroup = partitionGroup;
     }
 
     public String getPartitionId() {
