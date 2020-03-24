@@ -38,7 +38,6 @@ public class DiskDaemonTest {
     }
     @Test
     public void initTest(){
-        DiskDaemon impl = new DiskDaemon(framework,ID_BAS_PATH,FILE_DIR+ File.separator+DISK_NODE_NAME,ID_SEQ_PATH);
     }
     @After
     public void closeAll(){
