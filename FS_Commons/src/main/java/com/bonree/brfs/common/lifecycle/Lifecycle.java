@@ -159,7 +159,7 @@ public class Lifecycle {
           }
           for (Map.Entry<Stage, ? extends List<LifeCycleObject>> e : lives.entrySet()) {
             currStage = e.getKey();
-            log.info("Starting lifecycle stage [%s]", currStage.name());
+            log.info("Starting lifecycle stage [{}]", currStage.name());
             for (LifeCycleObject obj : e.getValue()) {
               obj.start();
             }
@@ -182,7 +182,7 @@ public class Lifecycle {
             RuntimeException thrown = null;
             
             for(Stage stage : lives.navigableKeySet().descendingSet()) {
-                log.info("Stopping lifecycle stage [%s]", stage);
+                log.info("Stopping lifecycle stage [{}]", stage);
                 for(LifeCycleObject obj : Lists.reverse(lives.get(stage))) {
                     try {
                         obj.stop();
@@ -247,7 +247,7 @@ public class Lifecycle {
             
             for(Method m : obj.getClass().getMethods()) {
                 if(m.isAnnotationPresent(LifecycleStart.class)) {
-                    log.info("Invoking start method[%s] on object[%s].", m, obj);
+                    log.info("Invoking start method[{}] on object[{}].", m, obj);
                     m.invoke(obj);
                 }
             }
@@ -259,11 +259,11 @@ public class Lifecycle {
             
             for(Method m : obj.getClass().getMethods()) {
                 if(m.isAnnotationPresent(LifecycleStop.class)) {
-                    log.info("Invoking stop method[%s] on object[%s].", m, obj);
+                    log.info("Invoking stop method[{}] on object[{}].", m, obj);
                     try {
                         m.invoke(obj);
                     } catch (Exception e) {
-                        log.error(StringUtils.format("Exception occurred when closing object[{}]", obj), e);
+                        log.error(StringUtils.format("Exception occurred when closing object[%s]", obj), e);
                     }
                 }
             }

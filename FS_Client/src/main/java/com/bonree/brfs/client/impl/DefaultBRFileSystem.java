@@ -65,7 +65,7 @@ public class DefaultBRFileSystem implements BRFileSystem {
             throw new BRFSException("cluster is not exist!!!");
         }
         
-        this.serviceManager = new DefaultServiceManager(zkClient.usingNamespace(zkPaths.getBaseClusterName().substring(1)));
+        this.serviceManager = new DefaultServiceManager(zkClient, zkPaths);
         this.serviceManager.start();
         
         this.serviceSelectorManager = new ServiceSelectorManager(zkClient, zkPaths.getBaseClusterName().substring(1),

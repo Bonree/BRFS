@@ -46,7 +46,7 @@ public class Main {
                .withCommands(serverCommands);
         
         List<Class<? extends Runnable>> toolCommands = Arrays.asList(
-                // TODO to be added
+                UserInitCommand.class
                 );
         
         builder.withGroup("tools")

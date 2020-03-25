@@ -11,20 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.email;
+package com.bonree.brfs.disknode;
 
-import com.bonree.brfs.common.guice.JsonConfigProvider;
-import com.bonree.brfs.common.lifecycle.LifecycleModule;
-import com.google.inject.Binder;
-import com.google.inject.Module;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public class EmailModule implements Module {
+import com.google.inject.BindingAnnotation;
 
-    @Override
-    public void configure(Binder binder) {
-        JsonConfigProvider.bind(binder, "email", EmailConfig.class);
-        
-        LifecycleModule.register(binder, EmailPoolInitializer.class);
-    }
-    
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
+@BindingAnnotation
+public @interface DataRead {
+
 }

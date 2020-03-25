@@ -146,8 +146,8 @@ public class BootStrap {
             String localServiceId = UUID.randomUUID().toString();
             Service service = new Service(localServiceId,
                     regionGroupName,
-                    host, port);
-            ServiceManager serviceManager = new DefaultServiceManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
+            		host, port);
+            ServiceManager serviceManager = new DefaultServiceManager(client, zookeeperPaths);
             serviceManager.start();
 
             finalizer.add(serviceManager);
