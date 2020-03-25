@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.bonree.brfs.duplication.rocksdb.restore.RocksDBRestoreEngine;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -363,8 +364,8 @@ public class BootStrap {
                 backupEngine.start();
                 finalizer.add(backupEngine);
 
-//                RocksDBRestoreEngine restoreEngine = new RocksDBRestoreEngine(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), serviceManager, service, regionNodeConnectionPool);
-//                restoreEngine.restore();
+                RocksDBRestoreEngine restoreEngine = new RocksDBRestoreEngine(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), serviceManager, service, regionNodeConnectionPool);
+                restoreEngine.restore();
 
                 ColumnFamilyInfoListener listener = new ColumnFamilyInfoListener(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), rocksDBManager);
                 listener.start();

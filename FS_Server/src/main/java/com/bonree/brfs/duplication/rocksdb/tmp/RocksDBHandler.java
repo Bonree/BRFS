@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.rocksdb.tmp;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.bonree.brfs.common.net.http.netty.ResponseSender;
 import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
 import com.bonree.brfs.duplication.rocksdb.WriteStatus;
@@ -49,6 +51,10 @@ public class RocksDBHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             return;
         }
 
+        if (reqUri.equals("/favicon.ico")) {
+            return;
+        }
+
         Map<String, String> params = parseHttpReqParam(request);
         LOG.info("req params:{}", params);
         HttpResponseStatus status = null;
@@ -75,7 +81,10 @@ public class RocksDBHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             return;
         }
 
-        ByteBuf buf = Unpooled.copiedBuffer(content, CharsetUtil.UTF_8);
+        JSONObject json = new JSONObject();
+        json.put("code", status.code());
+        json.put("result", JSONArray.parseArray(content));
+        ByteBuf buf = Unpooled.copiedBuffer(json.toJSONString(), CharsetUtil.UTF_8);
 
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
