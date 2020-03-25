@@ -2,11 +2,6 @@ package com.bonree.brfs.schedulers.task.operation.impl;
 
 import java.util.Map;
 
-import com.bonree.brfs.email.EmailPool;
-import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
-import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
-import com.bonree.mail.worker.MailWorker;
-import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -26,6 +21,10 @@ import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.operation.QuartzOperationStateInterface;
+import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
+import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
+import com.bonree.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 
 public abstract class CycleJobWithZKTask implements QuartzOperationStateInterface {
 	private static final Logger LOG = LoggerFactory.getLogger("CycleJobWithZKTask");

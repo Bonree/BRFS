@@ -34,6 +34,7 @@ import com.bonree.brfs.disknode.server.tcp.handler.OpenFileMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.PingPongMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.WriteFileMessageHandler;
 
+@Deprecated
 public class DataNodeBootStrap implements LifeCycle {
 	private static final Logger LOG = LoggerFactory.getLogger(DataNodeBootStrap.class);
 	

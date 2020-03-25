@@ -1,11 +1,5 @@
 package com.bonree.brfs.schedulers.task.operation.impl;
 
-import com.bonree.brfs.email.EmailPool;
-import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
-import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
-import com.bonree.mail.worker.MailWorker;
-import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
@@ -15,8 +9,13 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.schedulers.task.operation.QuartzOperationStateInterface;
+import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
+import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
+import com.bonree.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 
 public abstract class QuartzOperationStateWithZKTask implements QuartzOperationStateInterface {
 	private static final Logger LOG = LoggerFactory.getLogger(QuartzOperationStateWithZKTask.class);

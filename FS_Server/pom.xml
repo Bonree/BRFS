@@ -20,6 +20,12 @@
 			<artifactId>brfs-http-api</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+		
+		<dependency>
+            <groupId>com.bonree.fs</groupId>
+            <artifactId>brfs-email</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
 
 		<dependency>
 			<groupId>com.bonree.fs</groupId>
@@ -67,10 +73,6 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.6</version>
 			<scope>tests</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.bonree</groupId>
-			<artifactId>MailUtil</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.rocksdb</groupId>
