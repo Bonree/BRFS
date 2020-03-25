@@ -1,7 +1,6 @@
 package com.bonree.brfs.common.net.http.data;
 
-
-import com.bonree.brfs.common.net.http.data.protocal.DataTransferProtos.FSPacketProto;
+import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
