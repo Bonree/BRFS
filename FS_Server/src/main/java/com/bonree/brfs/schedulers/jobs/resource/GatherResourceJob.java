@@ -1,15 +1,15 @@
 
 package com.bonree.brfs.schedulers.jobs.resource;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.ResourceConfigs;
-import com.bonree.brfs.email.EmailPool;
-import com.bonree.brfs.resourceschedule.model.*;
-import com.bonree.mail.worker.MailWorker;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -21,13 +21,22 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
+import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
+import com.bonree.brfs.resourceschedule.model.LimitServerResource;
+import com.bonree.brfs.resourceschedule.model.ResourceModel;
+import com.bonree.brfs.resourceschedule.model.StatServerModel;
+import com.bonree.brfs.resourceschedule.model.StateMetaServerModel;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
+import com.bonree.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.

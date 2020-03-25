@@ -4,12 +4,8 @@ package com.bonree.brfs.schedulers.jobs.system;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.bonree.brfs.email.EmailPool;
-import com.bonree.mail.worker.MailWorker;
-import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,9 +15,10 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
+import com.bonree.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 
 public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(ManagerMetaTaskJob.class);

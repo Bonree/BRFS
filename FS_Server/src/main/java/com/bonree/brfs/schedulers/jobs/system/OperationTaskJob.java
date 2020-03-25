@@ -3,9 +3,6 @@ package com.bonree.brfs.schedulers.jobs.system;
 import java.util.List;
 import java.util.Map;
 
-import com.bonree.brfs.email.EmailPool;
-import com.bonree.mail.worker.MailWorker;
-import com.bonree.mail.worker.ProgramInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -29,6 +26,8 @@ import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
+import com.bonree.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 
 public class OperationTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(OperationTaskJob.class);

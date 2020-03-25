@@ -7,18 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.bonree.brfs.configuration.units.*;
-import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
-import com.bonree.brfs.duplication.rocksdb.backup.RocksDBBackupEngine;
-import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.connection.http.HttpRegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.handler.PingRequestHandler;
-import com.bonree.brfs.duplication.rocksdb.handler.RocksDBWriteRequestHandler;
-import com.bonree.brfs.duplication.rocksdb.impl.DefaultRocksDBManager;
-import com.bonree.brfs.duplication.rocksdb.listener.ColumnFamilyInfoListener;
-import com.bonree.brfs.duplication.rocksdb.restore.RocksDBRestoreEngine;
-import com.bonree.brfs.duplication.rocksdb.tmp.RocksDBHandler;
-import com.bonree.brfs.duplication.rocksdb.tmp.RocksDBTest;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -44,6 +32,11 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
+import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
+import com.bonree.brfs.configuration.units.ResourceConfigs;
+import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.connection.tcp.TcpDiskNodeConnectionPool;
@@ -76,6 +69,16 @@ import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileCoordinatorPaths;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
+import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
+import com.bonree.brfs.duplication.rocksdb.backup.RocksDBBackupEngine;
+import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
+import com.bonree.brfs.duplication.rocksdb.connection.http.HttpRegionNodeConnectionPool;
+import com.bonree.brfs.duplication.rocksdb.handler.PingRequestHandler;
+import com.bonree.brfs.duplication.rocksdb.handler.RocksDBWriteRequestHandler;
+import com.bonree.brfs.duplication.rocksdb.impl.DefaultRocksDBManager;
+import com.bonree.brfs.duplication.rocksdb.listener.ColumnFamilyInfoListener;
+import com.bonree.brfs.duplication.rocksdb.tmp.RocksDBHandler;
+import com.bonree.brfs.duplication.rocksdb.tmp.RocksDBTest;
 import com.bonree.brfs.duplication.storageregion.StorageRegionIdBuilder;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.handler.CreateStorageRegionMessageHandler;
@@ -84,10 +87,11 @@ import com.bonree.brfs.duplication.storageregion.handler.OpenStorageRegionMessag
 import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
-import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.email.EmailPool;
 
+@Deprecated
 public class BootStrap {
     private static final Logger LOG = LoggerFactory.getLogger(BootStrap.class);
 

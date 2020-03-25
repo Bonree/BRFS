@@ -25,8 +25,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import com.bonree.brfs.email.EmailPool;
-import com.bonree.mail.worker.MailWorker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
@@ -61,6 +59,8 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.task.listener.ServerChangeListener;
 import com.bonree.brfs.rebalance.task.listener.TaskStatusListener;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

@@ -1,15 +1,20 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
-import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.email.EmailPool;
-import com.bonree.brfs.resourceschedule.model.LimitServerResource;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.resourceschedule.model.LimitServerResource;
+import com.bonree.brfs.resourceschedule.model.ResourceModel;
+import com.bonree.email.EmailPool;
 
 public class MachineResourceWriterSelectorTest{
     private static final Logger LOG = LoggerFactory.getLogger(MachineResourceWriterSelectorTest.class);

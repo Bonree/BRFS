@@ -3,7 +3,6 @@ package com.bonree.brfs.server;
 import java.io.Closeable;
 import java.io.IOException;
 
-import com.bonree.brfs.email.EmailPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,9 @@ import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.schedulers.InitTaskManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.email.EmailPool;
 
+@Deprecated
 public class ServerMain {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerMain.class);

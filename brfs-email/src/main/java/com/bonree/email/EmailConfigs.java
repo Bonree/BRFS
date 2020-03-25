@@ -1,4 +1,4 @@
-package com.bonree.brfs.configuration.units;
+package com.bonree.email;
 
 import com.bonree.brfs.configuration.ConfigUnit;
 
