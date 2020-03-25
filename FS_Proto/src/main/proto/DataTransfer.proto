@@ -1,5 +1,5 @@
 syntax = "proto2";
-option java_package = "com.bonree.brfs.common.net.http.data.protocal";
+option java_package = "com.bonree.brfs.common.proto";
 option java_outer_classname = "DataTransferProtos";
 message FSPacketProto{
     optional bool crcFlag = 1;     //是否开启crc校验码
