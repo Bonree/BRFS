@@ -13,16 +13,20 @@
  */
 package com.bonree.brfs.guice;
 
-import java.util.UUID;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class NodeConfig {
-    private String clusterName;
+    @JsonProperty("cluster.name")
+    private String clusterName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME);
     
-    private String serviceId = UUID.randomUUID().toString();
+    @JsonProperty("service.host")
+    public String host = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_HOST);
     
-    public String host;
-    
-    public int port;
+    @JsonProperty("service.port")
+    public int port = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_PORT);
 
     public String getClusterName() {
         return clusterName;
@@ -30,14 +34,6 @@ public class NodeConfig {
 
     public void setClusterName(String clusterName) {
         this.clusterName = clusterName;
-    }
-
-    public String getServiceId() {
-        return serviceId;
-    }
-
-    public void setServiceId(String serviceId) {
-        this.serviceId = serviceId;
     }
 
     public String getHost() {

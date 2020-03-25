@@ -6,6 +6,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
@@ -20,7 +21,7 @@ public class TestService {
 		client.start();
 		client.blockUntilConnected();
 		
-		ServiceManager sm = new DefaultServiceManager(client.usingNamespace("test"));
+		ServiceManager sm = new DefaultServiceManager(client.usingNamespace("test"), ZookeeperPaths.create("", client));
 		sm.start();
 		
 		Service s = new Service();

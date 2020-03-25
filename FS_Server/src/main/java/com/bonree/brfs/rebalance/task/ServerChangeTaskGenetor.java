@@ -9,12 +9,14 @@ import java.util.stream.Collectors;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.mail.worker.MailWorker;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -53,19 +55,16 @@ public class ServerChangeTaskGenetor implements ServiceStateListener {
 
     private StorageRegionManager snManager;
 
-    private CuratorClient leaderClient;
-
     private int delayDeal;
 
-    public ServerChangeTaskGenetor(final CuratorClient leaderClient, final CuratorClient client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath, final int delayDeal, StorageRegionManager snManager) throws Exception {
+    public ServerChangeTaskGenetor(final CuratorFramework client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath, final int delayDeal, StorageRegionManager snManager) throws Exception {
         this.serverManager = serverManager;
         this.snManager = snManager;
         this.delayDeal = delayDeal;
         this.leaderPath = ZKPaths.makePath(baseRebalancePath, Constants.CHANGE_LEADER);
         this.changesPath = ZKPaths.makePath(baseRebalancePath, Constants.CHANGES_NODE);
-        this.client = client;
-        this.leaderClient = leaderClient;
-        this.leaderLath = new LeaderLatch(this.leaderClient.getInnerClient(), this.leaderPath);
+        this.client = CuratorClient.wrapClient(client);
+        this.leaderLath = new LeaderLatch(client, this.leaderPath);
         leaderLath.addListener(new LeaderLatchListener() {
 
             @Override

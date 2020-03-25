@@ -11,20 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.email;
+package com.bonree.brfs.disknode;
 
-import com.bonree.brfs.common.guice.JsonConfigProvider;
-import com.bonree.brfs.common.lifecycle.LifecycleModule;
-import com.google.inject.Binder;
-import com.google.inject.Module;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
 
-public class EmailModule implements Module {
+public class StorageConfig {
+    private String workDirectory = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT);
 
-    @Override
-    public void configure(Binder binder) {
-        JsonConfigProvider.bind(binder, "email", EmailConfig.class);
-        
-        LifecycleModule.register(binder, EmailPoolInitializer.class);
+    public String getWorkDirectory() {
+        return workDirectory;
     }
-    
+
+    public void setWorkDirectory(String workDirectory) {
+        this.workDirectory = workDirectory;
+    }
 }

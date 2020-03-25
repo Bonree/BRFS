@@ -7,6 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -41,6 +42,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.collect.ImmutableList;
 
 /**
  * StorageName信息管理类
@@ -79,9 +81,11 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         this.idBuilder = idBuilder;
         this.storageRegionCache = CacheBuilder.newBuilder()
         		.maximumSize(DEFAULT_MAX_CACHE_SIZE)
+        		.expireAfterWrite(10, TimeUnit.SECONDS)
+        		.refreshAfterWrite(10, TimeUnit.SECONDS)
         		.removalListener(new StorageRegionRemoveListener())
         		.build(new StorageRegionLoader());
-        this.childrenCache = new PathChildrenCache(client,
+        this.childrenCache = new PathChildrenCache(zkClient,
         		ZKPaths.makePath(StorageRegionZkPaths.DEFAULT_PATH_STORAGE_REGION_ROOT, DEFAULT_PATH_STORAGE_REGION_NODES),
         		false);
     }
@@ -171,6 +175,8 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         } catch (Exception e) {
         	LOG.warn("set storage name node[{}] data error", regionName, e);
             throw e;
+        } finally {
+            storageRegionCache.refresh(regionName);
         }
     }
 
@@ -187,6 +193,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
 
         try {
             zkClient.delete().forPath(buildRegionPath(regionName));
+            storageRegionCache.invalidate(regionName);
         } catch (Exception e) {
         	LOG.warn("delete storage name node name[{}] error", regionName, e);
             return false;
@@ -309,7 +316,9 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
 
     @Override
     public List<StorageRegion> getStorageRegionList() {
-        return new ArrayList<StorageRegion>(regionIds.values());
+        return childrenCache.getCurrentData().stream()
+                .map(c -> getCachedNode(ZKPaths.getNodeFromPath(c.getPath())))
+                .collect(ImmutableList.toImmutableList());
     }
 
     @Override

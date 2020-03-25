@@ -2,7 +2,6 @@ package com.bonree.brfs.duplication.filenode.zk;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 

@@ -5,10 +5,14 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
@@ -30,6 +34,7 @@ public class RebalanceManager implements Closeable {
     ExecutorService simpleFileServer = Executors.newSingleThreadExecutor();
     private CuratorClient curatorClient = null;
 
+    @Inject
     public RebalanceManager(ZookeeperPaths zkPaths, ServerIDManager idManager, StorageRegionManager snManager, ServiceManager serviceManager) {
     	String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         curatorClient = CuratorClient.getClientInstance(zkAddresses, 500, 500);
@@ -51,6 +56,7 @@ public class RebalanceManager implements Closeable {
         }
     }
 
+    @LifecycleStart
     public void start() throws Exception {
         LOG.info("start taskdispatch service!!");
         dispatch.start();
@@ -66,6 +72,7 @@ public class RebalanceManager implements Closeable {
 
     }
 
+    @LifecycleStop
     @Override
     public void close() throws IOException {
     	simpleFileServer.shutdown();

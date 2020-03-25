@@ -139,7 +139,7 @@ public class BootStrap {
             Service service = new Service(localServiceId,
                     regionGroupName,
             		host, port);
-            ServiceManager serviceManager = new DefaultServiceManager(client.usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
+            ServiceManager serviceManager = new DefaultServiceManager(client, zookeeperPaths);
             serviceManager.start();
 
             finalizer.add(serviceManager);
