@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -39,15 +41,15 @@
 		</snapshotRepository>
 	</distributionManagement>
 	<modules>
+		<module>FS_Proto</module>
 		<module>FS_Client</module>
 		<module>FS_Commons</module>
-		<module>FS_Proto</module>
 		<module>FS_Server</module>
 		<module>FS_ResouceSchedule</module>
 		<module>brfs-http-api</module>
 		<module>brfs-http-netty</module>
-    <module>brfs-email</module>
-  </modules>
+		<module>brfs-email</module>
+	</modules>
 
 	<name>${project.artifactId}</name>
 	<description>BRFS is a fast high-performance file system stored large small file by Bonree</description>
@@ -90,7 +92,7 @@
 		<sigar_version>1.6.4</sigar_version>
 		<quartz_version>2.0.2</quartz_version>
 		<jackson_version>2.9.8</jackson_version>
-		<protobuf_version>2.4.0a</protobuf_version>
+		<protobuf_version>3.4.0</protobuf_version>
 		<protostuff_version>1.6.0</protostuff_version>
 		<commons_lang_version>3.4</commons_lang_version>
 		<joda_time>2.9.9</joda_time>
@@ -226,7 +228,7 @@
 				<artifactId>commons-beanutils</artifactId>
 				<version>${beanutils_version}</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>org.rocksdb</groupId>
 				<artifactId>rocksdbjni</artifactId>
@@ -238,7 +240,7 @@
 		<developer>
 			<id>bonree.com/brfs</id>
 			<name>The BRFS Project Contributors</name>
-			<email/>
+			<email />
 			<url>http://bonree.com/brfs</url>
 			<organization>The BRFS Project</organization>
 			<organizationUrl>http://bonree.com/brfs</organizationUrl>
