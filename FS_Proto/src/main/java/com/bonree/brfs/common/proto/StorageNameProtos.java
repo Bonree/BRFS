@@ -6,86 +6,365 @@ package com.bonree.brfs.common.proto;
 public final class StorageNameProtos {
   private StorageNameProtos() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+      com.google.protobuf.ExtensionRegistryLite registry) {
   }
-  public interface StorageNameRequestOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional string sessionId = 1;
+
+  public static void registerAllExtensions(
+      com.google.protobuf.ExtensionRegistry registry) {
+    registerAllExtensions(
+        (com.google.protobuf.ExtensionRegistryLite) registry);
+  }
+  public interface StorageNameRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:brfs.proto.StorageNameRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
     boolean hasSessionId();
-    String getSessionId();
-    
-    // optional string name = 2;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
+    java.lang.String getSessionId();
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <pre>
+     *storageName，设定后，不可修改
+     * </pre>
+     *
+     * <code>optional string name = 2;</code>
+     */
     boolean hasName();
-    String getName();
-    
-    // optional int32 ttl = 3;
+    /**
+     * <pre>
+     *storageName，设定后，不可修改
+     * </pre>
+     *
+     * <code>optional string name = 2;</code>
+     */
+    java.lang.String getName();
+    /**
+     * <pre>
+     *storageName，设定后，不可修改
+     * </pre>
+     *
+     * <code>optional string name = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    /**
+     * <pre>
+     *数据过期时间，可修改，修改需校验
+     * </pre>
+     *
+     * <code>optional int32 ttl = 3;</code>
+     */
     boolean hasTtl();
+    /**
+     * <pre>
+     *数据过期时间，可修改，修改需校验
+     * </pre>
+     *
+     * <code>optional int32 ttl = 3;</code>
+     */
     int getTtl();
-    
-    // optional string description = 4;
+
+    /**
+     * <pre>
+     *描述信息，可修改
+     * </pre>
+     *
+     * <code>optional string description = 4;</code>
+     */
     boolean hasDescription();
-    String getDescription();
-    
-    // optional int32 replicas = 5;
+    /**
+     * <pre>
+     *描述信息，可修改
+     * </pre>
+     *
+     * <code>optional string description = 4;</code>
+     */
+    java.lang.String getDescription();
+    /**
+     * <pre>
+     *描述信息，可修改
+     * </pre>
+     *
+     * <code>optional string description = 4;</code>
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
+
+    /**
+     * <pre>
+     *副本数，不可修改
+     * </pre>
+     *
+     * <code>optional int32 replicas = 5;</code>
+     */
     boolean hasReplicas();
+    /**
+     * <pre>
+     *副本数，不可修改
+     * </pre>
+     *
+     * <code>optional int32 replicas = 5;</code>
+     */
     int getReplicas();
-    
-    // optional bool recoverFlag = 6;
+
+    /**
+     * <pre>
+     *是否开启副本自动恢复，不可修改
+     * </pre>
+     *
+     * <code>optional bool recoverFlag = 6;</code>
+     */
     boolean hasRecoverFlag();
+    /**
+     * <pre>
+     *是否开启副本自动恢复，不可修改
+     * </pre>
+     *
+     * <code>optional bool recoverFlag = 6;</code>
+     */
     boolean getRecoverFlag();
-    
-    // optional string user = 7;
+
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 7;</code>
+     */
     boolean hasUser();
-    String getUser();
-    
-    // optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 7;</code>
+     */
+    java.lang.String getUser();
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 7;</code>
+     */
+    com.google.protobuf.ByteString
+        getUserBytes();
+
+    /**
+     * <pre>
+     *操作类型
+     * </pre>
+     *
+     * <code>optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;</code>
+     */
     boolean hasStorageNameOptType();
+    /**
+     * <pre>
+     *操作类型
+     * </pre>
+     *
+     * <code>optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;</code>
+     */
     com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType getStorageNameOptType();
   }
-  public static final class StorageNameRequest extends
-      com.google.protobuf.GeneratedMessage
-      implements StorageNameRequestOrBuilder {
+  /**
+   * Protobuf type {@code brfs.proto.StorageNameRequest}
+   */
+  public  static final class StorageNameRequest extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:brfs.proto.StorageNameRequest)
+      StorageNameRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use StorageNameRequest.newBuilder() to construct.
-    private StorageNameRequest(Builder builder) {
+    private StorageNameRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private StorageNameRequest(boolean noInit) {}
-    
-    private static final StorageNameRequest defaultInstance;
-    public static StorageNameRequest getDefaultInstance() {
-      return defaultInstance;
+    private StorageNameRequest() {
+      sessionId_ = "";
+      name_ = "";
+      ttl_ = 0;
+      description_ = "";
+      replicas_ = 0;
+      recoverFlag_ = false;
+      user_ = "";
+      storageNameOptType_ = 0;
     }
-    
-    public StorageNameRequest getDefaultInstanceForType() {
-      return defaultInstance;
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
     }
-    
+    private StorageNameRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              sessionId_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              name_ = bs;
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              ttl_ = input.readInt32();
+              break;
+            }
+            case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000008;
+              description_ = bs;
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              replicas_ = input.readInt32();
+              break;
+            }
+            case 48: {
+              bitField0_ |= 0x00000020;
+              recoverFlag_ = input.readBool();
+              break;
+            }
+            case 58: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000040;
+              user_ = bs;
+              break;
+            }
+            case 64: {
+              int rawValue = input.readEnum();
+              com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType value = com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(8, rawValue);
+              } else {
+                bitField0_ |= 0x00000080;
+                storageNameOptType_ = rawValue;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameRequest_descriptor;
     }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameRequest_fieldAccessorTable;
+      return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.class, com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.Builder.class);
     }
-    
+
+    /**
+     * <pre>
+     *操作类型
+     * </pre>
+     *
+     * Protobuf enum {@code brfs.proto.StorageNameRequest.StorageNameOptType}
+     */
     public enum StorageNameOptType
         implements com.google.protobuf.ProtocolMessageEnum {
-      CREATE(0, 0),
-      UPDATE(1, 1),
-      DELETE(2, 2),
+      /**
+       * <code>CREATE = 0;</code>
+       */
+      CREATE(0),
+      /**
+       * <code>UPDATE = 1;</code>
+       */
+      UPDATE(1),
+      /**
+       * <code>DELETE = 2;</code>
+       */
+      DELETE(2),
       ;
-      
+
+      /**
+       * <code>CREATE = 0;</code>
+       */
       public static final int CREATE_VALUE = 0;
+      /**
+       * <code>UPDATE = 1;</code>
+       */
       public static final int UPDATE_VALUE = 1;
+      /**
+       * <code>DELETE = 2;</code>
+       */
       public static final int DELETE_VALUE = 2;
-      
-      
-      public final int getNumber() { return value; }
-      
+
+
+      public final int getNumber() {
+        return value;
+      }
+
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
       public static StorageNameOptType valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static StorageNameOptType forNumber(int value) {
         switch (value) {
           case 0: return CREATE;
           case 1: return UPDATE;
@@ -93,22 +372,22 @@ public final class StorageNameProtos {
           default: return null;
         }
       }
-      
+
       public static com.google.protobuf.Internal.EnumLiteMap<StorageNameOptType>
           internalGetValueMap() {
         return internalValueMap;
       }
-      private static com.google.protobuf.Internal.EnumLiteMap<StorageNameOptType>
-          internalValueMap =
+      private static final com.google.protobuf.Internal.EnumLiteMap<
+          StorageNameOptType> internalValueMap =
             new com.google.protobuf.Internal.EnumLiteMap<StorageNameOptType>() {
               public StorageNameOptType findValueByNumber(int number) {
-                return StorageNameOptType.valueOf(number);
+                return StorageNameOptType.forNumber(number);
               }
             };
-      
+
       public final com.google.protobuf.Descriptors.EnumValueDescriptor
           getValueDescriptor() {
-        return getDescriptor().getValues().get(index);
+        return getDescriptor().getValues().get(ordinal());
       }
       public final com.google.protobuf.Descriptors.EnumDescriptor
           getDescriptorForType() {
@@ -118,11 +397,9 @@ public final class StorageNameProtos {
           getDescriptor() {
         return com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.getDescriptor().getEnumTypes().get(0);
       }
-      
-      private static final StorageNameOptType[] VALUES = {
-        CREATE, UPDATE, DELETE, 
-      };
-      
+
+      private static final StorageNameOptType[] VALUES = values();
+
       public static StorageNameOptType valueOf(
           com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
         if (desc.getType() != getDescriptor()) {
@@ -131,220 +408,349 @@ public final class StorageNameProtos {
         }
         return VALUES[desc.getIndex()];
       }
-      
-      private final int index;
+
       private final int value;
-      
-      private StorageNameOptType(int index, int value) {
-        this.index = index;
+
+      private StorageNameOptType(int value) {
         this.value = value;
       }
-      
+
       // @@protoc_insertion_point(enum_scope:brfs.proto.StorageNameRequest.StorageNameOptType)
     }
-    
+
     private int bitField0_;
-    // optional string sessionId = 1;
     public static final int SESSIONID_FIELD_NUMBER = 1;
-    private java.lang.Object sessionId_;
+    private volatile java.lang.Object sessionId_;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
     public boolean hasSessionId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    public String getSessionId() {
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
+    public java.lang.String getSessionId() {
       java.lang.Object ref = sessionId_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           sessionId_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getSessionIdBytes() {
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         sessionId_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional string name = 2;
+
     public static final int NAME_FIELD_NUMBER = 2;
-    private java.lang.Object name_;
+    private volatile java.lang.Object name_;
+    /**
+     * <pre>
+     *storageName，设定后，不可修改
+     * </pre>
+     *
+     * <code>optional string name = 2;</code>
+     */
     public boolean hasName() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    public String getName() {
+    /**
+     * <pre>
+     *storageName，设定后，不可修改
+     * </pre>
+     *
+     * <code>optional string name = 2;</code>
+     */
+    public java.lang.String getName() {
       java.lang.Object ref = name_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           name_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getNameBytes() {
+    /**
+     * <pre>
+     *storageName，设定后，不可修改
+     * </pre>
+     *
+     * <code>optional string name = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getNameBytes() {
       java.lang.Object ref = name_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         name_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional int32 ttl = 3;
+
     public static final int TTL_FIELD_NUMBER = 3;
     private int ttl_;
+    /**
+     * <pre>
+     *数据过期时间，可修改，修改需校验
+     * </pre>
+     *
+     * <code>optional int32 ttl = 3;</code>
+     */
     public boolean hasTtl() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
+    /**
+     * <pre>
+     *数据过期时间，可修改，修改需校验
+     * </pre>
+     *
+     * <code>optional int32 ttl = 3;</code>
+     */
     public int getTtl() {
       return ttl_;
     }
-    
-    // optional string description = 4;
+
     public static final int DESCRIPTION_FIELD_NUMBER = 4;
-    private java.lang.Object description_;
+    private volatile java.lang.Object description_;
+    /**
+     * <pre>
+     *描述信息，可修改
+     * </pre>
+     *
+     * <code>optional string description = 4;</code>
+     */
     public boolean hasDescription() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
-    public String getDescription() {
+    /**
+     * <pre>
+     *描述信息，可修改
+     * </pre>
+     *
+     * <code>optional string description = 4;</code>
+     */
+    public java.lang.String getDescription() {
       java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           description_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getDescriptionBytes() {
+    /**
+     * <pre>
+     *描述信息，可修改
+     * </pre>
+     *
+     * <code>optional string description = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
       java.lang.Object ref = description_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         description_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional int32 replicas = 5;
+
     public static final int REPLICAS_FIELD_NUMBER = 5;
     private int replicas_;
+    /**
+     * <pre>
+     *副本数，不可修改
+     * </pre>
+     *
+     * <code>optional int32 replicas = 5;</code>
+     */
     public boolean hasReplicas() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
+    /**
+     * <pre>
+     *副本数，不可修改
+     * </pre>
+     *
+     * <code>optional int32 replicas = 5;</code>
+     */
     public int getReplicas() {
       return replicas_;
     }
-    
-    // optional bool recoverFlag = 6;
+
     public static final int RECOVERFLAG_FIELD_NUMBER = 6;
     private boolean recoverFlag_;
+    /**
+     * <pre>
+     *是否开启副本自动恢复，不可修改
+     * </pre>
+     *
+     * <code>optional bool recoverFlag = 6;</code>
+     */
     public boolean hasRecoverFlag() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
+    /**
+     * <pre>
+     *是否开启副本自动恢复，不可修改
+     * </pre>
+     *
+     * <code>optional bool recoverFlag = 6;</code>
+     */
     public boolean getRecoverFlag() {
       return recoverFlag_;
     }
-    
-    // optional string user = 7;
+
     public static final int USER_FIELD_NUMBER = 7;
-    private java.lang.Object user_;
+    private volatile java.lang.Object user_;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 7;</code>
+     */
     public boolean hasUser() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
     }
-    public String getUser() {
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 7;</code>
+     */
+    public java.lang.String getUser() {
       java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           user_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getUserBytes() {
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 7;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUserBytes() {
       java.lang.Object ref = user_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         user_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;
+
     public static final int STORAGENAMEOPTTYPE_FIELD_NUMBER = 8;
-    private com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType storageNameOptType_;
+    private int storageNameOptType_;
+    /**
+     * <pre>
+     *操作类型
+     * </pre>
+     *
+     * <code>optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;</code>
+     */
     public boolean hasStorageNameOptType() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
+    /**
+     * <pre>
+     *操作类型
+     * </pre>
+     *
+     * <code>optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;</code>
+     */
     public com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType getStorageNameOptType() {
-      return storageNameOptType_;
+      com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType result = com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType.valueOf(storageNameOptType_);
+      return result == null ? com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType.CREATE : result;
     }
-    
-    private void initFields() {
-      sessionId_ = "";
-      name_ = "";
-      ttl_ = 0;
-      description_ = "";
-      replicas_ = 0;
-      recoverFlag_ = false;
-      user_ = "";
-      storageNameOptType_ = com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType.CREATE;
-    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
       memoizedIsInitialized = 1;
       return true;
     }
-    
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getSessionIdBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, sessionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getNameBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, name_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeInt32(3, ttl_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBytes(4, getDescriptionBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, description_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeInt32(5, replicas_);
@@ -353,35 +759,31 @@ public final class StorageNameProtos {
         output.writeBool(6, recoverFlag_);
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
-        output.writeBytes(7, getUserBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 7, user_);
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        output.writeEnum(8, storageNameOptType_.getNumber());
+        output.writeEnum(8, storageNameOptType_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
-    
-    private int memoizedSerializedSize = -1;
+
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
-    
+
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getSessionIdBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, sessionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getNameBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, name_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(3, ttl_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(4, getDescriptionBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, description_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
@@ -392,135 +794,238 @@ public final class StorageNameProtos {
           .computeBoolSize(6, recoverFlag_);
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(7, getUserBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, user_);
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(8, storageNameOptType_.getNumber());
+          .computeEnumSize(8, storageNameOptType_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
-    
-    private static final long serialVersionUID = 0L;
+
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest)) {
+        return super.equals(obj);
+      }
+      com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest other = (com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest) obj;
+
+      boolean result = true;
+      result = result && (hasSessionId() == other.hasSessionId());
+      if (hasSessionId()) {
+        result = result && getSessionId()
+            .equals(other.getSessionId());
+      }
+      result = result && (hasName() == other.hasName());
+      if (hasName()) {
+        result = result && getName()
+            .equals(other.getName());
+      }
+      result = result && (hasTtl() == other.hasTtl());
+      if (hasTtl()) {
+        result = result && (getTtl()
+            == other.getTtl());
+      }
+      result = result && (hasDescription() == other.hasDescription());
+      if (hasDescription()) {
+        result = result && getDescription()
+            .equals(other.getDescription());
+      }
+      result = result && (hasReplicas() == other.hasReplicas());
+      if (hasReplicas()) {
+        result = result && (getReplicas()
+            == other.getReplicas());
+      }
+      result = result && (hasRecoverFlag() == other.hasRecoverFlag());
+      if (hasRecoverFlag()) {
+        result = result && (getRecoverFlag()
+            == other.getRecoverFlag());
+      }
+      result = result && (hasUser() == other.hasUser());
+      if (hasUser()) {
+        result = result && getUser()
+            .equals(other.getUser());
+      }
+      result = result && (hasStorageNameOptType() == other.hasStorageNameOptType());
+      if (hasStorageNameOptType()) {
+        result = result && storageNameOptType_ == other.storageNameOptType_;
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
-    
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasSessionId()) {
+        hash = (37 * hash) + SESSIONID_FIELD_NUMBER;
+        hash = (53 * hash) + getSessionId().hashCode();
+      }
+      if (hasName()) {
+        hash = (37 * hash) + NAME_FIELD_NUMBER;
+        hash = (53 * hash) + getName().hashCode();
+      }
+      if (hasTtl()) {
+        hash = (37 * hash) + TTL_FIELD_NUMBER;
+        hash = (53 * hash) + getTtl();
+      }
+      if (hasDescription()) {
+        hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+        hash = (53 * hash) + getDescription().hashCode();
+      }
+      if (hasReplicas()) {
+        hash = (37 * hash) + REPLICAS_FIELD_NUMBER;
+        hash = (53 * hash) + getReplicas();
+      }
+      if (hasRecoverFlag()) {
+        hash = (37 * hash) + RECOVERFLAG_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+            getRecoverFlag());
+      }
+      if (hasUser()) {
+        hash = (37 * hash) + USER_FIELD_NUMBER;
+        hash = (53 * hash) + getUser().hashCode();
+      }
+      if (hasStorageNameOptType()) {
+        hash = (37 * hash) + STORAGENAMEOPTTYPE_FIELD_NUMBER;
+        hash = (53 * hash) + storageNameOptType_;
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    
-    public static Builder newBuilder() { return Builder.create(); }
+
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
-    
+    public static Builder newBuilder(com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
+    /**
+     * Protobuf type {@code brfs.proto.StorageNameRequest}
+     */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequestOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:brfs.proto.StorageNameRequest)
+        com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameRequest_descriptor;
       }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameRequest_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.class, com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.Builder.class);
       }
-      
+
       // Construct using com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
-      
-      private Builder(BuilderParent parent) {
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-      
       public Builder clear() {
         super.clear();
         sessionId_ = "";
@@ -537,24 +1042,20 @@ public final class StorageNameProtos {
         bitField0_ = (bitField0_ & ~0x00000020);
         user_ = "";
         bitField0_ = (bitField0_ & ~0x00000040);
-        storageNameOptType_ = com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType.CREATE;
+        storageNameOptType_ = 0;
         bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
+
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.getDescriptor();
+        return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameRequest_descriptor;
       }
-      
+
       public com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest getDefaultInstanceForType() {
         return com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.getDefaultInstance();
       }
-      
+
       public com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest build() {
         com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest result = buildPartial();
         if (!result.isInitialized()) {
@@ -562,17 +1063,7 @@ public final class StorageNameProtos {
         }
         return result;
       }
-      
-      private com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
+
       public com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest buildPartial() {
         com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest result = new com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest(this);
         int from_bitField0_ = bitField0_;
@@ -613,7 +1104,33 @@ public final class StorageNameProtos {
         onBuilt();
         return result;
       }
-      
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest) {
           return mergeFrom((com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest)other);
@@ -622,20 +1139,26 @@ public final class StorageNameProtos {
           return this;
         }
       }
-      
+
       public Builder mergeFrom(com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest other) {
         if (other == com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.getDefaultInstance()) return this;
         if (other.hasSessionId()) {
-          setSessionId(other.getSessionId());
+          bitField0_ |= 0x00000001;
+          sessionId_ = other.sessionId_;
+          onChanged();
         }
         if (other.hasName()) {
-          setName(other.getName());
+          bitField0_ |= 0x00000002;
+          name_ = other.name_;
+          onChanged();
         }
         if (other.hasTtl()) {
           setTtl(other.getTtl());
         }
         if (other.hasDescription()) {
-          setDescription(other.getDescription());
+          bitField0_ |= 0x00000008;
+          description_ = other.description_;
+          onChanged();
         }
         if (other.hasReplicas()) {
           setReplicas(other.getReplicas());
@@ -644,110 +1167,102 @@ public final class StorageNameProtos {
           setRecoverFlag(other.getRecoverFlag());
         }
         if (other.hasUser()) {
-          setUser(other.getUser());
+          bitField0_ |= 0x00000040;
+          user_ = other.user_;
+          onChanged();
         }
         if (other.hasStorageNameOptType()) {
           setStorageNameOptType(other.getStorageNameOptType());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
-      
+
       public final boolean isInitialized() {
         return true;
       }
-      
+
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              sessionId_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              name_ = input.readBytes();
-              break;
-            }
-            case 24: {
-              bitField0_ |= 0x00000004;
-              ttl_ = input.readInt32();
-              break;
-            }
-            case 34: {
-              bitField0_ |= 0x00000008;
-              description_ = input.readBytes();
-              break;
-            }
-            case 40: {
-              bitField0_ |= 0x00000010;
-              replicas_ = input.readInt32();
-              break;
-            }
-            case 48: {
-              bitField0_ |= 0x00000020;
-              recoverFlag_ = input.readBool();
-              break;
-            }
-            case 58: {
-              bitField0_ |= 0x00000040;
-              user_ = input.readBytes();
-              break;
-            }
-            case 64: {
-              int rawValue = input.readEnum();
-              com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType value = com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(8, rawValue);
-              } else {
-                bitField0_ |= 0x00000080;
-                storageNameOptType_ = value;
-              }
-              break;
-            }
+        com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
           }
         }
+        return this;
       }
-      
       private int bitField0_;
-      
-      // optional string sessionId = 1;
+
       private java.lang.Object sessionId_ = "";
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
       public boolean hasSessionId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      public String getSessionId() {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
+      public java.lang.String getSessionId() {
         java.lang.Object ref = sessionId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          sessionId_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            sessionId_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setSessionId(String value) {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -756,34 +1271,98 @@ public final class StorageNameProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
       public Builder clearSessionId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         sessionId_ = getDefaultInstance().getSessionId();
         onChanged();
         return this;
       }
-      void setSessionId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000001;
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
         sessionId_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string name = 2;
+
       private java.lang.Object name_ = "";
+      /**
+       * <pre>
+       *storageName，设定后，不可修改
+       * </pre>
+       *
+       * <code>optional string name = 2;</code>
+       */
       public boolean hasName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      public String getName() {
+      /**
+       * <pre>
+       *storageName，设定后，不可修改
+       * </pre>
+       *
+       * <code>optional string name = 2;</code>
+       */
+      public java.lang.String getName() {
         java.lang.Object ref = name_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          name_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            name_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setName(String value) {
+      /**
+       * <pre>
+       *storageName，设定后，不可修改
+       * </pre>
+       *
+       * <code>optional string name = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *storageName，设定后，不可修改
+       * </pre>
+       *
+       * <code>optional string name = 2;</code>
+       */
+      public Builder setName(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -792,55 +1371,146 @@ public final class StorageNameProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *storageName，设定后，不可修改
+       * </pre>
+       *
+       * <code>optional string name = 2;</code>
+       */
       public Builder clearName() {
         bitField0_ = (bitField0_ & ~0x00000002);
         name_ = getDefaultInstance().getName();
         onChanged();
         return this;
       }
-      void setName(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000002;
+      /**
+       * <pre>
+       *storageName，设定后，不可修改
+       * </pre>
+       *
+       * <code>optional string name = 2;</code>
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
         name_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional int32 ttl = 3;
+
       private int ttl_ ;
+      /**
+       * <pre>
+       *数据过期时间，可修改，修改需校验
+       * </pre>
+       *
+       * <code>optional int32 ttl = 3;</code>
+       */
       public boolean hasTtl() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
+      /**
+       * <pre>
+       *数据过期时间，可修改，修改需校验
+       * </pre>
+       *
+       * <code>optional int32 ttl = 3;</code>
+       */
       public int getTtl() {
         return ttl_;
       }
+      /**
+       * <pre>
+       *数据过期时间，可修改，修改需校验
+       * </pre>
+       *
+       * <code>optional int32 ttl = 3;</code>
+       */
       public Builder setTtl(int value) {
         bitField0_ |= 0x00000004;
         ttl_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *数据过期时间，可修改，修改需校验
+       * </pre>
+       *
+       * <code>optional int32 ttl = 3;</code>
+       */
       public Builder clearTtl() {
         bitField0_ = (bitField0_ & ~0x00000004);
         ttl_ = 0;
         onChanged();
         return this;
       }
-      
-      // optional string description = 4;
+
       private java.lang.Object description_ = "";
+      /**
+       * <pre>
+       *描述信息，可修改
+       * </pre>
+       *
+       * <code>optional string description = 4;</code>
+       */
       public boolean hasDescription() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
-      public String getDescription() {
+      /**
+       * <pre>
+       *描述信息，可修改
+       * </pre>
+       *
+       * <code>optional string description = 4;</code>
+       */
+      public java.lang.String getDescription() {
         java.lang.Object ref = description_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          description_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            description_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setDescription(String value) {
+      /**
+       * <pre>
+       *描述信息，可修改
+       * </pre>
+       *
+       * <code>optional string description = 4;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *描述信息，可修改
+       * </pre>
+       *
+       * <code>optional string description = 4;</code>
+       */
+      public Builder setDescription(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -849,76 +1519,194 @@ public final class StorageNameProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *描述信息，可修改
+       * </pre>
+       *
+       * <code>optional string description = 4;</code>
+       */
       public Builder clearDescription() {
         bitField0_ = (bitField0_ & ~0x00000008);
         description_ = getDefaultInstance().getDescription();
         onChanged();
         return this;
       }
-      void setDescription(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000008;
+      /**
+       * <pre>
+       *描述信息，可修改
+       * </pre>
+       *
+       * <code>optional string description = 4;</code>
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
         description_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional int32 replicas = 5;
+
       private int replicas_ ;
+      /**
+       * <pre>
+       *副本数，不可修改
+       * </pre>
+       *
+       * <code>optional int32 replicas = 5;</code>
+       */
       public boolean hasReplicas() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
+      /**
+       * <pre>
+       *副本数，不可修改
+       * </pre>
+       *
+       * <code>optional int32 replicas = 5;</code>
+       */
       public int getReplicas() {
         return replicas_;
       }
+      /**
+       * <pre>
+       *副本数，不可修改
+       * </pre>
+       *
+       * <code>optional int32 replicas = 5;</code>
+       */
       public Builder setReplicas(int value) {
         bitField0_ |= 0x00000010;
         replicas_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *副本数，不可修改
+       * </pre>
+       *
+       * <code>optional int32 replicas = 5;</code>
+       */
       public Builder clearReplicas() {
         bitField0_ = (bitField0_ & ~0x00000010);
         replicas_ = 0;
         onChanged();
         return this;
       }
-      
-      // optional bool recoverFlag = 6;
+
       private boolean recoverFlag_ ;
+      /**
+       * <pre>
+       *是否开启副本自动恢复，不可修改
+       * </pre>
+       *
+       * <code>optional bool recoverFlag = 6;</code>
+       */
       public boolean hasRecoverFlag() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
+      /**
+       * <pre>
+       *是否开启副本自动恢复，不可修改
+       * </pre>
+       *
+       * <code>optional bool recoverFlag = 6;</code>
+       */
       public boolean getRecoverFlag() {
         return recoverFlag_;
       }
+      /**
+       * <pre>
+       *是否开启副本自动恢复，不可修改
+       * </pre>
+       *
+       * <code>optional bool recoverFlag = 6;</code>
+       */
       public Builder setRecoverFlag(boolean value) {
         bitField0_ |= 0x00000020;
         recoverFlag_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *是否开启副本自动恢复，不可修改
+       * </pre>
+       *
+       * <code>optional bool recoverFlag = 6;</code>
+       */
       public Builder clearRecoverFlag() {
         bitField0_ = (bitField0_ & ~0x00000020);
         recoverFlag_ = false;
         onChanged();
         return this;
       }
-      
-      // optional string user = 7;
+
       private java.lang.Object user_ = "";
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 7;</code>
+       */
       public boolean hasUser() {
         return ((bitField0_ & 0x00000040) == 0x00000040);
       }
-      public String getUser() {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 7;</code>
+       */
+      public java.lang.String getUser() {
         java.lang.Object ref = user_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          user_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            user_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setUser(String value) {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 7;</code>
+       */
+      public com.google.protobuf.ByteString
+          getUserBytes() {
+        java.lang.Object ref = user_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          user_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 7;</code>
+       */
+      public Builder setUser(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -927,340 +1715,649 @@ public final class StorageNameProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 7;</code>
+       */
       public Builder clearUser() {
         bitField0_ = (bitField0_ & ~0x00000040);
         user_ = getDefaultInstance().getUser();
         onChanged();
         return this;
       }
-      void setUser(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000040;
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 7;</code>
+       */
+      public Builder setUserBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000040;
         user_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;
-      private com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType storageNameOptType_ = com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType.CREATE;
+
+      private int storageNameOptType_ = 0;
+      /**
+       * <pre>
+       *操作类型
+       * </pre>
+       *
+       * <code>optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;</code>
+       */
       public boolean hasStorageNameOptType() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
+      /**
+       * <pre>
+       *操作类型
+       * </pre>
+       *
+       * <code>optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;</code>
+       */
       public com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType getStorageNameOptType() {
-        return storageNameOptType_;
+        com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType result = com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType.valueOf(storageNameOptType_);
+        return result == null ? com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType.CREATE : result;
       }
+      /**
+       * <pre>
+       *操作类型
+       * </pre>
+       *
+       * <code>optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;</code>
+       */
       public Builder setStorageNameOptType(com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType value) {
         if (value == null) {
           throw new NullPointerException();
         }
         bitField0_ |= 0x00000080;
-        storageNameOptType_ = value;
+        storageNameOptType_ = value.getNumber();
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *操作类型
+       * </pre>
+       *
+       * <code>optional .brfs.proto.StorageNameRequest.StorageNameOptType storageNameOptType = 8;</code>
+       */
       public Builder clearStorageNameOptType() {
         bitField0_ = (bitField0_ & ~0x00000080);
-        storageNameOptType_ = com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.StorageNameOptType.CREATE;
+        storageNameOptType_ = 0;
         onChanged();
         return this;
       }
-      
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
       // @@protoc_insertion_point(builder_scope:brfs.proto.StorageNameRequest)
     }
-    
-    static {
-      defaultInstance = new StorageNameRequest(true);
-      defaultInstance.initFields();
-    }
-    
+
     // @@protoc_insertion_point(class_scope:brfs.proto.StorageNameRequest)
+    private static final com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest();
+    }
+
+    public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<StorageNameRequest>
+        PARSER = new com.google.protobuf.AbstractParser<StorageNameRequest>() {
+      public StorageNameRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new StorageNameRequest(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<StorageNameRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<StorageNameRequest> getParserForType() {
+      return PARSER;
+    }
+
+    public com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
-  
-  public interface StorageNameResponseOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional string sessionId = 1;
+
+  public interface StorageNameResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:brfs.proto.StorageNameResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
     boolean hasSessionId();
-    String getSessionId();
-    
-    // optional int32 returnCode = 2;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
+    java.lang.String getSessionId();
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getSessionIdBytes();
+
+    /**
+     * <pre>
+     *返回码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 2;</code>
+     */
     boolean hasReturnCode();
+    /**
+     * <pre>
+     *返回码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 2;</code>
+     */
     int getReturnCode();
-    
-    // optional string description = 3;
+
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
     boolean hasDescription();
-    String getDescription();
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
+    java.lang.String getDescription();
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
   }
-  public static final class StorageNameResponse extends
-      com.google.protobuf.GeneratedMessage
-      implements StorageNameResponseOrBuilder {
+  /**
+   * Protobuf type {@code brfs.proto.StorageNameResponse}
+   */
+  public  static final class StorageNameResponse extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:brfs.proto.StorageNameResponse)
+      StorageNameResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use StorageNameResponse.newBuilder() to construct.
-    private StorageNameResponse(Builder builder) {
+    private StorageNameResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private StorageNameResponse(boolean noInit) {}
-    
-    private static final StorageNameResponse defaultInstance;
-    public static StorageNameResponse getDefaultInstance() {
-      return defaultInstance;
+    private StorageNameResponse() {
+      sessionId_ = "";
+      returnCode_ = 0;
+      description_ = "";
     }
-    
-    public StorageNameResponse getDefaultInstanceForType() {
-      return defaultInstance;
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
     }
-    
+    private StorageNameResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              sessionId_ = bs;
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              returnCode_ = input.readInt32();
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              description_ = bs;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameResponse_descriptor;
     }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameResponse_fieldAccessorTable;
+      return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse.class, com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse.Builder.class);
     }
-    
+
     private int bitField0_;
-    // optional string sessionId = 1;
     public static final int SESSIONID_FIELD_NUMBER = 1;
-    private java.lang.Object sessionId_;
+    private volatile java.lang.Object sessionId_;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
     public boolean hasSessionId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    public String getSessionId() {
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
+    public java.lang.String getSessionId() {
       java.lang.Object ref = sessionId_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           sessionId_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getSessionIdBytes() {
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string sessionId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         sessionId_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional int32 returnCode = 2;
+
     public static final int RETURNCODE_FIELD_NUMBER = 2;
     private int returnCode_;
+    /**
+     * <pre>
+     *返回码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 2;</code>
+     */
     public boolean hasReturnCode() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
+    /**
+     * <pre>
+     *返回码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 2;</code>
+     */
     public int getReturnCode() {
       return returnCode_;
     }
-    
-    // optional string description = 3;
+
     public static final int DESCRIPTION_FIELD_NUMBER = 3;
-    private java.lang.Object description_;
+    private volatile java.lang.Object description_;
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
     public boolean hasDescription() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    public String getDescription() {
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
+    public java.lang.String getDescription() {
       java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           description_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getDescriptionBytes() {
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
       java.lang.Object ref = description_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         description_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    private void initFields() {
-      sessionId_ = "";
-      returnCode_ = 0;
-      description_ = "";
-    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
       memoizedIsInitialized = 1;
       return true;
     }
-    
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getSessionIdBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, sessionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt32(2, returnCode_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getDescriptionBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, description_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
-    
-    private int memoizedSerializedSize = -1;
+
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
-    
+
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getSessionIdBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, sessionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(2, returnCode_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getDescriptionBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, description_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
-    
-    private static final long serialVersionUID = 0L;
+
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse)) {
+        return super.equals(obj);
+      }
+      com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse other = (com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse) obj;
+
+      boolean result = true;
+      result = result && (hasSessionId() == other.hasSessionId());
+      if (hasSessionId()) {
+        result = result && getSessionId()
+            .equals(other.getSessionId());
+      }
+      result = result && (hasReturnCode() == other.hasReturnCode());
+      if (hasReturnCode()) {
+        result = result && (getReturnCode()
+            == other.getReturnCode());
+      }
+      result = result && (hasDescription() == other.hasDescription());
+      if (hasDescription()) {
+        result = result && getDescription()
+            .equals(other.getDescription());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
-    
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasSessionId()) {
+        hash = (37 * hash) + SESSIONID_FIELD_NUMBER;
+        hash = (53 * hash) + getSessionId().hashCode();
+      }
+      if (hasReturnCode()) {
+        hash = (37 * hash) + RETURNCODE_FIELD_NUMBER;
+        hash = (53 * hash) + getReturnCode();
+      }
+      if (hasDescription()) {
+        hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+        hash = (53 * hash) + getDescription().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    
-    public static Builder newBuilder() { return Builder.create(); }
+
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
-    
+    public static Builder newBuilder(com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
+    /**
+     * Protobuf type {@code brfs.proto.StorageNameResponse}
+     */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponseOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:brfs.proto.StorageNameResponse)
+        com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponseOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameResponse_descriptor;
       }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameResponse_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse.class, com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse.Builder.class);
       }
-      
+
       // Construct using com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
-      
-      private Builder(BuilderParent parent) {
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-      
       public Builder clear() {
         super.clear();
         sessionId_ = "";
@@ -1271,20 +2368,16 @@ public final class StorageNameProtos {
         bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
+
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse.getDescriptor();
+        return com.bonree.brfs.common.proto.StorageNameProtos.internal_static_brfs_proto_StorageNameResponse_descriptor;
       }
-      
+
       public com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse getDefaultInstanceForType() {
         return com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse.getDefaultInstance();
       }
-      
+
       public com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse build() {
         com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse result = buildPartial();
         if (!result.isInitialized()) {
@@ -1292,17 +2385,7 @@ public final class StorageNameProtos {
         }
         return result;
       }
-      
-      private com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
+
       public com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse buildPartial() {
         com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse result = new com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse(this);
         int from_bitField0_ = bitField0_;
@@ -1323,7 +2406,33 @@ public final class StorageNameProtos {
         onBuilt();
         return result;
       }
-      
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse) {
           return mergeFrom((com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse)other);
@@ -1332,86 +2441,111 @@ public final class StorageNameProtos {
           return this;
         }
       }
-      
+
       public Builder mergeFrom(com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse other) {
         if (other == com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse.getDefaultInstance()) return this;
         if (other.hasSessionId()) {
-          setSessionId(other.getSessionId());
+          bitField0_ |= 0x00000001;
+          sessionId_ = other.sessionId_;
+          onChanged();
         }
         if (other.hasReturnCode()) {
           setReturnCode(other.getReturnCode());
         }
         if (other.hasDescription()) {
-          setDescription(other.getDescription());
+          bitField0_ |= 0x00000004;
+          description_ = other.description_;
+          onChanged();
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
-      
+
       public final boolean isInitialized() {
         return true;
       }
-      
+
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              sessionId_ = input.readBytes();
-              break;
-            }
-            case 16: {
-              bitField0_ |= 0x00000002;
-              returnCode_ = input.readInt32();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              description_ = input.readBytes();
-              break;
-            }
+        com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
           }
         }
+        return this;
       }
-      
       private int bitField0_;
-      
-      // optional string sessionId = 1;
+
       private java.lang.Object sessionId_ = "";
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
       public boolean hasSessionId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      public String getSessionId() {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
+      public java.lang.String getSessionId() {
         java.lang.Object ref = sessionId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          sessionId_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            sessionId_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setSessionId(String value) {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSessionIdBytes() {
+        java.lang.Object ref = sessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
+      public Builder setSessionId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -1420,55 +2554,146 @@ public final class StorageNameProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
       public Builder clearSessionId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         sessionId_ = getDefaultInstance().getSessionId();
         onChanged();
         return this;
       }
-      void setSessionId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000001;
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string sessionId = 1;</code>
+       */
+      public Builder setSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
         sessionId_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional int32 returnCode = 2;
+
       private int returnCode_ ;
+      /**
+       * <pre>
+       *返回码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 2;</code>
+       */
       public boolean hasReturnCode() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
+      /**
+       * <pre>
+       *返回码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 2;</code>
+       */
       public int getReturnCode() {
         return returnCode_;
       }
+      /**
+       * <pre>
+       *返回码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 2;</code>
+       */
       public Builder setReturnCode(int value) {
         bitField0_ |= 0x00000002;
         returnCode_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *返回码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 2;</code>
+       */
       public Builder clearReturnCode() {
         bitField0_ = (bitField0_ & ~0x00000002);
         returnCode_ = 0;
         onChanged();
         return this;
       }
-      
-      // optional string description = 3;
+
       private java.lang.Object description_ = "";
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
       public boolean hasDescription() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      public String getDescription() {
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
+      public java.lang.String getDescription() {
         java.lang.Object ref = description_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          description_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            description_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setDescription(String value) {
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
+      public Builder setDescription(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -1477,45 +2702,101 @@ public final class StorageNameProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
       public Builder clearDescription() {
         bitField0_ = (bitField0_ & ~0x00000004);
         description_ = getDefaultInstance().getDescription();
         onChanged();
         return this;
       }
-      void setDescription(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000004;
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
         description_ = value;
         onChanged();
+        return this;
       }
-      
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
       // @@protoc_insertion_point(builder_scope:brfs.proto.StorageNameResponse)
     }
-    
-    static {
-      defaultInstance = new StorageNameResponse(true);
-      defaultInstance.initFields();
-    }
-    
+
     // @@protoc_insertion_point(class_scope:brfs.proto.StorageNameResponse)
+    private static final com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse();
+    }
+
+    public static com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<StorageNameResponse>
+        PARSER = new com.google.protobuf.AbstractParser<StorageNameResponse>() {
+      public StorageNameResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new StorageNameResponse(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<StorageNameResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<StorageNameResponse> getParserForType() {
+      return PARSER;
+    }
+
+    public com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
-  
-  private static com.google.protobuf.Descriptors.Descriptor
+
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_StorageNameRequest_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_brfs_proto_StorageNameRequest_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_StorageNameResponse_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_brfs_proto_StorageNameResponse_fieldAccessorTable;
-  
+
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -1533,34 +2814,30 @@ public final class StorageNameProtos {
       "eNameProtos\210\001\000"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
-        public com.google.protobuf.ExtensionRegistry assignDescriptors(
-            com.google.protobuf.Descriptors.FileDescriptor root) {
-          descriptor = root;
-          internal_static_brfs_proto_StorageNameRequest_descriptor =
-            getDescriptor().getMessageTypes().get(0);
-          internal_static_brfs_proto_StorageNameRequest_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_brfs_proto_StorageNameRequest_descriptor,
-              new java.lang.String[] { "SessionId", "Name", "Ttl", "Description", "Replicas", "RecoverFlag", "User", "StorageNameOptType", },
-              com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.class,
-              com.bonree.brfs.common.proto.StorageNameProtos.StorageNameRequest.Builder.class);
-          internal_static_brfs_proto_StorageNameResponse_descriptor =
-            getDescriptor().getMessageTypes().get(1);
-          internal_static_brfs_proto_StorageNameResponse_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_brfs_proto_StorageNameResponse_descriptor,
-              new java.lang.String[] { "SessionId", "ReturnCode", "Description", },
-              com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse.class,
-              com.bonree.brfs.common.proto.StorageNameProtos.StorageNameResponse.Builder.class);
-          return null;
-        }
-      };
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
+    internal_static_brfs_proto_StorageNameRequest_descriptor =
+      getDescriptor().getMessageTypes().get(0);
+    internal_static_brfs_proto_StorageNameRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_brfs_proto_StorageNameRequest_descriptor,
+        new java.lang.String[] { "SessionId", "Name", "Ttl", "Description", "Replicas", "RecoverFlag", "User", "StorageNameOptType", });
+    internal_static_brfs_proto_StorageNameResponse_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_brfs_proto_StorageNameResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_brfs_proto_StorageNameResponse_descriptor,
+        new java.lang.String[] { "SessionId", "ReturnCode", "Description", });
   }
-  
+
   // @@protoc_insertion_point(outer_class_scope)
 }

@@ -6,49 +6,288 @@ package com.bonree.brfs.common.proto;
 public final class ReturnCodeProtos {
   private ReturnCodeProtos() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+      com.google.protobuf.ExtensionRegistryLite registry) {
   }
+
+  public static void registerAllExtensions(
+      com.google.protobuf.ExtensionRegistry registry) {
+    registerAllExtensions(
+        (com.google.protobuf.ExtensionRegistryLite) registry);
+  }
+  /**
+   * <pre>
+   *3开头为认证类错误,4开头为sn类异常错误,5开头为数据错误
+   * </pre>
+   *
+   * Protobuf enum {@code brfs.proto.ReturnCodeEnum}
+   */
   public enum ReturnCodeEnum
       implements com.google.protobuf.ProtocolMessageEnum {
-    SUCCESS(0, 2000),
-    AUTH_FAILED_ERROR(1, 3001),
-    FID_VERSION_ERROR(2, 3002),
-    FID_COMPRESS_ERROR(3, 3003),
-    FID_STORAGE_NAME_CODE_ERROR(4, 3004),
-    FID_UUID_ERROR(5, 3005),
-    FID_TIME_ERROR(6, 3006),
-    FID_SERVERID_ERROR(7, 3007),
-    FID_OFFSET_ERROR(8, 3008),
-    FID_SIZE_ERROR(9, 3009),
-    STORAGE_NAME_EXIST_ERROR(10, 4001),
-    STORAGE_NAME_NOT_EXIST_ERROR(11, 4002),
-    STORAGE_NAME_UPDATE_ERROR(12, 4003),
-    DATA_DELETE_ERROR(13, 5001),
-    DATA_WRITE_ERROR(14, 5002),
-    DATA_READ_ERROR(15, 5003),
+    /**
+     * <pre>
+     *成功
+     * </pre>
+     *
+     * <code>SUCCESS = 2000;</code>
+     */
+    SUCCESS(2000),
+    /**
+     * <pre>
+     * 认证失败
+     * </pre>
+     *
+     * <code>AUTH_FAILED_ERROR = 3001;</code>
+     */
+    AUTH_FAILED_ERROR(3001),
+    /**
+     * <pre>
+     * version取值范围0~7
+     * </pre>
+     *
+     * <code>FID_VERSION_ERROR = 3002;</code>
+     */
+    FID_VERSION_ERROR(3002),
+    /**
+     * <pre>
+     * compress取值范围0~3
+     * </pre>
+     *
+     * <code>FID_COMPRESS_ERROR = 3003;</code>
+     */
+    FID_COMPRESS_ERROR(3003),
+    /**
+     * <pre>
+     * storageNameCode取值范围0~65535
+     * </pre>
+     *
+     * <code>FID_STORAGE_NAME_CODE_ERROR = 3004;</code>
+     */
+    FID_STORAGE_NAME_CODE_ERROR(3004),
+    /**
+     * <pre>
+     * uuid长度为32字节
+     * </pre>
+     *
+     * <code>FID_UUID_ERROR = 3005;</code>
+     */
+    FID_UUID_ERROR(3005),
+    /**
+     * <pre>
+     * time取值范围可到2118-12-31 23:59
+     * </pre>
+     *
+     * <code>FID_TIME_ERROR = 3006;</code>
+     */
+    FID_TIME_ERROR(3006),
+    /**
+     * <pre>
+     * serverId取值范围是0~16383
+     * </pre>
+     *
+     * <code>FID_SERVERID_ERROR = 3007;</code>
+     */
+    FID_SERVERID_ERROR(3007),
+    /**
+     * <pre>
+     * offset取值范围0~4294967295
+     * </pre>
+     *
+     * <code>FID_OFFSET_ERROR = 3008;</code>
+     */
+    FID_OFFSET_ERROR(3008),
+    /**
+     * <code>FID_SIZE_ERROR = 3009;</code>
+     */
+    FID_SIZE_ERROR(3009),
+    /**
+     * <pre>
+     *sn已存在
+     * </pre>
+     *
+     * <code>STORAGE_NAME_EXIST_ERROR = 4001;</code>
+     */
+    STORAGE_NAME_EXIST_ERROR(4001),
+    /**
+     * <pre>
+     *sn不存在
+     * </pre>
+     *
+     * <code>STORAGE_NAME_NOT_EXIST_ERROR = 4002;</code>
+     */
+    STORAGE_NAME_NOT_EXIST_ERROR(4002),
+    /**
+     * <pre>
+     *sn更新错误
+     * </pre>
+     *
+     * <code>STORAGE_NAME_UPDATE_ERROR = 4003;</code>
+     */
+    STORAGE_NAME_UPDATE_ERROR(4003),
+    /**
+     * <pre>
+     *数据删除错误
+     * </pre>
+     *
+     * <code>DATA_DELETE_ERROR = 5001;</code>
+     */
+    DATA_DELETE_ERROR(5001),
+    /**
+     * <pre>
+     *数据写入错误
+     * </pre>
+     *
+     * <code>DATA_WRITE_ERROR = 5002;</code>
+     */
+    DATA_WRITE_ERROR(5002),
+    /**
+     * <pre>
+     *数据读取错误
+     * </pre>
+     *
+     * <code>DATA_READ_ERROR = 5003;</code>
+     */
+    DATA_READ_ERROR(5003),
     ;
-    
+
+    /**
+     * <pre>
+     *成功
+     * </pre>
+     *
+     * <code>SUCCESS = 2000;</code>
+     */
     public static final int SUCCESS_VALUE = 2000;
+    /**
+     * <pre>
+     * 认证失败
+     * </pre>
+     *
+     * <code>AUTH_FAILED_ERROR = 3001;</code>
+     */
     public static final int AUTH_FAILED_ERROR_VALUE = 3001;
+    /**
+     * <pre>
+     * version取值范围0~7
+     * </pre>
+     *
+     * <code>FID_VERSION_ERROR = 3002;</code>
+     */
     public static final int FID_VERSION_ERROR_VALUE = 3002;
+    /**
+     * <pre>
+     * compress取值范围0~3
+     * </pre>
+     *
+     * <code>FID_COMPRESS_ERROR = 3003;</code>
+     */
     public static final int FID_COMPRESS_ERROR_VALUE = 3003;
+    /**
+     * <pre>
+     * storageNameCode取值范围0~65535
+     * </pre>
+     *
+     * <code>FID_STORAGE_NAME_CODE_ERROR = 3004;</code>
+     */
     public static final int FID_STORAGE_NAME_CODE_ERROR_VALUE = 3004;
+    /**
+     * <pre>
+     * uuid长度为32字节
+     * </pre>
+     *
+     * <code>FID_UUID_ERROR = 3005;</code>
+     */
     public static final int FID_UUID_ERROR_VALUE = 3005;
+    /**
+     * <pre>
+     * time取值范围可到2118-12-31 23:59
+     * </pre>
+     *
+     * <code>FID_TIME_ERROR = 3006;</code>
+     */
     public static final int FID_TIME_ERROR_VALUE = 3006;
+    /**
+     * <pre>
+     * serverId取值范围是0~16383
+     * </pre>
+     *
+     * <code>FID_SERVERID_ERROR = 3007;</code>
+     */
     public static final int FID_SERVERID_ERROR_VALUE = 3007;
+    /**
+     * <pre>
+     * offset取值范围0~4294967295
+     * </pre>
+     *
+     * <code>FID_OFFSET_ERROR = 3008;</code>
+     */
     public static final int FID_OFFSET_ERROR_VALUE = 3008;
+    /**
+     * <code>FID_SIZE_ERROR = 3009;</code>
+     */
     public static final int FID_SIZE_ERROR_VALUE = 3009;
+    /**
+     * <pre>
+     *sn已存在
+     * </pre>
+     *
+     * <code>STORAGE_NAME_EXIST_ERROR = 4001;</code>
+     */
     public static final int STORAGE_NAME_EXIST_ERROR_VALUE = 4001;
+    /**
+     * <pre>
+     *sn不存在
+     * </pre>
+     *
+     * <code>STORAGE_NAME_NOT_EXIST_ERROR = 4002;</code>
+     */
     public static final int STORAGE_NAME_NOT_EXIST_ERROR_VALUE = 4002;
+    /**
+     * <pre>
+     *sn更新错误
+     * </pre>
+     *
+     * <code>STORAGE_NAME_UPDATE_ERROR = 4003;</code>
+     */
     public static final int STORAGE_NAME_UPDATE_ERROR_VALUE = 4003;
+    /**
+     * <pre>
+     *数据删除错误
+     * </pre>
+     *
+     * <code>DATA_DELETE_ERROR = 5001;</code>
+     */
     public static final int DATA_DELETE_ERROR_VALUE = 5001;
+    /**
+     * <pre>
+     *数据写入错误
+     * </pre>
+     *
+     * <code>DATA_WRITE_ERROR = 5002;</code>
+     */
     public static final int DATA_WRITE_ERROR_VALUE = 5002;
+    /**
+     * <pre>
+     *数据读取错误
+     * </pre>
+     *
+     * <code>DATA_READ_ERROR = 5003;</code>
+     */
     public static final int DATA_READ_ERROR_VALUE = 5003;
-    
-    
-    public final int getNumber() { return value; }
-    
+
+
+    public final int getNumber() {
+      return value;
+    }
+
+    /**
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
     public static ReturnCodeEnum valueOf(int value) {
+      return forNumber(value);
+    }
+
+    public static ReturnCodeEnum forNumber(int value) {
       switch (value) {
         case 2000: return SUCCESS;
         case 3001: return AUTH_FAILED_ERROR;
@@ -69,22 +308,22 @@ public final class ReturnCodeProtos {
         default: return null;
       }
     }
-    
+
     public static com.google.protobuf.Internal.EnumLiteMap<ReturnCodeEnum>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static com.google.protobuf.Internal.EnumLiteMap<ReturnCodeEnum>
-        internalValueMap =
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        ReturnCodeEnum> internalValueMap =
           new com.google.protobuf.Internal.EnumLiteMap<ReturnCodeEnum>() {
             public ReturnCodeEnum findValueByNumber(int number) {
-              return ReturnCodeEnum.valueOf(number);
+              return ReturnCodeEnum.forNumber(number);
             }
           };
-    
+
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
-      return getDescriptor().getValues().get(index);
+      return getDescriptor().getValues().get(ordinal());
     }
     public final com.google.protobuf.Descriptors.EnumDescriptor
         getDescriptorForType() {
@@ -94,11 +333,9 @@ public final class ReturnCodeProtos {
         getDescriptor() {
       return com.bonree.brfs.common.proto.ReturnCodeProtos.getDescriptor().getEnumTypes().get(0);
     }
-    
-    private static final ReturnCodeEnum[] VALUES = {
-      SUCCESS, AUTH_FAILED_ERROR, FID_VERSION_ERROR, FID_COMPRESS_ERROR, FID_STORAGE_NAME_CODE_ERROR, FID_UUID_ERROR, FID_TIME_ERROR, FID_SERVERID_ERROR, FID_OFFSET_ERROR, FID_SIZE_ERROR, STORAGE_NAME_EXIST_ERROR, STORAGE_NAME_NOT_EXIST_ERROR, STORAGE_NAME_UPDATE_ERROR, DATA_DELETE_ERROR, DATA_WRITE_ERROR, DATA_READ_ERROR, 
-    };
-    
+
+    private static final ReturnCodeEnum[] VALUES = values();
+
     public static ReturnCodeEnum valueOf(
         com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
@@ -107,24 +344,22 @@ public final class ReturnCodeProtos {
       }
       return VALUES[desc.getIndex()];
     }
-    
-    private final int index;
+
     private final int value;
-    
-    private ReturnCodeEnum(int index, int value) {
-      this.index = index;
+
+    private ReturnCodeEnum(int value) {
       this.value = value;
     }
-    
+
     // @@protoc_insertion_point(enum_scope:brfs.proto.ReturnCodeEnum)
   }
-  
-  
+
+
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -143,18 +378,18 @@ public final class ReturnCodeProtos {
       "B\020ReturnCodeProtos\210\001\000"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
-        public com.google.protobuf.ExtensionRegistry assignDescriptors(
-            com.google.protobuf.Descriptors.FileDescriptor root) {
-          descriptor = root;
-          return null;
-        }
-      };
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
   }
-  
+
   // @@protoc_insertion_point(outer_class_scope)
 }
