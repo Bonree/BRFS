@@ -1,0 +1,14 @@
+syntax = "proto2";
+option java_package = "com.bonree.brfs.common.net.http.data.protocal";
+option java_outer_classname = "DataTransferProtos";
+message FSPacketProto{
+    optional bool crcFlag = 1;     //是否开启crc校验码
+    optional int64 crcCheckCode = 2; //crc校验码
+    optional int64 seqno = 3;   //序号，在文件中唯一
+    optional bool lastPacketInFile = 4; //是否开启crc校验码
+    optional string fileName = 5;  //文件名或uuid
+    optional bytes data = 6;   //数据内容
+    optional int32 compress = 7;      //是否压缩,0:不压缩,1:gzip,2:snappy,3保留
+    optional int64 offsetInFile = 8; //在文件中的偏移量
+    optional int32 storageName = 9;  //StorageName
+}
