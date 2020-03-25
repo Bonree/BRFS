@@ -14,7 +14,7 @@ import java.util.List;
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
  * @date 2020年03月24日 15:33:54
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @description:
+ * @description:磁盘节点注册节点 zookeeper的连接时间要短 否则会造成进程不在，但还可以访问的问题
  ******************************************************************************/
 
 public class PartitionInfoRegister {
