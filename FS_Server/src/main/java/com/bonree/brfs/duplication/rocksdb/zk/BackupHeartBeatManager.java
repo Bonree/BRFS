@@ -61,7 +61,7 @@ public class BackupHeartBeatManager {
         long lastBackupHeartBeat;
         try {
             if (this.client.checkExists().forPath(makePath) == null) {
-                LOG.warn("service not exists, path:{}", makePath);
+                LOG.warn("last backup heart beat not found, path:{}", makePath);
                 return 0L;
             }
 

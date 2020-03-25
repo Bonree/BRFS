@@ -27,7 +27,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     private static final Logger LOG = LoggerFactory.getLogger(HttpRegionNodeClient.class);
 
     private static final String DEFAULT_SCHEME = "http";
-    private static final String URI_PATH_ROCKSDB_ROOT = "/rocksdb";
+    private static final String URI_PATH_ROCKSDB_ROOT = "/rocksdb/";
 
     private HttpClient client;
 
@@ -50,7 +50,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
                 .setScheme(DEFAULT_SCHEME)
                 .setHost(host)
                 .setPort(port)
-                .setPath("/ping")
+                .setPath("/ping/")
                 .build();
 
         try {
@@ -99,7 +99,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
                 .setParamter("backupPath", backupPath)
                 .setParamter("host", socketHost)
                 .setParamter("port", String.valueOf(socketPort))
-                .setPath("/ping")
+                .setPath("/ping/")
                 .build();
 
         try {

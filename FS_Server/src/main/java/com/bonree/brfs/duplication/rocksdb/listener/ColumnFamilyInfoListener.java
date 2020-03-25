@@ -43,7 +43,7 @@ public class ColumnFamilyInfoListener implements LifeCycle {
         this.nodeCache.start();
         this.listener = new ColumnFamilyNodeCacheListener();
         this.nodeCache.getListenable().addListener(listener, Executors.newSingleThreadExecutor(new PooledThreadFactory("column_family_listener")));
-        LOG.info("column family listener running...");
+        LOG.info("add column family node cache listener" );
     }
 
     @Override

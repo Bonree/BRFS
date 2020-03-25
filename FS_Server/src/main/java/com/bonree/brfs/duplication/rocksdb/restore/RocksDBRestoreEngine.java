@@ -3,6 +3,7 @@ package com.bonree.brfs.duplication.rocksdb.restore;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.utils.ZipUtils;
 import com.bonree.brfs.configuration.Configs;
@@ -23,6 +24,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -40,113 +43,21 @@ public class RocksDBRestoreEngine {
     private ServiceRegisterTimeManager registerTimeManager;
     private BackupHeartBeatManager heartBeatManager;
     private RegionNodeConnectionPool regionNodeConnectionPool;
+    private ExecutorService executor;
 
     public RocksDBRestoreEngine(CuratorFramework client, ServiceManager serviceManager, Service service, RegionNodeConnectionPool regionNodeConnectionPool) {
         this.service = service;
         this.regionNodeConnectionPool = regionNodeConnectionPool;
         this.heartBeatManager = new BackupHeartBeatManager(client, service);
         this.registerTimeManager = new ServiceRegisterTimeManager(serviceManager);
+        executor = Executors.newSingleThreadExecutor(new PooledThreadFactory("rocksdb_restore"));
     }
 
     /**
      * @description: 进行数据检查，根据情况决定是否执行数据恢复过程
      */
     public void restore() {
-
-        String backupPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
-        String rocksDBPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
-        long backupCycle = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_CYCLE);
-
-        long prevTimeStamp = TimeUtils.prevTimeStamp(System.currentTimeMillis(), backupCycle);
-        long lastBackupHeartBeat = heartBeatManager.lastBackupHeartBeat();
-
-        if (lastBackupHeartBeat == 0) {
-            LOG.info("lastBackupHeartBeat is zero");
-            return;
-        }
-
-        if (prevTimeStamp == lastBackupHeartBeat) {
-            LOG.info("Don't need rocksdb restore, prevTimeStamp equals lastBackupHeartBeat:{}", lastBackupHeartBeat);
-            return;
-        }
-
-        List<String> missedBackupFiles = calMissedBackupFiles(prevTimeStamp, lastBackupHeartBeat, backupCycle);
-        SimpleFileServer fileServer = null;
-
-        Service earliestRegisterService = this.registerTimeManager.getEarliestRegisterService();
-        if (!earliestRegisterService.getHost().equals(this.service.getHost())) {
-            RegionNodeConnection connection = this.regionNodeConnectionPool.getConnection(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME), earliestRegisterService.getServiceId());
-            if (connection == null || connection.getClient() == null) {
-                LOG.warn("region node connection/client is null! serviceId:{}", this.service.getServiceId());
-                return;
-            }
-
-            String tmpFileName = UUID.randomUUID().toString() + ".zip";
-            try {
-                fileServer = new SimpleFileServer(this.service.getPort() + 30, rocksDBPath, 1);
-                fileServer.start();
-            } catch (IOException e) {
-                LOG.error("simple file server err", e);
-            }
-
-            boolean isOk = connection.getClient().establishSocket(tmpFileName, backupPath, this.service.getHost(), this.service.getPort() + 30, missedBackupFiles);
-            String tmpFilePath = backupPath + "/" + tmpFileName;
-            if (isOk) {
-                ZipUtils.unZip(tmpFilePath, backupPath);
-            }
-            if (new File(tmpFilePath).delete()) {
-                LOG.info("server delete tmp transfer file :{}", tmpFilePath);
-            }
-        }
-
-        RestoreOptions restoreOptions = null;
-        BackupableDBOptions backupableDBOptions = null;
-        BackupEngine backupEngine = null;
-
-        try {
-            TimeWatcher watcher = new TimeWatcher();
-            restoreOptions = new RestoreOptions(false);
-
-            for (String file : missedBackupFiles) {
-                try {
-                    backupableDBOptions = new BackupableDBOptions(backupPath + "/" + file);
-                    backupEngine = BackupEngine.open(Env.getDefault(), backupableDBOptions);
-                    backupEngine.restoreDbFromLatestBackup(rocksDBPath, rocksDBPath, restoreOptions);
-                    LOG.info("file {} restore complete, cost time:{}", file, watcher.getElapsedTimeAndRefresh());
-                } finally {
-                    if (backupEngine != null) {
-                        backupEngine.close();
-                    }
-                    if (backupableDBOptions != null) {
-                        backupableDBOptions.close();
-                    }
-                }
-            }
-
-            LOG.info("restore engine execute complete, restore file list:{}, prevTimeStamp:{}, lastBackupHeartBeat:{}", missedBackupFiles, prevTimeStamp, lastBackupHeartBeat);
-
-        } catch (RocksDBException e) {
-            LOG.error("restore engine err", e);
-        } finally {
-            if (fileServer != null) {
-                try {
-                    fileServer.close();
-                } catch (IOException ioe) {
-                    LOG.error("file server close err", ioe);
-                }
-            }
-            if (backupEngine != null) {
-                backupEngine.close();
-            }
-            if (backupableDBOptions != null) {
-                backupableDBOptions.close();
-            }
-            if (restoreOptions != null) {
-                restoreOptions.close();
-            }
-
-        }
-
+        executor.execute(new RocksDBRestoreThread(service, registerTimeManager, heartBeatManager, regionNodeConnectionPool));
     }
 
     /**
@@ -166,4 +77,115 @@ public class RocksDBRestoreEngine {
         return missedFiles;
     }
 
+    private class RocksDBRestoreThread implements Runnable {
+        private Service service;
+        private ServiceRegisterTimeManager registerTimeManager;
+        private BackupHeartBeatManager heartBeatManager;
+        private RegionNodeConnectionPool regionNodeConnectionPool;
+
+        private RocksDBRestoreThread(Service service, ServiceRegisterTimeManager registerTimeManager, BackupHeartBeatManager heartBeatManager, RegionNodeConnectionPool regionNodeConnectionPool) {
+            this.service = service;
+            this.registerTimeManager = registerTimeManager;
+            this.heartBeatManager = heartBeatManager;
+            this.regionNodeConnectionPool = regionNodeConnectionPool;
+        }
+
+        @Override
+        public void run() {
+
+            String backupPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
+            String rocksDBPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
+            long backupCycle = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_CYCLE);
+
+            long prevTimeStamp = TimeUtils.prevTimeStamp(System.currentTimeMillis(), backupCycle);
+            long lastBackupHeartBeat = heartBeatManager.lastBackupHeartBeat();
+
+            if (lastBackupHeartBeat == 0) {
+                LOG.info("lastBackupHeartBeat is zero");
+                return;
+            }
+
+            if (prevTimeStamp == lastBackupHeartBeat) {
+                LOG.info("Don't need rocksdb restore, prevTimeStamp equals lastBackupHeartBeat:{}", lastBackupHeartBeat);
+                return;
+            }
+
+            List<String> missedBackupFiles = calMissedBackupFiles(prevTimeStamp, lastBackupHeartBeat, backupCycle);
+            SimpleFileServer fileServer = null;
+
+            Service earliestRegisterService = this.registerTimeManager.getEarliestRegisterService();
+            if (!earliestRegisterService.getHost().equals(this.service.getHost())) {
+                RegionNodeConnection connection = this.regionNodeConnectionPool.getConnection(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME), earliestRegisterService.getServiceId());
+                if (connection == null || connection.getClient() == null) {
+                    LOG.warn("region node connection/client is null! serviceId:{}", this.service.getServiceId());
+                    return;
+                }
+
+                String tmpFileName = UUID.randomUUID().toString() + ".zip";
+                try {
+                    fileServer = new SimpleFileServer(this.service.getPort() + 30, rocksDBPath, 1);
+                    fileServer.start();
+                } catch (IOException e) {
+                    LOG.error("simple file server err", e);
+                }
+
+                boolean isOk = connection.getClient().establishSocket(tmpFileName, backupPath, this.service.getHost(), this.service.getPort() + 30, missedBackupFiles);
+                String tmpFilePath = backupPath + "/" + tmpFileName;
+                if (isOk) {
+                    ZipUtils.unZip(tmpFilePath, backupPath);
+                }
+                if (new File(tmpFilePath).delete()) {
+                    LOG.info("server delete tmp transfer file :{}", tmpFilePath);
+                }
+            }
+
+            RestoreOptions restoreOptions = null;
+            BackupableDBOptions backupableDBOptions = null;
+            BackupEngine backupEngine = null;
+
+            try {
+                TimeWatcher watcher = new TimeWatcher();
+                restoreOptions = new RestoreOptions(false);
+
+                for (String file : missedBackupFiles) {
+                    try {
+                        backupableDBOptions = new BackupableDBOptions(backupPath + "/" + file);
+                        backupEngine = BackupEngine.open(Env.getDefault(), backupableDBOptions);
+                        backupEngine.restoreDbFromLatestBackup(rocksDBPath, rocksDBPath, restoreOptions);
+                        LOG.info("file {} restore complete, cost time:{}", file, watcher.getElapsedTimeAndRefresh());
+                    } finally {
+                        if (backupEngine != null) {
+                            backupEngine.close();
+                        }
+                        if (backupableDBOptions != null) {
+                            backupableDBOptions.close();
+                        }
+                    }
+                }
+
+                LOG.info("restore engine execute complete, restore file list:{}, prevTimeStamp:{}, lastBackupHeartBeat:{}", missedBackupFiles, prevTimeStamp, lastBackupHeartBeat);
+
+            } catch (RocksDBException e) {
+                LOG.error("restore engine err", e);
+            } finally {
+                if (fileServer != null) {
+                    try {
+                        fileServer.close();
+                    } catch (IOException ioe) {
+                        LOG.error("file server close err", ioe);
+                    }
+                }
+                if (backupEngine != null) {
+                    backupEngine.close();
+                }
+                if (backupableDBOptions != null) {
+                    backupableDBOptions.close();
+                }
+                if (restoreOptions != null) {
+                    restoreOptions.close();
+                }
+
+            }
+        }
+    }
 }
