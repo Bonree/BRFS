@@ -27,15 +27,6 @@ import java.util.concurrent.*;
 public class PartitionGather implements LifeCycle {
     private final static Logger LOG = LoggerFactory.getLogger(PartitionGather.class);
     /**
-     * 磁盘分区注册助手
-     */
-    private PartitionInfoRegister register;
-    /**
-     * 本机一级server信息
-     */
-    private Service localInfo;
-    private Collection<LocalPartitionInfo> validPartions;
-    /**
      * 定时执行线程池
      */
     private ScheduledExecutorService pool = null;
@@ -46,13 +37,12 @@ public class PartitionGather implements LifeCycle {
 
     private int intervalTimes = 5;
 
+    private LocalPartitionListener listener = null;
+
     public PartitionGather(PartitionInfoRegister register, Service localInfo, Collection<LocalPartitionInfo> validPartions,int intervalTimes) {
-        this.register = register;
-        this.localInfo = localInfo;
-        this.validPartions = validPartions;
         this.intervalTimes = intervalTimes;
         this.pool = Executors.newScheduledThreadPool(1);
-        this.worker = new GatherThread(this.register,this.validPartions,this.localInfo);
+        this.worker = new GatherThread(register,validPartions,localInfo);
     }
 
     @Override
@@ -71,6 +61,10 @@ public class PartitionGather implements LifeCycle {
         }
     }
 
+    public void setListener(LocalPartitionListener listener) {
+        this.listener = listener;
+    }
+
     /**
      * 资源采集线程
      */
@@ -81,6 +75,7 @@ public class PartitionGather implements LifeCycle {
         private Sigar sigar = null;
         private Service firstServer;
         private boolean isAlive = true;
+        private LocalPartitionListener listener =null;
         public GatherThread(PartitionInfoRegister register,Collection<LocalPartitionInfo> partitions, Service firstServer) {
             this.register = register;
             this.partitions = partitions;
@@ -122,8 +117,14 @@ public class PartitionGather implements LifeCycle {
                     if(PartitionGather.isValid(elePart,fs,sigar)){
                         partition =packagePartition(elePart,fs);
                         register.registerPartitionInfo(partition);
+                        if(listener !=null){
+                            listener.add(elePart);
+                        }
                     }else{
                         register.unregisterPartitionInfo(elePart.getPartitionGroup(),elePart.getPartitionId());
+                        if(listener!=null){
+                            listener.remove(elePart);
+                        }
                     }
                 } catch (Exception e) {
                     LOG.error("check partition happen error !!{}",elePart.getDataDir());
@@ -152,6 +153,14 @@ public class PartitionGather implements LifeCycle {
 
         public void setAlive(boolean alive) {
             isAlive = alive;
+        }
+
+        public LocalPartitionListener getListener() {
+            return listener;
+        }
+
+        public void setListener(LocalPartitionListener listener) {
+            this.listener = listener;
         }
     }
     /**
