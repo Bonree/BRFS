@@ -83,7 +83,7 @@ public class RocksDBHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 
         JSONObject json = new JSONObject();
         json.put("code", status.code());
-        json.put("result", JSONArray.parseArray(content));
+        json.put("result", content);
         ByteBuf buf = Unpooled.copiedBuffer(json.toJSONString(), CharsetUtil.UTF_8);
 
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
