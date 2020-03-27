@@ -1,11 +1,11 @@
-package com.bonree.brfs.partition;
+package com.bonree.brfs.partition.model;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
- * @date 2020年03月23日 17:31:06
+ * @date 2020年03月24日 11:10:49
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @description: 磁盘节点信息
+ * @description:
  ******************************************************************************/
 
 public class PartitionInfo {
@@ -26,8 +26,8 @@ public class PartitionInfo {
     // 版本信息
     private int version=1;
 
-    public PartitionInfo(double freeSize) {
-        this.freeSize = freeSize;
+    public PartitionInfo() {
+
     }
 
     public PartitionInfo(String serviceGroup, String serviceId, String partitionGroup, String partitionId, double totalSize, double freeSize, long registerTime) {
