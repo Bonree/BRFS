@@ -98,7 +98,7 @@ public class CuratorModule implements Module {
                 log.info("stop curator framework");
                 framework.close();
             }
-        });
+        }, Lifecycle.Stage.INIT);
         
         try {
             // the design of first release requires that connection to

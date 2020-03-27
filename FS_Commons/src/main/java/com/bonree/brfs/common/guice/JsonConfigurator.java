@@ -183,14 +183,14 @@ public class JsonConfigurator
                 @Override
                 public Message apply(String input)
                 {
-                  return new Message(StringUtils.format("%s%s", propertyBase, input));
+                  return new Message(StringUtils.format("%s %s", propertyBase, input));
                 }
               }
           )
       );
     }
 
-    log.info("Loaded class[%s] from props[%s] as [%s]", clazz, propertyBase, config);
+    log.info("Loaded class[{}] from props[{}] as [{}]", clazz, propertyBase, config);
 
     return config;
   }
@@ -225,7 +225,7 @@ public class JsonConfigurator
       // to configure ParametrizedUriEmitterConfig object. So skipping xxx=yyy key-value pair when configuring Emitter
       // doesn't make any difference. That is why we just log this situation, instead of throwing an exception.
       log.info(
-          "Skipping %s property: one of it's prefixes is also used as a property key. Prefix: %s",
+          "Skipping {} property: one of it's prefixes is also used as a property key. Prefix: {}",
           originalProperty,
           propertyPrefix
       );

@@ -1,15 +1,15 @@
 package com.bonree.brfs.schedulers.task.operation.impl;
 
 
-import com.bonree.brfs.email.EmailPool;
-import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.mail.worker.MailWorker;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.operation.QuartzOperationStateInterface;
+import com.bonree.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 
 
 public abstract class QuartzOperationStateTask implements QuartzOperationStateInterface {

@@ -3,7 +3,6 @@ package com.bonree.brfs.server;
 import java.io.Closeable;
 import java.io.IOException;
 
-import com.bonree.brfs.email.EmailPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,9 @@ import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.schedulers.InitTaskManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.email.EmailPool;
 
+@Deprecated
 public class ServerMain {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerMain.class);
@@ -42,7 +43,6 @@ public class ServerMain {
             // 初始化email发送配置
             EmailPool.getInstance();
             String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-            CuratorClient leaderClient = CuratorClient.getClientInstance(zkAddresses, 1000, 1000);
             CuratorClient client = CuratorClient.getClientInstance(zkAddresses);
 
             CuratorCacheFactory.init(client.getInnerClient());
@@ -59,7 +59,6 @@ public class ServerMain {
             }
             
             ServerIDManager idManager = new ServerIDManager(client.getInnerClient(), zookeeperPaths);
-            idManager.getFirstServerID();
 
             StorageRegionManager snManager = new DefaultStorageRegionManager(client.getInnerClient(), zookeeperPaths, null);
             snManager.addStorageRegionStateListener(new StorageRegionStateListener() {
@@ -83,7 +82,7 @@ public class ServerMain {
             
             finalizer.add(snManager);
 
-            ServiceManager sm = new DefaultServiceManager(client.getInnerClient().usingNamespace(zookeeperPaths.getBaseClusterName().substring(1)));
+            ServiceManager sm = new DefaultServiceManager(client.getInnerClient(), zookeeperPaths);
             sm.start();
             
             finalizer.add(sm);
@@ -101,7 +100,7 @@ public class ServerMain {
 
             // 副本平衡模块
             sm.addServiceStateListener(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
-            		new ServerChangeTaskGenetor(leaderClient, client, sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
+            		new ServerChangeTaskGenetor(client.getInnerClient(), sm, idManager, zookeeperPaths.getBaseRebalancePath(), 3000, snManager));
            
             @SuppressWarnings("resource")
             RebalanceManager rebalanceServer = new RebalanceManager(zookeeperPaths, idManager, snManager, sm);
@@ -139,7 +138,7 @@ public class ServerMain {
 			});
             
          // 资源管理模块
-            InitTaskManager.initManager(resourceConfig, zookeeperPaths, sm, snManager, idManager, client);
+            InitTaskManager.initManager(resourceConfig, zookeeperPaths, sm, snManager, idManager, client.getInnerClient());
         } catch (Exception e) {
             LOG.error("launch server error!!!",e);
             System.exit(1);

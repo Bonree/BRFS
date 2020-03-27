@@ -1,6 +1,6 @@
 package com.bonree.brfs.client.impl;
 
-import org.apache.curator.shaded.com.google.common.base.Preconditions;
+import java.util.Objects;
 
 public class FileSystemConfig {
 	private String name;
@@ -176,10 +176,10 @@ public class FileSystemConfig {
 		}
 		
 		public FileSystemConfig build() {
-			Preconditions.checkNotNull(config.name);
-			Preconditions.checkNotNull(config.passwd);
-			Preconditions.checkNotNull(config.zkAddresses);
-			Preconditions.checkNotNull(config.clusterName);
+			Objects.requireNonNull(config.name);
+			Objects.requireNonNull(config.passwd);
+			Objects.requireNonNull(config.zkAddresses);
+			Objects.requireNonNull(config.clusterName);
 			
 			return config;
 		}

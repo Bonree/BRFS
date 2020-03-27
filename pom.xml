@@ -41,13 +41,14 @@
 		</snapshotRepository>
 	</distributionManagement>
 	<modules>
+		<module>FS_Proto</module>
 		<module>FS_Client</module>
 		<module>FS_Commons</module>
-		<module>FS_Proto</module>
 		<module>FS_Server</module>
 		<module>FS_ResouceSchedule</module>
 		<module>brfs-http-api</module>
 		<module>brfs-http-netty</module>
+		<module>brfs-email</module>
 	</modules>
 
 	<name>${project.artifactId}</name>
@@ -91,13 +92,12 @@
 		<sigar_version>1.6.4</sigar_version>
 		<quartz_version>2.0.2</quartz_version>
 		<jackson_version>2.9.8</jackson_version>
-		<protobuf_version>2.4.0a</protobuf_version>
+		<protobuf_version>3.4.0</protobuf_version>
 		<protostuff_version>1.6.0</protostuff_version>
 		<commons_lang_version>3.4</commons_lang_version>
 		<joda_time>2.9.9</joda_time>
 		<configuration_version>2.2</configuration_version>
 		<beanutils_version>1.9.3</beanutils_version>
-		<bonree_mail_version>0.0.2-SNAPSHOT</bonree_mail_version>
 		<rocksdb_version>5.18.3</rocksdb_version>
 	</properties>
 
@@ -228,11 +228,7 @@
 				<artifactId>commons-beanutils</artifactId>
 				<version>${beanutils_version}</version>
 			</dependency>
-			<dependency>
-				<groupId>com.bonree</groupId>
-				<artifactId>MailUtil</artifactId>
-				<version>${bonree_mail_version}</version>
-			</dependency>
+
 			<dependency>
 				<groupId>org.rocksdb</groupId>
 				<artifactId>rocksdbjni</artifactId>

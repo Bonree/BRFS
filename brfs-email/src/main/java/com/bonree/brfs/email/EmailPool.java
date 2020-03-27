@@ -1,15 +1,16 @@
 package com.bonree.brfs.email;
 
-import com.bonree.brfs.configuration.ConfigObj;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.EmailConfigs;
-import com.bonree.mail.worker.MailWorker;
-import com.bonree.mail.worker.ProgramInfo;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import com.bonree.brfs.configuration.ConfigObj;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.mail.worker.MailWorker;
+import com.bonree.mail.worker.ProgramInfo;
 
 /**
  * 初始化email配置

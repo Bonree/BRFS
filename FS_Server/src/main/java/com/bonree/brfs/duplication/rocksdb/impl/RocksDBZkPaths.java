@@ -10,8 +10,8 @@ package com.bonree.brfs.duplication.rocksdb.impl;
  ******************************************************************************/
 public class RocksDBZkPaths {
 
-    public static final String DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO = "columnFamilyInfo";
-    public static final String DEFAULT_PATH_ROCKSDB_BACKUP_HEARTBEAT = "backupHeartBeat";
-    public static final String DEFAULT_PATH_ROCKSDB_STARTUP_TIMESTAMP = "startupTimestamp";
+    public static final String DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO = "/columnFamilyInfo";
+    public static final String DEFAULT_PATH_ROCKSDB_BACKUP_HEARTBEAT = "/backupHeartBeat";
+    public static final String DEFAULT_PATH_ROCKSDB_STARTUP_TIMESTAMP = "/startupTimestamp";
 
 }

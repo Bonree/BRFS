@@ -104,7 +104,16 @@
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.11.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.bonree.fs</groupId>
+			<artifactId>FS_Proto</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.bonree.bigdata</groupId>
 			<artifactId>Delivery</artifactId>

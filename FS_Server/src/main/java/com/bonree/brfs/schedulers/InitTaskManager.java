@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.inject.Inject;
+
 import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import org.apache.curator.RetryPolicy;
@@ -61,89 +63,98 @@ public class InitTaskManager {
 	 * @throws ParamsErrorException
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void initManager(ResourceTaskConfig managerConfig,ZookeeperPaths zkPath, ServiceManager sm,StorageRegionManager snm, ServerIDManager sim, CuratorClient client) throws Exception {
-		managerConfig.printDetail();
-		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		String serverId = sim.getFirstServerID();
-		mcf.setServerId(serverId);
-		mcf.setGroupName(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
-		double diskRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE);
-		double diskForceRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE);
-		double diskwriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED);
-		double diskForcewriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED);
-		long diskRemainSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_REMAIN_SIZE);
-		long diskForceRemainSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE);
+	@Inject
+	public static void initManager(
+	        ResourceTaskConfig managerConfig,
+	        ZookeeperPaths zkPath,
+	        ServiceManager sm,
+	        StorageRegionManager snm,
+	        ServerIDManager sim,
+	        CuratorFramework client) throws Exception {
+        managerConfig.printDetail();
+        ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+        String serverId = sim.getFirstServerID();
+        mcf.setServerId(serverId);
+        mcf.setGroupName(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+        double diskRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE);
+        double diskForceRemainRate = Configs.getConfiguration()
+                .GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE);
+        double diskwriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED);
+        double diskForcewriteValue = Configs.getConfiguration()
+                .GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED);
+        long diskRemainSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_REMAIN_SIZE);
+        long diskForceRemainSize = Configs.getConfiguration()
+                .GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE);
 
-		LimitServerResource lmit = new LimitServerResource();
-		lmit.setDiskRemainRate(diskRemainRate);
-		lmit.setDiskWriteValue(diskwriteValue);
-		lmit.setForceDiskRemainRate(diskForceRemainRate);
-		lmit.setForceWriteValue(diskForcewriteValue);
-		lmit.setRemainWarnSize(diskRemainSize);
-		lmit.setRemainForceSize(diskForceRemainSize);
-		mcf.setLimitServerResource(lmit);
-		
-		// 工厂类添加服务管理
-		mcf.setSm(sm);
-		
-		// 工厂类添加storageName管理服务
-		mcf.setSnm(snm);
-		
-		// 1.工厂类添加调度管理
-		SchedulerManagerInterface manager = DefaultSchedulersManager.getInstance();
-		mcf.setStm(manager);
-		
-		// 工厂类添加发布接口
-		MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
-		if(release == null) {
-			LOG.error("Meta task is empty");
-			System.exit(1);
-		}
-		String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-		release.setPropreties(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
-		if(client == null) {
-			LOG.error("zk client is empty");
-			System.exit(1);
-		}
-		mcf.setClient(client);
-		mcf.setTm(release);
-		// 工厂类添加任务可执行接口
-		RunnableTaskInterface run = DefaultRunnableTask.getInstance();
-		TaskExecutablePattern limit = TaskExecutablePattern.parse(managerConfig);
-		run.setLimitParameter(limit);
-		mcf.setRt(run);
-		mcf.setZkPath(zkPath);
-		mcf.setSim(sim);
-		
-		// 创建任务线程池
-		if (managerConfig.isTaskFrameWorkSwitch()) {
-			// 1.创建任务管理服务
-			createMetaTaskManager(manager, zkPath, managerConfig, serverId);
-			// 2.启动任务线程池
-			List<TaskType> tasks = managerConfig.getSwitchOnTaskType();
-			if(tasks == null || tasks.isEmpty()){
-				LOG.warn("switch task on  but task type list is empty !!!");
-				return;
-			}
-			createAndStartThreadPool(manager, managerConfig);
-			if(tasks.contains(TaskType.SYSTEM_COPY_CHECK)){
-				SumbitTaskInterface copyJob = createCopySimpleTask(managerConfig.getExecuteTaskIntervalTime(),
-						TaskType.SYSTEM_COPY_CHECK.name(), serverId,
-						CopyRecoveryJob.class.getCanonicalName(), zkAddresses,
-						zkPath.getBaseRoutePath(),
-						Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
-				manager.addTask(TaskType.SYSTEM_COPY_CHECK.name(), copyJob);
-			}
-			mcf.setTaskOn(tasks);
-			//3.创建执行任务线程池
-			createOperationPool(managerConfig,zkPath, tasks, true);
-		}
-		
-		if(managerConfig.isResourceFrameWorkSwitch()){
-			// 创建资源调度服务
-			createResourceManager(manager, zkPath, managerConfig);
-		}
-	}
+        LimitServerResource lmit = new LimitServerResource();
+        lmit.setDiskRemainRate(diskRemainRate);
+        lmit.setDiskWriteValue(diskwriteValue);
+        lmit.setForceDiskRemainRate(diskForceRemainRate);
+        lmit.setForceWriteValue(diskForcewriteValue);
+        lmit.setRemainWarnSize(diskRemainSize);
+        lmit.setRemainForceSize(diskForceRemainSize);
+        mcf.setLimitServerResource(lmit);
+
+        // 工厂类添加服务管理
+        mcf.setSm(sm);
+
+        // 工厂类添加storageName管理服务
+        mcf.setSnm(snm);
+
+        // 1.工厂类添加调度管理
+        SchedulerManagerInterface manager = DefaultSchedulersManager.getInstance();
+        mcf.setStm(manager);
+
+        // 工厂类添加发布接口
+        MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
+        if (release == null) {
+            LOG.error("Meta task is empty");
+            System.exit(1);
+        }
+        String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+        release.setPropreties(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
+        if (client == null) {
+            LOG.error("zk client is empty");
+            System.exit(1);
+        }
+        mcf.setClient(CuratorClient.wrapClient(client));
+        mcf.setTm(release);
+        // 工厂类添加任务可执行接口
+        RunnableTaskInterface run = DefaultRunnableTask.getInstance();
+        TaskExecutablePattern limit = TaskExecutablePattern.parse(managerConfig);
+        run.setLimitParameter(limit);
+        mcf.setRt(run);
+        mcf.setZkPath(zkPath);
+        mcf.setSim(sim);
+
+        // 创建任务线程池
+        if (managerConfig.isTaskFrameWorkSwitch()) {
+            // 1.创建任务管理服务
+            createMetaTaskManager(manager, zkPath, managerConfig, serverId);
+            // 2.启动任务线程池
+            List<TaskType> tasks = managerConfig.getSwitchOnTaskType();
+            if (tasks == null || tasks.isEmpty()) {
+                LOG.warn("switch task on  but task type list is empty !!!");
+                return;
+            }
+            createAndStartThreadPool(manager, managerConfig);
+            if (tasks.contains(TaskType.SYSTEM_COPY_CHECK)) {
+                SumbitTaskInterface copyJob = createCopySimpleTask(managerConfig.getExecuteTaskIntervalTime(),
+                        TaskType.SYSTEM_COPY_CHECK.name(), serverId, CopyRecoveryJob.class.getCanonicalName(),
+                        zkAddresses, zkPath.getBaseRoutePath(),
+                        Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
+                manager.addTask(TaskType.SYSTEM_COPY_CHECK.name(), copyJob);
+            }
+            mcf.setTaskOn(tasks);
+            // 3.创建执行任务线程池
+            createOperationPool(managerConfig, zkPath, tasks, true);
+        }
+
+        if (managerConfig.isResourceFrameWorkSwitch()) {
+            // 创建资源调度服务
+            createResourceManager(manager, zkPath, managerConfig);
+        }
+    }
 	/**
 	 * 概述：创建集群任务管理服务
 	 * @param manager

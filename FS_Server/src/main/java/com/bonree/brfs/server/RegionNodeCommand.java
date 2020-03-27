@@ -18,8 +18,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.authentication.SimpleAuthenticationModule;
 import com.bonree.brfs.duplication.RegionNodeModule;
-import com.bonree.brfs.email.EmailModule;
+import com.bonree.email.EmailModule;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Module;
 
@@ -40,6 +41,7 @@ public class RegionNodeCommand extends BaseCommand {
     protected List<Module> getModules() {
         return ImmutableList.of(
                 new EmailModule(),
+                new SimpleAuthenticationModule(),
                 new RegionNodeModule());
     }
 

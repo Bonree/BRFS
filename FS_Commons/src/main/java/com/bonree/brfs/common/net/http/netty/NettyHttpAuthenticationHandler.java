@@ -24,6 +24,12 @@ public class NettyHttpAuthenticationHandler extends SimpleChannelInboundHandler<
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request)
 			throws Exception {
+		// 跳过内部请求检查  todo
+		if(request.uri().startsWith("/ping") || request.uri().startsWith("/rocksdb")){
+			ctx.fireChannelRead(request);
+			return;
+		}
+
 		HttpHeaders headers = request.headers();
 		String userName = headers.get("username");
 		String passwd = headers.get("password");

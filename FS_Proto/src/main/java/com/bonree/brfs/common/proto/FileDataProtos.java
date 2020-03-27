@@ -6,357 +6,692 @@ package com.bonree.brfs.common.proto;
 public final class FileDataProtos {
   private FileDataProtos() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+      com.google.protobuf.ExtensionRegistryLite registry) {
   }
-  public interface DataWriteRequestOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional string seesionId = 1;
+
+  public static void registerAllExtensions(
+      com.google.protobuf.ExtensionRegistry registry) {
+    registerAllExtensions(
+        (com.google.protobuf.ExtensionRegistryLite) registry);
+  }
+  public interface DataWriteRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:brfs.proto.DataWriteRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
     boolean hasSeesionId();
-    String getSeesionId();
-    
-    // optional string storageName = 2;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    java.lang.String getSeesionId();
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getSeesionIdBytes();
+
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
     boolean hasStorageName();
-    String getStorageName();
-    
-    // optional string user = 3;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    java.lang.String getStorageName();
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getStorageNameBytes();
+
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
     boolean hasUser();
-    String getUser();
-    
-    // repeated .brfs.proto.FileContent file = 4;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    java.lang.String getUser();
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getUserBytes();
+
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 4;</code>
+     */
     java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> 
         getFileList();
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 4;</code>
+     */
     com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index);
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 4;</code>
+     */
     int getFileCount();
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 4;</code>
+     */
     java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
         getFileOrBuilderList();
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 4;</code>
+     */
     com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
         int index);
   }
-  public static final class DataWriteRequest extends
-      com.google.protobuf.GeneratedMessage
-      implements DataWriteRequestOrBuilder {
+  /**
+   * Protobuf type {@code brfs.proto.DataWriteRequest}
+   */
+  public  static final class DataWriteRequest extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:brfs.proto.DataWriteRequest)
+      DataWriteRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use DataWriteRequest.newBuilder() to construct.
-    private DataWriteRequest(Builder builder) {
+    private DataWriteRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private DataWriteRequest(boolean noInit) {}
-    
-    private static final DataWriteRequest defaultInstance;
-    public static DataWriteRequest getDefaultInstance() {
-      return defaultInstance;
+    private DataWriteRequest() {
+      seesionId_ = "";
+      storageName_ = "";
+      user_ = "";
+      file_ = java.util.Collections.emptyList();
     }
-    
-    public DataWriteRequest getDefaultInstanceForType() {
-      return defaultInstance;
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
     }
-    
+    private DataWriteRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              seesionId_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              storageName_ = bs;
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              user_ = bs;
+              break;
+            }
+            case 34: {
+              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                file_ = new java.util.ArrayList<com.bonree.brfs.common.proto.FileDataProtos.FileContent>();
+                mutable_bitField0_ |= 0x00000008;
+              }
+              file_.add(
+                  input.readMessage(com.bonree.brfs.common.proto.FileDataProtos.FileContent.PARSER, extensionRegistry));
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+          file_ = java.util.Collections.unmodifiableList(file_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteRequest_descriptor;
     }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteRequest_fieldAccessorTable;
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.class, com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.Builder.class);
     }
-    
+
     private int bitField0_;
-    // optional string seesionId = 1;
     public static final int SEESIONID_FIELD_NUMBER = 1;
-    private java.lang.Object seesionId_;
+    private volatile java.lang.Object seesionId_;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
     public boolean hasSeesionId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    public String getSeesionId() {
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public java.lang.String getSeesionId() {
       java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           seesionId_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getSeesionIdBytes() {
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSeesionIdBytes() {
       java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         seesionId_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional string storageName = 2;
+
     public static final int STORAGENAME_FIELD_NUMBER = 2;
-    private java.lang.Object storageName_;
+    private volatile java.lang.Object storageName_;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
     public boolean hasStorageName() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    public String getStorageName() {
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public java.lang.String getStorageName() {
       java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           storageName_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getStorageNameBytes() {
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getStorageNameBytes() {
       java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         storageName_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional string user = 3;
+
     public static final int USER_FIELD_NUMBER = 3;
-    private java.lang.Object user_;
+    private volatile java.lang.Object user_;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
     public boolean hasUser() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    public String getUser() {
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public java.lang.String getUser() {
       java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           user_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getUserBytes() {
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUserBytes() {
       java.lang.Object ref = user_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         user_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // repeated .brfs.proto.FileContent file = 4;
+
     public static final int FILE_FIELD_NUMBER = 4;
     private java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> file_;
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 4;</code>
+     */
     public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> getFileList() {
       return file_;
     }
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 4;</code>
+     */
     public java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
         getFileOrBuilderList() {
       return file_;
     }
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 4;</code>
+     */
     public int getFileCount() {
       return file_.size();
     }
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 4;</code>
+     */
     public com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index) {
       return file_.get(index);
     }
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 4;</code>
+     */
     public com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
         int index) {
       return file_.get(index);
     }
-    
-    private void initFields() {
-      seesionId_ = "";
-      storageName_ = "";
-      user_ = "";
-      file_ = java.util.Collections.emptyList();
-    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
       memoizedIsInitialized = 1;
       return true;
     }
-    
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getSeesionIdBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getStorageNameBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getUserBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, user_);
       }
       for (int i = 0; i < file_.size(); i++) {
         output.writeMessage(4, file_.get(i));
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
-    
-    private int memoizedSerializedSize = -1;
+
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
-    
+
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getSeesionIdBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getStorageNameBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getUserBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, user_);
       }
       for (int i = 0; i < file_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, file_.get(i));
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
-    
-    private static final long serialVersionUID = 0L;
+
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest)) {
+        return super.equals(obj);
+      }
+      com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest other = (com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest) obj;
+
+      boolean result = true;
+      result = result && (hasSeesionId() == other.hasSeesionId());
+      if (hasSeesionId()) {
+        result = result && getSeesionId()
+            .equals(other.getSeesionId());
+      }
+      result = result && (hasStorageName() == other.hasStorageName());
+      if (hasStorageName()) {
+        result = result && getStorageName()
+            .equals(other.getStorageName());
+      }
+      result = result && (hasUser() == other.hasUser());
+      if (hasUser()) {
+        result = result && getUser()
+            .equals(other.getUser());
+      }
+      result = result && getFileList()
+          .equals(other.getFileList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
-    
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasSeesionId()) {
+        hash = (37 * hash) + SEESIONID_FIELD_NUMBER;
+        hash = (53 * hash) + getSeesionId().hashCode();
+      }
+      if (hasStorageName()) {
+        hash = (37 * hash) + STORAGENAME_FIELD_NUMBER;
+        hash = (53 * hash) + getStorageName().hashCode();
+      }
+      if (hasUser()) {
+        hash = (37 * hash) + USER_FIELD_NUMBER;
+        hash = (53 * hash) + getUser().hashCode();
+      }
+      if (getFileCount() > 0) {
+        hash = (37 * hash) + FILE_FIELD_NUMBER;
+        hash = (53 * hash) + getFileList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    
-    public static Builder newBuilder() { return Builder.create(); }
+
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
-    
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
+    /**
+     * Protobuf type {@code brfs.proto.DataWriteRequest}
+     */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequestOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:brfs.proto.DataWriteRequest)
+        com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteRequest_descriptor;
       }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteRequest_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.class, com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.Builder.class);
       }
-      
+
       // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
-      
-      private Builder(BuilderParent parent) {
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
           getFileFieldBuilder();
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-      
       public Builder clear() {
         super.clear();
         seesionId_ = "";
@@ -373,20 +708,16 @@ public final class FileDataProtos {
         }
         return this;
       }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
+
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.getDescriptor();
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteRequest_descriptor;
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest getDefaultInstanceForType() {
         return com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.getDefaultInstance();
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest build() {
         com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest result = buildPartial();
         if (!result.isInitialized()) {
@@ -394,17 +725,7 @@ public final class FileDataProtos {
         }
         return result;
       }
-      
-      private com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest buildPartial() {
         com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest result = new com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest(this);
         int from_bitField0_ = bitField0_;
@@ -434,7 +755,33 @@ public final class FileDataProtos {
         onBuilt();
         return result;
       }
-      
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest) {
           return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest)other);
@@ -443,17 +790,23 @@ public final class FileDataProtos {
           return this;
         }
       }
-      
+
       public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest other) {
         if (other == com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.getDefaultInstance()) return this;
         if (other.hasSeesionId()) {
-          setSeesionId(other.getSeesionId());
+          bitField0_ |= 0x00000001;
+          seesionId_ = other.seesionId_;
+          onChanged();
         }
         if (other.hasStorageName()) {
-          setStorageName(other.getStorageName());
+          bitField0_ |= 0x00000002;
+          storageName_ = other.storageName_;
+          onChanged();
         }
         if (other.hasUser()) {
-          setUser(other.getUser());
+          bitField0_ |= 0x00000004;
+          user_ = other.user_;
+          onChanged();
         }
         if (fileBuilder_ == null) {
           if (!other.file_.isEmpty()) {
@@ -474,87 +827,102 @@ public final class FileDataProtos {
               file_ = other.file_;
               bitField0_ = (bitField0_ & ~0x00000008);
               fileBuilder_ = 
-                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                    getFileFieldBuilder() : null;
             } else {
               fileBuilder_.addAllMessages(other.file_);
             }
           }
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
-      
+
       public final boolean isInitialized() {
         return true;
       }
-      
+
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              seesionId_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              storageName_ = input.readBytes();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              user_ = input.readBytes();
-              break;
-            }
-            case 34: {
-              com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder subBuilder = com.bonree.brfs.common.proto.FileDataProtos.FileContent.newBuilder();
-              input.readMessage(subBuilder, extensionRegistry);
-              addFile(subBuilder.buildPartial());
-              break;
-            }
+        com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
           }
         }
+        return this;
       }
-      
       private int bitField0_;
-      
-      // optional string seesionId = 1;
+
       private java.lang.Object seesionId_ = "";
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public boolean hasSeesionId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      public String getSeesionId() {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public java.lang.String getSeesionId() {
         java.lang.Object ref = seesionId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          seesionId_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            seesionId_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setSeesionId(String value) {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSeesionIdBytes() {
+        java.lang.Object ref = seesionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          seesionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -563,34 +931,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public Builder clearSeesionId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         seesionId_ = getDefaultInstance().getSeesionId();
         onChanged();
         return this;
       }
-      void setSeesionId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000001;
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
         seesionId_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string storageName = 2;
+
       private java.lang.Object storageName_ = "";
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public boolean hasStorageName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      public String getStorageName() {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public java.lang.String getStorageName() {
         java.lang.Object ref = storageName_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          storageName_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            storageName_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setStorageName(String value) {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getStorageNameBytes() {
+        java.lang.Object ref = storageName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          storageName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageName(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -599,34 +1031,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public Builder clearStorageName() {
         bitField0_ = (bitField0_ & ~0x00000002);
         storageName_ = getDefaultInstance().getStorageName();
         onChanged();
         return this;
       }
-      void setStorageName(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000002;
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
         storageName_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string user = 3;
+
       private java.lang.Object user_ = "";
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public boolean hasUser() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      public String getUser() {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public java.lang.String getUser() {
         java.lang.Object ref = user_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          user_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            user_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setUser(String value) {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getUserBytes() {
+        java.lang.Object ref = user_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          user_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUser(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -635,19 +1131,37 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public Builder clearUser() {
         bitField0_ = (bitField0_ & ~0x00000004);
         user_ = getDefaultInstance().getUser();
         onChanged();
         return this;
       }
-      void setUser(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000004;
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUserBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
         user_ = value;
         onChanged();
+        return this;
       }
-      
-      // repeated .brfs.proto.FileContent file = 4;
+
       private java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> file_ =
         java.util.Collections.emptyList();
       private void ensureFileIsMutable() {
@@ -656,10 +1170,17 @@ public final class FileDataProtos {
           bitField0_ |= 0x00000008;
          }
       }
-      
-      private com.google.protobuf.RepeatedFieldBuilder<
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
           com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> fileBuilder_;
-      
+
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> getFileList() {
         if (fileBuilder_ == null) {
           return java.util.Collections.unmodifiableList(file_);
@@ -667,6 +1188,13 @@ public final class FileDataProtos {
           return fileBuilder_.getMessageList();
         }
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public int getFileCount() {
         if (fileBuilder_ == null) {
           return file_.size();
@@ -674,6 +1202,13 @@ public final class FileDataProtos {
           return fileBuilder_.getCount();
         }
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index) {
         if (fileBuilder_ == null) {
           return file_.get(index);
@@ -681,6 +1216,13 @@ public final class FileDataProtos {
           return fileBuilder_.getMessage(index);
         }
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public Builder setFile(
           int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
         if (fileBuilder_ == null) {
@@ -695,6 +1237,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public Builder setFile(
           int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
         if (fileBuilder_ == null) {
@@ -706,6 +1255,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public Builder addFile(com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
         if (fileBuilder_ == null) {
           if (value == null) {
@@ -719,6 +1275,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public Builder addFile(
           int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
         if (fileBuilder_ == null) {
@@ -733,6 +1296,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public Builder addFile(
           com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
         if (fileBuilder_ == null) {
@@ -744,6 +1314,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public Builder addFile(
           int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
         if (fileBuilder_ == null) {
@@ -755,17 +1332,32 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public Builder addAllFile(
           java.lang.Iterable<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContent> values) {
         if (fileBuilder_ == null) {
           ensureFileIsMutable();
-          super.addAll(values, file_);
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, file_);
           onChanged();
         } else {
           fileBuilder_.addAllMessages(values);
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public Builder clearFile() {
         if (fileBuilder_ == null) {
           file_ = java.util.Collections.emptyList();
@@ -776,6 +1368,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public Builder removeFile(int index) {
         if (fileBuilder_ == null) {
           ensureFileIsMutable();
@@ -786,10 +1385,24 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder getFileBuilder(
           int index) {
         return getFileFieldBuilder().getBuilder(index);
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
           int index) {
         if (fileBuilder_ == null) {
@@ -797,6 +1410,13 @@ public final class FileDataProtos {
           return fileBuilder_.getMessageOrBuilder(index);
         }
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
            getFileOrBuilderList() {
         if (fileBuilder_ != null) {
@@ -805,24 +1425,45 @@ public final class FileDataProtos {
           return java.util.Collections.unmodifiableList(file_);
         }
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder addFileBuilder() {
         return getFileFieldBuilder().addBuilder(
             com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance());
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder addFileBuilder(
           int index) {
         return getFileFieldBuilder().addBuilder(
             index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance());
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 4;</code>
+       */
       public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder> 
            getFileBuilderList() {
         return getFileFieldBuilder().getBuilderList();
       }
-      private com.google.protobuf.RepeatedFieldBuilder<
+      private com.google.protobuf.RepeatedFieldBuilderV3<
           com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
           getFileFieldBuilder() {
         if (fileBuilder_ == null) {
-          fileBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+          fileBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder>(
                   file_,
                   ((bitField0_ & 0x00000008) == 0x00000008),
@@ -832,228 +1473,228 @@ public final class FileDataProtos {
         }
         return fileBuilder_;
       }
-      
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
       // @@protoc_insertion_point(builder_scope:brfs.proto.DataWriteRequest)
     }
-    
-    static {
-      defaultInstance = new DataWriteRequest(true);
-      defaultInstance.initFields();
-    }
-    
+
     // @@protoc_insertion_point(class_scope:brfs.proto.DataWriteRequest)
+    private static final com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest();
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<DataWriteRequest>
+        PARSER = new com.google.protobuf.AbstractParser<DataWriteRequest>() {
+      public DataWriteRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new DataWriteRequest(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DataWriteRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DataWriteRequest> getParserForType() {
+      return PARSER;
+    }
+
+    public com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
-  
-  public interface DataWriteResponseOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional string seesionId = 1;
+
+  public interface DataWriteResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:brfs.proto.DataWriteResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     *回话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
     boolean hasSeesionId();
-    String getSeesionId();
-    
-    // optional string storageName = 2;
+    /**
+     * <pre>
+     *回话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    java.lang.String getSeesionId();
+    /**
+     * <pre>
+     *回话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getSeesionIdBytes();
+
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
     boolean hasStorageName();
-    String getStorageName();
-    
-    // optional string user = 3;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    java.lang.String getStorageName();
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getStorageNameBytes();
+
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
     boolean hasUser();
-    String getUser();
-    
-    // optional int32 returnCode = 4;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    java.lang.String getUser();
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getUserBytes();
+
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
     boolean hasReturnCode();
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
     int getReturnCode();
-    
-    // optional string description = 5;
+
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
     boolean hasDescription();
-    String getDescription();
-    
-    // repeated string fid = 6;
-    java.util.List<String> getFidList();
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    java.lang.String getDescription();
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
+
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 6;</code>
+     */
+    java.util.List<java.lang.String>
+        getFidList();
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 6;</code>
+     */
     int getFidCount();
-    String getFid(int index);
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 6;</code>
+     */
+    java.lang.String getFid(int index);
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 6;</code>
+     */
+    com.google.protobuf.ByteString
+        getFidBytes(int index);
   }
-  public static final class DataWriteResponse extends
-      com.google.protobuf.GeneratedMessage
-      implements DataWriteResponseOrBuilder {
+  /**
+   * Protobuf type {@code brfs.proto.DataWriteResponse}
+   */
+  public  static final class DataWriteResponse extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:brfs.proto.DataWriteResponse)
+      DataWriteResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use DataWriteResponse.newBuilder() to construct.
-    private DataWriteResponse(Builder builder) {
+    private DataWriteResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private DataWriteResponse(boolean noInit) {}
-    
-    private static final DataWriteResponse defaultInstance;
-    public static DataWriteResponse getDefaultInstance() {
-      return defaultInstance;
-    }
-    
-    public DataWriteResponse getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-    
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_descriptor;
-    }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable;
-    }
-    
-    private int bitField0_;
-    // optional string seesionId = 1;
-    public static final int SEESIONID_FIELD_NUMBER = 1;
-    private java.lang.Object seesionId_;
-    public boolean hasSeesionId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    public String getSeesionId() {
-      java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          seesionId_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getSeesionIdBytes() {
-      java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        seesionId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string storageName = 2;
-    public static final int STORAGENAME_FIELD_NUMBER = 2;
-    private java.lang.Object storageName_;
-    public boolean hasStorageName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    public String getStorageName() {
-      java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          storageName_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getStorageNameBytes() {
-      java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        storageName_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string user = 3;
-    public static final int USER_FIELD_NUMBER = 3;
-    private java.lang.Object user_;
-    public boolean hasUser() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    public String getUser() {
-      java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          user_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getUserBytes() {
-      java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        user_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional int32 returnCode = 4;
-    public static final int RETURNCODE_FIELD_NUMBER = 4;
-    private int returnCode_;
-    public boolean hasReturnCode() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    public int getReturnCode() {
-      return returnCode_;
-    }
-    
-    // optional string description = 5;
-    public static final int DESCRIPTION_FIELD_NUMBER = 5;
-    private java.lang.Object description_;
-    public boolean hasDescription() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    public String getDescription() {
-      java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          description_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getDescriptionBytes() {
-      java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        description_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // repeated string fid = 6;
-    public static final int FID_FIELD_NUMBER = 6;
-    private com.google.protobuf.LazyStringList fid_;
-    public java.util.List<String>
-        getFidList() {
-      return fid_;
-    }
-    public int getFidCount() {
-      return fid_.size();
-    }
-    public String getFid(int index) {
-      return fid_.get(index);
-    }
-    
-    private void initFields() {
+    private DataWriteResponse() {
       seesionId_ = "";
       storageName_ = "";
       user_ = "";
@@ -1061,196 +1702,652 @@ public final class FileDataProtos {
       description_ = "";
       fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private DataWriteResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              seesionId_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              storageName_ = bs;
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              user_ = bs;
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              returnCode_ = input.readInt32();
+              break;
+            }
+            case 42: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000010;
+              description_ = bs;
+              break;
+            }
+            case 50: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+                fid_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000020;
+              }
+              fid_.add(bs);
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+          fid_ = fid_.getUnmodifiableView();
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.class, com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int SEESIONID_FIELD_NUMBER = 1;
+    private volatile java.lang.Object seesionId_;
+    /**
+     * <pre>
+     *回话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public boolean hasSeesionId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <pre>
+     *回话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public java.lang.String getSeesionId() {
+      java.lang.Object ref = seesionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          seesionId_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *回话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSeesionIdBytes() {
+      java.lang.Object ref = seesionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        seesionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int STORAGENAME_FIELD_NUMBER = 2;
+    private volatile java.lang.Object storageName_;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public boolean hasStorageName() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public java.lang.String getStorageName() {
+      java.lang.Object ref = storageName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          storageName_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getStorageNameBytes() {
+      java.lang.Object ref = storageName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        storageName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int USER_FIELD_NUMBER = 3;
+    private volatile java.lang.Object user_;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public boolean hasUser() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public java.lang.String getUser() {
+      java.lang.Object ref = user_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          user_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUserBytes() {
+      java.lang.Object ref = user_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        user_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int RETURNCODE_FIELD_NUMBER = 4;
+    private int returnCode_;
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
+    public boolean hasReturnCode() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
+    public int getReturnCode() {
+      return returnCode_;
+    }
+
+    public static final int DESCRIPTION_FIELD_NUMBER = 5;
+    private volatile java.lang.Object description_;
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    public boolean hasDescription() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    public java.lang.String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          description_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int FID_FIELD_NUMBER = 6;
+    private com.google.protobuf.LazyStringList fid_;
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 6;</code>
+     */
+    public com.google.protobuf.ProtocolStringList
+        getFidList() {
+      return fid_;
+    }
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 6;</code>
+     */
+    public int getFidCount() {
+      return fid_.size();
+    }
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 6;</code>
+     */
+    public java.lang.String getFid(int index) {
+      return fid_.get(index);
+    }
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 6;</code>
+     */
+    public com.google.protobuf.ByteString
+        getFidBytes(int index) {
+      return fid_.getByteString(index);
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
       memoizedIsInitialized = 1;
       return true;
     }
-    
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getSeesionIdBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getStorageNameBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getUserBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, user_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt32(4, returnCode_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        output.writeBytes(5, getDescriptionBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, description_);
       }
       for (int i = 0; i < fid_.size(); i++) {
-        output.writeBytes(6, fid_.getByteString(i));
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 6, fid_.getRaw(i));
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
-    
-    private int memoizedSerializedSize = -1;
+
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
-    
+
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getSeesionIdBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getStorageNameBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getUserBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, user_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(4, returnCode_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(5, getDescriptionBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, description_);
       }
       {
         int dataSize = 0;
         for (int i = 0; i < fid_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(fid_.getByteString(i));
+          dataSize += computeStringSizeNoTag(fid_.getRaw(i));
         }
         size += dataSize;
         size += 1 * getFidList().size();
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
-    
-    private static final long serialVersionUID = 0L;
+
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse)) {
+        return super.equals(obj);
+      }
+      com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse other = (com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse) obj;
+
+      boolean result = true;
+      result = result && (hasSeesionId() == other.hasSeesionId());
+      if (hasSeesionId()) {
+        result = result && getSeesionId()
+            .equals(other.getSeesionId());
+      }
+      result = result && (hasStorageName() == other.hasStorageName());
+      if (hasStorageName()) {
+        result = result && getStorageName()
+            .equals(other.getStorageName());
+      }
+      result = result && (hasUser() == other.hasUser());
+      if (hasUser()) {
+        result = result && getUser()
+            .equals(other.getUser());
+      }
+      result = result && (hasReturnCode() == other.hasReturnCode());
+      if (hasReturnCode()) {
+        result = result && (getReturnCode()
+            == other.getReturnCode());
+      }
+      result = result && (hasDescription() == other.hasDescription());
+      if (hasDescription()) {
+        result = result && getDescription()
+            .equals(other.getDescription());
+      }
+      result = result && getFidList()
+          .equals(other.getFidList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
-    
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasSeesionId()) {
+        hash = (37 * hash) + SEESIONID_FIELD_NUMBER;
+        hash = (53 * hash) + getSeesionId().hashCode();
+      }
+      if (hasStorageName()) {
+        hash = (37 * hash) + STORAGENAME_FIELD_NUMBER;
+        hash = (53 * hash) + getStorageName().hashCode();
+      }
+      if (hasUser()) {
+        hash = (37 * hash) + USER_FIELD_NUMBER;
+        hash = (53 * hash) + getUser().hashCode();
+      }
+      if (hasReturnCode()) {
+        hash = (37 * hash) + RETURNCODE_FIELD_NUMBER;
+        hash = (53 * hash) + getReturnCode();
+      }
+      if (hasDescription()) {
+        hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+        hash = (53 * hash) + getDescription().hashCode();
+      }
+      if (getFidCount() > 0) {
+        hash = (37 * hash) + FID_FIELD_NUMBER;
+        hash = (53 * hash) + getFidList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    
-    public static Builder newBuilder() { return Builder.create(); }
+
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
-    
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
+    /**
+     * Protobuf type {@code brfs.proto.DataWriteResponse}
+     */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponseOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:brfs.proto.DataWriteResponse)
+        com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponseOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_descriptor;
       }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.class, com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.Builder.class);
       }
-      
+
       // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
-      
-      private Builder(BuilderParent parent) {
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-      
       public Builder clear() {
         super.clear();
         seesionId_ = "";
@@ -1267,20 +2364,16 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000020);
         return this;
       }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
+
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.getDescriptor();
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataWriteResponse_descriptor;
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse getDefaultInstanceForType() {
         return com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.getDefaultInstance();
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse build() {
         com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse result = buildPartial();
         if (!result.isInitialized()) {
@@ -1288,17 +2381,7 @@ public final class FileDataProtos {
         }
         return result;
       }
-      
-      private com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse buildPartial() {
         com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse result = new com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse(this);
         int from_bitField0_ = bitField0_;
@@ -1324,8 +2407,7 @@ public final class FileDataProtos {
         }
         result.description_ = description_;
         if (((bitField0_ & 0x00000020) == 0x00000020)) {
-          fid_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              fid_);
+          fid_ = fid_.getUnmodifiableView();
           bitField0_ = (bitField0_ & ~0x00000020);
         }
         result.fid_ = fid_;
@@ -1333,7 +2415,33 @@ public final class FileDataProtos {
         onBuilt();
         return result;
       }
-      
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse) {
           return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse)other);
@@ -1342,23 +2450,31 @@ public final class FileDataProtos {
           return this;
         }
       }
-      
+
       public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse other) {
         if (other == com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.getDefaultInstance()) return this;
         if (other.hasSeesionId()) {
-          setSeesionId(other.getSeesionId());
+          bitField0_ |= 0x00000001;
+          seesionId_ = other.seesionId_;
+          onChanged();
         }
         if (other.hasStorageName()) {
-          setStorageName(other.getStorageName());
+          bitField0_ |= 0x00000002;
+          storageName_ = other.storageName_;
+          onChanged();
         }
         if (other.hasUser()) {
-          setUser(other.getUser());
+          bitField0_ |= 0x00000004;
+          user_ = other.user_;
+          onChanged();
         }
         if (other.hasReturnCode()) {
           setReturnCode(other.getReturnCode());
         }
         if (other.hasDescription()) {
-          setDescription(other.getDescription());
+          bitField0_ |= 0x00000010;
+          description_ = other.description_;
+          onChanged();
         }
         if (!other.fid_.isEmpty()) {
           if (fid_.isEmpty()) {
@@ -1370,89 +2486,95 @@ public final class FileDataProtos {
           }
           onChanged();
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
-      
+
       public final boolean isInitialized() {
         return true;
       }
-      
+
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              seesionId_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              storageName_ = input.readBytes();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              user_ = input.readBytes();
-              break;
-            }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              returnCode_ = input.readInt32();
-              break;
-            }
-            case 42: {
-              bitField0_ |= 0x00000010;
-              description_ = input.readBytes();
-              break;
-            }
-            case 50: {
-              ensureFidIsMutable();
-              fid_.add(input.readBytes());
-              break;
-            }
+        com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
           }
         }
+        return this;
       }
-      
       private int bitField0_;
-      
-      // optional string seesionId = 1;
+
       private java.lang.Object seesionId_ = "";
+      /**
+       * <pre>
+       *回话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public boolean hasSeesionId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      public String getSeesionId() {
+      /**
+       * <pre>
+       *回话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public java.lang.String getSeesionId() {
         java.lang.Object ref = seesionId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          seesionId_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            seesionId_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setSeesionId(String value) {
+      /**
+       * <pre>
+       *回话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSeesionIdBytes() {
+        java.lang.Object ref = seesionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          seesionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *回话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -1461,34 +2583,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *回话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public Builder clearSeesionId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         seesionId_ = getDefaultInstance().getSeesionId();
         onChanged();
         return this;
       }
-      void setSeesionId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000001;
+      /**
+       * <pre>
+       *回话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
         seesionId_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string storageName = 2;
+
       private java.lang.Object storageName_ = "";
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public boolean hasStorageName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      public String getStorageName() {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public java.lang.String getStorageName() {
         java.lang.Object ref = storageName_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          storageName_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            storageName_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setStorageName(String value) {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getStorageNameBytes() {
+        java.lang.Object ref = storageName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          storageName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageName(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -1497,34 +2683,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public Builder clearStorageName() {
         bitField0_ = (bitField0_ & ~0x00000002);
         storageName_ = getDefaultInstance().getStorageName();
         onChanged();
         return this;
       }
-      void setStorageName(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000002;
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
         storageName_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string user = 3;
+
       private java.lang.Object user_ = "";
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public boolean hasUser() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      public String getUser() {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public java.lang.String getUser() {
         java.lang.Object ref = user_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          user_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            user_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setUser(String value) {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getUserBytes() {
+        java.lang.Object ref = user_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          user_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUser(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -1533,55 +2783,146 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public Builder clearUser() {
         bitField0_ = (bitField0_ & ~0x00000004);
         user_ = getDefaultInstance().getUser();
         onChanged();
         return this;
       }
-      void setUser(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000004;
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUserBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
         user_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional int32 returnCode = 4;
+
       private int returnCode_ ;
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public boolean hasReturnCode() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public int getReturnCode() {
         return returnCode_;
       }
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public Builder setReturnCode(int value) {
         bitField0_ |= 0x00000008;
         returnCode_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public Builder clearReturnCode() {
         bitField0_ = (bitField0_ & ~0x00000008);
         returnCode_ = 0;
         onChanged();
         return this;
       }
-      
-      // optional string description = 5;
+
       private java.lang.Object description_ = "";
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
       public boolean hasDescription() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
-      public String getDescription() {
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public java.lang.String getDescription() {
         java.lang.Object ref = description_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          description_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            description_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setDescription(String value) {
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public Builder setDescription(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -1590,19 +2931,37 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
       public Builder clearDescription() {
         bitField0_ = (bitField0_ & ~0x00000010);
         description_ = getDefaultInstance().getDescription();
         onChanged();
         return this;
       }
-      void setDescription(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000010;
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
         description_ = value;
         onChanged();
+        return this;
       }
-      
-      // repeated string fid = 6;
+
       private com.google.protobuf.LazyStringList fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureFidIsMutable() {
         if (!((bitField0_ & 0x00000020) == 0x00000020)) {
@@ -1610,18 +2969,57 @@ public final class FileDataProtos {
           bitField0_ |= 0x00000020;
          }
       }
-      public java.util.List<String>
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 6;</code>
+       */
+      public com.google.protobuf.ProtocolStringList
           getFidList() {
-        return java.util.Collections.unmodifiableList(fid_);
+        return fid_.getUnmodifiableView();
       }
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 6;</code>
+       */
       public int getFidCount() {
         return fid_.size();
       }
-      public String getFid(int index) {
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 6;</code>
+       */
+      public java.lang.String getFid(int index) {
         return fid_.get(index);
       }
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 6;</code>
+       */
+      public com.google.protobuf.ByteString
+          getFidBytes(int index) {
+        return fid_.getByteString(index);
+      }
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 6;</code>
+       */
       public Builder setFid(
-          int index, String value) {
+          int index, java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -1630,7 +3028,15 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
-      public Builder addFid(String value) {
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 6;</code>
+       */
+      public Builder addFid(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -1639,377 +3045,762 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 6;</code>
+       */
       public Builder addAllFid(
-          java.lang.Iterable<String> values) {
+          java.lang.Iterable<java.lang.String> values) {
         ensureFidIsMutable();
-        super.addAll(values, fid_);
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, fid_);
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 6;</code>
+       */
       public Builder clearFid() {
         fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000020);
         onChanged();
         return this;
       }
-      void addFid(com.google.protobuf.ByteString value) {
-        ensureFidIsMutable();
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 6;</code>
+       */
+      public Builder addFidBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureFidIsMutable();
         fid_.add(value);
         onChanged();
+        return this;
       }
-      
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
       // @@protoc_insertion_point(builder_scope:brfs.proto.DataWriteResponse)
     }
-    
-    static {
-      defaultInstance = new DataWriteResponse(true);
-      defaultInstance.initFields();
-    }
-    
+
     // @@protoc_insertion_point(class_scope:brfs.proto.DataWriteResponse)
+    private static final com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse();
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<DataWriteResponse>
+        PARSER = new com.google.protobuf.AbstractParser<DataWriteResponse>() {
+      public DataWriteResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new DataWriteResponse(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DataWriteResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DataWriteResponse> getParserForType() {
+      return PARSER;
+    }
+
+    public com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
-  
-  public interface DataReadRequestOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional string seesionId = 1;
+
+  public interface DataReadRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:brfs.proto.DataReadRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
     boolean hasSeesionId();
-    String getSeesionId();
-    
-    // optional string storageName = 2;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    java.lang.String getSeesionId();
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getSeesionIdBytes();
+
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
     boolean hasStorageName();
-    String getStorageName();
-    
-    // optional string user = 3;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    java.lang.String getStorageName();
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getStorageNameBytes();
+
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
     boolean hasUser();
-    String getUser();
-    
-    // repeated string fid = 4;
-    java.util.List<String> getFidList();
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    java.lang.String getUser();
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getUserBytes();
+
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 4;</code>
+     */
+    java.util.List<java.lang.String>
+        getFidList();
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 4;</code>
+     */
     int getFidCount();
-    String getFid(int index);
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 4;</code>
+     */
+    java.lang.String getFid(int index);
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 4;</code>
+     */
+    com.google.protobuf.ByteString
+        getFidBytes(int index);
   }
-  public static final class DataReadRequest extends
-      com.google.protobuf.GeneratedMessage
-      implements DataReadRequestOrBuilder {
+  /**
+   * Protobuf type {@code brfs.proto.DataReadRequest}
+   */
+  public  static final class DataReadRequest extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:brfs.proto.DataReadRequest)
+      DataReadRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use DataReadRequest.newBuilder() to construct.
-    private DataReadRequest(Builder builder) {
+    private DataReadRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private DataReadRequest(boolean noInit) {}
-    
-    private static final DataReadRequest defaultInstance;
-    public static DataReadRequest getDefaultInstance() {
-      return defaultInstance;
+    private DataReadRequest() {
+      seesionId_ = "";
+      storageName_ = "";
+      user_ = "";
+      fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     }
-    
-    public DataReadRequest getDefaultInstanceForType() {
-      return defaultInstance;
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
     }
-    
+    private DataReadRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              seesionId_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              storageName_ = bs;
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              user_ = bs;
+              break;
+            }
+            case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                fid_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000008;
+              }
+              fid_.add(bs);
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+          fid_ = fid_.getUnmodifiableView();
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_descriptor;
     }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_fieldAccessorTable;
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.class, com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.Builder.class);
     }
-    
+
     private int bitField0_;
-    // optional string seesionId = 1;
     public static final int SEESIONID_FIELD_NUMBER = 1;
-    private java.lang.Object seesionId_;
+    private volatile java.lang.Object seesionId_;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
     public boolean hasSeesionId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    public String getSeesionId() {
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public java.lang.String getSeesionId() {
       java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           seesionId_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getSeesionIdBytes() {
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSeesionIdBytes() {
       java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         seesionId_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional string storageName = 2;
+
     public static final int STORAGENAME_FIELD_NUMBER = 2;
-    private java.lang.Object storageName_;
+    private volatile java.lang.Object storageName_;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
     public boolean hasStorageName() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    public String getStorageName() {
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public java.lang.String getStorageName() {
       java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           storageName_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getStorageNameBytes() {
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getStorageNameBytes() {
       java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         storageName_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional string user = 3;
+
     public static final int USER_FIELD_NUMBER = 3;
-    private java.lang.Object user_;
+    private volatile java.lang.Object user_;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
     public boolean hasUser() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    public String getUser() {
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public java.lang.String getUser() {
       java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           user_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getUserBytes() {
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUserBytes() {
       java.lang.Object ref = user_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         user_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // repeated string fid = 4;
+
     public static final int FID_FIELD_NUMBER = 4;
     private com.google.protobuf.LazyStringList fid_;
-    public java.util.List<String>
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 4;</code>
+     */
+    public com.google.protobuf.ProtocolStringList
         getFidList() {
       return fid_;
     }
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 4;</code>
+     */
     public int getFidCount() {
       return fid_.size();
     }
-    public String getFid(int index) {
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 4;</code>
+     */
+    public java.lang.String getFid(int index) {
       return fid_.get(index);
     }
-    
-    private void initFields() {
-      seesionId_ = "";
-      storageName_ = "";
-      user_ = "";
-      fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    /**
+     * <pre>
+     *fid
+     * </pre>
+     *
+     * <code>repeated string fid = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getFidBytes(int index) {
+      return fid_.getByteString(index);
     }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
       memoizedIsInitialized = 1;
       return true;
     }
-    
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getSeesionIdBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getStorageNameBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getUserBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, user_);
       }
       for (int i = 0; i < fid_.size(); i++) {
-        output.writeBytes(4, fid_.getByteString(i));
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, fid_.getRaw(i));
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
-    
-    private int memoizedSerializedSize = -1;
+
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
-    
+
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getSeesionIdBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getStorageNameBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getUserBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, user_);
       }
       {
         int dataSize = 0;
         for (int i = 0; i < fid_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(fid_.getByteString(i));
+          dataSize += computeStringSizeNoTag(fid_.getRaw(i));
         }
         size += dataSize;
         size += 1 * getFidList().size();
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
-    
-    private static final long serialVersionUID = 0L;
+
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest)) {
+        return super.equals(obj);
+      }
+      com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest other = (com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest) obj;
+
+      boolean result = true;
+      result = result && (hasSeesionId() == other.hasSeesionId());
+      if (hasSeesionId()) {
+        result = result && getSeesionId()
+            .equals(other.getSeesionId());
+      }
+      result = result && (hasStorageName() == other.hasStorageName());
+      if (hasStorageName()) {
+        result = result && getStorageName()
+            .equals(other.getStorageName());
+      }
+      result = result && (hasUser() == other.hasUser());
+      if (hasUser()) {
+        result = result && getUser()
+            .equals(other.getUser());
+      }
+      result = result && getFidList()
+          .equals(other.getFidList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
-    
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasSeesionId()) {
+        hash = (37 * hash) + SEESIONID_FIELD_NUMBER;
+        hash = (53 * hash) + getSeesionId().hashCode();
+      }
+      if (hasStorageName()) {
+        hash = (37 * hash) + STORAGENAME_FIELD_NUMBER;
+        hash = (53 * hash) + getStorageName().hashCode();
+      }
+      if (hasUser()) {
+        hash = (37 * hash) + USER_FIELD_NUMBER;
+        hash = (53 * hash) + getUser().hashCode();
+      }
+      if (getFidCount() > 0) {
+        hash = (37 * hash) + FID_FIELD_NUMBER;
+        hash = (53 * hash) + getFidList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    
-    public static Builder newBuilder() { return Builder.create(); }
+
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
-    
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
+    /**
+     * Protobuf type {@code brfs.proto.DataReadRequest}
+     */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.DataReadRequestOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:brfs.proto.DataReadRequest)
+        com.bonree.brfs.common.proto.FileDataProtos.DataReadRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_descriptor;
       }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.class, com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.Builder.class);
       }
-      
+
       // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
-      
-      private Builder(BuilderParent parent) {
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-      
       public Builder clear() {
         super.clear();
         seesionId_ = "";
@@ -2022,20 +3813,16 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
+
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.getDescriptor();
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadRequest_descriptor;
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest getDefaultInstanceForType() {
         return com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.getDefaultInstance();
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest build() {
         com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest result = buildPartial();
         if (!result.isInitialized()) {
@@ -2043,17 +3830,7 @@ public final class FileDataProtos {
         }
         return result;
       }
-      
-      private com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest buildPartial() {
         com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest result = new com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest(this);
         int from_bitField0_ = bitField0_;
@@ -2071,8 +3848,7 @@ public final class FileDataProtos {
         }
         result.user_ = user_;
         if (((bitField0_ & 0x00000008) == 0x00000008)) {
-          fid_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              fid_);
+          fid_ = fid_.getUnmodifiableView();
           bitField0_ = (bitField0_ & ~0x00000008);
         }
         result.fid_ = fid_;
@@ -2080,7 +3856,33 @@ public final class FileDataProtos {
         onBuilt();
         return result;
       }
-      
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest) {
           return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest)other);
@@ -2089,17 +3891,23 @@ public final class FileDataProtos {
           return this;
         }
       }
-      
+
       public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest other) {
         if (other == com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.getDefaultInstance()) return this;
         if (other.hasSeesionId()) {
-          setSeesionId(other.getSeesionId());
+          bitField0_ |= 0x00000001;
+          seesionId_ = other.seesionId_;
+          onChanged();
         }
         if (other.hasStorageName()) {
-          setStorageName(other.getStorageName());
+          bitField0_ |= 0x00000002;
+          storageName_ = other.storageName_;
+          onChanged();
         }
         if (other.hasUser()) {
-          setUser(other.getUser());
+          bitField0_ |= 0x00000004;
+          user_ = other.user_;
+          onChanged();
         }
         if (!other.fid_.isEmpty()) {
           if (fid_.isEmpty()) {
@@ -2111,79 +3919,95 @@ public final class FileDataProtos {
           }
           onChanged();
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
-      
+
       public final boolean isInitialized() {
         return true;
       }
-      
+
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              seesionId_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              storageName_ = input.readBytes();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              user_ = input.readBytes();
-              break;
-            }
-            case 34: {
-              ensureFidIsMutable();
-              fid_.add(input.readBytes());
-              break;
-            }
+        com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
           }
         }
+        return this;
       }
-      
       private int bitField0_;
-      
-      // optional string seesionId = 1;
+
       private java.lang.Object seesionId_ = "";
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public boolean hasSeesionId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      public String getSeesionId() {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public java.lang.String getSeesionId() {
         java.lang.Object ref = seesionId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          seesionId_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            seesionId_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setSeesionId(String value) {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSeesionIdBytes() {
+        java.lang.Object ref = seesionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          seesionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -2192,34 +4016,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public Builder clearSeesionId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         seesionId_ = getDefaultInstance().getSeesionId();
         onChanged();
         return this;
       }
-      void setSeesionId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000001;
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
         seesionId_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string storageName = 2;
+
       private java.lang.Object storageName_ = "";
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public boolean hasStorageName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      public String getStorageName() {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public java.lang.String getStorageName() {
         java.lang.Object ref = storageName_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          storageName_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            storageName_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setStorageName(String value) {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getStorageNameBytes() {
+        java.lang.Object ref = storageName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          storageName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageName(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -2228,34 +4116,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public Builder clearStorageName() {
         bitField0_ = (bitField0_ & ~0x00000002);
         storageName_ = getDefaultInstance().getStorageName();
         onChanged();
         return this;
       }
-      void setStorageName(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000002;
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
         storageName_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string user = 3;
+
       private java.lang.Object user_ = "";
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public boolean hasUser() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      public String getUser() {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public java.lang.String getUser() {
         java.lang.Object ref = user_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          user_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            user_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setUser(String value) {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getUserBytes() {
+        java.lang.Object ref = user_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          user_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUser(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -2264,19 +4216,37 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public Builder clearUser() {
         bitField0_ = (bitField0_ & ~0x00000004);
         user_ = getDefaultInstance().getUser();
         onChanged();
         return this;
       }
-      void setUser(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000004;
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUserBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
         user_ = value;
         onChanged();
+        return this;
       }
-      
-      // repeated string fid = 4;
+
       private com.google.protobuf.LazyStringList fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureFidIsMutable() {
         if (!((bitField0_ & 0x00000008) == 0x00000008)) {
@@ -2284,18 +4254,57 @@ public final class FileDataProtos {
           bitField0_ |= 0x00000008;
          }
       }
-      public java.util.List<String>
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 4;</code>
+       */
+      public com.google.protobuf.ProtocolStringList
           getFidList() {
-        return java.util.Collections.unmodifiableList(fid_);
+        return fid_.getUnmodifiableView();
       }
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 4;</code>
+       */
       public int getFidCount() {
         return fid_.size();
       }
-      public String getFid(int index) {
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 4;</code>
+       */
+      public java.lang.String getFid(int index) {
         return fid_.get(index);
       }
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 4;</code>
+       */
+      public com.google.protobuf.ByteString
+          getFidBytes(int index) {
+        return fid_.getByteString(index);
+      }
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 4;</code>
+       */
       public Builder setFid(
-          int index, String value) {
+          int index, java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -2304,7 +4313,15 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
-      public Builder addFid(String value) {
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 4;</code>
+       */
+      public Builder addFid(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -2313,258 +4330,282 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 4;</code>
+       */
       public Builder addAllFid(
-          java.lang.Iterable<String> values) {
+          java.lang.Iterable<java.lang.String> values) {
         ensureFidIsMutable();
-        super.addAll(values, fid_);
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, fid_);
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 4;</code>
+       */
       public Builder clearFid() {
         fid_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000008);
         onChanged();
         return this;
       }
-      void addFid(com.google.protobuf.ByteString value) {
-        ensureFidIsMutable();
+      /**
+       * <pre>
+       *fid
+       * </pre>
+       *
+       * <code>repeated string fid = 4;</code>
+       */
+      public Builder addFidBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureFidIsMutable();
         fid_.add(value);
         onChanged();
+        return this;
       }
-      
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
       // @@protoc_insertion_point(builder_scope:brfs.proto.DataReadRequest)
     }
-    
-    static {
-      defaultInstance = new DataReadRequest(true);
-      defaultInstance.initFields();
-    }
-    
+
     // @@protoc_insertion_point(class_scope:brfs.proto.DataReadRequest)
+    private static final com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest();
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<DataReadRequest>
+        PARSER = new com.google.protobuf.AbstractParser<DataReadRequest>() {
+      public DataReadRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new DataReadRequest(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DataReadRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DataReadRequest> getParserForType() {
+      return PARSER;
+    }
+
+    public com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
-  
-  public interface DataReadResponseOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional string seesionId = 1;
+
+  public interface DataReadResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:brfs.proto.DataReadResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
     boolean hasSeesionId();
-    String getSeesionId();
-    
-    // optional string storageName = 2;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    java.lang.String getSeesionId();
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getSeesionIdBytes();
+
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
     boolean hasStorageName();
-    String getStorageName();
-    
-    // optional string user = 3;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    java.lang.String getStorageName();
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getStorageNameBytes();
+
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
     boolean hasUser();
-    String getUser();
-    
-    // optional int32 returnCode = 4;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    java.lang.String getUser();
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getUserBytes();
+
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
     boolean hasReturnCode();
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
     int getReturnCode();
-    
-    // optional string description = 5;
+
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
     boolean hasDescription();
-    String getDescription();
-    
-    // repeated .brfs.proto.FileContent file = 6;
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    java.lang.String getDescription();
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
+
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 6;</code>
+     */
     java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> 
         getFileList();
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 6;</code>
+     */
     com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index);
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 6;</code>
+     */
     int getFileCount();
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 6;</code>
+     */
     java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
         getFileOrBuilderList();
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 6;</code>
+     */
     com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
         int index);
   }
-  public static final class DataReadResponse extends
-      com.google.protobuf.GeneratedMessage
-      implements DataReadResponseOrBuilder {
+  /**
+   * Protobuf type {@code brfs.proto.DataReadResponse}
+   */
+  public  static final class DataReadResponse extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:brfs.proto.DataReadResponse)
+      DataReadResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use DataReadResponse.newBuilder() to construct.
-    private DataReadResponse(Builder builder) {
+    private DataReadResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private DataReadResponse(boolean noInit) {}
-    
-    private static final DataReadResponse defaultInstance;
-    public static DataReadResponse getDefaultInstance() {
-      return defaultInstance;
-    }
-    
-    public DataReadResponse getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-    
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_descriptor;
-    }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_fieldAccessorTable;
-    }
-    
-    private int bitField0_;
-    // optional string seesionId = 1;
-    public static final int SEESIONID_FIELD_NUMBER = 1;
-    private java.lang.Object seesionId_;
-    public boolean hasSeesionId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    public String getSeesionId() {
-      java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          seesionId_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getSeesionIdBytes() {
-      java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        seesionId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string storageName = 2;
-    public static final int STORAGENAME_FIELD_NUMBER = 2;
-    private java.lang.Object storageName_;
-    public boolean hasStorageName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    public String getStorageName() {
-      java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          storageName_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getStorageNameBytes() {
-      java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        storageName_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string user = 3;
-    public static final int USER_FIELD_NUMBER = 3;
-    private java.lang.Object user_;
-    public boolean hasUser() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    public String getUser() {
-      java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          user_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getUserBytes() {
-      java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        user_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional int32 returnCode = 4;
-    public static final int RETURNCODE_FIELD_NUMBER = 4;
-    private int returnCode_;
-    public boolean hasReturnCode() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    public int getReturnCode() {
-      return returnCode_;
-    }
-    
-    // optional string description = 5;
-    public static final int DESCRIPTION_FIELD_NUMBER = 5;
-    private java.lang.Object description_;
-    public boolean hasDescription() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    public String getDescription() {
-      java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          description_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getDescriptionBytes() {
-      java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        description_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // repeated .brfs.proto.FileContent file = 6;
-    public static final int FILE_FIELD_NUMBER = 6;
-    private java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> file_;
-    public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> getFileList() {
-      return file_;
-    }
-    public java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
-        getFileOrBuilderList() {
-      return file_;
-    }
-    public int getFileCount() {
-      return file_.size();
-    }
-    public com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index) {
-      return file_.get(index);
-    }
-    public com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
-        int index) {
-      return file_.get(index);
-    }
-    
-    private void initFields() {
+    private DataReadResponse() {
       seesionId_ = "";
       storageName_ = "";
       user_ = "";
@@ -2572,192 +4613,659 @@ public final class FileDataProtos {
       description_ = "";
       file_ = java.util.Collections.emptyList();
     }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private DataReadResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              seesionId_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              storageName_ = bs;
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              user_ = bs;
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              returnCode_ = input.readInt32();
+              break;
+            }
+            case 42: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000010;
+              description_ = bs;
+              break;
+            }
+            case 50: {
+              if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+                file_ = new java.util.ArrayList<com.bonree.brfs.common.proto.FileDataProtos.FileContent>();
+                mutable_bitField0_ |= 0x00000020;
+              }
+              file_.add(
+                  input.readMessage(com.bonree.brfs.common.proto.FileDataProtos.FileContent.PARSER, extensionRegistry));
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+          file_ = java.util.Collections.unmodifiableList(file_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.class, com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int SEESIONID_FIELD_NUMBER = 1;
+    private volatile java.lang.Object seesionId_;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public boolean hasSeesionId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public java.lang.String getSeesionId() {
+      java.lang.Object ref = seesionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          seesionId_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSeesionIdBytes() {
+      java.lang.Object ref = seesionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        seesionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int STORAGENAME_FIELD_NUMBER = 2;
+    private volatile java.lang.Object storageName_;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public boolean hasStorageName() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public java.lang.String getStorageName() {
+      java.lang.Object ref = storageName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          storageName_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getStorageNameBytes() {
+      java.lang.Object ref = storageName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        storageName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int USER_FIELD_NUMBER = 3;
+    private volatile java.lang.Object user_;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public boolean hasUser() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public java.lang.String getUser() {
+      java.lang.Object ref = user_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          user_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUserBytes() {
+      java.lang.Object ref = user_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        user_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int RETURNCODE_FIELD_NUMBER = 4;
+    private int returnCode_;
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
+    public boolean hasReturnCode() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
+    public int getReturnCode() {
+      return returnCode_;
+    }
+
+    public static final int DESCRIPTION_FIELD_NUMBER = 5;
+    private volatile java.lang.Object description_;
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    public boolean hasDescription() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    public java.lang.String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          description_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int FILE_FIELD_NUMBER = 6;
+    private java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> file_;
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 6;</code>
+     */
+    public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> getFileList() {
+      return file_;
+    }
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 6;</code>
+     */
+    public java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
+        getFileOrBuilderList() {
+      return file_;
+    }
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 6;</code>
+     */
+    public int getFileCount() {
+      return file_.size();
+    }
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 6;</code>
+     */
+    public com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index) {
+      return file_.get(index);
+    }
+    /**
+     * <pre>
+     *文件信息
+     * </pre>
+     *
+     * <code>repeated .brfs.proto.FileContent file = 6;</code>
+     */
+    public com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
+        int index) {
+      return file_.get(index);
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
       memoizedIsInitialized = 1;
       return true;
     }
-    
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getSeesionIdBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getStorageNameBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getUserBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, user_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt32(4, returnCode_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        output.writeBytes(5, getDescriptionBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, description_);
       }
       for (int i = 0; i < file_.size(); i++) {
         output.writeMessage(6, file_.get(i));
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
-    
-    private int memoizedSerializedSize = -1;
+
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
-    
+
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getSeesionIdBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getStorageNameBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getUserBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, user_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(4, returnCode_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(5, getDescriptionBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, description_);
       }
       for (int i = 0; i < file_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, file_.get(i));
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
-    
-    private static final long serialVersionUID = 0L;
+
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse)) {
+        return super.equals(obj);
+      }
+      com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse other = (com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse) obj;
+
+      boolean result = true;
+      result = result && (hasSeesionId() == other.hasSeesionId());
+      if (hasSeesionId()) {
+        result = result && getSeesionId()
+            .equals(other.getSeesionId());
+      }
+      result = result && (hasStorageName() == other.hasStorageName());
+      if (hasStorageName()) {
+        result = result && getStorageName()
+            .equals(other.getStorageName());
+      }
+      result = result && (hasUser() == other.hasUser());
+      if (hasUser()) {
+        result = result && getUser()
+            .equals(other.getUser());
+      }
+      result = result && (hasReturnCode() == other.hasReturnCode());
+      if (hasReturnCode()) {
+        result = result && (getReturnCode()
+            == other.getReturnCode());
+      }
+      result = result && (hasDescription() == other.hasDescription());
+      if (hasDescription()) {
+        result = result && getDescription()
+            .equals(other.getDescription());
+      }
+      result = result && getFileList()
+          .equals(other.getFileList());
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
-    
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasSeesionId()) {
+        hash = (37 * hash) + SEESIONID_FIELD_NUMBER;
+        hash = (53 * hash) + getSeesionId().hashCode();
+      }
+      if (hasStorageName()) {
+        hash = (37 * hash) + STORAGENAME_FIELD_NUMBER;
+        hash = (53 * hash) + getStorageName().hashCode();
+      }
+      if (hasUser()) {
+        hash = (37 * hash) + USER_FIELD_NUMBER;
+        hash = (53 * hash) + getUser().hashCode();
+      }
+      if (hasReturnCode()) {
+        hash = (37 * hash) + RETURNCODE_FIELD_NUMBER;
+        hash = (53 * hash) + getReturnCode();
+      }
+      if (hasDescription()) {
+        hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+        hash = (53 * hash) + getDescription().hashCode();
+      }
+      if (getFileCount() > 0) {
+        hash = (37 * hash) + FILE_FIELD_NUMBER;
+        hash = (53 * hash) + getFileList().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    
-    public static Builder newBuilder() { return Builder.create(); }
+
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
-    
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
+    /**
+     * Protobuf type {@code brfs.proto.DataReadResponse}
+     */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.DataReadResponseOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:brfs.proto.DataReadResponse)
+        com.bonree.brfs.common.proto.FileDataProtos.DataReadResponseOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_descriptor;
       }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.class, com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.Builder.class);
       }
-      
+
       // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
-      
-      private Builder(BuilderParent parent) {
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
           getFileFieldBuilder();
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-      
       public Builder clear() {
         super.clear();
         seesionId_ = "";
@@ -2778,20 +5286,16 @@ public final class FileDataProtos {
         }
         return this;
       }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
+
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.getDescriptor();
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataReadResponse_descriptor;
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse getDefaultInstanceForType() {
         return com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.getDefaultInstance();
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse build() {
         com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse result = buildPartial();
         if (!result.isInitialized()) {
@@ -2799,17 +5303,7 @@ public final class FileDataProtos {
         }
         return result;
       }
-      
-      private com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse buildPartial() {
         com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse result = new com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse(this);
         int from_bitField0_ = bitField0_;
@@ -2847,7 +5341,33 @@ public final class FileDataProtos {
         onBuilt();
         return result;
       }
-      
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse) {
           return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse)other);
@@ -2856,23 +5376,31 @@ public final class FileDataProtos {
           return this;
         }
       }
-      
+
       public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse other) {
         if (other == com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.getDefaultInstance()) return this;
         if (other.hasSeesionId()) {
-          setSeesionId(other.getSeesionId());
+          bitField0_ |= 0x00000001;
+          seesionId_ = other.seesionId_;
+          onChanged();
         }
         if (other.hasStorageName()) {
-          setStorageName(other.getStorageName());
+          bitField0_ |= 0x00000002;
+          storageName_ = other.storageName_;
+          onChanged();
         }
         if (other.hasUser()) {
-          setUser(other.getUser());
+          bitField0_ |= 0x00000004;
+          user_ = other.user_;
+          onChanged();
         }
         if (other.hasReturnCode()) {
           setReturnCode(other.getReturnCode());
         }
         if (other.hasDescription()) {
-          setDescription(other.getDescription());
+          bitField0_ |= 0x00000010;
+          description_ = other.description_;
+          onChanged();
         }
         if (fileBuilder_ == null) {
           if (!other.file_.isEmpty()) {
@@ -2893,97 +5421,102 @@ public final class FileDataProtos {
               file_ = other.file_;
               bitField0_ = (bitField0_ & ~0x00000020);
               fileBuilder_ = 
-                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                    getFileFieldBuilder() : null;
             } else {
               fileBuilder_.addAllMessages(other.file_);
             }
           }
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
-      
+
       public final boolean isInitialized() {
         return true;
       }
-      
+
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              seesionId_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              storageName_ = input.readBytes();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              user_ = input.readBytes();
-              break;
-            }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              returnCode_ = input.readInt32();
-              break;
-            }
-            case 42: {
-              bitField0_ |= 0x00000010;
-              description_ = input.readBytes();
-              break;
-            }
-            case 50: {
-              com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder subBuilder = com.bonree.brfs.common.proto.FileDataProtos.FileContent.newBuilder();
-              input.readMessage(subBuilder, extensionRegistry);
-              addFile(subBuilder.buildPartial());
-              break;
-            }
+        com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
           }
         }
+        return this;
       }
-      
       private int bitField0_;
-      
-      // optional string seesionId = 1;
+
       private java.lang.Object seesionId_ = "";
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public boolean hasSeesionId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      public String getSeesionId() {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public java.lang.String getSeesionId() {
         java.lang.Object ref = seesionId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          seesionId_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            seesionId_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setSeesionId(String value) {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSeesionIdBytes() {
+        java.lang.Object ref = seesionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          seesionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -2992,34 +5525,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public Builder clearSeesionId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         seesionId_ = getDefaultInstance().getSeesionId();
         onChanged();
         return this;
       }
-      void setSeesionId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000001;
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
         seesionId_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string storageName = 2;
+
       private java.lang.Object storageName_ = "";
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public boolean hasStorageName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      public String getStorageName() {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public java.lang.String getStorageName() {
         java.lang.Object ref = storageName_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          storageName_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            storageName_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setStorageName(String value) {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getStorageNameBytes() {
+        java.lang.Object ref = storageName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          storageName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageName(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -3028,34 +5625,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public Builder clearStorageName() {
         bitField0_ = (bitField0_ & ~0x00000002);
         storageName_ = getDefaultInstance().getStorageName();
         onChanged();
         return this;
       }
-      void setStorageName(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000002;
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
         storageName_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string user = 3;
+
       private java.lang.Object user_ = "";
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public boolean hasUser() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      public String getUser() {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public java.lang.String getUser() {
         java.lang.Object ref = user_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          user_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            user_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setUser(String value) {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getUserBytes() {
+        java.lang.Object ref = user_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          user_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUser(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -3064,55 +5725,146 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public Builder clearUser() {
         bitField0_ = (bitField0_ & ~0x00000004);
         user_ = getDefaultInstance().getUser();
         onChanged();
         return this;
       }
-      void setUser(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000004;
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUserBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
         user_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional int32 returnCode = 4;
+
       private int returnCode_ ;
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public boolean hasReturnCode() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public int getReturnCode() {
         return returnCode_;
       }
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public Builder setReturnCode(int value) {
         bitField0_ |= 0x00000008;
         returnCode_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public Builder clearReturnCode() {
         bitField0_ = (bitField0_ & ~0x00000008);
         returnCode_ = 0;
         onChanged();
         return this;
       }
-      
-      // optional string description = 5;
+
       private java.lang.Object description_ = "";
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
       public boolean hasDescription() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
-      public String getDescription() {
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public java.lang.String getDescription() {
         java.lang.Object ref = description_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          description_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            description_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setDescription(String value) {
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public Builder setDescription(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -3121,19 +5873,37 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
       public Builder clearDescription() {
         bitField0_ = (bitField0_ & ~0x00000010);
         description_ = getDefaultInstance().getDescription();
         onChanged();
         return this;
       }
-      void setDescription(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000010;
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
         description_ = value;
         onChanged();
+        return this;
       }
-      
-      // repeated .brfs.proto.FileContent file = 6;
+
       private java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> file_ =
         java.util.Collections.emptyList();
       private void ensureFileIsMutable() {
@@ -3142,10 +5912,17 @@ public final class FileDataProtos {
           bitField0_ |= 0x00000020;
          }
       }
-      
-      private com.google.protobuf.RepeatedFieldBuilder<
+
+      private com.google.protobuf.RepeatedFieldBuilderV3<
           com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> fileBuilder_;
-      
+
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent> getFileList() {
         if (fileBuilder_ == null) {
           return java.util.Collections.unmodifiableList(file_);
@@ -3153,6 +5930,13 @@ public final class FileDataProtos {
           return fileBuilder_.getMessageList();
         }
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public int getFileCount() {
         if (fileBuilder_ == null) {
           return file_.size();
@@ -3160,6 +5944,13 @@ public final class FileDataProtos {
           return fileBuilder_.getCount();
         }
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent getFile(int index) {
         if (fileBuilder_ == null) {
           return file_.get(index);
@@ -3167,6 +5958,13 @@ public final class FileDataProtos {
           return fileBuilder_.getMessage(index);
         }
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public Builder setFile(
           int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
         if (fileBuilder_ == null) {
@@ -3181,6 +5979,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public Builder setFile(
           int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
         if (fileBuilder_ == null) {
@@ -3192,6 +5997,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public Builder addFile(com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
         if (fileBuilder_ == null) {
           if (value == null) {
@@ -3205,6 +6017,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public Builder addFile(
           int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent value) {
         if (fileBuilder_ == null) {
@@ -3219,6 +6038,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public Builder addFile(
           com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
         if (fileBuilder_ == null) {
@@ -3230,6 +6056,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public Builder addFile(
           int index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder builderForValue) {
         if (fileBuilder_ == null) {
@@ -3241,17 +6074,32 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public Builder addAllFile(
           java.lang.Iterable<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContent> values) {
         if (fileBuilder_ == null) {
           ensureFileIsMutable();
-          super.addAll(values, file_);
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, file_);
           onChanged();
         } else {
           fileBuilder_.addAllMessages(values);
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public Builder clearFile() {
         if (fileBuilder_ == null) {
           file_ = java.util.Collections.emptyList();
@@ -3262,6 +6110,13 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public Builder removeFile(int index) {
         if (fileBuilder_ == null) {
           ensureFileIsMutable();
@@ -3272,10 +6127,24 @@ public final class FileDataProtos {
         }
         return this;
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder getFileBuilder(
           int index) {
         return getFileFieldBuilder().getBuilder(index);
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder getFileOrBuilder(
           int index) {
         if (fileBuilder_ == null) {
@@ -3283,6 +6152,13 @@ public final class FileDataProtos {
           return fileBuilder_.getMessageOrBuilder(index);
         }
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public java.util.List<? extends com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
            getFileOrBuilderList() {
         if (fileBuilder_ != null) {
@@ -3291,24 +6167,45 @@ public final class FileDataProtos {
           return java.util.Collections.unmodifiableList(file_);
         }
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder addFileBuilder() {
         return getFileFieldBuilder().addBuilder(
             com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance());
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder addFileBuilder(
           int index) {
         return getFileFieldBuilder().addBuilder(
             index, com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance());
       }
+      /**
+       * <pre>
+       *文件信息
+       * </pre>
+       *
+       * <code>repeated .brfs.proto.FileContent file = 6;</code>
+       */
       public java.util.List<com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder> 
            getFileBuilderList() {
         return getFileFieldBuilder().getBuilderList();
       }
-      private com.google.protobuf.RepeatedFieldBuilder<
+      private com.google.protobuf.RepeatedFieldBuilderV3<
           com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder> 
           getFileFieldBuilder() {
         if (fileBuilder_ == null) {
-          fileBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+          fileBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               com.bonree.brfs.common.proto.FileDataProtos.FileContent, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder, com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder>(
                   file_,
                   ((bitField0_ & 0x00000020) == 0x00000020),
@@ -3318,108 +6215,364 @@ public final class FileDataProtos {
         }
         return fileBuilder_;
       }
-      
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
       // @@protoc_insertion_point(builder_scope:brfs.proto.DataReadResponse)
     }
-    
-    static {
-      defaultInstance = new DataReadResponse(true);
-      defaultInstance.initFields();
-    }
-    
+
     // @@protoc_insertion_point(class_scope:brfs.proto.DataReadResponse)
+    private static final com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse();
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<DataReadResponse>
+        PARSER = new com.google.protobuf.AbstractParser<DataReadResponse>() {
+      public DataReadResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new DataReadResponse(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DataReadResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DataReadResponse> getParserForType() {
+      return PARSER;
+    }
+
+    public com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
-  
-  public interface DataDeleteRequestOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional string seesionId = 1;
+
+  public interface DataDeleteRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:brfs.proto.DataDeleteRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
     boolean hasSeesionId();
-    String getSeesionId();
-    
-    // optional string storageName = 2;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    java.lang.String getSeesionId();
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getSeesionIdBytes();
+
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
     boolean hasStorageName();
-    String getStorageName();
-    
-    // optional string user = 3;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    java.lang.String getStorageName();
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getStorageNameBytes();
+
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
     boolean hasUser();
-    String getUser();
-    
-    // optional uint64 beginTime = 4;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    java.lang.String getUser();
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getUserBytes();
+
+    /**
+     * <pre>
+     *开始时间
+     * </pre>
+     *
+     * <code>optional uint64 beginTime = 4;</code>
+     */
     boolean hasBeginTime();
+    /**
+     * <pre>
+     *开始时间
+     * </pre>
+     *
+     * <code>optional uint64 beginTime = 4;</code>
+     */
     long getBeginTime();
-    
-    // optional uint64 endTime = 5;
+
+    /**
+     * <pre>
+     *结束时间
+     * </pre>
+     *
+     * <code>optional uint64 endTime = 5;</code>
+     */
     boolean hasEndTime();
+    /**
+     * <pre>
+     *结束时间
+     * </pre>
+     *
+     * <code>optional uint64 endTime = 5;</code>
+     */
     long getEndTime();
-    
-    // optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];
+
+    /**
+     * <pre>
+     *默认为异步删除
+     * </pre>
+     *
+     * <code>optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];</code>
+     */
     boolean hasDeleteDataType();
+    /**
+     * <pre>
+     *默认为异步删除
+     * </pre>
+     *
+     * <code>optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];</code>
+     */
     com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType getDeleteDataType();
   }
-  public static final class DataDeleteRequest extends
-      com.google.protobuf.GeneratedMessage
-      implements DataDeleteRequestOrBuilder {
+  /**
+   * Protobuf type {@code brfs.proto.DataDeleteRequest}
+   */
+  public  static final class DataDeleteRequest extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:brfs.proto.DataDeleteRequest)
+      DataDeleteRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use DataDeleteRequest.newBuilder() to construct.
-    private DataDeleteRequest(Builder builder) {
+    private DataDeleteRequest(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private DataDeleteRequest(boolean noInit) {}
-    
-    private static final DataDeleteRequest defaultInstance;
-    public static DataDeleteRequest getDefaultInstance() {
-      return defaultInstance;
+    private DataDeleteRequest() {
+      seesionId_ = "";
+      storageName_ = "";
+      user_ = "";
+      beginTime_ = 0L;
+      endTime_ = 0L;
+      deleteDataType_ = 0;
     }
-    
-    public DataDeleteRequest getDefaultInstanceForType() {
-      return defaultInstance;
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
     }
-    
+    private DataDeleteRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              seesionId_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              storageName_ = bs;
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              user_ = bs;
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              beginTime_ = input.readUInt64();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              endTime_ = input.readUInt64();
+              break;
+            }
+            case 48: {
+              int rawValue = input.readEnum();
+              com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType value = com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(6, rawValue);
+              } else {
+                bitField0_ |= 0x00000020;
+                deleteDataType_ = rawValue;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
       return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteRequest_descriptor;
     }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteRequest_fieldAccessorTable;
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.class, com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.Builder.class);
     }
-    
+
+    /**
+     * <pre>
+     *操作类型
+     * </pre>
+     *
+     * Protobuf enum {@code brfs.proto.DataDeleteRequest.DeleteDataType}
+     */
     public enum DeleteDataType
         implements com.google.protobuf.ProtocolMessageEnum {
-      ASYN(0, 0),
-      SYN(1, 1),
+      /**
+       * <code>ASYN = 0;</code>
+       */
+      ASYN(0),
+      /**
+       * <code>SYN = 1;</code>
+       */
+      SYN(1),
       ;
-      
+
+      /**
+       * <code>ASYN = 0;</code>
+       */
       public static final int ASYN_VALUE = 0;
+      /**
+       * <code>SYN = 1;</code>
+       */
       public static final int SYN_VALUE = 1;
-      
-      
-      public final int getNumber() { return value; }
-      
+
+
+      public final int getNumber() {
+        return value;
+      }
+
+      /**
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
       public static DeleteDataType valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static DeleteDataType forNumber(int value) {
         switch (value) {
           case 0: return ASYN;
           case 1: return SYN;
           default: return null;
         }
       }
-      
+
       public static com.google.protobuf.Internal.EnumLiteMap<DeleteDataType>
           internalGetValueMap() {
         return internalValueMap;
       }
-      private static com.google.protobuf.Internal.EnumLiteMap<DeleteDataType>
-          internalValueMap =
+      private static final com.google.protobuf.Internal.EnumLiteMap<
+          DeleteDataType> internalValueMap =
             new com.google.protobuf.Internal.EnumLiteMap<DeleteDataType>() {
               public DeleteDataType findValueByNumber(int number) {
-                return DeleteDataType.valueOf(number);
+                return DeleteDataType.forNumber(number);
               }
             };
-      
+
       public final com.google.protobuf.Descriptors.EnumValueDescriptor
           getValueDescriptor() {
-        return getDescriptor().getValues().get(index);
+        return getDescriptor().getValues().get(ordinal());
       }
       public final com.google.protobuf.Descriptors.EnumDescriptor
           getDescriptorForType() {
@@ -3429,11 +6582,9 @@ public final class FileDataProtos {
           getDescriptor() {
         return com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.getDescriptor().getEnumTypes().get(0);
       }
-      
-      private static final DeleteDataType[] VALUES = {
-        ASYN, SYN, 
-      };
-      
+
+      private static final DeleteDataType[] VALUES = values();
+
       public static DeleteDataType valueOf(
           com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
         if (desc.getType() != getDescriptor()) {
@@ -3442,173 +6593,269 @@ public final class FileDataProtos {
         }
         return VALUES[desc.getIndex()];
       }
-      
-      private final int index;
+
       private final int value;
-      
-      private DeleteDataType(int index, int value) {
-        this.index = index;
+
+      private DeleteDataType(int value) {
         this.value = value;
       }
-      
+
       // @@protoc_insertion_point(enum_scope:brfs.proto.DataDeleteRequest.DeleteDataType)
     }
-    
+
     private int bitField0_;
-    // optional string seesionId = 1;
     public static final int SEESIONID_FIELD_NUMBER = 1;
-    private java.lang.Object seesionId_;
+    private volatile java.lang.Object seesionId_;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
     public boolean hasSeesionId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
-    public String getSeesionId() {
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public java.lang.String getSeesionId() {
       java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           seesionId_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getSeesionIdBytes() {
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSeesionIdBytes() {
       java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         seesionId_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional string storageName = 2;
+
     public static final int STORAGENAME_FIELD_NUMBER = 2;
-    private java.lang.Object storageName_;
+    private volatile java.lang.Object storageName_;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
     public boolean hasStorageName() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
-    public String getStorageName() {
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public java.lang.String getStorageName() {
       java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           storageName_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getStorageNameBytes() {
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getStorageNameBytes() {
       java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         storageName_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional string user = 3;
+
     public static final int USER_FIELD_NUMBER = 3;
-    private java.lang.Object user_;
+    private volatile java.lang.Object user_;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
     public boolean hasUser() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    public String getUser() {
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public java.lang.String getUser() {
       java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        return (String) ref;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
           user_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getUserBytes() {
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUserBytes() {
       java.lang.Object ref = user_;
-      if (ref instanceof String) {
+      if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
         user_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
-    
-    // optional uint64 beginTime = 4;
+
     public static final int BEGINTIME_FIELD_NUMBER = 4;
     private long beginTime_;
+    /**
+     * <pre>
+     *开始时间
+     * </pre>
+     *
+     * <code>optional uint64 beginTime = 4;</code>
+     */
     public boolean hasBeginTime() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
+    /**
+     * <pre>
+     *开始时间
+     * </pre>
+     *
+     * <code>optional uint64 beginTime = 4;</code>
+     */
     public long getBeginTime() {
       return beginTime_;
     }
-    
-    // optional uint64 endTime = 5;
+
     public static final int ENDTIME_FIELD_NUMBER = 5;
     private long endTime_;
+    /**
+     * <pre>
+     *结束时间
+     * </pre>
+     *
+     * <code>optional uint64 endTime = 5;</code>
+     */
     public boolean hasEndTime() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
+    /**
+     * <pre>
+     *结束时间
+     * </pre>
+     *
+     * <code>optional uint64 endTime = 5;</code>
+     */
     public long getEndTime() {
       return endTime_;
     }
-    
-    // optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];
+
     public static final int DELETEDATATYPE_FIELD_NUMBER = 6;
-    private com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType deleteDataType_;
+    private int deleteDataType_;
+    /**
+     * <pre>
+     *默认为异步删除
+     * </pre>
+     *
+     * <code>optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];</code>
+     */
     public boolean hasDeleteDataType() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
     }
+    /**
+     * <pre>
+     *默认为异步删除
+     * </pre>
+     *
+     * <code>optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];</code>
+     */
     public com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType getDeleteDataType() {
-      return deleteDataType_;
+      com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType result = com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType.valueOf(deleteDataType_);
+      return result == null ? com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType.ASYN : result;
     }
-    
-    private void initFields() {
-      seesionId_ = "";
-      storageName_ = "";
-      user_ = "";
-      beginTime_ = 0L;
-      endTime_ = 0L;
-      deleteDataType_ = com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType.ASYN;
-    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
       memoizedIsInitialized = 1;
       return true;
     }
-    
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getSeesionIdBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getStorageNameBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getUserBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, user_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeUInt64(4, beginTime_);
@@ -3617,28 +6864,24 @@ public final class FileDataProtos {
         output.writeUInt64(5, endTime_);
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        output.writeEnum(6, deleteDataType_.getNumber());
+        output.writeEnum(6, deleteDataType_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
-    
-    private int memoizedSerializedSize = -1;
+
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
-    
+
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getSeesionIdBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getStorageNameBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getUserBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, user_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
@@ -3650,130 +6893,217 @@ public final class FileDataProtos {
       }
       if (((bitField0_ & 0x00000020) == 0x00000020)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(6, deleteDataType_.getNumber());
+          .computeEnumSize(6, deleteDataType_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
-    
-    private static final long serialVersionUID = 0L;
+
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest)) {
+        return super.equals(obj);
+      }
+      com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest other = (com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest) obj;
+
+      boolean result = true;
+      result = result && (hasSeesionId() == other.hasSeesionId());
+      if (hasSeesionId()) {
+        result = result && getSeesionId()
+            .equals(other.getSeesionId());
+      }
+      result = result && (hasStorageName() == other.hasStorageName());
+      if (hasStorageName()) {
+        result = result && getStorageName()
+            .equals(other.getStorageName());
+      }
+      result = result && (hasUser() == other.hasUser());
+      if (hasUser()) {
+        result = result && getUser()
+            .equals(other.getUser());
+      }
+      result = result && (hasBeginTime() == other.hasBeginTime());
+      if (hasBeginTime()) {
+        result = result && (getBeginTime()
+            == other.getBeginTime());
+      }
+      result = result && (hasEndTime() == other.hasEndTime());
+      if (hasEndTime()) {
+        result = result && (getEndTime()
+            == other.getEndTime());
+      }
+      result = result && (hasDeleteDataType() == other.hasDeleteDataType());
+      if (hasDeleteDataType()) {
+        result = result && deleteDataType_ == other.deleteDataType_;
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
-    
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasSeesionId()) {
+        hash = (37 * hash) + SEESIONID_FIELD_NUMBER;
+        hash = (53 * hash) + getSeesionId().hashCode();
+      }
+      if (hasStorageName()) {
+        hash = (37 * hash) + STORAGENAME_FIELD_NUMBER;
+        hash = (53 * hash) + getStorageName().hashCode();
+      }
+      if (hasUser()) {
+        hash = (37 * hash) + USER_FIELD_NUMBER;
+        hash = (53 * hash) + getUser().hashCode();
+      }
+      if (hasBeginTime()) {
+        hash = (37 * hash) + BEGINTIME_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getBeginTime());
+      }
+      if (hasEndTime()) {
+        hash = (37 * hash) + ENDTIME_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getEndTime());
+      }
+      if (hasDeleteDataType()) {
+        hash = (37 * hash) + DELETEDATATYPE_FIELD_NUMBER;
+        hash = (53 * hash) + deleteDataType_;
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    
-    public static Builder newBuilder() { return Builder.create(); }
+
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
-    
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
+    /**
+     * Protobuf type {@code brfs.proto.DataDeleteRequest}
+     */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequestOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:brfs.proto.DataDeleteRequest)
+        com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteRequest_descriptor;
       }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteRequest_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.class, com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.Builder.class);
       }
-      
+
       // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
-      
-      private Builder(BuilderParent parent) {
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-      
       public Builder clear() {
         super.clear();
         seesionId_ = "";
@@ -3786,24 +7116,20 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000008);
         endTime_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000010);
-        deleteDataType_ = com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType.ASYN;
+        deleteDataType_ = 0;
         bitField0_ = (bitField0_ & ~0x00000020);
         return this;
       }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
+
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.getDescriptor();
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteRequest_descriptor;
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest getDefaultInstanceForType() {
         return com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.getDefaultInstance();
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest build() {
         com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest result = buildPartial();
         if (!result.isInitialized()) {
@@ -3811,17 +7137,7 @@ public final class FileDataProtos {
         }
         return result;
       }
-      
-      private com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest buildPartial() {
         com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest result = new com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest(this);
         int from_bitField0_ = bitField0_;
@@ -3854,7 +7170,33 @@ public final class FileDataProtos {
         onBuilt();
         return result;
       }
-      
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest) {
           return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest)other);
@@ -3863,17 +7205,23 @@ public final class FileDataProtos {
           return this;
         }
       }
-      
+
       public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest other) {
         if (other == com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.getDefaultInstance()) return this;
         if (other.hasSeesionId()) {
-          setSeesionId(other.getSeesionId());
+          bitField0_ |= 0x00000001;
+          seesionId_ = other.seesionId_;
+          onChanged();
         }
         if (other.hasStorageName()) {
-          setStorageName(other.getStorageName());
+          bitField0_ |= 0x00000002;
+          storageName_ = other.storageName_;
+          onChanged();
         }
         if (other.hasUser()) {
-          setUser(other.getUser());
+          bitField0_ |= 0x00000004;
+          user_ = other.user_;
+          onChanged();
         }
         if (other.hasBeginTime()) {
           setBeginTime(other.getBeginTime());
@@ -3884,95 +7232,95 @@ public final class FileDataProtos {
         if (other.hasDeleteDataType()) {
           setDeleteDataType(other.getDeleteDataType());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
-      
+
       public final boolean isInitialized() {
         return true;
       }
-      
+
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              seesionId_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              storageName_ = input.readBytes();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              user_ = input.readBytes();
-              break;
-            }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              beginTime_ = input.readUInt64();
-              break;
-            }
-            case 40: {
-              bitField0_ |= 0x00000010;
-              endTime_ = input.readUInt64();
-              break;
-            }
-            case 48: {
-              int rawValue = input.readEnum();
-              com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType value = com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(6, rawValue);
-              } else {
-                bitField0_ |= 0x00000020;
-                deleteDataType_ = value;
-              }
-              break;
-            }
+        com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
           }
         }
+        return this;
       }
-      
       private int bitField0_;
-      
-      // optional string seesionId = 1;
+
       private java.lang.Object seesionId_ = "";
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public boolean hasSeesionId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      public String getSeesionId() {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public java.lang.String getSeesionId() {
         java.lang.Object ref = seesionId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          seesionId_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            seesionId_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setSeesionId(String value) {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSeesionIdBytes() {
+        java.lang.Object ref = seesionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          seesionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -3981,34 +7329,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public Builder clearSeesionId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         seesionId_ = getDefaultInstance().getSeesionId();
         onChanged();
         return this;
       }
-      void setSeesionId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000001;
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
         seesionId_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string storageName = 2;
+
       private java.lang.Object storageName_ = "";
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public boolean hasStorageName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      public String getStorageName() {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public java.lang.String getStorageName() {
         java.lang.Object ref = storageName_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          storageName_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            storageName_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setStorageName(String value) {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getStorageNameBytes() {
+        java.lang.Object ref = storageName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          storageName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageName(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -4017,34 +7429,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public Builder clearStorageName() {
         bitField0_ = (bitField0_ & ~0x00000002);
         storageName_ = getDefaultInstance().getStorageName();
         onChanged();
         return this;
       }
-      void setStorageName(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000002;
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
         storageName_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string user = 3;
+
       private java.lang.Object user_ = "";
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public boolean hasUser() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      public String getUser() {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public java.lang.String getUser() {
         java.lang.Object ref = user_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          user_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            user_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setUser(String value) {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getUserBytes() {
+        java.lang.Object ref = user_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          user_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUser(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -4053,470 +7529,949 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public Builder clearUser() {
         bitField0_ = (bitField0_ & ~0x00000004);
         user_ = getDefaultInstance().getUser();
         onChanged();
         return this;
       }
-      void setUser(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000004;
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUserBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
         user_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional uint64 beginTime = 4;
+
       private long beginTime_ ;
+      /**
+       * <pre>
+       *开始时间
+       * </pre>
+       *
+       * <code>optional uint64 beginTime = 4;</code>
+       */
       public boolean hasBeginTime() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
+      /**
+       * <pre>
+       *开始时间
+       * </pre>
+       *
+       * <code>optional uint64 beginTime = 4;</code>
+       */
       public long getBeginTime() {
         return beginTime_;
       }
+      /**
+       * <pre>
+       *开始时间
+       * </pre>
+       *
+       * <code>optional uint64 beginTime = 4;</code>
+       */
       public Builder setBeginTime(long value) {
         bitField0_ |= 0x00000008;
         beginTime_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *开始时间
+       * </pre>
+       *
+       * <code>optional uint64 beginTime = 4;</code>
+       */
       public Builder clearBeginTime() {
         bitField0_ = (bitField0_ & ~0x00000008);
         beginTime_ = 0L;
         onChanged();
         return this;
       }
-      
-      // optional uint64 endTime = 5;
+
       private long endTime_ ;
+      /**
+       * <pre>
+       *结束时间
+       * </pre>
+       *
+       * <code>optional uint64 endTime = 5;</code>
+       */
       public boolean hasEndTime() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
+      /**
+       * <pre>
+       *结束时间
+       * </pre>
+       *
+       * <code>optional uint64 endTime = 5;</code>
+       */
       public long getEndTime() {
         return endTime_;
       }
+      /**
+       * <pre>
+       *结束时间
+       * </pre>
+       *
+       * <code>optional uint64 endTime = 5;</code>
+       */
       public Builder setEndTime(long value) {
         bitField0_ |= 0x00000010;
         endTime_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *结束时间
+       * </pre>
+       *
+       * <code>optional uint64 endTime = 5;</code>
+       */
       public Builder clearEndTime() {
         bitField0_ = (bitField0_ & ~0x00000010);
         endTime_ = 0L;
         onChanged();
         return this;
       }
-      
-      // optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];
-      private com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType deleteDataType_ = com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType.ASYN;
+
+      private int deleteDataType_ = 0;
+      /**
+       * <pre>
+       *默认为异步删除
+       * </pre>
+       *
+       * <code>optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];</code>
+       */
       public boolean hasDeleteDataType() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
+      /**
+       * <pre>
+       *默认为异步删除
+       * </pre>
+       *
+       * <code>optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];</code>
+       */
       public com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType getDeleteDataType() {
-        return deleteDataType_;
+        com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType result = com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType.valueOf(deleteDataType_);
+        return result == null ? com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType.ASYN : result;
       }
+      /**
+       * <pre>
+       *默认为异步删除
+       * </pre>
+       *
+       * <code>optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];</code>
+       */
       public Builder setDeleteDataType(com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType value) {
         if (value == null) {
           throw new NullPointerException();
         }
         bitField0_ |= 0x00000020;
-        deleteDataType_ = value;
+        deleteDataType_ = value.getNumber();
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *默认为异步删除
+       * </pre>
+       *
+       * <code>optional .brfs.proto.DataDeleteRequest.DeleteDataType deleteDataType = 6 [default = ASYN];</code>
+       */
       public Builder clearDeleteDataType() {
         bitField0_ = (bitField0_ & ~0x00000020);
-        deleteDataType_ = com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.DeleteDataType.ASYN;
+        deleteDataType_ = 0;
         onChanged();
         return this;
       }
-      
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
       // @@protoc_insertion_point(builder_scope:brfs.proto.DataDeleteRequest)
     }
-    
-    static {
-      defaultInstance = new DataDeleteRequest(true);
-      defaultInstance.initFields();
-    }
-    
+
     // @@protoc_insertion_point(class_scope:brfs.proto.DataDeleteRequest)
+    private static final com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest();
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<DataDeleteRequest>
+        PARSER = new com.google.protobuf.AbstractParser<DataDeleteRequest>() {
+      public DataDeleteRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new DataDeleteRequest(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DataDeleteRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DataDeleteRequest> getParserForType() {
+      return PARSER;
+    }
+
+    public com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
-  
-  public interface DataDeleteResponseOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional string seesionId = 1;
+
+  public interface DataDeleteResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:brfs.proto.DataDeleteResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
     boolean hasSeesionId();
-    String getSeesionId();
-    
-    // optional string storageName = 2;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    java.lang.String getSeesionId();
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getSeesionIdBytes();
+
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
     boolean hasStorageName();
-    String getStorageName();
-    
-    // optional string user = 3;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    java.lang.String getStorageName();
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getStorageNameBytes();
+
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
     boolean hasUser();
-    String getUser();
-    
-    // optional int32 returnCode = 4;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    java.lang.String getUser();
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getUserBytes();
+
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
     boolean hasReturnCode();
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
     int getReturnCode();
-    
-    // optional string description = 5;
+
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
     boolean hasDescription();
-    String getDescription();
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    java.lang.String getDescription();
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
   }
-  public static final class DataDeleteResponse extends
-      com.google.protobuf.GeneratedMessage
-      implements DataDeleteResponseOrBuilder {
+  /**
+   * Protobuf type {@code brfs.proto.DataDeleteResponse}
+   */
+  public  static final class DataDeleteResponse extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:brfs.proto.DataDeleteResponse)
+      DataDeleteResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use DataDeleteResponse.newBuilder() to construct.
-    private DataDeleteResponse(Builder builder) {
+    private DataDeleteResponse(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private DataDeleteResponse(boolean noInit) {}
-    
-    private static final DataDeleteResponse defaultInstance;
-    public static DataDeleteResponse getDefaultInstance() {
-      return defaultInstance;
-    }
-    
-    public DataDeleteResponse getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-    
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteResponse_descriptor;
-    }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteResponse_fieldAccessorTable;
-    }
-    
-    private int bitField0_;
-    // optional string seesionId = 1;
-    public static final int SEESIONID_FIELD_NUMBER = 1;
-    private java.lang.Object seesionId_;
-    public boolean hasSeesionId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    public String getSeesionId() {
-      java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          seesionId_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getSeesionIdBytes() {
-      java.lang.Object ref = seesionId_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        seesionId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string storageName = 2;
-    public static final int STORAGENAME_FIELD_NUMBER = 2;
-    private java.lang.Object storageName_;
-    public boolean hasStorageName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    public String getStorageName() {
-      java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          storageName_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getStorageNameBytes() {
-      java.lang.Object ref = storageName_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        storageName_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string user = 3;
-    public static final int USER_FIELD_NUMBER = 3;
-    private java.lang.Object user_;
-    public boolean hasUser() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    public String getUser() {
-      java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          user_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getUserBytes() {
-      java.lang.Object ref = user_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        user_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional int32 returnCode = 4;
-    public static final int RETURNCODE_FIELD_NUMBER = 4;
-    private int returnCode_;
-    public boolean hasReturnCode() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    public int getReturnCode() {
-      return returnCode_;
-    }
-    
-    // optional string description = 5;
-    public static final int DESCRIPTION_FIELD_NUMBER = 5;
-    private java.lang.Object description_;
-    public boolean hasDescription() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    public String getDescription() {
-      java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          description_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getDescriptionBytes() {
-      java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        description_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    private void initFields() {
+    private DataDeleteResponse() {
       seesionId_ = "";
       storageName_ = "";
       user_ = "";
       returnCode_ = 0;
       description_ = "";
     }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private DataDeleteResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              seesionId_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              storageName_ = bs;
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              user_ = bs;
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              returnCode_ = input.readInt32();
+              break;
+            }
+            case 42: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000010;
+              description_ = bs;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteResponse_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.class, com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int SEESIONID_FIELD_NUMBER = 1;
+    private volatile java.lang.Object seesionId_;
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public boolean hasSeesionId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public java.lang.String getSeesionId() {
+      java.lang.Object ref = seesionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          seesionId_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *会话ID
+     * </pre>
+     *
+     * <code>optional string seesionId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSeesionIdBytes() {
+      java.lang.Object ref = seesionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        seesionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int STORAGENAME_FIELD_NUMBER = 2;
+    private volatile java.lang.Object storageName_;
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public boolean hasStorageName() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public java.lang.String getStorageName() {
+      java.lang.Object ref = storageName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          storageName_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *存储空间名称
+     * </pre>
+     *
+     * <code>optional string storageName = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getStorageNameBytes() {
+      java.lang.Object ref = storageName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        storageName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int USER_FIELD_NUMBER = 3;
+    private volatile java.lang.Object user_;
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public boolean hasUser() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public java.lang.String getUser() {
+      java.lang.Object ref = user_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          user_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *用户名用来进行权限校验
+     * </pre>
+     *
+     * <code>optional string user = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUserBytes() {
+      java.lang.Object ref = user_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        user_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int RETURNCODE_FIELD_NUMBER = 4;
+    private int returnCode_;
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
+    public boolean hasReturnCode() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <pre>
+     *返回状态码
+     * </pre>
+     *
+     * <code>optional int32 returnCode = 4;</code>
+     */
+    public int getReturnCode() {
+      return returnCode_;
+    }
+
+    public static final int DESCRIPTION_FIELD_NUMBER = 5;
+    private volatile java.lang.Object description_;
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    public boolean hasDescription() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    public java.lang.String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          description_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *状态码对应的描述信息
+     * </pre>
+     *
+     * <code>optional string description = 5;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
       memoizedIsInitialized = 1;
       return true;
     }
-    
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, getSeesionIdBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getStorageNameBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getUserBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, user_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt32(4, returnCode_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        output.writeBytes(5, getDescriptionBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, description_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
-    
-    private int memoizedSerializedSize = -1;
+
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
-    
+
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, getSeesionIdBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, seesionId_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getStorageNameBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, storageName_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getUserBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, user_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(4, returnCode_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(5, getDescriptionBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, description_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
-    
-    private static final long serialVersionUID = 0L;
+
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse)) {
+        return super.equals(obj);
+      }
+      com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse other = (com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse) obj;
+
+      boolean result = true;
+      result = result && (hasSeesionId() == other.hasSeesionId());
+      if (hasSeesionId()) {
+        result = result && getSeesionId()
+            .equals(other.getSeesionId());
+      }
+      result = result && (hasStorageName() == other.hasStorageName());
+      if (hasStorageName()) {
+        result = result && getStorageName()
+            .equals(other.getStorageName());
+      }
+      result = result && (hasUser() == other.hasUser());
+      if (hasUser()) {
+        result = result && getUser()
+            .equals(other.getUser());
+      }
+      result = result && (hasReturnCode() == other.hasReturnCode());
+      if (hasReturnCode()) {
+        result = result && (getReturnCode()
+            == other.getReturnCode());
+      }
+      result = result && (hasDescription() == other.hasDescription());
+      if (hasDescription()) {
+        result = result && getDescription()
+            .equals(other.getDescription());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
-    
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasSeesionId()) {
+        hash = (37 * hash) + SEESIONID_FIELD_NUMBER;
+        hash = (53 * hash) + getSeesionId().hashCode();
+      }
+      if (hasStorageName()) {
+        hash = (37 * hash) + STORAGENAME_FIELD_NUMBER;
+        hash = (53 * hash) + getStorageName().hashCode();
+      }
+      if (hasUser()) {
+        hash = (37 * hash) + USER_FIELD_NUMBER;
+        hash = (53 * hash) + getUser().hashCode();
+      }
+      if (hasReturnCode()) {
+        hash = (37 * hash) + RETURNCODE_FIELD_NUMBER;
+        hash = (53 * hash) + getReturnCode();
+      }
+      if (hasDescription()) {
+        hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+        hash = (53 * hash) + getDescription().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    
-    public static Builder newBuilder() { return Builder.create(); }
+
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
-    
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
+    /**
+     * Protobuf type {@code brfs.proto.DataDeleteResponse}
+     */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponseOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:brfs.proto.DataDeleteResponse)
+        com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponseOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteResponse_descriptor;
       }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteResponse_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.class, com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.Builder.class);
       }
-      
+
       // Construct using com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
-      
-      private Builder(BuilderParent parent) {
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-      
       public Builder clear() {
         super.clear();
         seesionId_ = "";
@@ -4531,20 +8486,16 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
+
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.getDescriptor();
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_DataDeleteResponse_descriptor;
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse getDefaultInstanceForType() {
         return com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.getDefaultInstance();
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse build() {
         com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse result = buildPartial();
         if (!result.isInitialized()) {
@@ -4552,17 +8503,7 @@ public final class FileDataProtos {
         }
         return result;
       }
-      
-      private com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse buildPartial() {
         com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse result = new com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse(this);
         int from_bitField0_ = bitField0_;
@@ -4591,7 +8532,33 @@ public final class FileDataProtos {
         onBuilt();
         return result;
       }
-      
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse) {
           return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse)other);
@@ -4600,102 +8567,121 @@ public final class FileDataProtos {
           return this;
         }
       }
-      
+
       public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse other) {
         if (other == com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.getDefaultInstance()) return this;
         if (other.hasSeesionId()) {
-          setSeesionId(other.getSeesionId());
+          bitField0_ |= 0x00000001;
+          seesionId_ = other.seesionId_;
+          onChanged();
         }
         if (other.hasStorageName()) {
-          setStorageName(other.getStorageName());
+          bitField0_ |= 0x00000002;
+          storageName_ = other.storageName_;
+          onChanged();
         }
         if (other.hasUser()) {
-          setUser(other.getUser());
+          bitField0_ |= 0x00000004;
+          user_ = other.user_;
+          onChanged();
         }
         if (other.hasReturnCode()) {
           setReturnCode(other.getReturnCode());
         }
         if (other.hasDescription()) {
-          setDescription(other.getDescription());
+          bitField0_ |= 0x00000010;
+          description_ = other.description_;
+          onChanged();
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
-      
+
       public final boolean isInitialized() {
         return true;
       }
-      
+
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 10: {
-              bitField0_ |= 0x00000001;
-              seesionId_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              storageName_ = input.readBytes();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              user_ = input.readBytes();
-              break;
-            }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              returnCode_ = input.readInt32();
-              break;
-            }
-            case 42: {
-              bitField0_ |= 0x00000010;
-              description_ = input.readBytes();
-              break;
-            }
+        com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
           }
         }
+        return this;
       }
-      
       private int bitField0_;
-      
-      // optional string seesionId = 1;
+
       private java.lang.Object seesionId_ = "";
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public boolean hasSeesionId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
-      public String getSeesionId() {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public java.lang.String getSeesionId() {
         java.lang.Object ref = seesionId_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          seesionId_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            seesionId_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setSeesionId(String value) {
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSeesionIdBytes() {
+        java.lang.Object ref = seesionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          seesionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -4704,34 +8690,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
       public Builder clearSeesionId() {
         bitField0_ = (bitField0_ & ~0x00000001);
         seesionId_ = getDefaultInstance().getSeesionId();
         onChanged();
         return this;
       }
-      void setSeesionId(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000001;
+      /**
+       * <pre>
+       *会话ID
+       * </pre>
+       *
+       * <code>optional string seesionId = 1;</code>
+       */
+      public Builder setSeesionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
         seesionId_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string storageName = 2;
+
       private java.lang.Object storageName_ = "";
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public boolean hasStorageName() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
-      public String getStorageName() {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public java.lang.String getStorageName() {
         java.lang.Object ref = storageName_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          storageName_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            storageName_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setStorageName(String value) {
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getStorageNameBytes() {
+        java.lang.Object ref = storageName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          storageName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageName(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -4740,34 +8790,98 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
       public Builder clearStorageName() {
         bitField0_ = (bitField0_ & ~0x00000002);
         storageName_ = getDefaultInstance().getStorageName();
         onChanged();
         return this;
       }
-      void setStorageName(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000002;
+      /**
+       * <pre>
+       *存储空间名称
+       * </pre>
+       *
+       * <code>optional string storageName = 2;</code>
+       */
+      public Builder setStorageNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
         storageName_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional string user = 3;
+
       private java.lang.Object user_ = "";
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public boolean hasUser() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      public String getUser() {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public java.lang.String getUser() {
         java.lang.Object ref = user_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          user_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            user_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setUser(String value) {
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getUserBytes() {
+        java.lang.Object ref = user_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          user_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUser(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -4776,55 +8890,146 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
       public Builder clearUser() {
         bitField0_ = (bitField0_ & ~0x00000004);
         user_ = getDefaultInstance().getUser();
         onChanged();
         return this;
       }
-      void setUser(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000004;
+      /**
+       * <pre>
+       *用户名用来进行权限校验
+       * </pre>
+       *
+       * <code>optional string user = 3;</code>
+       */
+      public Builder setUserBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
         user_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional int32 returnCode = 4;
+
       private int returnCode_ ;
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public boolean hasReturnCode() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public int getReturnCode() {
         return returnCode_;
       }
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public Builder setReturnCode(int value) {
         bitField0_ |= 0x00000008;
         returnCode_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *返回状态码
+       * </pre>
+       *
+       * <code>optional int32 returnCode = 4;</code>
+       */
       public Builder clearReturnCode() {
         bitField0_ = (bitField0_ & ~0x00000008);
         returnCode_ = 0;
         onChanged();
         return this;
       }
-      
-      // optional string description = 5;
+
       private java.lang.Object description_ = "";
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
       public boolean hasDescription() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
-      public String getDescription() {
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public java.lang.String getDescription() {
         java.lang.Object ref = description_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          description_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            description_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setDescription(String value) {
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public Builder setDescription(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -4833,172 +9038,440 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
       public Builder clearDescription() {
         bitField0_ = (bitField0_ & ~0x00000010);
         description_ = getDefaultInstance().getDescription();
         onChanged();
         return this;
       }
-      void setDescription(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000010;
+      /**
+       * <pre>
+       *状态码对应的描述信息
+       * </pre>
+       *
+       * <code>optional string description = 5;</code>
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
         description_ = value;
         onChanged();
+        return this;
       }
-      
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
       // @@protoc_insertion_point(builder_scope:brfs.proto.DataDeleteResponse)
     }
-    
-    static {
-      defaultInstance = new DataDeleteResponse(true);
-      defaultInstance.initFields();
-    }
-    
+
     // @@protoc_insertion_point(class_scope:brfs.proto.DataDeleteResponse)
+    private static final com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse();
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<DataDeleteResponse>
+        PARSER = new com.google.protobuf.AbstractParser<DataDeleteResponse>() {
+      public DataDeleteResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new DataDeleteResponse(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<DataDeleteResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DataDeleteResponse> getParserForType() {
+      return PARSER;
+    }
+
+    public com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
-  
-  public interface FileContentOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional bool crcFlag = 1;
+
+  public interface FileContentOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:brfs.proto.FileContent)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     *是否开启crc校验码
+     * </pre>
+     *
+     * <code>optional bool crcFlag = 1;</code>
+     */
     boolean hasCrcFlag();
+    /**
+     * <pre>
+     *是否开启crc校验码
+     * </pre>
+     *
+     * <code>optional bool crcFlag = 1;</code>
+     */
     boolean getCrcFlag();
-    
-    // optional int64 crcCheckCode = 2;
+
+    /**
+     * <pre>
+     *crc校验码
+     * </pre>
+     *
+     * <code>optional int64 crcCheckCode = 2;</code>
+     */
     boolean hasCrcCheckCode();
+    /**
+     * <pre>
+     *crc校验码
+     * </pre>
+     *
+     * <code>optional int64 crcCheckCode = 2;</code>
+     */
     long getCrcCheckCode();
-    
-    // optional string description = 3;
+
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
     boolean hasDescription();
-    String getDescription();
-    
-    // optional bytes data = 4;
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
+    java.lang.String getDescription();
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
+
+    /**
+     * <pre>
+     *数据内容
+     * </pre>
+     *
+     * <code>optional bytes data = 4;</code>
+     */
     boolean hasData();
+    /**
+     * <pre>
+     *数据内容
+     * </pre>
+     *
+     * <code>optional bytes data = 4;</code>
+     */
     com.google.protobuf.ByteString getData();
-    
-    // optional int32 compress = 5;
+
+    /**
+     * <pre>
+     *是否压缩,0:不压缩,1:gzip,2:snappy,3保留
+     * </pre>
+     *
+     * <code>optional int32 compress = 5;</code>
+     */
     boolean hasCompress();
+    /**
+     * <pre>
+     *是否压缩,0:不压缩,1:gzip,2:snappy,3保留
+     * </pre>
+     *
+     * <code>optional int32 compress = 5;</code>
+     */
     int getCompress();
   }
-  public static final class FileContent extends
-      com.google.protobuf.GeneratedMessage
-      implements FileContentOrBuilder {
+  /**
+   * Protobuf type {@code brfs.proto.FileContent}
+   */
+  public  static final class FileContent extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:brfs.proto.FileContent)
+      FileContentOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use FileContent.newBuilder() to construct.
-    private FileContent(Builder builder) {
+    private FileContent(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private FileContent(boolean noInit) {}
-    
-    private static final FileContent defaultInstance;
-    public static FileContent getDefaultInstance() {
-      return defaultInstance;
-    }
-    
-    public FileContent getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-    
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_descriptor;
-    }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_fieldAccessorTable;
-    }
-    
-    private int bitField0_;
-    // optional bool crcFlag = 1;
-    public static final int CRCFLAG_FIELD_NUMBER = 1;
-    private boolean crcFlag_;
-    public boolean hasCrcFlag() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    public boolean getCrcFlag() {
-      return crcFlag_;
-    }
-    
-    // optional int64 crcCheckCode = 2;
-    public static final int CRCCHECKCODE_FIELD_NUMBER = 2;
-    private long crcCheckCode_;
-    public boolean hasCrcCheckCode() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    public long getCrcCheckCode() {
-      return crcCheckCode_;
-    }
-    
-    // optional string description = 3;
-    public static final int DESCRIPTION_FIELD_NUMBER = 3;
-    private java.lang.Object description_;
-    public boolean hasDescription() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    public String getDescription() {
-      java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          description_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getDescriptionBytes() {
-      java.lang.Object ref = description_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        description_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional bytes data = 4;
-    public static final int DATA_FIELD_NUMBER = 4;
-    private com.google.protobuf.ByteString data_;
-    public boolean hasData() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    public com.google.protobuf.ByteString getData() {
-      return data_;
-    }
-    
-    // optional int32 compress = 5;
-    public static final int COMPRESS_FIELD_NUMBER = 5;
-    private int compress_;
-    public boolean hasCompress() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    public int getCompress() {
-      return compress_;
-    }
-    
-    private void initFields() {
+    private FileContent() {
       crcFlag_ = false;
       crcCheckCode_ = 0L;
       description_ = "";
       data_ = com.google.protobuf.ByteString.EMPTY;
       compress_ = 0;
     }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private FileContent(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              crcFlag_ = input.readBool();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              crcCheckCode_ = input.readInt64();
+              break;
+            }
+            case 26: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              description_ = bs;
+              break;
+            }
+            case 34: {
+              bitField0_ |= 0x00000008;
+              data_ = input.readBytes();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              compress_ = input.readInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.bonree.brfs.common.proto.FileDataProtos.FileContent.class, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int CRCFLAG_FIELD_NUMBER = 1;
+    private boolean crcFlag_;
+    /**
+     * <pre>
+     *是否开启crc校验码
+     * </pre>
+     *
+     * <code>optional bool crcFlag = 1;</code>
+     */
+    public boolean hasCrcFlag() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <pre>
+     *是否开启crc校验码
+     * </pre>
+     *
+     * <code>optional bool crcFlag = 1;</code>
+     */
+    public boolean getCrcFlag() {
+      return crcFlag_;
+    }
+
+    public static final int CRCCHECKCODE_FIELD_NUMBER = 2;
+    private long crcCheckCode_;
+    /**
+     * <pre>
+     *crc校验码
+     * </pre>
+     *
+     * <code>optional int64 crcCheckCode = 2;</code>
+     */
+    public boolean hasCrcCheckCode() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <pre>
+     *crc校验码
+     * </pre>
+     *
+     * <code>optional int64 crcCheckCode = 2;</code>
+     */
+    public long getCrcCheckCode() {
+      return crcCheckCode_;
+    }
+
+    public static final int DESCRIPTION_FIELD_NUMBER = 3;
+    private volatile java.lang.Object description_;
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
+    public boolean hasDescription() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
+    public java.lang.String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          description_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *详细描述信息
+     * </pre>
+     *
+     * <code>optional string description = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DATA_FIELD_NUMBER = 4;
+    private com.google.protobuf.ByteString data_;
+    /**
+     * <pre>
+     *数据内容
+     * </pre>
+     *
+     * <code>optional bytes data = 4;</code>
+     */
+    public boolean hasData() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <pre>
+     *数据内容
+     * </pre>
+     *
+     * <code>optional bytes data = 4;</code>
+     */
+    public com.google.protobuf.ByteString getData() {
+      return data_;
+    }
+
+    public static final int COMPRESS_FIELD_NUMBER = 5;
+    private int compress_;
+    /**
+     * <pre>
+     *是否压缩,0:不压缩,1:gzip,2:snappy,3保留
+     * </pre>
+     *
+     * <code>optional int32 compress = 5;</code>
+     */
+    public boolean hasCompress() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <pre>
+     *是否压缩,0:不压缩,1:gzip,2:snappy,3保留
+     * </pre>
+     *
+     * <code>optional int32 compress = 5;</code>
+     */
+    public int getCompress() {
+      return compress_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
       memoizedIsInitialized = 1;
       return true;
     }
-    
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBool(1, crcFlag_);
       }
@@ -5006,7 +9479,7 @@ public final class FileDataProtos {
         output.writeInt64(2, crcCheckCode_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, getDescriptionBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 3, description_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeBytes(4, data_);
@@ -5014,14 +9487,13 @@ public final class FileDataProtos {
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeInt32(5, compress_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
-    
-    private int memoizedSerializedSize = -1;
+
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
-    
+
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
@@ -5032,8 +9504,7 @@ public final class FileDataProtos {
           .computeInt64Size(2, crcCheckCode_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, getDescriptionBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, description_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
@@ -5043,128 +9514,207 @@ public final class FileDataProtos {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(5, compress_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
-    
-    private static final long serialVersionUID = 0L;
+
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.bonree.brfs.common.proto.FileDataProtos.FileContent)) {
+        return super.equals(obj);
+      }
+      com.bonree.brfs.common.proto.FileDataProtos.FileContent other = (com.bonree.brfs.common.proto.FileDataProtos.FileContent) obj;
+
+      boolean result = true;
+      result = result && (hasCrcFlag() == other.hasCrcFlag());
+      if (hasCrcFlag()) {
+        result = result && (getCrcFlag()
+            == other.getCrcFlag());
+      }
+      result = result && (hasCrcCheckCode() == other.hasCrcCheckCode());
+      if (hasCrcCheckCode()) {
+        result = result && (getCrcCheckCode()
+            == other.getCrcCheckCode());
+      }
+      result = result && (hasDescription() == other.hasDescription());
+      if (hasDescription()) {
+        result = result && getDescription()
+            .equals(other.getDescription());
+      }
+      result = result && (hasData() == other.hasData());
+      if (hasData()) {
+        result = result && getData()
+            .equals(other.getData());
+      }
+      result = result && (hasCompress() == other.hasCompress());
+      if (hasCompress()) {
+        result = result && (getCompress()
+            == other.getCompress());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
-    
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasCrcFlag()) {
+        hash = (37 * hash) + CRCFLAG_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+            getCrcFlag());
+      }
+      if (hasCrcCheckCode()) {
+        hash = (37 * hash) + CRCCHECKCODE_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getCrcCheckCode());
+      }
+      if (hasDescription()) {
+        hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+        hash = (53 * hash) + getDescription().hashCode();
+      }
+      if (hasData()) {
+        hash = (37 * hash) + DATA_FIELD_NUMBER;
+        hash = (53 * hash) + getData().hashCode();
+      }
+      if (hasCompress()) {
+        hash = (37 * hash) + COMPRESS_FIELD_NUMBER;
+        hash = (53 * hash) + getCompress();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.FileContent parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    
-    public static Builder newBuilder() { return Builder.create(); }
+
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.FileContent prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
-    
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.FileContent prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
+    /**
+     * Protobuf type {@code brfs.proto.FileContent}
+     */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:brfs.proto.FileContent)
+        com.bonree.brfs.common.proto.FileDataProtos.FileContentOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_descriptor;
       }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.bonree.brfs.common.proto.FileDataProtos.FileContent.class, com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder.class);
       }
-      
+
       // Construct using com.bonree.brfs.common.proto.FileDataProtos.FileContent.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
-      
-      private Builder(BuilderParent parent) {
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-      
       public Builder clear() {
         super.clear();
         crcFlag_ = false;
@@ -5179,20 +9729,16 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
+
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDescriptor();
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_FileContent_descriptor;
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent getDefaultInstanceForType() {
         return com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance();
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent build() {
         com.bonree.brfs.common.proto.FileDataProtos.FileContent result = buildPartial();
         if (!result.isInitialized()) {
@@ -5200,17 +9746,7 @@ public final class FileDataProtos {
         }
         return result;
       }
-      
-      private com.bonree.brfs.common.proto.FileDataProtos.FileContent buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.FileContent result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.FileContent buildPartial() {
         com.bonree.brfs.common.proto.FileDataProtos.FileContent result = new com.bonree.brfs.common.proto.FileDataProtos.FileContent(this);
         int from_bitField0_ = bitField0_;
@@ -5239,7 +9775,33 @@ public final class FileDataProtos {
         onBuilt();
         return result;
       }
-      
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.FileContent) {
           return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.FileContent)other);
@@ -5248,7 +9810,7 @@ public final class FileDataProtos {
           return this;
         }
       }
-      
+
       public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.FileContent other) {
         if (other == com.bonree.brfs.common.proto.FileDataProtos.FileContent.getDefaultInstance()) return this;
         if (other.hasCrcFlag()) {
@@ -5258,7 +9820,9 @@ public final class FileDataProtos {
           setCrcCheckCode(other.getCrcCheckCode());
         }
         if (other.hasDescription()) {
-          setDescription(other.getDescription());
+          bitField0_ |= 0x00000004;
+          description_ = other.description_;
+          onChanged();
         }
         if (other.hasData()) {
           setData(other.getData());
@@ -5266,126 +9830,191 @@ public final class FileDataProtos {
         if (other.hasCompress()) {
           setCompress(other.getCompress());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
-      
+
       public final boolean isInitialized() {
         return true;
       }
-      
+
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 8: {
-              bitField0_ |= 0x00000001;
-              crcFlag_ = input.readBool();
-              break;
-            }
-            case 16: {
-              bitField0_ |= 0x00000002;
-              crcCheckCode_ = input.readInt64();
-              break;
-            }
-            case 26: {
-              bitField0_ |= 0x00000004;
-              description_ = input.readBytes();
-              break;
-            }
-            case 34: {
-              bitField0_ |= 0x00000008;
-              data_ = input.readBytes();
-              break;
-            }
-            case 40: {
-              bitField0_ |= 0x00000010;
-              compress_ = input.readInt32();
-              break;
-            }
+        com.bonree.brfs.common.proto.FileDataProtos.FileContent parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.bonree.brfs.common.proto.FileDataProtos.FileContent) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
           }
         }
+        return this;
       }
-      
       private int bitField0_;
-      
-      // optional bool crcFlag = 1;
+
       private boolean crcFlag_ ;
+      /**
+       * <pre>
+       *是否开启crc校验码
+       * </pre>
+       *
+       * <code>optional bool crcFlag = 1;</code>
+       */
       public boolean hasCrcFlag() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
+      /**
+       * <pre>
+       *是否开启crc校验码
+       * </pre>
+       *
+       * <code>optional bool crcFlag = 1;</code>
+       */
       public boolean getCrcFlag() {
         return crcFlag_;
       }
+      /**
+       * <pre>
+       *是否开启crc校验码
+       * </pre>
+       *
+       * <code>optional bool crcFlag = 1;</code>
+       */
       public Builder setCrcFlag(boolean value) {
         bitField0_ |= 0x00000001;
         crcFlag_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *是否开启crc校验码
+       * </pre>
+       *
+       * <code>optional bool crcFlag = 1;</code>
+       */
       public Builder clearCrcFlag() {
         bitField0_ = (bitField0_ & ~0x00000001);
         crcFlag_ = false;
         onChanged();
         return this;
       }
-      
-      // optional int64 crcCheckCode = 2;
+
       private long crcCheckCode_ ;
+      /**
+       * <pre>
+       *crc校验码
+       * </pre>
+       *
+       * <code>optional int64 crcCheckCode = 2;</code>
+       */
       public boolean hasCrcCheckCode() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
+      /**
+       * <pre>
+       *crc校验码
+       * </pre>
+       *
+       * <code>optional int64 crcCheckCode = 2;</code>
+       */
       public long getCrcCheckCode() {
         return crcCheckCode_;
       }
+      /**
+       * <pre>
+       *crc校验码
+       * </pre>
+       *
+       * <code>optional int64 crcCheckCode = 2;</code>
+       */
       public Builder setCrcCheckCode(long value) {
         bitField0_ |= 0x00000002;
         crcCheckCode_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *crc校验码
+       * </pre>
+       *
+       * <code>optional int64 crcCheckCode = 2;</code>
+       */
       public Builder clearCrcCheckCode() {
         bitField0_ = (bitField0_ & ~0x00000002);
         crcCheckCode_ = 0L;
         onChanged();
         return this;
       }
-      
-      // optional string description = 3;
+
       private java.lang.Object description_ = "";
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
       public boolean hasDescription() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      public String getDescription() {
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
+      public java.lang.String getDescription() {
         java.lang.Object ref = description_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          description_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            description_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setDescription(String value) {
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
+      public Builder setDescription(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -5394,26 +10023,65 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
       public Builder clearDescription() {
         bitField0_ = (bitField0_ & ~0x00000004);
         description_ = getDefaultInstance().getDescription();
         onChanged();
         return this;
       }
-      void setDescription(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000004;
+      /**
+       * <pre>
+       *详细描述信息
+       * </pre>
+       *
+       * <code>optional string description = 3;</code>
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
         description_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional bytes data = 4;
+
       private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <pre>
+       *数据内容
+       * </pre>
+       *
+       * <code>optional bytes data = 4;</code>
+       */
       public boolean hasData() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
+      /**
+       * <pre>
+       *数据内容
+       * </pre>
+       *
+       * <code>optional bytes data = 4;</code>
+       */
       public com.google.protobuf.ByteString getData() {
         return data_;
       }
+      /**
+       * <pre>
+       *数据内容
+       * </pre>
+       *
+       * <code>optional bytes data = 4;</code>
+       */
       public Builder setData(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
@@ -5423,231 +10091,313 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *数据内容
+       * </pre>
+       *
+       * <code>optional bytes data = 4;</code>
+       */
       public Builder clearData() {
         bitField0_ = (bitField0_ & ~0x00000008);
         data_ = getDefaultInstance().getData();
         onChanged();
         return this;
       }
-      
-      // optional int32 compress = 5;
+
       private int compress_ ;
+      /**
+       * <pre>
+       *是否压缩,0:不压缩,1:gzip,2:snappy,3保留
+       * </pre>
+       *
+       * <code>optional int32 compress = 5;</code>
+       */
       public boolean hasCompress() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
+      /**
+       * <pre>
+       *是否压缩,0:不压缩,1:gzip,2:snappy,3保留
+       * </pre>
+       *
+       * <code>optional int32 compress = 5;</code>
+       */
       public int getCompress() {
         return compress_;
       }
+      /**
+       * <pre>
+       *是否压缩,0:不压缩,1:gzip,2:snappy,3保留
+       * </pre>
+       *
+       * <code>optional int32 compress = 5;</code>
+       */
       public Builder setCompress(int value) {
         bitField0_ |= 0x00000010;
         compress_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       *是否压缩,0:不压缩,1:gzip,2:snappy,3保留
+       * </pre>
+       *
+       * <code>optional int32 compress = 5;</code>
+       */
       public Builder clearCompress() {
         bitField0_ = (bitField0_ & ~0x00000010);
         compress_ = 0;
         onChanged();
         return this;
       }
-      
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
       // @@protoc_insertion_point(builder_scope:brfs.proto.FileContent)
     }
-    
-    static {
-      defaultInstance = new FileContent(true);
-      defaultInstance.initFields();
-    }
-    
+
     // @@protoc_insertion_point(class_scope:brfs.proto.FileContent)
+    private static final com.bonree.brfs.common.proto.FileDataProtos.FileContent DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.FileDataProtos.FileContent();
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.FileContent getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<FileContent>
+        PARSER = new com.google.protobuf.AbstractParser<FileContent>() {
+      public FileContent parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new FileContent(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<FileContent> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<FileContent> getParserForType() {
+      return PARSER;
+    }
+
+    public com.bonree.brfs.common.proto.FileDataProtos.FileContent getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
-  
-  public interface FidOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-    
-    // optional int32 version = 1;
+
+  public interface FidOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:brfs.proto.Fid)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * 版本号
+     * </pre>
+     *
+     * <code>optional int32 version = 1;</code>
+     */
     boolean hasVersion();
+    /**
+     * <pre>
+     * 版本号
+     * </pre>
+     *
+     * <code>optional int32 version = 1;</code>
+     */
     int getVersion();
-    
-    // optional int32 compress = 2;
+
+    /**
+     * <pre>
+     * 默认无压缩,0:不压缩,1:gzip,2:snappy,3保留
+     * </pre>
+     *
+     * <code>optional int32 compress = 2;</code>
+     */
     boolean hasCompress();
+    /**
+     * <pre>
+     * 默认无压缩,0:不压缩,1:gzip,2:snappy,3保留
+     * </pre>
+     *
+     * <code>optional int32 compress = 2;</code>
+     */
     int getCompress();
-    
-    // optional int32 storageNameCode = 3;
+
+    /**
+     * <pre>
+     * 存储空间
+     * </pre>
+     *
+     * <code>optional int32 storageNameCode = 3;</code>
+     */
     boolean hasStorageNameCode();
+    /**
+     * <pre>
+     * 存储空间
+     * </pre>
+     *
+     * <code>optional int32 storageNameCode = 3;</code>
+     */
     int getStorageNameCode();
-    
-    // optional string uuid = 4;
+
+    /**
+     * <pre>
+     * 唯一码
+     * </pre>
+     *
+     * <code>optional string uuid = 4;</code>
+     */
     boolean hasUuid();
-    String getUuid();
-    
-    // optional int64 time = 5;
+    /**
+     * <pre>
+     * 唯一码
+     * </pre>
+     *
+     * <code>optional string uuid = 4;</code>
+     */
+    java.lang.String getUuid();
+    /**
+     * <pre>
+     * 唯一码
+     * </pre>
+     *
+     * <code>optional string uuid = 4;</code>
+     */
+    com.google.protobuf.ByteString
+        getUuidBytes();
+
+    /**
+     * <pre>
+     * 时间戳
+     * </pre>
+     *
+     * <code>optional int64 time = 5;</code>
+     */
     boolean hasTime();
+    /**
+     * <pre>
+     * 时间戳
+     * </pre>
+     *
+     * <code>optional int64 time = 5;</code>
+     */
     long getTime();
-    
-    // optional int64 duration = 6;
+
+    /**
+     * <pre>
+     * 时间区间长度
+     * </pre>
+     *
+     * <code>optional int64 duration = 6;</code>
+     */
     boolean hasDuration();
+    /**
+     * <pre>
+     * 时间区间长度
+     * </pre>
+     *
+     * <code>optional int64 duration = 6;</code>
+     */
     long getDuration();
-    
-    // repeated string serverId = 7;
-    java.util.List<String> getServerIdList();
+
+    /**
+     * <pre>
+     * 服务标识
+     * </pre>
+     *
+     * <code>repeated string serverId = 7;</code>
+     */
+    java.util.List<java.lang.String>
+        getServerIdList();
+    /**
+     * <pre>
+     * 服务标识
+     * </pre>
+     *
+     * <code>repeated string serverId = 7;</code>
+     */
     int getServerIdCount();
-    String getServerId(int index);
-    
-    // optional int64 offset = 8;
+    /**
+     * <pre>
+     * 服务标识
+     * </pre>
+     *
+     * <code>repeated string serverId = 7;</code>
+     */
+    java.lang.String getServerId(int index);
+    /**
+     * <pre>
+     * 服务标识
+     * </pre>
+     *
+     * <code>repeated string serverId = 7;</code>
+     */
+    com.google.protobuf.ByteString
+        getServerIdBytes(int index);
+
+    /**
+     * <pre>
+     * 当前文件所在大文件里的偏移量
+     * </pre>
+     *
+     * <code>optional int64 offset = 8;</code>
+     */
     boolean hasOffset();
+    /**
+     * <pre>
+     * 当前文件所在大文件里的偏移量
+     * </pre>
+     *
+     * <code>optional int64 offset = 8;</code>
+     */
     long getOffset();
-    
-    // optional int64 size = 9;
+
+    /**
+     * <pre>
+     * 当前文件的长度
+     * </pre>
+     *
+     * <code>optional int64 size = 9;</code>
+     */
     boolean hasSize();
+    /**
+     * <pre>
+     * 当前文件的长度
+     * </pre>
+     *
+     * <code>optional int64 size = 9;</code>
+     */
     long getSize();
   }
-  public static final class Fid extends
-      com.google.protobuf.GeneratedMessage
-      implements FidOrBuilder {
+  /**
+   * Protobuf type {@code brfs.proto.Fid}
+   */
+  public  static final class Fid extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:brfs.proto.Fid)
+      FidOrBuilder {
+  private static final long serialVersionUID = 0L;
     // Use Fid.newBuilder() to construct.
-    private Fid(Builder builder) {
+    private Fid(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private Fid(boolean noInit) {}
-    
-    private static final Fid defaultInstance;
-    public static Fid getDefaultInstance() {
-      return defaultInstance;
-    }
-    
-    public Fid getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-    
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_Fid_descriptor;
-    }
-    
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_Fid_fieldAccessorTable;
-    }
-    
-    private int bitField0_;
-    // optional int32 version = 1;
-    public static final int VERSION_FIELD_NUMBER = 1;
-    private int version_;
-    public boolean hasVersion() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    public int getVersion() {
-      return version_;
-    }
-    
-    // optional int32 compress = 2;
-    public static final int COMPRESS_FIELD_NUMBER = 2;
-    private int compress_;
-    public boolean hasCompress() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    public int getCompress() {
-      return compress_;
-    }
-    
-    // optional int32 storageNameCode = 3;
-    public static final int STORAGENAMECODE_FIELD_NUMBER = 3;
-    private int storageNameCode_;
-    public boolean hasStorageNameCode() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    public int getStorageNameCode() {
-      return storageNameCode_;
-    }
-    
-    // optional string uuid = 4;
-    public static final int UUID_FIELD_NUMBER = 4;
-    private java.lang.Object uuid_;
-    public boolean hasUuid() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    public String getUuid() {
-      java.lang.Object ref = uuid_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          uuid_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getUuidBytes() {
-      java.lang.Object ref = uuid_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        uuid_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional int64 time = 5;
-    public static final int TIME_FIELD_NUMBER = 5;
-    private long time_;
-    public boolean hasTime() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    public long getTime() {
-      return time_;
-    }
-    
-    // optional int64 duration = 6;
-    public static final int DURATION_FIELD_NUMBER = 6;
-    private long duration_;
-    public boolean hasDuration() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
-    }
-    public long getDuration() {
-      return duration_;
-    }
-    
-    // repeated string serverId = 7;
-    public static final int SERVERID_FIELD_NUMBER = 7;
-    private com.google.protobuf.LazyStringList serverId_;
-    public java.util.List<String>
-        getServerIdList() {
-      return serverId_;
-    }
-    public int getServerIdCount() {
-      return serverId_.size();
-    }
-    public String getServerId(int index) {
-      return serverId_.get(index);
-    }
-    
-    // optional int64 offset = 8;
-    public static final int OFFSET_FIELD_NUMBER = 8;
-    private long offset_;
-    public boolean hasOffset() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
-    }
-    public long getOffset() {
-      return offset_;
-    }
-    
-    // optional int64 size = 9;
-    public static final int SIZE_FIELD_NUMBER = 9;
-    private long size_;
-    public boolean hasSize() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
-    }
-    public long getSize() {
-      return size_;
-    }
-    
-    private void initFields() {
+    private Fid() {
       version_ = 0;
       compress_ = 0;
       storageNameCode_ = 0;
@@ -5658,18 +10408,385 @@ public final class FileDataProtos {
       offset_ = 0L;
       size_ = 0L;
     }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private Fid(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              version_ = input.readInt32();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              compress_ = input.readInt32();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              storageNameCode_ = input.readInt32();
+              break;
+            }
+            case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000008;
+              uuid_ = bs;
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              time_ = input.readInt64();
+              break;
+            }
+            case 48: {
+              bitField0_ |= 0x00000020;
+              duration_ = input.readInt64();
+              break;
+            }
+            case 58: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+                serverId_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000040;
+              }
+              serverId_.add(bs);
+              break;
+            }
+            case 64: {
+              bitField0_ |= 0x00000040;
+              offset_ = input.readInt64();
+              break;
+            }
+            case 72: {
+              bitField0_ |= 0x00000080;
+              size_ = input.readInt64();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+          serverId_ = serverId_.getUnmodifiableView();
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_Fid_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_Fid_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.bonree.brfs.common.proto.FileDataProtos.Fid.class, com.bonree.brfs.common.proto.FileDataProtos.Fid.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int VERSION_FIELD_NUMBER = 1;
+    private int version_;
+    /**
+     * <pre>
+     * 版本号
+     * </pre>
+     *
+     * <code>optional int32 version = 1;</code>
+     */
+    public boolean hasVersion() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <pre>
+     * 版本号
+     * </pre>
+     *
+     * <code>optional int32 version = 1;</code>
+     */
+    public int getVersion() {
+      return version_;
+    }
+
+    public static final int COMPRESS_FIELD_NUMBER = 2;
+    private int compress_;
+    /**
+     * <pre>
+     * 默认无压缩,0:不压缩,1:gzip,2:snappy,3保留
+     * </pre>
+     *
+     * <code>optional int32 compress = 2;</code>
+     */
+    public boolean hasCompress() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <pre>
+     * 默认无压缩,0:不压缩,1:gzip,2:snappy,3保留
+     * </pre>
+     *
+     * <code>optional int32 compress = 2;</code>
+     */
+    public int getCompress() {
+      return compress_;
+    }
+
+    public static final int STORAGENAMECODE_FIELD_NUMBER = 3;
+    private int storageNameCode_;
+    /**
+     * <pre>
+     * 存储空间
+     * </pre>
+     *
+     * <code>optional int32 storageNameCode = 3;</code>
+     */
+    public boolean hasStorageNameCode() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <pre>
+     * 存储空间
+     * </pre>
+     *
+     * <code>optional int32 storageNameCode = 3;</code>
+     */
+    public int getStorageNameCode() {
+      return storageNameCode_;
+    }
+
+    public static final int UUID_FIELD_NUMBER = 4;
+    private volatile java.lang.Object uuid_;
+    /**
+     * <pre>
+     * 唯一码
+     * </pre>
+     *
+     * <code>optional string uuid = 4;</code>
+     */
+    public boolean hasUuid() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <pre>
+     * 唯一码
+     * </pre>
+     *
+     * <code>optional string uuid = 4;</code>
+     */
+    public java.lang.String getUuid() {
+      java.lang.Object ref = uuid_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          uuid_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * 唯一码
+     * </pre>
+     *
+     * <code>optional string uuid = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getUuidBytes() {
+      java.lang.Object ref = uuid_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        uuid_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TIME_FIELD_NUMBER = 5;
+    private long time_;
+    /**
+     * <pre>
+     * 时间戳
+     * </pre>
+     *
+     * <code>optional int64 time = 5;</code>
+     */
+    public boolean hasTime() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <pre>
+     * 时间戳
+     * </pre>
+     *
+     * <code>optional int64 time = 5;</code>
+     */
+    public long getTime() {
+      return time_;
+    }
+
+    public static final int DURATION_FIELD_NUMBER = 6;
+    private long duration_;
+    /**
+     * <pre>
+     * 时间区间长度
+     * </pre>
+     *
+     * <code>optional int64 duration = 6;</code>
+     */
+    public boolean hasDuration() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <pre>
+     * 时间区间长度
+     * </pre>
+     *
+     * <code>optional int64 duration = 6;</code>
+     */
+    public long getDuration() {
+      return duration_;
+    }
+
+    public static final int SERVERID_FIELD_NUMBER = 7;
+    private com.google.protobuf.LazyStringList serverId_;
+    /**
+     * <pre>
+     * 服务标识
+     * </pre>
+     *
+     * <code>repeated string serverId = 7;</code>
+     */
+    public com.google.protobuf.ProtocolStringList
+        getServerIdList() {
+      return serverId_;
+    }
+    /**
+     * <pre>
+     * 服务标识
+     * </pre>
+     *
+     * <code>repeated string serverId = 7;</code>
+     */
+    public int getServerIdCount() {
+      return serverId_.size();
+    }
+    /**
+     * <pre>
+     * 服务标识
+     * </pre>
+     *
+     * <code>repeated string serverId = 7;</code>
+     */
+    public java.lang.String getServerId(int index) {
+      return serverId_.get(index);
+    }
+    /**
+     * <pre>
+     * 服务标识
+     * </pre>
+     *
+     * <code>repeated string serverId = 7;</code>
+     */
+    public com.google.protobuf.ByteString
+        getServerIdBytes(int index) {
+      return serverId_.getByteString(index);
+    }
+
+    public static final int OFFSET_FIELD_NUMBER = 8;
+    private long offset_;
+    /**
+     * <pre>
+     * 当前文件所在大文件里的偏移量
+     * </pre>
+     *
+     * <code>optional int64 offset = 8;</code>
+     */
+    public boolean hasOffset() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <pre>
+     * 当前文件所在大文件里的偏移量
+     * </pre>
+     *
+     * <code>optional int64 offset = 8;</code>
+     */
+    public long getOffset() {
+      return offset_;
+    }
+
+    public static final int SIZE_FIELD_NUMBER = 9;
+    private long size_;
+    /**
+     * <pre>
+     * 当前文件的长度
+     * </pre>
+     *
+     * <code>optional int64 size = 9;</code>
+     */
+    public boolean hasSize() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <pre>
+     * 当前文件的长度
+     * </pre>
+     *
+     * <code>optional int64 size = 9;</code>
+     */
+    public long getSize() {
+      return size_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-      
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
       memoizedIsInitialized = 1;
       return true;
     }
-    
+
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeInt32(1, version_);
       }
@@ -5680,7 +10797,7 @@ public final class FileDataProtos {
         output.writeInt32(3, storageNameCode_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeBytes(4, getUuidBytes());
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, uuid_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeInt64(5, time_);
@@ -5689,7 +10806,7 @@ public final class FileDataProtos {
         output.writeInt64(6, duration_);
       }
       for (int i = 0; i < serverId_.size(); i++) {
-        output.writeBytes(7, serverId_.getByteString(i));
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 7, serverId_.getRaw(i));
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeInt64(8, offset_);
@@ -5697,14 +10814,13 @@ public final class FileDataProtos {
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         output.writeInt64(9, size_);
       }
-      getUnknownFields().writeTo(output);
+      unknownFields.writeTo(output);
     }
-    
-    private int memoizedSerializedSize = -1;
+
     public int getSerializedSize() {
-      int size = memoizedSerializedSize;
+      int size = memoizedSize;
       if (size != -1) return size;
-    
+
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
@@ -5719,8 +10835,7 @@ public final class FileDataProtos {
           .computeInt32Size(3, storageNameCode_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(4, getUuidBytes());
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, uuid_);
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
@@ -5733,8 +10848,7 @@ public final class FileDataProtos {
       {
         int dataSize = 0;
         for (int i = 0; i < serverId_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(serverId_.getByteString(i));
+          dataSize += computeStringSizeNoTag(serverId_.getRaw(i));
         }
         size += dataSize;
         size += 1 * getServerIdList().size();
@@ -5747,128 +10861,242 @@ public final class FileDataProtos {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(9, size_);
       }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
       return size;
     }
-    
-    private static final long serialVersionUID = 0L;
+
     @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof com.bonree.brfs.common.proto.FileDataProtos.Fid)) {
+        return super.equals(obj);
+      }
+      com.bonree.brfs.common.proto.FileDataProtos.Fid other = (com.bonree.brfs.common.proto.FileDataProtos.Fid) obj;
+
+      boolean result = true;
+      result = result && (hasVersion() == other.hasVersion());
+      if (hasVersion()) {
+        result = result && (getVersion()
+            == other.getVersion());
+      }
+      result = result && (hasCompress() == other.hasCompress());
+      if (hasCompress()) {
+        result = result && (getCompress()
+            == other.getCompress());
+      }
+      result = result && (hasStorageNameCode() == other.hasStorageNameCode());
+      if (hasStorageNameCode()) {
+        result = result && (getStorageNameCode()
+            == other.getStorageNameCode());
+      }
+      result = result && (hasUuid() == other.hasUuid());
+      if (hasUuid()) {
+        result = result && getUuid()
+            .equals(other.getUuid());
+      }
+      result = result && (hasTime() == other.hasTime());
+      if (hasTime()) {
+        result = result && (getTime()
+            == other.getTime());
+      }
+      result = result && (hasDuration() == other.hasDuration());
+      if (hasDuration()) {
+        result = result && (getDuration()
+            == other.getDuration());
+      }
+      result = result && getServerIdList()
+          .equals(other.getServerIdList());
+      result = result && (hasOffset() == other.hasOffset());
+      if (hasOffset()) {
+        result = result && (getOffset()
+            == other.getOffset());
+      }
+      result = result && (hasSize() == other.hasSize());
+      if (hasSize()) {
+        result = result && (getSize()
+            == other.getSize());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
-    
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasVersion()) {
+        hash = (37 * hash) + VERSION_FIELD_NUMBER;
+        hash = (53 * hash) + getVersion();
+      }
+      if (hasCompress()) {
+        hash = (37 * hash) + COMPRESS_FIELD_NUMBER;
+        hash = (53 * hash) + getCompress();
+      }
+      if (hasStorageNameCode()) {
+        hash = (37 * hash) + STORAGENAMECODE_FIELD_NUMBER;
+        hash = (53 * hash) + getStorageNameCode();
+      }
+      if (hasUuid()) {
+        hash = (37 * hash) + UUID_FIELD_NUMBER;
+        hash = (53 * hash) + getUuid().hashCode();
+      }
+      if (hasTime()) {
+        hash = (37 * hash) + TIME_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getTime());
+      }
+      if (hasDuration()) {
+        hash = (37 * hash) + DURATION_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getDuration());
+      }
+      if (getServerIdCount() > 0) {
+        hash = (37 * hash) + SERVERID_FIELD_NUMBER;
+        hash = (53 * hash) + getServerIdList().hashCode();
+      }
+      if (hasOffset()) {
+        hash = (37 * hash) + OFFSET_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getOffset());
+      }
+      if (hasSize()) {
+        hash = (37 * hash) + SIZE_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getSize());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
     public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data).buildParsed();
+      return PARSER.parseFrom(data);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return newBuilder().mergeFrom(data, extensionRegistry)
-               .buildParsed();
+      return PARSER.parseFrom(data, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseFrom(java.io.InputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      Builder builder = newBuilder();
-      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
-        return builder.buildParsed();
-      } else {
-        return null;
-      }
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input).buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
     }
     public static com.bonree.brfs.common.proto.FileDataProtos.Fid parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      return newBuilder().mergeFrom(input, extensionRegistry)
-               .buildParsed();
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    
-    public static Builder newBuilder() { return Builder.create(); }
+
     public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.Fid prototype) {
-      return newBuilder().mergeFrom(prototype);
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
     }
-    public Builder toBuilder() { return newBuilder(this); }
-    
+    public static Builder newBuilder(com.bonree.brfs.common.proto.FileDataProtos.Fid prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
     @java.lang.Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
+    /**
+     * Protobuf type {@code brfs.proto.Fid}
+     */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements com.bonree.brfs.common.proto.FileDataProtos.FidOrBuilder {
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:brfs.proto.Fid)
+        com.bonree.brfs.common.proto.FileDataProtos.FidOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_Fid_descriptor;
       }
-      
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_Fid_fieldAccessorTable;
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_Fid_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.bonree.brfs.common.proto.FileDataProtos.Fid.class, com.bonree.brfs.common.proto.FileDataProtos.Fid.Builder.class);
       }
-      
+
       // Construct using com.bonree.brfs.common.proto.FileDataProtos.Fid.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
-      
-      private Builder(BuilderParent parent) {
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
         }
       }
-      private static Builder create() {
-        return new Builder();
-      }
-      
       public Builder clear() {
         super.clear();
         version_ = 0;
@@ -5891,20 +11119,16 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000100);
         return this;
       }
-      
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-      
+
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.FileDataProtos.Fid.getDescriptor();
+        return com.bonree.brfs.common.proto.FileDataProtos.internal_static_brfs_proto_Fid_descriptor;
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.Fid getDefaultInstanceForType() {
         return com.bonree.brfs.common.proto.FileDataProtos.Fid.getDefaultInstance();
       }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.Fid build() {
         com.bonree.brfs.common.proto.FileDataProtos.Fid result = buildPartial();
         if (!result.isInitialized()) {
@@ -5912,17 +11136,7 @@ public final class FileDataProtos {
         }
         return result;
       }
-      
-      private com.bonree.brfs.common.proto.FileDataProtos.Fid buildParsed()
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        com.bonree.brfs.common.proto.FileDataProtos.Fid result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(
-            result).asInvalidProtocolBufferException();
-        }
-        return result;
-      }
-      
+
       public com.bonree.brfs.common.proto.FileDataProtos.Fid buildPartial() {
         com.bonree.brfs.common.proto.FileDataProtos.Fid result = new com.bonree.brfs.common.proto.FileDataProtos.Fid(this);
         int from_bitField0_ = bitField0_;
@@ -5952,8 +11166,7 @@ public final class FileDataProtos {
         }
         result.duration_ = duration_;
         if (((bitField0_ & 0x00000040) == 0x00000040)) {
-          serverId_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              serverId_);
+          serverId_ = serverId_.getUnmodifiableView();
           bitField0_ = (bitField0_ & ~0x00000040);
         }
         result.serverId_ = serverId_;
@@ -5969,7 +11182,33 @@ public final class FileDataProtos {
         onBuilt();
         return result;
       }
-      
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof com.bonree.brfs.common.proto.FileDataProtos.Fid) {
           return mergeFrom((com.bonree.brfs.common.proto.FileDataProtos.Fid)other);
@@ -5978,7 +11217,7 @@ public final class FileDataProtos {
           return this;
         }
       }
-      
+
       public Builder mergeFrom(com.bonree.brfs.common.proto.FileDataProtos.Fid other) {
         if (other == com.bonree.brfs.common.proto.FileDataProtos.Fid.getDefaultInstance()) return this;
         if (other.hasVersion()) {
@@ -5991,7 +11230,9 @@ public final class FileDataProtos {
           setStorageNameCode(other.getStorageNameCode());
         }
         if (other.hasUuid()) {
-          setUuid(other.getUuid());
+          bitField0_ |= 0x00000008;
+          uuid_ = other.uuid_;
+          onChanged();
         }
         if (other.hasTime()) {
           setTime(other.getTime());
@@ -6015,167 +11256,239 @@ public final class FileDataProtos {
         if (other.hasSize()) {
           setSize(other.getSize());
         }
-        this.mergeUnknownFields(other.getUnknownFields());
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
         return this;
       }
-      
+
       public final boolean isInitialized() {
         return true;
       }
-      
+
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder(
-            this.getUnknownFields());
-        while (true) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              this.setUnknownFields(unknownFields.build());
-              onChanged();
-              return this;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                this.setUnknownFields(unknownFields.build());
-                onChanged();
-                return this;
-              }
-              break;
-            }
-            case 8: {
-              bitField0_ |= 0x00000001;
-              version_ = input.readInt32();
-              break;
-            }
-            case 16: {
-              bitField0_ |= 0x00000002;
-              compress_ = input.readInt32();
-              break;
-            }
-            case 24: {
-              bitField0_ |= 0x00000004;
-              storageNameCode_ = input.readInt32();
-              break;
-            }
-            case 34: {
-              bitField0_ |= 0x00000008;
-              uuid_ = input.readBytes();
-              break;
-            }
-            case 40: {
-              bitField0_ |= 0x00000010;
-              time_ = input.readInt64();
-              break;
-            }
-            case 48: {
-              bitField0_ |= 0x00000020;
-              duration_ = input.readInt64();
-              break;
-            }
-            case 58: {
-              ensureServerIdIsMutable();
-              serverId_.add(input.readBytes());
-              break;
-            }
-            case 64: {
-              bitField0_ |= 0x00000080;
-              offset_ = input.readInt64();
-              break;
-            }
-            case 72: {
-              bitField0_ |= 0x00000100;
-              size_ = input.readInt64();
-              break;
-            }
+        com.bonree.brfs.common.proto.FileDataProtos.Fid parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (com.bonree.brfs.common.proto.FileDataProtos.Fid) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
           }
         }
+        return this;
       }
-      
       private int bitField0_;
-      
-      // optional int32 version = 1;
+
       private int version_ ;
+      /**
+       * <pre>
+       * 版本号
+       * </pre>
+       *
+       * <code>optional int32 version = 1;</code>
+       */
       public boolean hasVersion() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
+      /**
+       * <pre>
+       * 版本号
+       * </pre>
+       *
+       * <code>optional int32 version = 1;</code>
+       */
       public int getVersion() {
         return version_;
       }
+      /**
+       * <pre>
+       * 版本号
+       * </pre>
+       *
+       * <code>optional int32 version = 1;</code>
+       */
       public Builder setVersion(int value) {
         bitField0_ |= 0x00000001;
         version_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       * 版本号
+       * </pre>
+       *
+       * <code>optional int32 version = 1;</code>
+       */
       public Builder clearVersion() {
         bitField0_ = (bitField0_ & ~0x00000001);
         version_ = 0;
         onChanged();
         return this;
       }
-      
-      // optional int32 compress = 2;
+
       private int compress_ ;
+      /**
+       * <pre>
+       * 默认无压缩,0:不压缩,1:gzip,2:snappy,3保留
+       * </pre>
+       *
+       * <code>optional int32 compress = 2;</code>
+       */
       public boolean hasCompress() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
+      /**
+       * <pre>
+       * 默认无压缩,0:不压缩,1:gzip,2:snappy,3保留
+       * </pre>
+       *
+       * <code>optional int32 compress = 2;</code>
+       */
       public int getCompress() {
         return compress_;
       }
+      /**
+       * <pre>
+       * 默认无压缩,0:不压缩,1:gzip,2:snappy,3保留
+       * </pre>
+       *
+       * <code>optional int32 compress = 2;</code>
+       */
       public Builder setCompress(int value) {
         bitField0_ |= 0x00000002;
         compress_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       * 默认无压缩,0:不压缩,1:gzip,2:snappy,3保留
+       * </pre>
+       *
+       * <code>optional int32 compress = 2;</code>
+       */
       public Builder clearCompress() {
         bitField0_ = (bitField0_ & ~0x00000002);
         compress_ = 0;
         onChanged();
         return this;
       }
-      
-      // optional int32 storageNameCode = 3;
+
       private int storageNameCode_ ;
+      /**
+       * <pre>
+       * 存储空间
+       * </pre>
+       *
+       * <code>optional int32 storageNameCode = 3;</code>
+       */
       public boolean hasStorageNameCode() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
+      /**
+       * <pre>
+       * 存储空间
+       * </pre>
+       *
+       * <code>optional int32 storageNameCode = 3;</code>
+       */
       public int getStorageNameCode() {
         return storageNameCode_;
       }
+      /**
+       * <pre>
+       * 存储空间
+       * </pre>
+       *
+       * <code>optional int32 storageNameCode = 3;</code>
+       */
       public Builder setStorageNameCode(int value) {
         bitField0_ |= 0x00000004;
         storageNameCode_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       * 存储空间
+       * </pre>
+       *
+       * <code>optional int32 storageNameCode = 3;</code>
+       */
       public Builder clearStorageNameCode() {
         bitField0_ = (bitField0_ & ~0x00000004);
         storageNameCode_ = 0;
         onChanged();
         return this;
       }
-      
-      // optional string uuid = 4;
+
       private java.lang.Object uuid_ = "";
+      /**
+       * <pre>
+       * 唯一码
+       * </pre>
+       *
+       * <code>optional string uuid = 4;</code>
+       */
       public boolean hasUuid() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
-      public String getUuid() {
+      /**
+       * <pre>
+       * 唯一码
+       * </pre>
+       *
+       * <code>optional string uuid = 4;</code>
+       */
+      public java.lang.String getUuid() {
         java.lang.Object ref = uuid_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          uuid_ = s;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            uuid_ = s;
+          }
           return s;
         } else {
-          return (String) ref;
+          return (java.lang.String) ref;
         }
       }
-      public Builder setUuid(String value) {
+      /**
+       * <pre>
+       * 唯一码
+       * </pre>
+       *
+       * <code>optional string uuid = 4;</code>
+       */
+      public com.google.protobuf.ByteString
+          getUuidBytes() {
+        java.lang.Object ref = uuid_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          uuid_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * 唯一码
+       * </pre>
+       *
+       * <code>optional string uuid = 4;</code>
+       */
+      public Builder setUuid(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -6184,61 +11497,133 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       * 唯一码
+       * </pre>
+       *
+       * <code>optional string uuid = 4;</code>
+       */
       public Builder clearUuid() {
         bitField0_ = (bitField0_ & ~0x00000008);
         uuid_ = getDefaultInstance().getUuid();
         onChanged();
         return this;
       }
-      void setUuid(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000008;
+      /**
+       * <pre>
+       * 唯一码
+       * </pre>
+       *
+       * <code>optional string uuid = 4;</code>
+       */
+      public Builder setUuidBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
         uuid_ = value;
         onChanged();
+        return this;
       }
-      
-      // optional int64 time = 5;
+
       private long time_ ;
+      /**
+       * <pre>
+       * 时间戳
+       * </pre>
+       *
+       * <code>optional int64 time = 5;</code>
+       */
       public boolean hasTime() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
+      /**
+       * <pre>
+       * 时间戳
+       * </pre>
+       *
+       * <code>optional int64 time = 5;</code>
+       */
       public long getTime() {
         return time_;
       }
+      /**
+       * <pre>
+       * 时间戳
+       * </pre>
+       *
+       * <code>optional int64 time = 5;</code>
+       */
       public Builder setTime(long value) {
         bitField0_ |= 0x00000010;
         time_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       * 时间戳
+       * </pre>
+       *
+       * <code>optional int64 time = 5;</code>
+       */
       public Builder clearTime() {
         bitField0_ = (bitField0_ & ~0x00000010);
         time_ = 0L;
         onChanged();
         return this;
       }
-      
-      // optional int64 duration = 6;
+
       private long duration_ ;
+      /**
+       * <pre>
+       * 时间区间长度
+       * </pre>
+       *
+       * <code>optional int64 duration = 6;</code>
+       */
       public boolean hasDuration() {
         return ((bitField0_ & 0x00000020) == 0x00000020);
       }
+      /**
+       * <pre>
+       * 时间区间长度
+       * </pre>
+       *
+       * <code>optional int64 duration = 6;</code>
+       */
       public long getDuration() {
         return duration_;
       }
+      /**
+       * <pre>
+       * 时间区间长度
+       * </pre>
+       *
+       * <code>optional int64 duration = 6;</code>
+       */
       public Builder setDuration(long value) {
         bitField0_ |= 0x00000020;
         duration_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       * 时间区间长度
+       * </pre>
+       *
+       * <code>optional int64 duration = 6;</code>
+       */
       public Builder clearDuration() {
         bitField0_ = (bitField0_ & ~0x00000020);
         duration_ = 0L;
         onChanged();
         return this;
       }
-      
-      // repeated string serverId = 7;
+
       private com.google.protobuf.LazyStringList serverId_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureServerIdIsMutable() {
         if (!((bitField0_ & 0x00000040) == 0x00000040)) {
@@ -6246,18 +11631,57 @@ public final class FileDataProtos {
           bitField0_ |= 0x00000040;
          }
       }
-      public java.util.List<String>
+      /**
+       * <pre>
+       * 服务标识
+       * </pre>
+       *
+       * <code>repeated string serverId = 7;</code>
+       */
+      public com.google.protobuf.ProtocolStringList
           getServerIdList() {
-        return java.util.Collections.unmodifiableList(serverId_);
+        return serverId_.getUnmodifiableView();
       }
+      /**
+       * <pre>
+       * 服务标识
+       * </pre>
+       *
+       * <code>repeated string serverId = 7;</code>
+       */
       public int getServerIdCount() {
         return serverId_.size();
       }
-      public String getServerId(int index) {
+      /**
+       * <pre>
+       * 服务标识
+       * </pre>
+       *
+       * <code>repeated string serverId = 7;</code>
+       */
+      public java.lang.String getServerId(int index) {
         return serverId_.get(index);
       }
+      /**
+       * <pre>
+       * 服务标识
+       * </pre>
+       *
+       * <code>repeated string serverId = 7;</code>
+       */
+      public com.google.protobuf.ByteString
+          getServerIdBytes(int index) {
+        return serverId_.getByteString(index);
+      }
+      /**
+       * <pre>
+       * 服务标识
+       * </pre>
+       *
+       * <code>repeated string serverId = 7;</code>
+       */
       public Builder setServerId(
-          int index, String value) {
+          int index, java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -6266,7 +11690,15 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
-      public Builder addServerId(String value) {
+      /**
+       * <pre>
+       * 服务标识
+       * </pre>
+       *
+       * <code>repeated string serverId = 7;</code>
+       */
+      public Builder addServerId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -6275,124 +11707,242 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       * 服务标识
+       * </pre>
+       *
+       * <code>repeated string serverId = 7;</code>
+       */
       public Builder addAllServerId(
-          java.lang.Iterable<String> values) {
+          java.lang.Iterable<java.lang.String> values) {
         ensureServerIdIsMutable();
-        super.addAll(values, serverId_);
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, serverId_);
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       * 服务标识
+       * </pre>
+       *
+       * <code>repeated string serverId = 7;</code>
+       */
       public Builder clearServerId() {
         serverId_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000040);
         onChanged();
         return this;
       }
-      void addServerId(com.google.protobuf.ByteString value) {
-        ensureServerIdIsMutable();
+      /**
+       * <pre>
+       * 服务标识
+       * </pre>
+       *
+       * <code>repeated string serverId = 7;</code>
+       */
+      public Builder addServerIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureServerIdIsMutable();
         serverId_.add(value);
         onChanged();
+        return this;
       }
-      
-      // optional int64 offset = 8;
+
       private long offset_ ;
+      /**
+       * <pre>
+       * 当前文件所在大文件里的偏移量
+       * </pre>
+       *
+       * <code>optional int64 offset = 8;</code>
+       */
       public boolean hasOffset() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
+      /**
+       * <pre>
+       * 当前文件所在大文件里的偏移量
+       * </pre>
+       *
+       * <code>optional int64 offset = 8;</code>
+       */
       public long getOffset() {
         return offset_;
       }
+      /**
+       * <pre>
+       * 当前文件所在大文件里的偏移量
+       * </pre>
+       *
+       * <code>optional int64 offset = 8;</code>
+       */
       public Builder setOffset(long value) {
         bitField0_ |= 0x00000080;
         offset_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       * 当前文件所在大文件里的偏移量
+       * </pre>
+       *
+       * <code>optional int64 offset = 8;</code>
+       */
       public Builder clearOffset() {
         bitField0_ = (bitField0_ & ~0x00000080);
         offset_ = 0L;
         onChanged();
         return this;
       }
-      
-      // optional int64 size = 9;
+
       private long size_ ;
+      /**
+       * <pre>
+       * 当前文件的长度
+       * </pre>
+       *
+       * <code>optional int64 size = 9;</code>
+       */
       public boolean hasSize() {
         return ((bitField0_ & 0x00000100) == 0x00000100);
       }
+      /**
+       * <pre>
+       * 当前文件的长度
+       * </pre>
+       *
+       * <code>optional int64 size = 9;</code>
+       */
       public long getSize() {
         return size_;
       }
+      /**
+       * <pre>
+       * 当前文件的长度
+       * </pre>
+       *
+       * <code>optional int64 size = 9;</code>
+       */
       public Builder setSize(long value) {
         bitField0_ |= 0x00000100;
         size_ = value;
         onChanged();
         return this;
       }
+      /**
+       * <pre>
+       * 当前文件的长度
+       * </pre>
+       *
+       * <code>optional int64 size = 9;</code>
+       */
       public Builder clearSize() {
         bitField0_ = (bitField0_ & ~0x00000100);
         size_ = 0L;
         onChanged();
         return this;
       }
-      
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
       // @@protoc_insertion_point(builder_scope:brfs.proto.Fid)
     }
-    
-    static {
-      defaultInstance = new Fid(true);
-      defaultInstance.initFields();
-    }
-    
+
     // @@protoc_insertion_point(class_scope:brfs.proto.Fid)
+    private static final com.bonree.brfs.common.proto.FileDataProtos.Fid DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.FileDataProtos.Fid();
+    }
+
+    public static com.bonree.brfs.common.proto.FileDataProtos.Fid getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<Fid>
+        PARSER = new com.google.protobuf.AbstractParser<Fid>() {
+      public Fid parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new Fid(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<Fid> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Fid> getParserForType() {
+      return PARSER;
+    }
+
+    public com.bonree.brfs.common.proto.FileDataProtos.Fid getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
   }
-  
-  private static com.google.protobuf.Descriptors.Descriptor
+
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_DataWriteRequest_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_brfs_proto_DataWriteRequest_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_DataWriteResponse_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_DataReadRequest_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_brfs_proto_DataReadRequest_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_DataReadResponse_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_brfs_proto_DataReadResponse_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_DataDeleteRequest_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_brfs_proto_DataDeleteRequest_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_DataDeleteResponse_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_brfs_proto_DataDeleteResponse_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_FileContent_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_brfs_proto_FileContent_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_brfs_proto_Fid_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_brfs_proto_Fid_fieldAccessorTable;
-  
+
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -6428,82 +11978,66 @@ public final class FileDataProtos {
       "B\016FileDataProtos\210\001\000"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
-        public com.google.protobuf.ExtensionRegistry assignDescriptors(
-            com.google.protobuf.Descriptors.FileDescriptor root) {
-          descriptor = root;
-          internal_static_brfs_proto_DataWriteRequest_descriptor =
-            getDescriptor().getMessageTypes().get(0);
-          internal_static_brfs_proto_DataWriteRequest_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_brfs_proto_DataWriteRequest_descriptor,
-              new java.lang.String[] { "SeesionId", "StorageName", "User", "File", },
-              com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.class,
-              com.bonree.brfs.common.proto.FileDataProtos.DataWriteRequest.Builder.class);
-          internal_static_brfs_proto_DataWriteResponse_descriptor =
-            getDescriptor().getMessageTypes().get(1);
-          internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_brfs_proto_DataWriteResponse_descriptor,
-              new java.lang.String[] { "SeesionId", "StorageName", "User", "ReturnCode", "Description", "Fid", },
-              com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.class,
-              com.bonree.brfs.common.proto.FileDataProtos.DataWriteResponse.Builder.class);
-          internal_static_brfs_proto_DataReadRequest_descriptor =
-            getDescriptor().getMessageTypes().get(2);
-          internal_static_brfs_proto_DataReadRequest_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_brfs_proto_DataReadRequest_descriptor,
-              new java.lang.String[] { "SeesionId", "StorageName", "User", "Fid", },
-              com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.class,
-              com.bonree.brfs.common.proto.FileDataProtos.DataReadRequest.Builder.class);
-          internal_static_brfs_proto_DataReadResponse_descriptor =
-            getDescriptor().getMessageTypes().get(3);
-          internal_static_brfs_proto_DataReadResponse_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_brfs_proto_DataReadResponse_descriptor,
-              new java.lang.String[] { "SeesionId", "StorageName", "User", "ReturnCode", "Description", "File", },
-              com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.class,
-              com.bonree.brfs.common.proto.FileDataProtos.DataReadResponse.Builder.class);
-          internal_static_brfs_proto_DataDeleteRequest_descriptor =
-            getDescriptor().getMessageTypes().get(4);
-          internal_static_brfs_proto_DataDeleteRequest_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_brfs_proto_DataDeleteRequest_descriptor,
-              new java.lang.String[] { "SeesionId", "StorageName", "User", "BeginTime", "EndTime", "DeleteDataType", },
-              com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.class,
-              com.bonree.brfs.common.proto.FileDataProtos.DataDeleteRequest.Builder.class);
-          internal_static_brfs_proto_DataDeleteResponse_descriptor =
-            getDescriptor().getMessageTypes().get(5);
-          internal_static_brfs_proto_DataDeleteResponse_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_brfs_proto_DataDeleteResponse_descriptor,
-              new java.lang.String[] { "SeesionId", "StorageName", "User", "ReturnCode", "Description", },
-              com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.class,
-              com.bonree.brfs.common.proto.FileDataProtos.DataDeleteResponse.Builder.class);
-          internal_static_brfs_proto_FileContent_descriptor =
-            getDescriptor().getMessageTypes().get(6);
-          internal_static_brfs_proto_FileContent_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_brfs_proto_FileContent_descriptor,
-              new java.lang.String[] { "CrcFlag", "CrcCheckCode", "Description", "Data", "Compress", },
-              com.bonree.brfs.common.proto.FileDataProtos.FileContent.class,
-              com.bonree.brfs.common.proto.FileDataProtos.FileContent.Builder.class);
-          internal_static_brfs_proto_Fid_descriptor =
-            getDescriptor().getMessageTypes().get(7);
-          internal_static_brfs_proto_Fid_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_brfs_proto_Fid_descriptor,
-              new java.lang.String[] { "Version", "Compress", "StorageNameCode", "Uuid", "Time", "Duration", "ServerId", "Offset", "Size", },
-              com.bonree.brfs.common.proto.FileDataProtos.Fid.class,
-              com.bonree.brfs.common.proto.FileDataProtos.Fid.Builder.class);
-          return null;
-        }
-      };
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
+    internal_static_brfs_proto_DataWriteRequest_descriptor =
+      getDescriptor().getMessageTypes().get(0);
+    internal_static_brfs_proto_DataWriteRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_brfs_proto_DataWriteRequest_descriptor,
+        new java.lang.String[] { "SeesionId", "StorageName", "User", "File", });
+    internal_static_brfs_proto_DataWriteResponse_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_brfs_proto_DataWriteResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_brfs_proto_DataWriteResponse_descriptor,
+        new java.lang.String[] { "SeesionId", "StorageName", "User", "ReturnCode", "Description", "Fid", });
+    internal_static_brfs_proto_DataReadRequest_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_brfs_proto_DataReadRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_brfs_proto_DataReadRequest_descriptor,
+        new java.lang.String[] { "SeesionId", "StorageName", "User", "Fid", });
+    internal_static_brfs_proto_DataReadResponse_descriptor =
+      getDescriptor().getMessageTypes().get(3);
+    internal_static_brfs_proto_DataReadResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_brfs_proto_DataReadResponse_descriptor,
+        new java.lang.String[] { "SeesionId", "StorageName", "User", "ReturnCode", "Description", "File", });
+    internal_static_brfs_proto_DataDeleteRequest_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_brfs_proto_DataDeleteRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_brfs_proto_DataDeleteRequest_descriptor,
+        new java.lang.String[] { "SeesionId", "StorageName", "User", "BeginTime", "EndTime", "DeleteDataType", });
+    internal_static_brfs_proto_DataDeleteResponse_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_brfs_proto_DataDeleteResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_brfs_proto_DataDeleteResponse_descriptor,
+        new java.lang.String[] { "SeesionId", "StorageName", "User", "ReturnCode", "Description", });
+    internal_static_brfs_proto_FileContent_descriptor =
+      getDescriptor().getMessageTypes().get(6);
+    internal_static_brfs_proto_FileContent_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_brfs_proto_FileContent_descriptor,
+        new java.lang.String[] { "CrcFlag", "CrcCheckCode", "Description", "Data", "Compress", });
+    internal_static_brfs_proto_Fid_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_brfs_proto_Fid_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_brfs_proto_Fid_descriptor,
+        new java.lang.String[] { "Version", "Compress", "StorageNameCode", "Uuid", "Time", "Duration", "ServerId", "Offset", "Size", });
   }
-  
+
   // @@protoc_insertion_point(outer_class_scope)
 }

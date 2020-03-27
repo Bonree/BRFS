@@ -1,11 +1,12 @@
-package com.bonree.brfs.email;
+package com.bonree.email;
 
-import com.bonree.mail.worker.MailWorker;
-import com.bonree.mail.worker.ProgramInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bonree.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 
 public class EmailPoolTest{
     private static final Logger LOG = LoggerFactory.getLogger(EmailPoolTest.class);

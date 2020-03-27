@@ -78,7 +78,7 @@ case $1 in
 			-Dnet.backlog=$DUPLICATE_NET_BACKLOG \
 			-Dnet.io.threads=$DUPLICATE_IO_THREADS \
 			-Dresource_lib_path=$RESOURCE_LIB_PATH \
-			-cp $CP "com.bonree.brfs.duplication.BootStrap" \
+			-cp $CP "com.bonree.brfs.server.Main" node region \
 			> $LOG_DUPLICATE_OUT 2>&1 &
 			echo 'Startup duplication server complete!'
 		;;
@@ -94,7 +94,7 @@ case $1 in
 			-Dnet.backlog=$DISK_NET_BACKLOG \
 			-Dnet.io.threads=$DISK_IO_THREADS \
 			-Dresource.lib.path=$RESOURCE_LIB_PATH \
-			-cp $CP "com.bonree.brfs.server.ServerMain" \
+			-cp $CP "com.bonree.brfs.server.Main" node data \
 			> $LOG_DISK_OUT 2>&1 &
 			echo 'Startup disk server complete!'
 		;;
@@ -102,7 +102,7 @@ case $1 in
 			java -Dbrfs.home=${BRFS_HOME} \
 			-Dconfiguration.file=${SERVER_CONFIG} \
 			-Dresource_lib_path=${RESOURCE_LIB_PATH} \
-			-cp ${CP} "com.bonree.brfs.server.InitServer"
+			-cp ${CP} "com.bonree.brfs.server.Main" tools init
 			echo "init process completed!"
 		;;
 		*)

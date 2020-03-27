@@ -1,7 +1,6 @@
 package com.bonree.brfs.configuration.units;
 
 import com.bonree.brfs.configuration.ConfigUnit;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

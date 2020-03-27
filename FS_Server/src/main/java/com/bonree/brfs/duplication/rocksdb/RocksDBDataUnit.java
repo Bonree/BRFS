@@ -27,9 +27,15 @@ public class RocksDBDataUnit {
         return columnFamily;
     }
 
-    public RocksDBDataUnit(String columnFamily, byte[] key, byte[] value) {
+    public void setColumnFamily(String columnFamily) {
         this.columnFamily = columnFamily;
+    }
+
+    public void setKey(byte[] key) {
         this.key = key;
+    }
+
+    public void setValue(byte[] value) {
         this.value = value;
     }
 

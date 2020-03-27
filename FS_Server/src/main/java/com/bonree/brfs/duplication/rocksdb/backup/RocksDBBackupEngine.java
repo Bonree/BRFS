@@ -51,9 +51,15 @@ public class RocksDBBackupEngine implements LifeCycle {
     @Override
     public void start() throws Exception {
 
+        LOG.info("start rocksdb backup engine...");
         TimeWatcher watcher = new TimeWatcher();
         String backupPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
         long backupCycle = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_CYCLE);
+
+        File file = new File(backupPath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
 
         this.executor.scheduleWithFixedDelay(new Runnable() {
             @Override
@@ -61,6 +67,11 @@ public class RocksDBBackupEngine implements LifeCycle {
                 long prevTimeStamp = TimeUtils.prevTimeStamp(System.currentTimeMillis(), backupCycle);
 
                 String currBackupPath = backupPath + "/" + prevTimeStamp;
+                File backupFile = new File(currBackupPath);
+                if (backupFile.mkdir()) {
+                    LOG.info("create backup dir: {}, prepare backup task", currBackupPath);
+                }
+
                 backupableDBOptions = new BackupableDBOptions(currBackupPath);
 
                 try {
@@ -93,13 +104,25 @@ public class RocksDBBackupEngine implements LifeCycle {
         for (File f : Objects.requireNonNull(file.listFiles())) {
             long tmpTime = Long.parseLong(f.getName());
             if (tmpTime < prevTimeStamp) {
-                if (f.delete()) {
-                    LOG.info("clear expired backup file:{}", f.getAbsolutePath());
-                } else {
-                    LOG.warn("delete expired backup file failed:{}", f.getAbsolutePath());
-                }
+                deleteFile(f);
+                LOG.info("clear expired backup file:{}", f.getAbsolutePath());
             }
         }
+    }
+
+    public void deleteFile(File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
+        File[] files = file.listFiles();
+        for (File f : files) {
+            if (f.isDirectory()) {
+                deleteFile(f);
+            } else {
+                f.delete();
+            }
+        }
+        file.delete();
     }
 
     @Override

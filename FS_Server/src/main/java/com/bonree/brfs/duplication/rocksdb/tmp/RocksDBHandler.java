@@ -1,10 +1,13 @@
 package com.bonree.brfs.duplication.rocksdb.tmp;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.bonree.brfs.common.net.http.netty.ResponseSender;
 import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
 import com.bonree.brfs.duplication.rocksdb.WriteStatus;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
@@ -20,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@ChannelHandler.Sharable
 public class RocksDBHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocksDBHandler.class);
@@ -47,25 +51,40 @@ public class RocksDBHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             return;
         }
 
+        if (reqUri.equals("/favicon.ico")) {
+            return;
+        }
+
         Map<String, String> params = parseHttpReqParam(request);
         LOG.info("req params:{}", params);
         HttpResponseStatus status = null;
         String content = null;
-        if (reqUri.equals("write")) {
+        if (reqUri.startsWith("/write")) {
             WriteStatus writeStatus = this.rocksDBManager.write(params.get("cf"), params.get("key").getBytes(), params.get("value").getBytes());
             status = writeStatus == WriteStatus.SUCCESS ? HttpResponseStatus.OK : HttpResponseStatus.INTERNAL_SERVER_ERROR;
             content = writeStatus == WriteStatus.SUCCESS ? "write success" : "write failed";
-        } else if (reqUri.equals("read")) {
+        } else if (reqUri.startsWith("/read")) {
             byte[] result = this.rocksDBManager.read(params.get("cf"), params.get("key").getBytes());
             status = result != null ? HttpResponseStatus.OK : HttpResponseStatus.INTERNAL_SERVER_ERROR;
             content = result != null ? new String(result) : "null";
+        } else if (reqUri.startsWith("/addcf")) {
+            this.rocksDBManager.createColumnFamilyWithTtl(params.get("cf"), Integer.parseInt(params.get("ttl")));
+            status = HttpResponseStatus.OK;
+            content = "OK";
+        } else if (reqUri.startsWith("/delcf")) {
+            this.rocksDBManager.deleteColumnFamily(params.get("cf"));
+            status = HttpResponseStatus.OK;
+            content = "OK";
         } else {
             LOG.info("UnSupport request type:{}", reqUri);
             ResponseSender.sendError(ctx, HttpResponseStatus.NOT_ACCEPTABLE, HttpResponseStatus.NOT_ACCEPTABLE.reasonPhrase());
             return;
         }
 
-        ByteBuf buf = Unpooled.copiedBuffer(content, CharsetUtil.UTF_8);
+        JSONObject json = new JSONObject();
+        json.put("code", status.code());
+        json.put("result", content);
+        ByteBuf buf = Unpooled.copiedBuffer(json.toJSONString(), CharsetUtil.UTF_8);
 
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");

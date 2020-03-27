@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import com.bonree.brfs.email.EmailPool;
-import com.bonree.mail.worker.MailWorker;
 import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +33,8 @@ import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.email.EmailPool;
+import com.bonree.mail.worker.MailWorker;
 
 public class CopyRecovery {
 	private static final Logger LOG = LoggerFactory.getLogger(CopyRecovery.class);

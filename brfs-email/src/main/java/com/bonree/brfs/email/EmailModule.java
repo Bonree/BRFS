@@ -13,14 +13,17 @@
  */
 package com.bonree.brfs.email;
 
+import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
+import com.bonree.brfs.common.plugin.BrfsModule;
 import com.google.inject.Binder;
-import com.google.inject.Module;
 
-public class EmailModule implements Module {
+public class EmailModule implements BrfsModule {
 
     @Override
     public void configure(Binder binder) {
+        JsonConfigProvider.bind(binder, "email", EmailConfig.class);
+        
         LifecycleModule.register(binder, EmailPoolInitializer.class);
     }
     

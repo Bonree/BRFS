@@ -19,6 +19,7 @@ import org.apache.curator.x.discovery.details.ServiceCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
@@ -52,10 +53,13 @@ public class DefaultServiceManager implements ServiceManager {
     private Map<String, ServiceStateWatcher> watchers = new HashMap<String, ServiceStateWatcher>();
 
     @Inject
-    public DefaultServiceManager(CuratorFramework client) {
+    public DefaultServiceManager(CuratorFramework client, ZookeeperPaths paths) {
         this.threadPools = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE,
                 new PooledThreadFactory(DEFAULT_SERVICE_MANAGER_THREADPOOL_NAME));
-        this.serviceDiscovery = ServiceDiscoveryBuilder.builder(String.class).client(client).basePath(SERVICE_BASE_PATH)
+        this.serviceDiscovery = ServiceDiscoveryBuilder.builder(String.class)
+                .client(client.usingNamespace(paths.getBaseClusterName().substring(1)))
+                .basePath(SERVICE_BASE_PATH)
+                .watchInstances(true)
                 .build();
     }
 
