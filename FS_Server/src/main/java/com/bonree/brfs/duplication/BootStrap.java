@@ -7,6 +7,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.bonree.brfs.duplication.rocksdb.backup.BackupEngineFactory;
+import com.bonree.brfs.duplication.rocksdb.handler.RocksDBRestoreRequestHandler;
 import com.bonree.brfs.duplication.rocksdb.restore.RocksDBRestoreEngine;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -151,7 +153,7 @@ public class BootStrap {
             String localServiceId = UUID.randomUUID().toString();
             Service service = new Service(localServiceId,
                     regionGroupName,
-            		host, port);
+                    host, port);
             ServiceManager serviceManager = new DefaultServiceManager(client, zookeeperPaths);
             serviceManager.start();
 
@@ -352,29 +354,32 @@ public class BootStrap {
                 rocksDBManager.start();
                 finalizer.add(rocksDBManager);
 
+                ColumnFamilyInfoListener listener = new ColumnFamilyInfoListener(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), rocksDBManager);
+                listener.start();
+                finalizer.add(listener);
+
+                RocksDBBackupEngine backupEngine = new RocksDBBackupEngine(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), service, serviceManager, rocksDBManager);
+                backupEngine.start();
+                finalizer.add(backupEngine);
+
                 NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
                 pingRequestHandler.addMessageHandler("GET", new PingRequestHandler());
+                pingRequestHandler.addMessageHandler("POST", new RocksDBRestoreRequestHandler(backupEngine));
                 httpServer.addContextHandler(URI_PING_ROOT, pingRequestHandler);
 
                 NettyHttpRequestHandler rocksDBRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
                 rocksDBRequestHandler.addMessageHandler("POST", new RocksDBWriteRequestHandler(rocksDBManager));
                 httpServer.addContextHandler(URI_ROCKSDB_ROOT, rocksDBRequestHandler);
 
-                RocksDBBackupEngine backupEngine = new RocksDBBackupEngine(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), service, rocksDBManager);
-                backupEngine.start();
-                finalizer.add(backupEngine);
-
-                RocksDBRestoreEngine restoreEngine = new RocksDBRestoreEngine(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), serviceManager, service, regionNodeConnectionPool);
+                RocksDBRestoreEngine restoreEngine = new RocksDBRestoreEngine(service, rocksDBManager, serviceManager, regionNodeConnectionPool);
                 restoreEngine.restore();
-
-                ColumnFamilyInfoListener listener = new ColumnFamilyInfoListener(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), rocksDBManager);
-                listener.start();
-                finalizer.add(listener);
 
                 // 临时服务测试RocksDB读写
                 RocksDBTest rocksDBTest = new RocksDBTest(new RocksDBHandler(rocksDBManager));
                 rocksDBTest.start();
                 finalizer.add(rocksDBTest);
+
+                finalizer.add(BackupEngineFactory.getInstance());
             }
 
             httpServer.start();

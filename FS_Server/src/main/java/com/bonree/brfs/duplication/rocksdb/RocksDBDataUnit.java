@@ -1,7 +1,5 @@
 package com.bonree.brfs.duplication.rocksdb;
 
-import java.util.Arrays;
-
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
@@ -39,12 +37,4 @@ public class RocksDBDataUnit {
         this.value = value;
     }
 
-    @Override
-    public String toString() {
-        return "RocksDBDataUnit{" +
-                "columnFamily='" + columnFamily + '\'' +
-                ", key=" + Arrays.toString(key) +
-                ", value=" + Arrays.toString(value) +
-                '}';
-    }
 }

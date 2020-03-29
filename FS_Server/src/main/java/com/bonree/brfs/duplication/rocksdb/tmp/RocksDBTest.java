@@ -39,6 +39,7 @@ public class RocksDBTest implements LifeCycle {
         if (executorService != null) {
             executorService.shutdown();
         }
+        LOG.info("rocksdb test stop");
     }
 
 

@@ -51,6 +51,7 @@ public class HttpRegionNodeConnectionPool implements RegionNodeConnectionPool {
             }
         });
         connectionCache.clear();
+        LOG.info("http region node connection pool close");
     }
 
     @Override
