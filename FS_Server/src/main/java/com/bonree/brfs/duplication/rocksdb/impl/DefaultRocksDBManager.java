@@ -56,6 +56,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private String regionGroupName;
     private RegionNodeConnectionPool regionNodeConnectionPool;
     private ColumnFamilyInfoManager columnFamilyInfoManager;
+    private Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo;
 
     public DefaultRocksDBManager(String rocksDBPath, CuratorFramework client, String localServiceId, ServiceManager serviceManager, RegionNodeConnectionPool regionNodeConnectionPool) {
         this.rocksDBPath = rocksDBPath;
@@ -126,7 +127,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 .setOptimizeFiltersForHits(true);
 
         try {
-            Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo = loadColumnFamilyInfo();
+            columnFamilyInfo = loadColumnFamilyInfo();
             List<ColumnFamilyDescriptor> cfDescriptors = columnFamilyInfo.getFirst();
             List<Integer> cfTtlList = columnFamilyInfo.getSecond();
             List<ColumnFamilyHandle> cfHandles = new ArrayList<>();
@@ -341,6 +342,21 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
+    public void dataTransfer(String srcPath) {
+        List<ColumnFamilyHandle> cfHandles = new ArrayList<>();
+        try (TtlDB srcDB = TtlDB.open(DB_OPTIONS, srcPath, this.columnFamilyInfo.getFirst(), cfHandles, this.columnFamilyInfo.getSecond(), true)) {
+            for (ColumnFamilyHandle handle : cfHandles) {
+                RocksIterator iterator = srcDB.newIterator(handle, READ_OPTIONS);
+                for (iterator.seekToFirst(); iterator.isValid(); iterator.next()) {
+                    write(handle, WRITE_OPTIONS_ASYNC, iterator.key(), iterator.value());
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("data transfer err, from [{}] to [{}]", srcPath, rocksDBPath, e);
+        }
+    }
+
+    @Override
     public void updateColumnFamilyHandles(Map<String, Integer> columnFamilyMap) {
         try {
             columnFamilyMap.put("default", -1);  // CF_HANDLE中默认有default列族，所以比较前需要先put
@@ -356,10 +372,12 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
             for (String d2 : difference2) {
                 this.DB.dropColumnFamily(this.CF_HANDLES.get(d2));
-                this.CF_HANDLES.remove(d2);
+                if (CF_HANDLES.containsKey(d2)) {
+                    this.CF_HANDLES.remove(d2);
+                }
             }
 
-            LOG.info("update column family handle, cfs:{}", this.CF_HANDLES.keySet());
+            LOG.info("update column family handle :{}", this.CF_HANDLES.keySet());
         } catch (RocksDBException e) {
             LOG.error("update column family handle err", e);
         }
@@ -379,5 +397,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
         if (DB != null) {
             DB.close();
         }
+        LOG.info("rocksdb manager stop");
     }
 }

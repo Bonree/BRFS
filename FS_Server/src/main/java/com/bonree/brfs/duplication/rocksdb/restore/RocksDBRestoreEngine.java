@@ -3,25 +3,25 @@ package com.bonree.brfs.duplication.rocksdb.restore;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
+import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.utils.ZipUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
+import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
+import com.bonree.brfs.duplication.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.zk.BackupHeartBeatManager;
+import com.bonree.brfs.duplication.rocksdb.file.SimpleFileReceiver;
 import com.bonree.brfs.duplication.rocksdb.zk.ServiceRegisterTimeManager;
-import com.bonree.brfs.rebalance.transfer.SimpleFileServer;
-import org.apache.curator.framework.CuratorFramework;
-import org.rocksdb.*;
+import org.rocksdb.BackupEngine;
+import org.rocksdb.RestoreOptions;
+import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -39,153 +39,129 @@ public class RocksDBRestoreEngine {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocksDBRestoreEngine.class);
 
+    private static final String TRANSFER_FILE_NAME = UUID.randomUUID().toString() + ZipUtils.SUFFIX;
+
     private Service service;
+    private RocksDBManager rocksDBManager;
     private ServiceRegisterTimeManager registerTimeManager;
-    private BackupHeartBeatManager heartBeatManager;
     private RegionNodeConnectionPool regionNodeConnectionPool;
     private ExecutorService executor;
+    private ExecutorService simpleFileServer;
+    private SimpleFileReceiver fileServer;
 
-    public RocksDBRestoreEngine(CuratorFramework client, ServiceManager serviceManager, Service service, RegionNodeConnectionPool regionNodeConnectionPool) {
+    private String restorePath;
+    private String tmpRestorePath;
+
+    private int transferPort;
+
+    public RocksDBRestoreEngine(Service service, RocksDBManager rocksDBManager, ServiceManager serviceManager, RegionNodeConnectionPool regionNodeConnectionPool) {
         this.service = service;
+        this.rocksDBManager = rocksDBManager;
         this.regionNodeConnectionPool = regionNodeConnectionPool;
-        this.heartBeatManager = new BackupHeartBeatManager(client, service);
         this.registerTimeManager = new ServiceRegisterTimeManager(serviceManager);
+        restorePath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_RESTORE_PATH);
+        tmpRestorePath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_RESTORE_TEMPORARY_PATH);
+        transferPort = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_FILE_TRANSFER_PORT);
         executor = Executors.newSingleThreadExecutor(new PooledThreadFactory("rocksdb_restore"));
+        simpleFileServer = Executors.newSingleThreadExecutor(new PooledThreadFactory("restore_file_server"));
     }
 
-    /**
-     * @description: 进行数据检查，根据情况决定是否执行数据恢复过程
-     */
     public void restore() {
-        executor.execute(new RocksDBRestoreThread(service, registerTimeManager, heartBeatManager, regionNodeConnectionPool));
-    }
+        Service earliestService = this.registerTimeManager.getEarliestRegisterService();
 
-    /**
-     * @param prevTimeStamp       当前备份时间
-     * @param lastBackupHeartBeat 最后一次备份时间
-     * @return 缺失备份文件名
-     * @description: 根据当前备份时间点和最后一次备份时间点计算缺失备份文件列表
-     */
-    public List<String> calMissedBackupFiles(long prevTimeStamp, long lastBackupHeartBeat, long backupCycle) {
-        long tmpPrevTimeStamp = prevTimeStamp;
-        List<String> missedFiles = new ArrayList<>();
-
-        while (tmpPrevTimeStamp > lastBackupHeartBeat) {
-            missedFiles.add(String.valueOf(tmpPrevTimeStamp));
-            tmpPrevTimeStamp -= backupCycle;
+        // 只有一个RegionNode时没有必要做恢复操作
+        if (earliestService.getHost().equals(this.service.getHost())) {
+            LOG.info("earliest register service is local, restore exit.");
+            return;
         }
-        return missedFiles;
+
+        simpleFileServer.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    FileUtils.createDir(restorePath, false);
+                    FileUtils.createDir(tmpRestorePath, false);
+
+                    fileServer = new SimpleFileReceiver(service.getHost(), transferPort, 4, restorePath + File.separator + TRANSFER_FILE_NAME);
+                    fileServer.start();
+                } catch (Exception e) {
+                    LOG.error("simple file server err", e);
+                }
+            }
+        });
+        executor.execute(new RocksDBRestoreTask(service, regionNodeConnectionPool, earliestService.getServiceId()));
     }
 
-    private class RocksDBRestoreThread implements Runnable {
+    private class RocksDBRestoreTask implements Runnable {
         private Service service;
-        private ServiceRegisterTimeManager registerTimeManager;
-        private BackupHeartBeatManager heartBeatManager;
         private RegionNodeConnectionPool regionNodeConnectionPool;
+        private String serviceId;
 
-        private RocksDBRestoreThread(Service service, ServiceRegisterTimeManager registerTimeManager, BackupHeartBeatManager heartBeatManager, RegionNodeConnectionPool regionNodeConnectionPool) {
+        private RocksDBRestoreTask(Service service, RegionNodeConnectionPool regionNodeConnectionPool, String serviceId) {
             this.service = service;
-            this.registerTimeManager = registerTimeManager;
-            this.heartBeatManager = heartBeatManager;
             this.regionNodeConnectionPool = regionNodeConnectionPool;
+            this.serviceId = serviceId;
         }
 
         @Override
         public void run() {
 
-            String backupPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
-            String rocksDBPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
-            long backupCycle = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_CYCLE);
-
-            long prevTimeStamp = TimeUtils.prevTimeStamp(System.currentTimeMillis(), backupCycle);
-            long lastBackupHeartBeat = heartBeatManager.lastBackupHeartBeat();
-
-            if (lastBackupHeartBeat == 0) {
-                LOG.info("lastBackupHeartBeat is zero");
+            RegionNodeConnection connection = this.regionNodeConnectionPool.getConnection(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME), serviceId);
+            if (connection == null || connection.getClient() == null) {
+                LOG.warn("region node connection/client is null! serviceId:{}", this.service.getServiceId());
                 return;
             }
 
-            if (prevTimeStamp == lastBackupHeartBeat) {
-                LOG.info("Don't need rocksdb restore, prevTimeStamp equals lastBackupHeartBeat:{}", lastBackupHeartBeat);
+            List<Integer> backupIds = connection.getClient().restoreData(TRANSFER_FILE_NAME, restorePath, this.service.getHost(), transferPort);
+            if (backupIds == null || backupIds.isEmpty()) {
+                LOG.info("backupIds is null or empty, restore engine exit.");
                 return;
             }
 
-            List<String> missedBackupFiles = calMissedBackupFiles(prevTimeStamp, lastBackupHeartBeat, backupCycle);
-            SimpleFileServer fileServer = null;
+            String transferFilePath = restorePath + File.separator + TRANSFER_FILE_NAME;
+            ZipUtils.unZip(transferFilePath, restorePath);
 
-            Service earliestRegisterService = this.registerTimeManager.getEarliestRegisterService();
-            if (!earliestRegisterService.getHost().equals(this.service.getHost())) {
-                RegionNodeConnection connection = this.regionNodeConnectionPool.getConnection(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME), earliestRegisterService.getServiceId());
-                if (connection == null || connection.getClient() == null) {
-                    LOG.warn("region node connection/client is null! serviceId:{}", this.service.getServiceId());
-                    return;
-                }
-
-                String tmpFileName = UUID.randomUUID().toString() + ".zip";
-                try {
-                    fileServer = new SimpleFileServer(this.service.getPort() + 30, rocksDBPath, 1);
-                    fileServer.start();
-                } catch (IOException e) {
-                    LOG.error("simple file server err", e);
-                }
-
-                boolean isOk = connection.getClient().establishSocket(tmpFileName, backupPath, this.service.getHost(), this.service.getPort() + 30, missedBackupFiles);
-                String tmpFilePath = backupPath + "/" + tmpFileName;
-                if (isOk) {
-                    ZipUtils.unZip(tmpFilePath, backupPath);
-                }
-                if (new File(tmpFilePath).delete()) {
-                    LOG.info("server delete tmp transfer file :{}", tmpFilePath);
-                }
+            if (FileUtils.deleteFile(transferFilePath)) {
+                LOG.info("delete tmp transfer file :{}", transferFilePath);
             }
-
-            RestoreOptions restoreOptions = null;
-            BackupableDBOptions backupableDBOptions = null;
-            BackupEngine backupEngine = null;
 
             try {
+                RestoreOptions restoreOptions = new RestoreOptions(false);
+                BackupEngine backupEngine = BackupEngineFactory.getInstance().getBackupEngineByPath(restorePath);
+
                 TimeWatcher watcher = new TimeWatcher();
-                restoreOptions = new RestoreOptions(false);
-
-                for (String file : missedBackupFiles) {
-                    try {
-                        backupableDBOptions = new BackupableDBOptions(backupPath + "/" + file);
-                        backupEngine = BackupEngine.open(Env.getDefault(), backupableDBOptions);
-                        backupEngine.restoreDbFromLatestBackup(rocksDBPath, rocksDBPath, restoreOptions);
-                        LOG.info("file {} restore complete, cost time:{}", file, watcher.getElapsedTimeAndRefresh());
-                    } finally {
-                        if (backupEngine != null) {
-                            backupEngine.close();
-                        }
-                        if (backupableDBOptions != null) {
-                            backupableDBOptions.close();
-                        }
-                    }
+                for (Integer backupId : backupIds) {
+                    backupEngine.restoreDbFromBackup(backupId, tmpRestorePath, tmpRestorePath, restoreOptions);
                 }
+                LOG.info("restore complete, backupIds:{}, cost time: {}, from [{}] to [{}]", backupIds, watcher.getElapsedTimeAndRefresh(), restorePath, tmpRestorePath);
 
-                LOG.info("restore engine execute complete, restore file list:{}, prevTimeStamp:{}, lastBackupHeartBeat:{}", missedBackupFiles, prevTimeStamp, lastBackupHeartBeat);
+                rocksDBManager.dataTransfer(tmpRestorePath);
+                LOG.info("data transfer complete, cost time:{}", watcher.getElapsedTime());
 
+                FileUtils.deleteDir(restorePath, true);
+                FileUtils.deleteDir(tmpRestorePath, true);
             } catch (RocksDBException e) {
                 LOG.error("restore engine err", e);
             } finally {
-                if (fileServer != null) {
-                    try {
-                        fileServer.close();
-                    } catch (IOException ioe) {
-                        LOG.error("file server close err", ioe);
-                    }
-                }
-                if (backupEngine != null) {
-                    backupEngine.close();
-                }
-                if (backupableDBOptions != null) {
-                    backupableDBOptions.close();
-                }
-                if (restoreOptions != null) {
-                    restoreOptions.close();
-                }
-
+                stop();
             }
         }
+    }
+
+    public void stop() {
+        if (fileServer != null) {
+            try {
+                fileServer.stop();
+            } catch (Exception e) {
+                LOG.error("file server close err", e);
+            }
+        }
+        if (executor != null) {
+            executor.shutdown();
+        }
+        if (simpleFileServer != null) {
+            simpleFileServer.shutdown();
+        }
+        LOG.info("rocksdb restore engine stop");
     }
 }

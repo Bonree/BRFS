@@ -7,14 +7,19 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
+import com.bonree.brfs.partition.model.PartitionInfo;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -30,7 +35,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
 
     private CuratorTreeCache treeCache;
     private ZookeeperPaths zkPath;
-    private final Table<String, String, PartitionInfo> diskPartitionInfoCache = HashBasedTable.create();
+    private Map<String, PartitionInfo> diskPartitionInfoCache = new ConcurrentHashMap<>();
 
     public DiskPartitionInfoManager(ZookeeperPaths zkPath) {
         this.zkPath = zkPath;
@@ -48,6 +53,41 @@ public class DiskPartitionInfoManager implements LifeCycle {
         this.treeCache.cancelListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)));
     }
 
+    public Map<String, PartitionInfo> getPartitionInfosByServiceId(String serviceId) {
+        Map<String, PartitionInfo> map = new HashMap<>();
+        if (serviceId == null || serviceId.isEmpty()) {
+            return map;
+        }
+
+        for (Map.Entry<String, PartitionInfo> entry : diskPartitionInfoCache.entrySet()) {
+            if (serviceId.equals(entry.getValue().getServiceId())) {
+                map.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return map;
+    }
+
+    public PartitionInfo freeSizeSelector() {
+        if (diskPartitionInfoCache.isEmpty()) {
+            return null;
+        }
+
+        TreeMap<PartitionInfo, String> treeMap = new TreeMap<>(new DiskPartitionFreeSizeComparator());
+        for (Map.Entry<String, PartitionInfo> entry : diskPartitionInfoCache.entrySet()) {
+            treeMap.put(entry.getValue(), entry.getKey());
+        }
+
+        return treeMap.firstKey();
+
+    }
+
+    private class DiskPartitionFreeSizeComparator implements Comparator<PartitionInfo> {
+        @Override
+        public int compare(PartitionInfo o1, PartitionInfo o2) {
+            return Double.compare(o1.getFreeSize(), o2.getFreeSize());
+        }
+    }
+
     private class DiskPartitionInfoListener implements TreeCacheListener {
         @Override
         public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
@@ -58,7 +98,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
                         PartitionInfo info = ProtoStuffUtils.deserialize(event.getData().getData(), PartitionInfo.class);
 
                         if (info != null) {
-                            diskPartitionInfoCache.put(info.getServiceGroup(), info.getServiceId(), info);
+                            diskPartitionInfoCache.put(info.getPartitionId(), info);
                             LOG.info("add disk partition info: {}", info);
                         }
 
@@ -68,7 +108,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
                         PartitionInfo info = ProtoStuffUtils.deserialize(event.getData().getData(), PartitionInfo.class);
 
                         if (info != null) {
-                            diskPartitionInfoCache.remove(info.getServiceGroup(), info.getServiceId());
+                            diskPartitionInfoCache.remove(info.getPartitionId(), info);
                             LOG.info("remove disk partition info: {}", info);
                         }
                     }
@@ -77,8 +117,8 @@ public class DiskPartitionInfoManager implements LifeCycle {
                         PartitionInfo info = ProtoStuffUtils.deserialize(event.getData().getData(), PartitionInfo.class);
 
                         if (info != null) {
-                            LOG.info("update disk partition info: [{}] -> [{}]", diskPartitionInfoCache.get(info.getServiceGroup(), info.getServiceId()), info);
-                            diskPartitionInfoCache.put(info.getServiceGroup(), info.getServiceId(), info);
+                            LOG.info("update disk partition info: [{}] -> [{}]", diskPartitionInfoCache.get(info.getPartitionId()), info);
+                            diskPartitionInfoCache.put(info.getPartitionId(), info);
                         }
 
                     }

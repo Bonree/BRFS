@@ -1,0 +1,8 @@
+{
+  "partitionGroup": "diskNodeIDS",
+  "partitionId": "40",
+  "devName": "D:\\",
+  "mountPoint": "D:\\",
+  "dataDir": "D:/zhucg/tmp",
+  "totalSize": 199.0
+}

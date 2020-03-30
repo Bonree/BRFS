@@ -24,6 +24,7 @@ public class ZipUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZipUtils.class);
 
+    public static final String SUFFIX = ".zip";
     private static final int BUFFER_SIZE = 2 * 1024;
 
     public static void zip(List<String> srcDirs, String outDir) {

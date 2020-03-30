@@ -8,6 +8,7 @@ import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.duplication.rocksdb.client.RegionNodeClient;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +81,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
                 .build();
 
         try {
-            LOG.info("write rocksdb data to {}:{}, column family: {}", host, port, unit.getColumnFamily());
+            LOG.info("write rocksdb data to {}:{}, cf: {}", host, port, unit.getColumnFamily());
             HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(unit));
             LOG.debug("write rocksdb response[{}], host:{}, port:{}", host, port, response.getStatusCode());
         } catch (Exception e) {
@@ -89,29 +90,32 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     }
 
     @Override
-    public boolean establishSocket(String tmpFileName, String backupPath, String socketHost, int socketPort, List<String> files) {
+    public List<Integer> restoreData(String fileName, String restorePath, String host, int port) {
 
         URI uri = new URIBuilder()
                 .setScheme(DEFAULT_SCHEME)
-                .setHost(host)
-                .setPort(port)
-                .setParamter("tmpFileName", tmpFileName)
-                .setParamter("backupPath", backupPath)
-                .setParamter("host", socketHost)
-                .setParamter("port", String.valueOf(socketPort))
+                .setHost(this.host)
+                .setPort(this.port)
+                .setParamter("transferFileName", fileName)
+                .setParamter("restorePath", restorePath)
+                .setParamter("host", host)
+                .setParamter("port", String.valueOf(port))
                 .setPath("/ping/")
                 .build();
 
         try {
-            LOG.info("establish socket to {}:{}, backup file list:{}", host, port, files);
-            HttpResponse response = client.executePost(uri, JsonUtils.toJsonBytes(files));
-            LOG.debug("establish socket {}:{} response[{}]", host, port, response.getStatusCode());
-            return response.isReponseOK();
-        } catch (Exception e) {
-            LOG.error("establish socket {}:{} error", host, port, e);
-        }
+            LOG.info("send restore request to {}:{}, transferFileName:{}, restorePath:{}", this.host, this.port, fileName, restorePath);
+            HttpResponse response = client.executePost(uri);
+            LOG.debug("restore request {}:{} response[{}]", this.host, this.port, response.getStatusCode());
 
-        return false;
+            if (response.isReponseOK()) {
+                return JsonUtils.toObject(response.getResponseBody(), new TypeReference<List<Integer>>() {
+                });
+            }
+        } catch (Exception e) {
+            LOG.error("send restore request to {}:{} error", this.host, this.port, e);
+        }
+        return null;
     }
 
     @Override

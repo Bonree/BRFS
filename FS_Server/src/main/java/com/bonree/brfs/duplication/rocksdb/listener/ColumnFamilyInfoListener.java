@@ -50,6 +50,7 @@ public class ColumnFamilyInfoListener implements LifeCycle {
     public void stop() throws Exception {
         this.nodeCache.getListenable().removeListener(this.listener);
         this.nodeCache.close();
+        LOG.info("column family listener stop");
     }
 
     private class ColumnFamilyNodeCacheListener implements NodeCacheListener {

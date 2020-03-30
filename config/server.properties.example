@@ -292,6 +292,14 @@ rocksdb.switch=false
 rocksdb.storage.path = /tmp/rocksdb
 # rocksdb的数据备份磁盘路径
 rocksdb.backup.path = /tmp/rocksdb_backup
+# rocksdb用于接收其他节点的备份文件的恢复目录
+rocksdb.restore.path = /tmp/rocksdb_restore
+# rocksdb用于临时数据恢复的目录，恢复完成后，将数据迁移到rocksdb.storage.path
+rocksdb.restore.temporary.path = /tmp/rocksdb_temporary
+# 备份文件socket传输时使用的端口
+rocksdb.backup.file.transfer.port = 9696
+# 备份周期，单位毫秒
+rocksdb.backup.cycle = 600000
 # rocksdb将数据从memtable flush到level 0的并发线程数目，默认为1
 rocksdb.max.background.flush = 4
 # rocksdb由低级level向更高级的level进行数据归并操作的并发线程数目，默认为1

@@ -18,11 +18,32 @@ public class RocksDBConfigs {
     public static final ConfigUnit<Boolean> ROCKSDB_SWITCH =
             ConfigUnit.ofBoolean("rocksdb.switch", true);
 
+    /**
+     * @description: RocksDB数据存储目录
+     */
     public static final ConfigUnit<String> ROCKSDB_STORAGE_PATH =
             ConfigUnit.ofString("rocksdb.storage.path", "/tmp/rocksdb");
 
+    /**
+     * @description: RocksDB数据备份目录
+     */
     public static final ConfigUnit<String> ROCKSDB_BACKUP_PATH =
             ConfigUnit.ofString("rocksdb.backup.path", "/tmp/backup");
+
+    /**
+     * @description: RocksDB用于接收其他节点的备份文件的恢复目录
+     */
+    public static final ConfigUnit<String> ROCKSDB_RESTORE_PATH =
+            ConfigUnit.ofString("rocksdb.restore.path", "/tmp/restore");
+
+    /**
+     * @description: RocksDB用于临时数据恢复的目录，恢复完成后，将数据迁移到原RocksDB数据存储目录
+     */
+    public static final ConfigUnit<String> ROCKSDB_RESTORE_TEMPORARY_PATH =
+            ConfigUnit.ofString("rocksdb.restore.temporary.path", "/tmp/temporary");
+
+    public static final ConfigUnit<Integer> ROCKSDB_BACKUP_FILE_TRANSFER_PORT =
+            ConfigUnit.ofInt("rocksdb.backup.file.transfer.port", 9696);
 
     public static final ConfigUnit<Long> ROCKSDB_BACKUP_CYCLE =
             ConfigUnit.ofLong("rocksdb.backup.cycle", 10 * 60 * 1000);

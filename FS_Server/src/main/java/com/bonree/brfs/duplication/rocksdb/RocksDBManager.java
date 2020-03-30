@@ -2,7 +2,6 @@ package com.bonree.brfs.duplication.rocksdb;
 
 import com.bonree.brfs.common.process.LifeCycle;
 import org.rocksdb.RocksDB;
-import org.rocksdb.TtlDB;
 
 import java.util.List;
 import java.util.Map;
@@ -77,6 +76,12 @@ public interface RocksDBManager extends LifeCycle {
      * @description: 更新本地列族信息缓存
      */
     void updateColumnFamilyHandles(Map<String, Integer> columnFamilyMap) throws Exception;
+
+    /**
+     * @param srcPath 其他RocksDB数据目录
+     * @description: 将其他数据目录的数据迁移到当前数据目录中
+     */
+    void dataTransfer(String srcPath);
 
     /**
      * @description: 获取RocksDB连接对象

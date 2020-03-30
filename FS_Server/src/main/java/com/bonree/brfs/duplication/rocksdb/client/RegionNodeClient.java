@@ -21,11 +21,11 @@ public interface RegionNodeClient extends Closeable {
     void writeData(RocksDBDataUnit unit) throws Exception;
 
     /**
-     * @param tmpFileName 一次传输使用的临时文件名称
-     * @param backupPath  用于接收socket client端备份文件的本地备份路径
-     * @param files       备份文件列表
-     * @description: 用于向合适的RegionNode请求建立临时Socket连接，进行RocksDB备份文件的传输
+     * @param fileName    一次传输使用的临时文件名称
+     * @param restorePath 用于接收socket client端备份文件的本地数据恢复路径
+     * @return 一次备份中的所有backupId
+     * @description: 用于向合适的RegionNode请求建立临时Socket连接，进行RocksDB备份文件的传输，从而进行数据恢复
      */
-    boolean establishSocket(String tmpFileName, String backupPath, String socketHost, int socketPort, List<String> files);
+    List<Integer> restoreData(String fileName, String restorePath, String host, int port);
 
 }
