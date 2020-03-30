@@ -90,9 +90,9 @@ import com.bonree.brfs.duplication.storageregion.handler.OpenStorageRegionMessag
 import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.server.identification.ServerIDManager;
-import com.bonree.email.EmailPool;
 
 @Deprecated
 public class BootStrap {

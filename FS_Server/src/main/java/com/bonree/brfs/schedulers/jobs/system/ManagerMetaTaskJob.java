@@ -13,11 +13,11 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
-import com.bonree.email.EmailPool;
 import com.bonree.mail.worker.MailWorker;
 
 public class ManagerMetaTaskJob extends QuartzOperationStateTask {

@@ -24,8 +24,8 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.server.identification.ServerIDManager;
-import com.bonree.email.EmailPool;
 import com.bonree.mail.worker.MailWorker;
 
 /*******************************************************************************

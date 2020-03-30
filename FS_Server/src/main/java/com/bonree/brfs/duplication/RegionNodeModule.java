@@ -13,6 +13,8 @@
  */
 package com.bonree.brfs.duplication;
 
+import static com.bonree.brfs.jaxrs.JaxrsBinder.jaxrs;
+
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,10 +25,12 @@ import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.bigdata.zeus.common.metadata.vo.ResponseVO.Datasource;
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
+import com.bonree.brfs.common.jackson.Json;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.Lifecycle.LifeCycleObject;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
@@ -86,16 +90,19 @@ import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.duplication.storageregion.StorageRegionIdBuilder;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.duplication.storageregion.StorageRegionResource;
 import com.bonree.brfs.duplication.storageregion.handler.CreateStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.handler.DeleteStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.handler.OpenStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
+import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.guice.NodeConfig;
-import com.bonree.brfs.guice.ServiceGroup;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -106,7 +113,7 @@ public class RegionNodeModule implements Module {
 
     @Override
     public void configure(Binder binder) {
-        binder.bindConstant().annotatedWith(ServiceGroup.class).to("region_group");
+        JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
         JsonConfigProvider.bind(binder, "regionnode", NodeConfig.class);
         
         binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
@@ -138,6 +145,13 @@ public class RegionNodeModule implements Module {
         
         binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
         
+        jaxrs(binder).resource(StorageRegionResource.class);
+        jaxrs(binder).resource(Datasource.class);
+        jaxrs(binder).resource(DiscoveryResource.class);
+        jaxrs(binder).resource(RouterResource.class);
+        
+        jaxrs(binder).resource(JacksonJsonProvider.class);
+        
         LifecycleModule.register(binder, SimpleAuthentication.class);
         LifecycleModule.register(binder, NettyHttpServer.class);
         
@@ -146,8 +160,8 @@ public class RegionNodeModule implements Module {
     
     @Provides
     @Singleton
-    public ZookeeperPaths getPaths(NodeConfig node, CuratorFramework zkClient, Lifecycle lifecycle) {
-        ZookeeperPaths paths = ZookeeperPaths.create(node.getClusterName(), zkClient);
+    public ZookeeperPaths getPaths(ClusterConfig clusterConfig, CuratorFramework zkClient, Lifecycle lifecycle) {
+        ZookeeperPaths paths = ZookeeperPaths.create(clusterConfig.getName(), zkClient);
         lifecycle.addAnnotatedInstance(paths);
         
         return paths;
@@ -156,11 +170,16 @@ public class RegionNodeModule implements Module {
     @Provides
     @Singleton
     public Service getService(
+            ClusterConfig clusterConfig,
             NodeConfig config,
-            @ServiceGroup String serviceGroup,
             ServiceManager serviceManager,
             Lifecycle lifecycle) {
-        Service service = new Service(UUID.randomUUID().toString(), serviceGroup, config.getHost(), config.getPort());
+        Service service = new Service(
+                UUID.randomUUID().toString(),
+                clusterConfig.getRegionNodeGroup(),
+                config.getHost(),
+                config.getPort());
+        
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
             
             @Override
@@ -245,6 +264,11 @@ public class RegionNodeModule implements Module {
                 .build();
         
         return nodeSelector;
+    }
+    
+    @Provides
+    public JacksonJsonProvider getJsonProvider(@Json ObjectMapper mapper) {
+        return new JacksonJsonProvider(mapper);
     }
     
     @Provides

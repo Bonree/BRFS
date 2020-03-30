@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.authentication.SimpleAuthenticationModule;
 import com.bonree.brfs.disknode.DataNodeModule;
-import com.bonree.email.EmailModule;
+import com.bonree.brfs.email.EmailModule;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Module;
 

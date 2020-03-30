@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.WatchDog;
-import com.bonree.email.EmailPool;
 import com.bonree.mail.worker.MailWorker;
 
 public class WatchSomeThingJob extends QuartzOperationStateTask {

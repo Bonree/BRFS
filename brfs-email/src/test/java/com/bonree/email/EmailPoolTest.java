@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.email.EmailPool;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.mail.worker.MailWorker;
 
 public class EmailPoolTest{

@@ -11,20 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.email;
+package com.bonree.brfs.client.storageregion;
 
-import com.bonree.brfs.common.guice.JsonConfigProvider;
-import com.bonree.brfs.common.lifecycle.LifecycleModule;
-import com.bonree.brfs.common.plugin.BrfsModule;
-import com.google.inject.Binder;
-
-public class EmailModule implements BrfsModule {
-
-    @Override
-    public void configure(Binder binder) {
-        JsonConfigProvider.bind(binder, "email", EmailConfig.class);
-        
-        LifecycleModule.register(binder, EmailPoolInitializer.class);
-    }
+public interface CreateStorageRegionRequest {
+    String getStorageRegionName();
     
+    StorageRegionAttributes getAttributes();
+    
+    static CreateStorageRegionRequestBuilder newBuilder() {
+        return new CreateStorageRegionRequestBuilder();
+    }
 }

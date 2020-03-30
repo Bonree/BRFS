@@ -60,8 +60,8 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
+import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.guice.NodeConfig;
-import com.bonree.brfs.guice.ServiceGroup;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.schedulers.InitTaskManager;
@@ -76,7 +76,7 @@ public class DataNodeModule implements Module {
 
     @Override
     public void configure(Binder binder) {
-        binder.bindConstant().annotatedWith(ServiceGroup.class).to("data_group");
+        JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
         JsonConfigProvider.bind(binder, "datanode", NodeConfig.class);
         
         binder.bind(DiskContext.class).in(Scopes.SINGLETON);
@@ -99,8 +99,8 @@ public class DataNodeModule implements Module {
 
     @Provides
     @Singleton
-    public ZookeeperPaths getPaths(NodeConfig node, CuratorFramework zkClient, Lifecycle lifecycle) {
-        ZookeeperPaths paths = ZookeeperPaths.create(node.getClusterName(), zkClient);
+    public ZookeeperPaths getPaths(ClusterConfig clusterConfig, CuratorFramework zkClient, Lifecycle lifecycle) {
+        ZookeeperPaths paths = ZookeeperPaths.create(clusterConfig.getName(), zkClient);
         lifecycle.addAnnotatedInstance(paths);
         
         return paths;
@@ -144,15 +144,18 @@ public class DataNodeModule implements Module {
     @Provides
     @Singleton
     public Service getService(
+            ClusterConfig clusterConfig,
             NodeConfig config,
-            @ServiceGroup String serviceGroup,
             ServiceManager serviceManager,
             ServerIDManager idManager,
             Lifecycle lifecycle) {
-        String host = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST);
-        int port = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT);
-        Service service = new Service(idManager.getFirstServerID(), serviceGroup, host, port);
-        service.setExtraPort(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_PORT));
+        Service service = new Service(
+                idManager.getFirstServerID(),
+                clusterConfig.getDataNodeGroup(),
+                config.getHost(),
+                config.getPort());
+        service.setExtraPort(config.getSslPort());
+        
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
             
             @Override
@@ -187,7 +190,7 @@ public class DataNodeModule implements Module {
     @Provides
     @Singleton
     public ServerChangeTaskGenetor get(
-            @ServiceGroup String serviceGroup,
+            ClusterConfig clusterConfig,
             CuratorFramework client,
             ServiceManager serviceManager,
             ServerIDManager idManager,
@@ -206,7 +209,7 @@ public class DataNodeModule implements Module {
             
             @Override
             public void start() throws Exception {
-                serviceManager.addServiceStateListener(serviceGroup, generator);
+                serviceManager.addServiceStateListener(clusterConfig.getDataNodeGroup(), generator);
             }
             
             @Override

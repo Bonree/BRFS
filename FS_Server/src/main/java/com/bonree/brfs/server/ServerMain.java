@@ -24,11 +24,11 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.schedulers.InitTaskManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
-import com.bonree.email.EmailPool;
 
 @Deprecated
 public class ServerMain {

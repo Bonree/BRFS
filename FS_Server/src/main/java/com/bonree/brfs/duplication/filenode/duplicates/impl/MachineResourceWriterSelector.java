@@ -19,9 +19,9 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.email.EmailPool;
 import com.bonree.mail.worker.MailWorker;
 
 /**

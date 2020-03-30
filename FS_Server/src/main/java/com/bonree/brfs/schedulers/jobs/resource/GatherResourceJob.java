@@ -25,6 +25,7 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.commons.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
@@ -35,7 +36,6 @@ import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
-import com.bonree.email.EmailPool;
 import com.bonree.mail.worker.MailWorker;
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

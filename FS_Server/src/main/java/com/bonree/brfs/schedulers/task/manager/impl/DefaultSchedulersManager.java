@@ -11,11 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.task.manager.BaseSchedulerInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
-import com.bonree.email.EmailPool;
 import com.bonree.mail.worker.MailWorker;
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

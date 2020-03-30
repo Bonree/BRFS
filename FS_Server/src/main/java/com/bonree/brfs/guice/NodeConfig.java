@@ -14,27 +14,19 @@
 package com.bonree.brfs.guice;
 
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class NodeConfig {
-    @JsonProperty("cluster.name")
-    private String clusterName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME);
-    
     @JsonProperty("service.host")
     public String host = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_HOST);
     
     @JsonProperty("service.port")
     public int port = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_PORT);
-
-    public String getClusterName() {
-        return clusterName;
-    }
-
-    public void setClusterName(String clusterName) {
-        this.clusterName = clusterName;
-    }
+    
+    @JsonProperty("file.server.port")
+    public int sslPort = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_PORT);
 
     public String getHost() {
         return host;
@@ -51,6 +43,12 @@ public class NodeConfig {
     public void setPort(int port) {
         this.port = port;
     }
-    
-    
+
+    public int getSslPort() {
+        return sslPort;
+    }
+
+    public void setSslPort(int sslPort) {
+        this.sslPort = sslPort;
+    }
 }

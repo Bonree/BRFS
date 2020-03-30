@@ -24,10 +24,10 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.server.identification.ServerIDManager;
-import com.bonree.email.EmailPool;
 import com.bonree.mail.worker.MailWorker;
 
 /******************************************************************************

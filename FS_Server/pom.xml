@@ -14,18 +14,24 @@
 			<artifactId>FS_Commons</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+		
+		<dependency>
+            <groupId>com.bonree.fs</groupId>
+            <artifactId>brfs-client</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
 
 		<dependency>
 			<groupId>com.bonree.fs</groupId>
 			<artifactId>brfs-http-api</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-		
+
 		<dependency>
-            <groupId>com.bonree.fs</groupId>
-            <artifactId>brfs-email</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
+			<groupId>com.bonree.fs</groupId>
+			<artifactId>brfs-email</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.bonree.fs</groupId>
@@ -42,6 +48,12 @@
 			<groupId>org.apache.bval</groupId>
 			<artifactId>bval-jsr</artifactId>
 			<version>2.0.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>2.10.3</version>
 		</dependency>
 
 		<dependency>

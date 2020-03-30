@@ -25,6 +25,7 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.disknode.client.TcpDiskNodeClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
@@ -33,7 +34,6 @@ import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.brfs.server.identification.ServerIDManager;
-import com.bonree.email.EmailPool;
 import com.bonree.mail.worker.MailWorker;
 
 public class CopyRecovery {
