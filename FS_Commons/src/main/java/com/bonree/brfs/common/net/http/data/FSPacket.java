@@ -84,16 +84,39 @@ public class FSPacket {
         return this;
     }
     //连续的一堆packet在同一个block中,获得该packet属于哪个block
-    public long getBlockOffsetInFile(int blockSize){
+    public long getBlockOffsetInFile(long blockSize){
         return (getOffsetInFile()/blockSize)*blockSize;
     }
     //是不是一个block的第一个packet
-    public boolean isTheFirstPacketInBlock(int blockSize){
-        Preconditions.checkArgument(blockSize > 0,"blockSize shoud larger than 0 , now it is [{}]",blockSize);
-        return (getOffsetInFile()%blockSize)==0;
+    public boolean isTheFirstPacketInFile(long blockSize){
+        return getOffsetInFile()==0;
     }
     //释放protobuf反序列化的对象
     public void clearData(){
         proto = null;
+    }
+
+    @Override
+    public String toString() {
+        return "FSPacket of StorageName:["+getStorageName()+
+                "] file["+getFileName()+
+                "] offset:["+getOffsetInFile()+"] len:["+getData().length+
+                "]byte seqno: ["+getSeqno()+
+                "] islast[" +isLastPacketInFile()+"]";
+    }
+
+    /**
+     * 获得packet在block中的position
+     * @param blockSize
+     * @return
+     */
+    public int getPacPos(long blockSize) {
+        //返回packet的pos  这个值应该小于1024，因为一个block最多存1024个packet
+        return (int)(getOffsetInFile()-getBlockOffsetInFile(blockSize));
+
+    }
+
+    public boolean isATinyFile(long blockSize) {
+        return isLastPacketInFile()&&isTheFirstPacketInFile(blockSize);
     }
 }
