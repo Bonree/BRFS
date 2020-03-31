@@ -16,7 +16,7 @@ import java.util.List;
 public interface RegionNodeClient extends Closeable {
     boolean ping();
 
-    byte[] readData(RocksDBDataUnit unit);
+    byte[] readData(String columnFamily, String key);
 
     void writeData(RocksDBDataUnit unit) throws Exception;
 

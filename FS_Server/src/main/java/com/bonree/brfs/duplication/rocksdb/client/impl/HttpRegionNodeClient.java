@@ -8,6 +8,7 @@ import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.duplication.rocksdb.client.RegionNodeClient;
+import com.bonree.brfs.duplication.rocksdb.client.SyncHttpClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     private static final String URI_PATH_ROCKSDB_ROOT = "/rocksdb/";
 
     private HttpClient client;
+    private SyncHttpClient syncClient;
 
     private String host;
     private int port;
@@ -43,6 +45,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
         this.host = host;
         this.port = port;
         this.client = new HttpClient(clientConfig);
+        this.syncClient = new SyncHttpClient(clientConfig);
     }
 
     @Override
@@ -65,9 +68,28 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     }
 
     @Override
-    public byte[] readData(RocksDBDataUnit unit) {
-        // 暂不实现 todo
-        return new byte[0];
+    public byte[] readData(String columnFamily, String key) {
+        URI uri = new URIBuilder()
+                .setScheme(DEFAULT_SCHEME)
+                .setHost(host)
+                .setPort(port)
+                .setPath(URI_PATH_ROCKSDB_ROOT)
+                .setParamter("cf", columnFamily)
+                .setParamter("key", key)
+                .build();
+
+        try {
+            LOG.info("read rocksdb data from {}, cf: {}, key:{}", host, columnFamily, key);
+            HttpResponse response = syncClient.executeGet(uri);
+            if (response.isReponseOK()) {
+                return response.getResponseBody();
+            }
+            LOG.debug("read rocksdb response[{}], host:{}, port:{}, cf: {}, key:{}", response.getStatusCode(), host, port, columnFamily, key);
+        } catch (Exception e) {
+            LOG.error("read rocksdb data to {}:{} error, cf: {}, key:{}", host, port, columnFamily, key, e);
+            return null;
+        }
+        return null;
     }
 
     @Override
@@ -83,9 +105,9 @@ public class HttpRegionNodeClient implements RegionNodeClient {
         try {
             LOG.info("write rocksdb data to {}:{}, cf: {}", host, port, unit.getColumnFamily());
             HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(unit));
-            LOG.debug("write rocksdb response[{}], host:{}, port:{}", host, port, response.getStatusCode());
+            LOG.debug("write rocksdb response[{}], host:{}, port:{}, cf:{}", response.getStatusCode(), host, port, unit.getColumnFamily());
         } catch (Exception e) {
-            LOG.error("write rocksdb data to {}:{} error", host, port, e);
+            LOG.error("write rocksdb data to {}:{} error, cf:{}", host, port, unit.getColumnFamily(), e);
         }
     }
 
@@ -121,5 +143,6 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     @Override
     public void close() throws IOException {
         client.close();
+        syncClient.close();
     }
 }

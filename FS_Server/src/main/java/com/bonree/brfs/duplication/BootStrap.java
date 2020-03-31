@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.bonree.brfs.duplication.rocksdb.backup.BackupEngineFactory;
+import com.bonree.brfs.duplication.rocksdb.handler.RocksDBReadRequestHandler;
 import com.bonree.brfs.duplication.rocksdb.handler.RocksDBRestoreRequestHandler;
 import com.bonree.brfs.duplication.rocksdb.restore.RocksDBRestoreEngine;
 import org.apache.curator.RetryPolicy;
@@ -368,6 +369,7 @@ public class BootStrap {
                 httpServer.addContextHandler(URI_PING_ROOT, pingRequestHandler);
 
                 NettyHttpRequestHandler rocksDBRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+                rocksDBRequestHandler.addMessageHandler("GET", new RocksDBReadRequestHandler(rocksDBManager));
                 rocksDBRequestHandler.addMessageHandler("POST", new RocksDBWriteRequestHandler(rocksDBManager));
                 httpServer.addContextHandler(URI_ROCKSDB_ROOT, rocksDBRequestHandler);
 

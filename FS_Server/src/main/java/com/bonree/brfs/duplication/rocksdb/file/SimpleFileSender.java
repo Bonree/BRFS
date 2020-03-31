@@ -94,7 +94,7 @@ public class SimpleFileSender {
             OutputStream sockOut = sock.getOutputStream();
 
             fis = new FileInputStream(file);
-            LOG.info("prepare send file:{}, remoteDir:{}", relativePath, remoteDir);
+            LOG.info("prepare send file [{}] to [{}], remoteDir: [{}]", relativePath, recvrAddr, remoteDir);
 
             byte[] bufFile = new byte[1024];
             int len;
@@ -102,7 +102,7 @@ public class SimpleFileSender {
                 sockOut.write(bufFile, 0, len);
             }
             sock.shutdownOutput();
-            LOG.info("send file [{}] complete", file.getAbsolutePath());
+            LOG.info("send file [{}] to [{}] complete", file.getAbsolutePath(), recvrAddr);
         } finally {
             if (fis != null) {
                 fis.close();
