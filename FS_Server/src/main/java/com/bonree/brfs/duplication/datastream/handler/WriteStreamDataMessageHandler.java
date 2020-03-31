@@ -22,11 +22,11 @@ import org.slf4j.LoggerFactory;
  */
 public class WriteStreamDataMessageHandler implements MessageHandler {
     private static final Logger LOG = LoggerFactory.getLogger(WriteStreamDataMessageHandler.class);
-    private DefaultStorageRegionWriter writer;
-    private static BlockManager blockManager;
+    private StorageRegionWriter writer;
+    private BlockManager blockManager;
 
     public WriteStreamDataMessageHandler(StorageRegionWriter writer, BlockManager blockManager) {
-        this.writer = (DefaultStorageRegionWriter)writer;
+        this.writer = writer;
         this.blockManager = blockManager;
     }
 
@@ -40,7 +40,7 @@ public class WriteStreamDataMessageHandler implements MessageHandler {
             FSPacket packet = FSPacketUtil.deserialize(content);
             int storage = packet.getStorageName();
             String file = packet.getFileName();
-            LOG.info("从数据中反序列化packet [{}]",packet);
+            LOG.debug("从数据中反序列化packet [{}]",packet);
             //如果是一个小于等于packet长度的文件，由handler直接写
             if(packet.isATinyFile(blockManager.getBlockSize())){
                 writer.write(storage,packet.getData(),new DataWriteCallback(callback));
@@ -73,11 +73,11 @@ public class WriteStreamDataMessageHandler implements MessageHandler {
         }
 
         @Override
-        public void complete(String[] fids) {
+        public void complete(String[] fid) {
             HandleResult result = new HandleResult();
 
             try {
-                result.setData(JsonUtils.toJsonBytes(fids));
+                result.setData(JsonUtils.toJsonBytes(fid));
                 result.setSuccess(true);
             } catch (JsonUtils.JsonException e) {
                 LOG.error("can not json fids", e);
@@ -85,6 +85,11 @@ public class WriteStreamDataMessageHandler implements MessageHandler {
             }
 
             callback.completed(result);
+        }
+
+        @Override
+        public void complete(String fid) {
+            return;
         }
 
         @Override

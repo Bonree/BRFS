@@ -68,6 +68,11 @@ public class WriteDataMessageHandler implements MessageHandler {
 		}
 
 		@Override
+		public void complete(String fid) {
+			return;
+		}
+
+		@Override
 		public void error() {
 			callback.completed(new HandleResult(false));
 		}
