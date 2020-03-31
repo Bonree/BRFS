@@ -221,9 +221,11 @@ public class Block {
 
     /**
      * 判断packet是否已经存在于这个packet
-     * @param packetPos
+     * @param packetPos packet在block中的偏移量
      */
     public boolean packetExist(int packetPos) {
+        Preconditions.checkArgument(packetPos<=size-expectPacketLen,"packek在block中的最大偏移量是{}，现在是[{}]",
+                size-expectPacketLen, packetPos);
         return checkBit(packetPos/expectPacketLen);
     }
     /**
