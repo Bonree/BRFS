@@ -2,7 +2,7 @@ package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
-import com.bonree.brfs.identification.PartitionInterface;
+import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.impl.SimpleRouteZKLoader;
 import org.apache.curator.framework.CuratorFramework;
@@ -17,7 +17,7 @@ import java.util.Collection;
  * @description: region获取id信息服务类，todo service类的payload增加磁盘节点信息，方便数据的读取
  ******************************************************************************/
 
-public class RegionIDManager implements RouteLoader, PartitionInterface {
+public class RegionIDManager implements RouteLoader, SecondIdsInterface {
     private RouteLoader loader = null;
     private CuratorFramework client = null;
     private String secondIdBasePath = null;

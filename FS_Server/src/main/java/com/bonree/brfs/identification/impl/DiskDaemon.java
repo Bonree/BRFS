@@ -3,7 +3,6 @@ package com.bonree.brfs.identification.impl;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.identification.LocalPartitionInterface;
-import com.bonree.brfs.identification.PartitionInterface;
 import com.bonree.brfs.partition.LocalPartitionCache;
 import com.bonree.brfs.partition.PartitionCheckingRoutine;
 import com.bonree.brfs.partition.PartitionGather;
