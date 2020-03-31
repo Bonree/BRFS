@@ -1,14 +1,6 @@
-/*******************************************************************************
- * 版权信息： 北京博睿宏远数据科技股份有限公司
- * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
- * @date 2020年03月23日 11:35:07
- * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @description: 磁盘id生成逻辑测试
- ******************************************************************************/
+package com.bonree.brfs.identification.impl;
 
-package com.bonree.brfs.identification;
-
-import com.bonree.brfs.rebalance.route.RouteParserTest;
+import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
@@ -17,7 +9,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
+/*******************************************************************************
+ * 版权信息： 北京博睿宏远数据科技股份有限公司
+ * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
+ * @date 2020年03月24日 11:55:12
+ * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
+ * @description:
+ ******************************************************************************/
 
 public class DiskDaemonTest {
     private static String FILE_DIR = DiskDaemonTest.class.getResource("/DiskNodeId").getPath();

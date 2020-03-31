@@ -1,7 +1,8 @@
-package com.bonree.brfs.identification;
+package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.LocalPartitionCache;
 import com.bonree.brfs.partition.PartitionCheckingRoutine;
 import com.bonree.brfs.partition.PartitionGather;
@@ -12,16 +13,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Map;
 
-/****************************************************************************************
+/*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
- * @date 2020-03-23 14:58:21
+ * @date 2020年03月27日 15:21:25
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @description: 磁盘分区id生成器,根据配置文件的多个目录生成不同的serverId
- ****************************************************************************************/
-public class DiskDaemon implements LifeCycle {
+ * @description:
+ ******************************************************************************/
+public class DiskDaemon implements LifeCycle, LocalPartitionInterface {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskDaemon.class);
 
 	private PartitionGather gather;
@@ -43,6 +43,17 @@ public class DiskDaemon implements LifeCycle {
 	public void stop() throws Exception {
 		this.gather.stop();
 	}
+
+	@Override
+	public String getDataPaths(String partitionId) {
+		return this.cache.getDataPaths(partitionId);
+	}
+
+	@Override
+	public String getPartitionId(String dataPath) {
+		return getPartitionId(dataPath);
+	}
+
 	public static class Builder{
 		/**
 		 * curator framework
@@ -76,6 +87,10 @@ public class DiskDaemon implements LifeCycle {
 		 * 采集线程的检查周期 单位 s
 		 */
 		private int intervalTimes;
+
+		public Builder() {
+		}
+
 		public Builder setClient(CuratorFramework client) {
 			this.client = client;
 			return this;

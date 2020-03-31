@@ -1,9 +1,9 @@
 package com.bonree.brfs.partition;
 
 import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.identification.DiskNodeIDImpl;
+import com.bonree.brfs.identification.impl.DiskNodeIDImpl;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
-import com.bonree.brfs.rebalance.route.RouteParserTest;
+import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
