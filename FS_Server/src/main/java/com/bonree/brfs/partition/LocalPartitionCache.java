@@ -1,5 +1,6 @@
 package com.bonree.brfs.partition;
 
+import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 
 import java.util.Collection;
@@ -14,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @description:
  ******************************************************************************/
 
-public class LocalPartitionCache implements LocalPartitionListener {
+public class LocalPartitionCache implements LocalPartitionListener, LocalPartitionInterface {
     Map<String,LocalPartitionInfo> idToLocal = new ConcurrentHashMap<>();
     Map<String,String> pathToId = new ConcurrentHashMap<>();
 
@@ -38,5 +39,15 @@ public class LocalPartitionCache implements LocalPartitionListener {
     public void add(LocalPartitionInfo partitionInfo) {
         idToLocal.put(partitionInfo.getPartitionId(),partitionInfo);
         pathToId.put(partitionInfo.getDataDir(),partitionInfo.getPartitionId());
+    }
+
+    @Override
+    public String getDataPaths(String partitionId) {
+        return idToLocal.get(partitionId) == null ? null : idToLocal.get(partitionId).getDataDir();
+    }
+
+    @Override
+    public String getPartitionId(String dataPath) {
+        return pathToId.get(dataPath);
     }
 }
