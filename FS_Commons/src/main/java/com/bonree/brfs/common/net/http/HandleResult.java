@@ -24,8 +24,8 @@ public class HandleResult {
 		return CONTINUE;
 	}
 
-	public void setCONTINUE(boolean CONTINUE) {
-		this.CONTINUE = CONTINUE;
+	public void setCONTINUE() {
+		this.CONTINUE = true;
 	}
 
 	public boolean isSuccess() {

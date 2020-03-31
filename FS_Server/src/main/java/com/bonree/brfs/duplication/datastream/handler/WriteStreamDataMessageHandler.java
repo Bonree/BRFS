@@ -33,7 +33,7 @@ public class WriteStreamDataMessageHandler implements MessageHandler {
 
     @Override
     public void handle(HttpMessage msg, HandleResultCallback callback) {
-
+        HandleResult handleResult = new HandleResult();
         LOG.debug("DONE decode ,从请求中取出data");
         byte[] content = msg.getContent();
         LOG.debug("收到数据长度为：[{}]，尝试将其填充到block中，",content.length);
@@ -53,8 +53,12 @@ public class WriteStreamDataMessageHandler implements MessageHandler {
             Block block = blockManager.appendToBlock(packet, callback);
             if(block == null){
                 LOG.debug("packet[{}]没有申请到block",packet.getSeqno());
-                callback.completed(new HandleResult(false));
+                handleResult.setSuccess(false);
+                callback.completed(handleResult);
+                return;
             }
+            handleResult.setCONTINUE();
+            callback.completed(handleResult);
         } catch (Exception e) {
             LOG.error("handle write data message error", e);
             callback.completed(new HandleResult(false));
