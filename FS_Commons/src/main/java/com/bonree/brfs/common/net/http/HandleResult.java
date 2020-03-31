@@ -10,13 +10,22 @@ public class HandleResult {
 	private boolean success;
 	private Throwable cause;
 	private byte[] data;
-	
+	private boolean CONTINUE;
+
 	public HandleResult() {
 		this(true);
 	}
 	
 	public HandleResult(boolean success) {
 		this.success = success;
+	}
+
+	public boolean isCONTINUE() {
+		return CONTINUE;
+	}
+
+	public void setCONTINUE(boolean CONTINUE) {
+		this.CONTINUE = CONTINUE;
 	}
 
 	public boolean isSuccess() {
