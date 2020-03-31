@@ -7,6 +7,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
+import com.bonree.brfs.duplication.datastream.handler.WriteStreamDataMessageHandler;
 import com.bonree.brfs.duplication.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.duplication.rocksdb.handler.RocksDBReadRequestHandler;
 import com.bonree.brfs.duplication.rocksdb.handler.RocksDBRestoreRequestHandler;
@@ -106,6 +109,8 @@ public class BootStrap {
     private static final String URI_PING_ROOT = "/ping";
 
     private static final String URI_ROCKSDB_ROOT = "/rocksdb";
+
+    private static final String URI_STREAM_DATA_ROOT = "streamData";
 
     public static void main(String[] args) {
         ProcessFinalizer finalizer = new ProcessFinalizer();
@@ -326,6 +331,15 @@ public class BootStrap {
             snRequestHandler.addMessageHandler("DELETE", new DeleteStorageRegionMessageHandler(zookeeperPaths, storageNameManager, serviceManager));
             httpServer.addContextHandler(URI_STORAGE_REGION_ROOT, snRequestHandler);
 
+            long blocksize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
+            int blockpool = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
+            Integer initCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_INIT_COUNT);
+
+            BlockPool blockPool = new BlockPool(blocksize, blockpool, initCount);
+            BlockManager blockManager = new BlockManager(blockPool, writer);
+            NettyHttpRequestHandler streamRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+            streamRequestHandler.addMessageHandler("Post",new WriteStreamDataMessageHandler(writer,blockManager));
+            httpServer.addContextHandler(URI_STREAM_DATA_ROOT,streamRequestHandler);
             /** Module Managed **/
             serviceManager.registerService(service);
 
