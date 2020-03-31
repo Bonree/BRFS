@@ -7,6 +7,7 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.datastream.writer.*;
 import com.google.common.base.Defaults;
 import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 import org.apache.commons.io.monitor.FileEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ public class BlockManager {
 
     ReentrantLock lock = new ReentrantLock();
     Condition noAquireNewBlock = lock.newCondition();
-
+    @Inject
     public BlockManager(BlockPool blockPool, StorageRegionWriter writer) {
         this.blockPool = blockPool;
         this.writer = (DefaultStorageRegionWriter) writer;
@@ -744,24 +745,29 @@ public class BlockManager {
 
         @Override
         public void complete(String[] fids) {
-//            HandleResult result = new HandleResult();
-            Preconditions.checkArgument(fids.length == 1, "在写block时返回的fid多于1个！");
+            return;
+        }
+
+        @Override
+        public void complete(String fid) {
+            HandleResult result = new HandleResult();
+            Preconditions.checkNotNull(fid, "在写block[{}]时返回的fid为空",block);
             // 1. blockcache中填写fid
-            setFidAndReleaseBlock(StorageName, fileName, BlockOffsetInfile, fids[0],callback);
-            LOG.debug("获得大文件的一个block的fid[{}]", fids[0]);
-//            try {
-//                String response = "seqno:" + seqno +
-//                        "数据包所在的offset为：" + BlockOffsetInfile +
-//                        "的block" + block +
-//                        "已经flush";
-//                LOG.debug(response);
-//                result.setSuccess(true);
-//                result.setData(JsonUtils.toJsonBytes(response));
-//            } catch (JsonUtils.JsonException e) {
-//                LOG.error("can not json fids", e);
-//                result.setSuccess(false);
-//            }
-//            callback.completed(result);
+            setFidAndReleaseBlock(StorageName, fileName, BlockOffsetInfile, fid,callback);
+            LOG.debug("获得大文件的一个block的fid[{}]", fid);
+            try {
+                String response = "seqno:" + seqno +
+                        "数据包所在的offset为：" + BlockOffsetInfile +
+                        "的block" + block +
+                        "已经flush";
+                LOG.debug(response);
+                result.setCONTINUE(true);
+                result.setData(JsonUtils.toJsonBytes(response));
+            } catch (JsonUtils.JsonException e) {
+                LOG.error("can not json fids", e);
+                result.setSuccess(false);
+            }
+            callback.completed(result);
         }
 
         @Override
@@ -793,14 +799,20 @@ public class BlockManager {
             this.StorageName = storage;
             this.fileName = file;
         }
+
         @Override
         public void complete(String[] fids) {
+            return;
+        }
+
+        @Override
+        public void complete(String fid) {
             HandleResult result = new HandleResult();
 
             try {
-                LOG.debug("flush一个文件,fid[{}]", fids[0]);
+                LOG.debug("flush一个文件,fid[{}]", fid);
                 //todo 写目录树
-                result.setData(JsonUtils.toJsonBytes(fids[0]));
+                result.setData(JsonUtils.toJsonBytes(fid));
                 result.setSuccess(true);
             } catch (JsonUtils.JsonException e) {
                 LOG.error("can not json fids", e);
