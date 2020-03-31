@@ -43,7 +43,13 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
 			dataEngine.store(items[i].getBytes(), new DataCallback(i, fids, count, callback));
 		}
 	}
-	
+
+	public void write(int storageRegionId, byte[] data,StorageRegionWriteCallback callback){
+		DataItem dataItem = new DataItem();
+		dataItem.setBytes(data);
+		write(storageRegionId,new DataItem[]{dataItem},callback);
+		LOG.debug("写入一条数据到datapool！" );
+	}
 	private static class DataCallback implements DataStoreCallback {
 		private final int index;
 		private AtomicReferenceArray<String> fids;
