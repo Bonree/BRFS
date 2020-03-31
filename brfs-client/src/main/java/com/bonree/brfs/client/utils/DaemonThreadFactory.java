@@ -11,17 +11,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.discovery;
+package com.bonree.brfs.client.utils;
 
-import java.io.Closeable;
-import java.util.List;
+import static java.util.Objects.requireNonNull;
 
-public interface Discovery extends Closeable {
+import java.util.concurrent.ThreadFactory;
+
+public class DaemonThreadFactory implements ThreadFactory {
+    private final String threadPool;
     
-    enum ServiceType {
-        REGION,
-        DATA
+    public DaemonThreadFactory(String threadPool) {
+        this.threadPool = requireNonNull(threadPool);
     }
-    
-    List<ServerNode> getServiceList(ServiceType type);
+
+    @Override
+    public Thread newThread(Runnable r) {
+        Thread t = new Thread(r, threadPool);
+        t.setDaemon(true);
+        
+        return t;
+    }
+
 }

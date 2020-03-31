@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client;
+package com.bonree.brfs.client.utils;
 
 import static com.bonree.brfs.client.utils.Strings.format;
 import static java.util.Objects.requireNonNull;
@@ -21,7 +21,8 @@ import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.client.Retryable.Result;
+import com.bonree.brfs.client.ClientException;
+import com.bonree.brfs.client.utils.Retryable.Result;
 
 public final class Retrys {
     

@@ -127,6 +127,18 @@ public class StorageRegionResource {
     }
     
     @GET
+    @Path("id/{srName}")
+    @Produces(APPLICATION_JSON)
+    public Response getStorageRegionID(@PathParam("srName") String name) {
+        StorageRegion node = storageRegionManager.findStorageRegionByName(name);
+        if(node == null) {
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        
+        return Response.ok().entity(new StorageRegionID(node.getName(), node.getId())).build();
+    }
+    
+    @GET
     @Path("{srName}")
     @Produces(APPLICATION_JSON)
     public Response getStoargeRegion(

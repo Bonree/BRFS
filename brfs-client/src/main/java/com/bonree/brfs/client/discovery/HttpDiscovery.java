@@ -13,17 +13,21 @@
  */
 package com.bonree.brfs.client.discovery;
 
+import static com.bonree.brfs.client.utils.Strings.format;
 import static com.google.common.net.HttpHeaders.ACCEPT;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 import com.bonree.brfs.client.ClientException;
 import com.bonree.brfs.client.json.JsonCodec;
+import com.bonree.brfs.client.utils.Retrys;
+import com.bonree.brfs.client.utils.URIRetryable;
+import com.bonree.brfs.client.utils.URIRetryable.TaskResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.net.MediaType;
 
@@ -35,46 +39,59 @@ import okhttp3.ResponseBody;
 
 public class HttpDiscovery implements Discovery {
     private final OkHttpClient httpClient;
-    private final URI seedUri;
+    private final List<URI> seedUris;
     private final JsonCodec jsonCodec;
     
     public HttpDiscovery(
             OkHttpClient httpClient,
-            URI seedUri,
+            URI[] seedUri,
             JsonCodec jsonCodec) {
         this.httpClient = requireNonNull(httpClient, "http client is null");
-        this.seedUri = requireNonNull(seedUri, "seed Uri is null");
+        this.seedUris = Arrays.asList(requireNonNull(seedUri));
         this.jsonCodec = requireNonNull(jsonCodec, "jsonCodec is null");
     }
 
     public List<ServerNode> getServiceList(ServiceType type) {
-        HttpUrl url = HttpUrl.get(seedUri);
-        if (url == null) {
-            throw new ClientException("Invalid seed URL: " + seedUri);
-        }
-        
-        Request request = new Request.Builder()
-                .url(url.newBuilder()
-                        .encodedPath("/servers")
-                        .addEncodedPathSegment(type.name().toLowerCase(Locale.ENGLISH))
-                        .build())
-                .addHeader(ACCEPT, MediaType.JSON_UTF_8.toString())
-                .build();
-        
-        try(Response response = httpClient.newCall(request).execute()) {
-            if(response.code() != 200) {
-                throw new ClientException("fetch service nodes[%s] failed with code[%d]", type, response.code());
-            }
-            
-            ResponseBody body = response.body();
-            if(body == null) {
-                throw new NullPointerException("No content from get-service response");
-            }
-            
-            return jsonCodec.fromJsonBytes(body.bytes(), new TypeReference<List<ServerNode>>() {});
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return Retrys.execute(new URIRetryable<List<ServerNode>>(
+                format("get service list of [%s]", type),
+                seedUris,
+                uri -> {
+                    HttpUrl url = HttpUrl.get(uri);
+                    if (url == null) {
+                        throw new ClientException("Invalid seed URL: %s", uri);
+                    }
+                    
+                    Request request = new Request.Builder()
+                            .url(url.newBuilder()
+                                    .encodedPath("/servers")
+                                    .addEncodedPathSegment(type.name().toLowerCase(Locale.ENGLISH))
+                                    .build())
+                            .addHeader(ACCEPT, MediaType.JSON_UTF_8.toString())
+                            .build();
+                    
+                    try(Response response = httpClient.newCall(request).execute()) {
+                        if(response.code() != 200) {
+                            return TaskResult.fail(
+                                    new ClientException("fetch service nodes[%s] failed with code[%d]",
+                                            type,
+                                            response.code()));
+                        }
+                        
+                        ResponseBody body = response.body();
+                        if(body == null) {
+                            return TaskResult.fail(new NullPointerException("No content from get-service response"));
+                        }
+                        
+                        return TaskResult.success(jsonCodec.fromJsonBytes(body.bytes(), new TypeReference<List<ServerNode>>() {}));
+                    } catch (IOException e) {
+                        return TaskResult.retry(e);
+                    }
+                }));
     }
 
+    @Override
+    public void close() throws IOException {
+        // Nothing to close
+    }
+    
 }

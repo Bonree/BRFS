@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client;
+package com.bonree.brfs.client.utils;
 
 public interface Retryable<T> {
     String getDescription();
