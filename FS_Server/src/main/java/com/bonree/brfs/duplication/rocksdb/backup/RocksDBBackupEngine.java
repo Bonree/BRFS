@@ -109,7 +109,7 @@ public class RocksDBBackupEngine implements LifeCycle {
     }
 
     public int createNewBackup() throws RocksDBException {
-        backupEngine.createNewBackup(rocksDBManager.getRocksDB(), true);
+        backupEngine.createNewBackup(rocksDBManager.getRocksDB());
         List<BackupInfo> backupInfos = backupEngine.getBackupInfo();
         return backupInfos.get(backupInfos.size() - 1).backupId();
     }
