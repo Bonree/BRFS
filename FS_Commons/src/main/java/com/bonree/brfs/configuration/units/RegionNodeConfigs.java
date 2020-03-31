@@ -2,6 +2,7 @@ package com.bonree.brfs.configuration.units;
 
 import java.io.File;
 
+import com.bonree.brfs.common.net.http.netty.DefaultNettyHandleResultCallback;
 import com.bonree.brfs.configuration.ConfigUnit;
 import com.bonree.brfs.configuration.SystemProperties;
 
@@ -40,6 +41,14 @@ public final class RegionNodeConfigs {
 	
 	public static final ConfigUnit<Integer> CONFIG_CLOSER_THREAD_NUM =
 			ConfigUnit.ofInt("regionnode.file.closer.thead_num", 1);
-	
+
+	public static final ConfigUnit<Long> CONFIG_BLOCK_SIZE =
+			ConfigUnit.ofLong("regionnode.block.size", 64 * 1024);
+
+	public static final ConfigUnit<Integer> CONFIG_BLOCK_POOL_CAPACITY =
+			ConfigUnit.ofInt("regionnode.block.pool.capacity", 10);
+	public static final ConfigUnit<Integer> CONFIG_BLOCK_POOL_INIT_COUNT =
+			ConfigUnit.ofInt("regionnode.block.pool.init.count", 1);
+
 	private RegionNodeConfigs() {}
 }
