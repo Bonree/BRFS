@@ -21,6 +21,10 @@ import java.util.concurrent.Executors;
 
 import javax.inject.Singleton;
 
+import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
+import com.bonree.brfs.duplication.datastream.handler.WriteStreamDataMessageHandler;
+import com.bonree.brfs.duplication.datastream.writer.*;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +78,6 @@ import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizer;
 import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.ReadDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.WriteDataMessageHandler;
-import com.bonree.brfs.duplication.datastream.writer.DefaultStorageRegionWriter;
-import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
-import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
@@ -144,7 +145,6 @@ public class RegionNodeModule implements Module {
         binder.bind(DataEngineManager.class).to(DefaultDataEngineManager.class).in(Scopes.SINGLETON);
         
         binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
-        
         jaxrs(binder).resource(StorageRegionResource.class);
         jaxrs(binder).resource(Datasource.class);
         jaxrs(binder).resource(DiscoveryResource.class);
@@ -282,6 +282,7 @@ public class RegionNodeModule implements Module {
             Lifecycle lifecycle
             ) {
         String URI_DATA_ROOT = "/data";
+        String URI_STREAM_DATA_ROOT = "streamData";
         String URI_STORAGE_REGION_ROOT = "/sr";
         
         int workerThreadNum = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_SERVER_IO_THREAD_NUM);
@@ -316,6 +317,18 @@ public class RegionNodeModule implements Module {
         requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
         requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(paths, serviceManager, storageRegionManager));
         httpServer.addContextHandler(URI_DATA_ROOT, requestHandler);
+
+
+        long blocksize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
+        int blockpool = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
+        Integer initCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_INIT_COUNT);
+
+        BlockPool blockPool = new BlockPool(blocksize, blockpool, initCount);
+        BlockManager blockManager = new BlockManager(blockPool, storageRegionWriter);
+        NettyHttpRequestHandler streamRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+        streamRequestHandler.addMessageHandler("Post",new WriteStreamDataMessageHandler(storageRegionWriter,blockManager));
+        httpServer.addContextHandler(URI_STREAM_DATA_ROOT,streamRequestHandler);
+
 
         NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
         snRequestHandler.addMessageHandler("PUT", new CreateStorageRegionMessageHandler(storageRegionManager));
