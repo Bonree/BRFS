@@ -74,6 +74,8 @@ public class ResourceWriteSelector implements DuplicateNodeSelector{
                 sBuild.append(i).append(":").append(next.getServerId()).append("(").append(next.getHost()).append(", remainSize").append(next.getLocalRemainSizeValue(srName)).append("b ), ");
             }
             LOG.info("{}",sBuild.toString());
+
+
             return duplicateNodes;
         } finally{
             long stop = System.currentTimeMillis();

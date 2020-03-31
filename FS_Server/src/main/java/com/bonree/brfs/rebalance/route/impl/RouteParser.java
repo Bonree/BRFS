@@ -1,67 +1,43 @@
-/*******************************************************************************
- * 版权信息： 北京博睿宏远数据科技股份有限公司
- * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
- * @date 2020年03月19日 16:49:14
- * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @description: 单个StorageRegion路由解析器，
- ******************************************************************************/
-
-package com.bonree.brfs.rebalance.route;
+package com.bonree.brfs.rebalance.route.impl;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.rebalance.route.BlockAnalyzer;
+import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.factory.SingleRouteFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-public class RouteParser {
-    // todo 需要集群级别的二级serverId管理
+/*******************************************************************************
+ * 版权信息： 北京博睿宏远数据科技股份有限公司
+ * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
+ * @date 2020年03月30日 17:18:50
+ * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
+ * @description:
+ ******************************************************************************/
+
+public class RouteParser implements BlockAnalyzer {
+    private static final Logger LOG = LoggerFactory.getLogger(RouteLoader.class);
     private int storageRegionID;
     private Map<String, NormalRouteInterface> normalRouteTree = new HashMap<>();
     private Map<String, VirtualRoute> virtualRouteRelationship = new HashMap<>();
-    private CuratorClient curatorClient;
-    private String normalRoutePath;
-    private String virtualRoutePath;
+    private RouteLoader loader = null;
 
 
-    public RouteParser(int storageRegionID, CuratorClient curatorClient, String routePath){
+    public RouteParser(int storageRegionID,RouteLoader loader){
         this.storageRegionID = storageRegionID;
-        this.curatorClient = curatorClient;
-        this.normalRoutePath = routePath + Constants.SEPARATOR + Constants.NORMAL_ROUTE + Constants.SEPARATOR + storageRegionID;
-        this.virtualRoutePath = routePath+ Constants.SEPARATOR + Constants.VIRTUAL_ROUTE + Constants.SEPARATOR+storageRegionID;
-        load();
-    }
-
-    /**
-     * 从zookeeper加载路由规则
-     */
-    public void load(){
-        if (curatorClient.checkExists(virtualRoutePath)) {
-            List<String> virtualNodes = curatorClient.getChildren(virtualRoutePath);
-            if (virtualNodes != null && !virtualNodes.isEmpty()) {
-                for (String virtualNode : virtualNodes) {
-                    String dataPath = virtualRoutePath + Constants.SEPARATOR + virtualNode;
-                    byte[] data = curatorClient.getData(dataPath);
-                    VirtualRoute virtual = SingleRouteFactory.createVirtualRoute(data);
-                    virtualRouteRelationship.put(virtual.getVirtualID(), virtual);
-                }
-            }
-        }
-        if (curatorClient.checkExists(normalRoutePath)) {
-            List<String> normalNodes = curatorClient.getChildren(normalRoutePath);
-            if (normalNodes != null && !normalNodes.isEmpty()) {
-                for (String normalNode : normalNodes) {
-                    String dataPath = normalRoutePath + Constants.SEPARATOR + normalNode;
-                    byte[] data = curatorClient.getData(dataPath);
-                    NormalRouteInterface normal = SingleRouteFactory.createRoute(data);
-                    normalRouteTree.put(normal.getBaseSecondId(), normal);
-                }
-            }
-        }
+        this.loader = loader;
+        update();
     }
 
     /**
@@ -69,6 +45,7 @@ public class RouteParser {
      * @param fileBocker
      * @return serverids
      */
+    @Override
     public String[] searchVaildIds(String fileBocker){
         // 1.分解文件块的名称
         Pair<String,List<String>> pair = analyzingFileName(fileBocker);
@@ -91,9 +68,32 @@ public class RouteParser {
         return secondIds.toArray(new String[0]);
     }
 
+    @Override
+    public void update() {
+        try {
+            Collection<VirtualRoute> virtualRoutes = this.loader.loadVirtualRoutes(this.storageRegionID);
+            Collection<NormalRouteInterface>normalRoutes = this.loader.loadNormalRoutes(this.storageRegionID);
+            if(virtualRoutes != null && !virtualRoutes.isEmpty()){
+
+            }
+            if(normalRoutes !=null && !normalRoutes.isEmpty()){
+                for(NormalRouteInterface normal : normalRoutes){
+                    this.normalRouteTree.put(normal.getBaseSecondId(),normal);
+                }
+            }
+            if(virtualRoutes !=null && !virtualRoutes.isEmpty()){
+                for(VirtualRoute virtualRoute : virtualRoutes){
+                    this.virtualRouteRelationship.put(virtualRoute.getVirtualID(),virtualRoute);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("load data happen error !!");
+        }
+    }
+
     /**
      * 单个服务检索
-     * todo 性能可以进一步提升，uuid事先计算出数值
+     * 性能可以进一步提升，uuid事先计算出数值
      * @param fileCode
      * @param secondId
      * @param excludeSecondIds

@@ -1,4 +1,4 @@
-package com.bonree.brfs.identification;
+package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
 import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
@@ -8,13 +8,13 @@ import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/****************************************************************************************
+/*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
- * @date 2020-03-24 14:10:28
+ * @date 2020年03月27日 15:22:31
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @description: 生成磁盘id序号服务
- ****************************************************************************************/
+ * @description:
+ ******************************************************************************/
 public class DiskNodeIDImpl implements LevelServerIDGen {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskNodeIDImpl.class);
 
