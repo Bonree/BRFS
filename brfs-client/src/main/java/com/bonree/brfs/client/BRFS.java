@@ -22,11 +22,11 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.util.Iterator;
+import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
-import com.bonree.brfs.client.Retrys.MultiObjectRetryable;
 import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.Discovery.ServiceType;
 import com.bonree.brfs.client.json.JsonCodec;
@@ -36,7 +36,13 @@ import com.bonree.brfs.client.storageregion.StorageRegionID;
 import com.bonree.brfs.client.storageregion.StorageRegionInfo;
 import com.bonree.brfs.client.storageregion.UpdateStorageRegionRequest;
 import com.bonree.brfs.client.utils.HttpStatus;
+import com.bonree.brfs.client.utils.Retrys;
+import com.bonree.brfs.client.utils.URIRetryable;
+import com.bonree.brfs.client.utils.URIRetryable.TaskResult;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -52,14 +58,32 @@ public class BRFS implements BRFSClient {
     
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     
+    private static final Duration DEFAULT_EXPIRE_DURATION = Duration.ofMinutes(30);
+    private static final Duration DEFAULT_REFRESH_DURATION = Duration.ofMinutes(10);
+    
     private final OkHttpClient httpClient;
     private final Discovery discovery;
     private final JsonCodec codec;
     
-    public BRFS(OkHttpClient httpClient, Discovery discovery, JsonCodec codec) {
+    private final LoadingCache<String, Integer> storageRegionCache;
+    
+    public BRFS(ClientConfiguration config, OkHttpClient httpClient, Discovery discovery, JsonCodec codec) {
         this.httpClient = requireNonNull(httpClient, "http client is null");
         this.discovery = requireNonNull(discovery, "discovery is null");
         this.codec = requireNonNull(codec, "codec is null");
+        
+        this.storageRegionCache = CacheBuilder.newBuilder()
+                .expireAfterWrite(Optional.ofNullable(config.getDiscoveryExpiredDuration()).orElse(DEFAULT_EXPIRE_DURATION))
+                .refreshAfterWrite(Optional.ofNullable(config.getStorageRegionCacheRefreshDuration()).orElse(DEFAULT_REFRESH_DURATION))
+                .build(new CacheLoader<String, Integer>() {
+
+                    @Override
+                    public Integer load(String srName) throws Exception {
+                        StorageRegionID id = getStorageRegionIDFromRemote(srName);
+                        return id.getId();
+                    }
+                    
+                });
     }
 
     public StorageRegionID createStorageRegion(CreateStorageRegionRequest request) throws Exception {
@@ -83,6 +107,50 @@ public class BRFS implements BRFSClient {
                         if(response.code() == HttpStatus.CODE_CONFLICT) {
                             return TaskResult.fail(new BRFSException("Storage Region[%s] is existed",
                                     request.getStorageRegionName()));
+                        }
+                        
+                        if(response.code() == HttpStatus.CODE_OK) {
+                            ResponseBody responseBody = response.body();
+                            if(responseBody == null) {
+                                return TaskResult.fail(new IllegalStateException("No response content is found"));
+                            }
+                            
+                            return TaskResult.success(codec.fromJsonBytes(responseBody.bytes(), StorageRegionID.class));
+                        }
+                        
+                        return TaskResult.fail(new IllegalStateException(format("Server error[%d]", response.code())));
+                    } catch (IOException e) {
+                        return TaskResult.retry(e);
+                    }
+                }));
+    }
+    
+    private int getStorageRegionID(String srName) throws BRFSException {
+        try {
+            return storageRegionCache.get(srName);
+        } catch (ExecutionException e) {
+            throw new BRFSException(e, "Can not get id of storage region[%s]", srName);
+        }
+    }
+    
+    private StorageRegionID getStorageRegionIDFromRemote(String srName) {
+        return Retrys.execute(new URIRetryable<StorageRegionID> (
+                format("get the id of storage region[%s]", srName),
+                getNodeHttpLocations(ServiceType.REGION),
+                uri -> {
+                    Request httpRequest = new Request.Builder()
+                            .url(HttpUrl.get(uri)
+                                    .newBuilder()
+                                    .encodedPath("/sr/id")
+                                    .addEncodedPathSegment(srName)
+                                    .build())
+                            .get()
+                            .build();
+                    
+                    try {
+                        Response response = httpClient.newCall(httpRequest).execute();
+                        if(response.code() == HttpStatus.CODE_NOT_FOUND) {
+                            return TaskResult.fail(new BRFSException("Storage Region[%s] is not existed", srName));
                         }
                         
                         if(response.code() == HttpStatus.CODE_OK) {
@@ -349,118 +417,9 @@ public class BRFS implements BRFSClient {
     public void close() throws IOException {
         httpClient.dispatcher().executorService().shutdown();
         httpClient.connectionPool().evictAll();
+        
+        discovery.close();
     }
     
-    private class URIRetryable<T> extends MultiObjectRetryable<T, URI> {
-        private final AtomicBoolean retryable = new AtomicBoolean(true);
-        
-        private final Task<T> task;
-        
-        public URIRetryable(String description, Iterable<URI> iterable, Task<T> task) {
-            this(description, iterable.iterator(), task);
-        }
-
-        public URIRetryable(String description, Iterator<URI> iter, Task<T> task) {
-            super(description, iter);
-            this.task = requireNonNull(task, "task is null");
-        }
-
-        @Override
-        protected Throwable noMoreObjectError() {
-            return new NoNodeException("no node is found for task[%s]!", getDescription());
-        }
-
-        @Override
-        protected boolean continueRetry() {
-            return retryable.get();
-        }
-
-        @Override
-        protected T execute(URI uri) throws Exception {
-            TaskResult<T> result = task.execute(uri);
-            if(result.isCompleted()) {
-                retryable.set(false);
-                if(result.getCause() != null) {
-                    throw result.getCause();
-                }
-                
-                return result.getResult();
-            }
-            
-            throw requireNonNull(result.getCause());
-        }
-        
-    }
     
-    private static interface Task<T> {
-        TaskResult<T> execute(URI uri);
-    }
-    
-    private static interface TaskResult<T> {
-        boolean isCompleted();
-        
-        Exception getCause();
-        
-        T getResult();
-        
-        static <T> TaskResult<T> success(T result) {
-            return new TaskResult<T>() {
-
-                @Override
-                public boolean isCompleted() {
-                    return true;
-                }
-
-                @Override
-                public Exception getCause() {
-                    return null;
-                }
-
-                @Override
-                public T getResult() {
-                    return result;
-                }
-            };
-        }
-        
-        static <T> TaskResult<T> fail(Exception cause) {
-            return new TaskResult<T>() {
-
-                @Override
-                public boolean isCompleted() {
-                    return true;
-                }
-
-                @Override
-                public Exception getCause() {
-                    return cause;
-                }
-
-                @Override
-                public T getResult() {
-                    return null;
-                }
-            };
-        }
-        
-        static <T> TaskResult<T> retry(Exception cause) {
-            return new TaskResult<T>() {
-
-                @Override
-                public boolean isCompleted() {
-                    return false;
-                }
-
-                @Override
-                public Exception getCause() {
-                    return cause;
-                }
-
-                @Override
-                public T getResult() {
-                    return null;
-                }
-            };
-        }
-    }
 }

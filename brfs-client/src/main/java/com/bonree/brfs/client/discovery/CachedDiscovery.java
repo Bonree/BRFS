@@ -13,8 +13,10 @@
  */
 package com.bonree.brfs.client.discovery;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
@@ -36,16 +38,12 @@ public class CachedDiscovery implements Discovery {
     private final LoadingCache<ServiceType, List<ServerNode>> nodeCache;
     private final ListeningExecutorService refreshExecutor;
     
-    public CachedDiscovery(Discovery delegate, ExecutorService refreshExecutor) {
-        this(delegate, refreshExecutor, DEFAULT_EXPIRE_DURATION, DEFAULT_REFRESH_DURATION);
-    }
-    
     public CachedDiscovery(Discovery delegate, ExecutorService refreshExecutor, Duration expiredTime, Duration refreshTime) {
         this.delegate = delegate;
         this.refreshExecutor = MoreExecutors.listeningDecorator(refreshExecutor);
         this.nodeCache = CacheBuilder.newBuilder()
-                .expireAfterWrite(expiredTime)
-                .refreshAfterWrite(refreshTime)
+                .expireAfterWrite(Optional.ofNullable(expiredTime).orElse(DEFAULT_EXPIRE_DURATION))
+                .refreshAfterWrite(Optional.ofNullable(refreshTime).orElse(DEFAULT_REFRESH_DURATION))
                 .build(new NodeLoader());
     }
 
@@ -70,5 +68,10 @@ public class CachedDiscovery implements Discovery {
             return refreshExecutor.submit(() -> load(type));
         }
         
+    }
+
+    @Override
+    public void close() throws IOException {
+        refreshExecutor.shutdown();
     }
 }

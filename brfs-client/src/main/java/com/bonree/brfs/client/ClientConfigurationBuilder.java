@@ -13,18 +13,106 @@
  */
 package com.bonree.brfs.client;
 
-public interface ClientConfigurationBuilder {
-    void setUser(String user);
+import java.net.URI;
+import java.time.Duration;
+
+public class ClientConfigurationBuilder {
+    private URI[] addresses;
+    private String user;
+    private String passwd;
+    private Duration discoveryExpire;
+    private Duration discoveryRefresh;
+    private Duration storageRegionCacheExpire;
+    private Duration storageRegionCacheRefresh;
+    private int connectionPoolSize;
+    private int threadNum;
+
+    ClientConfigurationBuilder() {
+    }
     
-    void setPasswd(String passwd);
+    public void setRegionNodeAddresses(URI[] addresses) {
+        this.addresses = addresses;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public void setPasswd(String passwd) {
+        this.passwd = passwd;
+    }
     
-    void setRegionNodeGroup(String group);
+    public void setDiscoveryExpiredDuration(Duration expire) {
+        this.discoveryExpire = expire;
+    }
     
-    void setDataNodeGroup(String group);
+    public void setDiscoreryRefreshDuration(Duration refresh) {
+        this.discoveryRefresh = refresh;
+    }
     
-    void setConnectionPoolSize(int size);
+    public void setStorageRegionCacheExpiredDuration(Duration expire) {
+        this.storageRegionCacheExpire = expire;
+    }
     
-    void setThreadNum(int threads);
-    
-    ClientConfiguration build();
+    public void setStorageRegionCacheRefreshDuration(Duration refresh) {
+        this.storageRegionCacheRefresh = refresh;
+    }
+
+    public void setConnectionPoolSize(int connectionPoolSize) {
+        this.connectionPoolSize = connectionPoolSize;
+    }
+
+    public void setThreadNum(int threadNum) {
+        this.threadNum = threadNum;
+    }
+
+    public ClientConfiguration build() {
+        return new ClientConfiguration() {
+            
+            @Override
+            public String getUser() {
+                return user;
+            }
+            
+            @Override
+            public int getThreadNum() {
+                return threadNum;
+            }
+            
+            @Override
+            public String getPasswd() {
+                return passwd;
+            }
+            
+            @Override
+            public int getConnectionPoolSize() {
+                return connectionPoolSize;
+            }
+
+            @Override
+            public URI[] getRegionNodeAddresses() {
+                return addresses;
+            }
+
+            @Override
+            public Duration getDiscoveryExpiredDuration() {
+                return discoveryExpire;
+            }
+
+            @Override
+            public Duration getDiscoreryRefreshDuration() {
+                return discoveryRefresh;
+            }
+
+            @Override
+            public Duration getStorageRegionCacheExpireDuration() {
+                return storageRegionCacheExpire;
+            }
+
+            @Override
+            public Duration getStorageRegionCacheRefreshDuration() {
+                return storageRegionCacheRefresh;
+            }
+        };
+    }
 }
