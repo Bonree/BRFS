@@ -45,10 +45,32 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
 	}
 
 	public void write(int storageRegionId, byte[] data,StorageRegionWriteCallback callback){
-		DataItem dataItem = new DataItem();
-		dataItem.setBytes(data);
-		write(storageRegionId,new DataItem[]{dataItem},callback);
+		DataEngine dataEngine = dataEngineManager.getDataEngine(storageRegionId);
+		if(dataEngine == null) {
+			LOG.error("can not get data engine by region[id={}]", storageRegionId);
+			callback.error();
+			return;
+		}
+		if(data == null){
+			LOG.error("写入数据为空！");
+			callback.error();
+			return;
+		}
+		dataEngine.store(data, new SingleDataCallback(callback));
 		LOG.debug("写入一条数据到datapool！" );
+	}
+	private static class SingleDataCallback implements DataStoreCallback {
+		private StorageRegionWriteCallback callback;
+
+		public SingleDataCallback(StorageRegionWriteCallback callback) {
+			this.callback = callback;
+		}
+
+		@Override
+		public void dataStored(String storeToken) {
+			callback.complete(storeToken);
+		}
+
 	}
 	private static class DataCallback implements DataStoreCallback {
 		private final int index;
