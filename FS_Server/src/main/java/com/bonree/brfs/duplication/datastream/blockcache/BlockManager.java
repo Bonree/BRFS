@@ -4,8 +4,8 @@ import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.duplication.datastream.writer.PureStorageRegionWriter;
-import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
+import com.bonree.brfs.duplication.datastream.writer.*;
+import com.google.common.base.Defaults;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.monitor.FileEntry;
 import org.slf4j.Logger;
@@ -36,16 +36,16 @@ public class BlockManager {
     //    private static FileOnConstruction INSTANCE ;
     private BlockPool blockPool;
 
-    private PureStorageRegionWriter writer;
+    private DefaultStorageRegionWriter writer;
 
     private volatile AtomicBoolean isAquireNewBlock = new AtomicBoolean();
 
     ReentrantLock lock = new ReentrantLock();
     Condition noAquireNewBlock = lock.newCondition();
 
-    public BlockManager(BlockPool blockPool, PureStorageRegionWriter writer) {
+    public BlockManager(BlockPool blockPool, StorageRegionWriter writer) {
         this.blockPool = blockPool;
-        this.writer = writer;
+        this.writer = (DefaultStorageRegionWriter) writer;
     }
 
     /**
@@ -107,6 +107,7 @@ public class BlockManager {
                 // 释放block
                 blockCache.releaseBlock(storage,fileName,blockOffsetInFile);
                 clearFile(storage,fileName);
+
                 writer.write(storage,realData,
                         new WriteFileCallback(callback,storage,fileName));
                 LOG.debug("在[{}]中写了一个小于等于64M但大于等于64k的小文件[{}]", storage, fileName);
