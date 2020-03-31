@@ -84,7 +84,6 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.6</version>
-			<scope>tests</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.rocksdb</groupId>
