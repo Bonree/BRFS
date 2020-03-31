@@ -84,7 +84,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
     private class DiskPartitionFreeSizeComparator implements Comparator<PartitionInfo> {
         @Override
         public int compare(PartitionInfo o1, PartitionInfo o2) {
-            return Double.compare(o1.getFreeSize(), o2.getFreeSize());
+            return Double.compare(o2.getFreeSize(), o1.getFreeSize());
         }
     }
 
