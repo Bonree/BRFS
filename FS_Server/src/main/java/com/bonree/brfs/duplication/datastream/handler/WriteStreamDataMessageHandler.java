@@ -13,6 +13,7 @@ import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
 import com.bonree.brfs.duplication.datastream.writer.DefaultStorageRegionWriter;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,7 @@ public class WriteStreamDataMessageHandler implements MessageHandler {
     private static final Logger LOG = LoggerFactory.getLogger(WriteStreamDataMessageHandler.class);
     private StorageRegionWriter writer;
     private BlockManager blockManager;
-
+    @Inject
     public WriteStreamDataMessageHandler(StorageRegionWriter writer, BlockManager blockManager) {
         this.writer = writer;
         this.blockManager = blockManager;
