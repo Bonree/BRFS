@@ -32,6 +32,7 @@ public class SimpleFileReceiver implements LifeCycle {
     private ExecutorService bossThread;
     private ExecutorService workThreads;
     private String transferFile;
+    private boolean isRunning;
 
     public SimpleFileReceiver(int transPort, int transThreads, String transferFile) {
         this("0.0.0.0", transPort, transThreads, transferFile);
@@ -45,6 +46,7 @@ public class SimpleFileReceiver implements LifeCycle {
 
         bossThread = Executors.newSingleThreadExecutor(new PooledThreadFactory("file-server"));
         workThreads = Executors.newFixedThreadPool(transThreads, new PooledThreadFactory("file-thread"));
+        isRunning = true;
     }
 
     @Override
@@ -99,20 +101,23 @@ public class SimpleFileReceiver implements LifeCycle {
         @Override
         public void run() {
             try {
-                while (!serverSocket.isClosed()) {
+                while (isRunning) {
+                    if (serverSocket.isClosed()) {
+                        isRunning = false;
+                        break;
+                    }
+
                     final Socket clientSocket = serverSocket.accept();
                     workThreads.execute(() -> {
                         try {
                             receiveFile(clientSocket);
                         } catch (Exception e) {
-                            LOG.error("receiveing file error:", e);
+                            LOG.error("receive file error:", e);
                         }
                     });
                 }
             } catch (Exception e) {
-                if (!(e instanceof InterruptedException)) {
-                    LOG.error("file receiver error:", e);
-                }
+                LOG.error("file receiver error:", e);
             }
         }
 

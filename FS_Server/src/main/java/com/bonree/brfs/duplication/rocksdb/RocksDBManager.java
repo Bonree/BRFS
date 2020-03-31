@@ -19,10 +19,19 @@ public interface RocksDBManager extends LifeCycle {
     /**
      * @param columnFamily 列族名称，对应到SN名称
      * @param key          key
-     * @return value       返回null则表示key不存在或异常
+     * @return value       返回null则表示key不存在或异常，默认本节点读取不到时去其他节点尝试读取
      * @description: 从RocksDB中获取列族为columnFamily的key值
      */
     byte[] read(String columnFamily, byte[] key);
+
+    /**
+     * @param columnFamily  列族名称，对应到SN名称
+     * @param key           key
+     * @param readFormOther 本节点读取不到时是否去其他节点读取
+     * @return value       返回null则表示key不存在或异常
+     * @description: 从RocksDB中获取列族为columnFamily的key值
+     */
+    byte[] read(String columnFamily, byte[] key, boolean readFormOther);
 
     /**
      * @param columnFamily 列族名称，对应到SN名称

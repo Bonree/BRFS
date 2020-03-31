@@ -157,6 +157,47 @@ public class DefaultRocksDBManager implements RocksDBManager {
         }
 
         try {
+            byte[] result = DB.get(this.CF_HANDLES.get(columnFamily), READ_OPTIONS, key);
+            if (result == null) {
+                List<Service> services = serviceManager.getServiceListByGroup(regionGroupName);
+                RegionNodeConnection connection;
+                String queryKey = new String(key);
+                for (Service service : services) {
+                    connection = this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());
+                    if (connection == null || connection.getClient() == null) {
+                        LOG.warn("region node connection/client is null! serviceId:{}", service.getServiceId());
+                        continue;
+                    }
+
+                    if (!localServiceId.equals(service.getServiceId())) {
+                        result = connection.getClient().readData(columnFamily, queryKey);
+                        if (result == null) {
+                            continue;
+                        }
+                        LOG.info("read data from [{}] success, cf:{}, key:{}", service.getServiceId(), columnFamily, queryKey);
+                        return result;
+                    }
+                }
+            }
+            return result;
+        } catch (RocksDBException e) {
+            LOG.error("read occur error, cf:{}, key:{}", columnFamily, new String(key), e);
+            return null;
+        }
+    }
+
+    @Override
+    public byte[] read(String columnFamily, byte[] key, boolean readFormOther) {
+        if (readFormOther) {
+            return read(columnFamily, key);
+        }
+
+        if (null == columnFamily || columnFamily.isEmpty() || null == key) {
+            LOG.warn("read column family is empty or key is null!");
+            return null;
+        }
+
+        try {
             return DB.get(this.CF_HANDLES.get(columnFamily), READ_OPTIONS, key);
         } catch (RocksDBException e) {
             LOG.error("read occur error, cf:{}, key:{}", columnFamily, new String(key), e);
