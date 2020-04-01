@@ -39,6 +39,8 @@ public interface ClientConfiguration {
     
     Duration getStorageRegionCacheRefreshDuration();
     
+    int getDataPackageSize();
+    
     int getConnectionPoolSize();
     
     int getThreadNum();

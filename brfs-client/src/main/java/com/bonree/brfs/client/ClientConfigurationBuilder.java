@@ -24,6 +24,7 @@ public class ClientConfigurationBuilder {
     private Duration discoveryRefresh;
     private Duration storageRegionCacheExpire;
     private Duration storageRegionCacheRefresh;
+    private int dataPackageSize = 16 * 1024;
     private int connectionPoolSize;
     private int threadNum;
 
@@ -56,6 +57,10 @@ public class ClientConfigurationBuilder {
     
     public void setStorageRegionCacheRefreshDuration(Duration refresh) {
         this.storageRegionCacheRefresh = refresh;
+    }
+    
+    public void setDataPackageSize(int size) {
+        this.dataPackageSize = size;
     }
 
     public void setConnectionPoolSize(int connectionPoolSize) {
@@ -112,6 +117,11 @@ public class ClientConfigurationBuilder {
             @Override
             public Duration getStorageRegionCacheRefreshDuration() {
                 return storageRegionCacheRefresh;
+            }
+            
+            @Override
+            public int getDataPackageSize() {
+                return dataPackageSize;
             }
         };
     }

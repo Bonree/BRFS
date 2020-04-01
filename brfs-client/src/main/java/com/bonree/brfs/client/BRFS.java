@@ -16,17 +16,24 @@ package com.bonree.brfs.client;
 import static com.bonree.brfs.client.utils.Strings.format;
 import static java.util.Objects.requireNonNull;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import com.bonree.brfs.client.data.DataSplitter;
+import com.bonree.brfs.client.data.FixedSizeDataSplitter;
 import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.Discovery.ServiceType;
 import com.bonree.brfs.client.json.JsonCodec;
@@ -37,6 +44,7 @@ import com.bonree.brfs.client.storageregion.StorageRegionInfo;
 import com.bonree.brfs.client.storageregion.UpdateStorageRegionRequest;
 import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.client.utils.Retrys;
+import com.bonree.brfs.client.utils.Strings;
 import com.bonree.brfs.client.utils.URIRetryable;
 import com.bonree.brfs.client.utils.URIRetryable.TaskResult;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -44,6 +52,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import okhttp3.HttpUrl;
@@ -57,6 +66,7 @@ import okhttp3.ResponseBody;
 public class BRFS implements BRFSClient {
     
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    public static final MediaType OCTET_STREAM = MediaType.get("application/octet-stream");
     
     private static final Duration DEFAULT_EXPIRE_DURATION = Duration.ofMinutes(30);
     private static final Duration DEFAULT_REFRESH_DURATION = Duration.ofMinutes(10);
@@ -65,12 +75,15 @@ public class BRFS implements BRFSClient {
     private final Discovery discovery;
     private final JsonCodec codec;
     
+    private final DataSplitter dataSplitter;
+    
     private final LoadingCache<String, Integer> storageRegionCache;
     
     public BRFS(ClientConfiguration config, OkHttpClient httpClient, Discovery discovery, JsonCodec codec) {
         this.httpClient = requireNonNull(httpClient, "http client is null");
         this.discovery = requireNonNull(discovery, "discovery is null");
         this.codec = requireNonNull(codec, "codec is null");
+        this.dataSplitter = new FixedSizeDataSplitter(config.getDataPackageSize());
         
         this.storageRegionCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(Optional.ofNullable(config.getDiscoveryExpiredDuration()).orElse(DEFAULT_EXPIRE_DURATION))
@@ -346,18 +359,71 @@ public class BRFS implements BRFSClient {
     }
 
     public PutObjectResult putObject(String srName, byte[] bytes) {
-        // TODO Auto-generated method stub
-        return null;
+        return putObject(srName, new ByteArrayInputStream(bytes));
     }
 
     public PutObjectResult putObject(String srName, File file) {
-        // TODO Auto-generated method stub
+        try(FileInputStream input = new FileInputStream(file)) {
+            return putObject(srName, input);
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
         return null;
     }
 
     public PutObjectResult putObject(String srName, InputStream input) {
-        // TODO Auto-generated method stub
-        return null;
+        Iterator<RequestBody> requestContents = Iterators.transform(
+                dataSplitter.split(input),
+                buffer -> buildRequestBody(buffer, OCTET_STREAM));
+        
+        if(!requestContents.hasNext()) {
+            throw new IllegalArgumentException(Strings.format("No content to write for sr[%s]", srName));
+        }
+        
+        RequestBody firstContent = requestContents.next();
+        return Retrys.execute(new URIRetryable<PutObjectResult> (
+                format("put object to storage region[%s]", srName),
+                getNodeHttpLocations(ServiceType.REGION),
+                uri -> {
+                    Request httpRequest = new Request.Builder()
+                            .url(HttpUrl.get(uri)
+                                    .newBuilder()
+                                    .encodedPath("/data")
+                                    .addEncodedPathSegment(srName)
+                                    .build())
+                            .post(null)
+                            .build();
+                    
+                    try {
+                        Response response = httpClient.newCall(httpRequest).execute();
+                        if(response.code() == HttpStatus.CODE_NOT_FOUND) {
+                            return TaskResult.fail(new BRFSException("Storage Region[%s] is not existed", srName));
+                        }
+                        
+                        if(response.code() == HttpStatus.CODE_FORBIDDEN) {
+                            return TaskResult.fail(new BRFSException("Storage Region[%s] is not enabled", srName));
+                        }
+                        
+                        if(response.code() == HttpStatus.CODE_OK) {
+                            ResponseBody body = response.body();
+                            if(body == null) {
+//                                throw new BRFSException("No result is return by Server when put object to [%s]", srName);
+                            }
+                            
+                            // TODO get fid
+                            TaskResult.success(null);
+                        }
+                        
+                        return TaskResult.fail(new IllegalStateException(format("Server error[%d]", response.code())));
+                    } catch (IOException e) {
+                        return TaskResult.retry(e);
+                    }
+                }));
     }
 
     public PutObjectResult putObject(String srName, Path objectPath, byte[] bytes) {
@@ -421,5 +487,18 @@ public class BRFS implements BRFSClient {
         discovery.close();
     }
     
-    
+    private static RequestBody buildRequestBody(ByteBuffer buffer, MediaType contentType) {
+        if(buffer.hasArray()) {
+            return RequestBody.create(
+                    buffer.array(),
+                    contentType,
+                    buffer.arrayOffset() + buffer.position(),
+                    buffer.remaining());
+        }
+        
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
+        
+        return RequestBody.create(bytes, contentType);
+    }
 }
