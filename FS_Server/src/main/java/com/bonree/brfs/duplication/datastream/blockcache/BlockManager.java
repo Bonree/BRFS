@@ -761,7 +761,7 @@ public class BlockManager {
                         "的block" + block +
                         "已经flush";
                 LOG.debug(response);
-                result.setCONTINUE(true);
+                result.setCONTINUE();
                 result.setData(JsonUtils.toJsonBytes(response));
             } catch (JsonUtils.JsonException e) {
                 LOG.error("can not json fids", e);
