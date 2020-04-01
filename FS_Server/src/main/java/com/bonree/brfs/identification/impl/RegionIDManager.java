@@ -36,6 +36,16 @@ public class RegionIDManager implements RouteLoader, SecondIdsInterface {
     }
 
     @Override
+    public String getSecondId(String partitionId, int storageRegionId) {
+        return null;
+    }
+
+    @Override
+    public String getFirstId(String secondId, int storageRegionId) {
+        return null;
+    }
+
+    @Override
     public Collection<VirtualRoute> loadVirtualRoutes(int storageRegionId) throws Exception {
         return this.loader.loadVirtualRoutes(storageRegionId);
     }

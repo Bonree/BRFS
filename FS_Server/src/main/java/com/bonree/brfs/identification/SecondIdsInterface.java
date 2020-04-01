@@ -19,4 +19,20 @@ public interface SecondIdsInterface {
      * @return
      */
     Collection<String> getSecondIds( String serverId, int storageRegionId);
+
+    /**
+     * 获取二级serverid
+     * @param partitionId
+     * @param storageRegionId
+     * @return
+     */
+    String getSecondId(String partitionId,int storageRegionId);
+
+    /**
+     * 根据 storageId+secondid 获取一级serverId
+     * @param secondId
+     * @param storageRegionId
+     * @return
+     */
+    String getFirstId(String secondId, int storageRegionId);
 }
