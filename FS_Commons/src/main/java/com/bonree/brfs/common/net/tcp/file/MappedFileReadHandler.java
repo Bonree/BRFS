@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.delivery.ProducerClient;
+import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.supervisor.ReadMetric;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.BufferUtils;
@@ -41,6 +41,8 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObject>{
     private static final Logger LOG = LoggerFactory.getLogger(MappedFileReadHandler.class);
 
+    private final Deliver deliver;
+    
     private ReadObjectTranslator translator;
     private ExecutorService releaseRunner = Executors.newSingleThreadExecutor(new ThreadFactory(){
 
@@ -81,7 +83,8 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         }
     });
 
-    public MappedFileReadHandler(ReadObjectTranslator translator){
+    public MappedFileReadHandler(ReadObjectTranslator translator, Deliver deliver){
+        this.deliver = deliver;
         this.translator = translator;
         this.releaseRunner.execute(() -> {
             while(true) {
@@ -157,7 +160,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
                 	readMetric.setElapsedTime(timeWatcher.getElapsedTime());
                     ref.release();
                     
-                    ProducerClient.getInstance().sendReaderMetric(readMetric.toMap());
+                    deliver.sendReaderMetric(readMetric.toMap());
                 }
             }).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         } catch(ExecutionException e){

@@ -15,6 +15,8 @@ package com.bonree.brfs.common.jackson;
 
 import javax.inject.Singleton;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,16 +37,32 @@ public class JsonModule implements Module {
     @Json
     @Singleton
     public ObjectMapper jsonMapper() {
-        return new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .configure(MapperFeature.AUTO_DETECT_GETTERS, false)
-                // See https://github.com/FasterXML/jackson-databind/issues/170
-                // configure(MapperFeature.AUTO_DETECT_CREATORS, false);
-                .configure(MapperFeature.AUTO_DETECT_FIELDS, false)
-                .configure(MapperFeature.AUTO_DETECT_IS_GETTERS, false)
-                .configure(MapperFeature.AUTO_DETECT_SETTERS, false)
-                .configure(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS, false)
-                .configure(SerializationFeature.INDENT_OUTPUT, false)
-                .configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, false);
+        ObjectMapper objectMapper = new ObjectMapper(new JsonFactory());
+
+        // ignore unknown fields (for backwards compatibility)
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+        // do not allow converting a float to an integer
+        objectMapper.disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT);
+
+        // use ISO dates
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        // Skip fields that are null or absent (Optional) when serializing objects.
+        // This only applies to mapped object fields, not containers like Map or List.
+        objectMapper.setDefaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_ABSENT, JsonInclude.Include.ALWAYS));
+
+        // disable auto detection of json properties... all properties must be explicit
+        objectMapper.disable(MapperFeature.AUTO_DETECT_CREATORS);
+        objectMapper.disable(MapperFeature.AUTO_DETECT_FIELDS);
+        objectMapper.disable(MapperFeature.AUTO_DETECT_SETTERS);
+        objectMapper.disable(MapperFeature.AUTO_DETECT_GETTERS);
+        objectMapper.disable(MapperFeature.AUTO_DETECT_IS_GETTERS);
+        objectMapper.disable(MapperFeature.USE_GETTERS_AS_SETTERS);
+        objectMapper.disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        objectMapper.disable(MapperFeature.INFER_PROPERTY_MUTATORS);
+        objectMapper.disable(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS);
+
+        return objectMapper;
     }
 }

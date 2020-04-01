@@ -28,6 +28,7 @@ import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.Lifecycle.LifeCycleObject;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
+import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.tcp.MessageChannelInitializer;
 import com.bonree.brfs.common.net.tcp.ServerConfig;
 import com.bonree.brfs.common.net.tcp.TcpServer;
@@ -90,6 +91,8 @@ public class DataNodeModule implements Module {
         
         binder.requestStaticInjection(CuratorCacheFactory.class);
         binder.requestStaticInjection(InitTaskManager.class);
+        
+        binder.bind(Deliver.class).toInstance(Deliver.NOOP);
         
         LifecycleModule.register(binder, Service.class);
         LifecycleModule.register(binder, ServerChangeTaskGenetor.class);
@@ -318,6 +321,7 @@ public class DataNodeModule implements Module {
     @Singleton
     @DataRead
     public TcpServer getReadServer(
+            Deliver deliver,
             DiskContext diskContext,
             FileFormater fileFormater,
             Lifecycle lifecycle) {
@@ -344,7 +348,7 @@ public class DataNodeModule implements Module {
                         return diskContext.getConcreteFilePath(path);
                 }
                 
-        });
+        }, deliver);
         
         TcpServer fileServer = new TcpServer(fileServerConfig, fileInitializer);
         lifecycle.addLifeCycleObject(new LifeCycleObject() {

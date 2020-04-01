@@ -1,12 +1,4 @@
-package com.bonree.brfs.common.delivery;
-
-import com.bonree.bigdata.zeus.delivery.handler.Callback;
-import com.bonree.bigdata.zeus.delivery.handler.Delivery;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.KafkaConfig;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.bonree.brfs.delivery;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -14,6 +6,16 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.bonree.bigdata.zeus.delivery.handler.Callback;
+import com.bonree.bigdata.zeus.delivery.handler.Delivery;
+import com.bonree.brfs.common.net.Deliver;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.KafkaConfig;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司

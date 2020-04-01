@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.authentication.SimpleAuthenticationModule;
 import com.bonree.brfs.duplication.RegionNodeModule;
 import com.bonree.brfs.email.EmailModule;
+import com.bonree.brfs.netty.NettyHttpServerModule;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Module;
 
@@ -42,6 +43,7 @@ public class RegionNodeCommand extends BaseCommand {
         return ImmutableList.of(
                 new EmailModule(),
                 new SimpleAuthenticationModule(),
+                new NettyHttpServerModule(),
                 new RegionNodeModule());
     }
 

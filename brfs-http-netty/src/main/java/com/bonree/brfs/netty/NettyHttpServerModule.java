@@ -20,8 +20,11 @@ import javax.inject.Singleton;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 
+import com.bonree.brfs.common.guice.JsonConfigProvider;
+import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.plugin.BrfsModule;
 import com.bonree.brfs.http.HttpServer;
+import com.bonree.brfs.http.HttpServerConfig;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
@@ -32,9 +35,12 @@ public class NettyHttpServerModule implements BrfsModule {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(HttpServer.class).to(NettyHttpServer.class).in(Scopes.SINGLETON);
-        //TODO bind the NettyHttpServerConfig
-        binder.bind(NettyHttpServerConfig.class);
+        JsonConfigProvider.bind(binder, "httpserver", NettyHttpServerConfig.class);
+        
+        binder.bind(HttpServer.class).to(NettyHttpServer.class);
+        binder.bind(HttpServerConfig.class).to(NettyHttpServerConfig.class).in(Scopes.SINGLETON);
+        
+        LifecycleModule.register(binder, HttpServer.class);
     }
     
     @Provides
