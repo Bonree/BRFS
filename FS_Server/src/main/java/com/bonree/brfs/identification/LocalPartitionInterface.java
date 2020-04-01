@@ -1,5 +1,7 @@
 package com.bonree.brfs.identification;
 
+import java.util.Collection;
+
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
