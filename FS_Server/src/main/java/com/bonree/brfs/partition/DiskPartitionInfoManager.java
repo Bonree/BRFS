@@ -2,12 +2,13 @@ package com.bonree.brfs.partition;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.process.LifeCycle;
-import com.bonree.brfs.common.serialize.ProtoStuffUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.partition.model.PartitionInfo;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
@@ -53,6 +54,10 @@ public class DiskPartitionInfoManager implements LifeCycle {
         this.treeCache.cancelListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)));
     }
 
+    public PartitionInfo getPartitionInfoByPartitionId(String partitionId) {
+        return diskPartitionInfoCache.get(partitionId);
+    }
+
     public Map<String, PartitionInfo> getPartitionInfosByServiceId(String serviceId) {
         Map<String, PartitionInfo> map = new HashMap<>();
         if (serviceId == null || serviceId.isEmpty()) {
@@ -92,39 +97,37 @@ public class DiskPartitionInfoManager implements LifeCycle {
         @Override
         public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
 
-            switch (event.getType()) {
-                case NODE_ADDED:
-                    if (event.getData() != null && event.getData().getData() != null) {
-                        PartitionInfo info = ProtoStuffUtils.deserialize(event.getData().getData(), PartitionInfo.class);
-
-                        if (info != null) {
-                            diskPartitionInfoCache.put(info.getPartitionId(), info);
-                            LOG.info("add disk partition info: {}", info);
-                        }
-
+            if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED)) {
+                if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
+                    PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
+                    if (info != null) {
+                        diskPartitionInfoCache.put(info.getPartitionId(), info);
+                        LOG.info("disk partition info cache added, path:{}, info: {}", event.getData().getPath(), info);
                     }
-                case NODE_REMOVED:
-                    if (event.getData() != null) {
-                        PartitionInfo info = ProtoStuffUtils.deserialize(event.getData().getData(), PartitionInfo.class);
-
-                        if (info != null) {
-                            diskPartitionInfoCache.remove(info.getPartitionId(), info);
-                            LOG.info("remove disk partition info: {}", info);
-                        }
+                }
+            } else if (event.getType().equals(TreeCacheEvent.Type.NODE_REMOVED)) {
+                if (event.getData() != null) {
+                    String partitionId = parsePartitionIdFromPath(event.getData().getPath());
+                    if (diskPartitionInfoCache.containsKey(partitionId)) {
+                        diskPartitionInfoCache.remove(partitionId);
+                        LOG.info("disk partition info cache removed, path:{}", event.getData().getPath());
                     }
-                case NODE_UPDATED:
-                    if (event.getData() != null && event.getData().getData() != null) {
-                        PartitionInfo info = ProtoStuffUtils.deserialize(event.getData().getData(), PartitionInfo.class);
+                }
+            } else if (event.getType().equals(TreeCacheEvent.Type.NODE_UPDATED)) {
 
-                        if (info != null) {
-                            LOG.info("update disk partition info: [{}] -> [{}]", diskPartitionInfoCache.get(info.getPartitionId()), info);
-                            diskPartitionInfoCache.put(info.getPartitionId(), info);
-                        }
+                if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
+                    PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
 
+                    if (info != null) {
+                        LOG.info("disk partition info cache updated, path:{}, info: [{}] -> [{}]", event.getData().getPath(), diskPartitionInfoCache.get(info.getPartitionId()), info);
+                        diskPartitionInfoCache.put(info.getPartitionId(), info);
                     }
-                default:
-                    LOG.warn("invalid event type!");
+                }
             }
+        }
+
+        private String parsePartitionIdFromPath(String path) {
+            return StringUtils.substringAfterLast(path, "/");
         }
     }
 }
