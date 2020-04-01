@@ -36,6 +36,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
 
     private CuratorTreeCache treeCache;
     private ZookeeperPaths zkPath;
+    private DiskPartitionInfoListener listener;
     private Map<String, PartitionInfo> diskPartitionInfoCache = new ConcurrentHashMap<>();
 
     public DiskPartitionInfoManager(ZookeeperPaths zkPath) {
@@ -45,13 +46,14 @@ public class DiskPartitionInfoManager implements LifeCycle {
     @Override
     public void start() throws Exception {
         this.treeCache = CuratorCacheFactory.getTreeCache();
-        this.treeCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), new DiskPartitionInfoListener());
+        this.listener = new DiskPartitionInfoListener();
+        this.treeCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
 
     }
 
     @Override
     public void stop() throws Exception {
-        this.treeCache.cancelListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)));
+        this.treeCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
     }
 
     public PartitionInfo getPartitionInfoByPartitionId(String partitionId) {
