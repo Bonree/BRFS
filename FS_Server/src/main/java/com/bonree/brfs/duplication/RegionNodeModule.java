@@ -19,6 +19,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
@@ -150,7 +152,7 @@ public class RegionNodeModule implements Module {
         jaxrs(binder).resource(DiscoveryResource.class);
         jaxrs(binder).resource(RouterResource.class);
         
-        jaxrs(binder).resource(JacksonJsonProvider.class);
+        jaxrs(binder).provider(JsonSerdeProvider.class);
         
         LifecycleModule.register(binder, SimpleAuthentication.class);
         LifecycleModule.register(binder, NettyHttpServer.class);
@@ -267,11 +269,6 @@ public class RegionNodeModule implements Module {
     }
     
     @Provides
-    public JacksonJsonProvider getJsonProvider(@Json ObjectMapper mapper) {
-        return new JacksonJsonProvider(mapper);
-    }
-    
-    @Provides
     @Singleton
     public NettyHttpServer getHttpServer(
             SimpleAuthentication simpleAuthentication,
@@ -353,5 +350,20 @@ public class RegionNodeModule implements Module {
         }, Lifecycle.Stage.SERVER);
         
         return httpServer;
+    }
+    
+    public static class JsonSerdeProvider implements Provider<JacksonJsonProvider> {
+        private final ObjectMapper mapper;
+        
+        @Inject
+        public JsonSerdeProvider(@Json ObjectMapper mapper) {
+            this.mapper = mapper;
+        }
+
+        @Override
+        public JacksonJsonProvider get() {
+            return new JacksonJsonProvider(mapper);
+        }
+        
     }
 }
