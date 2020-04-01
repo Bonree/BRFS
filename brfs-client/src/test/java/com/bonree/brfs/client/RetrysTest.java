@@ -13,6 +13,40 @@
  */
 package com.bonree.brfs.client;
 
+import java.net.URI;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.bonree.brfs.client.utils.Retrys;
+import com.bonree.brfs.client.utils.URIRetryable;
+import com.bonree.brfs.client.utils.URIRetryable.TaskResult;
+import com.google.common.collect.ImmutableList;
+
 public class RetrysTest {
 
+    public static void main(String[] args) {
+        AtomicInteger i = new AtomicInteger();
+        String r = Retrys.execute(new URIRetryable<String>(
+                "test",
+                ImmutableList.of(
+                        URI.create("localhost:10"),
+                        URI.create("localhost:11"),
+                        URI.create("localhost:12")),
+                uri -> {
+                    System.out.println("uri : " + uri);
+                    
+                    if(i.get() == 1) {
+                        return TaskResult.fail(new Exception("final cause:" + uri));
+                    }
+                    
+                    if(i.getAndIncrement() < 3) {
+                        System.out.println("ERROR : " + uri);
+                        return TaskResult.retry(new Exception("cause:" + uri));
+                    }
+                    
+                    return TaskResult.success("YES");
+                }));
+        
+        System.out.println("result : " + r);
+    }
 }

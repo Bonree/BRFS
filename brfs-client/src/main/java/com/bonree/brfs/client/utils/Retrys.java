@@ -87,7 +87,7 @@ public final class Retrys {
             
             E element = iter.next();
             try {
-                T result = execute(iter.next());
+                T result = execute(element);
                 return Retryable.success(result);
             } catch (Exception e) {
                 log.warn("%s fail to execute on [%s]", description,  element);

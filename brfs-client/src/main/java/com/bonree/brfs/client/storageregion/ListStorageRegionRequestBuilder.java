@@ -20,16 +20,19 @@ public class ListStorageRegionRequestBuilder {
     
     ListStorageRegionRequestBuilder() {}
     
-    public void setDisableAllowed(boolean allowed) {
+    public ListStorageRegionRequestBuilder setDisableAllowed(boolean allowed) {
         this.disableAllowed = allowed;
+        return this;
     }
 
-    public void setPrefix(String prefix) {
+    public ListStorageRegionRequestBuilder setPrefix(String prefix) {
         this.prefix = prefix;
+        return this;
     }
 
-    public void setMaxKeys(int maxKeys) {
+    public ListStorageRegionRequestBuilder setMaxKeys(int maxKeys) {
         this.maxKeys = maxKeys;
+        return this;
     }
     
     public ListStorageRegionRequest build() {

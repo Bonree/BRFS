@@ -11,13 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.storageregion;
+package com.bonree.brfs.client;
 
-public interface UpdateStorageRegionRequest {
+public class SimplePutObjectResult implements PutObjectResult {
+    private final String fid;
     
-    StorageRegionAttributes getAttributes();
-    
-    static UpdateStorageRegionRequestBuilder newBuilder() {
-        return new UpdateStorageRegionRequestBuilder();
+    public SimplePutObjectResult(String fid) {
+        this.fid = fid;
     }
+
+    @Override
+    public String getFID() {
+        return fid;
+    }
+
 }

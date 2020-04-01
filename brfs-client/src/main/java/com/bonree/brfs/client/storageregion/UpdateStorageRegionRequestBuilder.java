@@ -13,49 +13,45 @@
  */
 package com.bonree.brfs.client.storageregion;
 
-import static java.util.Objects.requireNonNull;
-
-import java.time.Period;
+import java.time.Duration;
 
 public class UpdateStorageRegionRequestBuilder {
-    private String name;
     private Boolean enabled;
     private Integer replicateNum;
     private String dataTTL;
     private Long fileCapacity;
     private String filePartition;
 
-    UpdateStorageRegionRequestBuilder() {
-    }
+    UpdateStorageRegionRequestBuilder() {}
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setEnabled(boolean enabled) {
+    public UpdateStorageRegionRequestBuilder setEnabled(boolean enabled) {
         this.enabled = enabled;
+        return this;
     }
 
-    public void setReplicateNum(int replicateNum) {
+    public UpdateStorageRegionRequestBuilder setReplicateNum(int replicateNum) {
         this.replicateNum = replicateNum;
+        return this;
     }
 
-    public void setDataTTL(String dataTTL) {
-        Period.parse(dataTTL);
+    public UpdateStorageRegionRequestBuilder setDataTTL(String dataTTL) {
+        Duration.parse(dataTTL);
         this.dataTTL = dataTTL;
+        return this;
     }
 
-    public void setFileCapacity(long fileCapacity) {
+    public UpdateStorageRegionRequestBuilder setFileCapacity(long fileCapacity) {
         this.fileCapacity = fileCapacity;
+        return this;
     }
 
-    public void setFilePartition(String filePartition) {
-        Period.parse(dataTTL);
+    public UpdateStorageRegionRequestBuilder setFilePartition(String filePartition) {
+        Duration.parse(dataTTL);
         this.filePartition = filePartition;
+        return this;
     }
 
     public UpdateStorageRegionRequest build() {
-        String storageRegionName = requireNonNull(name);
         StorageRegionAttributes attributes = new StorageRegionAttributes(
                 enabled,
                 replicateNum,
@@ -64,11 +60,6 @@ public class UpdateStorageRegionRequestBuilder {
                 filePartition);
         
         return new UpdateStorageRegionRequest() {
-            
-            @Override
-            public String getStorageRegionName() {
-                return storageRegionName;
-            }
             
             @Override
             public StorageRegionAttributes getAttributes() {

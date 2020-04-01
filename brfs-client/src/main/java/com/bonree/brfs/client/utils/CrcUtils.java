@@ -11,13 +11,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.storageregion;
+package com.bonree.brfs.client.utils;
 
-public interface UpdateStorageRegionRequest {
+import java.nio.ByteBuffer;
+import java.util.zip.CRC32;
+
+public final class CrcUtils {
     
-    StorageRegionAttributes getAttributes();
+    public static long crc(byte[] bytes) {
+        CRC32 crc = new CRC32();
+        crc.update(bytes);
+        return crc.getValue();
+    }
     
-    static UpdateStorageRegionRequestBuilder newBuilder() {
-        return new UpdateStorageRegionRequestBuilder();
+    public static long crc(ByteBuffer buffer) {
+        CRC32 crc = new CRC32();
+        crc.update(buffer);
+        return crc.getValue();
     }
 }

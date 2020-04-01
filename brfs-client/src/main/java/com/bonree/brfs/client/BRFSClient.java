@@ -35,7 +35,7 @@ public interface BRFSClient extends Closeable {
     
     List<String> listStorageRegions(ListStorageRegionRequest request) throws Exception;
     
-    boolean updateStorageRegion(UpdateStorageRegionRequest request) throws Exception;
+    boolean updateStorageRegion(String srName, UpdateStorageRegionRequest request) throws Exception;
     
     StorageRegionInfo getStorageRegionInfo(String srName) throws Exception;
     

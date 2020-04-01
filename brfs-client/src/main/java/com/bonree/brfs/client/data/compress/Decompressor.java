@@ -11,13 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.storageregion;
+package com.bonree.brfs.client.data.compress;
 
-public interface UpdateStorageRegionRequest {
+import java.io.InputStream;
+
+public interface Decompressor {
+    InputStream decompress(InputStream input);
     
-    StorageRegionAttributes getAttributes();
-    
-    static UpdateStorageRegionRequestBuilder newBuilder() {
-        return new UpdateStorageRegionRequestBuilder();
-    }
+    static Decompressor NONE = new Decompressor() {
+        
+        @Override
+        public InputStream decompress(InputStream bytes) {
+            return bytes;
+        }
+    };
 }

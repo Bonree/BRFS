@@ -14,6 +14,8 @@
 package com.bonree.brfs.client.utils;
 
 public class HttpStatus {
+    public static final int CODE_CONTINUE = 100;
+    
     public static final int CODE_OK = 200;
     
     public static final int CODE_FORBIDDEN = 403;

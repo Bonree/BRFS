@@ -11,13 +11,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.storageregion;
+package com.bonree.brfs.client.data.compress;
 
-public interface UpdateStorageRegionRequest {
+public enum Compression {
+    NONE(0) {
+        
+        @Override
+        public Compressor compressor() {
+            return Compressor.NONE;
+        }
+
+        @Override
+        public Decompressor decompressor() {
+            return Decompressor.NONE;
+        }
+        
+    };
     
-    StorageRegionAttributes getAttributes();
+    private final int code;
     
-    static UpdateStorageRegionRequestBuilder newBuilder() {
-        return new UpdateStorageRegionRequestBuilder();
+    private Compression(int code) {
+        this.code = code;
     }
+    
+    public int code() {
+        return code;
+    }
+    
+    public abstract Compressor compressor();
+    public abstract Decompressor decompressor();
 }
