@@ -30,11 +30,11 @@ public class SecondLevelServerID {
     private static final Logger LOG = LoggerFactory.getLogger(SecondLevelServerID.class);
     private LevelServerIDGen secondServerIDOpt;
 
-    private CuratorFramework client;
+	private CuratorFramework client;
 
-    private String selfFirstPath;
+	private String selfFirstPath;
 
-    private String baseRoutes;
+	private String baseRoutes;
 
     private Map<Integer, String> secondMap = new ConcurrentHashMap<Integer, String>();
 
