@@ -24,4 +24,10 @@ public interface LocalPartitionInterface {
      * @return
      */
     String getPartitionId(String dataPath);
+
+    /**
+     * 列出本机所有的磁盘节点信息
+     * @return
+     */
+    Collection<String> listPartitionId();
 }

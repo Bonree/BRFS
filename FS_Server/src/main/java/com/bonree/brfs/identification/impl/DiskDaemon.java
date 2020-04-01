@@ -51,7 +51,12 @@ public class DiskDaemon implements LifeCycle, LocalPartitionInterface {
 
 	@Override
 	public String getPartitionId(String dataPath) {
-		return getPartitionId(dataPath);
+		return this.cache.getPartitionId(dataPath);
+	}
+
+	@Override
+	public Collection<String> listPartitionId() {
+		return this.cache.listPartitionId();
 	}
 
 	public static class Builder{
