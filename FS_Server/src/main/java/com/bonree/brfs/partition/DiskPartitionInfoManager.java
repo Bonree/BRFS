@@ -3,15 +3,15 @@ package com.bonree.brfs.partition;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.zookeeper.curator.cache.AbstractPathChildrenCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
-import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.partition.model.PartitionInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
-import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiskPartitionInfoManager.class);
 
-    private CuratorTreeCache treeCache;
+    private CuratorPathCache childCache;
     private ZookeeperPaths zkPath;
     private DiskPartitionInfoListener listener;
     private Map<String, PartitionInfo> diskPartitionInfoCache = new ConcurrentHashMap<>();
@@ -45,15 +45,15 @@ public class DiskPartitionInfoManager implements LifeCycle {
 
     @Override
     public void start() throws Exception {
-        this.treeCache = CuratorCacheFactory.getTreeCache();
-        this.listener = new DiskPartitionInfoListener();
-        this.treeCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
+        this.childCache = CuratorCacheFactory.getPathCache();
+        this.listener = new DiskPartitionInfoListener("disk_partition");
+        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
 
     }
 
     @Override
     public void stop() throws Exception {
-        this.treeCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
+        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
     }
 
     public PartitionInfo getPartitionInfoByPartitionId(String partitionId) {
@@ -88,18 +88,22 @@ public class DiskPartitionInfoManager implements LifeCycle {
 
     }
 
-    private class DiskPartitionFreeSizeComparator implements Comparator<PartitionInfo> {
+    private static class DiskPartitionFreeSizeComparator implements Comparator<PartitionInfo> {
         @Override
         public int compare(PartitionInfo o1, PartitionInfo o2) {
             return Double.compare(o2.getFreeSize(), o1.getFreeSize());
         }
     }
 
-    private class DiskPartitionInfoListener implements TreeCacheListener {
-        @Override
-        public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+    private class DiskPartitionInfoListener extends AbstractPathChildrenCacheListener {
+        private DiskPartitionInfoListener(String listenName) {
+            super(listenName);
+        }
 
-            if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED)) {
+        @Override
+        public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+
+            if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_ADDED)) {
                 if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
                     PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
                     if (info != null) {
@@ -107,22 +111,12 @@ public class DiskPartitionInfoManager implements LifeCycle {
                         LOG.info("disk partition info cache added, path:{}, info: {}", event.getData().getPath(), info);
                     }
                 }
-            } else if (event.getType().equals(TreeCacheEvent.Type.NODE_REMOVED)) {
+            } else if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_REMOVED)) {
                 if (event.getData() != null) {
                     String partitionId = parsePartitionIdFromPath(event.getData().getPath());
                     if (diskPartitionInfoCache.containsKey(partitionId)) {
                         diskPartitionInfoCache.remove(partitionId);
                         LOG.info("disk partition info cache removed, path:{}", event.getData().getPath());
-                    }
-                }
-            } else if (event.getType().equals(TreeCacheEvent.Type.NODE_UPDATED)) {
-
-                if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
-                    PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
-
-                    if (info != null) {
-                        LOG.info("disk partition info cache updated, path:{}, info: [{}] -> [{}]", event.getData().getPath(), diskPartitionInfoCache.get(info.getPartitionId()), info);
-                        diskPartitionInfoCache.put(info.getPartitionId(), info);
                     }
                 }
             }
