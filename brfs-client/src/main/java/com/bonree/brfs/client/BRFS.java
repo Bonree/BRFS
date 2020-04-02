@@ -24,10 +24,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.client.data.DataSplitter;
 import com.bonree.brfs.client.data.FixedSizeDataSplitter;
 import com.bonree.brfs.client.data.FsPackageProtoProvider;
+import com.bonree.brfs.client.data.NextData;
 import com.bonree.brfs.client.data.PutObjectRequestBodyProvider;
 import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.Discovery.ServiceType;
@@ -364,7 +367,7 @@ public class BRFS implements BRFSClient {
     }
 
     public PutObjectResult putObject(String srName, byte[] bytes) throws Exception {
-        return putObject(srName, dataSplitter.split(bytes), Optional.empty());
+        return putObject(srName, dataSplitter.split(bytes), Optional.of(Paths.get(UUID.randomUUID().toString())));
     }
 
     public PutObjectResult putObject(String srName, File file) throws Exception {
@@ -376,7 +379,7 @@ public class BRFS implements BRFSClient {
     }
 
     public PutObjectResult putObject(String srName, InputStream input) throws Exception {
-        return putObject(srName, dataSplitter.split(input), Optional.empty());
+        return putObject(srName, dataSplitter.split(input), Optional.of(Paths.get(UUID.randomUUID().toString())));
     }
 
     public PutObjectResult putObject(String srName, Path objectPath, byte[] bytes) throws Exception {
@@ -396,10 +399,10 @@ public class BRFS implements BRFSClient {
     }
     
     private PutObjectResult putObject(String srName, Iterator<ByteBuffer> buffers, Optional<Path> objectPath) throws Exception {
-        AtomicInteger sequenceIDs = new AtomicInteger(-1);
+        AtomicInteger sequenceIDs = new AtomicInteger();
         Iterator<RequestBody> requestContents = putObjectRequestBodyProvider.from(
                 buffers,
-                () -> sequenceIDs.incrementAndGet(),
+                () -> sequenceIDs.getAndIncrement(),
                 getStorageRegionID(srName),
                 objectPath.map(Path::toString),
                 FsPackageProtoProvider.DEFAULT_CONTEXT);
@@ -425,9 +428,22 @@ public class BRFS implements BRFSClient {
                         
                         try {
                             Response response = httpClient.newCall(httpRequest).execute();
-                            if(response.code() == HttpStatus.CODE_CONTINUE) {
-                                // TODO check sequence id
-                                log.info("writer block[%d] to sr[%s] successfully", sequenceIDs.get(), srName);
+                            if(response.code() == HttpStatus.CODE_NEXT) {
+                                ResponseBody body = response.body();
+                                if(body == null) {
+                                    return TaskResult.fail(new IllegalStateException("No response content is found in writting"));
+                                }
+                                
+                                NextData nextData = codec.fromJsonBytes(body.bytes(), NextData.class);
+                                if(nextData.getNextSequence() != sequenceIDs.get()) {
+                                    return TaskResult.fail(
+                                            new IllegalStateException(
+                                                    Strings.format("Expected next seq[%d] but get [%d]",
+                                                            sequenceIDs.get(),
+                                                            nextData.getNextSequence())));
+                                }
+                                
+                                log.info("writer block[%d] to sr[%s] successfully", sequenceIDs.get() - 1, srName);
                                 continue;
                             }
                             
@@ -448,7 +464,7 @@ public class BRFS implements BRFSClient {
                             
                             return TaskResult.fail(new IllegalStateException(format("Server error[%d]", response.code())));
                         } catch (IOException e) {
-                            if(sequenceIDs.get() > 0) {
+                            if(sequenceIDs.get() > 1) {
                                 // first package is completed, no need to retry
                                 return TaskResult.fail(e);
                             }

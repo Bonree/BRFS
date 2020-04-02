@@ -131,11 +131,13 @@ public class RegionNodeModule implements Module {
         
         binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
         jaxrs(binder).resource(StorageRegionResource.class);
-        jaxrs(binder).resource(DataResource.class);
         jaxrs(binder).resource(DiscoveryResource.class);
         jaxrs(binder).resource(RouterResource.class);
         
         jaxrs(binder).resource(JsonMapper.class);
+        
+        jaxrs(binder).resource(DataResource.class);
+        jaxrs(binder).resource(FSPackageProtoMapper.class);
         
         LifecycleModule.register(binder, SimpleAuthentication.class);
         

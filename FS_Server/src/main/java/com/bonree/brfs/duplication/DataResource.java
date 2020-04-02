@@ -13,13 +13,27 @@
  */
 package com.bonree.brfs.duplication;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+
+import java.util.List;
+
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 
+import com.bonree.brfs.client.data.NextData;
+import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
+import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
+import com.google.common.collect.ImmutableList;
 
 @Path("/data")
 public class DataResource {
@@ -34,8 +48,33 @@ public class DataResource {
     }
 
     @POST
-    public Response write() {
-     // TODO
-        return null;
+    @Path("{srName}")
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(APPLICATION_JSON)
+    public void write(
+            @PathParam("srName") String srName,
+            FSPacketProto data,
+            @Suspended AsyncResponse response) {
+        // example
+        storageRegionWriter.write(
+                data.getStorageName(),
+                data.getData().toByteArray(),
+                new StorageRegionWriteCallback() {
+                    
+                    @Override
+                    public void error() {
+                        response.resume(new Exception());
+                    }
+                    
+                    @Override
+                    public void complete(String fid) {
+                        response.resume(ImmutableList.of(fid));
+                    }
+                    
+                    @Override
+                    public void complete(String[] fids) {
+                        response.resume(fids);
+                    }
+                });
     }
 }
