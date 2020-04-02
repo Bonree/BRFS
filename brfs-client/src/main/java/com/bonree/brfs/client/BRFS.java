@@ -32,15 +32,17 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.client.data.DataSplitter;
+import com.bonree.brfs.client.data.FSPackageProtoMaker;
 import com.bonree.brfs.client.data.FixedSizeDataSplitter;
-import com.bonree.brfs.client.data.FsPackageProtoProvider;
 import com.bonree.brfs.client.data.NextData;
-import com.bonree.brfs.client.data.PutObjectRequestBodyProvider;
+import com.bonree.brfs.client.data.PutObjectCallMaker;
+import com.bonree.brfs.client.data.compress.Compression;
 import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.Discovery.ServiceType;
 import com.bonree.brfs.client.json.JsonCodec;
@@ -50,6 +52,7 @@ import com.bonree.brfs.client.storageregion.StorageRegionID;
 import com.bonree.brfs.client.storageregion.StorageRegionInfo;
 import com.bonree.brfs.client.storageregion.UpdateStorageRegionRequest;
 import com.bonree.brfs.client.utils.HttpStatus;
+import com.bonree.brfs.client.utils.IteratorUtils;
 import com.bonree.brfs.client.utils.Retrys;
 import com.bonree.brfs.client.utils.Strings;
 import com.bonree.brfs.client.utils.URIRetryable;
@@ -60,7 +63,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -83,7 +89,6 @@ public class BRFS implements BRFSClient {
     private final JsonCodec codec;
     
     private final DataSplitter dataSplitter;
-    private final PutObjectRequestBodyProvider putObjectRequestBodyProvider;
     
     private final LoadingCache<String, Integer> storageRegionCache;
     
@@ -92,7 +97,6 @@ public class BRFS implements BRFSClient {
         this.discovery = requireNonNull(discovery, "discovery is null");
         this.codec = requireNonNull(codec, "codec is null");
         this.dataSplitter = new FixedSizeDataSplitter(config.getDataPackageSize());
-        this.putObjectRequestBodyProvider = new FsPackageProtoProvider(OCTET_STREAM);
         
         this.storageRegionCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(Optional.ofNullable(config.getDiscoveryExpiredDuration()).orElse(DEFAULT_EXPIRE_DURATION))
@@ -400,92 +404,95 @@ public class BRFS implements BRFSClient {
     
     private PutObjectResult putObject(String srName, Iterator<ByteBuffer> buffers, Optional<Path> objectPath) throws Exception {
         AtomicInteger sequenceIDs = new AtomicInteger();
-        Iterator<RequestBody> requestContents = putObjectRequestBodyProvider.from(
-                buffers,
-                () -> sequenceIDs.getAndIncrement(),
-                getStorageRegionID(srName),
-                objectPath.map(Path::toString),
-                FsPackageProtoProvider.DEFAULT_CONTEXT);
+        Iterator<Function<URI, Call>> callProvider = IteratorUtils.from(buffers)
+                .map(new FSPackageProtoMaker(
+                        () -> sequenceIDs.getAndIncrement(),
+                        getStorageRegionID(srName),
+                        objectPath.map(Path::toString),
+                        false,
+                        Compression.NONE))
+                .map(new PutObjectCallMaker(httpClient, OCTET_STREAM, srName))
+                .iterator();
         
-        if(!requestContents.hasNext()) {
+        if(!callProvider.hasNext()) {
             throw new IllegalArgumentException(Strings.format("No content to write for sr[%s]", srName));
         }
         
-        return Retrys.execute(new URIRetryable<PutObjectResult> (
+        Function<URI, Call> firstCall = callProvider.next();
+        SettableFuture<PutObjectResult> resultFuture = SettableFuture.create();
+        
+        Retrys.execute(new URIRetryable<Void> (
                 format("put object to storage region[%s]", srName),
                 getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
-                    PutObjectResult fidResult = null;
-                    while(requestContents.hasNext()) {
-                        Request httpRequest = new Request.Builder()
-                                .url(HttpUrl.get(uri)
-                                        .newBuilder()
-                                        .encodedPath("/data")
-                                        .addEncodedPathSegment(srName)
-                                        .build())
-                                .post(requestContents.next())
-                                .build();
+                    SettableFuture<Void> retryFuture = SettableFuture.create();
+                    
+                    firstCall.apply(uri).enqueue(new Callback() {
                         
-                        try {
-                            Response response = httpClient.newCall(httpRequest).execute();
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if(!retryFuture.isDone()) {
+                                retryFuture.set(null);
+                            }
+                            
                             if(response.code() == HttpStatus.CODE_NEXT) {
                                 ResponseBody body = response.body();
                                 if(body == null) {
-                                    return TaskResult.fail(new IllegalStateException("No response content is found in writting"));
+                                    resultFuture.setException(
+                                            new IllegalStateException("No response content is found in writting"));
+                                    return;
                                 }
                                 
                                 NextData nextData = codec.fromJsonBytes(body.bytes(), NextData.class);
                                 if(nextData.getNextSequence() != sequenceIDs.get()) {
-                                    return TaskResult.fail(
+                                    resultFuture.setException(
                                             new IllegalStateException(
                                                     Strings.format("Expected next seq[%d] but get [%d]",
                                                             sequenceIDs.get(),
                                                             nextData.getNextSequence())));
+                                    return;
                                 }
                                 
                                 log.info("writer block[%d] to sr[%s] successfully", sequenceIDs.get() - 1, srName);
-                                continue;
+                                callProvider.next().apply(uri).enqueue(this);
+                                return;
                             }
                             
                             if(response.code() == HttpStatus.CODE_OK) {
                                 ResponseBody body = response.body();
                                 if(body == null) {
-                                    return TaskResult.fail(new IllegalStateException("No response content is found"));
+                                    resultFuture.setException(new IllegalStateException("No response content is found"));
+                                    return;
                                 }
                                 
-                                fidResult = new SimplePutObjectResult(
+                                resultFuture.set(new SimplePutObjectResult(
                                         Iterables.getOnlyElement(
                                                 codec.fromJsonBytes(
                                                         body.bytes(),
-                                                        new TypeReference<List<String>>() {})));
-                                
-                                break;
+                                                        new TypeReference<List<String>>() {}))));
                             }
-                            
-                            return TaskResult.fail(new IllegalStateException(format("Server error[%d]", response.code())));
-                        } catch (IOException e) {
-                            if(sequenceIDs.get() > 1) {
-                                // first package is completed, no need to retry
-                                return TaskResult.fail(e);
-                            }
-                            
-                            return TaskResult.retry(e);
                         }
-                    }
+                        
+                        @Override
+                        public void onFailure(Call call, IOException cause) {
+                            if(!resultFuture.isDone()) {
+                                resultFuture.setException(cause);
+                                return;
+                            }
+                            
+                            resultFuture.setException(cause);
+                        }
+                    });
                     
-                    if(requestContents.hasNext()) {
-                        return TaskResult.fail(
-                                new IllegalStateException(
-                                        Strings.format("Bytes is not consumed completely while loop is out [%s]", srName)));
+                    try {
+                        retryFuture.get();
+                        return TaskResult.success(null);
+                    } catch(Exception e) {
+                        return TaskResult.retry(e);
                     }
-                    
-                    if(fidResult == null) {
-                        return TaskResult.fail(
-                                new BRFSException("No fid is responsed for writing [%s]", srName));
-                    }
-                    
-                    return TaskResult.success(fidResult);
                 }));
+        
+        return resultFuture.get();
     }
 
     public BRFSObject getObject(GetObjectRequest request) {
@@ -533,4 +540,5 @@ public class BRFS implements BRFSClient {
         
         discovery.close();
     }
+    
 }
