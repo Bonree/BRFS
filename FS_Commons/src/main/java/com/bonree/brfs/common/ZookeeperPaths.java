@@ -47,6 +47,8 @@ public class ZookeeperPaths {
 
     public final static String ROCKSDB = "rocksdb";
 
+    public final static String DISCOVER="";
+
     private final String clusterName;
 
     private final CuratorFramework zkClient;

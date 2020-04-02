@@ -28,7 +28,7 @@ public class DiskDaemon implements LifeCycle, LocalPartitionInterface {
 	private Collection<LocalPartitionInfo> partitions;
 	private LocalPartitionCache cache = null;
 	private static DiskDaemon instance = null;
-	private DiskDaemon(PartitionGather gather, Collection<LocalPartitionInfo> partitions) {
+	public DiskDaemon(PartitionGather gather, Collection<LocalPartitionInfo> partitions) {
 		this.gather = gather;
 		this.partitions = partitions;
 		this.cache = new LocalPartitionCache(partitions);
