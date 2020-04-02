@@ -15,47 +15,35 @@ package com.bonree.brfs.duplication;
 
 import static com.bonree.brfs.jaxrs.JaxrsBinder.jaxrs;
 
+import java.net.InetAddress;
+import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
-import com.bonree.brfs.duplication.datastream.handler.WriteStreamDataMessageHandler;
-import com.bonree.brfs.duplication.datastream.writer.*;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.bigdata.zeus.common.metadata.vo.ResponseVO.Datasource;
 import com.bonree.brfs.authentication.SimpleAuthentication;
-import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
-import com.bonree.brfs.common.jackson.Json;
+import com.bonree.brfs.common.jackson.JsonMapper;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.Lifecycle.LifeCycleObject;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
-import com.bonree.brfs.common.net.http.HttpConfig;
-import com.bonree.brfs.common.net.http.netty.HttpAuthenticator;
-import com.bonree.brfs.common.net.http.netty.NettyHttpRequestHandler;
-import com.bonree.brfs.common.net.http.netty.NettyHttpServer;
+import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.tcp.client.AsyncTcpClientGroup;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
-import com.bonree.brfs.common.utils.PooledThreadFactory;
+import com.bonree.brfs.common.utils.NetworkUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
-import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
@@ -77,9 +65,9 @@ import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSyncPro
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSynchronier;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizer;
-import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
-import com.bonree.brfs.duplication.datastream.handler.ReadDataMessageHandler;
-import com.bonree.brfs.duplication.datastream.handler.WriteDataMessageHandler;
+import com.bonree.brfs.duplication.datastream.writer.DefaultStorageRegionWriter;
+import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
+import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
@@ -94,18 +82,13 @@ import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.duplication.storageregion.StorageRegionIdBuilder;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionResource;
-import com.bonree.brfs.duplication.storageregion.handler.CreateStorageRegionMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.DeleteStorageRegionMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.OpenStorageRegionMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.guice.NodeConfig;
+import com.bonree.brfs.http.HttpServerConfig;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.server.identification.ServerIDManager;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -148,16 +131,17 @@ public class RegionNodeModule implements Module {
         
         binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
         jaxrs(binder).resource(StorageRegionResource.class);
-        jaxrs(binder).resource(Datasource.class);
+        jaxrs(binder).resource(DataResource.class);
         jaxrs(binder).resource(DiscoveryResource.class);
         jaxrs(binder).resource(RouterResource.class);
         
-        jaxrs(binder).provider(JsonSerdeProvider.class);
+        jaxrs(binder).resource(JsonMapper.class);
         
         LifecycleModule.register(binder, SimpleAuthentication.class);
-        LifecycleModule.register(binder, NettyHttpServer.class);
         
         binder.requestStaticInjection(CuratorCacheFactory.class);
+        
+        binder.bind(Deliver.class).toInstance(Deliver.NOOP);
     }
     
     @Provides
@@ -173,14 +157,24 @@ public class RegionNodeModule implements Module {
     @Singleton
     public Service getService(
             ClusterConfig clusterConfig,
-            NodeConfig config,
+            HttpServerConfig serverConfig,
             ServiceManager serviceManager,
             Lifecycle lifecycle) {
+        String host = serverConfig.getHost();
+        if(host == null) {
+            List<InetAddress> addresses = NetworkUtils.getAllLocalIps();
+            if(addresses.isEmpty()) {
+                throw new RuntimeException("no network interface is found");
+            }
+            
+            host = addresses.get(0).getHostAddress();
+        }
+        
         Service service = new Service(
                 UUID.randomUUID().toString(),
                 clusterConfig.getRegionNodeGroup(),
-                config.getHost(),
-                config.getPort());
+                host,
+                serverConfig.getPort());
         
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
             
@@ -266,104 +260,5 @@ public class RegionNodeModule implements Module {
                 .build();
         
         return nodeSelector;
-    }
-    
-    @Provides
-    @Singleton
-    public NettyHttpServer getHttpServer(
-            SimpleAuthentication simpleAuthentication,
-            ZookeeperPaths paths,
-            StorageRegionManager storageRegionManager,
-            StorageRegionWriter storageRegionWriter,
-            ServiceManager serviceManager,
-            Lifecycle lifecycle
-            ) {
-        String URI_DATA_ROOT = "/data";
-        String URI_STREAM_DATA_ROOT = "streamData";
-        String URI_STORAGE_REGION_ROOT = "/sr";
-        
-        int workerThreadNum = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_SERVER_IO_THREAD_NUM);
-        String host = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_HOST);
-        int port = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_PORT);
-        
-        HttpConfig httpConfig = HttpConfig.newBuilder()
-                .setHost(host)
-                .setPort(port)
-                .setAcceptWorkerNum(1)
-                .setRequestHandleWorkerNum(workerThreadNum)
-                .setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048"))).build();
-        NettyHttpServer httpServer = new NettyHttpServer(httpConfig);
-        httpServer.addHttpAuthenticator(new HttpAuthenticator() {
-
-            @Override
-            public int check(String userName, String passwd) {
-                StringBuilder tokenBuilder = new StringBuilder();
-                tokenBuilder.append(userName).append(":").append(passwd);
-
-                return simpleAuthentication.auth(tokenBuilder.toString()) ? 0 : ReturnCode.USER_FORBID.getCode();
-            }
-
-        });
-        
-        ExecutorService requestHandlerExecutor = Executors.newFixedThreadPool(
-                Math.max(4, Runtime.getRuntime().availableProcessors() / 4),
-                new PooledThreadFactory("request_handler"));
-        
-        NettyHttpRequestHandler requestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-        requestHandler.addMessageHandler("POST", new WriteDataMessageHandler(storageRegionWriter));
-        requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
-        requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(paths, serviceManager, storageRegionManager));
-        httpServer.addContextHandler(URI_DATA_ROOT, requestHandler);
-
-
-        long blocksize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
-        int blockpool = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
-        Integer initCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_INIT_COUNT);
-
-        BlockPool blockPool = new BlockPool(blocksize, blockpool, initCount);
-        BlockManager blockManager = new BlockManager(blockPool, storageRegionWriter);
-        NettyHttpRequestHandler streamRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-        streamRequestHandler.addMessageHandler("Post",new WriteStreamDataMessageHandler(storageRegionWriter,blockManager));
-        httpServer.addContextHandler(URI_STREAM_DATA_ROOT,streamRequestHandler);
-
-
-        NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-        snRequestHandler.addMessageHandler("PUT", new CreateStorageRegionMessageHandler(storageRegionManager));
-        snRequestHandler.addMessageHandler("POST", new UpdateStorageRegionMessageHandler(storageRegionManager));
-        snRequestHandler.addMessageHandler("GET", new OpenStorageRegionMessageHandler(storageRegionManager));
-        snRequestHandler.addMessageHandler("DELETE", new DeleteStorageRegionMessageHandler(paths, storageRegionManager, serviceManager));
-        httpServer.addContextHandler(URI_STORAGE_REGION_ROOT, snRequestHandler);
-
-        lifecycle.addLifeCycleObject(new LifeCycleObject() {
-            
-            @Override
-            public void start() throws Exception {
-                httpServer.start();
-            }
-            
-            @Override
-            public void stop() {
-                requestHandlerExecutor.shutdown();
-                httpServer.stop();
-            }
-            
-        }, Lifecycle.Stage.SERVER);
-        
-        return httpServer;
-    }
-    
-    public static class JsonSerdeProvider implements Provider<JacksonJsonProvider> {
-        private final ObjectMapper mapper;
-        
-        @Inject
-        public JsonSerdeProvider(@Json ObjectMapper mapper) {
-            this.mapper = mapper;
-        }
-
-        @Override
-        public JacksonJsonProvider get() {
-            return new JacksonJsonProvider(mapper);
-        }
-        
     }
 }

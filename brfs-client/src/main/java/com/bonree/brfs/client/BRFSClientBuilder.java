@@ -31,8 +31,9 @@ import okhttp3.Response;
 public class BRFSClientBuilder {
     private ClientConfiguration config;
     
-    public void setConfiguration(ClientConfiguration config) {
+    public BRFSClientBuilder setConfiguration(ClientConfiguration config) {
         this.config = config;
+        return this;
     }
     
     public BRFSClient build() {
@@ -55,19 +56,26 @@ public class BRFSClientBuilder {
     /**
      * TODO It's dangerous to transfer plain text of password in header
      */
-    private static class AuthorizationIterceptor implements Interceptor {
-        private final ClientConfiguration config;
+    public static class AuthorizationIterceptor implements Interceptor {
+        private final String user;
+        private final String passwd;
+        
+        public AuthorizationIterceptor(String user, String passwd) {
+            this.user = user;
+            this.passwd = passwd;
+        }
         
         private AuthorizationIterceptor(ClientConfiguration config) {
-            this.config = config;
+            this.user = config.getUser();
+            this.passwd = config.getPasswd();
         }
 
         @Override
         public Response intercept(Chain chain) throws IOException {
             return chain.proceed(chain.request()
                     .newBuilder()
-                    .header("username", config.getUser())
-                    .header("password", config.getPasswd())
+                    .header("username", user)
+                    .header("password", passwd)
                     .build());
         }
         

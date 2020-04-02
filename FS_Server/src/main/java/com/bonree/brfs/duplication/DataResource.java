@@ -13,12 +13,25 @@
  */
 package com.bonree.brfs.duplication;
 
+import javax.inject.Inject;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
+import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
+import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
+
 @Path("/data")
 public class DataResource {
+    private final StorageRegionWriter storageRegionWriter;
+    private final BlockManager blockManager;
+    
+    @Inject
+    public DataResource(
+            StorageRegionWriter storageRegionWriter) {
+        this.storageRegionWriter = storageRegionWriter;
+        this.blockManager = null;
+    }
 
     @POST
     public Response write() {

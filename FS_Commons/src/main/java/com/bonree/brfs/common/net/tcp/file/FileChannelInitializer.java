@@ -1,5 +1,7 @@
 package com.bonree.brfs.common.net.tcp.file;
 
+import com.bonree.brfs.common.net.Deliver;
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -9,8 +11,8 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 public class FileChannelInitializer extends ChannelInitializer<SocketChannel> {
 	private MappedFileReadHandler fileReadHandler;
 	
-	public FileChannelInitializer(ReadObjectTranslator translator) {
-		this.fileReadHandler = new MappedFileReadHandler(translator);
+	public FileChannelInitializer(ReadObjectTranslator translator, Deliver deliver) {
+		this.fileReadHandler = new MappedFileReadHandler(translator, deliver);
 	}
 
 	@Override

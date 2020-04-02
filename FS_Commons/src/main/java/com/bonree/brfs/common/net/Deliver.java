@@ -1,6 +1,7 @@
-package com.bonree.brfs.common.delivery;
+package com.bonree.brfs.common.net;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Map;
 
 /*******************************************************************************
@@ -16,4 +17,20 @@ public interface Deliver extends Closeable {
     public boolean sendWriterMetric(Map<String, Object> data);
 
     public boolean sendReaderMetric(Map<String, Object> data);
+    
+    static Deliver NOOP = new Deliver() {
+        
+        @Override
+        public void close() throws IOException {}
+        
+        @Override
+        public boolean sendWriterMetric(Map<String, Object> data) {
+            return true;
+        }
+        
+        @Override
+        public boolean sendReaderMetric(Map<String, Object> data) {
+            return true;
+        }
+    };
 }

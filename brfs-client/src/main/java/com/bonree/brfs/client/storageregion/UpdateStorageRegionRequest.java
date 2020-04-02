@@ -14,7 +14,6 @@
 package com.bonree.brfs.client.storageregion;
 
 public interface UpdateStorageRegionRequest {
-    String getStorageRegionName();
     
     StorageRegionAttributes getAttributes();
     

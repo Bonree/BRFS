@@ -19,6 +19,9 @@ import java.net.InetSocketAddress;
 
 import javax.inject.Inject;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycleServer;
 import com.bonree.brfs.http.HttpServer;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -33,6 +36,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.internal.SocketUtils;
 
+@ManageLifecycleServer
 public class NettyHttpServer implements HttpServer {
     
     private final NettyHttpServerConfig serverConfig;
@@ -51,6 +55,7 @@ public class NettyHttpServer implements HttpServer {
         this.initializer = requireNonNull(initializer, "initializer is null");
     }
 
+    @LifecycleStart
     @Override
     public void start() {
         if(channel != null) {
@@ -93,6 +98,7 @@ public class NettyHttpServer implements HttpServer {
         }
     }
 
+    @LifecycleStop
     @Override
     public void stop() {
         if(channel != null) {

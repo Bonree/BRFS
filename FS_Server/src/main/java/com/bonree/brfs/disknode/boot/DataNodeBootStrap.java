@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.tcp.MessageChannelInitializer;
 import com.bonree.brfs.common.net.tcp.ServerConfig;
 import com.bonree.brfs.common.net.tcp.TcpServer;
@@ -105,6 +106,9 @@ public class DataNodeBootStrap implements LifeCycle {
 		server = new TcpServer(config, initializer);
 		server.start();
 		
+		// 
+		Deliver deliver = Deliver.NOOP;
+		
 		ServerConfig fileServerConfig = new ServerConfig();
 		fileServerConfig.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")));
 		fileServerConfig.setBossThreadNums(1);
@@ -128,7 +132,7 @@ public class DataNodeBootStrap implements LifeCycle {
 				return diskContext.getConcreteFilePath(path);
 			}
 			
-		});
+		}, deliver);
 		
 		fileServer = new TcpServer(fileServerConfig, fileInitializer);
 		fileServer.start();

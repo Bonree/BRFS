@@ -13,6 +13,7 @@
  */
 package com.bonree.brfs.client.storageregion;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static java.util.Objects.requireNonNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -36,5 +37,13 @@ public class StorageRegionInfo {
     @JsonProperty("attributes")
     public StorageRegionAttributes getAttributes() {
         return attributes;
+    }
+    
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("id", id)
+                .add("attributes", attributes)
+                .toString();
     }
 }

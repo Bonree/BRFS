@@ -48,6 +48,7 @@
 		<module>brfs-http-netty</module>
 		<module>brfs-email</module>
     <module>brfs-client</module>
+    <module>brfs-delivery</module>
   </modules>
 
 	<name>${project.artifactId}</name>

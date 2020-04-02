@@ -15,8 +15,6 @@ package com.bonree.brfs.jaxrs;
 
 import java.util.Objects;
 
-import javax.inject.Provider;
-
 import com.google.inject.Binder;
 import com.google.inject.Key;
 import com.google.inject.Scopes;
@@ -50,11 +48,6 @@ public class JaxrsBinder {
     public void resource(Key<?> key) {
         binder.bind(key).in(Scopes.SINGLETON);
         setBinder.addBinding().to(key).in(Scopes.SINGLETON);
-    }
-    
-    public void provider(Class<? extends Provider<? extends Object>> providerCls) {
-        binder.bind(providerCls).in(Scopes.SINGLETON);
-        setBinder.addBinding().toProvider(providerCls).in(Scopes.SINGLETON);;
     }
     
     public void resource(Object instance) {

@@ -12,8 +12,8 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.delivery.ProducerClient;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.supervisor.WriteMetric;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
@@ -34,18 +34,21 @@ public class DiskWriter implements Closeable {
 	private DiskNodeConnectionPool connectionPool;
 	
 	private FilePathMaker pathMaker;
+	private final Deliver deliver;
 	
 	@Inject
-	public DiskWriter(DiskNodeConnectionPool connectionPool, FilePathMaker pathMaker) {
+	public DiskWriter(DiskNodeConnectionPool connectionPool, FilePathMaker pathMaker, Deliver deliver) {
 	    this(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM),
 	            connectionPool,
-	            pathMaker);
+	            pathMaker,
+	            deliver);
 	}
 	
-	public DiskWriter(int workerNum, DiskNodeConnectionPool connectionPool, FilePathMaker pathMaker) {
+	public DiskWriter(int workerNum, DiskNodeConnectionPool connectionPool, FilePathMaker pathMaker, Deliver deliver) {
 		this.writeWorkers = Executors.newFixedThreadPool(workerNum, new PooledThreadFactory("disk_write_worker"));
 		this.connectionPool = connectionPool;
 		this.pathMaker = pathMaker;
+		this.deliver = deliver;
 	}
 	
 	public void write(FileObject file, List<DataObject> datas, WriteProgressListener listener) {
@@ -143,7 +146,7 @@ public class DiskWriter implements Closeable {
 				}
 				
 				writeMetric.setAvgElapsedTime(writeMetric.getElapsedTime() / writeMetric.getDataCount());
-				ProducerClient.getInstance().sendWriterMetric(writeMetric.toMap());
+				deliver.sendWriterMetric(writeMetric.toMap());
 			} finally {
 				callback.complete(file, index, dataOuts);
 			}

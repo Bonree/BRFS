@@ -13,20 +13,38 @@
  */
 package com.bonree.brfs.netty;
 
-public class NettyHttpServerConfig {
+import com.bonree.brfs.http.HttpServerConfig;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class NettyHttpServerConfig implements HttpServerConfig {
+    @JsonProperty
     private String host;
+    
+    @JsonProperty
     private int port = 8100;
     
+    @JsonProperty
+    private int sslPort;
+    
+    @JsonProperty
     private int acceptWorkerNum = 2;
+    @JsonProperty
     private int requestHandleWorkerNum = 6;
     
+    @JsonProperty
     private int connectTimeoutMillies = 30000;
+    @JsonProperty
     private int backlog = 128;
+    @JsonProperty
     private boolean keepAlive;
+    
+    @JsonProperty
     private boolean tcpNoDelay;
     
+    @JsonProperty
     private int maxHttpContentLength = 65 * 1024 * 1024;
-    
+
+    @Override
     public String getHost() {
         return host;
     }
@@ -35,12 +53,21 @@ public class NettyHttpServerConfig {
         this.host = host;
     }
 
+    @Override
     public int getPort() {
         return port;
     }
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public int getSslPort() {
+        return sslPort;
+    }
+
+    public void setSslPort(int sslPort) {
+        this.sslPort = sslPort;
     }
 
     public int getAcceptWorkerNum() {

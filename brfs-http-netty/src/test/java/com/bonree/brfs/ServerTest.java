@@ -30,10 +30,15 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import com.bonree.brfs.common.guice.ConfigModule;
+import com.bonree.brfs.common.jackson.JsonMapper;
+import com.bonree.brfs.common.jackson.JsonModule;
+import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.http.HttpServer;
 import com.bonree.brfs.jaxrs.JaxrsBinder;
 import com.bonree.brfs.jaxrs.JaxrsModule;
 import com.bonree.brfs.netty.NettyHttpServerModule;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Throwables;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -48,9 +53,12 @@ public class ServerTest {
         Injector in = Guice.createInjector(binder -> {
             binder.install(new JaxrsModule());
             binder.install(new NettyHttpServerModule());
+            binder.install(new LifecycleModule());
+            binder.install(new JsonModule());
+            binder.install(new ConfigModule());
             
             JaxrsBinder.jaxrs(binder).resource(A.class);
-            JaxrsBinder.jaxrs(binder).resource(BProvider.class);
+            JaxrsBinder.jaxrs(binder).resource(JsonMapper.class);
             JaxrsBinder.jaxrs(binder).resource(EE.class);
         });
         
@@ -66,33 +74,35 @@ public class ServerTest {
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public B get() {
-//            return new B(99, "HI");
-//            return null;
-            throw new RuntimeException("NONONO");
-        }
-        
-        @GET
-        @Path("r")
-        public Response getR() throws IOException {
-//            return Response.ok().entity("hahah").build();
-            throw new RuntimeException("III");
+            return new B(99, "HI");
         }
     }
     
     public static class B {
-        private int a;
-        private String b;
+        private final int a;
+        private final String b;
         
-        public B(int a, String b) {
+        public B(@JsonProperty("aaa") int a, @JsonProperty("bbb") String b) {
             this.a = a;
             this.b = b;
         }
         
-        public String toJson() {
+        @JsonProperty("aaa")
+        public int getA() {
+            return a;
+        }
+
+        @JsonProperty("bbb")
+        public String getB() {
+            return b;
+        }
+
+        @Override
+        public String toString() {
             return new StringBuilder()
                     .append("{")
-                    .append("a : ").append(a).append(",")
-                    .append("b : ").append(b)
+                    .append("ddda : ").append(a).append(",")
+                    .append("dddb : ").append(b)
                     .append("}")
                     .toString();
         }
@@ -111,7 +121,7 @@ public class ServerTest {
                 MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
                 throws IOException, WebApplicationException {
             System.out.println("############serialize B");
-            entityStream.write(t.toJson().getBytes(StandardCharsets.UTF_8));
+            entityStream.write(t.toString().getBytes(StandardCharsets.UTF_8));
         }
         
     }

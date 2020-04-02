@@ -50,25 +50,21 @@ public class FixedSizeDataSplitter implements DataSplitter {
         public InputStreamIterator(InputStream input) {
             this.input = input;
             this.bytes = new byte[maxSize];
+            
+            advance();
         }
-
-        @Override
-        public boolean hasNext() {
-            if(readLength > 0) {
-                return true;
-            }
-            
-            if(readLength < 0) {
-                return false;
-            }
-            
+        
+        private void advance() {
             try {
                 readLength = input.read(bytes);
             } catch (IOException e) {
                 readLength = -2;
             }
-            
-            return readLength >= 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return readLength > 0;
         }
 
         @Override
@@ -80,7 +76,7 @@ public class FixedSizeDataSplitter implements DataSplitter {
             try {
                 return ByteBuffer.wrap(bytes, 0, readLength);
             } finally {
-                readLength = 0;
+                advance();
             }
         }
         

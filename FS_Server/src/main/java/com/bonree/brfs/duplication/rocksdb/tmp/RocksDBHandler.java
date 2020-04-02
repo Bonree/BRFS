@@ -1,27 +1,36 @@
 package com.bonree.brfs.duplication.rocksdb.tmp;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.common.net.http.netty.ResponseSender;
 import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
 import com.bonree.brfs.duplication.rocksdb.WriteStatus;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.util.CharsetUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @ChannelHandler.Sharable
 public class RocksDBHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -29,6 +38,7 @@ public class RocksDBHandler extends SimpleChannelInboundHandler<FullHttpRequest>
     private static final Logger LOG = LoggerFactory.getLogger(RocksDBHandler.class);
 
     private RocksDBManager rocksDBManager;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public RocksDBHandler(RocksDBManager rocksDBManager) {
         this.rocksDBManager = rocksDBManager;
@@ -81,10 +91,14 @@ public class RocksDBHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             return;
         }
 
-        JSONObject json = new JSONObject();
-        json.put("code", status.code());
-        json.put("result", content);
-        ByteBuf buf = Unpooled.copiedBuffer(json.toJSONString(), CharsetUtil.UTF_8);
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("code", status.code());
+        node.put("result", content);
+        ByteBuf buf = Unpooled.copiedBuffer(objectMapper.writeValueAsString(node), CharsetUtil.UTF_8);
+//        JSONObject json = new JSONObject();
+//        json.put("code", status.code());
+//        json.put("result", content);
+//        ByteBuf buf = Unpooled.copiedBuffer(json.toJSONString(), CharsetUtil.UTF_8);
 
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");

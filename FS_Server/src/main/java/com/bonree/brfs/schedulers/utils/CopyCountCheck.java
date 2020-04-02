@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
@@ -29,6 +28,7 @@ import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.bonree.mail.worker.MailWorker;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -202,7 +202,8 @@ public class CopyCountCheck {
 				map.put("connectTimeout",String.valueOf(timeout));
 				map.put("sn", StringUtils.isEmpty(snName) ? "" :snName);
 				if(snTimes != null && !snTimes.isEmpty()){
-					map.put("sntime", JSON.toJSONString(snTimes));
+				    ObjectMapper objectMapper = new ObjectMapper();
+					map.put("sntime", objectMapper.writeValueAsString(snTimes));
 				}
 				builder.setVariable(map);
 				emailPool.sendEmail(builder);

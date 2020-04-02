@@ -15,7 +15,7 @@ package com.bonree.brfs.client.storageregion;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.time.Period;
+import java.time.Duration;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,8 +34,8 @@ public class StorageRegionAttributes {
             @JsonProperty("ttl") String dataTTL,
             @JsonProperty("capacity") Long fileCapacity,
             @JsonProperty("partition") String filePartition) {
-        Period.parse(dataTTL);
-        Period.parse(filePartition);
+        if(dataTTL != null) Duration.parse(dataTTL);
+        if(filePartition != null) Duration.parse(filePartition);
         this.enabled = enabled;
         this.replicateNum = replicateNum;
         this.dataTTL = dataTTL;

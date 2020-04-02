@@ -6,42 +6,44 @@ import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.List;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 
 public final class NetworkUtils {
-	
-	/**
-	 * 获取所有的本机IP地址
-	 * 
-	 * @return 字符串形式的ip地址列表
-	 */
-	public static List<InetAddress> getAllLocalIps() {
-        List<InetAddress> listAdr = Lists.newArrayList();
+
+    /**
+     * 获取所有的本机IP地址
+     * 
+     * @return 字符串形式的ip地址列表
+     */
+    public static List<InetAddress> getAllLocalIps() {
+        ImmutableList.Builder<InetAddress> addresses = ImmutableList.builder();
         try {
-        	Enumeration<NetworkInterface> nifs = NetworkInterface.getNetworkInterfaces();
-            if (nifs == null) return listAdr;
+            Enumeration<NetworkInterface> allInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (allInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = allInterfaces.nextElement();
+                if(networkInterface.isLoopback()
+                        || networkInterface.isVirtual()
+                        || !networkInterface.isUp()) {
+                    continue;
+                }
 
-            while (nifs.hasMoreElements())
-            {
-                NetworkInterface nif = nifs.nextElement();
-                // We ignore subinterfaces - as not yet needed.
-
-                Enumeration<InetAddress> adrs = nif.getInetAddresses();
-                while ( adrs.hasMoreElements() )
-                {
-                    InetAddress adr = adrs.nextElement();
-                    if ((adr != null) && !adr.isLoopbackAddress() && (nif.isPointToPoint() || !adr.isLinkLocalAddress()))
-                    {
-                        listAdr.add(adr);
+                Enumeration<InetAddress> adddresses = networkInterface.getInetAddresses();
+                while (adddresses.hasMoreElements()) {
+                    InetAddress address = adddresses.nextElement();
+                    if ((address != null)
+                            && !address.isLoopbackAddress()
+                            && (networkInterface.isPointToPoint() || !address.isLinkLocalAddress())) {
+                        addresses.add(address);
                     }
                 }
             }
-		} catch (SocketException e) {
-			e.printStackTrace();
-		}
-        
-        return listAdr;
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
+
+        return addresses.build();
     }
-	
-	private NetworkUtils() {}
+
+    private NetworkUtils() {
+    }
 }

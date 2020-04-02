@@ -25,6 +25,7 @@ import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.http.HttpConfig;
 import com.bonree.brfs.common.net.http.netty.HttpAuthenticator;
 import com.bonree.brfs.common.net.http.netty.NettyHttpRequestHandler;
@@ -304,8 +305,9 @@ public class BootStrap {
             FileObjectSupplierFactory fileSupplierFactory = new DefaultFileObjectSupplierFactory(fileFactory,
                     fileCloser, fileSynchronizer, sinkManager, timeEventEmitter);
 
+            Deliver deliver = Deliver.NOOP;
             DiskWriter diskWriter = new DiskWriter(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM),
-                    connectionPool, pathMaker);
+                    connectionPool, pathMaker, deliver);
             finalizer.add(diskWriter);
 
             DataEngineFactory engineFactory = new DefaultDataEngineFactory(dataPoolFactory, fileSupplierFactory, diskWriter);

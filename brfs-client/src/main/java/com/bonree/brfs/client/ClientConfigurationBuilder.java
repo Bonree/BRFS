@@ -28,47 +28,57 @@ public class ClientConfigurationBuilder {
     private int connectionPoolSize;
     private int threadNum;
 
-    ClientConfigurationBuilder() {
+    public ClientConfigurationBuilder() {
     }
     
-    public void setRegionNodeAddresses(URI[] addresses) {
+    public ClientConfigurationBuilder setRegionNodeAddresses(URI[] addresses) {
         this.addresses = addresses;
+        return this;
     }
 
-    public void setUser(String user) {
+    public ClientConfigurationBuilder setUser(String user) {
         this.user = user;
+        return this;
     }
 
-    public void setPasswd(String passwd) {
+    public ClientConfigurationBuilder setPasswd(String passwd) {
         this.passwd = passwd;
+        return this;
     }
     
-    public void setDiscoveryExpiredDuration(Duration expire) {
+    public ClientConfigurationBuilder setDiscoveryExpiredDuration(Duration expire) {
         this.discoveryExpire = expire;
+        return this;
     }
     
-    public void setDiscoreryRefreshDuration(Duration refresh) {
+    public ClientConfigurationBuilder setDiscoreryRefreshDuration(Duration refresh) {
         this.discoveryRefresh = refresh;
+        return this;
     }
     
-    public void setStorageRegionCacheExpiredDuration(Duration expire) {
+    public ClientConfigurationBuilder setStorageRegionCacheExpiredDuration(Duration expire) {
         this.storageRegionCacheExpire = expire;
+        return this;
     }
     
-    public void setStorageRegionCacheRefreshDuration(Duration refresh) {
+    public ClientConfigurationBuilder setStorageRegionCacheRefreshDuration(Duration refresh) {
         this.storageRegionCacheRefresh = refresh;
+        return this;
     }
     
-    public void setDataPackageSize(int size) {
+    public ClientConfigurationBuilder setDataPackageSize(int size) {
         this.dataPackageSize = size;
+        return this;
     }
 
-    public void setConnectionPoolSize(int connectionPoolSize) {
+    public ClientConfigurationBuilder setConnectionPoolSize(int connectionPoolSize) {
         this.connectionPoolSize = connectionPoolSize;
+        return this;
     }
 
-    public void setThreadNum(int threadNum) {
+    public ClientConfigurationBuilder setThreadNum(int threadNum) {
         this.threadNum = threadNum;
+        return this;
     }
 
     public ClientConfiguration build() {

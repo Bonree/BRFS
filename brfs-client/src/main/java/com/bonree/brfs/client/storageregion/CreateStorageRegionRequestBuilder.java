@@ -15,7 +15,7 @@ package com.bonree.brfs.client.storageregion;
 
 import static java.util.Objects.requireNonNull;
 
-import java.time.Period;
+import java.time.Duration;
 
 public class CreateStorageRegionRequestBuilder {
     private String name;
@@ -28,30 +28,36 @@ public class CreateStorageRegionRequestBuilder {
     CreateStorageRegionRequestBuilder() {
     }
 
-    public void setName(String name) {
+    public CreateStorageRegionRequestBuilder setName(String name) {
         this.name = name;
+        return this;
     }
 
-    public void setEnabled(boolean enabled) {
+    public CreateStorageRegionRequestBuilder setEnabled(boolean enabled) {
         this.enabled = enabled;
+        return this;
     }
 
-    public void setReplicateNum(int replicateNum) {
+    public CreateStorageRegionRequestBuilder setReplicateNum(int replicateNum) {
         this.replicateNum = replicateNum;
+        return this;
     }
 
-    public void setDataTTL(String dataTTL) {
-        Period.parse(dataTTL);
+    public CreateStorageRegionRequestBuilder setDataTTL(String dataTTL) {
+        Duration.parse(dataTTL);
         this.dataTTL = dataTTL;
+        return this;
     }
 
-    public void setFileCapacity(long fileCapacity) {
+    public CreateStorageRegionRequestBuilder setFileCapacity(long fileCapacity) {
         this.fileCapacity = fileCapacity;
+        return this;
     }
 
-    public void setFilePartition(String filePartition) {
-        Period.parse(dataTTL);
+    public CreateStorageRegionRequestBuilder setFilePartition(String filePartition) {
+        Duration.parse(dataTTL);
         this.filePartition = filePartition;
+        return this;
     }
 
     public CreateStorageRegionRequest build() {
