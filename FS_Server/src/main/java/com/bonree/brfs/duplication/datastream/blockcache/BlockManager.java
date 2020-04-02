@@ -117,13 +117,23 @@ public class BlockManager {
                 blockCache.releaseBlock(storage, fileName, blockOffsetInFile);
                 // 1.2 大文件的一个block
                 writer.write(storage, realData,
-                        new WriteBlockCallback(callback, packet, block));
+                        new WriteBlockCallback(callback, packet, block,getFile(packet).isAcceptedAllBlocks()));
                 LOG.debug("在追加packet到block时，storage[{}]-file[{}]中的一个block[{}] 写满了。落盘",storage,fileName,blockOffsetInFile);
             }
             return block;
         }
+        HandleResult handleResult = new HandleResult();
+
+        if(block == null){
+            LOG.debug("packet[{}]没有申请到block",packet.getSeqno());
+            handleResult.setSuccess(false);
+            callback.completed(handleResult);
+            return block;
+        }
         //如果是一个大文件的一个block，但是并没有写满,只做追加动作，前面完成了
-        LOG.debug("pacekt[{}] 追加到block[{}],且未写满block，累积在内存中。。。，",packet,block);
+        LOG.debug("packet[{}] 追加到block[{}],且未写满block，累积在内存中。。。，",packet,block);
+        handleResult.setCONTINUE();
+        callback.completed(handleResult);
         return block;
     }
     private FileEntry getFile(int storage,String file){
@@ -715,10 +725,10 @@ public class BlockManager {
      */
     private class WriteBlockCallback implements StorageRegionWriteCallback {
         private HandleResultCallback callback;
-        private int StorageName;
+        private int storageName;
         private String fileName;
         private Boolean isFileFinished;
-        private long BlockOffsetInfile;
+        private long blockOffsetInfile;
         private long seqno;
         private Block block;
 
@@ -733,12 +743,12 @@ public class BlockManager {
          * @param packet
          * @param block
          */
-        public WriteBlockCallback(HandleResultCallback callback, FSPacket packet, Block block) {
+        public WriteBlockCallback(HandleResultCallback callback, FSPacket packet, Block block,boolean isFileFinished) {
             this.callback = callback;
-            this.StorageName = packet.getStorageName();
+            this.storageName = packet.getStorageName();
             this.fileName = packet.getFileName();
-            this.isFileFinished = packet.isLastPacketInFile();
-            this.BlockOffsetInfile = packet.getBlockOffsetInFile(blockPool.getBlockSize());
+            this.isFileFinished = isFileFinished;
+            this.blockOffsetInfile = packet.getBlockOffsetInFile(blockPool.getBlockSize());
             this.seqno = packet.getSeqno();
             this.block = block;
         }
@@ -753,27 +763,29 @@ public class BlockManager {
             HandleResult result = new HandleResult();
             Preconditions.checkNotNull(fid, "在写block[{}]时返回的fid为空",block);
             // 1. blockcache中填写fid
-            setFidAndReleaseBlock(StorageName, fileName, BlockOffsetInfile, fid,callback);
+            setFidAndReleaseBlock(storageName, fileName, blockOffsetInfile, fid,callback);
             LOG.debug("获得大文件的一个block的fid[{}]", fid);
-            try {
-                String response = "seqno:" + seqno +
-                        "数据包所在的offset为：" + BlockOffsetInfile +
-                        "的block" + block +
-                        "已经flush";
-                LOG.debug(response);
-                result.setCONTINUE();
-                result.setData(JsonUtils.toJsonBytes(response));
-            } catch (JsonUtils.JsonException e) {
-                LOG.error("can not json fids", e);
-                result.setSuccess(false);
+            if(!isFileFinished){
+                try {
+                    String response = "seqno:" + seqno +
+                            " filename:" + fileName +
+                            " storageName:" + storageName +
+                            " done flush";
+                    LOG.debug(response);
+                    result.setCONTINUE();
+                    result.setData(JsonUtils.toJsonBytes(response));
+                } catch (JsonUtils.JsonException e) {
+                    LOG.error("can not json fids", e);
+                    result.setSuccess(false);
+                }
+                callback.completed(result);
             }
-            callback.completed(result);
         }
 
         @Override
         public void error() {
             LOG.error("文件[{}]seqno:" + seqno +
-                    "数据包所在的offset为：" + BlockOffsetInfile +
+                    "数据包所在的offset为：" + blockOffsetInfile +
                     "的block" + block +
                     "flush时出错！", fileName);
             callback.completed(new HandleResult(false));
