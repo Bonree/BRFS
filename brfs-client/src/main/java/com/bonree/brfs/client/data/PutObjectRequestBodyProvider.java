@@ -16,6 +16,7 @@ package com.bonree.brfs.client.data;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.function.LongSupplier;
 
 import com.bonree.brfs.client.data.compress.Compression;
 
@@ -25,7 +26,7 @@ public interface PutObjectRequestBodyProvider {
     
     Iterator<RequestBody> from(
             Iterator<ByteBuffer> bufs,
-            SequenceIDGenerator sequenceIDGenerator,
+            LongSupplier sequenceIDGenerator,
             int storageRegionId,
             Optional<String> fileName,
             Context context);

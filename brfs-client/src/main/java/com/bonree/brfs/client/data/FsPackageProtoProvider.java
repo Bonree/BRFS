@@ -20,11 +20,13 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
 
 import com.bonree.brfs.client.ClientException;
 import com.bonree.brfs.client.data.compress.Compression;
 import com.bonree.brfs.client.utils.ByteBufferInputStream;
 import com.bonree.brfs.client.utils.CrcUtils;
+import com.bonree.brfs.client.utils.RequestBodys;
 import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
 import com.google.protobuf.ByteString;
 
@@ -54,7 +56,7 @@ public class FsPackageProtoProvider implements PutObjectRequestBodyProvider {
     @Override
     public Iterator<RequestBody> from(
             Iterator<ByteBuffer> bufs,
-            SequenceIDGenerator sequenceIDGenerator,
+            LongSupplier sequenceIDGenerator,
             int storageRegionId,
             Optional<String> fileName,
             Context context) {
@@ -85,7 +87,7 @@ public class FsPackageProtoProvider implements PutObjectRequestBodyProvider {
 
     private RequestBody buildBody(
             ByteBuffer buf,
-            SequenceIDGenerator sequenceIDGenerator,
+            LongSupplier sequenceIDGenerator,
             AtomicLong contentLengthAccumulator,
             int storageRegionId,
             Optional<String> fileName,
@@ -93,7 +95,7 @@ public class FsPackageProtoProvider implements PutObjectRequestBodyProvider {
             Compression compression,
             boolean noMoreData) {
         FSPacketProto.Builder builder = FSPacketProto.newBuilder();
-        builder.setSeqno(sequenceIDGenerator.nextSequenceID());
+        builder.setSeqno(sequenceIDGenerator.getAsLong());
         builder.setLastPacketInFile(noMoreData);
         builder.setStorageName(storageRegionId);
         if(fileName.isPresent()) {
@@ -116,6 +118,6 @@ public class FsPackageProtoProvider implements PutObjectRequestBodyProvider {
             throw new ClientException(e, "Can not set data");
         }
         
-        return RequestBody.create(builder.build().toByteArray(), contentType);
+        return RequestBodys.create(contentType, builder.build());
     }
 }

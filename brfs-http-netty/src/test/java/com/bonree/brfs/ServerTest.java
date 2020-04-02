@@ -20,9 +20,12 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -75,6 +78,12 @@ public class ServerTest {
         @Produces(MediaType.APPLICATION_JSON)
         public B get() {
             return new B(99, "HI");
+        }
+        
+        @POST
+        @Produces(MediaType.APPLICATION_JSON)
+        public void getasync(@Suspended AsyncResponse r) {
+            r.resume(new B(994, "HI"));
         }
     }
     
