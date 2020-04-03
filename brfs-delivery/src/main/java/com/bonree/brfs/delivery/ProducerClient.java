@@ -15,7 +15,6 @@ import com.bonree.bigdata.zeus.delivery.handler.Callback;
 import com.bonree.bigdata.zeus.delivery.handler.Delivery;
 import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.KafkaConfig;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
