@@ -508,7 +508,7 @@ public class BlockManager implements BlockManagerInterface{
         }
         public FileEntry(int storage , String fileName) {
             this.fileName = fileName;
-            timer.schedule(fooTimerTask, 3000L, 3000L); // 3. 通过Timer定时定频率调用fooTimerTask的业务代码
+            timer.schedule(fooTimerTask, 3000L, 30000L); // 3. 通过Timer定时定频率调用fooTimerTask的业务代码
             this.storage = storage;
         }
 
