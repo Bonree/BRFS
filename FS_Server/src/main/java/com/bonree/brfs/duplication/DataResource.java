@@ -23,7 +23,6 @@ import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.google.common.collect.ImmutableList;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,11 +61,10 @@ public class DataResource {
             @Suspended AsyncResponse response) {
         LOG.debug("DONE decode ,从请求中取出data");
         LOG.debug("{}",data);
-        FSPacket packet = new FSPacket();
-        packet.setProto(data);
-        LOG.debug("收到数据长度为：[{}]，尝试将其填充到block中，",packet.getData().length);
-        //todo check packet len
         try {
+            FSPacket packet = new FSPacket();
+            packet.setProto(data);
+            LOG.debug("收到数据长度为：[{}]，尝试将其填充到block中，",packet.getData().length);
             int storage = packet.getStorageName();
             String file = packet.getFileName();
             LOG.debug("从数据中反序列化packet [{}]",packet);
@@ -103,21 +101,24 @@ public class DataResource {
                 @Override
                 public void completed(HandleResult result) {
                     if(result.isCONTINUE()) {
+                        LOG.debug("返回seqno：{}",result.getNextSeqno());
                         response.resume(Response
                                 .status(HttpStatus.CODE_NEXT)
-                                .entity(new NextData(result.getNextSeqno())));
+                                .entity(new NextData(result.getNextSeqno())).build());
                     }else if(result.isSuccess()){
+                        LOG.debug("返回fid");
                         response.resume(Response
                                 .ok()
-                                .entity(new String(result.getData())));
+                                .entity(ImmutableList.of(new String(result.getData()))).build());
                     }else{
+                        LOG.debug("返回错误");
                         response.resume(result.getCause());
                     }
                 }
             });
         } catch (Exception e) {
             LOG.error("handle write data message error", e);
-            response.resume(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+            response.resume(e);
         }
 
     }
