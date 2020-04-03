@@ -233,7 +233,7 @@ public class BlockManager implements BlockManagerInterface{
     public byte[] writeFile(int storageName, String fileName) {
         StringBuilder sb = new StringBuilder("::brfs-index-file::storage[" + storageName + "]file[" + fileName + "]\n");
         FileEntry file = blockCache.getStorage(storageName).getFile(fileName);
-        Preconditions.checkNotNull(file, "file[{}] is should't be null", fileName);
+        Preconditions.checkNotNull(file, "file[{}] should't be null", fileName);
         Map<Long, BlockOrFidEntry> offsetToBlock = file.getOffsetToBlock();
         for (Long offset : offsetToBlock.keySet()) {
             sb.append(offset).append(" ").append(offsetToBlock.get(offset)).append("\n");
@@ -277,7 +277,7 @@ public class BlockManager implements BlockManagerInterface{
             FileEntry file = getFile(storageName, fileName);
             file.updateTimestamp();
             BlockOrFidEntry blockOrFidEntry = blockCache.getStorage(storageName).getFile(fileName).getOffsetToBlock().get(blockOffsetInfile);
-            Preconditions.checkNotNull(blockOrFidEntry, "block在想datapool中写数据之前应该在blockcache中注册一个blockOrFidEntry");
+            Preconditions.checkNotNull(blockOrFidEntry, "block在向datapool中写数据之前应该在blockcache中注册一个blockOrFidEntry");
             blockOrFidEntry.setFid(fid);
             //如果最后一个block的的fid也写入了
             if(file.isAcceptedAllBlocks()){
@@ -285,7 +285,7 @@ public class BlockManager implements BlockManagerInterface{
                 clearFile(storageName,fileName);
                 writer.write(storageName,data,
                         new WriteFileCallback(callback,storageName,fileName));
-                LOG.debug("在[{}]中写了一个大文件索引文件[{}]", storageName, fileName);
+                LOG.info("在[{}]中写了一个大文件索引文件[{}]", storageName, fileName);
             }
             return true;
         }

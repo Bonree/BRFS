@@ -67,10 +67,10 @@ public class DataResource {
             LOG.debug("收到数据长度为：[{}]，尝试将其填充到block中，",packet.getData().length);
             int storage = packet.getStorageName();
             String file = packet.getFileName();
-            LOG.info("从数据中反序列化packet [{}]",packet);
+            LOG.debug("从数据中反序列化packet [{}]",packet);
             //如果是一个小于等于packet长度的文件，由handler直接写
             if(packet.isATinyFile(blockManager.getBlockSize())){
-                LOG.info("一条超小文件[{}]",packet.getFileName());
+                LOG.debug("一条超小文件[{}]",packet.getFileName());
                 storageRegionWriter.write(
                         packet.getStorageName(),
                         packet.getData(),
