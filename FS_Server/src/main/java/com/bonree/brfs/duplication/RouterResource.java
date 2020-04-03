@@ -28,12 +28,12 @@ import com.bonree.brfs.identification.SecondIdsInterface;
 
 @Path("/router")
 public class RouterResource {
-    private final SecondIdsInterface secondIds;
-    
-    @Inject
-    public RouterResource(SecondIdsInterface secondIds) {
-        this.secondIds = secondIds;
-    }
+//    private final SecondIdsInterface secondIds;
+//    
+//    @Inject
+//    public RouterResource(SecondIdsInterface secondIds) {
+//        this.secondIds = secondIds;
+//    }
 
     @GET
     @Path("secondServerID/{srName}")
