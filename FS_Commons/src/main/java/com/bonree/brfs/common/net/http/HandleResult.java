@@ -54,7 +54,7 @@ public class HandleResult {
 	}
 
 	public void setNextSeqno(long seqno) {
-		nextSeqno = seqno;
+		nextSeqno = seqno + 1;
 	}
 
 	public long getNextSeqno() {
