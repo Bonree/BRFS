@@ -13,23 +13,9 @@
  */
 package com.bonree.brfs.client;
 
-import java.net.URI;
 import java.time.Duration;
 
 public interface ClientConfiguration {
-    
-    /**
-     * get the seed addresses for service discovery, It's not
-     * necessary to provide all addresses of region nodes in
-     * cluster. perhaps one is just enough.
-     * 
-     * @return addresses of region nodes
-     */
-    URI[] getRegionNodeAddresses();
-    
-    String getUser();
-    
-    String getPasswd();
     
     Duration getDiscoveryExpiredDuration();
     

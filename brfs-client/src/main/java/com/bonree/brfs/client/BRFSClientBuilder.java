@@ -14,6 +14,7 @@
 package com.bonree.brfs.client;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.Executors;
 
 import com.bonree.brfs.client.discovery.CachedDiscovery;
@@ -29,28 +30,43 @@ import okhttp3.OkHttpClient;
 import okhttp3.Response;
 
 public class BRFSClientBuilder {
-    private ClientConfiguration config;
+    private ClientConfiguration configuration;
     
-    public BRFSClientBuilder setConfiguration(ClientConfiguration config) {
-        this.config = config;
+    public BRFSClientBuilder config(ClientConfiguration config) {
+        this.configuration = config;
         return this;
     }
     
-    public BRFSClient build() {
+    /**
+     * create a brfs client with a customized configuration
+     * 
+     * @param user user for brfs server
+     * @param passwd the secret key of user
+     * @param regionNodes addresses of region nodes. get the seed addresses for service discovery, It's not
+     *                    necessary to provide all addresses of region nodes in
+     *                    cluster. perhaps one is just enough.
+     *                    
+     * @return brfs client
+     */
+    public BRFS build(String user, String passwd, URI[] regionNodes) {
+        if(configuration == null) {
+            configuration = new ClientConfigurationBuilder().build();
+        }
+        
         OkHttpClient httpClient = new OkHttpClient.Builder()
-                .addNetworkInterceptor(new AuthorizationIterceptor(config))
+                .addNetworkInterceptor(new AuthorizationIterceptor(user, passwd))
                 .socketFactory(new SocketChannelSocketFactory())
                 .build();
         
         JsonCodec codec = new JsonCodec(new ObjectMapper());
         
         Discovery discovery = new CachedDiscovery(
-                new HttpDiscovery(httpClient, config.getRegionNodeAddresses(), codec),
+                new HttpDiscovery(httpClient, regionNodes, codec),
                 Executors.newSingleThreadExecutor(new DaemonThreadFactory("brfs-discovery-%s")),
-                config.getDiscoveryExpiredDuration(),
-                config.getDiscoreryRefreshDuration());
+                configuration.getDiscoveryExpiredDuration(),
+                configuration.getDiscoreryRefreshDuration());
                 
-        return new BRFS(config, httpClient, discovery, codec);
+        return new BRFSClient(configuration, httpClient, discovery, codec);
     }
     
     /**
@@ -63,11 +79,6 @@ public class BRFSClientBuilder {
         public AuthorizationIterceptor(String user, String passwd) {
             this.user = user;
             this.passwd = passwd;
-        }
-        
-        private AuthorizationIterceptor(ClientConfiguration config) {
-            this.user = config.getUser();
-            this.passwd = config.getPasswd();
         }
 
         @Override

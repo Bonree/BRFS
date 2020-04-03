@@ -13,10 +13,9 @@
  */
 package com.bonree.brfs.client.write;
 
-import java.io.IOException;
 import java.net.URI;
 
-import com.bonree.brfs.client.BRFSClient;
+import com.bonree.brfs.client.BRFS;
 import com.bonree.brfs.client.BRFSClientBuilder;
 import com.bonree.brfs.client.ClientConfigurationBuilder;
 import com.bonree.brfs.client.PutObjectResult;
@@ -27,19 +26,17 @@ public class WriteTest {
      * @param args
      * @throws Exception 
      */
-    public static void main(String[] args) throws Exception {
-        try (BRFSClient client = new BRFSClientBuilder()
-                .setConfiguration(new ClientConfigurationBuilder()
-                        .setUser("root")
-                        .setPasswd("12345")
-                        .setDataPackageSize(100)
-                        .setRegionNodeAddresses(new URI[] {URI.create("http://localhost:8100")})
+    public static void main(String[] args) {
+        BRFS client = new BRFSClientBuilder()
+                .config(new ClientConfigurationBuilder()
+                        .setDataPackageSize(3)
                         .build())
-                .build()) {
-            
+                .build("root", "12345", new URI[] {URI.create("http://localhost:8100")});
+        
+        try {
             PutObjectResult r = client.putObject("new_test", "1234567890abcd".getBytes());
             System.out.println(r.getFID());
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

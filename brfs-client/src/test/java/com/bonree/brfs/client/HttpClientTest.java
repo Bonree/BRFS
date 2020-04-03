@@ -15,7 +15,7 @@ package com.bonree.brfs.client;
 
 import java.io.IOException;
 
-import com.bonree.brfs.client.BRFS;
+import com.bonree.brfs.client.BRFSClient;
 import com.bonree.brfs.client.BRFSClientBuilder.AuthorizationIterceptor;
 import com.bonree.brfs.client.utils.RequestBodys;
 import com.bonree.brfs.client.utils.SocketChannelSocketFactory;
@@ -53,7 +53,7 @@ public class HttpClientTest {
                         .newBuilder()
                         .encodedPath("/data")
                         .build())
-                .post(RequestBodys.create(BRFS.OCTET_STREAM, b.build()))
+                .post(RequestBodys.create(BRFSClient.OCTET_STREAM, b.build()))
                 .build();
         
         for(int i = 0; i < 3; i++) {
