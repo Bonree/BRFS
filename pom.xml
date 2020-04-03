@@ -50,6 +50,7 @@
 		<module>brfs-email</module>
 		<module>brfs-client</module>
 		<module>brfs-delivery</module>
+		<module>brfs-rocksdb</module>
 	</modules>
 
 	<name>${project.artifactId}</name>

@@ -1,26 +1,5 @@
 package com.bonree.brfs.duplication;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
-import com.bonree.brfs.duplication.datastream.handler.WriteStreamDataMessageHandler;
-import com.bonree.brfs.duplication.rocksdb.backup.BackupEngineFactory;
-import com.bonree.brfs.duplication.rocksdb.handler.RocksDBReadRequestHandler;
-import com.bonree.brfs.duplication.rocksdb.handler.RocksDBRestoreRequestHandler;
-import com.bonree.brfs.duplication.rocksdb.restore.RocksDBRestoreEngine;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ReturnCode;
@@ -40,30 +19,25 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
-import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DataNodeConfigs;
-import com.bonree.brfs.configuration.units.RegionNodeConfigs;
-import com.bonree.brfs.configuration.units.ResourceConfigs;
-import com.bonree.brfs.configuration.units.RocksDBConfigs;
+import com.bonree.brfs.configuration.units.*;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
 import com.bonree.brfs.duplication.datastream.connection.tcp.TcpDiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.BlockingQueueDataPoolFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DataPoolFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineManager;
-import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectCloser;
-import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectFactory;
-import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectSupplierFactory;
-import com.bonree.brfs.duplication.datastream.file.FileObjectFactory;
-import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
+import com.bonree.brfs.duplication.datastream.file.*;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSynchronier;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.handler.DeleteDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.ReadDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.WriteDataMessageHandler;
+import com.bonree.brfs.duplication.datastream.handler.WriteStreamDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.writer.DefaultStorageRegionWriter;
 import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
@@ -77,16 +51,6 @@ import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileCoordinatorPaths;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
-import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
-import com.bonree.brfs.duplication.rocksdb.backup.RocksDBBackupEngine;
-import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.connection.http.HttpRegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.handler.PingRequestHandler;
-import com.bonree.brfs.duplication.rocksdb.handler.RocksDBWriteRequestHandler;
-import com.bonree.brfs.duplication.rocksdb.impl.DefaultRocksDBManager;
-import com.bonree.brfs.duplication.rocksdb.listener.ColumnFamilyInfoListener;
-import com.bonree.brfs.duplication.rocksdb.tmp.RocksDBHandler;
-import com.bonree.brfs.duplication.rocksdb.tmp.RocksDBTest;
 import com.bonree.brfs.duplication.storageregion.StorageRegionIdBuilder;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.handler.CreateStorageRegionMessageHandler;
@@ -98,6 +62,19 @@ import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Deprecated
 public class BootStrap {
@@ -340,8 +317,8 @@ public class BootStrap {
             BlockPool blockPool = new BlockPool(blocksize, blockpool, initCount);
             BlockManager blockManager = new BlockManager(blockPool, writer);
             NettyHttpRequestHandler streamRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-            streamRequestHandler.addMessageHandler("Post",new WriteStreamDataMessageHandler(writer,blockManager));
-            httpServer.addContextHandler(URI_STREAM_DATA_ROOT,streamRequestHandler);
+            streamRequestHandler.addMessageHandler("Post", new WriteStreamDataMessageHandler(writer, blockManager));
+            httpServer.addContextHandler(URI_STREAM_DATA_ROOT, streamRequestHandler);
             /** Module Managed **/
             serviceManager.registerService(service);
 
@@ -359,45 +336,57 @@ public class BootStrap {
             /********************/
 
             if (Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_SWITCH)) {
-                RegionNodeConnectionPool regionNodeConnectionPool = new HttpRegionNodeConnectionPool(serviceManager);
-                finalizer.add(regionNodeConnectionPool);
+                /** Module Managed **/
+//                RegionNodeConnectionPool regionNodeConnectionPool = new HttpRegionNodeConnectionPool(serviceManager);
+//                finalizer.add(regionNodeConnectionPool);
+                /********************/
 
-                String rocksDBPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
-                RocksDBManager rocksDBManager = new DefaultRocksDBManager(rocksDBPath,
-                        client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)),
-                        localServiceId,
-                        serviceManager,
-                        regionNodeConnectionPool);
-                rocksDBManager.start();
-                finalizer.add(rocksDBManager);
+                /** Module Managed **/
+//                String rocksDBPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
+//                RocksDBManager rocksDBManager = new DefaultRocksDBManager(rocksDBPath,
+//                        client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)),
+//                        localServiceId,
+//                        serviceManager,
+//                        regionNodeConnectionPool);
+//                rocksDBManager.start();
+//                finalizer.add(rocksDBManager);
+                /********************/
 
-                ColumnFamilyInfoListener listener = new ColumnFamilyInfoListener(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), rocksDBManager);
-                listener.start();
-                finalizer.add(listener);
+                /** Module Managed **/
+//                ColumnFamilyInfoListener listener = new ColumnFamilyInfoListener(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), rocksDBManager);
+//                listener.start();
+//                finalizer.add(listener);
+                /********************/
 
-                RocksDBBackupEngine backupEngine = new RocksDBBackupEngine(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), service, serviceManager, rocksDBManager);
-                backupEngine.start();
-                finalizer.add(backupEngine);
+                /** Module Managed **/
+//                RocksDBBackupEngine backupEngine = new RocksDBBackupEngine(client.usingNamespace(zookeeperPaths.getBaseRocksDBPath().substring(1)), service, serviceManager, rocksDBManager);
+//                backupEngine.start();
+//                finalizer.add(backupEngine);
+                /********************/
 
-                NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-                pingRequestHandler.addMessageHandler("GET", new PingRequestHandler());
-                pingRequestHandler.addMessageHandler("POST", new RocksDBRestoreRequestHandler(backupEngine));
-                httpServer.addContextHandler(URI_PING_ROOT, pingRequestHandler);
+//                NettyHttpRequestHandler pingRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+//                pingRequestHandler.addMessageHandler("GET", new PingRequestHandler());
+//                pingRequestHandler.addMessageHandler("POST", new RocksDBRestoreRequestHandler(backupEngine));
+//                httpServer.addContextHandler(URI_PING_ROOT, pingRequestHandler);
+//
+//                NettyHttpRequestHandler rocksDBRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
+//                rocksDBRequestHandler.addMessageHandler("GET", new RocksDBReadRequestHandler(rocksDBManager));
+//                rocksDBRequestHandler.addMessageHandler("POST", new RocksDBWriteRequestHandler(rocksDBManager));
+//                httpServer.addContextHandler(URI_ROCKSDB_ROOT, rocksDBRequestHandler);
 
-                NettyHttpRequestHandler rocksDBRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-                rocksDBRequestHandler.addMessageHandler("GET", new RocksDBReadRequestHandler(rocksDBManager));
-                rocksDBRequestHandler.addMessageHandler("POST", new RocksDBWriteRequestHandler(rocksDBManager));
-                httpServer.addContextHandler(URI_ROCKSDB_ROOT, rocksDBRequestHandler);
-
-                RocksDBRestoreEngine restoreEngine = new RocksDBRestoreEngine(service, rocksDBManager, serviceManager, regionNodeConnectionPool);
-                restoreEngine.restore();
+                /** Module Managed **/
+//                RocksDBRestoreEngine restoreEngine = new RocksDBRestoreEngine(service, rocksDBManager, serviceManager, regionNodeConnectionPool);
+//                restoreEngine.restore();
+                /********************/
 
                 // 临时服务测试RocksDB读写
-                RocksDBTest rocksDBTest = new RocksDBTest(new RocksDBHandler(rocksDBManager));
-                rocksDBTest.start();
-                finalizer.add(rocksDBTest);
+//                RocksDBTest rocksDBTest = new RocksDBTest(new RocksDBHandler(rocksDBManager));
+//                rocksDBTest.start();
+//                finalizer.add(rocksDBTest);
 
-                finalizer.add(BackupEngineFactory.getInstance());
+                /** Module Managed **/
+//                finalizer.add(BackupEngineFactory.getInstance());
+                /********************/
             }
 
             httpServer.start();
