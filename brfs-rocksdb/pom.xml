@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>brfs-rocksdb</artifactId>
-    <name>brfs-client</name>
+    <name>brfs-rocksdb</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
