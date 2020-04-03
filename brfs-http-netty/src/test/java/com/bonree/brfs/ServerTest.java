@@ -34,12 +34,12 @@ import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
 import com.bonree.brfs.common.guice.ConfigModule;
+import com.bonree.brfs.common.http.HttpServer;
+import com.bonree.brfs.common.http.rest.JaxrsBinder;
+import com.bonree.brfs.common.http.rest.JaxrsModule;
 import com.bonree.brfs.common.jackson.JsonMapper;
 import com.bonree.brfs.common.jackson.JsonModule;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
-import com.bonree.brfs.http.HttpServer;
-import com.bonree.brfs.jaxrs.JaxrsBinder;
-import com.bonree.brfs.jaxrs.JaxrsModule;
 import com.bonree.brfs.netty.NettyHttpServerModule;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Throwables;
