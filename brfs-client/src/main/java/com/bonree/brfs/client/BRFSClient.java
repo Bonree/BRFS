@@ -34,6 +34,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.LongSupplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,10 @@ import com.bonree.brfs.client.data.PutObjectCallMaker;
 import com.bonree.brfs.client.data.compress.Compression;
 import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.Discovery.ServiceType;
+import com.bonree.brfs.client.discovery.ServerNode;
 import com.bonree.brfs.client.json.JsonCodec;
+import com.bonree.brfs.client.ranker.ShiftRanker;
+import com.bonree.brfs.client.ranker.Ranker;
 import com.bonree.brfs.client.storageregion.CreateStorageRegionRequest;
 import com.bonree.brfs.client.storageregion.ListStorageRegionRequest;
 import com.bonree.brfs.client.storageregion.StorageRegionID;
@@ -92,6 +96,7 @@ public class BRFSClient implements BRFS {
     private final DataSplitter dataSplitter;
     
     private final LoadingCache<String, Integer> storageRegionCache;
+    private final Ranker<ServerNode> nodeRanker;
     
     public BRFSClient(ClientConfiguration config, OkHttpClient httpClient, Discovery discovery, JsonCodec codec) {
         this.httpClient = requireNonNull(httpClient, "http client is null");
@@ -111,6 +116,8 @@ public class BRFSClient implements BRFS {
                     }
                     
                 });
+        
+        this.nodeRanker = new ShiftRanker<>();
     }
 
     public StorageRegionID createStorageRegion(CreateStorageRegionRequest request) throws Exception {
@@ -422,78 +429,38 @@ public class BRFSClient implements BRFS {
         Function<URI, Call> firstCall = callProvider.next();
         SettableFuture<PutObjectResult> resultFuture = SettableFuture.create();
         
-        Retrys.execute(new URIRetryable<Void> (
+        return Retrys.execute(new URIRetryable<PutObjectCallback> (
                 format("put object to storage region[%s]", srName),
                 getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
-                    SettableFuture<Void> retryFuture = SettableFuture.create();
+                    SettableFuture<PutObjectCallback> retryFuture = SettableFuture.create();
                     
                     firstCall.apply(uri).enqueue(new Callback() {
                         
                         @Override
                         public void onResponse(Call call, Response response) throws IOException {
-                            if(!retryFuture.isDone()) {
-                                retryFuture.set(null);
-                            }
+                            PutObjectCallback callback = new PutObjectCallback(
+                                    uri,
+                                    () -> sequenceIDs.get(),
+                                    callProvider);
                             
-                            if(response.code() == HttpStatus.CODE_NEXT) {
-                                ResponseBody body = response.body();
-                                if(body == null) {
-                                    resultFuture.setException(
-                                            new IllegalStateException("No response content is found in writting"));
-                                    return;
-                                }
-                                
-                                NextData nextData = codec.fromJsonBytes(body.bytes(), NextData.class);
-                                if(nextData.getNextSequence() != sequenceIDs.get()) {
-                                    resultFuture.setException(
-                                            new IllegalStateException(
-                                                    Strings.format("Expected next seq[%d] but get [%d]",
-                                                            sequenceIDs.get(),
-                                                            nextData.getNextSequence())));
-                                    return;
-                                }
-                                
-                                log.info("writer block[%d] to sr[%s] successfully", sequenceIDs.get() - 1, srName);
-                                callProvider.next().apply(uri).enqueue(this);
-                                return;
-                            }
+                            retryFuture.set(callback);
                             
-                            if(response.code() == HttpStatus.CODE_OK) {
-                                ResponseBody body = response.body();
-                                if(body == null) {
-                                    resultFuture.setException(new IllegalStateException("No response content is found"));
-                                    return;
-                                }
-                                
-                                resultFuture.set(new SimplePutObjectResult(
-                                        Iterables.getOnlyElement(
-                                                codec.fromJsonBytes(
-                                                        body.bytes(),
-                                                        new TypeReference<List<String>>() {}))));
-                            }
+                            callback.onResponse(call, response);
                         }
                         
                         @Override
                         public void onFailure(Call call, IOException cause) {
-                            if(!resultFuture.isDone()) {
-                                resultFuture.setException(cause);
-                                return;
-                            }
-                            
                             resultFuture.setException(cause);
                         }
                     });
                     
                     try {
-                        retryFuture.get();
-                        return TaskResult.success(null);
+                        return TaskResult.success(retryFuture.get());
                     } catch(Exception e) {
                         return TaskResult.retry(e);
                     }
-                }));
-        
-        return resultFuture.get();
+                })).get();
     }
 
     public BRFSObject getObject(GetObjectRequest request) {
@@ -530,64 +497,74 @@ public class BRFSClient implements BRFS {
     }
     
     private Iterable<URI> getNodeLocations(ServiceType type, String scheme) {
-        return Iterables.transform(discovery.getServiceList(type),
+        return Iterables.transform(
+                nodeRanker.rank(discovery.getServiceList(type)),
                 node -> buildUri(scheme, node.getHost(), node.getPort()));
     }
     
-//    private class PutObjectCallback implements Callback {
-//        private final URI uri;
-//        
-//        public PutObjectCallback(URI uri) {
-//            this.uri = uri;
-//        }
-//
-//        @Override
-//        public void onResponse(Call call, Response response) throws IOException {
-//            if(response.code() == HttpStatus.CODE_NEXT) {
-//                ResponseBody body = response.body();
-//                if(body == null) {
-//                    resultFuture.setException(
-//                            new IllegalStateException("No response content is found in writting"));
-//                    return;
-//                }
-//                
-//                NextData nextData = codec.fromJsonBytes(body.bytes(), NextData.class);
-//                if(nextData.getNextSequence() != sequenceIDs.get()) {
-//                    resultFuture.setException(
-//                            new IllegalStateException(
-//                                    Strings.format("Expected next seq[%d] but get [%d]",
-//                                            sequenceIDs.get(),
-//                                            nextData.getNextSequence())));
-//                    return;
-//                }
-//                
-//                log.info("writer block[%d] to sr[%s] successfully", sequenceIDs.get() - 1, srName);
-//                callProvider.next().apply(uri).enqueue(this);
-//                return;
-//            }
-//            
-//            if(response.code() == HttpStatus.CODE_OK) {
-//                ResponseBody body = response.body();
-//                if(body == null) {
-//                    resultFuture.setException(new IllegalStateException("No response content is found"));
-//                    return;
-//                }
-//                
-//                resultFuture.set(new SimplePutObjectResult(
-//                        Iterables.getOnlyElement(
-//                                codec.fromJsonBytes(
-//                                        body.bytes(),
-//                                        new TypeReference<List<String>>() {}))));
-//            }
-//        }
-//        
-//        @Override
-//        public void onFailure(Call call, IOException cause) {
-//            // TODO Auto-generated method stub
-//            
-//        }
-//        
-//    }
+    private class PutObjectCallback implements Callback {
+        private final URI uri;
+        private final LongSupplier seqences;
+        private final Iterator<Function<URI, Call>> callIterator;
+        
+        private final SettableFuture<PutObjectResult> resultFuture = SettableFuture.create();
+        
+        public PutObjectCallback(URI uri, LongSupplier seqences, Iterator<Function<URI, Call>> callIterator) {
+            this.uri = uri;
+            this.seqences = seqences;
+            this.callIterator = callIterator;
+        }
+        
+        public PutObjectResult get() throws InterruptedException, ExecutionException {
+            return resultFuture.get();
+        }
+
+        @Override
+        public void onResponse(Call call, Response response) throws IOException {
+            if(response.code() == HttpStatus.CODE_NEXT) {
+                ResponseBody body = response.body();
+                if(body == null) {
+                    resultFuture.setException(
+                            new IllegalStateException("No response content is found in writting"));
+                    return;
+                }
+                
+                NextData nextData = codec.fromJsonBytes(body.bytes(), NextData.class);
+                if(nextData.getNextSequence() != seqences.getAsLong()) {
+                    resultFuture.setException(
+                            new IllegalStateException(
+                                    Strings.format("Expected next seq[%d] but get [%d]",
+                                            seqences.getAsLong(),
+                                            nextData.getNextSequence())));
+                    return;
+                }
+                
+                log.info("writer block[%d] to url[%s] successfully", seqences.getAsLong() - 1, call.request().url());
+                callIterator.next().apply(uri).enqueue(this);
+                return;
+            }
+            
+            if(response.code() == HttpStatus.CODE_OK) {
+                ResponseBody body = response.body();
+                if(body == null) {
+                    resultFuture.setException(new IllegalStateException("No response content is found"));
+                    return;
+                }
+                
+                resultFuture.set(new SimplePutObjectResult(
+                        Iterables.getOnlyElement(
+                                codec.fromJsonBytes(
+                                        body.bytes(),
+                                        new TypeReference<List<String>>() {}))));
+            }
+        }
+        
+        @Override
+        public void onFailure(Call call, IOException cause) {
+            resultFuture.setException(cause);
+        }
+        
+    }
 
     @Override
     public void shutdown() {
