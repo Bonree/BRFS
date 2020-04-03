@@ -481,7 +481,7 @@ public class BlockManager implements BlockManagerInterface{
         private Map<Long, BlockOrFidEntry> offsetToBlock = new ConcurrentHashMap<>();
         private AtomicLong packetLen = new AtomicLong(0l);
         private volatile long timestamp = System.currentTimeMillis();
-        ClearTimerTask fooTimerTask = new ClearTimerTask(3000); // 2. 创建任务对象
+        ClearTimerTask fooTimerTask = new ClearTimerTask(30000); // 2. 创建任务对象
 
         private Timer timer = new Timer(); // 1. 创建Timer实例，关联线程不能是daemon(守护/后台)线程
 
@@ -577,7 +577,7 @@ public class BlockManager implements BlockManagerInterface{
                         //2. remove by fid
                         LOG.debug("发布一个删除任务fid:[{}]", fid);
                     }
-                    LOG.debug("因超时丢弃一个文件:[{}]，已写入的block", fileName);
+                    LOG.info("因超时丢弃一个文件:[{}]，已写入的block", fileName);
                     // 3. clear file on heap
                     int i = blockCache.aboundFile(storage, fileName);
                     if(i ==0){
