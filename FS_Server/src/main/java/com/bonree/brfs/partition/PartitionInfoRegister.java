@@ -2,6 +2,7 @@ package com.bonree.brfs.partition;
 
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.partition.model.PartitionInfo;
+import com.google.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -20,7 +21,7 @@ import java.util.List;
 public class PartitionInfoRegister {
     private CuratorFramework framework;
     private String zkBasePath = "/discovery/diskgroup";
-
+    @Inject
     public PartitionInfoRegister(CuratorFramework framework, String zkBasePath) {
         this.framework = framework;
         this.zkBasePath = zkBasePath;

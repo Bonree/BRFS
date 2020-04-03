@@ -8,6 +8,7 @@ import com.bonree.brfs.partition.PartitionCheckingRoutine;
 import com.bonree.brfs.partition.PartitionGather;
 import com.bonree.brfs.partition.PartitionInfoRegister;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.google.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ public class DiskDaemon implements LifeCycle, LocalPartitionInterface {
 	private PartitionGather gather;
 	private Collection<LocalPartitionInfo> partitions;
 	private LocalPartitionCache cache = null;
-	private static DiskDaemon instance = null;
+	@Inject
 	public DiskDaemon(PartitionGather gather, Collection<LocalPartitionInfo> partitions) {
 		this.gather = gather;
 		this.partitions = partitions;
@@ -140,7 +141,7 @@ public class DiskDaemon implements LifeCycle, LocalPartitionInterface {
 			// 1.生成注册id实例
 			DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client,partitionSeqPath);
 			// 2.生成磁盘分区id检查类
-			PartitionCheckingRoutine routine = new PartitionCheckingRoutine(diskNodeID,this.rootPath,this.innerPath,this.localService,this.partitonGroup);
+			PartitionCheckingRoutine routine = new PartitionCheckingRoutine(diskNodeID,this.rootPath,this.innerPath,this.partitonGroup);
 			Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();
 			// 3.生成注册管理实例
 			PartitionInfoRegister register = new PartitionInfoRegister(client,partitionGroupBasePath);
