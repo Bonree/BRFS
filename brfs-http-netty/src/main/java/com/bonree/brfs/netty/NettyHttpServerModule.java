@@ -21,10 +21,10 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 
 import com.bonree.brfs.common.guice.JsonConfigProvider;
+import com.bonree.brfs.common.http.HttpServer;
+import com.bonree.brfs.common.http.HttpServerConfig;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.plugin.BrfsModule;
-import com.bonree.brfs.http.HttpServer;
-import com.bonree.brfs.http.HttpServerConfig;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
