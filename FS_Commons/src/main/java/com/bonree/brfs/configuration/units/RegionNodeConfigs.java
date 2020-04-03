@@ -43,7 +43,7 @@ public final class RegionNodeConfigs {
 			ConfigUnit.ofInt("regionnode.file.closer.thead_num", 1);
 
 	public static final ConfigUnit<Long> CONFIG_BLOCK_SIZE =
-			ConfigUnit.ofLong("regionnode.block.size", 64 * 1024);
+			ConfigUnit.ofLong("regionnode.block.size", 64 * 1024 * 1024);
 
 	public static final ConfigUnit<Integer> CONFIG_BLOCK_POOL_CAPACITY =
 			ConfigUnit.ofInt("regionnode.block.pool.capacity", 10);
