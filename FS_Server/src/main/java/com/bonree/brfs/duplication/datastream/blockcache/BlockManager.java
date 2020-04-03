@@ -781,7 +781,7 @@ public class BlockManager implements BlockManagerInterface{
             Preconditions.checkNotNull(fid, "在写block[{}]时返回的fid为空",block);
             // 1. blockcache中填写fid
             setFidAndReleaseBlock(storageName, fileName, blockOffsetInfile, fid,callback);
-            LOG.debug("获得大文件的一个block的fid[{}]", fid);
+            LOG.info("获得大文件的一个block的fid[{}]", fid);
             if(!isFileFinished){
                 String response = "seqno:" + seqno +
                         " filename:" + fileName +

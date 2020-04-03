@@ -177,11 +177,11 @@ public class Block {
         Preconditions.checkArgument(packet.length <= expectPacketLen, "packet data应该是小于等于[{}]byte",expectPacketLen);
         //最后一packet
         if(isLastPacket){
-            LOG.info("尝试追加最后一个packet data长[{}]到block:offset[{}]",packet.length,offsetInFile);
+            LOG.debug("尝试追加最后一个packet data长[{}]到block:offset[{}]",packet.length,offsetInFile);
             return appendData(packetPos,packet);
         }else{
             Preconditions.checkArgument(packet.length==expectPacketLen,"应该不是最后一个packet，即长度[{}]应正好等于[{}]byte ",packet.length ,expectPacketLen);
-            LOG.info("尝试追加一个packet data长[{}]到block:offset[{}]",packet.length,offsetInFile);
+            LOG.debug("尝试追加一个packet data长[{}]到block:offset[{}]",packet.length,offsetInFile);
             return appendData(packetPos,packet);
         }
     }
