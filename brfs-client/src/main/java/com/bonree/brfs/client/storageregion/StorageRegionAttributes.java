@@ -15,27 +15,23 @@ package com.bonree.brfs.client.storageregion;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.time.Duration;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class StorageRegionAttributes {
-    private final Boolean enabled;
-    private final Integer replicateNum;
+    private final boolean enabled;
+    private final int replicateNum;
     private final String dataTTL;
-    private final Long fileCapacity;
+    private final long fileCapacity;
     private final String filePartition;
     
     @JsonCreator
     public StorageRegionAttributes(
-            @JsonProperty("enabled") Boolean enabled,
-            @JsonProperty("replicates") Integer replicateNum,
+            @JsonProperty("enabled") boolean enabled,
+            @JsonProperty("replicates") int replicateNum,
             @JsonProperty("ttl") String dataTTL,
-            @JsonProperty("capacity") Long fileCapacity,
+            @JsonProperty("capacity") long fileCapacity,
             @JsonProperty("partition") String filePartition) {
-        if(dataTTL != null) Duration.parse(dataTTL);
-        if(filePartition != null) Duration.parse(filePartition);
         this.enabled = enabled;
         this.replicateNum = replicateNum;
         this.dataTTL = dataTTL;
@@ -44,12 +40,12 @@ public class StorageRegionAttributes {
     }
 
     @JsonProperty("enabled")
-    public Boolean isEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
     @JsonProperty("replicates")
-    public Integer getReplicateNum() {
+    public int getReplicateNum() {
         return replicateNum;
     }
 
@@ -59,7 +55,7 @@ public class StorageRegionAttributes {
     }
 
     @JsonProperty("capacity")
-    public Long getFileCapacity() {
+    public long getFileCapacity() {
         return fileCapacity;
     }
 

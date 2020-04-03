@@ -41,10 +41,6 @@ import com.bonree.brfs.duplication.datastream.handler.WriteDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.handler.WriteStreamDataMessageHandler;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.duplication.storageregion.handler.CreateStorageRegionMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.DeleteStorageRegionMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.OpenStorageRegionMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageRegionMessageHandler;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -113,14 +109,6 @@ public class LegacyNettyServerModule implements Module {
         NettyHttpRequestHandler streamRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
         streamRequestHandler.addMessageHandler("Post",new WriteStreamDataMessageHandler(storageRegionWriter,blockManager));
         httpServer.addContextHandler(URI_STREAM_DATA_ROOT,streamRequestHandler);
-
-
-        NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-        snRequestHandler.addMessageHandler("PUT", new CreateStorageRegionMessageHandler(storageRegionManager));
-        snRequestHandler.addMessageHandler("POST", new UpdateStorageRegionMessageHandler(storageRegionManager));
-        snRequestHandler.addMessageHandler("GET", new OpenStorageRegionMessageHandler(storageRegionManager));
-        snRequestHandler.addMessageHandler("DELETE", new DeleteStorageRegionMessageHandler(paths, storageRegionManager, serviceManager));
-        httpServer.addContextHandler(URI_STORAGE_REGION_ROOT, snRequestHandler);
 
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
             

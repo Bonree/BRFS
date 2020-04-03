@@ -17,6 +17,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -43,7 +44,6 @@ import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.utils.Attributes;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.StringUtils;
 import com.bonree.brfs.guice.ClusterConfig;
@@ -78,7 +78,7 @@ public class StorageRegionResource {
     @Produces(APPLICATION_JSON)
     public Response create(
             @PathParam("srName") String name,
-            StorageRegionAttributes attributes) {
+            Map<String, Object> attributes) {
         if(storageRegionManager.exists(name)) {
             return Response.status(Status.CONFLICT)
                     .entity(StringUtils.format("Storage Region[%s] has been existed", name))
@@ -86,7 +86,9 @@ public class StorageRegionResource {
         }
         
         try {
-            StorageRegion storageRegion = storageRegionManager.createStorageRegion(name, buildStorageRegionConfig(attributes));
+            StorageRegion storageRegion = storageRegionManager.createStorageRegion(
+                    name,
+                    StorageRegionProperties.withDefault().override(attributes));
             return Response.ok(new StorageRegionID(storageRegion.getName(), storageRegion.getId()))
                     .build();
         } catch (Exception e) {
@@ -100,13 +102,13 @@ public class StorageRegionResource {
     @Produces(APPLICATION_JSON)
     public Response update(
             @PathParam("srName") String name,
-            StorageRegionAttributes attributes) {
+            Map<String, Object> attributes) {
         if (!storageRegionManager.exists(name)) {
             return Response.status(Status.NOT_FOUND).build();
         }
 
         try {
-            storageRegionManager.updateStorageRegion(name, buildStorageRegionConfig(attributes));
+            storageRegionManager.updateStorageRegion(name, attributes);
             return Response.ok().build();
         } catch (Exception e) {
             log.error(StringUtils.format("can not update storage region[%s]", name), e);
@@ -215,19 +217,5 @@ public class StorageRegionResource {
         return Response.serverError()
                 .entity(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()))
                 .build();
-    }
-    
-    private static StorageRegionConfig buildStorageRegionConfig(StorageRegionAttributes attributes) {
-        StorageRegionConfig config = new StorageRegionConfig();
-        
-        Attributes attrs = new Attributes();
-        attrs.putObject(StorageRegionConfig.CONFIG_ENABLE, attributes.isEnabled());
-        attrs.putObject(StorageRegionConfig.CONFIG_REPLICATE_NUM, attributes.getReplicateNum());
-        attrs.putObject(StorageRegionConfig.CONFIG_DATA_TTL, attributes.getDataTTL());
-        attrs.putObject(StorageRegionConfig.CONFIG_FILE_CAPACITY, attributes.getFileCapacity());
-        attrs.putObject(StorageRegionConfig.CONFIG_FILE_PARTITION_DURATION, attributes.getFilePartition());
-        config.update(attrs);
-        
-        return config;
     }
 }

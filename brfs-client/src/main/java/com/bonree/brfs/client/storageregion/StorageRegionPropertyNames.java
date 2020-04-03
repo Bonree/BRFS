@@ -13,13 +13,11 @@
  */
 package com.bonree.brfs.client.storageregion;
 
-import java.util.Map;
-
-public interface UpdateStorageRegionRequest {
+public final class StorageRegionPropertyNames {
     
-    Map<String, Object> getAttributes();
-    
-    static UpdateStorageRegionRequestBuilder newBuilder() {
-        return new UpdateStorageRegionRequestBuilder();
-    }
+    public static final String PROP_ENABLED = "enable";
+    public static final String PROP_REPLICATE_NUM = "replicates";
+    public static final String PROP_DATATTL = "ttl";
+    public static final String PROP_FILE_CAPACITY = "capacity";
+    public static final String PROP_FILE_PARTITION = "partition";
 }

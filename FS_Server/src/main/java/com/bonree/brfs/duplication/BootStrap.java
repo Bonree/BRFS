@@ -1,5 +1,19 @@
 package com.bonree.brfs.duplication;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ReturnCode;
@@ -19,7 +33,11 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
-import com.bonree.brfs.configuration.units.*;
+import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
+import com.bonree.brfs.configuration.units.ResourceConfigs;
+import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
@@ -30,7 +48,11 @@ import com.bonree.brfs.duplication.datastream.dataengine.impl.BlockingQueueDataP
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DataPoolFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineManager;
-import com.bonree.brfs.duplication.datastream.file.*;
+import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectCloser;
+import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectFactory;
+import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectSupplierFactory;
+import com.bonree.brfs.duplication.datastream.file.FileObjectFactory;
+import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSynchronier;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncProcessor;
@@ -53,40 +75,17 @@ import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.duplication.storageregion.StorageRegionIdBuilder;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.duplication.storageregion.handler.CreateStorageRegionMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.DeleteStorageRegionMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.OpenStorageRegionMessageHandler;
-import com.bonree.brfs.duplication.storageregion.handler.UpdateStorageRegionMessageHandler;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.server.identification.ServerIDManager;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @Deprecated
 public class BootStrap {
     private static final Logger LOG = LoggerFactory.getLogger(BootStrap.class);
 
     private static final String URI_DATA_ROOT = "/data";
-
-    private static final String URI_STORAGE_REGION_ROOT = "/sr";
-
-    private static final String URI_PING_ROOT = "/ping";
-
-    private static final String URI_ROCKSDB_ROOT = "/rocksdb";
 
     private static final String URI_STREAM_DATA_ROOT = "streamData";
 
@@ -302,13 +301,6 @@ public class BootStrap {
             requestHandler.addMessageHandler("GET", new ReadDataMessageHandler());
             requestHandler.addMessageHandler("DELETE", new DeleteDataMessageHandler(zookeeperPaths, serviceManager, storageNameManager));
             httpServer.addContextHandler(URI_DATA_ROOT, requestHandler);
-
-            NettyHttpRequestHandler snRequestHandler = new NettyHttpRequestHandler(requestHandlerExecutor);
-            snRequestHandler.addMessageHandler("PUT", new CreateStorageRegionMessageHandler(storageNameManager));
-            snRequestHandler.addMessageHandler("POST", new UpdateStorageRegionMessageHandler(storageNameManager));
-            snRequestHandler.addMessageHandler("GET", new OpenStorageRegionMessageHandler(storageNameManager));
-            snRequestHandler.addMessageHandler("DELETE", new DeleteStorageRegionMessageHandler(zookeeperPaths, storageNameManager, serviceManager));
-            httpServer.addContextHandler(URI_STORAGE_REGION_ROOT, snRequestHandler);
 
             long blocksize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
             int blockpool = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);

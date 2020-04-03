@@ -14,56 +14,47 @@
 package com.bonree.brfs.client.storageregion;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UpdateStorageRegionRequestBuilder {
-    private Boolean enabled;
-    private Integer replicateNum;
-    private String dataTTL;
-    private Long fileCapacity;
-    private String filePartition;
+    private final Map<String, Object> props = new HashMap<>();
 
     UpdateStorageRegionRequestBuilder() {}
 
     public UpdateStorageRegionRequestBuilder setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        this.props.put(StorageRegionPropertyNames.PROP_ENABLED, enabled);
         return this;
     }
 
     public UpdateStorageRegionRequestBuilder setReplicateNum(int replicateNum) {
-        this.replicateNum = replicateNum;
+        this.props.put(StorageRegionPropertyNames.PROP_REPLICATE_NUM, replicateNum);
         return this;
     }
 
     public UpdateStorageRegionRequestBuilder setDataTTL(String dataTTL) {
         Duration.parse(dataTTL);
-        this.dataTTL = dataTTL;
+        this.props.put(StorageRegionPropertyNames.PROP_DATATTL, dataTTL);
         return this;
     }
 
     public UpdateStorageRegionRequestBuilder setFileCapacity(long fileCapacity) {
-        this.fileCapacity = fileCapacity;
+        this.props.put(StorageRegionPropertyNames.PROP_FILE_CAPACITY, fileCapacity);
         return this;
     }
 
     public UpdateStorageRegionRequestBuilder setFilePartition(String filePartition) {
-        Duration.parse(dataTTL);
-        this.filePartition = filePartition;
+        Duration.parse(filePartition);
+        this.props.put(StorageRegionPropertyNames.PROP_FILE_PARTITION, filePartition);
         return this;
     }
 
     public UpdateStorageRegionRequest build() {
-        StorageRegionAttributes attributes = new StorageRegionAttributes(
-                enabled,
-                replicateNum,
-                dataTTL,
-                fileCapacity,
-                filePartition);
-        
         return new UpdateStorageRegionRequest() {
             
             @Override
-            public StorageRegionAttributes getAttributes() {
-                return attributes;
+            public Map<String, Object> getAttributes() {
+                return props;
             }
         };
     }

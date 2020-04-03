@@ -24,12 +24,12 @@ public class ZkStorageRegionIdBuilder implements StorageRegionIdBuilder {
 	@Inject
 	public ZkStorageRegionIdBuilder(CuratorFramework client, ZookeeperPaths paths) {
 		this.idBuilder = new ZkSequenceNumberBuilder(client.usingNamespace(paths.getBaseClusterName().substring(1)),
-				ZKPaths.makePath(StorageRegionZkPaths.DEFAULT_PATH_STORAGE_REGION_ROOT, DEFAULT_PATH_STORAGE_NAME_IDS));
+				ZKPaths.makePath(DefaultStorageRegionManager.DEFAULT_PATH_STORAGE_REGION_ROOT, DEFAULT_PATH_STORAGE_NAME_IDS));
 	}
 
 	@Override
-	public short createRegionId() throws Exception {
-		return (short) idBuilder.nextSequenceNumber();
+	public int createRegionId() throws Exception {
+		return idBuilder.nextSequenceNumber();
 	}
 
 }

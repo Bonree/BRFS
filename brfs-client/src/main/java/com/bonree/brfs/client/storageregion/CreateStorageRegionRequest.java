@@ -13,12 +13,14 @@
  */
 package com.bonree.brfs.client.storageregion;
 
+import java.util.Map;
+
 public interface CreateStorageRegionRequest {
     String getStorageRegionName();
     
-    StorageRegionAttributes getAttributes();
+    Map<String, Object> getAttributes();
     
-    static CreateStorageRegionRequestBuilder newBuilder() {
-        return new CreateStorageRegionRequestBuilder();
+    static CreateStorageRegionRequestBuilder newBuilder(String name) {
+        return new CreateStorageRegionRequestBuilder(name);
     }
 }

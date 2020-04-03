@@ -16,69 +16,56 @@ package com.bonree.brfs.client.storageregion;
 import static java.util.Objects.requireNonNull;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CreateStorageRegionRequestBuilder {
-    private String name;
-    private Boolean enabled;
-    private Integer replicateNum;
-    private String dataTTL;
-    private Long fileCapacity;
-    private String filePartition;
+    private final String name;
+    private final Map<String, Object> props = new HashMap<>();
 
-    CreateStorageRegionRequestBuilder() {
-    }
-
-    public CreateStorageRegionRequestBuilder setName(String name) {
-        this.name = name;
-        return this;
+    CreateStorageRegionRequestBuilder(String name) {
+        this.name = requireNonNull(name);
     }
 
     public CreateStorageRegionRequestBuilder setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        this.props.put(StorageRegionPropertyNames.PROP_ENABLED, enabled);
         return this;
     }
 
     public CreateStorageRegionRequestBuilder setReplicateNum(int replicateNum) {
-        this.replicateNum = replicateNum;
+        this.props.put(StorageRegionPropertyNames.PROP_REPLICATE_NUM, replicateNum);
         return this;
     }
 
     public CreateStorageRegionRequestBuilder setDataTTL(String dataTTL) {
         Duration.parse(dataTTL);
-        this.dataTTL = dataTTL;
+        this.props.put(StorageRegionPropertyNames.PROP_DATATTL, dataTTL);
         return this;
     }
 
     public CreateStorageRegionRequestBuilder setFileCapacity(long fileCapacity) {
-        this.fileCapacity = fileCapacity;
+        this.props.put(StorageRegionPropertyNames.PROP_FILE_CAPACITY, fileCapacity);
         return this;
     }
 
     public CreateStorageRegionRequestBuilder setFilePartition(String filePartition) {
-        Duration.parse(dataTTL);
-        this.filePartition = filePartition;
+        Duration.parse(filePartition);
+        this.props.put(StorageRegionPropertyNames.PROP_FILE_PARTITION, filePartition);
         return this;
     }
 
     public CreateStorageRegionRequest build() {
-        String storageRegionName = requireNonNull(name);
-        StorageRegionAttributes attributes = new StorageRegionAttributes(
-                enabled,
-                replicateNum,
-                dataTTL,
-                fileCapacity,
-                filePartition);
         
         return new CreateStorageRegionRequest() {
             
             @Override
             public String getStorageRegionName() {
-                return storageRegionName;
+                return name;
             }
             
             @Override
-            public StorageRegionAttributes getAttributes() {
-                return attributes;
+            public Map<String, Object> getAttributes() {
+                return props;
             }
         };
     }
