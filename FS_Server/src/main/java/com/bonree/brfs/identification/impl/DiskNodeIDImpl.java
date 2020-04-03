@@ -3,6 +3,7 @@ package com.bonree.brfs.identification.impl;
 import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
 import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
 import com.bonree.brfs.server.identification.LevelServerIDGen;
+import com.google.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ public class DiskNodeIDImpl implements LevelServerIDGen {
     public final static int PARTITION_ID_PREFIX = 4;
 
     private SequenceNumberBuilder firstServerIDCreator;
-
+	@Inject
     public DiskNodeIDImpl(CuratorFramework client, String basePath) {
         this.firstServerIDCreator = new ZkSequenceNumberBuilder(client, ZKPaths.makePath(basePath, PARTITION_ID));
     }

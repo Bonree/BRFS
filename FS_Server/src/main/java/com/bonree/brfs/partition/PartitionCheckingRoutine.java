@@ -4,6 +4,7 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.server.identification.LevelServerIDGen;
+import com.google.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hyperic.sigar.*;
@@ -31,14 +32,12 @@ public class PartitionCheckingRoutine {
     //private xxx
     private String dataConfig;
     private String innerDir;
-    private Service local;
     private String partitionGroup;
-
-    public PartitionCheckingRoutine(LevelServerIDGen idGen, String dataConfig, String innerDir, Service local, String partitionGroup) {
+    @Inject
+    public PartitionCheckingRoutine(LevelServerIDGen idGen, String dataConfig, String innerDir, String partitionGroup) {
         this.idGen = idGen;
         this.dataConfig = dataConfig;
         this.innerDir = innerDir;
-        this.local = local;
         this.partitionGroup = partitionGroup;
     }
 
@@ -54,7 +53,7 @@ public class PartitionCheckingRoutine {
         Map<String, FileSystem> fsMap = collectVaildFileSystem(dirs);
 
         // 剔除未配置的磁盘分区，并发布磁盘变更
-        checkLoss(innerMap, fsMap, local);
+        checkLoss(innerMap, fsMap);
 
         // 判断是否存在增加的磁盘分区，若存在则申请磁盘id
         checkAdd(innerMap, fsMap);
@@ -143,7 +142,7 @@ public class PartitionCheckingRoutine {
      * @param innerMap
      * @param validMap
      */
-    public void checkLoss(Map<String, LocalPartitionInfo> innerMap, Map<String, FileSystem> validMap, Service localServer) {
+    public void checkLoss(Map<String, LocalPartitionInfo> innerMap, Map<String, FileSystem> validMap) {
         if (innerMap == null || innerMap.isEmpty()) {
             return;
         }

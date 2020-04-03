@@ -4,6 +4,7 @@ import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.partition.model.PartitionInfo;
+import com.google.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.hyperic.sigar.*;
 import org.slf4j.Logger;
@@ -38,7 +39,7 @@ public class PartitionGather implements LifeCycle {
     private int intervalTimes = 5;
 
     private LocalPartitionListener listener = null;
-
+    @Inject
     public PartitionGather(PartitionInfoRegister register, Service localInfo, Collection<LocalPartitionInfo> validPartions,int intervalTimes) {
         this.intervalTimes = intervalTimes;
         this.pool = Executors.newScheduledThreadPool(1);

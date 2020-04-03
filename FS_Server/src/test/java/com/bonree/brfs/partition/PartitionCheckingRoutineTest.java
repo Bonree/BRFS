@@ -66,7 +66,7 @@ public class PartitionCheckingRoutineTest {
     public void constructorTest(){
         String dataDir = "C:/";
         String partitionGroup = "diskPartitionGroup";
-        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,FILE_DIR,firstServer,partitionGroup);
+        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,FILE_DIR,partitionGroup);
     }
 
     /**
@@ -86,7 +86,7 @@ public class PartitionCheckingRoutineTest {
                 Assert.fail(idsPath+" can't create");
             }
         }
-        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,firstServer,partitionGroup);
+        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,partitionGroup);
         Map<String, LocalPartitionInfo> files =  routine.readIds(idsPath);
         Assert.assertNull(files);
     }
@@ -108,7 +108,7 @@ public class PartitionCheckingRoutineTest {
                 Assert.fail(idsPath+" can't create");
             }
         }
-        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,firstServer,partitionGroup);
+        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,partitionGroup);
         String[] dirs = {"D:/zhucg/tmp"};
         Map<String, FileSystem> map = routine.collectVaildFileSystem(dirs);
         Assert.assertEquals(dirs.length,map.size());
@@ -132,7 +132,7 @@ public class PartitionCheckingRoutineTest {
                 Assert.fail(idsPath+" can't create");
             }
         }
-        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,firstServer,partitionGroup);
+        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,partitionGroup);
         String[] dirs = {"D:/zhucg/tmp","D:/zhucg"};
         Map<String, FileSystem> map = routine.collectVaildFileSystem(dirs);
         System.out.println(map.keySet());
@@ -151,7 +151,7 @@ public class PartitionCheckingRoutineTest {
                 Assert.fail(idsPath+" can't create");
             }
         }
-        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,firstServer,partitionGroup);
+        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,partitionGroup);
          routine.checkVaildPartition();
 
     }
@@ -169,7 +169,7 @@ public class PartitionCheckingRoutineTest {
                 Assert.fail(idsPath+" can't create");
             }
         }
-        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,firstServer,partitionGroup);
+        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,partitionGroup);
          routine.checkVaildPartition();
 
 
@@ -188,7 +188,7 @@ public class PartitionCheckingRoutineTest {
                 Assert.fail(idsPath+" can't create");
             }
         }
-        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,firstServer,partitionGroup);
+        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,partitionGroup);
         System.out.println(routine.checkVaildPartition());
 
     }
