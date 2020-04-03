@@ -11,6 +11,7 @@ public class HandleResult {
 	private Throwable cause;
 	private byte[] data;
 	private boolean CONTINUE;
+	private long nextSeqno;
 
 	public HandleResult() {
 		this(true);
@@ -50,5 +51,13 @@ public class HandleResult {
 
 	public void setData(byte[] data) {
 		this.data = data;
+	}
+
+	public void setNextSeqno(long seqno) {
+		nextSeqno = seqno;
+	}
+
+	public long getNextSeqno() {
+		return nextSeqno;
 	}
 }
