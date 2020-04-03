@@ -59,7 +59,7 @@ public class PartitionGatherTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        routine =  new PartitionCheckingRoutine(idImpl,dataDir,ONE_DIR,firstServer,partitionGroup);
+        routine =  new PartitionCheckingRoutine(idImpl,dataDir,ONE_DIR,partitionGroup);
         this.register = new PartitionInfoRegister(framework,ID_BAS_PATH);
     }
 

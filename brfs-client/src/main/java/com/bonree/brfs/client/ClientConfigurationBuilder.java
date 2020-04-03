@@ -13,13 +13,9 @@
  */
 package com.bonree.brfs.client;
 
-import java.net.URI;
 import java.time.Duration;
 
 public class ClientConfigurationBuilder {
-    private URI[] addresses;
-    private String user;
-    private String passwd;
     private Duration discoveryExpire;
     private Duration discoveryRefresh;
     private Duration storageRegionCacheExpire;
@@ -27,24 +23,6 @@ public class ClientConfigurationBuilder {
     private int dataPackageSize = 16 * 1024;
     private int connectionPoolSize;
     private int threadNum;
-
-    public ClientConfigurationBuilder() {
-    }
-    
-    public ClientConfigurationBuilder setRegionNodeAddresses(URI[] addresses) {
-        this.addresses = addresses;
-        return this;
-    }
-
-    public ClientConfigurationBuilder setUser(String user) {
-        this.user = user;
-        return this;
-    }
-
-    public ClientConfigurationBuilder setPasswd(String passwd) {
-        this.passwd = passwd;
-        return this;
-    }
     
     public ClientConfigurationBuilder setDiscoveryExpiredDuration(Duration expire) {
         this.discoveryExpire = expire;
@@ -85,28 +63,13 @@ public class ClientConfigurationBuilder {
         return new ClientConfiguration() {
             
             @Override
-            public String getUser() {
-                return user;
-            }
-            
-            @Override
             public int getThreadNum() {
                 return threadNum;
             }
             
             @Override
-            public String getPasswd() {
-                return passwd;
-            }
-            
-            @Override
             public int getConnectionPoolSize() {
                 return connectionPoolSize;
-            }
-
-            @Override
-            public URI[] getRegionNodeAddresses() {
-                return addresses;
             }
 
             @Override

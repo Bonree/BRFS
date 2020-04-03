@@ -47,6 +47,14 @@ public class ZookeeperPaths {
 
     public final static String ROCKSDB = "rocksdb";
 
+    public final static String DISCOVER="discovery";
+    // todo 为了兼容旧版本客户端，增加路径
+    public final static String BAS_SECOND_ID="second_ids";
+    public final static String SECOND_IDS="ids";
+    public final static String SECOND_ID_SEQ = "sequences";
+
+
+
     private final String clusterName;
 
     private final CuratorFramework zkClient;
@@ -72,7 +80,14 @@ public class ZookeeperPaths {
     private String baseResourcesPath;
 
     private String baseRocksDBPath;
-    
+
+    private String baseDiscoveryPath;
+
+    private String baseV2SecondIDPath;
+
+    private String baseV2SecondSeqPath;
+
+
     private ZookeeperPaths(final String clusterName, final CuratorFramework zkClient) {
         this.clusterName = clusterName;
         this.zkClient = zkClient;
@@ -166,6 +181,15 @@ public class ZookeeperPaths {
         this.baseRocksDBPath = baseRocksDBPath;
     }
 
+    public String getBaseDiscoveryPath() {
+        return baseDiscoveryPath;
+    }
+
+    public ZookeeperPaths setBaseDiscoveryPath(String baseDiscoveryPath) {
+        this.baseDiscoveryPath = baseDiscoveryPath;
+        return this;
+    }
+
     public void createZkPath() {
         CuratorClient client = CuratorClient.wrapClient(zkClient);
         createPathIfNotExist(client, baseClusterName);
@@ -203,6 +227,8 @@ public class ZookeeperPaths {
         setBaseTaskPath(baseClusterName + SEPARATOR + TASKS);
         setBaseResourcesPath(baseClusterName + SEPARATOR + RESOURCES);
         setBaseRocksDBPath(baseClusterName + SEPARATOR + ROCKSDB);
+        setBaseDiscoveryPath(baseClusterName+SEPARATOR+DISCOVER);
+
     }
 
     public static ZookeeperPaths create(final String clusterName, final CuratorFramework zkClient) {

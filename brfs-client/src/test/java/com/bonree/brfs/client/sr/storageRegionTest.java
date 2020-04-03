@@ -13,15 +13,11 @@
  */
 package com.bonree.brfs.client.sr;
 
-import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 
-import com.bonree.brfs.client.BRFSClient;
+import com.bonree.brfs.client.BRFS;
 import com.bonree.brfs.client.BRFSClientBuilder;
-import com.bonree.brfs.client.ClientConfigurationBuilder;
 import com.bonree.brfs.client.storageregion.StorageRegionInfo;
-import com.bonree.brfs.client.storageregion.UpdateStorageRegionRequest;
 
 public class storageRegionTest {
 
@@ -29,41 +25,32 @@ public class storageRegionTest {
      * @param args
      */
     public static void main(String[] args) {
-        try (BRFSClient client = new BRFSClientBuilder()
-                .setConfiguration(new ClientConfigurationBuilder()
-                        .setUser("root")
-                        .setPasswd("12345")
-                        .setRegionNodeAddresses(new URI[] {URI.create("http://localhost:8100")})
-                        .build())
-                .build()) {
-            
-            try {
-//                StorageRegionID sr = client.createStorageRegion(CreateStorageRegionRequest.newBuilder()
-//                        .setName("new_test")
-//                        .build());
-                
-//                boolean exist = client.doesStorageRegionExists("new_test");
-                
-//                List<String> srs = client.listStorageRegions();
-                
-                StorageRegionInfo info = client.getStorageRegionInfo("new_test");
-                
-//                boolean updated = client.updateStorageRegion("new_test", UpdateStorageRegionRequest.newBuilder()
-//                        .setEnabled(false)
-//                        .setDataTTL("P20D")
-//                        .setFileCapacity(100)
-//                        .setFilePartition("PT2H")
-//                        .setReplicateNum(4)
-//                        .build());
-                
-//                client.deleteStorageRegion("new_test");
-                System.out.println(info);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        BRFS client = new BRFSClientBuilder().build("root", "12345", new URI[] {URI.create("http://localhost:8100")});
+        
+        try {
+//          StorageRegionID sr = client.createStorageRegion(CreateStorageRegionRequest.newBuilder()
+//                  .setName("new_test")
+//                  .build());
+          
+//          boolean exist = client.doesStorageRegionExists("new_test");
+          
+//          List<String> srs = client.listStorageRegions();
+          
+          StorageRegionInfo info = client.getStorageRegionInfo("new_test");
+          
+//          boolean updated = client.updateStorageRegion("new_test", UpdateStorageRegionRequest.newBuilder()
+//                  .setEnabled(false)
+//                  .setDataTTL("P20D")
+//                  .setFileCapacity(100)
+//                  .setFilePartition("PT2H")
+//                  .setReplicateNum(4)
+//                  .build());
+          
+//          client.deleteStorageRegion("new_test");
+          System.out.println(info);
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
         
     }
 

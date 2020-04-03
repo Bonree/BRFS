@@ -63,7 +63,7 @@ public class FirstLevelServerIDImpl {
     		LOG.info("load server id from local file : {}", firstServerID);
     		return firstServerID;
     	}
-    	
+
     	firstServerID = firstServerIDGen.genLevelID();
     	if(firstServerID == null) {
 			throw new RuntimeException("can not get server id[" + idFile.getAbsolutePath() + "]");
