@@ -40,18 +40,18 @@ public class BlockManager implements BlockManagerInterface{
 
     private DefaultStorageRegionWriter writer;
 
-    private RocksDBManager rocksDBManager ;
+//    private RocksDBManager rocksDBManager ;
 
     private volatile AtomicBoolean isAquireNewBlock = new AtomicBoolean();
 
     ReentrantLock lock = new ReentrantLock();
     Condition noAquireNewBlock = lock.newCondition();
-    @Inject
-    public BlockManager(BlockPool blockPool, StorageRegionWriter writer , RocksDBManager rocksDBManager) {
-        this.blockPool = blockPool;
-        this.writer = (DefaultStorageRegionWriter) writer;
-        this.rocksDBManager = rocksDBManager;
-    }
+//    @Inject
+//    public BlockManager(BlockPool blockPool, StorageRegionWriter writer , RocksDBManager rocksDBManager) {
+//        this.blockPool = blockPool;
+//        this.writer = (DefaultStorageRegionWriter) writer;
+//        this.rocksDBManager = rocksDBManager;
+//    }
 
     @Inject
     public BlockManager(BlockPool blockPool, StorageRegionWriter writer) {
