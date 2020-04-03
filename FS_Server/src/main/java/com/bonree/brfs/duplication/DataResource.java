@@ -13,54 +13,28 @@
  */
 package com.bonree.brfs.duplication;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Response;
-
 import com.bonree.brfs.client.data.NextData;
 import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
-import com.bonree.brfs.common.net.http.data.FSPacketUtil;
-import com.bonree.brfs.common.net.http.netty.ResponseSender;
 import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.RegionNodeConfigs;
-import com.bonree.brfs.configuration.units.RocksDBConfigs;
-import com.bonree.brfs.duplication.datastream.blockcache.Block;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
-import com.bonree.brfs.duplication.datastream.handler.WriteStreamDataMessageHandler;
-import com.bonree.brfs.duplication.datastream.tmp.TestFileWriter;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
-import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
-import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.connection.http.HttpRegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.impl.DefaultRocksDBManager;
 import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Bytes;
-import com.sun.tools.jdi.Packet;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.rmi.runtime.Log;
+
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Response;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 
 @Path("/data")
 public class DataResource {
@@ -91,6 +65,7 @@ public class DataResource {
         FSPacket packet = new FSPacket();
         packet.setProto(data);
         LOG.debug("收到数据长度为：[{}]，尝试将其填充到block中，",packet.getData().length);
+        //todo check packet len
         try {
             int storage = packet.getStorageName();
             String file = packet.getFileName();
