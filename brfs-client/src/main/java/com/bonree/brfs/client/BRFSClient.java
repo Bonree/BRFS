@@ -539,6 +539,13 @@ public class BRFSClient implements BRFS {
                     return;
                 }
                 
+                if(!callIterator.hasNext()) {
+                    resultFuture.setException(
+                            new IllegalStateException(
+                                    Strings.format("Expected fid is returned, but get NEXT code, current seq[%d]",
+                                            seqences.getAsLong() - 1)));
+                }
+                
                 log.info("writer block[%d] to url[%s] successfully", seqences.getAsLong() - 1, call.request().url());
                 callIterator.next().apply(uri).enqueue(this);
                 return;
@@ -556,7 +563,12 @@ public class BRFSClient implements BRFS {
                                 codec.fromJsonBytes(
                                         body.bytes(),
                                         new TypeReference<List<String>>() {}))));
+                
+                return;
             }
+            
+            resultFuture.setException(new IllegalStateException(
+                    Strings.format("Unexpected response code is returned[%d]", response.code())));
         }
         
         @Override
