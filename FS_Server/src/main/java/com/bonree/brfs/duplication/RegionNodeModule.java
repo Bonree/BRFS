@@ -15,6 +15,7 @@ package com.bonree.brfs.duplication;
 
 import static com.bonree.brfs.jaxrs.JaxrsBinder.jaxrs;
 
+import java.io.Writer;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +23,12 @@ import java.util.concurrent.Executors;
 
 import javax.inject.Singleton;
 
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
+import com.bonree.brfs.duplication.datastream.tmp.TestFileWriter;
+import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,8 +135,12 @@ public class RegionNodeModule implements Module {
         binder.bind(DiskWriter.class).in(Scopes.SINGLETON);
         binder.bind(DataEngineFactory.class).to(DefaultDataEngineFactory.class).in(Scopes.SINGLETON);
         binder.bind(DataEngineManager.class).to(DefaultDataEngineManager.class).in(Scopes.SINGLETON);
-        
-        binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
+
+
+
+        binder.bind(StorageRegionWriter.class).to(TestFileWriter.class).in(Scopes.SINGLETON);
+//        binder.bind(BlockManagerInterface.class).to(BlockManager.class).in(Scopes.SINGLETON);
+
         jaxrs(binder).resource(StorageRegionResource.class);
         jaxrs(binder).resource(DiscoveryResource.class);
         jaxrs(binder).resource(RouterResource.class);
@@ -154,7 +165,7 @@ public class RegionNodeModule implements Module {
         
         return paths;
     }
-    
+
     @Provides
     @Singleton
     public Service getService(
@@ -262,5 +273,22 @@ public class RegionNodeModule implements Module {
                 .build();
         
         return nodeSelector;
+    }
+    @Provides
+    @Singleton
+    public BlockManagerInterface getBlockManager(
+            BlockPool blockPool ,
+            StorageRegionWriter writer ){
+
+        return new BlockManager(blockPool,writer);
+
+    }
+    @Provides
+    @Singleton
+    public BlockPool getBlockPool(){
+        long blocksize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
+        int maxCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
+        Integer initCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_INIT_COUNT);
+        return new BlockPool(blocksize,maxCount, initCount);
     }
 }

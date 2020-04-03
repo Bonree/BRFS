@@ -5,6 +5,7 @@ import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.datastream.writer.*;
+import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
 import com.google.common.base.Defaults;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
@@ -30,7 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author wangchao
  * @date 2020/3/23 - 2:40 下午
  */
-public class BlockManager {
+public class BlockManager implements BlockManagerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(BlockManager.class);
     //storage => fileEntry
     private BlockCache blockCache = new BlockCache();
@@ -39,10 +40,19 @@ public class BlockManager {
 
     private DefaultStorageRegionWriter writer;
 
+    private RocksDBManager rocksDBManager ;
+
     private volatile AtomicBoolean isAquireNewBlock = new AtomicBoolean();
 
     ReentrantLock lock = new ReentrantLock();
     Condition noAquireNewBlock = lock.newCondition();
+    @Inject
+    public BlockManager(BlockPool blockPool, StorageRegionWriter writer , RocksDBManager rocksDBManager) {
+        this.blockPool = blockPool;
+        this.writer = (DefaultStorageRegionWriter) writer;
+        this.rocksDBManager = rocksDBManager;
+    }
+
     @Inject
     public BlockManager(BlockPool blockPool, StorageRegionWriter writer) {
         this.blockPool = blockPool;
@@ -127,11 +137,13 @@ public class BlockManager {
         if(block == null){
             LOG.debug("packet[{}]没有申请到block",packet.getSeqno());
             handleResult.setSuccess(false);
+            handleResult.setCause(new Exception("packet" + packet.getSeqno() + "没有申请到block"));
             callback.completed(handleResult);
             return block;
         }
         //如果是一个大文件的一个block，但是并没有写满,只做追加动作，前面完成了
         LOG.debug("packet[{}] 追加到block[{}],且未写满block，累积在内存中。。。，",packet,block);
+        handleResult.setNextSeqno(packet.getSeqno());
         handleResult.setCONTINUE();
         callback.completed(handleResult);
         return block;
@@ -766,18 +778,13 @@ public class BlockManager {
             setFidAndReleaseBlock(storageName, fileName, blockOffsetInfile, fid,callback);
             LOG.debug("获得大文件的一个block的fid[{}]", fid);
             if(!isFileFinished){
-                try {
-                    String response = "seqno:" + seqno +
-                            " filename:" + fileName +
-                            " storageName:" + storageName +
-                            " done flush";
-                    LOG.debug(response);
-                    result.setCONTINUE();
-                    result.setData(JsonUtils.toJsonBytes(response));
-                } catch (JsonUtils.JsonException e) {
-                    LOG.error("can not json fids", e);
-                    result.setSuccess(false);
-                }
+                String response = "seqno:" + seqno +
+                        " filename:" + fileName +
+                        " storageName:" + storageName +
+                        " done flush";
+                LOG.debug(response);
+                result.setCONTINUE();
+                result.setNextSeqno(seqno+1);
                 callback.completed(result);
             }
         }
@@ -824,6 +831,7 @@ public class BlockManager {
             try {
                 LOG.debug("flush一个文件,fid[{}]", fid);
                 //todo 写目录树
+
                 result.setData(JsonUtils.toJsonBytes(fid));
                 result.setSuccess(true);
             } catch (JsonUtils.JsonException e) {
