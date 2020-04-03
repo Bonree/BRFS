@@ -67,10 +67,10 @@ public class DataResource {
             LOG.debug("收到数据长度为：[{}]，尝试将其填充到block中，",packet.getData().length);
             int storage = packet.getStorageName();
             String file = packet.getFileName();
-            LOG.debug("从数据中反序列化packet [{}]",packet);
+            LOG.info("从数据中反序列化packet [{}]",packet);
             //如果是一个小于等于packet长度的文件，由handler直接写
             if(packet.isATinyFile(blockManager.getBlockSize())){
-                LOG.debug("一条超小文件");
+                LOG.info("一条超小文件[{}]",packet.getFileName());
                 storageRegionWriter.write(
                         packet.getStorageName(),
                         packet.getData(),
@@ -84,13 +84,13 @@ public class DataResource {
                             @Override
                             public void complete(String fid) {
                                 response.resume(ImmutableList.of(fid));
-                                LOG.debug("返回fid[{}]",fid);
+                                LOG.info("返回文件[{}]:fid[{}]",packet.getFileName(),fid);
                             }
 
                             @Override
                             public void complete(String[] fids) {
                                 response.resume(ImmutableList.of(fids));
-                                LOG.debug("返回fid"+fids[0]);
+                                LOG.info("返回文件[{}]:fid[{}]",packet.getFileName(),fids[0]);
                             }
                         });
                 return;
@@ -106,7 +106,7 @@ public class DataResource {
                                 .status(HttpStatus.CODE_NEXT)
                                 .entity(new NextData(result.getNextSeqno())).build());
                     }else if(result.isSuccess()){
-                        LOG.debug("返回fid");
+                        LOG.info("返回fid:[{}]",new String(result.getData()));
                         response.resume(Response
                                 .ok()
                                 .entity(ImmutableList.of(new String(result.getData()))).build());
