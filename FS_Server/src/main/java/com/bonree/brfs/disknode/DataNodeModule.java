@@ -62,7 +62,6 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.guice.ClusterConfig;
-import com.bonree.brfs.guice.NodeConfig;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.schedulers.InitTaskManager;
@@ -78,7 +77,6 @@ public class DataNodeModule implements Module {
     @Override
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
-        JsonConfigProvider.bind(binder, "datanode", NodeConfig.class);
         
         binder.bind(DiskContext.class).in(Scopes.SINGLETON);
         binder.bind(FileFormater.class).to(SimpleFileFormater.class).in(Scopes.SINGLETON);
@@ -148,16 +146,15 @@ public class DataNodeModule implements Module {
     @Singleton
     public Service getService(
             ClusterConfig clusterConfig,
-            NodeConfig config,
             ServiceManager serviceManager,
             ServerIDManager idManager,
             Lifecycle lifecycle) {
         Service service = new Service(
                 idManager.getFirstServerID(),
                 clusterConfig.getDataNodeGroup(),
-                config.getHost(),
-                config.getPort());
-        service.setExtraPort(config.getSslPort());
+                Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST),
+                Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT));
+        service.setExtraPort(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_PORT));
         
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
             
