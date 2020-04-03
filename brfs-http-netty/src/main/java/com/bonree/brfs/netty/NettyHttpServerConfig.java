@@ -13,7 +13,7 @@
  */
 package com.bonree.brfs.netty;
 
-import com.bonree.brfs.http.HttpServerConfig;
+import com.bonree.brfs.common.http.HttpServerConfig;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class NettyHttpServerConfig implements HttpServerConfig {

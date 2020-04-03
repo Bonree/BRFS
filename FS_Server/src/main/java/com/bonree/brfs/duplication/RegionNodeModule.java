@@ -13,7 +13,7 @@
  */
 package com.bonree.brfs.duplication;
 
-import static com.bonree.brfs.jaxrs.JaxrsBinder.jaxrs;
+import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
 
 import java.io.Writer;
 import java.net.InetAddress;
@@ -27,8 +27,6 @@ import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
-import com.bonree.brfs.duplication.datastream.tmp.TestFileWriter;
-import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
+import com.bonree.brfs.common.http.HttpServerConfig;
 import com.bonree.brfs.common.jackson.JsonMapper;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.Lifecycle.LifeCycleObject;
@@ -93,7 +92,6 @@ import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManage
 import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.guice.NodeConfig;
-import com.bonree.brfs.http.HttpServerConfig;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.inject.Binder;
@@ -137,8 +135,8 @@ public class RegionNodeModule implements Module {
         binder.bind(DataEngineManager.class).to(DefaultDataEngineManager.class).in(Scopes.SINGLETON);
 
 
-
-        binder.bind(StorageRegionWriter.class).to(TestFileWriter.class).in(Scopes.SINGLETON);
+        binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
+//        binder.bind(StorageRegionWriter.class).to(TestFileWriter.class).in(Scopes.SINGLETON);
 //        binder.bind(BlockManagerInterface.class).to(BlockManager.class).in(Scopes.SINGLETON);
 
         jaxrs(binder).resource(StorageRegionResource.class);

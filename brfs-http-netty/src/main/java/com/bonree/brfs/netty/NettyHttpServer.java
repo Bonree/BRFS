@@ -19,10 +19,10 @@ import java.net.InetSocketAddress;
 
 import javax.inject.Inject;
 
+import com.bonree.brfs.common.http.HttpServer;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycleServer;
-import com.bonree.brfs.http.HttpServer;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;

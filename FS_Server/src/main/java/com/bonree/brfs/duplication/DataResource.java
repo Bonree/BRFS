@@ -13,54 +13,27 @@
  */
 package com.bonree.brfs.duplication;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Response;
-
 import com.bonree.brfs.client.data.NextData;
 import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
-import com.bonree.brfs.common.net.http.data.FSPacketUtil;
-import com.bonree.brfs.common.net.http.netty.ResponseSender;
 import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.RegionNodeConfigs;
-import com.bonree.brfs.configuration.units.RocksDBConfigs;
-import com.bonree.brfs.duplication.datastream.blockcache.Block;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
-import com.bonree.brfs.duplication.datastream.handler.WriteStreamDataMessageHandler;
-import com.bonree.brfs.duplication.datastream.tmp.TestFileWriter;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
-import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
-import com.bonree.brfs.duplication.rocksdb.connection.RegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.connection.http.HttpRegionNodeConnectionPool;
-import com.bonree.brfs.duplication.rocksdb.impl.DefaultRocksDBManager;
 import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Bytes;
-import com.sun.tools.jdi.Packet;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.rmi.runtime.Log;
+
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Response;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 
 @Path("/data")
 public class DataResource {
@@ -88,10 +61,10 @@ public class DataResource {
             @Suspended AsyncResponse response) {
         LOG.debug("DONE decode ,从请求中取出data");
         LOG.debug("{}",data);
-        FSPacket packet = new FSPacket();
-        packet.setProto(data);
-        LOG.debug("收到数据长度为：[{}]，尝试将其填充到block中，",packet.getData().length);
         try {
+            FSPacket packet = new FSPacket();
+            packet.setProto(data);
+            LOG.debug("收到数据长度为：[{}]，尝试将其填充到block中，",packet.getData().length);
             int storage = packet.getStorageName();
             String file = packet.getFileName();
             LOG.debug("从数据中反序列化packet [{}]",packet);
@@ -128,21 +101,24 @@ public class DataResource {
                 @Override
                 public void completed(HandleResult result) {
                     if(result.isCONTINUE()) {
+                        LOG.debug("返回seqno：{}",result.getNextSeqno());
                         response.resume(Response
                                 .status(HttpStatus.CODE_NEXT)
-                                .entity(new NextData(result.getNextSeqno())));
+                                .entity(new NextData(result.getNextSeqno())).build());
                     }else if(result.isSuccess()){
+                        LOG.debug("返回fid");
                         response.resume(Response
                                 .ok()
-                                .entity(new String(result.getData())));
+                                .entity(ImmutableList.of(new String(result.getData()))).build());
                     }else{
+                        LOG.debug("返回错误");
                         response.resume(result.getCause());
                     }
                 }
             });
         } catch (Exception e) {
             LOG.error("handle write data message error", e);
-            response.resume(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+            response.resume(e);
         }
 
     }

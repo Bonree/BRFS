@@ -24,16 +24,16 @@ import com.bonree.brfs.client.route.NormalRouterNode;
 import com.bonree.brfs.client.route.RouterNode;
 import com.bonree.brfs.client.route.SecondServerID;
 import com.bonree.brfs.client.route.VirtualRouterNode;
-import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.brfs.identification.SecondIdsInterface;
 
 @Path("/router")
 public class RouterResource {
-    private final ServerIDManager idManager;
-    
-    @Inject
-    public RouterResource(ServerIDManager idManager) {
-        this.idManager = idManager;
-    }
+//    private final SecondIdsInterface secondIds;
+//    
+//    @Inject
+//    public RouterResource(SecondIdsInterface secondIds) {
+//        this.secondIds = secondIds;
+//    }
 
     @GET
     @Path("secondServerID/{srName}")
@@ -47,7 +47,6 @@ public class RouterResource {
     public List<SecondServerID> getSercondServerID(
             @PathParam("srName") String srName,
             @PathParam("dataNodeId") String dataNodeId) {
-     // TODO
         return null;
     }
     

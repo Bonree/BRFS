@@ -463,6 +463,8 @@ public class BlockManager implements BlockManagerInterface{
                     blockPool.putbackBlocks(block);
                 }
             }
+            //在一个通道写入失败后
+            remove.setExpectBlockSize(0);
             //取消删除任务
             remove.cancelTimer();
             return remove.size();
@@ -767,7 +769,11 @@ public class BlockManager implements BlockManagerInterface{
 
         @Override
         public void complete(String[] fids) {
-            return;
+            HandleResult result = new HandleResult();
+            result.setSuccess(false);
+            result.setCause(new Exception("按文件流写入文件不应该一次向datapool中写多个！"));
+            LOG.debug("error come here");
+            callback.completed(result);
         }
 
         @Override
@@ -784,7 +790,7 @@ public class BlockManager implements BlockManagerInterface{
                         " done flush";
                 LOG.debug(response);
                 result.setCONTINUE();
-                result.setNextSeqno(seqno+1);
+                result.setNextSeqno(seqno);
                 callback.completed(result);
             }
         }
@@ -821,7 +827,11 @@ public class BlockManager implements BlockManagerInterface{
 
         @Override
         public void complete(String[] fids) {
-            return;
+            HandleResult result = new HandleResult();
+            result.setSuccess(false);
+            result.setCause(new Exception("按文件流写入文件不应该一次向datapool中写多个！"));
+            LOG.debug("error come here");
+            callback.completed(result);
         }
 
         @Override

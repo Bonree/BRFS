@@ -11,11 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.http;
+package com.bonree.brfs.client.ranker;
 
-public interface HttpServer {
+import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+
+public class RankerTest {
+
+    public static void main(String[] args) {
+        List<Integer> l = new ShiftRanker<Integer>().rank(ImmutableList.<Integer>of(1, 2, 3, 4, 5));
+        
+        System.out.println(l);
+        System.out.println(l);
+    }
     
-    void start();
-    
-    void stop();
 }

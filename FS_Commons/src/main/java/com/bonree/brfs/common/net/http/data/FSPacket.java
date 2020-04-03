@@ -119,4 +119,7 @@ public class FSPacket {
     public boolean isATinyFile(long blockSize) {
         return isLastPacketInFile()&&isTheFirstPacketInFile(blockSize);
     }
+    public void setProto(FSPacketProto proto){
+        this.proto = proto;
+    }
 }
