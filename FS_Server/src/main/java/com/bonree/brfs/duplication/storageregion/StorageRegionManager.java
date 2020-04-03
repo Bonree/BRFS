@@ -1,7 +1,7 @@
 package com.bonree.brfs.duplication.storageregion;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.duplication.storageregion.exception.StorageNameNonexistentException;
@@ -36,7 +36,7 @@ public interface StorageRegionManager extends LifeCycle {
 	 * @return
 	 * @throws StorageNameNonexistentException 
 	 */
-	void updateStorageRegion(String regionName, Map<String, Object> props) throws Exception;
+	void updateStorageRegion(String regionName, Properties props) throws Exception;
 	
 	/**
 	 * 删除指定名称的StorageRegion节点

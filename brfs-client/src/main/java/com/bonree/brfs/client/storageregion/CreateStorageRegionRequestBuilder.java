@@ -16,24 +16,23 @@ package com.bonree.brfs.client.storageregion;
 import static java.util.Objects.requireNonNull;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Properties;
 
 public class CreateStorageRegionRequestBuilder {
     private final String name;
-    private final Map<String, Object> props = new HashMap<>();
+    private final Properties props = new Properties();
 
     CreateStorageRegionRequestBuilder(String name) {
         this.name = requireNonNull(name);
     }
 
     public CreateStorageRegionRequestBuilder setEnabled(boolean enabled) {
-        this.props.put(StorageRegionPropertyNames.PROP_ENABLED, enabled);
+        this.props.put(StorageRegionPropertyNames.PROP_ENABLED, String.valueOf(enabled));
         return this;
     }
 
     public CreateStorageRegionRequestBuilder setReplicateNum(int replicateNum) {
-        this.props.put(StorageRegionPropertyNames.PROP_REPLICATE_NUM, replicateNum);
+        this.props.put(StorageRegionPropertyNames.PROP_REPLICATE_NUM, String.valueOf(replicateNum));
         return this;
     }
 
@@ -44,7 +43,7 @@ public class CreateStorageRegionRequestBuilder {
     }
 
     public CreateStorageRegionRequestBuilder setFileCapacity(long fileCapacity) {
-        this.props.put(StorageRegionPropertyNames.PROP_FILE_CAPACITY, fileCapacity);
+        this.props.put(StorageRegionPropertyNames.PROP_FILE_CAPACITY, String.valueOf(fileCapacity));
         return this;
     }
 
@@ -64,7 +63,7 @@ public class CreateStorageRegionRequestBuilder {
             }
             
             @Override
-            public Map<String, Object> getAttributes() {
+            public Properties getAttributes() {
                 return props;
             }
         };

@@ -13,11 +13,16 @@
  */
 package com.bonree.brfs.duplication.storageregion;
 
+import static com.bonree.brfs.client.storageregion.StorageRegionPropertyNames.PROP_DATATTL;
+import static com.bonree.brfs.client.storageregion.StorageRegionPropertyNames.PROP_ENABLED;
+import static com.bonree.brfs.client.storageregion.StorageRegionPropertyNames.PROP_FILE_CAPACITY;
+import static com.bonree.brfs.client.storageregion.StorageRegionPropertyNames.PROP_FILE_PARTITION;
+import static com.bonree.brfs.client.storageregion.StorageRegionPropertyNames.PROP_REPLICATE_NUM;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 
-import com.bonree.brfs.client.storageregion.StorageRegionPropertyNames;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -71,13 +76,13 @@ public class StorageRegionProperties {
         return filePartitionDuration;
     }
     
-    public StorageRegionProperties override(Map<String, Object> props) {
+    public StorageRegionProperties override(Properties props) {
         return new StorageRegionProperties(
-                (boolean) props.getOrDefault(StorageRegionPropertyNames.PROP_ENABLED, enable),
-                (int) props.getOrDefault(StorageRegionPropertyNames.PROP_REPLICATE_NUM, replicateNum),
-                (String) props.getOrDefault(StorageRegionPropertyNames.PROP_DATATTL, dataTtl),
-                (long) props.getOrDefault(StorageRegionPropertyNames.PROP_FILE_CAPACITY, fileCapacity),
-                (String) props.getOrDefault(StorageRegionPropertyNames.PROP_FILE_PARTITION, filePartitionDuration));
+                Optional.ofNullable(props.getProperty(PROP_ENABLED)).map(Boolean::parseBoolean).orElse(enable),
+                Optional.ofNullable(props.getProperty(PROP_REPLICATE_NUM)).map(Integer::parseInt).orElse(replicateNum),
+                props.getProperty(PROP_DATATTL, dataTtl),
+                Optional.ofNullable(props.getProperty(PROP_FILE_CAPACITY)).map(Long::parseLong).orElse(fileCapacity),
+                props.getProperty(PROP_FILE_PARTITION, filePartitionDuration));
     }
     
     @Override

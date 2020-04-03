@@ -1,7 +1,7 @@
 package com.bonree.brfs.duplication.storageregion.impl;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
@@ -151,7 +151,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     }
 
     @Override
-    public void updateStorageRegion(String regionName, Map<String, Object> props) throws Exception {
+    public void updateStorageRegion(String regionName, Properties props) throws Exception {
         StorageRegion region = findStorageRegionByName(regionName);
         if (region == null) {
             throw new StorageNameNonexistentException(regionName);

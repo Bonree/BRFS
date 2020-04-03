@@ -14,10 +14,14 @@
 package com.bonree.brfs.client.sr;
 
 import java.net.URI;
+import java.util.List;
 
 import com.bonree.brfs.client.BRFS;
 import com.bonree.brfs.client.BRFSClientBuilder;
+import com.bonree.brfs.client.storageregion.CreateStorageRegionRequest;
+import com.bonree.brfs.client.storageregion.StorageRegionID;
 import com.bonree.brfs.client.storageregion.StorageRegionInfo;
+import com.bonree.brfs.client.storageregion.UpdateStorageRegionRequest;
 
 public class storageRegionTest {
 
@@ -27,27 +31,35 @@ public class storageRegionTest {
     public static void main(String[] args) {
         BRFS client = new BRFSClientBuilder().build("root", "12345", new URI[] {URI.create("http://localhost:8100")});
         
+        String rn = "new_region1";
         try {
-//          StorageRegionID sr = client.createStorageRegion(CreateStorageRegionRequest.newBuilder()
-//                  .setName("new_test")
-//                  .build());
+          StorageRegionID sr = client.createStorageRegion(CreateStorageRegionRequest.newBuilder(rn)
+                  .build());
+          System.out.println("create : " + sr);
           
-//          boolean exist = client.doesStorageRegionExists("new_test");
+          boolean exist = client.doesStorageRegionExists(rn);
+          System.out.println("exist: " + exist);
           
-//          List<String> srs = client.listStorageRegions();
+          List<String> srs = client.listStorageRegions();
+          System.out.println("list : " + srs);
           
-          StorageRegionInfo info = client.getStorageRegionInfo("new_test");
+          StorageRegionInfo info = client.getStorageRegionInfo(rn);
+          System.out.println("info : " + info);
           
-//          boolean updated = client.updateStorageRegion("new_test", UpdateStorageRegionRequest.newBuilder()
-//                  .setEnabled(false)
-//                  .setDataTTL("P20D")
-//                  .setFileCapacity(100)
-//                  .setFilePartition("PT2H")
-//                  .setReplicateNum(4)
-//                  .build());
+          boolean updated = client.updateStorageRegion(rn, UpdateStorageRegionRequest.newBuilder()
+                  .setEnabled(false)
+                  .setDataTTL("P20D")
+                  .setFileCapacity(100)
+                  .setFilePartition("PT2H")
+                  .setReplicateNum(4)
+                  .build());
+          System.out.println("updated: " + updated);
+          
+          StorageRegionInfo info1 = client.getStorageRegionInfo(rn);
+          System.out.println("updated info : " + info1);
           
 //          client.deleteStorageRegion("new_test");
-          System.out.println(info);
+          System.out.println(sr);
       } catch (Exception e) {
           e.printStackTrace();
       }

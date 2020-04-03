@@ -17,7 +17,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -78,7 +78,7 @@ public class StorageRegionResource {
     @Produces(APPLICATION_JSON)
     public Response create(
             @PathParam("srName") String name,
-            Map<String, Object> attributes) {
+            Properties attributes) {
         if(storageRegionManager.exists(name)) {
             return Response.status(Status.CONFLICT)
                     .entity(StringUtils.format("Storage Region[%s] has been existed", name))
@@ -89,8 +89,7 @@ public class StorageRegionResource {
             StorageRegion storageRegion = storageRegionManager.createStorageRegion(
                     name,
                     StorageRegionProperties.withDefault().override(attributes));
-            return Response.ok(new StorageRegionID(storageRegion.getName(), storageRegion.getId()))
-                    .build();
+            return Response.ok(new StorageRegionID(storageRegion.getName(), storageRegion.getId())).build();
         } catch (Exception e) {
             log.error(StringUtils.format("can not create storage region[%s]", name), e);
             return Response.serverError().entity(Throwables.getStackTraceAsString(e)).build();
@@ -102,7 +101,7 @@ public class StorageRegionResource {
     @Produces(APPLICATION_JSON)
     public Response update(
             @PathParam("srName") String name,
-            Map<String, Object> attributes) {
+            Properties attributes) {
         if (!storageRegionManager.exists(name)) {
             return Response.status(Status.NOT_FOUND).build();
         }
