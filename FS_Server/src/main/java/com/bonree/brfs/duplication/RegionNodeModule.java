@@ -27,8 +27,6 @@ import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
-import com.bonree.brfs.duplication.datastream.tmp.TestFileWriter;
-import com.bonree.brfs.duplication.rocksdb.RocksDBManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,8 +135,8 @@ public class RegionNodeModule implements Module {
         binder.bind(DataEngineManager.class).to(DefaultDataEngineManager.class).in(Scopes.SINGLETON);
 
 
-
-        binder.bind(StorageRegionWriter.class).to(TestFileWriter.class).in(Scopes.SINGLETON);
+        binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
+//        binder.bind(StorageRegionWriter.class).to(TestFileWriter.class).in(Scopes.SINGLETON);
 //        binder.bind(BlockManagerInterface.class).to(BlockManager.class).in(Scopes.SINGLETON);
 
         jaxrs(binder).resource(StorageRegionResource.class);
