@@ -46,7 +46,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
     @Override
     public void start() throws Exception {
         this.childCache = CuratorCacheFactory.getPathCache();
-        this.listener = new DiskPartitionInfoListener("disk_partition");
+        this.listener = new DiskPartitionInfoListener("disk_partition_cache");
         this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
 
     }

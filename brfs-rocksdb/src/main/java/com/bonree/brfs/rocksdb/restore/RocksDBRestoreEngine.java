@@ -1,5 +1,8 @@
 package com.bonree.brfs.rocksdb.restore;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
@@ -8,9 +11,9 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.utils.ZipUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.RocksDBManager;
 import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
+import com.bonree.brfs.rocksdb.configuration.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.file.SimpleFileReceiver;
@@ -36,7 +39,7 @@ import java.util.concurrent.Executors;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description: RocksDB数据恢复引擎
  ******************************************************************************/
-public class RocksDBRestoreEngine {
+public class RocksDBRestoreEngine implements LifeCycle {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocksDBRestoreEngine.class);
 
@@ -68,7 +71,10 @@ public class RocksDBRestoreEngine {
         simpleFileServer = Executors.newSingleThreadExecutor(new PooledThreadFactory("restore_file_server"));
     }
 
-    public void restore() {
+    @LifecycleStart
+    @Override
+    public void start() {
+        LOG.info("start restore engine...");
         Service earliestService = this.registerTimeManager.getEarliestRegisterService();
 
         // 只有一个RegionNode时没有必要做恢复操作
@@ -145,12 +151,19 @@ public class RocksDBRestoreEngine {
             } catch (RocksDBException e) {
                 LOG.error("restore engine err", e);
             } finally {
-                stop();
+                close();
             }
         }
     }
 
-    public void stop() {
+
+    @LifecycleStop
+    @Override
+    public void stop() throws Exception {
+
+    }
+
+    public void close() {
         if (fileServer != null) {
             try {
                 fileServer.stop();

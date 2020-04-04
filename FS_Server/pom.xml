@@ -29,6 +29,12 @@
 
 		<dependency>
 			<groupId>com.bonree.fs</groupId>
+			<artifactId>brfs-rocksdb</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.bonree.fs</groupId>
 			<artifactId>brfs-email</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>

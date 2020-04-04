@@ -10,11 +10,11 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.RocksDBConfig;
 import com.bonree.brfs.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.rocksdb.RocksDBManager;
 import com.bonree.brfs.rocksdb.WriteStatus;
+import com.bonree.brfs.rocksdb.configuration.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.zk.ColumnFamilyInfoManager;
@@ -274,10 +274,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         List<Service> services = serviceManager.getServiceListByGroup(regionGroupName);
         RegionNodeConnection connection;
 
-        RocksDBDataUnit dataUnit = new RocksDBDataUnit();
-        dataUnit.setColumnFamily(columnFamily);
-        dataUnit.setKey(key);
-        dataUnit.setValue(value);
+        RocksDBDataUnit dataUnit = new RocksDBDataUnit(columnFamily, key, value);
 
         for (Service service : services) {
             connection = this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());

@@ -1,5 +1,6 @@
 package com.bonree.brfs.rocksdb.backup;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.process.LifeCycle;
 import org.rocksdb.BackupEngine;
@@ -50,6 +51,7 @@ public class BackupEngineFactory implements LifeCycle {
         return backupEngine;
     }
 
+    @LifecycleStart
     @Override
     public void start() throws Exception {
 

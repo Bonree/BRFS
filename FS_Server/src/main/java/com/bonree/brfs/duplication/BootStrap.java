@@ -37,7 +37,6 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.configuration.units.ResourceConfigs;
-import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
@@ -327,7 +326,7 @@ public class BootStrap {
             });
             /********************/
 
-            if (Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_SWITCH)) {
+//            if (Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_SWITCH)) {
                 /** Module Managed **/
 //                RegionNodeConnectionPool regionNodeConnectionPool = new HttpRegionNodeConnectionPool(serviceManager);
 //                finalizer.add(regionNodeConnectionPool);
@@ -379,7 +378,7 @@ public class BootStrap {
                 /** Module Managed **/
 //                finalizer.add(BackupEngineFactory.getInstance());
                 /********************/
-            }
+//            }
 
             httpServer.start();
 

@@ -29,7 +29,9 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     private static final Logger LOG = LoggerFactory.getLogger(HttpRegionNodeClient.class);
 
     private static final String DEFAULT_SCHEME = "http";
-    private static final String URI_PATH_ROCKSDB_ROOT = "/rocksdb/";
+    private static final String URI_PATH_INNER_READ = "/rocksdb/inner/read";
+    private static final String URI_PATH_INNER_WRITE = "/rocksdb/inner/write";
+    private static final String URI_PATH_RESTORE = "/rocksdb/restore";
 
     private HttpClient client;
     private SyncHttpClient syncClient;
@@ -54,7 +56,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
                 .setScheme(DEFAULT_SCHEME)
                 .setHost(host)
                 .setPort(port)
-                .setPath("/ping/")
+                .setPath("/ping")
                 .build();
 
         try {
@@ -73,9 +75,9 @@ public class HttpRegionNodeClient implements RegionNodeClient {
                 .setScheme(DEFAULT_SCHEME)
                 .setHost(host)
                 .setPort(port)
-                .setPath(URI_PATH_ROCKSDB_ROOT)
-                .setParamter("cf", columnFamily)
-                .setParamter("key", key)
+                .setPath(URI_PATH_INNER_READ)
+                .setParamter("srName", columnFamily)
+                .setParamter("fileName", key)
                 .build();
 
         try {
@@ -93,18 +95,18 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     }
 
     @Override
-    public void writeData(RocksDBDataUnit unit) throws IOException {
+    public void writeData(RocksDBDataUnit unit) {
 
         URI uri = new URIBuilder()
                 .setScheme(DEFAULT_SCHEME)
                 .setHost(host)
                 .setPort(port)
-                .setPath(URI_PATH_ROCKSDB_ROOT)
+                .setPath(URI_PATH_INNER_WRITE)
                 .build();
 
         try {
             LOG.info("write rocksdb data to {}:{}, cf: {}", host, port, unit.getColumnFamily());
-            HttpResponse response = client.executePost(uri, ProtoStuffUtils.serialize(unit));
+            HttpResponse response = client.executePost(uri, JsonUtils.toJsonBytes(unit));
             LOG.debug("write rocksdb response[{}], host:{}, port:{}, cf:{}", response.getStatusCode(), host, port, unit.getColumnFamily());
         } catch (Exception e) {
             LOG.error("write rocksdb data to {}:{} error, cf:{}", host, port, unit.getColumnFamily(), e);
@@ -122,7 +124,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
                 .setParamter("restorePath", restorePath)
                 .setParamter("host", host)
                 .setParamter("port", String.valueOf(port))
-                .setPath("/ping/")
+                .setPath(URI_PATH_RESTORE)
                 .build();
 
         try {

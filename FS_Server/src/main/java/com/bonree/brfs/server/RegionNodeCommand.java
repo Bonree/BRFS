@@ -15,6 +15,7 @@ package com.bonree.brfs.server;
 
 import java.util.List;
 
+import com.bonree.brfs.rocksdb.guice.RocksDBModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,13 @@ public class RegionNodeCommand extends BaseCommand {
                 new SimpleAuthenticationModule(),
                 new NettyHttpServerModule(),
                 new RegionNodeModule());
+
+//        return ImmutableList.of(
+//                new EmailModule(),
+//                new SimpleAuthenticationModule(),
+//                new NettyHttpServerModule(),
+//                new RegionNodeModule(),
+//                new RocksDBModule());
     }
 
 }
