@@ -42,7 +42,6 @@ public class SecondIDRelationShipTest {
         // 实例化TreeCacheFactory
         CuratorCacheFactory.init(client);
         ship = new SecondIDRelationShip(client,SBAS_PATH);
-        ship.start();
     }
     public void createPartition(String firstServer,String partitionId)throws Exception{
         String pPath = SBAS_PATH+"/"+partitionId;

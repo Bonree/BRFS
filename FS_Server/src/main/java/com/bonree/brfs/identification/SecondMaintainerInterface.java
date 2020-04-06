@@ -7,10 +7,10 @@ import java.util.Collection;
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
  * @date 2020年04月01日 14:29:19
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @description: 二级serverId信息维护信息
+ * @description: 二级serverId信息维护信息基础类，
  ******************************************************************************/
 
-public interface SecondMaintainerInterface {
+public interface SecondMaintainerInterface extends SecondIdsInterface{
     /**
      * 注册二级serverid，当serverid已经注册过，则返回注册的serverid
      * @param partitionId
@@ -29,12 +29,11 @@ public interface SecondMaintainerInterface {
 
     /**
      * 注销二级serverid
-     * @param firstServer
      * @param partitionId
      * @param storageId
      * @return
      */
-    boolean unregisterSecondId(String firstServer,String partitionId, int storageId);
+    boolean unregisterSecondId(String partitionId, int storageId);
 
     /**
      * 批量注销一级serverid为firstserver的二级serverid
@@ -79,6 +78,5 @@ public interface SecondMaintainerInterface {
      * @return
      */
     boolean removeAllPartitionRelation(Collection<String> partitionIds);
-
 
 }

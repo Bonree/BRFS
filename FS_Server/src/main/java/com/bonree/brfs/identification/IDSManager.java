@@ -1,5 +1,9 @@
 package com.bonree.brfs.identification;
 
+import com.bonree.brfs.identification.impl.DiskDaemon;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -11,93 +15,113 @@ import java.util.List;
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description: id综合查询管理类，负责二级serverid，虚拟serverid 的查询，以及datanode一级server查询
  **/
-public class IDSManager implements SecondMaintainerInterface,VirtualServerID {
+public class IDSManager {
+    private String firstSever = null;
     private SecondMaintainerInterface secondMaintainer;
     private VirtualServerID virtualServerID;
+    private DiskDaemon diskDaemon;
+    public IDSManager(String firstSever, SecondMaintainerInterface secondMaintainer, VirtualServerID virtualServerID,DiskDaemon diskDaemon) {
+        this.firstSever = firstSever;
+        this.secondMaintainer = secondMaintainer;
+        this.virtualServerID = virtualServerID;
+        this.diskDaemon = diskDaemon;
+        init();
+    }
+    private void init(){
+        Collection<LocalPartitionInfo> partitions = this.diskDaemon.getPartitions();
+        Collection<String> parts = convertToId(partitions);
+        this.secondMaintainer.addAllPartitionRelation(parts,firstSever);
+    }
+    private Collection<String> convertToId(Collection<LocalPartitionInfo> partitions){
+        List<String> parts = new ArrayList<>();
+        for(LocalPartitionInfo part : partitions){
+            parts.add(part.getPartitionId());
+        }
+        return parts;
+    }
 
-
-    @Override
+    /**
+     * 注册二级serverid
+     * @param firstServer
+     * @param partitionId
+     * @param storageId
+     * @return
+     */
     public String registerSecondId(String firstServer, String partitionId, int storageId) {
-        return null;
+        return this.secondMaintainer.registerSecondId(firstServer,partitionId,storageId);
     }
 
-    @Override
+    /**
+     * 注册二级serverid
+     * @param firstServer
+     * @param storageId
+     * @return
+     */
     public Collection<String> registerSecondIds(String firstServer, int storageId) {
-        return null;
+        return this.secondMaintainer.registerSecondIds(firstServer,storageId);
     }
 
-    @Override
-    public boolean unregisterSecondId(String firstServer, String partitionId, int storageId) {
-        return false;
+    public boolean unregisterSecondId(String partitionId, int storageId) {
+        return this.secondMaintainer.unregisterSecondId(partitionId,storageId);
     }
 
-    @Override
     public boolean unregisterSecondIds(String firstServer, int storageid) {
-        return false;
+        return this.secondMaintainer.unregisterSecondId(firstServer,storageid);
     }
 
-    @Override
     public boolean isValidSecondId(String secondId, int storageId) {
-        return false;
+        return this.secondMaintainer.isValidSecondId(secondId,storageId);
     }
 
-    @Override
     public void addPartitionRelation(String firstServer, String partitionId) {
-
+        this.secondMaintainer.addPartitionRelation(firstServer,partitionId);
     }
 
-    @Override
     public void addAllPartitionRelation(Collection<String> parititionId, String firstServer) {
-
+        this.secondMaintainer.addAllPartitionRelation(parititionId,firstServer);
     }
 
-    @Override
     public boolean removePartitionRelation(String partitionid) {
-        return false;
+        return this.secondMaintainer.removePartitionRelation(partitionid);
     }
 
-    @Override
     public boolean removeAllPartitionRelation(Collection<String> partitionIds) {
-        return false;
+        return  this.secondMaintainer.removeAllPartitionRelation(partitionIds);
     }
 
-    @Override
     public List<String> getVirtualID(int storageIndex, int count, List<String> diskFirstIDs) {
-        return null;
+       return this.virtualServerID.getVirtualID(storageIndex,count,diskFirstIDs);
     }
 
-    @Override
     public List<String> listValidVirtualIds(int storageIndex) {
-        return null;
+        return this.virtualServerID.listValidVirtualIds(storageIndex);
     }
 
-    @Override
     public List<String> listInvalidVirtualIds(int storageIndex) {
-        return null;
+        return this.virtualServerID.listInvalidVirtualIds(storageIndex);
     }
 
-    @Override
     public boolean invalidVirtualId(int storageIndex, String id) {
-        return false;
+        return this.virtualServerID.invalidVirtualId(storageIndex,id);
     }
 
-    @Override
     public boolean validVirtualId(int storageIndex, String id) {
-        return false;
+        return this.virtualServerID.validVirtualId(storageIndex,id);
     }
 
-    @Override
     public boolean deleteVirtualId(int storageIndex, String id) {
-        return false;
+        return this.virtualServerID.deleteVirtualId(storageIndex,id);
     }
 
-    @Override
     public String getVirtualIdContainerPath() {
-        return null;
+        return this.virtualServerID.getVirtualIdContainerPath();
     }
 
-    @Override
     public void addFirstId(int storageIndex, String virtualID, String firstId) {
-
+        this.virtualServerID.addFirstId(storageIndex,virtualID,firstId);
     }
+    public String getFirstSever() {
+        return firstSever;
+    }
+
 }
