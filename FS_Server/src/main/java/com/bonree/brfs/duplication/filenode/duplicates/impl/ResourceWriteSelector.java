@@ -20,7 +20,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector{
     private StorageRegionManager storageRegionManager;
     private String groupName;
     private DuplicateNodeSelector bakSelector;
-    private ResourceWriteSelector(ClusterResource daemon, ServiceSelector resourceSelector, StorageRegionManager storageRegionManager,DuplicateNodeSelector bakSelector,String groupName){
+    public ResourceWriteSelector(ClusterResource daemon, ServiceSelector resourceSelector, StorageRegionManager storageRegionManager,DuplicateNodeSelector bakSelector,String groupName){
         this.daemon = daemon;
         this.resourceSelector = resourceSelector;
         this.storageRegionManager =storageRegionManager;

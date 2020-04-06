@@ -38,7 +38,6 @@ public class DiskPartitionInfoManager implements LifeCycle {
     private ZookeeperPaths zkPath;
     private DiskPartitionInfoListener listener;
     private Map<String, PartitionInfo> diskPartitionInfoCache = new ConcurrentHashMap<>();
-
     public DiskPartitionInfoManager(ZookeeperPaths zkPath) {
         this.zkPath = zkPath;
     }
