@@ -2,7 +2,7 @@ package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
 import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
-import com.bonree.brfs.server.identification.VirtualServerID;
+import com.bonree.brfs.identification.VirtualServerID;
 import com.google.common.primitives.Ints;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;

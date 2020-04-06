@@ -1,6 +1,5 @@
 package com.bonree.brfs.partition;
 
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.server.identification.LevelServerIDGen;
@@ -172,7 +171,11 @@ public class PartitionCheckingRoutine {
     public Map<String, LocalPartitionInfo> readIds(String path) {
         File file = new File(path);
         if (!file.exists()) {
-            throw new RuntimeException("path [" + path + "] is not exists !!");
+            try {
+                FileUtils.forceMkdir(file);
+            } catch (IOException e) {
+            throw new RuntimeException("path [" + path + "] is not exists and can't create !!",e);
+            }
         }
         if (!file.isDirectory()) {
             throw new RuntimeException("path [" + path + "] is not directory !!");
@@ -233,7 +236,8 @@ public class PartitionCheckingRoutine {
             FileSystem fs = null;
             Set<String> keepOnlyOne = new HashSet<>();
             for (String dir : dataDir) {
-                fs = fileSystemMap.getMountPoint(dir);
+                File file = new File(dir);
+                fs = fileSystemMap.getMountPoint(file.getAbsolutePath());
                 if (fs == null) {
                     throw new RuntimeException("dir [" + dir + "] can't find vaild partition !!");
                 }

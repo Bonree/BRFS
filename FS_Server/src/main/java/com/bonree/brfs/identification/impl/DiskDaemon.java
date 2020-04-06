@@ -22,28 +22,20 @@ import java.util.Collection;
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description:
  ******************************************************************************/
-public class DiskDaemon implements LifeCycle, LocalPartitionInterface {
+public class DiskDaemon implements LocalPartitionInterface {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskDaemon.class);
 
 	private PartitionGather gather;
 	private Collection<LocalPartitionInfo> partitions;
 	private LocalPartitionCache cache = null;
 	@Inject
-	public DiskDaemon(PartitionGather gather, Collection<LocalPartitionInfo> partitions) {
+	public DiskDaemon(PartitionGather gather, Collection<LocalPartitionInfo> partitions){
 		this.gather = gather;
 		this.partitions = partitions;
 		this.cache = new LocalPartitionCache(partitions);
-	}
-
-	@Override
-	public void start() throws Exception {
 		this.gather.start();
 	}
 
-	@Override
-	public void stop() throws Exception {
-		this.gather.stop();
-	}
 
 	@Override
 	public String getDataPaths(String partitionId) {
@@ -58,6 +50,9 @@ public class DiskDaemon implements LifeCycle, LocalPartitionInterface {
 	@Override
 	public Collection<String> listPartitionId() {
 		return this.cache.listPartitionId();
+	}
+	public Collection<LocalPartitionInfo> getPartitions(){
+		return this.partitions;
 	}
 
 	public static class Builder{

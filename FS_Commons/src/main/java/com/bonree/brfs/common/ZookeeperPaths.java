@@ -49,9 +49,9 @@ public class ZookeeperPaths {
 
     public final static String DISCOVER="discovery";
     // todo 为了兼容旧版本客户端，增加路径
-    public final static String BAS_SECOND_ID="second_ids";
-    public final static String SECOND_IDS="ids";
-    public final static String SECOND_ID_SEQ = "sequences";
+    public final static String BAS_SECOND_ID="secondIDSet";
+    public final static String BAS_NEW_ROUTE="routeSet";
+
 
 
 
@@ -85,8 +85,23 @@ public class ZookeeperPaths {
 
     private String baseV2SecondIDPath;
 
-    private String baseV2SecondSeqPath;
+    private String baseV2RoutePath;
 
+    public String getBaseV2SecondIDPath() {
+        return baseV2SecondIDPath;
+    }
+
+    public void setBaseV2SecondIDPath(String baseV2SecondIDPath) {
+        this.baseV2SecondIDPath = baseV2SecondIDPath;
+    }
+
+    public String getBaseV2RoutePath() {
+        return baseV2RoutePath;
+    }
+
+    public void setBaseV2RoutePath(String baseV2RoutePath) {
+        this.baseV2RoutePath = baseV2RoutePath;
+    }
 
     private ZookeeperPaths(final String clusterName, final CuratorFramework zkClient) {
         this.clusterName = clusterName;
@@ -228,6 +243,8 @@ public class ZookeeperPaths {
         setBaseResourcesPath(baseClusterName + SEPARATOR + RESOURCES);
         setBaseRocksDBPath(baseClusterName + SEPARATOR + ROCKSDB);
         setBaseDiscoveryPath(baseClusterName+SEPARATOR+DISCOVER);
+        setBaseV2RoutePath(baseClusterName+SEPARATOR+BAS_NEW_ROUTE);
+        setBaseV2SecondIDPath(baseClusterName+SEPARATOR+SEPARATOR+BAS_SECOND_ID);
 
     }
 

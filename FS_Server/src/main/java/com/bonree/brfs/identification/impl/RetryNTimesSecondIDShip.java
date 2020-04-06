@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /*******************************************************************************
@@ -29,8 +28,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @Description: 磁盘节点对应的二级server关系，只查询zk上的id关系，不对其做任何修改。
  ******************************************************************************/
-public class SecondIDRelationShip implements SecondIdsInterface {
-    private static final Logger LOG = LoggerFactory.getLogger(SecondIDRelationShip.class);
+public class RetryNTimesSecondIDShip implements SecondIdsInterface {
+    private static final Logger LOG = LoggerFactory.getLogger(RetryNTimesSecondIDShip.class);
     private static final String SEPARATOR = ":";
     /**
      * 二级serverid的基本路径
@@ -44,7 +43,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
      * 磁盘id与一级serverId的对应关系
      */
     private Map<String, String> partitionTofirstMap = new ConcurrentHashMap<>();
-
+    ;
     /**
      * storageRegionId +partitionId 与二级serverId的关系
      * key为 storageid+partitionid
@@ -65,11 +64,19 @@ public class SecondIDRelationShip implements SecondIdsInterface {
     private CuratorFramework client = null;
 
     private SecondIDCacheListerner listerner;
+    private int count = 3;
+    private long time;
 
-    public SecondIDRelationShip(CuratorFramework client, String secondIdBasPath)throws Exception {
+    public RetryNTimesSecondIDShip(CuratorFramework client, String secondIdBasPath,int count,long time) {
         this.secondIdBasPath = secondIdBasPath;
         this.client = client;
-        load();
+        this.count = count;
+        this.time = time;
+        try {
+            load();
+        } catch (Exception e) {
+            LOG.error("load secondId happen error ",e);
+        }
         secondIDCache = CuratorCacheFactory.getTreeCache();
         listerner = new SecondIDCacheListerner(this.secondIdBasPath);
         secondIDCache.addListener(this.secondIdBasPath, listerner);
@@ -78,7 +85,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
     @Override
     public Collection<String> getSecondIds(String serverId, int storageRegionId) {
         List<String> secondIds = new ArrayList<>();
-        while (true) {
+        for(int i = 0;i <count;i++){
             try {
                 Collection<String> partitionIds = firstToPartitionIdMap.get(serverId);
                 if (partitionIds != null && !partitionIds.isEmpty()) {
@@ -88,7 +95,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
                     }
                     break;
                 }
-                Thread.sleep(50);
+                Thread.sleep(time);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -100,11 +107,11 @@ public class SecondIDRelationShip implements SecondIdsInterface {
     @Override
     public String getSecondId(String partitionId, int storageRegionId) {
         String key = storageRegionId + SEPARATOR + partitionId;
-        while (true) {
+        for(int i = 0; i< count;i++){
             try {
                 String secondId = secondIDsMap.get(key);
                 if (StringUtils.isEmpty(secondId) || StringUtils.isBlank(secondId)) {
-                    Thread.sleep(50);
+                    Thread.sleep(time);
                 } else {
                     return secondId;
                 }
@@ -112,12 +119,13 @@ public class SecondIDRelationShip implements SecondIdsInterface {
                 e.printStackTrace();
             }
         }
+        return null;
     }
 
     @Override
     public String getFirstId(String secondId, int storageRegionId) {
         String key = storageRegionId + SEPARATOR + secondId;
-        while (true) {
+        for(int i = 0; i< count;i++){
             try {
                 String partitionId = this.partitionIDSMap.get(key);
                 if (StringUtils.isNotEmpty(partitionId) && StringUtils.isNotEmpty(partitionId)) {
@@ -126,12 +134,14 @@ public class SecondIDRelationShip implements SecondIdsInterface {
                         return firstServer;
                     }
                 }
-                Thread.sleep(50);
+                Thread.sleep(time);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+        return null;
     }
+
 
     /**
      * 加载数据
@@ -207,8 +217,6 @@ public class SecondIDRelationShip implements SecondIdsInterface {
         String sKey = storageRegionId + SEPARATOR + second;
         partitionIDSMap.remove(sKey);
     }
-
-
 
     /**
      * 二级serverid监听器 用于实时更新缓存

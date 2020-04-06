@@ -50,5 +50,7 @@ public final class RegionNodeConfigs {
 	public static final ConfigUnit<Integer> CONFIG_BLOCK_POOL_INIT_COUNT =
 			ConfigUnit.ofInt("regionnode.block.pool.init.count", 1);
 
+	public static final ConfigUnit<Integer> CONFIG_DUPLICATION_SELECT_TYPE = ConfigUnit.ofInt("regionnode.duplication.select.type",1);
+
 	private RegionNodeConfigs() {}
 }

@@ -47,7 +47,8 @@ public class PartitionCheckingRoutineTest {
         }
         idImpl = new DiskNodeIDImpl(framework,BASE_ID_PATH);
         firstServer = new Service("10","dataGroup","127.0.0.1",13000,System.currentTimeMillis());
-        String libPath = "D:\\work\\Business\\bonree\\BrfsSecond\\BRFS\\lib";
+//        String libPath = "D:\\work\\Business\\bonree\\BrfsSecond\\BRFS\\lib";
+        String libPath = "E:\\worker\\Bonree\\BrfsSecond\\BRFS\\lib";
         File file = new File(libPath);
         if(!file.exists()){
             Assert.fail("sigar lib add happen error path : "+libPath);
@@ -109,7 +110,7 @@ public class PartitionCheckingRoutineTest {
             }
         }
         PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,idsPath,partitionGroup);
-        String[] dirs = {"D:/zhucg/tmp"};
+        String[] dirs = {"D:/"};
         Map<String, FileSystem> map = routine.collectVaildFileSystem(dirs);
         Assert.assertEquals(dirs.length,map.size());
 
