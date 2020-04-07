@@ -54,6 +54,9 @@ public final class RegionNodeConfigs {
 	public static final ConfigUnit<Integer> CLEAR_TIME_THRESHOLD =
 			ConfigUnit.ofInt("regionnode.file.clear.time.threshold", 30000);
 
+	public static final ConfigUnit<Integer> WAIT_FOR_BLOCK_TIME =
+            ConfigUnit.ofInt("regionnode.waitfor.block.time", 10000);
+
 	public static final ConfigUnit<Integer> CONFIG_DUPLICATION_SELECT_TYPE = ConfigUnit.ofInt("regionnode.duplication.select.type",1);
 
 	private RegionNodeConfigs() {}

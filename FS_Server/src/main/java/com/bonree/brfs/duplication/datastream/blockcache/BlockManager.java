@@ -4,6 +4,8 @@ import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.datastream.writer.DefaultStorageRegionWriter;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
@@ -32,6 +34,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class BlockManager implements BlockManagerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(BlockManager.class);
+    private static long clearTimeOut = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CLEAR_TIME_THRESHOLD);
     //storage => fileEntry
     private BlockCache blockCache = new BlockCache();
     //    private static FileOnConstruction INSTANCE ;
@@ -74,6 +77,14 @@ public class BlockManager implements BlockManagerInterface{
      * @return block
      */
     public synchronized Block appendToBlock(FSPacket packet, HandleResultCallback callback) {
+        if(fileHasBeenCleared(packet)){
+            HandleResult result = new HandleResult();
+            result.setSuccess(false);
+            result.setCause(new Exception("文件因长时间为写入而被丢弃"));
+            LOG.debug("error come here");
+            callback.completed(result);
+        }
+
         Block block = getBlock(packet);
 
         if(block == null){
@@ -304,7 +315,12 @@ public class BlockManager implements BlockManagerInterface{
     public long getBlockSize() {
         return blockPool.getBlockSize();
     }
-
+    public boolean fileHasBeenCleared(FSPacket packet){
+        if(!isFileExist(packet)){
+            return packet.getOffsetInFile() != 0;
+        }
+        return false;
+    }
     class BlockCache {
         ReadWriteLock lock = new ReentrantReadWriteLock();
         Map<Integer, StorageEntry> storages = new ConcurrentHashMap<>();
@@ -475,13 +491,14 @@ public class BlockManager implements BlockManagerInterface{
      */
     class FileEntry {
 
-        private boolean turnInfoBigFile = false;
+        private volatile boolean turnInfoBigFile = false;
+        private volatile boolean hasBeenCleared = false;
         private int storage;
         private String fileName;
         private Map<Long, BlockOrFidEntry> offsetToBlock = new ConcurrentHashMap<>();
         private AtomicLong packetLen = new AtomicLong(0l);
         private volatile long timestamp = System.currentTimeMillis();
-        ClearTimerTask fooTimerTask = new ClearTimerTask(30000); // 2. 创建任务对象
+        ClearTimerTask fooTimerTask = new ClearTimerTask(clearTimeOut); // 2. 创建任务对象
 
         private Timer timer = new Timer(); // 1. 创建Timer实例，关联线程不能是daemon(守护/后台)线程
 
@@ -508,7 +525,7 @@ public class BlockManager implements BlockManagerInterface{
         }
         public FileEntry(int storage , String fileName) {
             this.fileName = fileName;
-            timer.schedule(fooTimerTask, 3000L, 30000L); // 3. 通过Timer定时定频率调用fooTimerTask的业务代码
+            timer.schedule(fooTimerTask, clearTimeOut, clearTimeOut); // 3. 通过Timer定时定频率调用fooTimerTask的业务代码
             this.storage = storage;
         }
 
