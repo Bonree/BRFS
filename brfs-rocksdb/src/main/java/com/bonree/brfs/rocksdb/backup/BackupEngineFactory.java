@@ -11,6 +11,7 @@ import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,6 +36,7 @@ public class BackupEngineFactory implements LifeCycle {
     private BackupEngineFactory() {
     }
 
+    @Inject
     public static BackupEngineFactory getInstance() {
         return SingletonHolder.INSTANCE;
     }

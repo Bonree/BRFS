@@ -15,6 +15,8 @@ package com.bonree.brfs.server;
 
 import java.util.List;
 
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.guice.RocksDBModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,30 +31,32 @@ import com.google.inject.Module;
 import io.airlift.airline.Command;
 
 @Command(
-    name = "region",
-    description = "Runs a region node"
+        name = "region",
+        description = "Runs a region node"
 )
 public class RegionNodeCommand extends BaseCommand {
     private static final Logger log = LoggerFactory.getLogger(RegionNodeCommand.class);
-    
+
+    private static final boolean ROCKSDB_SWITCH = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_SWITCH);
+
     public RegionNodeCommand() {
         super(log);
     }
 
     @Override
     protected List<Module> getModules() {
-        return ImmutableList.of(
-                new EmailModule(),
-                new SimpleAuthenticationModule(),
-                new NettyHttpServerModule(),
-                new RegionNodeModule());
-
-//        return ImmutableList.of(
-//                new EmailModule(),
-//                new SimpleAuthenticationModule(),
-//                new NettyHttpServerModule(),
-//                new RegionNodeModule(),
-//                new RocksDBModule());
+        return ROCKSDB_SWITCH ?
+                ImmutableList.of(
+                        new EmailModule(),
+                        new SimpleAuthenticationModule(),
+                        new NettyHttpServerModule(),
+                        new RegionNodeModule(),
+                        new RocksDBModule()) :
+                ImmutableList.of(
+                        new EmailModule(),
+                        new SimpleAuthenticationModule(),
+                        new NettyHttpServerModule(),
+                        new RegionNodeModule());
     }
 
 }

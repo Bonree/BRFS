@@ -14,7 +14,7 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.rocksdb.RocksDBManager;
 import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
-import com.bonree.brfs.rocksdb.configuration.RocksDBConfigs;
+import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.file.SimpleFileReceiver;
@@ -79,6 +79,11 @@ public class RocksDBRestoreEngine implements LifeCycle {
         LOG.info("start restore engine...");
         Service earliestService = this.registerTimeManager.getEarliestRegisterService();
 
+        if (earliestService == null) {
+            LOG.info("earliest register service is null, restore exit.");
+            return;
+        }
+
         // 只有一个RegionNode时没有必要做恢复操作
         if (earliestService.getHost().equals(this.service.getHost())) {
             LOG.info("earliest register service is local, restore exit.");
@@ -127,6 +132,8 @@ public class RocksDBRestoreEngine implements LifeCycle {
                 LOG.info("backupIds is null or empty, restore engine exit.");
                 return;
             }
+
+            LOG.info("start execute restore, receive backupIds:{}", backupIds);
 
             String transferFilePath = restorePath + File.separator + TRANSFER_FILE_NAME;
             ZipUtils.unZip(transferFilePath, restorePath);

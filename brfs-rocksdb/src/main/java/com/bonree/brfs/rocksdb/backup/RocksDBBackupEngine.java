@@ -10,7 +10,7 @@ import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.rocksdb.RocksDBManager;
-import com.bonree.brfs.rocksdb.configuration.RocksDBConfigs;
+import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.zk.BackupHeartBeatManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.BackupEngine;

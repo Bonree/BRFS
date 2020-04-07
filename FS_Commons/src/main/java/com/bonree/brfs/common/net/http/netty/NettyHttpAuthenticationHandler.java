@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 public class NettyHttpAuthenticationHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 	private static final Logger LOG = LoggerFactory.getLogger(NettyHttpAuthenticationHandler.class);
 	private HttpAuthenticator httpAuthenticator;
-	
+
 	public NettyHttpAuthenticationHandler(HttpAuthenticator httpAuthenticator) {
 		super(false);
 		this.httpAuthenticator = httpAuthenticator;
@@ -24,8 +24,8 @@ public class NettyHttpAuthenticationHandler extends SimpleChannelInboundHandler<
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request)
 			throws Exception {
-		// 跳过内部请求检查  todo
-		if(request.uri().startsWith("/ping") || request.uri().startsWith("/rocksdb")){
+		// 内部请求跳过检查
+		if(request.uri().startsWith("/rocksdb")){
 			ctx.fireChannelRead(request);
 			return;
 		}
@@ -34,7 +34,7 @@ public class NettyHttpAuthenticationHandler extends SimpleChannelInboundHandler<
 		String userName = headers.get("username");
 		String passwd = headers.get("password");
 		LOG.debug("get user info[{}, {}]", userName, passwd);
-		
+
 		int checkResult = httpAuthenticator.check(userName, passwd);
 		if(checkResult != 0) {
 			LOG.error("Illegal user info!");
@@ -42,7 +42,7 @@ public class NettyHttpAuthenticationHandler extends SimpleChannelInboundHandler<
 			ResponseSender.sendError(ctx, HttpResponseStatus.FORBIDDEN, String.valueOf(checkResult));
 			return;
 		}
-		
+
 		LOG.debug("OKKK user info!");
 		ctx.fireChannelRead(request);
 	}

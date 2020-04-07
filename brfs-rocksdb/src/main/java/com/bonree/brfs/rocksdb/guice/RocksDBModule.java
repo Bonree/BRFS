@@ -5,6 +5,7 @@ import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.plugin.BrfsModule;
 import com.bonree.brfs.rocksdb.RocksDBManager;
+import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.rocksdb.backup.RocksDBBackupEngine;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.connection.http.HttpRegionNodeConnectionPool;
@@ -36,6 +37,8 @@ public class RocksDBModule implements BrfsModule {
         LifecycleModule.register(binder, ColumnFamilyInfoListener.class);
         LifecycleModule.register(binder, RocksDBRestoreEngine.class);
 
+        binder.bind(BackupEngineFactory.class).toInstance(BackupEngineFactory.getInstance());
+        LifecycleModule.register(binder,BackupEngineFactory.class);
         jaxrs(binder).resource(RocksDBResource.class);
 
     }

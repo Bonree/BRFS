@@ -48,6 +48,7 @@ public class RocksDBResource {
 
     @GET
     @Path("ping")
+    @Produces(APPLICATION_JSON)
     public Response ping() {
         return Response.ok().build();
     }
@@ -112,7 +113,7 @@ public class RocksDBResource {
 
 
     @POST
-    @Path("restore")
+    @Path("inner/restore")
     @Produces(APPLICATION_JSON)
     public Response restore(
             @QueryParam("transferFileName") String transferFileName,
@@ -120,10 +121,12 @@ public class RocksDBResource {
             @QueryParam("host") String host,
             @QueryParam("port") int port) {
 
-        String backupPath = this.rocksDBConfig.getRocksDBStoragePath();
+        String backupPath = this.rocksDBConfig.getRocksDBBackupPath();
 
         try {
             int backupId = this.backupEngine.createNewBackup();
+            List<Integer> backupIds = this.backupEngine.getBackupIds();
+            LOG.info("restore handler create new backup, this backupId:{}, all backupIds:{}", backupId, backupIds);
 
             String outDir = backupPath + File.separator + transferFileName;
             ZipUtils.zip(FileUtils.listFilePaths(backupPath), outDir);
@@ -134,8 +137,6 @@ public class RocksDBResource {
                 LOG.info("socket client delete tmp transfer file :{}", outDir);
             }
 
-            List<Integer> backupIds = this.backupEngine.getBackupIds();
-            LOG.info("restore handler create new backup, this backupId:{}, all backupIds:{}", backupId, backupIds);
             return Response.ok().entity(backupIds).build();
         } catch (Exception e) {
             LOG.error("restore request handler err, host:port {}:{}", host, port);

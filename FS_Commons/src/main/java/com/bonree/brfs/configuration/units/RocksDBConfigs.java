@@ -1,4 +1,4 @@
-package com.bonree.brfs.rocksdb.configuration;
+package com.bonree.brfs.configuration.units;
 
 import com.bonree.brfs.configuration.ConfigUnit;
 

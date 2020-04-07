@@ -4,7 +4,6 @@ import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
-import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.rocksdb.client.RegionNodeClient;
@@ -31,7 +30,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     private static final String DEFAULT_SCHEME = "http";
     private static final String URI_PATH_INNER_READ = "/rocksdb/inner/read/";
     private static final String URI_PATH_INNER_WRITE = "/rocksdb/inner/write/";
-    private static final String URI_PATH_RESTORE = "/rocksdb/restore/";
+    private static final String URI_PATH_RESTORE = "/rocksdb/inner/restore/";
 
     private HttpClient client;
     private SyncHttpClient syncClient;
@@ -56,7 +55,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
                 .setScheme(DEFAULT_SCHEME)
                 .setHost(host)
                 .setPort(port)
-                .setPath("/ping/")
+                .setPath("/rocksdb/ping/")
                 .build();
 
         try {

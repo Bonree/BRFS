@@ -1,7 +1,7 @@
 package com.bonree.brfs.rocksdb.guice;
 
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.rocksdb.configuration.RocksDBConfigs;
+import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /*******************************************************************************
@@ -16,7 +16,14 @@ public class RocksDBConfig {
     @JsonProperty("storage.path")
     public String rocksDBStoragePath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
 
-    public String getRocksDBStoragePath(){
+    @JsonProperty("backup.path")
+    public String rocksDBBackupPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
+
+    public String getRocksDBStoragePath() {
         return rocksDBStoragePath;
+    }
+
+    public String getRocksDBBackupPath() {
+        return rocksDBBackupPath;
     }
 }

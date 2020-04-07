@@ -14,7 +14,7 @@ import com.bonree.brfs.rocksdb.RocksDBConfig;
 import com.bonree.brfs.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.rocksdb.RocksDBManager;
 import com.bonree.brfs.rocksdb.WriteStatus;
-import com.bonree.brfs.rocksdb.configuration.RocksDBConfigs;
+import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.zk.ColumnFamilyInfoManager;

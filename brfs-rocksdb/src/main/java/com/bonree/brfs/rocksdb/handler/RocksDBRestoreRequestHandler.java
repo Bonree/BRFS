@@ -9,7 +9,7 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.ZipUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.rocksdb.backup.RocksDBBackupEngine;
-import com.bonree.brfs.rocksdb.configuration.RocksDBConfigs;
+import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.file.SimpleFileSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
