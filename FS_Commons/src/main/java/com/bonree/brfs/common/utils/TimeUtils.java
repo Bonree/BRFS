@@ -1,7 +1,11 @@
 package com.bonree.brfs.common.utils;
 
 import java.io.File;
+import java.util.concurrent.ExecutionException;
 
+import com.bonree.brfs.common.net.tcp.file.ReadObject;
+import com.bonree.brfs.common.net.tcp.file.client.TimePair;
+import com.google.common.cache.LoadingCache;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -65,5 +69,18 @@ public final class TimeUtils {
 	
 	public static long getMiles(String timeStr){
 		return getMiles(timeStr, TIME_FORMAT);
+	}
+
+	/**
+	 * build abs path for file
+	 * @param readObject
+	 * @return
+	 * @throws ExecutionException
+	 */
+	public static String buildPath(ReadObject readObject, LoadingCache<TimePair, String> timeCache) throws ExecutionException {
+		StringBuilder pathBuilder = new StringBuilder();
+		pathBuilder.append(File.separatorChar).append(readObject.getSn()).append(File.separatorChar).append(readObject.getIndex()).append(File.separatorChar).append(timeCache.get(new TimePair(TimeUtils.prevTimeStamp(readObject.getTime(), readObject.getDuration()), readObject.getDuration()))).append(File.separatorChar).append(readObject.getFileName());
+
+		return pathBuilder.toString();
 	}
 }

@@ -13,6 +13,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.bonree.brfs.common.net.tcp.file.client.TimePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,17 +76,12 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
     });
 
-    private LoadingCache<TimePair, String> timeCache = CacheBuilder.newBuilder().maximumSize(1024).build(new CacheLoader<TimePair, String>(){
+    private LoadingCache<TimePair, String> timeCache;
 
-        @Override
-        public String load(TimePair pair) throws Exception{
-            return TimeUtils.timeInterval(pair.time, pair.duration);
-        }
-    });
-
-    public MappedFileReadHandler(ReadObjectTranslator translator, Deliver deliver){
+    public MappedFileReadHandler(ReadObjectTranslator translator, Deliver deliver, LoadingCache<TimePair, String> timeCache){
         this.deliver = deliver;
         this.translator = translator;
+        this.timeCache = timeCache;
         this.releaseRunner.execute(() -> {
             while(true) {
                 Iterator<BufferRef> iter = releaseList.iterator();
@@ -106,17 +102,10 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         });
     }
 
-    private String buildPath(ReadObject readObject) throws ExecutionException{
-        StringBuilder pathBuilder = new StringBuilder();
-        pathBuilder.append(File.separatorChar).append(readObject.getSn()).append(File.separatorChar).append(readObject.getIndex()).append(File.separatorChar).append(timeCache.get(new TimePair(TimeUtils.prevTimeStamp(readObject.getTime(), readObject.getDuration()), readObject.getDuration()))).append(File.separatorChar).append(readObject.getFileName());
-
-        return pathBuilder.toString();
-    }
-
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ReadObject readObject) throws Exception{
         if(readObject.getFilePath().equals("-")) {
-            readObject.setFilePath(buildPath(readObject));
+            readObject.setFilePath(TimeUtils.buildPath(readObject, timeCache));
         }
 
         ReadMetric readMetric = new ReadMetric();
@@ -126,7 +115,8 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         readMetric.setDataCount(1);
         TimeWatcher timeWatcher = new TimeWatcher();
         
-        String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ? translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
+        String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
+                translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
 
         MappedByteBuffer fileBuffer = null;
         try{
@@ -206,44 +196,6 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
         public boolean release(){
             return refCount.decrementAndGet() == 0;
-        }
-    }
-
-    private static class TimePair{
-        private final long time;
-        private final long duration;
-
-        public TimePair(long time, long duration){
-            this.time = time;
-            this.duration = duration;
-        }
-
-        public long time(){
-            return this.time;
-        }
-
-        public long duration(){
-            return this.duration;
-        }
-
-        @Override
-        public int hashCode(){
-            return (int) (this.time * 37 + this.duration);
-        }
-
-        @Override
-        public boolean equals(Object obj){
-            if(obj == null) {
-                return false;
-            }
-
-            if(!(obj instanceof TimePair)) {
-                return false;
-            }
-
-            TimePair oth = (TimePair) obj;
-
-            return this.time == oth.time && this.duration == oth.duration;
         }
     }
 }

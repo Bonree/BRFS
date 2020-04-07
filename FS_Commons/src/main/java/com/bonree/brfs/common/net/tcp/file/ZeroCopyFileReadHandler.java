@@ -1,11 +1,14 @@
 package com.bonree.brfs.common.net.tcp.file;
 
+import com.bonree.brfs.common.net.tcp.file.client.TimePair;
+import com.bonree.brfs.common.utils.TimeUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
+import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutionException;
@@ -27,6 +30,7 @@ public class ZeroCopyFileReadHandler extends SimpleChannelInboundHandler<ReadObj
 	private static final Logger LOG = LoggerFactory.getLogger(ZeroCopyFileReadHandler.class);
 	
 	private ReadObjectTranslator translator;
+	private LoadingCache<TimePair, String> timeCache;
 	private LoadingCache<String, FileChannel> channelCache = (LoadingCache<String, FileChannel>) CacheBuilder.newBuilder()
 			.concurrencyLevel(Runtime.getRuntime().availableProcessors())
 			.maximumSize(200)
@@ -51,18 +55,24 @@ public class ZeroCopyFileReadHandler extends SimpleChannelInboundHandler<ReadObj
 				}
 				
 			});
-	
-	public ZeroCopyFileReadHandler(ReadObjectTranslator translator) {
+
+
+	public ZeroCopyFileReadHandler(ReadObjectTranslator translator, LoadingCache<TimePair, String> timeCache) {
 		this.translator = translator;
+		this.timeCache = timeCache;
 	}
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, ReadObject readObject)throws Exception {
+		if(readObject.getFilePath().equals("-")) {
+			readObject.setFilePath(TimeUtils.buildPath(readObject, timeCache));
+		}
 		String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
 				translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
 		
 		FileChannel fileChannel = null;
 		try {
+			LOG.info("filepath = [{}]" , filePath);
 			fileChannel = channelCache.get(filePath);
 			
 			long readOffset = (readObject.getRaw() & ReadObject.RAW_OFFSET) == 0 ? translator.offset(readObject.getOffset()) : readObject.getOffset();
@@ -110,5 +120,4 @@ public class ZeroCopyFileReadHandler extends SimpleChannelInboundHandler<ReadObj
 		LOG.error("file read error", cause);
 		ctx.close();
 	}
-
 }
