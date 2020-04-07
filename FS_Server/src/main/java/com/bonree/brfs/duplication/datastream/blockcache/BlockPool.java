@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.datastream.blockcache;
 
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +22,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class BlockPool {
     private static final Logger LOG = LoggerFactory.getLogger(BlockPool.class);
+    private static long waitForBlock = Configs.getConfiguration().GetConfig(RegionNodeConfigs.WAIT_FOR_BLOCK_TIME);
+
 //    ReentrantLock lock = new ReentrantLock();
     // for acquire
 //    Condition havaBlock = lock.newCondition();
@@ -81,8 +85,8 @@ public class BlockPool {
         }
         // blockpool 已经满了，尝试取一个block，等待3秒
         if(block == null){
-            LOG.warn("blockpool 已经写满了，等待3秒");
-            block = reclaimedBlocks.poll(3,TimeUnit.SECONDS);
+            LOG.warn("blockpool 已经写满了，等待[{}]秒.",waitForBlock);
+            block = reclaimedBlocks.poll(waitForBlock,TimeUnit.MILLISECONDS);
         }
         return block;
     }
