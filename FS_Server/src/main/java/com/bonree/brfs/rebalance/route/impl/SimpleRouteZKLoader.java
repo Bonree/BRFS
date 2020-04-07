@@ -1,6 +1,5 @@
 package com.bonree.brfs.rebalance.route.impl;
 
-import afu.org.checkerframework.checker.linear.qual.Normal;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;

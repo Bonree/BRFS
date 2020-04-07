@@ -11,6 +11,7 @@ package com.bonree.brfs.common.rebalance.route;
 import com.bonree.brfs.common.rebalance.TaskVersion;
 
 import java.util.Collection;
+import java.util.Map;
 
 public interface NormalRouteInterface {
     /**
@@ -43,4 +44,6 @@ public interface NormalRouteInterface {
      * @return
      */
      String locateNormalServer(int fileUUIDCode, Collection<String> services);
+
+     Map<String,Integer> getRoutes();
 }
