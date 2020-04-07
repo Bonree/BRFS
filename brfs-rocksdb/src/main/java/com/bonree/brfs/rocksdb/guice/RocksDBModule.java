@@ -1,6 +1,7 @@
 package com.bonree.brfs.rocksdb.guice;
 
 import com.bonree.brfs.common.guice.JsonConfigProvider;
+import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.plugin.BrfsModule;
 import com.bonree.brfs.rocksdb.RocksDBManager;
@@ -30,11 +31,10 @@ public class RocksDBModule implements BrfsModule {
 
         binder.bind(RegionNodeConnectionPool.class).to(HttpRegionNodeConnectionPool.class).in(ManageLifecycle.class);
         binder.bind(RocksDBManager.class).to(DefaultRocksDBManager.class).in(ManageLifecycle.class);
-
-        binder.bind(ColumnFamilyInfoListener.class).in(ManageLifecycle.class);  // No work
         binder.bind(RocksDBBackupEngine.class).in(ManageLifecycle.class);
-        binder.bind(RocksDBRestoreEngine.class).in(ManageLifecycle.class);  // No work
-        //        binder.bind(BackupEngineFactory.class).in(ManageLifecycle.class);   // Loaded class[class com.bonree.brfs.plugin.PluginConfig] from props[brfs.plugins.]
+
+        LifecycleModule.register(binder, ColumnFamilyInfoListener.class);
+        LifecycleModule.register(binder, RocksDBRestoreEngine.class);
 
         jaxrs(binder).resource(RocksDBResource.class);
 

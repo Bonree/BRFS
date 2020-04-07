@@ -3,6 +3,7 @@ package com.bonree.brfs.rocksdb.listener;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
@@ -27,6 +28,7 @@ import java.util.concurrent.Executors;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description:
  ******************************************************************************/
+@ManageLifecycle
 public class ColumnFamilyInfoListener implements LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(ColumnFamilyInfoListener.class);
 

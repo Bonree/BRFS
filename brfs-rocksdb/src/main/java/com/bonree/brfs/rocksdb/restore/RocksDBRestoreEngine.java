@@ -2,6 +2,7 @@ package com.bonree.brfs.rocksdb.restore;
 
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -39,6 +40,7 @@ import java.util.concurrent.Executors;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description: RocksDB数据恢复引擎
  ******************************************************************************/
+@ManageLifecycle
 public class RocksDBRestoreEngine implements LifeCycle {
 
     private static final Logger LOG = LoggerFactory.getLogger(RocksDBRestoreEngine.class);
