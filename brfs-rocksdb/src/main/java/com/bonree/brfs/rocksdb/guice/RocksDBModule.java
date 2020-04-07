@@ -1,6 +1,7 @@
 package com.bonree.brfs.rocksdb.guice;
 
 import com.bonree.brfs.common.guice.JsonConfigProvider;
+import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.plugin.BrfsModule;
@@ -13,6 +14,7 @@ import com.bonree.brfs.rocksdb.impl.DefaultRocksDBManager;
 import com.bonree.brfs.rocksdb.listener.ColumnFamilyInfoListener;
 import com.bonree.brfs.rocksdb.restore.RocksDBRestoreEngine;
 import com.google.inject.Binder;
+import com.google.inject.Provides;
 
 import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
 
@@ -37,9 +39,24 @@ public class RocksDBModule implements BrfsModule {
         LifecycleModule.register(binder, ColumnFamilyInfoListener.class);
         LifecycleModule.register(binder, RocksDBRestoreEngine.class);
 
-        binder.bind(BackupEngineFactory.class).toInstance(BackupEngineFactory.getInstance());
-        LifecycleModule.register(binder,BackupEngineFactory.class);
+        LifecycleModule.register(binder, BackupEngineFactory.class);
         jaxrs(binder).resource(RocksDBResource.class);
 
+    }
+
+    @Provides
+    public BackupEngineFactory getBackupEngineFactory(Lifecycle lifecycle) {
+        lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
+            @Override
+            public void start() throws Exception {
+
+            }
+
+            @Override
+            public void stop() {
+                BackupEngineFactory.getInstance().stop();
+            }
+        });
+        return BackupEngineFactory.getInstance();
     }
 }

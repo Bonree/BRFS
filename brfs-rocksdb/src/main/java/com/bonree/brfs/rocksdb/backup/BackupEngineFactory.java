@@ -1,8 +1,5 @@
 package com.bonree.brfs.rocksdb.backup;
 
-import com.bonree.brfs.common.lifecycle.LifecycleStart;
-import com.bonree.brfs.common.lifecycle.LifecycleStop;
-import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import org.rocksdb.BackupEngine;
 import org.rocksdb.BackupableDBOptions;
@@ -11,7 +8,6 @@ import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description:
  ******************************************************************************/
-@ManageLifecycle
 public class BackupEngineFactory implements LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(BackupEngineFactory.class);
 
@@ -36,7 +31,6 @@ public class BackupEngineFactory implements LifeCycle {
     private BackupEngineFactory() {
     }
 
-    @Inject
     public static BackupEngineFactory getInstance() {
         return SingletonHolder.INSTANCE;
     }
@@ -55,13 +49,11 @@ public class BackupEngineFactory implements LifeCycle {
         return backupEngine;
     }
 
-    @LifecycleStart
     @Override
     public void start() throws Exception {
 
     }
 
-    @LifecycleStop
     @Override
     public void stop() {
         for (BackupEngine backupEngine : backupEngineCache.values()) {
