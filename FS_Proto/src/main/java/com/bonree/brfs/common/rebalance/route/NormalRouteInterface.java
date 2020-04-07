@@ -45,5 +45,9 @@ public interface NormalRouteInterface {
      */
      String locateNormalServer(int fileUUIDCode, Collection<String> services);
 
+    /**
+     * 获取路由规则内容，该方法只获取V2版本的路由规则
+     * @return
+     */
      Map<String,Integer> getRoutes();
 }
