@@ -2,6 +2,7 @@ package com.bonree.brfs.identification;
 
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.google.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +21,7 @@ public class IDSManager {
     private SecondMaintainerInterface secondMaintainer;
     private VirtualServerID virtualServerID;
     private DiskDaemon diskDaemon;
+    @Inject
     public IDSManager(String firstSever, SecondMaintainerInterface secondMaintainer, VirtualServerID virtualServerID,DiskDaemon diskDaemon) {
         this.firstSever = firstSever;
         this.secondMaintainer = secondMaintainer;

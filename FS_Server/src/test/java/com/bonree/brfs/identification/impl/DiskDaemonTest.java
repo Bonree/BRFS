@@ -42,7 +42,8 @@ public class DiskDaemonTest {
         } catch (InterruptedException e) {
             Assert.fail("zookeeper client is invaild !! address: "+ZKADDRES);
         }
-        String libPath = "E:\\worker\\Bonree\\BrfsSecond\\BRFS\\lib";
+        String libPath = "D:\\work\\Business\\bonree\\BrfsSecond\\BRFS\\lib";
+//        String libPath = "E:\\worker\\Bonree\\BrfsSecond\\BRFS\\lib";
         try {
             LibUtils.loadLibraryPath(libPath);
         } catch (Exception e) {

@@ -244,7 +244,7 @@ public class ZookeeperPaths {
         setBaseRocksDBPath(baseClusterName + SEPARATOR + ROCKSDB);
         setBaseDiscoveryPath(baseClusterName+SEPARATOR+DISCOVER);
         setBaseV2RoutePath(baseClusterName+SEPARATOR+BAS_NEW_ROUTE);
-        setBaseV2SecondIDPath(baseClusterName+SEPARATOR+SEPARATOR+BAS_SECOND_ID);
+        setBaseV2SecondIDPath(baseClusterName+SEPARATOR+BAS_SECOND_ID);
 
     }
 

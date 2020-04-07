@@ -22,7 +22,7 @@ import java.util.Collection;
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description:
  ******************************************************************************/
-public class DiskDaemon implements LocalPartitionInterface {
+public class DiskDaemon implements LocalPartitionInterface,LifeCycle {
 	private static final Logger LOG = LoggerFactory.getLogger(DiskDaemon.class);
 
 	private PartitionGather gather;
@@ -33,7 +33,6 @@ public class DiskDaemon implements LocalPartitionInterface {
 		this.gather = gather;
 		this.partitions = partitions;
 		this.cache = new LocalPartitionCache(partitions);
-		this.gather.start();
 	}
 
 
@@ -53,6 +52,14 @@ public class DiskDaemon implements LocalPartitionInterface {
 	}
 	public Collection<LocalPartitionInfo> getPartitions(){
 		return this.partitions;
+	}
+	@Override
+	public void start() {
+		this.gather.start();
+	}
+	@Override
+	public void stop() {
+		this.gather.stop();
 	}
 
 	public static class Builder{
