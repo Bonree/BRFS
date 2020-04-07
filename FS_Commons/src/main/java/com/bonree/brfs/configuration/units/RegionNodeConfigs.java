@@ -47,8 +47,12 @@ public final class RegionNodeConfigs {
 
 	public static final ConfigUnit<Integer> CONFIG_BLOCK_POOL_CAPACITY =
 			ConfigUnit.ofInt("regionnode.block.pool.capacity", 10);
+
 	public static final ConfigUnit<Integer> CONFIG_BLOCK_POOL_INIT_COUNT =
 			ConfigUnit.ofInt("regionnode.block.pool.init.count", 1);
+
+	public static final ConfigUnit<Integer> CLEAR_TIME_THRESHOLD =
+			ConfigUnit.ofInt("regionnode.file.clear.time.threshold", 30000);
 
 	public static final ConfigUnit<Integer> CONFIG_DUPLICATION_SELECT_TYPE = ConfigUnit.ofInt("regionnode.duplication.select.type",1);
 
