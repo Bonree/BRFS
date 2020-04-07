@@ -73,6 +73,7 @@ public class SingleRouteFactoryTest {
     public void deserializeV1(){
         byte[] data =readBytesFromFile(V1_File);
         NormalRouteInterface route =  SingleRouteFactory.createRoute(data);
+        System.out.println(route.getRoutes());
         Assert.assertEquals(TaskVersion.V1,route.getRouteVersion());
     }
 

@@ -32,7 +32,7 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface {
     private String secondBasePath;
     private String routeBasePath;
     private SecondIdsInterface secondIds;
-    public SimpleSecondMaintainer(CuratorFramework client, String secondBasePath, String routeBasePath, String secondIdSeqPath,String firstServer) {
+    public SimpleSecondMaintainer(CuratorFramework client, String secondBasePath, String routeBasePath, String secondIdSeqPath) {
         this.client = client;
         this.secondBasePath = secondBasePath;
         this.routeBasePath = routeBasePath;

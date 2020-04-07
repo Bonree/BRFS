@@ -10,6 +10,7 @@ package com.bonree.brfs.common.rebalance.route.impl.v1;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.*;
@@ -17,10 +18,16 @@ import java.util.*;
 public class NormalRouteV1 extends SuperNormalRoute {
     private static final TaskVersion CURRENT_VERSION = TaskVersion.V1;
     private List<String> newSecondIDs;
+    @JsonIgnore
+    private Map<String,Integer> routes;
 
     public NormalRouteV1(@JsonProperty("changeID")String changeID, @JsonProperty("storageIndex")int storageIndex, @JsonProperty("secondID")String secondID,  @JsonProperty("newSecondIDs")List<String> newSecondIDs) {
         super(changeID, storageIndex, secondID, CURRENT_VERSION);
         this.newSecondIDs = newSecondIDs;
+        routes = new HashMap<>();
+        for(String id : this.newSecondIDs){
+            routes.put(id,1);
+        }
     }
 
     @Override
@@ -31,6 +38,11 @@ public class NormalRouteV1 extends SuperNormalRoute {
         int index = hashFileName(fileUUIDCode, selectors.size());
         // 返回选区的结果
         return selectors.get(index);
+    }
+
+    @Override
+    public Map<String, Integer> getRoutes() {
+        return routes;
     }
 
     public List<String> getNewSecondIDs() {
