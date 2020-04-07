@@ -46,6 +46,11 @@ public class NormalRouteV2 extends SuperNormalRoute {
         return chosenService.get(index);
     }
 
+    @Override
+    public Map<String, Integer> getRoutes() {
+        return this.newSecondIDs;
+    }
+
     /**
      * 路由规则V2版本检索二级serverId逻辑
      *

@@ -33,6 +33,11 @@ public class NormalRouteV1 extends SuperNormalRoute {
         return selectors.get(index);
     }
 
+    @Override
+    public Map<String, Integer> getRoutes() {
+        return null;
+    }
+
     public List<String> getNewSecondIDs() {
         return newSecondIDs;
     }
