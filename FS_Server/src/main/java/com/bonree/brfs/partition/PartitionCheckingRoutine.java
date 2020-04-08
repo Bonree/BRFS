@@ -2,7 +2,7 @@ package com.bonree.brfs.partition;
 
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
-import com.bonree.brfs.server.identification.LevelServerIDGen;
+import com.bonree.brfs.identification.LevelServerIDGen;
 import com.google.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;

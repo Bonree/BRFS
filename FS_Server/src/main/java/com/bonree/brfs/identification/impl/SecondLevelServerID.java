@@ -1,20 +1,20 @@
-package com.bonree.brfs.server.identification.impl;
-
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.utils.ZKPaths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.server.identification.LevelServerIDGen;
+import com.bonree.brfs.identification.LevelServerIDGen;
+import com.bonree.brfs.server.identification.impl.SecondServerIDGenImpl;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司

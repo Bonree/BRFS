@@ -2,7 +2,7 @@ package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
 import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
-import com.bonree.brfs.server.identification.LevelServerIDGen;
+import com.bonree.brfs.identification.LevelServerIDGen;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;

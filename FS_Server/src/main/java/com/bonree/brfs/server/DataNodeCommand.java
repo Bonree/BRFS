@@ -15,6 +15,7 @@ package com.bonree.brfs.server;
 
 import java.util.List;
 
+import com.bonree.brfs.disknode.DataNodeIDModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,8 @@ public class DataNodeCommand extends BaseCommand {
         return ImmutableList.of(
                 new EmailModule(),
                 new SimpleAuthenticationModule(),
-                new DataNodeModule());
+                new DataNodeModule(),
+                new DataNodeIDModule());
     }
 
 }

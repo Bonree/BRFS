@@ -1,6 +1,6 @@
 package com.bonree.brfs.identification.impl;
 
-import com.bonree.brfs.server.identification.LevelServerIDGen;
+import com.bonree.brfs.identification.LevelServerIDGen;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.apache.commons.lang3.StringUtils;

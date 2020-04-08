@@ -2,11 +2,10 @@ package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
-import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.rebalance.route.factory.SingleRouteFactory;
-import com.bonree.brfs.server.identification.LevelServerIDGen;
+import com.bonree.brfs.identification.LevelServerIDGen;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;

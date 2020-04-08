@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
 
+import com.bonree.brfs.identification.VirtualServerID;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
@@ -21,9 +22,9 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.configuration.SystemProperties;
-import com.bonree.brfs.server.identification.impl.FirstLevelServerIDImpl;
-import com.bonree.brfs.server.identification.impl.SecondLevelServerID;
-import com.bonree.brfs.server.identification.impl.VirtualServerIDImpl;
+import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
+import com.bonree.brfs.identification.impl.SecondLevelServerID;
+import com.bonree.brfs.identification.impl.VirtualServerIDImpl;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -292,7 +293,6 @@ public class ServerIDManager {
     /** 概述：将某个服务注册到virtual server中
      * @param storageIndex
      * @param virtualID
-     * @param firstID
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void registerFirstID(int storageIndex, String virtualID, String firstId) {
