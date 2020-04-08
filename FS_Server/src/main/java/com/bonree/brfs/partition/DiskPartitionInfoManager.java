@@ -1,6 +1,9 @@
 package com.bonree.brfs.partition;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractPathChildrenCacheListener;
@@ -9,6 +12,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.partition.model.PartitionInfo;
+import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
@@ -30,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description: 负责DataNode磁盘信息管理
  ******************************************************************************/
+@ManageLifecycle
 public class DiskPartitionInfoManager implements LifeCycle {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiskPartitionInfoManager.class);
@@ -38,10 +43,11 @@ public class DiskPartitionInfoManager implements LifeCycle {
     private ZookeeperPaths zkPath;
     private DiskPartitionInfoListener listener;
     private Map<String, PartitionInfo> diskPartitionInfoCache = new ConcurrentHashMap<>();
+    @Inject
     public DiskPartitionInfoManager(ZookeeperPaths zkPath) {
         this.zkPath = zkPath;
     }
-
+    @LifecycleStart
     @Override
     public void start() throws Exception {
         this.childCache = CuratorCacheFactory.getPathCache();
@@ -49,7 +55,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
         this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
 
     }
-
+    @LifecycleStop
     @Override
     public void stop() throws Exception {
         this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
