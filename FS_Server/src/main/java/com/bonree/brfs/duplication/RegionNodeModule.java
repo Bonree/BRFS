@@ -15,7 +15,6 @@ package com.bonree.brfs.duplication;
 
 import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
 
-import java.io.Writer;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.UUID;
@@ -23,10 +22,6 @@ import java.util.concurrent.Executors;
 
 import javax.inject.Singleton;
 
-import com.bonree.brfs.configuration.units.RegionNodeConfigs;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,9 +45,13 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
+import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.connection.tcp.TcpDiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
@@ -85,11 +84,7 @@ import com.bonree.brfs.duplication.filenode.duplicates.impl.ResourceWriteSelecto
 import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
-import com.bonree.brfs.duplication.storageregion.StorageRegionIdBuilder;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.duplication.storageregion.StorageRegionResource;
-import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
-import com.bonree.brfs.duplication.storageregion.impl.ZkStorageRegionIdBuilder;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.guice.NodeConfig;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
@@ -111,9 +106,6 @@ public class RegionNodeModule implements Module {
         
         binder.bind(ServerIDManager.class).in(Scopes.SINGLETON);
         binder.bind(TimeExchangeEventEmitter.class).in(Scopes.SINGLETON);
-        
-        binder.bind(StorageRegionIdBuilder.class).to(ZkStorageRegionIdBuilder.class).in(Scopes.SINGLETON);
-        binder.bind(StorageRegionManager.class).to(DefaultStorageRegionManager.class).in(Scopes.SINGLETON);
         
         binder.bind(DiskNodeConnectionPool.class).to(TcpDiskNodeConnectionPool.class).in(Scopes.SINGLETON);
         
@@ -139,7 +131,6 @@ public class RegionNodeModule implements Module {
 //        binder.bind(StorageRegionWriter.class).to(TestFileWriter.class).in(Scopes.SINGLETON);
 //        binder.bind(BlockManagerInterface.class).to(BlockManager.class).in(Scopes.SINGLETON);
 
-        jaxrs(binder).resource(StorageRegionResource.class);
         jaxrs(binder).resource(DiscoveryResource.class);
         jaxrs(binder).resource(RouterResource.class);
         

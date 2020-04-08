@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Properties;
 
 import com.bonree.brfs.common.process.LifeCycle;
-import com.bonree.brfs.duplication.storageregion.exception.StorageNameNonexistentException;
-import com.bonree.brfs.duplication.storageregion.exception.StorageNameRemoveException;
+import com.bonree.brfs.duplication.storageregion.exception.StorageRegionNonexistentException;
+import com.bonree.brfs.duplication.storageregion.exception.StorageRegionStateException;
 
 public interface StorageRegionManager extends LifeCycle {
 	/**
@@ -34,7 +34,7 @@ public interface StorageRegionManager extends LifeCycle {
 	 * @param regionName
 	 * @param props
 	 * @return
-	 * @throws StorageNameNonexistentException 
+	 * @throws StorageRegionNonexistentException 
 	 */
 	void updateStorageRegion(String regionName, Properties props) throws Exception;
 	
@@ -43,8 +43,8 @@ public interface StorageRegionManager extends LifeCycle {
 	 * 
 	 * @param regionName
 	 * @return
-	 * @throws StorageNameNonexistentException 
-	 * @throws StorageNameRemoveException 
+	 * @throws StorageRegionNonexistentException 
+	 * @throws StorageRegionStateException 
 	 */
 	boolean removeStorageRegion(String regionName) throws Exception;
 	

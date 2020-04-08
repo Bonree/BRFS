@@ -23,6 +23,8 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import java.util.Optional;
 import java.util.Properties;
 
+import javax.inject.Inject;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -33,8 +35,20 @@ public class StorageRegionProperties {
     private final long fileCapacity;
     private final String filePartitionDuration;
     
+    private static StorageRegionConfig defaultConfig;
+    
+    @Inject
+    public static void setDefaultConfig(StorageRegionConfig config) {
+        defaultConfig = config;
+    }
+    
     public static StorageRegionProperties withDefault() {
-        return new StorageRegionProperties(true, 2, "P30D", 64 * 1024 * 1024, "PT1H");
+        return new StorageRegionProperties(
+                true,
+                defaultConfig.getReplicateNum(),
+                defaultConfig.getTtl(),
+                defaultConfig.getFileCapacity(),
+                defaultConfig.getPartitionDuration());
     }
 
     @JsonCreator
