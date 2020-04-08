@@ -13,19 +13,6 @@
  */
 package com.bonree.brfs.duplication;
 
-import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
-
-import java.net.InetAddress;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-
-import javax.inject.Singleton;
-
-import org.apache.curator.framework.CuratorFramework;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
@@ -49,9 +36,9 @@ import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
+import com.bonree.brfs.duplication.datastream.blockcache.SeqBlockManager;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.connection.tcp.TcpDiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
@@ -60,12 +47,7 @@ import com.bonree.brfs.duplication.datastream.dataengine.impl.BlockingQueueDataP
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DataPoolFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineManager;
-import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectCloser;
-import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectFactory;
-import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectSupplierFactory;
-import com.bonree.brfs.duplication.datastream.file.FileObjectCloser;
-import com.bonree.brfs.duplication.datastream.file.FileObjectFactory;
-import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
+import com.bonree.brfs.duplication.datastream.file.*;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSynchronier;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncProcessor;
@@ -93,6 +75,17 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Singleton;
+import java.net.InetAddress;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+
+import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
 
 public class RegionNodeModule implements Module {
     private static final Logger log = LoggerFactory.getLogger(RegionNodeModule.class);
@@ -106,7 +99,7 @@ public class RegionNodeModule implements Module {
         
         binder.bind(ServerIDManager.class).in(Scopes.SINGLETON);
         binder.bind(TimeExchangeEventEmitter.class).in(Scopes.SINGLETON);
-        
+
         binder.bind(DiskNodeConnectionPool.class).to(TcpDiskNodeConnectionPool.class).in(Scopes.SINGLETON);
         
         binder.bind(FilePathMaker.class).to(IDFilePathMaker.class).in(Scopes.SINGLETON);
@@ -132,7 +125,7 @@ public class RegionNodeModule implements Module {
 //        binder.bind(BlockManagerInterface.class).to(BlockManager.class).in(Scopes.SINGLETON);
 
         jaxrs(binder).resource(DiscoveryResource.class);
-        jaxrs(binder).resource(RouterResource.class);
+//        jaxrs(binder).resource(RouterResource.class);
         
         jaxrs(binder).resource(JsonMapper.class);
         
@@ -269,8 +262,8 @@ public class RegionNodeModule implements Module {
             BlockPool blockPool ,
             StorageRegionWriter writer ){
 
-        return new BlockManager(blockPool,writer);
-
+//        return new BlockManager(blockPool,writer);
+        return new SeqBlockManager(blockPool,writer);
     }
     @Provides
     @Singleton
