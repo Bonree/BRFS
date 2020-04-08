@@ -19,9 +19,11 @@ public final class DataNodeConfigs {
 			ConfigUnit.ofInt("datanode.server.io.num", Runtime.getRuntime().availableProcessors());
 	
 	public static final ConfigUnit<String> CONFIG_DATA_ROOT =
-			ConfigUnit.ofString("datanode.data.root",
-					new File(System.getProperty(SystemProperties.PROP_BRFS_HOME, "."), "datas").getAbsolutePath());
-	
+			ConfigUnit.ofString("datanode.data.root",new File(System.getProperty(SystemProperties.PROP_BRFS_HOME, "."), "datas").getAbsolutePath());
+	public static final ConfigUnit<String> CONFIG_SERVER_IDS_DIR = ConfigUnit.ofString("datanode.ids.server.dir",
+			new File(System.getProperty(SystemProperties.PROP_BRFS_HOME, "."), "ids").getAbsolutePath());
+	public static final ConfigUnit<String> CONFIG_PARTITION_IDS_DIR = ConfigUnit.ofString("datanode.ids.partition.dir",
+			new File(System.getProperty(SystemProperties.PROP_BRFS_HOME, "."), "ids/partitionids").getAbsolutePath());
 	public static final ConfigUnit<Long> CONFIG_FILE_MAX_CAPACITY =
 			ConfigUnit.ofLong("datanode.file.max.capacity", 64 * 1024 * 1024);
 	

@@ -1,8 +1,8 @@
 package com.bonree.brfs.disknode;
 
-import com.bonree.brfs.configuration.SystemProperties;
-
-import java.io.File;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * 版权信息: 北京博睿宏远数据科技股份有限公司
@@ -16,11 +16,14 @@ public class IDConfig {
     /**
      * 一级serverid的id文件目录
      */
-    private String serverIds = System.getProperty(SystemProperties.PROP_SERVER_ID_DIR);
+    @JsonProperty("server.dir")
+    private String serverIds = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_SERVER_IDS_DIR);
     /**
      * 磁盘id的id文件目录
      */
-    private String partitionIds = System.getProperty(SystemProperties.PROP_PARTITION_ID_IDR,new File(serverIds).getParent()+"/partitionIds");
+    @JsonProperty("partition.dir")
+    private String partitionIds = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PARTITION_IDS_DIR);
+
 
     public String getServerIds() {
         return serverIds;

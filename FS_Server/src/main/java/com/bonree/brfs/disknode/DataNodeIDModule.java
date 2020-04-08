@@ -1,6 +1,7 @@
 package com.bonree.brfs.disknode;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.guice.JsonConfigurator;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
@@ -39,7 +40,7 @@ public class DataNodeIDModule implements Module {
     }
     @Provides
     @Singleton
-    public DiskDaemon getDiskDaemon(CuratorFramework client, ZookeeperPaths zkpath, FirstLevelServerIDImpl firstLevelServerID, ClusterConfig clusterConfig, StorageConfig storageConfig, PartitionConfig partitionConfig, IDConfig idConfig, Lifecycle lifecycle){
+    public DiskDaemon getDiskDaemon(CuratorFramework client, ZookeeperPaths zkpath, Service  firstLevelServerID, ClusterConfig clusterConfig, StorageConfig storageConfig, PartitionConfig partitionConfig, IDConfig idConfig, Lifecycle lifecycle){
         // 1.生成注册id实例
         DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client,zkpath.getBaseServerIdSeqPath());
         // 2.生成磁盘分区id检查类
@@ -48,8 +49,7 @@ public class DataNodeIDModule implements Module {
         // 3.生成注册管理实例
         PartitionInfoRegister register = new PartitionInfoRegister(client,zkpath.getBaseDiscoveryPath()+"/"+partitionConfig.getPartitionGroupName());
         // 4.生成采集线程池
-        Service service = new Service(firstLevelServerID.initOrLoadServerID(),clusterConfig.getDataNodeGroup(),null,-1);
-        PartitionGather gather = new PartitionGather(register,service,routine.checkVaildPartition(),partitionConfig.getIntervalTime());
+        PartitionGather gather = new PartitionGather(register,firstLevelServerID,routine.checkVaildPartition(),partitionConfig.getIntervalTime());
         DiskDaemon daemon =  new DiskDaemon(gather,parts);
         lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
             @Override
