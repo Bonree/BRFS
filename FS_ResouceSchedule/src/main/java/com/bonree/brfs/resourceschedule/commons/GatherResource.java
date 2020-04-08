@@ -173,35 +173,6 @@ public class GatherResource {
 		return obj;
 	}
 	/**
-	 * 概述：查找最大值
-	 * @param source
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-//	public static void selectMaxValue(final Collection<StatServerModel> source, BaseMetaServerModel base){
-//		if(source == null){
-//			return ;
-//		}
-//		for(StatServerModel stat : source){
-//			long mNetRx = stat.getNetRSpeed();
-//			if(base.getNetRxMaxSpeed() < mNetRx){
-//				base.setNetRxMaxSpeed(mNetRx);
-//			}
-//			long mNetTx = stat.getNetTSpeed();
-//			if(base.getNetTxMaxSpeed() < mNetTx){
-//				base.setNetTxMaxSpeed(mNetTx);
-//			}
-//			long mDiskW = CalcUtils.maxDataMap(stat.getPartitionWriteSpeedMap());
-//			if(base.getDiskWriteMaxSpeed() < mDiskW){
-//				base.setDiskWriteMaxSpeed(mDiskW);
-//			}
-//			long mDiskR = CalcUtils.maxDataMap(stat.getPartitionReadSpeedMap());
-//			if(base.getDiskReadMaxSpeed() < mDiskR){
-//				base.setDiskReadMaxSpeed(mDiskR);
-//			}
-//		}
-//	}
-	/**
 	 * 概述：汇总基础信息
 	 * @param source
 	 * @return
@@ -316,92 +287,7 @@ public class GatherResource {
 		}
 		return objMap;
     }
-    /***
-     * 概述：更新base信息
-     * @param serverID
-     * @param dataDir
-     * @param bZkNode
-     * @param zkUrl
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-//    public static void updateBaseInfo(String serverID, String dataDir, String bZkNode,String zkUrl){
-//		BaseMetaServerModel local = GatherResource.gatherBase(serverID, dataDir);
-//		byte[] content = JsonUtils.toJsonBytesQuietly(local);
-//		ZookeeperClient client =  CuratorClient.getClientInstance(zkUrl);
-//		String baseNode = bZkNode + "/"+serverID;
-//		if(client.checkExists(baseNode)){
-//			client.setData(baseNode, content);
-//		}else{
-//			client.createPersistent(baseNode, true, content);
-//		}
-//		client.close();
-//	}
-    /**
-     * 概述：获取资源
-     * @param zkUrl
-     * @param resourcePath
-     * @return
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-//    public static List<ResourceModel> getResourceS(final String zkUrl, final String resourcePath){
-//
-//		List<ResourceModel> dataList = new ArrayList<ResourceModel>();
-//		if(BrStringUtils.isEmpty(zkUrl)|| BrStringUtils.isEmpty(resourcePath)){
-//			return dataList;
-//		}
-//		ZookeeperClient client = CuratorClient.getClientInstance(zkUrl);
-//		List<String> baseNodes = client.getChildren(resourcePath);
-//		if(baseNodes == null || baseNodes.isEmpty()){
-//			return dataList;
-//		}
-//		String pathNode = null;
-//		byte[] data = null;
-//		ResourceModel tmpBase = null;
-//		for(String base : baseNodes){
-//			pathNode = resourcePath + "/" + base;
-//			data = client.getData(pathNode);
-//			if(data == null){
-//				continue;
-//			}
-//			tmpBase = JsonUtils.toObjectQuietly(data, ResourceModel.class);
-//			dataList.add(tmpBase);
-//		}
-//		client.close();
-//		return dataList;
-//	}
-    /**
-     * 概述：获取基础信息
-     * @param zkUrl
-     * @param basePath
-     * @return
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-//    public static List<BaseMetaServerModel> getClusterBase(final String zkUrl, final String basePath){
-//
-//		List<BaseMetaServerModel> dataList = new ArrayList<BaseMetaServerModel>();
-//		if(BrStringUtils.isEmpty(zkUrl) || BrStringUtils.isEmpty(basePath)){
-//			return dataList;
-//		}
-//		ZookeeperClient client = CuratorClient.getClientInstance(zkUrl);
-//		List<String> baseNodes = client.getChildren(basePath);
-//		if(baseNodes == null || baseNodes.isEmpty()){
-//			return dataList;
-//		}
-//		String pathNode = null;
-//		byte[] data = null;
-//		BaseMetaServerModel tmpBase = null;
-//		for(String base : baseNodes){
-//			pathNode = basePath + "/" + base;
-//			data = client.getData(pathNode);
-//			if(data == null){
-//				continue;
-//			}
-//			tmpBase = JsonUtils.toObjectQuietly(data, BaseMetaServerModel.class);
-//			dataList.add(tmpBase);
-//		}
-//		client.close();
-//		return dataList;
-//	}
+
    
     
 }

@@ -17,9 +17,6 @@ public class ResourceModel{
      */
     private double memoryRate = 0.0;
     /**
-     * 本机磁盘剩余率
-     */
-    /**
      *
      */
     private String serverId = "";
