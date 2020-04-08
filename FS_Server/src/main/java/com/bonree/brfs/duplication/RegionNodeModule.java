@@ -13,6 +13,18 @@
  */
 package com.bonree.brfs.duplication;
 
+import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
+
+import java.net.InetAddress;
+import java.util.List;
+import java.util.UUID;
+
+import javax.inject.Singleton;
+
+import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
@@ -30,10 +42,7 @@ import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
 import com.bonree.brfs.common.utils.NetworkUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
-import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
@@ -47,7 +56,12 @@ import com.bonree.brfs.duplication.datastream.dataengine.impl.BlockingQueueDataP
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DataPoolFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineManager;
-import com.bonree.brfs.duplication.datastream.file.*;
+import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectCloser;
+import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectFactory;
+import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectSupplierFactory;
+import com.bonree.brfs.duplication.datastream.file.FileObjectCloser;
+import com.bonree.brfs.duplication.datastream.file.FileObjectFactory;
+import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSynchronier;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncProcessor;
@@ -58,34 +72,16 @@ import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
-import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
-import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
-import com.bonree.brfs.duplication.filenode.duplicates.impl.MachineResourceWriterSelector;
-import com.bonree.brfs.duplication.filenode.duplicates.impl.MinimalDuplicateNodeSelector;
-import com.bonree.brfs.duplication.filenode.duplicates.impl.ResourceWriteSelector;
 import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
-import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.guice.NodeConfig;
-import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
-import org.apache.curator.framework.CuratorFramework;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Singleton;
-import java.net.InetAddress;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-
-import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
 
 public class RegionNodeModule implements Module {
     private static final Logger log = LoggerFactory.getLogger(RegionNodeModule.class);
@@ -206,56 +202,6 @@ public class RegionNodeModule implements Module {
         return connectionPool;
     }
     
-    @Provides
-    @Singleton
-    public DuplicateNodeSelector getNodeSelector(
-            CuratorFramework zkClient,
-            ZookeeperPaths paths,
-            ServiceManager serviceManager,
-            DiskNodeConnectionPool connectionPool,
-            FileNodeStorer storer,
-            StorageRegionManager storageNameManager) throws Exception {
-        String diskGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
-        String rPath = paths.getBaseResourcesPath()+"/"+diskGroup+"/resource";
-        ClusterResource clusterResource = ClusterResource.newBuilder()
-                .setCache(true)
-                .setClient(zkClient)
-                .setListenPath(rPath)
-                .setPool(Executors.newSingleThreadExecutor())
-                .build()
-                .start();
-        // 资源选择策略
-        // 获取限制值
-        double diskRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE);
-        double diskForceRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE);
-        double diskwriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED);
-        double diskForcewriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED);
-        long diskRemainSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_REMAIN_SIZE);
-        long diskForceRemainSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE);
-
-        LimitServerResource lmit = new LimitServerResource();
-        lmit.setDiskRemainRate(diskRemainRate);
-        lmit.setDiskWriteValue(diskwriteValue);
-        lmit.setForceDiskRemainRate(diskForceRemainRate);
-        lmit.setForceWriteValue(diskForcewriteValue);
-        lmit.setRemainWarnSize(diskRemainSize);
-        lmit.setRemainForceSize(diskForceRemainSize);
-        int centSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_CENT_SIZE);
-        long fileSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY)/1024;
-        MachineResourceWriterSelector serviceSelector = new MachineResourceWriterSelector(connectionPool,storer, lmit,diskGroup,fileSize,centSize);
-        // 生成备用选择器
-        DuplicateNodeSelector bakSelect = new MinimalDuplicateNodeSelector(serviceManager, connectionPool);
-        // 选择
-        DuplicateNodeSelector nodeSelector = ResourceWriteSelector.newBuilder()
-                .setBakSelector(bakSelect)
-                .setDaemon(clusterResource)
-                .setGroupName(diskGroup)
-                .setStorageRegionManager(storageNameManager)
-                .setResourceSelector(serviceSelector)
-                .build();
-        
-        return nodeSelector;
-    }
     @Provides
     @Singleton
     public BlockManagerInterface getBlockManager(
