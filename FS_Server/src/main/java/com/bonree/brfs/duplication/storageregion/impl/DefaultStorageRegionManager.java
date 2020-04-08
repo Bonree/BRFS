@@ -33,9 +33,9 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionIdBuilder;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionProperties;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
-import com.bonree.brfs.duplication.storageregion.exception.StorageNameExistException;
-import com.bonree.brfs.duplication.storageregion.exception.StorageNameNonexistentException;
-import com.bonree.brfs.duplication.storageregion.exception.StorageNameRemoveException;
+import com.bonree.brfs.duplication.storageregion.exception.StorageRegionExistedException;
+import com.bonree.brfs.duplication.storageregion.exception.StorageRegionNonexistentException;
+import com.bonree.brfs.duplication.storageregion.exception.StorageRegionStateException;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -128,7 +128,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     @Override
     public StorageRegion createStorageRegion(String regionName, StorageRegionProperties props) throws Exception {
         if (exists(regionName)) {
-            throw new StorageNameExistException(regionName);
+            throw new StorageRegionExistedException(regionName);
         }
 
         String regionPath = buildRegionPath(regionName);
@@ -143,7 +143,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
 
             return region;
         } catch (NodeExistsException e) {
-            throw new StorageNameExistException(regionName);
+            throw new StorageRegionExistedException(regionName);
         } catch (Exception e) {
             LOG.error("create storage name node error", e);
             throw e;
@@ -154,7 +154,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     public void updateStorageRegion(String regionName, Properties props) throws Exception {
         StorageRegion region = findStorageRegionByName(regionName);
         if (region == null) {
-            throw new StorageNameNonexistentException(regionName);
+            throw new StorageRegionNonexistentException(regionName);
         }
 
         try {
@@ -178,11 +178,11 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     public boolean removeStorageRegion(String regionName) throws Exception {
         StorageRegion node = findStorageRegionByName(regionName);
         if (node == null) {
-            throw new StorageNameNonexistentException(regionName);
+            throw new StorageRegionNonexistentException(regionName);
         }
 
         if (node.isEnable()) {
-            throw new StorageNameRemoveException(regionName);
+            throw new StorageRegionStateException(regionName, "disabled", "enabled");
         }
 
         try {

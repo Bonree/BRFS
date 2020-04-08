@@ -23,7 +23,7 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.duplication.storageregion.exception.StorageNameNonexistentException;
+import com.bonree.brfs.duplication.storageregion.exception.StorageRegionNonexistentException;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.base.Splitter;
 
@@ -60,7 +60,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		StorageRegion sn = storageNameManager.findStorageRegionById(storageId);
 		if(sn == null) {
 			result.setSuccess(false);
-			result.setCause(new StorageNameNonexistentException(storageId));
+			result.setCause(new StorageRegionNonexistentException(String.valueOf(storageId)));
 			callback.completed(result);
 			LOG.info("storage[{}] is null", storageId);
 			return;

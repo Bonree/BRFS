@@ -1,7 +1,6 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl.refactor;
 
 import com.bonree.brfs.duplication.filenode.duplicates.*;
-import com.bonree.brfs.duplication.filenode.duplicates.impl.ResourceWriteSelector;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import org.apache.commons.lang3.StringUtils;
@@ -21,8 +20,8 @@ public class ResourceSelector extends ResourceWriteSelector {
     private PartitionNodeSelector pSelector;
     private SecondIdsInterface secondIds;
 
-    public ResourceSelector(ClusterResource daemon, ServiceSelector resourceSelector, StorageRegionManager storageRegionManager, DuplicateNodeSelector bakSelector, String groupName, PartitionNodeSelector pSelector, SecondIdsInterface secondIds) {
-        super(daemon, resourceSelector, storageRegionManager, bakSelector, groupName);
+    public ResourceSelector(ClusterResource daemon, ServiceSelector resourceSelector, DuplicateNodeSelector bakSelector, String groupName, PartitionNodeSelector pSelector, SecondIdsInterface secondIds) {
+        super(daemon, resourceSelector, bakSelector, groupName);
         this.pSelector = pSelector;
         this.secondIds = secondIds;
     }

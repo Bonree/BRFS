@@ -10,7 +10,6 @@ import com.bonree.brfs.server.identification.LevelServerIDGen;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -232,10 +231,6 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface {
         return status;
     }
 
-
-
-
-    @NotNull
     private List<String> getValidPartitions(String firstServer) throws Exception {
         List<String> partitions = client.getChildren().forPath(secondBasePath);
         List<String> validPartitions = new ArrayList<>();

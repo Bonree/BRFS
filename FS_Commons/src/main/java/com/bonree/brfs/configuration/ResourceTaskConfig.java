@@ -61,8 +61,7 @@ public class ResourceTaskConfig {
 	
 	private String watchDogCron = "0 30 2 */7 * ?";
 
-	private ResourceTaskConfig() {
-
+	public ResourceTaskConfig() {
 	}
 
 	public static ResourceTaskConfig parse() throws NullPointerException, ConfigParseException {

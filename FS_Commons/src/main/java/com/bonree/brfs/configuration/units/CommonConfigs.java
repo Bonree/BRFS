@@ -20,8 +20,8 @@ public final class CommonConfigs {
 	public static final ConfigUnit<String> CONFIG_REGION_SERVICE_GROUP_NAME =
 			ConfigUnit.ofString("regionnode.service.group", "region_group");
 
-	public static final ConfigUnit<String> CONFIG_DISK_SERVICE_GROUP_NAME =
-			ConfigUnit.ofString("disk.service.group", "disk_group");
+	public static final ConfigUnit<String> CONFIG_PARTITION_GROUP_NAME =
+			ConfigUnit.ofString("partition.group", "disk_group");
 	
 	private CommonConfigs() {}
 }

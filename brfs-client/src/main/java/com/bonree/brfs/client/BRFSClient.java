@@ -121,7 +121,7 @@ public class BRFSClient implements BRFS {
     }
 
     public StorageRegionID createStorageRegion(CreateStorageRegionRequest request) throws Exception {
-        RequestBody body = RequestBody.create(codec.toJson(request.getAttributes()), JSON);
+        RequestBody body = RequestBody.create(JSON, codec.toJson(request.getAttributes()));
         
         return Retrys.execute(new URIRetryable<StorageRegionID> (
                 format("create storage region[%s]", request.getStorageRegionName()),
@@ -274,7 +274,7 @@ public class BRFSClient implements BRFS {
     }
 
     public boolean updateStorageRegion(String srName, UpdateStorageRegionRequest request) throws Exception {
-        RequestBody body = RequestBody.create(codec.toJson(request.getAttributes()), JSON);
+        RequestBody body = RequestBody.create(JSON, codec.toJson(request.getAttributes()));
         
         return Retrys.execute(new URIRetryable<Boolean> (
                 format("update storage region[%s]", srName),

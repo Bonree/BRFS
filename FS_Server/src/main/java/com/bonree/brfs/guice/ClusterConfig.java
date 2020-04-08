@@ -27,8 +27,7 @@ public class ClusterConfig {
     @JsonProperty("regionnode.group")
     private String regionNodeGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
 
-    @JsonProperty("disknode.group")
-    private String partitionNodeGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME);
+
 
     public String getName() {
         return name;
@@ -52,14 +51,5 @@ public class ClusterConfig {
 
     public void setRegionNodeGroup(String regionNodeGroup) {
         this.regionNodeGroup = regionNodeGroup;
-    }
-
-    public String getPartitionNodeGroup() {
-        return partitionNodeGroup;
-    }
-
-    public ClusterConfig setPartitionNodeGroup(String partitionNodeGroup) {
-        this.partitionNodeGroup = partitionNodeGroup;
-        return this;
     }
 }

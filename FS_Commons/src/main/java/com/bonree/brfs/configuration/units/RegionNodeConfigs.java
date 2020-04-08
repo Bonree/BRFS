@@ -17,10 +17,6 @@ public final class RegionNodeConfigs {
 	public static final ConfigUnit<Integer> CONFIG_SERVER_IO_THREAD_NUM =
 			ConfigUnit.ofInt("regionnode.server.io.num", Runtime.getRuntime().availableProcessors());
 	
-	public static final ConfigUnit<String> CONFIG_LOG_DIR_PATH =
-			ConfigUnit.ofString("regionnode.log.dir",
-					new File(System.getProperty(SystemProperties.PROP_BRFS_HOME, "."), "logs").getAbsolutePath());
-	
 	public static final ConfigUnit<Integer> CONFIG_FILE_CLEAN_COUNT =
 			ConfigUnit.ofInt("regionnode.file.clean.count", 10);
 	
