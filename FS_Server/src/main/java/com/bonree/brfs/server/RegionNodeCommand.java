@@ -18,11 +18,13 @@ import java.util.List;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.guice.RocksDBModule;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.authentication.SimpleAuthenticationModule;
 import com.bonree.brfs.duplication.RegionNodeModule;
+import com.bonree.brfs.duplication.storageregion.StorageRegionModule;
 import com.bonree.brfs.email.EmailModule;
 import com.bonree.brfs.netty.NettyHttpServerModule;
 import com.google.common.collect.ImmutableList;
@@ -50,12 +52,14 @@ public class RegionNodeCommand extends BaseCommand {
                         new EmailModule(),
                         new SimpleAuthenticationModule(),
                         new NettyHttpServerModule(),
+                        new StorageRegionModule(),
                         new RegionNodeModule(),
                         new RocksDBModule()) :
                 ImmutableList.of(
                         new EmailModule(),
                         new SimpleAuthenticationModule(),
                         new NettyHttpServerModule(),
+                        new StorageRegionModule(),
                         new RegionNodeModule());
     }
 

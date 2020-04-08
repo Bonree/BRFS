@@ -15,7 +15,7 @@ package com.bonree.brfs.client.route;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,7 +24,7 @@ public class NormalRouterNode implements RouterNode {
     private final String changeId;
     private final int storageRegionIndex;
     private final String virtualId;
-    private final List<String> newSecondIDs;
+    private final Map<String, Integer> newSecondIDs;
     private final String version;
     
     @JsonCreator
@@ -32,7 +32,7 @@ public class NormalRouterNode implements RouterNode {
             @JsonProperty("changeId") String changeId,
             @JsonProperty("storageRegionIndex") int storageRegionIndex,
             @JsonProperty("virtualId") String virtualId,
-            @JsonProperty("newSecondIDs") List<String> newSecondIDs,
+            @JsonProperty("newSecondIDs") Map<String, Integer> newSecondIDs,
             @JsonProperty("version") String version) {
         this.changeId = changeId;
         this.storageRegionIndex = storageRegionIndex;
@@ -57,7 +57,7 @@ public class NormalRouterNode implements RouterNode {
     }
 
     @JsonProperty("newSecondIDs")
-    public List<String> getNewSecondIDs() {
+    public Map<String, Integer> getNewSecondIDs() {
         return newSecondIDs;
     }
 

@@ -42,6 +42,8 @@ public class RocksDBModule implements BrfsModule {
         LifecycleModule.register(binder, BackupEngineFactory.class);
         jaxrs(binder).resource(RocksDBResource.class);
 
+        binder.bind(BackupEngineFactory.class).toInstance(BackupEngineFactory.getInstance());
+        LifecycleModule.register(binder, BackupEngineFactory.class);
     }
 
     @Provides
