@@ -120,11 +120,27 @@ public class SecondIDRelationShip implements SecondIdsInterface {
         while (true) {
             try {
                 String partitionId = this.partitionIDSMap.get(key);
-                if (StringUtils.isNotEmpty(partitionId) && StringUtils.isNotEmpty(partitionId)) {
+                if (StringUtils.isNotEmpty(partitionId) && StringUtils.isNotBlank(partitionId)) {
                     String firstServer = this.partitionTofirstMap.get(partitionId);
                     if (StringUtils.isNotEmpty(firstServer) && StringUtils.isNotBlank(firstServer)) {
                         return firstServer;
                     }
+                }
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public String getPartitionId(String secondId, int storageRegionId) {
+        String key = storageRegionId + SEPARATOR + secondId;
+        while (true) {
+            try {
+                String partitionId = this.partitionIDSMap.get(key);
+                if (StringUtils.isNotEmpty(partitionId) && StringUtils.isNotBlank(partitionId)) {
+                  return partitionId;
                 }
                 Thread.sleep(50);
             } catch (InterruptedException e) {

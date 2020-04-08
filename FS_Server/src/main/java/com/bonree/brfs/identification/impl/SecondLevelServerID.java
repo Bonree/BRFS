@@ -5,7 +5,6 @@ import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.identification.LevelServerIDGen;
-import com.bonree.brfs.server.identification.impl.SecondServerIDGenImpl;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;

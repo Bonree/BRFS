@@ -35,4 +35,12 @@ public interface SecondIdsInterface {
      * @return
      */
     String getFirstId(String secondId, int storageRegionId);
+
+    /**
+     * 获取磁盘id
+     * @param secondId
+     * @param storageRegionId
+     * @return
+     */
+    String getPartitionId(String secondId,int storageRegionId);
 }

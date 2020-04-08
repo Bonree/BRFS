@@ -7,6 +7,7 @@ import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.guice.Initialization;
 import com.bonree.brfs.identification.IDSManager;
+import com.bonree.brfs.identification.PartitionInterface;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import com.google.inject.*;
@@ -74,6 +75,9 @@ public class DataNodeIDModuleTest {
         IDSManager idsManager = injector.getInstance(IDSManager.class);
         String firstServer = idsManager.getFirstSever();
         System.out.println(firstServer);
+        PartitionInterface partitionInterface = injector.getInstance(PartitionInterface.class);
+        String path = partitionInterface.getDataDir("20",0);
+        System.out.println(path);
     }
     class ZKPathModel implements Module{
 

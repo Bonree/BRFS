@@ -267,4 +267,9 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface {
     public String getFirstId(String secondId, int storageRegionId) {
         return this.secondIds.getFirstId(secondId,storageRegionId);
     }
+
+    @Override
+    public String getPartitionId(String secondId, int storageRegionId) {
+        return this.secondIds.getPartitionId(secondId,storageRegionId);
+    }
 }

@@ -7,6 +7,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -84,6 +85,13 @@ public class SecondIDRelationShipTest {
         Collection<String> services = ship.getSecondIds(firstServer,Integer.parseInt(storageId));
         System.out.println(services);
         assert services.contains(secondId);
+    }
+    @Test
+    public void getPartitionTest()throws Exception{
+        String parition = ship.getPartitionId("20", 0);
+        Assert.assertEquals("40",parition);
+        System.out.println("-----------------------------"+parition);
+
     }
 
     @After

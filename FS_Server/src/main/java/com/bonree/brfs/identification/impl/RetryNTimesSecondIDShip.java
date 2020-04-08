@@ -128,11 +128,28 @@ public class RetryNTimesSecondIDShip implements SecondIdsInterface {
         for(int i = 0; i< count;i++){
             try {
                 String partitionId = this.partitionIDSMap.get(key);
-                if (StringUtils.isNotEmpty(partitionId) && StringUtils.isNotEmpty(partitionId)) {
+                if (StringUtils.isNotEmpty(partitionId) && StringUtils.isNotBlank(partitionId)) {
                     String firstServer = this.partitionTofirstMap.get(partitionId);
                     if (StringUtils.isNotEmpty(firstServer) && StringUtils.isNotBlank(firstServer)) {
                         return firstServer;
                     }
+                }
+                Thread.sleep(time);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getPartitionId(String secondId, int storageRegionId) {
+        String key = storageRegionId + SEPARATOR + secondId;
+        for(int i = 0; i< count;i++){
+            try {
+                String partitionId = this.partitionIDSMap.get(key);
+                if (StringUtils.isNotEmpty(partitionId) && StringUtils.isNotBlank(partitionId)) {
+                    return partitionId;
                 }
                 Thread.sleep(time);
             } catch (InterruptedException e) {

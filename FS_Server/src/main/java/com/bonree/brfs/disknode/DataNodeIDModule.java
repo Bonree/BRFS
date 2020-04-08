@@ -7,6 +7,7 @@ import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.identification.IDSManager;
+import com.bonree.brfs.identification.PartitionInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.identification.VirtualServerID;
 import com.bonree.brfs.identification.impl.*;
@@ -87,5 +88,10 @@ public class DataNodeIDModule implements Module {
                                     VirtualServerID virtualServerID,
                                     DiskDaemon diskDaemon){
         return new IDSManager(firstLevelServerID.initOrLoadServerID(),ship,virtualServerID,diskDaemon);
+    }
+    @Provides
+    @Singleton
+    public PartitionInterface getPartitionInterface(DiskDaemon diskDaemon,SecondMaintainerInterface secondIds){
+        return new LocalDirMaintainer(diskDaemon,secondIds);
     }
 }

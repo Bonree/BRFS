@@ -8,7 +8,7 @@ package com.bonree.brfs.identification;
  * @description: 根据二级serverid获取磁盘路径
  ******************************************************************************/
 
-public interface PartitionInterface extends LocalPartitionInterface {
+public interface PartitionInterface {
     /**
      * 根据二级serverid与storageRegionid 获取存储的目录
      * @param secondId
