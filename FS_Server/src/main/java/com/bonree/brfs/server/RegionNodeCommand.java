@@ -17,6 +17,7 @@ import java.util.List;
 
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
+import com.bonree.brfs.duplication.RegionIDModule;
 import com.bonree.brfs.rocksdb.guice.RocksDBModule;
 
 import org.slf4j.Logger;
@@ -53,6 +54,7 @@ public class RegionNodeCommand extends BaseCommand {
                 new NettyHttpServerModule(),
                 new StorageRegionModule(),
                 new RegionNodeModule(),
+                new RegionIDModule(),
                 binder -> {
                     if(ROCKSDB_SWITCH) {
                         binder.install(new RocksDBModule());
