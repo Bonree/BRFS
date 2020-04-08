@@ -10,7 +10,6 @@ import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 
@@ -56,7 +55,6 @@ public class FirstLevelServerIDImpl {
 		return this.firstServer;
 	}
 
-	@NotNull
 	private String loadFirstServerId() {
 		String firstServerID = null;
 

@@ -232,10 +232,6 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface {
         return status;
     }
 
-
-
-
-    @NotNull
     private List<String> getValidPartitions(String firstServer) throws Exception {
         List<String> partitions = client.getChildren().forPath(secondBasePath);
         List<String> validPartitions = new ArrayList<>();
