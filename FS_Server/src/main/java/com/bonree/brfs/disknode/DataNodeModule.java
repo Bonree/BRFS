@@ -62,6 +62,8 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.guice.ClusterConfig;
+import com.bonree.brfs.identification.SecondMaintainerInterface;
+import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
 import com.bonree.brfs.schedulers.InitTaskManager;
@@ -112,7 +114,8 @@ public class DataNodeModule implements Module {
     public StorageRegionManager getStorageRegionManager(
             CuratorFramework client,
             ZookeeperPaths paths,
-            ServerIDManager idManager,
+            SecondMaintainerInterface idManager,
+            Service service,
             Lifecycle lifecycle) {
         StorageRegionManager snManager = new DefaultStorageRegionManager(client, paths, null);
         snManager.addStorageRegionStateListener(new StorageRegionStateListener() {
@@ -121,7 +124,7 @@ public class DataNodeModule implements Module {
             @Override
             public void storageRegionAdded(StorageRegion node) {
                 log.info("-----------StorageNameAdded--[{}]", node);
-                idManager.getSecondServerID(node.getId());
+                idManager.registerSecondIds(service.getServiceId(), node.getId());
             }
 
             @Override
@@ -131,7 +134,7 @@ public class DataNodeModule implements Module {
             @Override
             public void storageRegionRemoved(StorageRegion node) {
                 log.info("-----------StorageNameRemove--[{}]", node);
-                idManager.deleteSecondServerID(node.getId());
+                idManager.unregisterSecondIds(service.getServiceId(), node.getId());
             }
         });
         
@@ -147,10 +150,10 @@ public class DataNodeModule implements Module {
     public Service getService(
             ClusterConfig clusterConfig,
             ServiceManager serviceManager,
-            ServerIDManager idManager,
+            FirstLevelServerIDImpl idManager,
             Lifecycle lifecycle) {
         Service service = new Service(
-                idManager.getFirstServerID(),
+                idManager.initOrLoadServerID(),
                 clusterConfig.getDataNodeGroup(),
                 Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST),
                 Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT));
