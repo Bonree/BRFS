@@ -125,7 +125,7 @@ public class RegionNodeModule implements Module {
 //        binder.bind(BlockManagerInterface.class).to(BlockManager.class).in(Scopes.SINGLETON);
 
         jaxrs(binder).resource(DiscoveryResource.class);
-        jaxrs(binder).resource(RouterResource.class);
+//        jaxrs(binder).resource(RouterResource.class);
         
         jaxrs(binder).resource(JsonMapper.class);
         

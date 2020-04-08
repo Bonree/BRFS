@@ -39,7 +39,6 @@ import com.bonree.brfs.duplication.storageregion.exception.StorageRegionNonexist
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.identification.PartitionInterface;
 import com.bonree.brfs.identification.SecondIdsInterface;
-import com.bonree.brfs.identification.VirtualServerID;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -51,7 +50,6 @@ public class RouterResource {
     
     private final SecondIdsInterface secondIds;
     private final PartitionInterface partitions;
-    private final VirtualServerID virtuals;
     private final RouteLoader routerLoader;
     
     private final StorageRegionManager storageRegionManager;
@@ -64,14 +62,12 @@ public class RouterResource {
             ClusterConfig clusterConfig,
             SecondIdsInterface secondIds,
             PartitionInterface partitions,
-            VirtualServerID virtuals,
             RouteLoader routerLoader,
             StorageRegionManager storageRegionManager,
             ServiceManager serviceManager) {
         this.clusterConfig = clusterConfig;
         this.secondIds = secondIds;
         this.partitions = partitions;
-        this.virtuals = virtuals;
         this.routerLoader = routerLoader;
         this.storageRegionManager = storageRegionManager;
         this.serviceManager = serviceManager;
