@@ -17,7 +17,7 @@ import com.bonree.brfs.duplication.filenode.FilePathBuilder;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
-import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.brfs.identification.VirtualServerID;
 
 public class DefaultFileObjectFactory implements FileObjectFactory {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileObjectFactory.class);
@@ -25,14 +25,14 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 	private Service service;
 	private FileNodeStorer fileNodeStorer;
 	private DuplicateNodeSelector duplicationNodeSelector;
-	private ServerIDManager idManager;
+	private VirtualServerID idManager;
 	private DiskNodeConnectionPool connectionPool;
 	
 	@Inject
 	public DefaultFileObjectFactory(Service service,
 			FileNodeStorer fileNodeStorer,
 			DuplicateNodeSelector duplicationNodeSelector,
-			ServerIDManager serverIDManager,
+			VirtualServerID serverIDManager,
 			DiskNodeConnectionPool connectionPool) {
 		this.service = service;
 		this.fileNodeStorer = fileNodeStorer;
@@ -68,8 +68,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
 				continue;
 			}
 			
-			String serverId = idManager.getOtherSecondID(node.getId(), storageRegion.getId());
-			String filePath = FilePathBuilder.buildFilePath(fileNodeBuilder.build(), serverId);
+			String filePath = FilePathBuilder.buildFilePath(fileNodeBuilder.build(), node.getSecondId());
 			
 			LOG.info("client opening file [{}]", filePath);
 			long result = connection.getClient().openFile(filePath, storageRegion.getFileCapacity());

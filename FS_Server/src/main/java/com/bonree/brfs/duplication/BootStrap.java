@@ -256,7 +256,7 @@ public class BootStrap {
             /********************/
 
             /** Module Managed **/
-            FileObjectFactory fileFactory = new DefaultFileObjectFactory(service, storer, nodeSelector, idManager, connectionPool);
+            FileObjectFactory fileFactory = new DefaultFileObjectFactory(service, storer, nodeSelector, null, connectionPool);
             /********************/
 
             /** Module Managed **/

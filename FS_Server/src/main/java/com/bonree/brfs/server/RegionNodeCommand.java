@@ -47,20 +47,17 @@ public class RegionNodeCommand extends BaseCommand {
 
     @Override
     protected List<Module> getModules() {
-        return ROCKSDB_SWITCH ?
-                ImmutableList.of(
-                        new EmailModule(),
-                        new SimpleAuthenticationModule(),
-                        new NettyHttpServerModule(),
-                        new StorageRegionModule(),
-                        new RegionNodeModule(),
-                        new RocksDBModule()) :
-                ImmutableList.of(
-                        new EmailModule(),
-                        new SimpleAuthenticationModule(),
-                        new NettyHttpServerModule(),
-                        new StorageRegionModule(),
-                        new RegionNodeModule());
+        return ImmutableList.of(
+                new EmailModule(),
+                new SimpleAuthenticationModule(),
+                new NettyHttpServerModule(),
+                new StorageRegionModule(),
+                new RegionNodeModule(),
+                binder -> {
+                    if(ROCKSDB_SWITCH) {
+                        binder.install(new RocksDBModule());
+                    }
+                });
     }
 
 }
