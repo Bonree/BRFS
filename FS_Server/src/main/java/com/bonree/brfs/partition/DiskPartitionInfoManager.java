@@ -52,13 +52,13 @@ public class DiskPartitionInfoManager implements LifeCycle {
     public void start() throws Exception {
         this.childCache = CuratorCacheFactory.getPathCache();
         this.listener = new DiskPartitionInfoListener("disk_partition_cache");
-        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
+        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
 
     }
     @LifecycleStop
     @Override
     public void stop() throws Exception {
-        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DISK_SERVICE_GROUP_NAME)), this.listener);
+        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 
     public PartitionInfo getPartitionInfoByPartitionId(String partitionId) {

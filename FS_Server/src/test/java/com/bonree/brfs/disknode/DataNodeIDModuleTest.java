@@ -2,7 +2,6 @@ package com.bonree.brfs.disknode;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
-import com.bonree.brfs.common.zookeeper.curator.CuratorModule;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.guice.ClusterConfig;
@@ -31,8 +30,8 @@ import java.util.List;
  * @description: 测试id利用guice加载实例
  ******************************************************************************/
 
-public class IDLoadTest {
-    private static final String rootPath = IDLoadTest.class.getResource("/").getPath();
+public class DataNodeIDModuleTest {
+    private static final String rootPath = DataNodeIDModuleTest.class.getResource("/").getPath();
     @Before
     public void initProperties(){
         String config = rootPath+"/server_zcg.properties";
@@ -70,7 +69,7 @@ public class IDLoadTest {
     public void init(){
         List<Module> modules = new ArrayList<>();
         modules.add(new ZKPathModel());
-        modules.add(new IDModule());
+        modules.add(new DataNodeIDModule());
         Injector injector = Initialization.makeInjectorWithModules(Initialization.makeSetupInjector(), modules);
         CuratorFramework client = injector.getInstance(CuratorFramework.class);
         CuratorCacheFactory.init(client);
