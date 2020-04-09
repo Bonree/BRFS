@@ -51,7 +51,7 @@ public class PartitionGather implements LifeCycle {
     @Override
     public void start() {
         this.worker.setAlive(true);
-        this.pool.schedule(this.worker,this.intervalTimes, TimeUnit.SECONDS);
+        this.pool.scheduleAtFixedRate(this.worker,0,this.intervalTimes, TimeUnit.SECONDS);
         LOG.info("partition gather work start");
     }
     @LifecycleStop
@@ -132,7 +132,7 @@ public class PartitionGather implements LifeCycle {
                         }
                     }
                 } catch (Exception e) {
-                    LOG.error("check partition happen error !!{}",elePart.getDataDir());
+                    LOG.error("check partition happen error !!{}",elePart.getDataDir(),e);
                 }
             }
             LOG.info("partition gather work end !!");
@@ -189,12 +189,13 @@ public class PartitionGather implements LifeCycle {
                 return false;
             }
             // 磁盘分区使用信息为空
-            FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDevName());
+            FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
             if(usage == null){
                 return false;
             }
+            double value = (double)(usage.getTotal()/1024/1024);
             // 磁盘分区大小不一致
-            if(local.getTotalSize() != usage.getTotal()/1024/1024){
+            if(local.getTotalSize() != value){
                 return false;
             }
         } catch (SigarException e) {

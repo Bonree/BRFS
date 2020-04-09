@@ -36,7 +36,7 @@ public class PartitionGatherTest {
     private Service firstServer;
     private PartitionInfoRegister register = null;
     private PartitionCheckingRoutine routine;
-    private String dataDir = "D:/zhucg/tmp,E:/zhucg";
+    private String dataDir = "/data/brfs/data";
     private String partitionGroup = "diskNodeIDS";
     @Before
     public void checkZK(){
@@ -49,7 +49,7 @@ public class PartitionGatherTest {
         }
         idImpl = new DiskNodeIDImpl(framework,BASE_ID_PATH);
         firstServer = new Service("10","dataGroup","127.0.0.1",13000,System.currentTimeMillis());
-        String libPath = "D:\\work\\Business\\bonree\\BrfsSecond\\BRFS\\lib";
+        String libPath = "/data/brfs/lib";
         File file = new File(libPath);
         if(!file.exists()){
             Assert.fail("sigar lib add happen error path : "+libPath);
@@ -76,7 +76,7 @@ public class PartitionGatherTest {
     public void startTest()throws Exception{
         Collection<LocalPartitionInfo> parts =  routine.checkVaildPartition();
         System.out.println(parts);
-        PartitionGather gather = new PartitionGather(this.register,firstServer,parts,10);
+        PartitionGather gather = new PartitionGather(this.register,firstServer,parts,5);
         gather.start();
         Thread.sleep(Long.MAX_VALUE);
     }

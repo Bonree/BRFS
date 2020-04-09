@@ -1,15 +1,11 @@
 package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.process.LifeCycle;
-import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.LocalPartitionCache;
-import com.bonree.brfs.partition.PartitionCheckingRoutine;
 import com.bonree.brfs.partition.PartitionGather;
-import com.bonree.brfs.partition.PartitionInfoRegister;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.google.inject.Inject;
-import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,10 +52,12 @@ public class DiskDaemon implements LocalPartitionInterface,LifeCycle {
 	@Override
 	public void start() {
 		this.gather.start();
+		LOG.info("DiskDaemon started!!!");
 	}
 	@Override
 	public void stop() {
 		this.gather.stop();
+		LOG.info("DiskDaemon stoped!!!");
 	}
 
 //	public static class Builder{

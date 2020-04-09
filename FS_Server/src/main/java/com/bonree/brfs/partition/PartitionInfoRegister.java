@@ -29,7 +29,11 @@ public class PartitionInfoRegister {
     public void registerPartitionInfo(PartitionInfo partitionInfo) throws Exception{
         byte[] data = JsonUtils.toJsonBytes(partitionInfo);
         String zkPath = ZKPaths.makePath(this.zkBasePath,partitionInfo.getPartitionGroup(),partitionInfo.getPartitionId());
-        String zkPath1 = framework.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(zkPath, data);
+        if(framework.checkExists().forPath(zkPath)!=null){
+            framework.setData().forPath(zkPath,data);
+        }else{
+            framework.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(zkPath, data);
+        }
     }
     public void unregisterPartitionInfo(PartitionInfo partitionInfo) throws Exception{
         String zkPath = ZKPaths.makePath(this.zkBasePath,partitionInfo.getPartitionGroup(),partitionInfo.getPartitionId());

@@ -3,6 +3,7 @@ package com.bonree.brfs.disknode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigurator;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
+import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.configuration.units.ResourceConfigs;
@@ -37,29 +38,31 @@ public class DataNodeIDModule implements Module {
     @Override
     public void configure(Binder binder) {
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class);
+        LifecycleModule.register(binder,DiskDaemon.class);
+        LifecycleModule.register(binder,IDSManager.class);
     }
     @Provides
     @Singleton
-    public DiskDaemon getDiskDaemon(CuratorFramework client, ZookeeperPaths zkpath, Service  firstLevelServerID, ClusterConfig clusterConfig, StorageConfig storageConfig, PartitionConfig partitionConfig, IDConfig idConfig, Lifecycle lifecycle){
+    public DiskDaemon getDiskDaemon(CuratorFramework client, ZookeeperPaths zkpath, Service  firstLevelServerID, StorageConfig storageConfig, PartitionConfig partitionConfig, IDConfig idConfig, Lifecycle lifecycle){
         // 1.生成注册id实例
         DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client,zkpath.getBaseServerIdSeqPath());
         // 2.生成磁盘分区id检查类
         PartitionCheckingRoutine routine = new PartitionCheckingRoutine(diskNodeID,storageConfig.getWorkDirectory(),idConfig.getPartitionIds(),partitionConfig.getPartitionGroupName());
         Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();
         // 3.生成注册管理实例
-        PartitionInfoRegister register = new PartitionInfoRegister(client,zkpath.getBaseDiscoveryPath()+"/"+partitionConfig.getPartitionGroupName());
+        PartitionInfoRegister register = new PartitionInfoRegister(client,zkpath.getBaseDiscoveryPath());
         // 4.生成采集线程池
         PartitionGather gather = new PartitionGather(register,firstLevelServerID,routine.checkVaildPartition(),partitionConfig.getIntervalTime());
         DiskDaemon daemon =  new DiskDaemon(gather,parts);
         lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
             @Override
             public void start() throws Exception {
-                gather.start();
+                daemon.start();
             }
 
             @Override
             public void stop() {
-                gather.stop();
+                daemon.stop();
             }
         });
         return daemon;
@@ -86,8 +89,20 @@ public class DataNodeIDModule implements Module {
     public IDSManager getIDSManager(FirstLevelServerIDImpl firstLevelServerID,
                                     SecondMaintainerInterface ship,
                                     VirtualServerID virtualServerID,
-                                    DiskDaemon diskDaemon){
-        return new IDSManager(firstLevelServerID.initOrLoadServerID(),ship,virtualServerID,diskDaemon);
+                                    DiskDaemon diskDaemon,Lifecycle lifecycle){
+        IDSManager manager = new IDSManager(firstLevelServerID.initOrLoadServerID(),ship,virtualServerID,diskDaemon);
+        lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
+            @Override
+            public void start() throws Exception {
+                manager.start();
+            }
+
+            @Override
+            public void stop() {
+                manager.stop();
+            }
+        });
+        return manager;
     }
     @Provides
     @Singleton

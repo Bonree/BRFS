@@ -1,5 +1,6 @@
 package com.bonree.brfs.identification;
 
+import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.google.inject.Inject;
@@ -16,7 +17,7 @@ import java.util.List;
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description: id综合查询管理类，负责二级serverid，虚拟serverid 的查询，以及datanode一级server查询
  **/
-public class IDSManager {
+public class IDSManager implements LifeCycle {
     private String firstSever = null;
     private SecondMaintainerInterface secondMaintainer;
     private VirtualServerID virtualServerID;
@@ -27,12 +28,6 @@ public class IDSManager {
         this.secondMaintainer = secondMaintainer;
         this.virtualServerID = virtualServerID;
         this.diskDaemon = diskDaemon;
-        init();
-    }
-    private void init(){
-        Collection<LocalPartitionInfo> partitions = this.diskDaemon.getPartitions();
-        Collection<String> parts = convertToId(partitions);
-        this.secondMaintainer.addAllPartitionRelation(parts,firstSever);
     }
     private Collection<String> convertToId(Collection<LocalPartitionInfo> partitions){
         List<String> parts = new ArrayList<>();
@@ -125,5 +120,14 @@ public class IDSManager {
     public String getFirstSever() {
         return firstSever;
     }
+    @Override
+    public void start() throws Exception {
+        Collection<LocalPartitionInfo> partitions = this.diskDaemon.getPartitions();
+        Collection<String> parts = convertToId(partitions);
+        this.secondMaintainer.addAllPartitionRelation(parts,firstSever);
+    }
+    @Override
+    public void stop() {
 
+    }
 }
