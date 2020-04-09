@@ -1,0 +1,189 @@
+package com.bonree.brfs.rebalanceV2.task;
+
+import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.process.LifeCycle;
+import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.common.zookeeper.curator.cache.AbstractPathChildrenCacheListener;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.email.EmailPool;
+import com.bonree.brfs.partition.DiskPartitionInfoManager;
+import com.bonree.brfs.partition.model.PartitionInfo;
+import com.bonree.brfs.rebalance.task.ChangeType;
+import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.mail.worker.MailWorker;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.leader.LeaderLatch;
+import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
+import org.apache.curator.utils.ZKPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+/*******************************************************************************
+ * 版权信息：北京博睿宏远数据科技股份有限公司
+ * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
+ *
+ * @Date 2020/4/1 11:36
+ * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
+ * @Description: 监听磁盘信息变更并发布
+ ******************************************************************************/
+public class DiskPartitionChangeTaskGenerator implements LifeCycle {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DiskPartitionChangeTaskGenerator.class);
+
+    private LeaderLatch leaderLath;
+    private String leaderPath;
+    private String changesPath;
+    private ServerIDManager idManager;
+    private ServiceManager serverManager;
+    private CuratorClient client;
+    private StorageRegionManager snManager;
+    private int delayDeal;
+    private ZookeeperPaths zkPath;
+    private DiskPartitionInfoManager partitionInfoManager;
+
+    private CuratorPathCache childCache;
+    private DiskPartitionChangeListener listener;
+
+    public DiskPartitionChangeTaskGenerator(final CuratorFramework client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath, final int delayDeal, StorageRegionManager snManager, ZookeeperPaths zkPath, DiskPartitionInfoManager partitionInfoManager) {
+        this.serverManager = serverManager;
+        this.snManager = snManager;
+        this.delayDeal = delayDeal;
+        this.zkPath = zkPath;
+        this.leaderPath = ZKPaths.makePath(baseRebalancePath, Constants.CHANGE_LEADER);
+        this.changesPath = ZKPaths.makePath(baseRebalancePath, Constants.CHANGES_NODE);
+        this.client = CuratorClient.wrapClient(client);
+        this.leaderLath = new LeaderLatch(client, this.leaderPath);
+        this.idManager = idManager;
+        this.partitionInfoManager = partitionInfoManager;
+    }
+
+    @Override
+    public void start() throws Exception {
+        leaderLath.addListener(new DiskPartitionChangeLeaderLatchListener());
+        this.leaderLath.start();
+        this.childCache = CuratorCacheFactory.getPathCache();
+        this.listener = new DiskPartitionChangeListener("disk_partition_change");
+        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+    }
+
+    @Override
+    public void stop() throws Exception {
+        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+    }
+
+    private class DiskPartitionChangeListener extends AbstractPathChildrenCacheListener {
+        public DiskPartitionChangeListener(String listenName) {
+            super(listenName);
+        }
+
+        @Override
+        public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+            if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_ADDED)) {
+                if (leaderLath.hasLeadership()) {
+                    if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
+                        PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
+                        if (info != null) {
+                            TimeUnit.MILLISECONDS.sleep(delayDeal);
+                            generateChangeSummary(info, ChangeType.ADD);
+                        }
+                    }
+                }
+            } else if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_REMOVED)) {
+                if (leaderLath.hasLeadership()) {
+                    if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
+                        PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
+                        if (info != null) {
+                            TimeUnit.MILLISECONDS.sleep(delayDeal);
+                            generateChangeSummary(info, ChangeType.REMOVE);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static class DiskPartitionChangeLeaderLatchListener implements LeaderLatchListener {
+        @Override
+        public void isLeader() {
+            LOG.info("I'am DiskPartitionChangeTaskGenerator leader!");
+        }
+
+        @Override
+        public void notLeader() {
+            LOG.info("I'am not DiskPartitionChangeTaskGenerator leader!");
+        }
+    }
+
+    private void generateChangeSummary(PartitionInfo partitionInfo, ChangeType type) {
+        List<StorageRegion> snList = snManager.getStorageRegionList();
+        List<String> currentServers = getCurrentServers(serverManager);
+
+        List<String> currentPartitionIds = partitionInfoManager.getCurrentPartitionIds();
+
+        for (StorageRegion snModel : snList) {
+            if (snModel.getReplicateNum() > 1) {   // 是否配置SN恢复
+                String secondID = idManager.getOtherSecondID(partitionInfo.getServiceId(), snModel.getId());
+
+                if (StringUtils.isNotEmpty(secondID)) {
+                    try {
+                        DiskPartitionChangeSummary summaryObj = new DiskPartitionChangeSummary(snModel.getId(), genChangeID(), type, secondID, partitionInfo.getPartitionId(), currentServers, currentPartitionIds);
+                        String summary = JsonUtils.toJsonString(summaryObj);
+                        String diskPartitionTaskNode = ZKPaths.makePath(changesPath, String.valueOf(snModel.getId()), summaryObj.getChangeID());
+                        client.createPersistent(diskPartitionTaskNode, true, summary.getBytes(StandardCharsets.UTF_8));
+                        LOG.info("generator a disk partition change record:" + summary + ", for storageRegion:" + snModel);
+
+                        if (ChangeType.REMOVE == type) {
+                            EmailPool emailPool = EmailPool.getInstance();
+                            emailPool.sendEmail(MailWorker.newBuilder(emailPool.getProgramInfo()).setMessage(summary));
+                        }
+                    } catch (Exception e) {
+                        LOG.error("generator a disk partition change record failed for storageRegion:" + snModel, e);
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+    }
+
+    /**
+     * 概述：changeID 使用时间戳和UUID进行标识
+     *
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    private String genChangeID() {
+        return (Calendar.getInstance().getTimeInMillis() / 1000) + UUID.randomUUID().toString();
+    }
+
+    /**
+     * 概述：获取当时存活的机器
+     *
+     * @param serviceManager
+     * @return
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    private List<String> getCurrentServers(ServiceManager serviceManager) {
+        List<Service> servers = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+        return servers.stream().map(Service::getServiceId).collect(Collectors.toList());
+    }
+
+}

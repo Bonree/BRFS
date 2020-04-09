@@ -1,8 +1,8 @@
 package com.bonree.brfs.rebalance;
 
-import java.util.List;
-
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
+
+import java.util.List;
 
 public interface BalanceTaskGenerator {
 
