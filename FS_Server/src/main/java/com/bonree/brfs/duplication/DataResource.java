@@ -22,6 +22,8 @@ import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.rocksdb.RocksDBManager;
 import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,14 +43,20 @@ public class DataResource {
 
     private final StorageRegionWriter storageRegionWriter;
     private final BlockManagerInterface blockManager;
+//    private final StorageRegionManager storageRegionManager;
+    private final RocksDBManager rocksDBManager;
 
 
     @Inject
     public DataResource(
             StorageRegionWriter storageRegionWriter,
-            BlockManagerInterface blockManager) {
+            BlockManagerInterface blockManager,
+            StorageRegionManager storageRegionManager,
+            RocksDBManager rocksDBManager) {
         this.storageRegionWriter = storageRegionWriter;
         this.blockManager = blockManager;
+//        this.storageRegionManager = storageRegionManager;
+        this.rocksDBManager = rocksDBManager;
     }
 
     @POST
@@ -59,18 +67,19 @@ public class DataResource {
             @PathParam("srName") String srName,
             FSPacketProto data,
             @Suspended AsyncResponse response) {
-        LOG.debug("DONE decode ,从请求中取出data");
+        LOG.debug("DONE decode");
         LOG.debug("{}",data);
         try {
             FSPacket packet = new FSPacket();
             packet.setProto(data);
-            LOG.debug("收到数据长度为：[{}]，尝试将其填充到block中，",packet.getData().length);
+            LOG.debug("write request data length：[{}]，prepare to append to block，",packet.getData().length);
             int storage = packet.getStorageName();
+//            String storageName = storageRegionManager.findStorageRegionById(storage).getName();
             String file = packet.getFileName();
-            LOG.debug("从数据中反序列化packet [{}]",packet);
+            LOG.debug("deserialize [{}]",packet);
             //如果是一个小于等于packet长度的文件，由handler直接写
             if(packet.isATinyFile(blockManager.getBlockSize())){
-                LOG.debug("一条超小文件[{}]",packet.getFileName());
+                LOG.debug("writing a tiny file [{}]",packet.getFileName());
                 storageRegionWriter.write(
                         packet.getStorageName(),
                         packet.getData(),
@@ -84,34 +93,36 @@ public class DataResource {
                             @Override
                             public void complete(String fid) {
                                 response.resume(ImmutableList.of(fid));
-                                LOG.info("返回文件[{}]:fid[{}]",packet.getFileName(),fid);
+                                LOG.info("response file :[{}]:fid[{}]",packet.getFileName(),fid);
                             }
 
                             @Override
                             public void complete(String[] fids) {
                                 response.resume(ImmutableList.of(fids));
-                                LOG.info("返回文件[{}]:fid[{}]",packet.getFileName(),fids[0]);
+                                LOG.info("response file[{}]:fid[{}]",packet.getFileName(),fids[0]);
                             }
                         });
                 return;
             }
-            LOG.debug("填充内存");
+            LOG.debug("append packet[{}] into block",packet);
             //===== 追加数据的到blockManager
             blockManager.appendToBlock(packet, new HandleResultCallback() {
                 @Override
                 public void completed(HandleResult result) {
                     if(result.isCONTINUE()) {
-                        LOG.debug("返回seqno：{}",result.getNextSeqno());
+                        LOG.debug("response seqno：{}",result.getNextSeqno());
                         response.resume(Response
                                 .status(HttpStatus.CODE_NEXT)
                                 .entity(new NextData(result.getNextSeqno())).build());
                     }else if(result.isSuccess()){
-                        LOG.info("返回fid:[{}]",new String(result.getData()));
+                        String fid = new String (result.getData());
+                        //todo rocksdb
+                        LOG.info("response fid:[{}]",fid);
                         response.resume(Response
                                 .ok()
                                 .entity(ImmutableList.of(new String(result.getData()))).build());
                     }else{
-                        LOG.debug("返回错误");
+                        LOG.debug("response error");
                         response.resume(result.getCause());
                     }
                 }
