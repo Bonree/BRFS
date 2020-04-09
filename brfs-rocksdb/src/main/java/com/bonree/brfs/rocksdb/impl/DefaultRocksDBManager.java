@@ -10,11 +10,11 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.RocksDBConfig;
 import com.bonree.brfs.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.rocksdb.RocksDBManager;
 import com.bonree.brfs.rocksdb.WriteStatus;
-import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.zk.ColumnFamilyInfoManager;
@@ -210,18 +210,18 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public List<byte[]> readByPrefix(String columnFamily, byte[] prefixKey) {
+    public Map<byte[], byte[]> readByPrefix(String columnFamily, byte[] prefixKey) {
         if (null == columnFamily || columnFamily.isEmpty() || null == prefixKey) {
             LOG.warn("read by prefix column family is empty or prefixKey is null!");
             return null;
         }
 
-        List<byte[]> values = new ArrayList<>();
+        Map<byte[], byte[]> result = new HashMap<>();
         try {
             RocksIterator iterator = this.newIterator(this.CF_HANDLES.get(columnFamily));
             for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
                 if (new String(iterator.key()).startsWith(new String(prefixKey))) {
-                    values.add(iterator.value());
+                    result.put(iterator.key(), iterator.value());
                 }
             }
         } catch (Exception e) {
@@ -229,7 +229,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             return null;
         }
 
-        return values;
+        return result;
     }
 
     @Override
