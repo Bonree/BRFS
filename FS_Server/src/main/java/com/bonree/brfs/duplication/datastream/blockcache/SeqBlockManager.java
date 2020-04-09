@@ -6,9 +6,10 @@ import com.bonree.brfs.common.net.http.data.FSPacket;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
-import com.bonree.brfs.duplication.datastream.writer.DefaultStorageRegionWriter;
+import com.bonree.brfs.duplication.FidBuilder;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
+import com.bonree.brfs.rocksdb.RocksDBManager;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -24,7 +25,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class SeqBlockManager implements BlockManagerInterface{
-    private DefaultStorageRegionWriter writer;
+    private StorageRegionWriter writer;
+    private RocksDBManager rocksDBManager;
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManager.class);
     private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
 
@@ -43,7 +45,12 @@ public class SeqBlockManager implements BlockManagerInterface{
             });
     @Inject
     public SeqBlockManager(BlockPool blockPool, StorageRegionWriter writer) {
-        this.writer = (DefaultStorageRegionWriter) writer;
+        this.writer = writer;
+    }
+    @Inject
+    public SeqBlockManager(BlockPool blockPool, StorageRegionWriter writer, RocksDBManager rocksDBManager) {
+        this.writer = writer;
+        this.rocksDBManager = rocksDBManager;
     }
     @Override
     public Block appendToBlock(FSPacket packet, HandleResultCallback callback) {
@@ -66,10 +73,18 @@ public class SeqBlockManager implements BlockManagerInterface{
             boolean needflush = blockValue.appendPacket(packet.getData());
             //flush a file
             if(packet.isLastPacketInFile()){
-                writer.write(storage,blockValue.getRealData(),
-                        new WriteBlockCallback(callback,packet, packet.isLastPacketInFile()));
-                LOG.info("flush a block into data pool ");
-                return null;
+                if(packet.getBlockOffsetInFile(blockSize)==0){
+                    writer.write(storage,blockValue.getRealData(),
+                            new WriteFileCallback(callback,storage,fileName,false));
+                    LOG.info("flush a small file into the data pool");
+                    return null;
+                }else {
+                    // we should flush the last block to get its fid
+                    writer.write(storage,blockValue.getRealData(),
+                            new WriteBlockCallback(callback,packet,true));
+                    LOG.info("flush a block into the data pool ");
+                    return null;
+                }
             }
             if(needflush){//flush a block
                 writer.write(storage, blockValue.getRealData(),
@@ -226,10 +241,13 @@ public class SeqBlockManager implements BlockManagerInterface{
                     result.setCONTINUE();
                     result.setNextSeqno(seqno);
                     callback.completed(result);
+                    // DONE flush a block
+                    LOG.info(response);
                 }else{
                     byte[] data = blockValue.writeFile(storageName, fileName);
+                    //todo blockcache recycle
                     writer.write(storageName,data,
-                            new WriteFileCallback(callback,storageName,fileName));
+                            new WriteFileCallback(callback,storageName,fileName,true));
                     LOG.info("在[{}]中写了一个大文件索引文件[{}]", storageName, fileName);
                 }
 
@@ -257,10 +275,12 @@ public class SeqBlockManager implements BlockManagerInterface{
         private HandleResultCallback callback;
         private int StorageName;
         private String fileName;
-        public WriteFileCallback(HandleResultCallback callback, int storage,String file) {
+        private boolean isBigFile;
+        public WriteFileCallback(HandleResultCallback callback, int storage, String file, boolean b) {
             this.callback = callback;
             this.StorageName = storage;
             this.fileName = file;
+            this.isBigFile = b;
         }
 
         @Override
@@ -275,8 +295,10 @@ public class SeqBlockManager implements BlockManagerInterface{
         @Override
         public void complete(String fid) {
             HandleResult result = new HandleResult();
-
             try {
+                if(isBigFile){
+                   fid =  FidBuilder.setFileType(fid);
+                }
                 LOG.debug("flush一个文件,fid[{}]", fid);
                 //todo 写目录树
 
@@ -284,6 +306,9 @@ public class SeqBlockManager implements BlockManagerInterface{
                 result.setSuccess(true);
             } catch (JsonUtils.JsonException e) {
                 LOG.error("can not json fids", e);
+                result.setSuccess(false);
+            } catch (Exception e) {
+                LOG.error("can not set big file flag decode fids", e);
                 result.setSuccess(false);
             }
 

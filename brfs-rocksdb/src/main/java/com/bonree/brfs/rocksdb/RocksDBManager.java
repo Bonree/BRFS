@@ -3,7 +3,6 @@ package com.bonree.brfs.rocksdb;
 import com.bonree.brfs.common.process.LifeCycle;
 import org.rocksdb.RocksDB;
 
-import java.util.List;
 import java.util.Map;
 
 /*******************************************************************************
@@ -37,9 +36,9 @@ public interface RocksDBManager extends LifeCycle {
      * @param columnFamily 列族名称，对应到SN名称
      * @param prefixKey    key前缀
      * @return value       返回null则异常
-     * @description: 从RocksDB中获取列族为columnFamily的前缀为prefixKey的所有值
+     * @description: 从RocksDB中获取列族为columnFamily的前缀为prefixKey的所有键值对
      */
-    List<byte[]> readByPrefix(String columnFamily, byte[] prefixKey);
+    Map<byte[], byte[]> readByPrefix(String columnFamily, byte[] prefixKey);
 
     /**
      * @param columnFamily 列族名称

@@ -6,7 +6,6 @@ import com.bonree.brfs.common.net.http.data.FSPacket;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
-import com.bonree.brfs.duplication.datastream.writer.DefaultStorageRegionWriter;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.google.common.base.Preconditions;
@@ -40,7 +39,7 @@ public class BlockManager implements BlockManagerInterface{
     //    private static FileOnConstruction INSTANCE ;
     private BlockPool blockPool;
 
-    private DefaultStorageRegionWriter writer;
+    private StorageRegionWriter writer;
 
 //    private RocksDBManager rocksDBManager ;
 
@@ -58,7 +57,7 @@ public class BlockManager implements BlockManagerInterface{
     @Inject
     public BlockManager(BlockPool blockPool, StorageRegionWriter writer) {
         this.blockPool = blockPool;
-        this.writer = (DefaultStorageRegionWriter) writer;
+        this.writer =  writer;
     }
 
     /**
@@ -83,6 +82,7 @@ public class BlockManager implements BlockManagerInterface{
             result.setCause(new Exception("文件因长时间为写入而被丢弃"));
             LOG.debug("error come here");
             callback.completed(result);
+            return null;
         }
 
         Block block = getBlock(packet);
