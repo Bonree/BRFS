@@ -297,7 +297,7 @@ public class SeqBlockManager implements BlockManagerInterface{
             HandleResult result = new HandleResult();
             try {
                 if(isBigFile){
-                   fid =  FidBuilder.setFileType(fid);
+//                   fid =  FidBuilder.setFileType(fid);
                 }
                 LOG.debug("flush一个文件,fid[{}]", fid);
                 //todo 写目录树
