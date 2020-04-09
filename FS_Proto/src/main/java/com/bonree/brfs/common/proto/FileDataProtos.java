@@ -10384,6 +10384,15 @@ public final class FileDataProtos {
      * <code>optional int64 size = 9;</code>
      */
     long getSize();
+
+    /**
+     * <code>optional bool isBigFile = 10 [default = false];</code>
+     */
+    boolean hasIsBigFile();
+    /**
+     * <code>optional bool isBigFile = 10 [default = false];</code>
+     */
+    boolean getIsBigFile();
   }
   /**
    * Protobuf type {@code brfs.proto.Fid}
@@ -10407,6 +10416,7 @@ public final class FileDataProtos {
       serverId_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       offset_ = 0L;
       size_ = 0L;
+      isBigFile_ = false;
     }
 
     @java.lang.Override
@@ -10485,6 +10495,11 @@ public final class FileDataProtos {
             case 72: {
               bitField0_ |= 0x00000080;
               size_ = input.readInt64();
+              break;
+            }
+            case 80: {
+              bitField0_ |= 0x00000100;
+              isBigFile_ = input.readBool();
               break;
             }
           }
@@ -10775,6 +10790,21 @@ public final class FileDataProtos {
       return size_;
     }
 
+    public static final int ISBIGFILE_FIELD_NUMBER = 10;
+    private boolean isBigFile_;
+    /**
+     * <code>optional bool isBigFile = 10 [default = false];</code>
+     */
+    public boolean hasIsBigFile() {
+      return ((bitField0_ & 0x00000100) == 0x00000100);
+    }
+    /**
+     * <code>optional bool isBigFile = 10 [default = false];</code>
+     */
+    public boolean getIsBigFile() {
+      return isBigFile_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -10813,6 +10843,9 @@ public final class FileDataProtos {
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         output.writeInt64(9, size_);
+      }
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        output.writeBool(10, isBigFile_);
       }
       unknownFields.writeTo(output);
     }
@@ -10860,6 +10893,10 @@ public final class FileDataProtos {
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(9, size_);
+      }
+      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(10, isBigFile_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -10919,6 +10956,11 @@ public final class FileDataProtos {
         result = result && (getSize()
             == other.getSize());
       }
+      result = result && (hasIsBigFile() == other.hasIsBigFile());
+      if (hasIsBigFile()) {
+        result = result && (getIsBigFile()
+            == other.getIsBigFile());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -10969,6 +11011,11 @@ public final class FileDataProtos {
         hash = (37 * hash) + SIZE_FIELD_NUMBER;
         hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
             getSize());
+      }
+      if (hasIsBigFile()) {
+        hash = (37 * hash) + ISBIGFILE_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+            getIsBigFile());
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -11117,6 +11164,8 @@ public final class FileDataProtos {
         bitField0_ = (bitField0_ & ~0x00000080);
         size_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000100);
+        isBigFile_ = false;
+        bitField0_ = (bitField0_ & ~0x00000200);
         return this;
       }
 
@@ -11178,6 +11227,10 @@ public final class FileDataProtos {
           to_bitField0_ |= 0x00000080;
         }
         result.size_ = size_;
+        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+          to_bitField0_ |= 0x00000100;
+        }
+        result.isBigFile_ = isBigFile_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -11255,6 +11308,9 @@ public final class FileDataProtos {
         }
         if (other.hasSize()) {
           setSize(other.getSize());
+        }
+        if (other.hasIsBigFile()) {
+          setIsBigFile(other.getIsBigFile());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -11848,6 +11904,38 @@ public final class FileDataProtos {
         onChanged();
         return this;
       }
+
+      private boolean isBigFile_ ;
+      /**
+       * <code>optional bool isBigFile = 10 [default = false];</code>
+       */
+      public boolean hasIsBigFile() {
+        return ((bitField0_ & 0x00000200) == 0x00000200);
+      }
+      /**
+       * <code>optional bool isBigFile = 10 [default = false];</code>
+       */
+      public boolean getIsBigFile() {
+        return isBigFile_;
+      }
+      /**
+       * <code>optional bool isBigFile = 10 [default = false];</code>
+       */
+      public Builder setIsBigFile(boolean value) {
+        bitField0_ |= 0x00000200;
+        isBigFile_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool isBigFile = 10 [default = false];</code>
+       */
+      public Builder clearIsBigFile() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        isBigFile_ = false;
+        onChanged();
+        return this;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
@@ -11970,12 +12058,13 @@ public final class FileDataProtos {
       "\n\013description\030\005 \001(\t\"i\n\013FileContent\022\017\n\007cr" +
       "cFlag\030\001 \001(\010\022\024\n\014crcCheckCode\030\002 \001(\003\022\023\n\013des" +
       "cription\030\003 \001(\t\022\014\n\004data\030\004 \001(\014\022\020\n\010compress" +
-      "\030\005 \001(\005\"\237\001\n\003Fid\022\017\n\007version\030\001 \001(\005\022\020\n\010compr" +
+      "\030\005 \001(\005\"\271\001\n\003Fid\022\017\n\007version\030\001 \001(\005\022\020\n\010compr" +
       "ess\030\002 \001(\005\022\027\n\017storageNameCode\030\003 \001(\005\022\014\n\004uu" +
       "id\030\004 \001(\t\022\014\n\004time\030\005 \001(\003\022\020\n\010duration\030\006 \001(\003" +
       "\022\020\n\010serverId\030\007 \003(\t\022\016\n\006offset\030\010 \001(\003\022\014\n\004si" +
-      "ze\030\t \001(\003B1\n\034com.bonree.brfs.common.proto" +
-      "B\016FileDataProtos\210\001\000"
+      "ze\030\t \001(\003\022\030\n\tisBigFile\030\n \001(\010:\005falseB1\n\034co" +
+      "m.bonree.brfs.common.protoB\016FileDataProt",
+      "os\210\001\000"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -12036,7 +12125,7 @@ public final class FileDataProtos {
     internal_static_brfs_proto_Fid_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_brfs_proto_Fid_descriptor,
-        new java.lang.String[] { "Version", "Compress", "StorageNameCode", "Uuid", "Time", "Duration", "ServerId", "Offset", "Size", });
+        new java.lang.String[] { "Version", "Compress", "StorageNameCode", "Uuid", "Time", "Duration", "ServerId", "Offset", "Size", "IsBigFile", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

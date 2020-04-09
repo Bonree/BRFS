@@ -78,4 +78,5 @@ message Fid{
     repeated string serverId= 7;       	// 服务标识
     optional int64 offset = 8;      	// 当前文件所在大文件里的偏移量
     optional int64 size = 9;        	// 当前文件的长度
+		optional bool isBigFile = 10	 [default = false];
 }
