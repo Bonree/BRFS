@@ -200,9 +200,8 @@ public class ZookeeperPaths {
         return baseDiscoveryPath;
     }
 
-    public ZookeeperPaths setBaseDiscoveryPath(String baseDiscoveryPath) {
+    public void setBaseDiscoveryPath(String baseDiscoveryPath) {
         this.baseDiscoveryPath = baseDiscoveryPath;
-        return this;
     }
 
     public void createZkPath() {
@@ -218,6 +217,9 @@ public class ZookeeperPaths {
         createPathIfNotExist(client, baseTaskPath);
         createPathIfNotExist(client, baseResourcesPath);
         createPathIfNotExist(client, baseRocksDBPath);
+        createPathIfNotExist(client, baseDiscoveryPath);
+        createPathIfNotExist(client, baseV2RoutePath);
+        createPathIfNotExist(client, baseV2SecondIDPath);
     }
 
     public void createPathIfNotExist(CuratorClient client, String path) {

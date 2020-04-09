@@ -13,40 +13,74 @@
  */
 package com.bonree.brfs.duplication;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+
+import java.time.Duration;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bonree.brfs.client.data.NextData;
 import com.bonree.brfs.client.utils.HttpStatus;
+import com.bonree.brfs.client.utils.Strings;
+import com.bonree.brfs.common.ReturnCode;
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
 import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.guice.ClusterConfig;
+import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.collect.ImmutableList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Response;
-
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 
 @Path("/data")
 public class DataResource {
     private static final Logger LOG = LoggerFactory.getLogger(DataResource.class);
 
+    private final ClusterConfig clusterConfig;
+    private final ServiceManager serviceManager;
+    private final StorageRegionManager storageRegionManager;
+    private final ZookeeperPaths zkPaths;
+    
     private final StorageRegionWriter storageRegionWriter;
     private final BlockManagerInterface blockManager;
 
 
     @Inject
     public DataResource(
+            ClusterConfig clusterConfig,
+            ServiceManager serviceManager,
+            StorageRegionManager storageRegionManager,
+            ZookeeperPaths zkPaths,
             StorageRegionWriter storageRegionWriter,
             BlockManagerInterface blockManager) {
+        this.clusterConfig = clusterConfig;
+        this.serviceManager = serviceManager;
+        this.storageRegionManager = storageRegionManager;
+        this.zkPaths = zkPaths;
         this.storageRegionWriter = storageRegionWriter;
         this.blockManager = blockManager;
     }
@@ -121,5 +155,67 @@ public class DataResource {
             response.resume(e);
         }
 
+    }
+    
+    @DELETE
+    @Path("{srName}")
+    public Response deleteData(
+            @PathParam("srName") String srName,
+            @QueryParam("startTime") String startTime,
+            @QueryParam("endTime") String endTime) {
+        StorageRegion storageRegion = storageRegionManager.findStorageRegionByName(srName);
+        if(storageRegion == null) {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(Strings.format("storage region[%s] is not existed", srName))
+                    .build();
+        }
+        
+        long startTimestamp = 0;
+        long endTimeStamp = 0;
+        try {
+            startTimestamp = DateTime.parse(startTime).getMillis();
+            endTimeStamp = DateTime.parse(endTime).getMillis();
+            checkTime(startTimestamp, endTimeStamp, storageRegion.getCreateTime(), Duration.parse(storageRegion.getFilePartitionDuration()).toMillis());
+        } catch (Exception e) {
+            LOG.error("check time error", e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+        
+        List<Service> serviceList = serviceManager.getServiceListByGroup(clusterConfig.getDataNodeGroup());
+        ReturnCode code = TasksUtils.createUserDeleteTask(serviceList, zkPaths, storageRegion, startTimestamp, endTimeStamp, false);
+        if(ReturnCode.SUCCESS.equals(code)) {
+            return Response.ok().build();
+        }
+        
+        return Response.status(Status.BAD_REQUEST).entity(code.name()).build();
+    }
+    
+    private void checkTime(long start, long end, long cTime, long granule) throws Exception {
+        if (start != (start - start % granule) || end != (end - end % granule)) {
+            throw new IllegalArgumentException(Strings.format(
+                    "starttime and endTime granule is not match !!! startTime: [{}], endTime:[{}], granue:[{}]",
+                    start, end, granule));
+        }
+
+        long currentTime = System.currentTimeMillis();
+        long cuGra = currentTime - currentTime % granule;
+        long sGra = start - start % granule;
+        long eGra = end - end % granule;
+        sGra = start;
+        eGra = end;
+        // 2.开始时间等于结束世界
+        if (sGra >= eGra) {
+            throw new IllegalArgumentException("param error: start time is equal to end time");
+        }
+
+        // 3.结束时间小于创建时间
+        if (cTime > eGra) {
+            throw new IllegalArgumentException("time earlier than create error");
+        }
+
+        // 4.当前时间
+        if (cuGra <= sGra || cuGra < eGra) {
+            throw new IllegalArgumentException("forbid delete current error");
+        }
     }
 }

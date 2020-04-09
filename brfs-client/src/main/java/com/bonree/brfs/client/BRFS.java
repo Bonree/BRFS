@@ -58,7 +58,7 @@ public interface BRFS {
     
     boolean doesObjectExists(String srName, Path path) throws Exception;
     
-    void deleteObjects(long startTime, long endTime) throws Exception;
+    void deleteObjects(String srName, long startTime, long endTime) throws Exception;
     
     void shutdown();
 }

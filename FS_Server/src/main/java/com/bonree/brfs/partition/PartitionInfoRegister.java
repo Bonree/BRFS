@@ -21,7 +21,6 @@ import java.util.List;
 public class PartitionInfoRegister {
     private CuratorFramework framework;
     private String zkBasePath = "/discovery/diskgroup";
-    @Inject
     public PartitionInfoRegister(CuratorFramework framework, String zkBasePath) {
         this.framework = framework;
         this.zkBasePath = zkBasePath;
