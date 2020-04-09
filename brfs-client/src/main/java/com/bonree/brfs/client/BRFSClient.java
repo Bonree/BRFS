@@ -26,7 +26,9 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -49,8 +51,8 @@ import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.Discovery.ServiceType;
 import com.bonree.brfs.client.discovery.ServerNode;
 import com.bonree.brfs.client.json.JsonCodec;
-import com.bonree.brfs.client.ranker.ShiftRanker;
 import com.bonree.brfs.client.ranker.Ranker;
+import com.bonree.brfs.client.ranker.ShiftRanker;
 import com.bonree.brfs.client.storageregion.CreateStorageRegionRequest;
 import com.bonree.brfs.client.storageregion.ListStorageRegionRequest;
 import com.bonree.brfs.client.storageregion.StorageRegionID;
@@ -478,9 +480,38 @@ public class BRFSClient implements BRFS {
         return false;
     }
 
-    public void deleteObjects(long startTime, long endTime) {
-        // TODO Auto-generated method stub
-
+    public void deleteObjects(String srName, long startTime, long endTime) {
+        Retrys.execute(new URIRetryable<Void> (
+                format("delete data of storage region[%s]", srName),
+                getNodeHttpLocations(ServiceType.REGION),
+                uri -> {
+                    Request httpRequest = new Request.Builder()
+                            .url(HttpUrl.get(uri)
+                                    .newBuilder()
+                                    .encodedPath("/data")
+                                    .addQueryParameter("startTime", formatTime(startTime))
+                                    .addQueryParameter("endTime", formatTime(endTime))
+                                    .build())
+                            .delete()
+                            .build();
+                    
+                    try {
+                        Response response = httpClient.newCall(httpRequest).execute();
+                        
+                        if(response.code() == HttpStatus.CODE_OK) {
+                            return TaskResult.success(null);
+                        }
+                        
+                        return TaskResult.fail(new IllegalStateException(format("Server error[%d]", response.code())));
+                    } catch (IOException e) {
+                        return TaskResult.retry(e);
+                    }
+                }));
+    }
+    
+    private static String formatTime(long time) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        return format.format(new Date(time));
     }
     
     private URI buildUri(String scheme, String host, int port) {

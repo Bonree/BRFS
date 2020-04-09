@@ -20,10 +20,7 @@ import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /*******************************************************************************
@@ -43,10 +40,12 @@ public class DiskPartitionInfoManager implements LifeCycle {
     private ZookeeperPaths zkPath;
     private DiskPartitionInfoListener listener;
     private Map<String, PartitionInfo> diskPartitionInfoCache = new ConcurrentHashMap<>();
+
     @Inject
     public DiskPartitionInfoManager(ZookeeperPaths zkPath) {
         this.zkPath = zkPath;
     }
+
     @LifecycleStart
     @Override
     public void start() throws Exception {
@@ -55,6 +54,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
         this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
 
     }
+
     @LifecycleStop
     @Override
     public void stop() throws Exception {
@@ -91,6 +91,10 @@ public class DiskPartitionInfoManager implements LifeCycle {
 
         return treeMap.firstKey();
 
+    }
+
+    public List<String> getCurrentPartitionIds() {
+        return new ArrayList<>(diskPartitionInfoCache.keySet());
     }
 
     private static class DiskPartitionFreeSizeComparator implements Comparator<PartitionInfo> {

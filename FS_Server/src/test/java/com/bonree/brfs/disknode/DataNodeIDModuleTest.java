@@ -70,6 +70,7 @@ public class DataNodeIDModuleTest {
         CuratorFramework client = injector.getInstance(CuratorFramework.class);
         CuratorCacheFactory.init(client);
         DiskDaemon diskDaemon = injector.getInstance(DiskDaemon.class);
+        diskDaemon.start();
         String partitionId = diskDaemon.getPartitionId("D:/tmp/data");
         System.out.println(partitionId);
         IDSManager idsManager = injector.getInstance(IDSManager.class);
