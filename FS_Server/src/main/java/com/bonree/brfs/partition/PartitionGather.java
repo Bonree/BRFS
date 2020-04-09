@@ -1,5 +1,8 @@
 package com.bonree.brfs.partition;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
@@ -24,7 +27,7 @@ import java.util.concurrent.*;
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description:
  ******************************************************************************/
-
+@ManageLifecycle
 public class PartitionGather implements LifeCycle {
     private final static Logger LOG = LoggerFactory.getLogger(PartitionGather.class);
     /**
@@ -44,11 +47,14 @@ public class PartitionGather implements LifeCycle {
         this.pool = Executors.newScheduledThreadPool(1);
         this.worker = new GatherThread(register,validPartions,localInfo);
     }
+    @LifecycleStart
     @Override
     public void start() {
         this.worker.setAlive(true);
         this.pool.schedule(this.worker,this.intervalTimes, TimeUnit.SECONDS);
+        LOG.info("partition gather work start");
     }
+    @LifecycleStop
     @Override
     public void stop() {
         if(this.worker !=null){
@@ -57,6 +63,7 @@ public class PartitionGather implements LifeCycle {
         if(this.pool != null){
             this.pool.shutdown();
         }
+        LOG.info("partition gather work stop");
     }
 
     public void setListener(LocalPartitionListener listener) {
