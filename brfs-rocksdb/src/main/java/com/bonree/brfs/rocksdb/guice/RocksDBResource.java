@@ -19,6 +19,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
@@ -74,13 +75,13 @@ public class RocksDBResource {
     public Response gui(
             @PathParam("srName") String srName,
             @QueryParam("prefix") String prefix) {
-        List<byte[]> fids = this.rocksDBManager.readByPrefix(srName, prefix.getBytes(StandardCharsets.UTF_8));
+        Map<byte[], byte[]> result = this.rocksDBManager.readByPrefix(srName, prefix.getBytes(StandardCharsets.UTF_8));
 
-        if (fids == null || fids.isEmpty()) {
+        if (result == null || result.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        return Response.ok().entity(fids).build();
+        return Response.ok().entity(result).build();
     }
 
     @GET

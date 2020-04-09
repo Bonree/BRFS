@@ -148,14 +148,14 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                         String summary = JsonUtils.toJsonString(summaryObj);
                         String diskPartitionTaskNode = ZKPaths.makePath(changesPath, String.valueOf(snModel.getId()), summaryObj.getChangeID());
                         client.createPersistent(diskPartitionTaskNode, true, summary.getBytes(StandardCharsets.UTF_8));
-                        LOG.info("generator a disk partition change record:" + summary + ", for storageRegion:" + snModel);
+                        LOG.info("generator a disk partition change record [{}] for storageRegion [{}]", summary, snModel);
 
                         if (ChangeType.REMOVE == type) {
                             EmailPool emailPool = EmailPool.getInstance();
                             emailPool.sendEmail(MailWorker.newBuilder(emailPool.getProgramInfo()).setMessage(summary));
                         }
                     } catch (Exception e) {
-                        LOG.error("generator a disk partition change record failed for storageRegion:" + snModel, e);
+                        LOG.error("generator a disk partition change record failed for storageRegion: [{}]", snModel, e);
                         e.printStackTrace();
                     }
                 }
