@@ -1,14 +1,14 @@
 package com.bonree.brfs.duplication;
 
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
+import com.bonree.brfs.common.write.data.FidDecoder;
 import com.bonree.brfs.common.write.data.FidEncoder;
 import com.bonree.brfs.duplication.filenode.FileNode;
 import com.google.common.base.Splitter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 public class FidBuilder {
 	private static final Logger LOG = LoggerFactory.getLogger(FidBuilder.class);
@@ -37,6 +37,34 @@ public class FidBuilder {
 			LOG.error("error create FID: file[{}], offset[{}], size[{}]", node.getName(), offset, size, e);
 		}
 		
+		return null;
+	}
+
+	public static String setFileType(String oldfid) throws Exception {
+		Fid oldFidProto = FidDecoder.build(oldfid);
+		Fid.Builder builder = Fid.newBuilder()
+				.setVersion(oldFidProto.getVersion())
+				.setCompress(oldFidProto.getCompress())
+				.setStorageNameCode(oldFidProto.getStorageNameCode())
+				.setTime(oldFidProto.getTime())
+				.setDuration(oldFidProto.getDuration())
+				.setOffset(oldFidProto.getOffset())
+				.setSize(oldFidProto.getSize())
+				.setIsBigFile(true);
+
+		builder.setUuid(oldFidProto.getUuid());
+		for(int i = 0; i < oldFidProto.getServerIdList().size(); i++) {
+			builder.addServerId(oldFidProto.getServerIdList().get(i));
+		}
+
+		Fid fid = builder.build();
+
+		try {
+			return FidEncoder.build(fid);
+		} catch (Exception e) {
+			LOG.error("error set big file flag FID: [{}]", fid);
+		}
+
 		return null;
 	}
 }
