@@ -13,7 +13,6 @@
  */
 package com.bonree.brfs.duplication;
 
-import com.bonree.brfs.client.BRFSException;
 import com.bonree.brfs.client.data.NextData;
 import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.client.utils.Strings;
@@ -32,7 +31,6 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.rocksdb.RocksDBManager;
-import com.bonree.brfs.rocksdb.WriteStatus;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
@@ -116,21 +114,21 @@ public class DataResource {
 
                             @Override
                             public void complete(String fid) {
-                                if(rocksDBManager.isWritalbe()){
-                                    try {
-                                        WriteStatus writeStatus = rocksDBManager.write(srName, packet.getFileName(), fid);
-                                        if(WriteStatus.SUCCESS !=writeStatus){
-                                            LOG.error("failed when write fid to rocksDB.");
-                                            response.resume(new BRFSException("write fid to rocksDB failed."));
-                                            return;
-                                        }
-                                    } catch (Exception e) {
-                                        LOG.error("error when write fid to rocksDB.", e);
-                                        response.resume(e);
-                                        return;
-                                    }
-                                    LOG.info("sync catalog into rocksDB.");
-                                }
+//                                if(rocksDBManager.isWritalbe()){
+//                                    try {
+//                                        WriteStatus writeStatus = rocksDBManager.write(srName, packet.getFileName(), fid);
+//                                        if(WriteStatus.SUCCESS !=writeStatus){
+//                                            LOG.error("failed when write fid to rocksDB.");
+//                                            response.resume(new BRFSException("write fid to rocksDB failed."));
+//                                            return;
+//                                        }
+//                                    } catch (Exception e) {
+//                                        LOG.error("error when write fid to rocksDB.", e);
+//                                        response.resume(e);
+//                                        return;
+//                                    }
+//                                    LOG.info("sync catalog into rocksDB.");
+//                                }
                                 response.resume(ImmutableList.of(fid));
                                 LOG.info("response file :[{}]:fid[{}]",packet.getFileName(),fid);
                             }
@@ -156,21 +154,21 @@ public class DataResource {
                     }else if(result.isSuccess()){
                         String fid = new String (result.getData());
                         //todo rocksdb
-                        if(rocksDBManager.isWritalbe()){
-                            try {
-                                WriteStatus writeStatus = rocksDBManager.write(srName, packet.getFileName(), fid);
-                                if(WriteStatus.SUCCESS !=writeStatus){
-                                    LOG.error("failed when write fid to rocksDB.");
-                                    response.resume(new BRFSException("write fid to rocksDB failed."));
-                                    return;
-                                }
-                            } catch (Exception e) {
-                                LOG.error("error when write fid to rocksDB.", e);
-                                response.resume(e);
-                                return;
-                            }
-                            LOG.info("sync catalog into rocksDB.");
-                        }
+//                        if(rocksDBManager.isWritalbe()){
+//                            try {
+//                                WriteStatus writeStatus = rocksDBManager.write(srName, packet.getFileName(), fid);
+//                                if(WriteStatus.SUCCESS !=writeStatus){
+//                                    LOG.error("failed when write fid to rocksDB.");
+//                                    response.resume(new BRFSException("write fid to rocksDB failed."));
+//                                    return;
+//                                }
+//                            } catch (Exception e) {
+//                                LOG.error("error when write fid to rocksDB.", e);
+//                                response.resume(e);
+//                                return;
+//                            }
+//                            LOG.info("sync catalog into rocksDB.");
+//                        }
 
 
                         LOG.info("response fid:[{}]",fid);
