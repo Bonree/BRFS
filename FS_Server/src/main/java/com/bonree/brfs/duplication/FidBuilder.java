@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication;
 
+import com.bonree.brfs.client.BRFSException;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.write.data.FidDecoder;
 import com.bonree.brfs.common.write.data.FidEncoder;
@@ -40,8 +41,13 @@ public class FidBuilder {
 		return null;
 	}
 
-	public static String setFileType(String oldfid) throws Exception {
-		Fid oldFidProto = FidDecoder.build(oldfid);
+	public static String setFileType(String oldfid) throws BRFSException {
+		Fid oldFidProto = null;
+		try {
+			oldFidProto = FidDecoder.build(oldfid);
+		} catch (Exception e) {
+			throw new BRFSException("error when build a big file fid!");
+		}
 		Fid.Builder builder = Fid.newBuilder()
 				.setVersion(oldFidProto.getVersion())
 				.setCompress(oldFidProto.getCompress())
