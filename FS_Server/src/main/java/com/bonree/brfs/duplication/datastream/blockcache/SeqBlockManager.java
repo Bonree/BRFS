@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.datastream.blockcache;
 
+import com.bonree.brfs.client.BRFSException;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
@@ -93,7 +94,7 @@ public class SeqBlockManager implements BlockManagerInterface{
                 return null;
             }
             HandleResult handleResult = new HandleResult();
-            LOG.debug("packet[{}] 追加到block,且未写满block，累积在内存中。。。，",packet);
+            LOG.debug("packet[{}] append to block and still not flushed。",packet);
             handleResult.setNextSeqno(packet.getSeqno());
             handleResult.setCONTINUE();
             callback.completed(handleResult);
@@ -227,7 +228,12 @@ public class SeqBlockManager implements BlockManagerInterface{
         @Override
         public void complete(String fid) {
             HandleResult result = new HandleResult();
-            Preconditions.checkNotNull(fid, "在写block[{}]时返回的fid为空",block);
+            if(fid == ""|| fid == null){
+                result.setSuccess(false);
+                result.setCause(new BRFSException("flush file or block error"));
+                callback.completed(result);
+                return;
+            }
             // 1. blockcache中填写fid
             try {
                 BlockValue blockValue = blockcache.get(new BlockKey(storageName, fileName));
@@ -248,7 +254,7 @@ public class SeqBlockManager implements BlockManagerInterface{
                     //todo blockcache recycle
                     writer.write(storageName,data,
                             new WriteFileCallback(callback,storageName,fileName,true));
-                    LOG.info("在[{}]中写了一个大文件索引文件[{}]", storageName, fileName);
+                    LOG.info("flush a big file in [{}],the filename is [{}]", storageName, fileName);
                 }
 
             } catch (ExecutionException e) {
@@ -263,10 +269,10 @@ public class SeqBlockManager implements BlockManagerInterface{
 
         @Override
         public void error() {
-            LOG.error("文件[{}]seqno:" + seqno +
-                    "数据包所在的offset为：" + blockOffsetInfile +
-                    "的block" + block +
-                    "flush时出错！", fileName);
+            LOG.error("file[{}]seqno:" + seqno +
+                    " blockOffsetInfile：" + blockOffsetInfile +
+                    " block" + block +
+                    " flush error！", fileName);
             callback.completed(new HandleResult(false));
         }
     }
@@ -287,7 +293,7 @@ public class SeqBlockManager implements BlockManagerInterface{
         public void complete(String[] fids) {
             HandleResult result = new HandleResult();
             result.setSuccess(false);
-            result.setCause(new Exception("按文件流写入文件不应该一次向datapool中写多个！"));
+            result.setCause(new BRFSException("brfs wrong usage : we can not flush more than 1 file when write a stream！"));
             LOG.debug("error come here");
             callback.completed(result);
         }
@@ -295,11 +301,18 @@ public class SeqBlockManager implements BlockManagerInterface{
         @Override
         public void complete(String fid) {
             HandleResult result = new HandleResult();
+            if(fid == ""|| fid == null){
+                result.setSuccess(false);
+                result.setCause(new BRFSException("flush file or block error"));
+                callback.completed(result);
+                return;
+            }
             try {
+                Preconditions.checkNotNull(fid);
                 if(isBigFile){
                    fid =  FidBuilder.setFileType(fid);
                 }
-                LOG.debug("flush一个文件,fid[{}]", fid);
+                LOG.debug("flushed a file,fid[{}]", fid);
                 //todo 写目录树
 
                 result.setData(JsonUtils.toJsonBytes(fid));
@@ -307,9 +320,11 @@ public class SeqBlockManager implements BlockManagerInterface{
             } catch (JsonUtils.JsonException e) {
                 LOG.error("can not json fids", e);
                 result.setSuccess(false);
-            } catch (Exception e) {
+                result.setCause(e);
+            } catch (BRFSException e) {
                 LOG.error("can not set big file flag decode fids", e);
                 result.setSuccess(false);
+                result.setCause(e);
             }
 
             callback.completed(result);
