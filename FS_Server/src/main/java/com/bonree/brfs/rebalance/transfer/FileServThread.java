@@ -1,5 +1,10 @@
 package com.bonree.brfs.rebalance.transfer;
 
+import com.bonree.brfs.common.utils.FileUtils;
+import com.bonree.brfs.identification.LocalPartitionInterface;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -7,19 +12,15 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-import org.slf4j.Logger;
-
-import com.bonree.brfs.common.utils.FileUtils;
-
 class FileServThread implements Runnable {
 
     private Socket sock;
-    private String dataDir;
+    private LocalPartitionInterface partitionInterface;
     private Logger LOG;
 
-    FileServThread(Socket sock, String dataDir, Logger LOG) {
+    FileServThread(Socket sock, LocalPartitionInterface partitionInterface, Logger LOG) {
         this.sock = sock;
-        this.dataDir = dataDir;
+        this.partitionInterface = partitionInterface;
         this.LOG = LOG;
     }
 
@@ -46,7 +47,7 @@ class FileServThread implements Runnable {
                     break;
                 }
             }
-            writeOutInfo(sock, "send file "+file+" finish");   // 文件接收成功后给客户端反馈一个信息
+            writeOutInfo(sock, "send file " + file + " finish");   // 文件接收成功后给客户端反馈一个信息
             LOG.info("文件传送成功!" + System.getProperty("line.separator"));  // 服务端打印一下
             fos.close();
             sock.close();
@@ -67,9 +68,11 @@ class FileServThread implements Runnable {
         byte[] bufName = new byte[1024];
         int lenInfo = 0;
         lenInfo = sockIn.read(bufName);  // 获取文件名
-        String fileName = new String(bufName, 0, lenInfo ,StandardCharsets.UTF_8);
+        String transferFileName = new String(bufName, 0, lenInfo, StandardCharsets.UTF_8);
 
-        String filePath = dataDir + FileUtils.FILE_SEPARATOR + fileName;
+        String[] split = StringUtils.split(transferFileName, ":");
+        String dataDir = this.partitionInterface.getDataPaths(split[0]);
+        String filePath = dataDir + FileUtils.FILE_SEPARATOR + split[1];
 
         File file = new File(filePath);  //保存到相应的位置
         if (file.isDirectory()) {
@@ -82,9 +85,9 @@ class FileServThread implements Runnable {
             writeOutInfo(sock, "服务端已存在同名文件!"); // 反馈给客户端的信息
             return null;
         }
-        LOG.info("将客户端发来的文件( " + fileName + " )存到" + file.getAbsolutePath());
+        LOG.info("将客户端发来的文件 {} 存到 {}", split[1], file.getAbsolutePath());
         FileUtils.createFile(filePath, true);
-        LOG.info("成功创建文件(" + fileName + " )准备写入数据");
+        LOG.info("成功创建文件 {} 准备写入数据", split[1]);
         writeOutInfo(sock, "FileSendNow");    // 告诉客户端,开始传送数据吧
         return file;
 

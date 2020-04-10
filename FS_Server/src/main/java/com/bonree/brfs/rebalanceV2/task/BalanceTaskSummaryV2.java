@@ -39,7 +39,7 @@ public class BalanceTaskSummaryV2 {
     private int storageIndex;
 
     /**
-     * @description: 需要恢复的磁盘分区ID   V2添加
+     * @description: 需要恢复的分区
      */
     @JsonProperty("partitionId")
     private String partitionId;
@@ -64,34 +64,16 @@ public class BalanceTaskSummaryV2 {
     private List<String> outputServers;
 
     /**
-     * @description: 参与提供恢复数据的partitions    V2添加
-     */
-    @JsonProperty("outputPartitions")
-    private List<String> outputPartitions;
-
-    /**
      * 参与接收恢复数据的servers
      */
     @JsonProperty("inputServers")
     private List<String> inputServers;
 
     /**
-     * 参与接收恢复数据的partitions  V2添加
-     */
-    @JsonProperty("inputPartitions")
-    private List<String> inputPartitions;
-
-    /**
      * 本次平衡时存活的server
      */
     @JsonProperty("aliveServer")
     private List<String> aliveServer;
-
-    /**
-     * 本次平衡时存活的partitions   V2添加
-     */
-    @JsonProperty("alivePartitions")
-    private List<String> alivePartitions;
 
     /**
      * 任务延迟执行时间,单位：秒
@@ -170,14 +152,6 @@ public class BalanceTaskSummaryV2 {
         this.outputServers = outputServers;
     }
 
-    public List<String> getOutputPartitions() {
-        return outputPartitions;
-    }
-
-    public void setOutputPartitions(List<String> outputPartitions) {
-        this.outputPartitions = outputPartitions;
-    }
-
     public List<String> getInputServers() {
         return inputServers;
     }
@@ -186,28 +160,12 @@ public class BalanceTaskSummaryV2 {
         this.inputServers = inputServers;
     }
 
-    public List<String> getInputPartitions() {
-        return inputPartitions;
-    }
-
-    public void setInputPartitions(List<String> inputPartitions) {
-        this.inputPartitions = inputPartitions;
-    }
-
     public List<String> getAliveServer() {
         return aliveServer;
     }
 
     public void setAliveServer(List<String> aliveServer) {
         this.aliveServer = aliveServer;
-    }
-
-    public List<String> getAlivePartitions() {
-        return alivePartitions;
-    }
-
-    public void setAlivePartitions(List<String> alivePartitions) {
-        this.alivePartitions = alivePartitions;
     }
 
     public long getDelayTime() {
@@ -237,11 +195,8 @@ public class BalanceTaskSummaryV2 {
                 .add("taskType", taskType)
                 .add("taskStatus", taskStatus)
                 .add("outputServers", outputServers)
-                .add("outputPartitions", outputPartitions)
                 .add("inputServers", inputServers)
-                .add("inputPartitions", inputPartitions)
                 .add("aliveServer", aliveServer)
-                .add("alivePartitions", alivePartitions)
                 .add("delayTime", delayTime)
                 .add("interval", interval)
                 .toString();

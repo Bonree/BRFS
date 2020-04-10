@@ -14,7 +14,7 @@ public interface BalanceTaskGeneratorV2 {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    BalanceTaskSummaryV2 genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId, String selectID, String participator, List<String> inputPartitions, List<String> outputPartitions, List<String> alivePartitions, long delayTime);
+    BalanceTaskSummaryV2 genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId, String selectID, String participator, long delayTime);
 
     /**
      * 概述：生成普通的SID迁移任务
@@ -23,6 +23,6 @@ public interface BalanceTaskGeneratorV2 {
      * @return
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    BalanceTaskSummaryV2 genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID, List<String> selectIDs, List<String> participators, List<String> inputPartitions, List<String> outputPartitions, List<String> alivePartitions, long delayTime);
+    BalanceTaskSummaryV2 genBalanceTask(String changeID, int storageIndex,  String partitionId, String secondServerID, List<String> selectIDs, List<String> participators, long delayTime);
 
 }

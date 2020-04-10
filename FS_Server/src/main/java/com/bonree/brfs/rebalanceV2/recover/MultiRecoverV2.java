@@ -12,6 +12,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.recover.FileRecoverMeta;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
@@ -25,7 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年4月9日 下午2:18:16
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 副本恢复
@@ -56,8 +60,6 @@ public class MultiRecoverV2 implements DataRecover {
 
     private final String storageName;
 
-    private final String dataDir;
-
     private final ServiceManager serviceManager;
 
     private ServerIDManager idManager;
@@ -78,7 +80,11 @@ public class MultiRecoverV2 implements DataRecover {
 
     private TaskDetail detail;
 
+    private String dataDir;
+
     private int currentCount = 0;
+
+    private LocalPartitionInterface partitionInterface;
 
     private BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
@@ -102,7 +108,7 @@ public class MultiRecoverV2 implements DataRecover {
                     TaskStatus stats = bts.getTaskStatus();
                     // 更新缓存
                     status.set(stats);
-                    LOG.info("stats:" + stats);
+                    LOG.info("stats: {}", stats);
                 } else { // 不是同一个任务
                     LOG.info("newID:{} not match oldID:{}", newID, oldID);
                     LOG.info("cancel multirecover:{}", balanceSummary);
@@ -116,16 +122,16 @@ public class MultiRecoverV2 implements DataRecover {
 
     }
 
-    public MultiRecoverV2(BalanceTaskSummaryV2 summary, ServerIDManager idManager, ServiceManager serviceManager, String taskNode, CuratorClient client, String dataDir, String storageName, String baseRoutesPath) {
+    public MultiRecoverV2(LocalPartitionInterface partitionInterface, BalanceTaskSummaryV2 summary, ServerIDManager idManager, ServiceManager serviceManager, String taskNode, CuratorClient client, String storageName, String baseRoutesPath) {
         this.balanceSummary = summary;
         this.idManager = idManager;
         this.serviceManager = serviceManager;
         this.taskNode = taskNode;
         this.baseRoutesPath = baseRoutesPath;
         this.client = client;
-        this.dataDir = dataDir;
         this.storageName = storageName;
         this.fileClient = new SimpleFileClient();
+        this.partitionInterface = partitionInterface;
         // 开启监控
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(taskNode, new RecoverListener("recover"));
@@ -153,7 +159,7 @@ public class MultiRecoverV2 implements DataRecover {
                 }
             }
         }
-        LOG.info("virtual routes:" + virtualRoutes);
+        LOG.info("virtual routes: {}", virtualRoutes);
 
         // load normal id
         String normalPath = baseRoutesPath + Constants.SEPARATOR + Constants.NORMAL_ROUTE + Constants.SEPARATOR + balanceSummary
@@ -169,7 +175,7 @@ public class MultiRecoverV2 implements DataRecover {
                 }
             }
         }
-        LOG.info("normal routes:" + normalRoutes);
+        LOG.info("normal routes: {}", normalRoutes);
     }
 
     @Override
@@ -177,15 +183,15 @@ public class MultiRecoverV2 implements DataRecover {
 
         LOG.info("begin normal recover");
         // 注册节点
-        LOG.info("create:" + selfNode + "-------------" + detail);
+        LOG.info("create:{} ------------- {}", selfNode, detail);
         // 无注册的话，则注册，否则不用注册
         while (true) {
             detail = registerNodeDetail(selfNode);
             if (detail != null) {
-                LOG.info("register " + selfNode + " is successful!!");
+                LOG.info("register {} is successful!!", selfNode);
                 break;
             }
-            LOG.error("register " + selfNode + " is error!!");
+            LOG.error("register {} is error!!", selfNode);
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -208,7 +214,7 @@ public class MultiRecoverV2 implements DataRecover {
                     if (!status.get().equals(TaskStatus.PAUSE)) {
                         break;
                     }
-                    LOG.info("sub task is pause for " + balanceSummary);
+                    LOG.info("sub task is pause for {}", balanceSummary);
                     Thread.sleep(1000);
                 }
 
@@ -233,6 +239,7 @@ public class MultiRecoverV2 implements DataRecover {
         LOG.info("update:" + selfNode + "-------------" + detail);
         updateDetail(selfNode, detail);
 
+        String dataDir = this.partitionInterface.getDataPaths(balanceSummary.getPartitionId());
         String snDataDir = dataDir + FileUtils.FILE_SEPARATOR + storageName;
         if (!FileUtils.isExist(snDataDir)) {
             finishTask();
@@ -250,7 +257,7 @@ public class MultiRecoverV2 implements DataRecover {
         detail.setTotalDirectories(fileCounts);
         updateDetail(selfNode, detail);
 
-        LOG.info("deal the local server:" + idManager.getSecondServerID(balanceSummary.getStorageIndex()));
+        LOG.info("deal the local server: {}", idManager.getSecondServerID(balanceSummary.getStorageIndex()));
 
         // 遍历副本文件
         // dealReplicas(replicasNames, snDataDir);
@@ -261,7 +268,13 @@ public class MultiRecoverV2 implements DataRecover {
             String perFile = dataDir + FileUtils.FILE_SEPARATOR + brfsPath.toString();
             String timeFile = brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
                     .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
-                            .getHourMinSecond();
+                    .getHourMinSecond();
+
+            // 1. use route rule select second level id from inputServers
+            // 2. get remote partition id by second level id   todo
+            String remotePartitionId = "";
+            timeFile = remotePartitionId + timeFile;
+
             if (!perFile.endsWith(".rd")) {
                 dealFile(perFile, brfsPath.getFileName(), timeFile, Integer.parseInt(brfsPath.getIndex()));
             }
@@ -397,7 +410,7 @@ public class MultiRecoverV2 implements DataRecover {
                                     }
                                     Service service = serviceManager.getServiceById(Configs.getConfiguration()
                                             .GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), fileRecover
-                                                    .getFirstServerID());
+                                            .getFirstServerID());
                                     if (service == null) {
                                         LOG.warn("first id is {},maybe down!", fileRecover.getFirstServerID());
                                         Thread.sleep(1000);
@@ -416,11 +429,6 @@ public class MultiRecoverV2 implements DataRecover {
                                 detail.setCurentCount(currentCount);
                                 detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
                                 updateDetail(selfNode, detail);
-                                if (success) {
-                                    // BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()),
-                                    // fileRecover.getFirstServerID());
-                                    // fileRecover.getSimpleWriter().writeRecord(record.toString());
-                                }
                                 LOG.info("update:" + selfNode + "-------------" + detail);
                             }
                         }
@@ -448,19 +456,17 @@ public class MultiRecoverV2 implements DataRecover {
                 selectedList.add(tmp);
             }
         }
-        Collections.sort(selectedList, new CompareFromName());
+        selectedList.sort(new CompareFromName());
         return selectedList;
     }
 
     private boolean isAlive(List<String> aliveServers, String serverId) {
-        if (aliveServers.contains(serverId)) {
-            return true;
-        } else {
-            return false;
-        }
+        return aliveServers.contains(serverId);
     }
 
-    /** 概述：更新任务信息
+    /**
+     * 概述：更新任务信息
+     *
      * @param node
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
@@ -474,7 +480,9 @@ public class MultiRecoverV2 implements DataRecover {
         }
     }
 
-    /** 概述：注册节点
+    /**
+     * 概述：注册节点
+     *
      * @param node
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */

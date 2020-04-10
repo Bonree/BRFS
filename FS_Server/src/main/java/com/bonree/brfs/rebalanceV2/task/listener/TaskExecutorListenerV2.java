@@ -25,7 +25,7 @@ public class TaskExecutorListenerV2 implements TreeCacheListener {
     @Override
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         LOG.info("event info:" + event);
-        // 此处只捕捉NODE_ADDED时间
+        // 此处只捕捉NODE_ADDED事件
         if (event.getType() == Type.NODE_ADDED) {
             // 是否为任务类型节点
             String path = event.getData().getPath();

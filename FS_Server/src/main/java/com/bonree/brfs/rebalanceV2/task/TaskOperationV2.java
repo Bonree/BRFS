@@ -60,13 +60,14 @@ public class TaskOperationV2 implements Closeable {
     }
 
     public void start() {
-        LOG.info("add tree cache:" + tasksPath);
+        LOG.info("add tree cache for path: {}", tasksPath);
         treeCache.addListener(tasksPath, new TaskExecutorListenerV2(this));
     }
 
     public void launchDelayTaskExecutor(BalanceTaskSummaryV2 taskSummary, String taskPath) {
         DataRecover recover = null;
-        List<String> multiIds = taskSummary.getOutputServers();
+        List<String> multiIds = taskSummary.getOutputServers();  // 二级serverId集合
+
         if (multiIds.contains(idManager.getSecondServerID(taskSummary.getStorageIndex()))) {
             // 注册自身的selfMultiId,并设置为created阶段
             if (taskSummary.getTaskType() == RecoverType.NORMAL) { // 正常迁移任务
