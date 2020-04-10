@@ -84,6 +84,7 @@ public class SeqBlockManager implements BlockManagerInterface{
                     writer.write(storage,blockValue.getRealData(),
                             new WriteBlockCallback(callback,packet,true));
                     LOG.info("flush a block into the data pool ");
+                    blockValue.releaseData();
                     return null;
                 }
             }
@@ -91,6 +92,7 @@ public class SeqBlockManager implements BlockManagerInterface{
                 writer.write(storage, blockValue.getRealData(),
                         new WriteBlockCallback(callback, packet, packet.isLastPacketInFile()));
                 LOG.info("flush a block into data pool ");
+                blockValue.releaseData();
                 return null;
             }
             HandleResult handleResult = new HandleResult();
@@ -158,7 +160,10 @@ public class SeqBlockManager implements BlockManagerInterface{
             System.arraycopy(data,0,realData,0,pos);
             return realData;
         }
-
+        public void releaseData(){
+            data = new byte[(int)blockSize];
+            pos = 0;
+        }
         public int getBlockPos(){
             return pos;
         }
@@ -243,7 +248,6 @@ public class SeqBlockManager implements BlockManagerInterface{
                             " filename:" + fileName +
                             " storageName:" + storageName +
                             " done flush";
-                    LOG.debug(response);
                     result.setCONTINUE();
                     result.setNextSeqno(seqno);
                     callback.completed(result);
