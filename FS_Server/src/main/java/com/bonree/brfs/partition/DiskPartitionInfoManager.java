@@ -11,6 +11,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.PartitionIdsConfigs;
 import com.bonree.brfs.partition.model.PartitionInfo;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
@@ -49,15 +50,16 @@ public class DiskPartitionInfoManager implements LifeCycle {
     public void start() throws Exception {
         this.childCache = CuratorCacheFactory.getPathCache();
         this.listener = new DiskPartitionInfoListener("disk_partition_cache");
-        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
-
+        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().GetConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 
     @Override
     public void stop() throws Exception {
-        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
+    private void load()throws Exception{
 
+    }
     public PartitionInfo getPartitionInfoByPartitionId(String partitionId) {
         return diskPartitionInfoCache.get(partitionId);
     }
