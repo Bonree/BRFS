@@ -34,20 +34,20 @@ public class NonRocksDBManager implements RocksDBManager {
         return null;
     }
 
-    @Override
-    public WriteStatus write(String columnFamily, String fullPath, String fid) throws Exception {
-        return WriteStatus.FAILED;
-    }
+//    @Override
+//    public WriteStatus write(String columnFamily, String fullPath, String fid) throws Exception {
+//        return WriteStatus.FAILED;
+//    }
 
     @Override
     public WriteStatus write(RocksDBDataUnit dataUnit) throws Exception {
         return null;
     }
 
-    @Override
-    public boolean isWritalbe() {
-        return false;
-    }
+//    @Override
+//    public boolean isWritalbe() {
+//        return false;
+//    }
 
     @Override
     public void createColumnFamilyWithTtl(String columnFamily, int ttl) throws Exception {
