@@ -30,6 +30,7 @@ public class SeqBlockManager implements BlockManagerInterface{
     private RocksDBManager rocksDBManager;
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManager.class);
     private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
+    private static long initBlockSize = 1024 * 1024;
 
     private LoadingCache<BlockKey,BlockValue> blockcache = CacheBuilder.newBuilder().
             concurrencyLevel(Runtime.getRuntime()
@@ -41,7 +42,7 @@ public class SeqBlockManager implements BlockManagerInterface{
 
                 @Override
                 public BlockValue load(BlockKey blockKey) throws Exception {
-                    return new BlockValue(new byte[(int)blockSize]);
+                    return new BlockValue(new byte[(int)initBlockSize]);
                 }
             });
     @Inject
@@ -78,12 +79,13 @@ public class SeqBlockManager implements BlockManagerInterface{
                     writer.write(storage,blockValue.getRealData(),
                             new WriteFileCallback(callback,storage,fileName,false));
                     LOG.info("flush a small file into the data pool");
+                    blockValue.releaseData();
                     return null;
                 }else {
                     // we should flush the last block to get its fid
                     writer.write(storage,blockValue.getRealData(),
                             new WriteBlockCallback(callback,packet,true));
-                    LOG.info("flush a block into the data pool ");
+                    LOG.info("flush the last block into the data pool ");
                     blockValue.releaseData();
                     return null;
                 }
@@ -92,7 +94,7 @@ public class SeqBlockManager implements BlockManagerInterface{
                 writer.write(storage, blockValue.getRealData(),
                         new WriteBlockCallback(callback, packet, packet.isLastPacketInFile()));
                 LOG.info("flush a block into data pool ");
-                blockValue.releaseData();
+                blockValue.reset();
                 return null;
             }
             HandleResult handleResult = new HandleResult();
@@ -160,14 +162,11 @@ public class SeqBlockManager implements BlockManagerInterface{
             System.arraycopy(data,0,realData,0,pos);
             return realData;
         }
-        public void releaseData(){
-            data = new byte[(int)blockSize];
-            pos = 0;
-        }
         public int getBlockPos(){
             return pos;
         }
         public boolean appendPacket(byte[] pData){
+            growDataIfNecessary(pData.length);
             if(pos+pData.length == blockSize){
                 System.arraycopy(pData,0,data,pos,pData.length);
                 pos+=pData.length;
@@ -178,6 +177,15 @@ public class SeqBlockManager implements BlockManagerInterface{
             pos+=pData.length;
             return false;
         }
+
+        private void growDataIfNecessary(int length) {
+            if(length+pos > data.length){
+                byte[] tmp = new byte[2 * data.length];
+                System.arraycopy(data,0,tmp,0,pos);
+                data = tmp;
+            }
+        }
+
         public byte[] writeFile(int storageName, String fileName) {
             StringBuilder sb = new StringBuilder("::brfs-index-file::storage[" + storageName + "]file[" + fileName + "]\n");
             for (String fid : fids) {
@@ -188,7 +196,10 @@ public class SeqBlockManager implements BlockManagerInterface{
         public void reset(){
             pos = 0;
         }
-
+        public void releaseData(){
+            pos = 0;
+            data = null;
+        }
         public void addFid(String fid) {
             fids.add(fid);
         }
@@ -258,7 +269,7 @@ public class SeqBlockManager implements BlockManagerInterface{
                     //todo blockcache recycle
                     writer.write(storageName,data,
                             new WriteFileCallback(callback,storageName,fileName,true));
-                    LOG.info("flush a big file in [{}],the filename is [{}]", storageName, fileName);
+                    LOG.info("flushing a big file in [{}],the filename is [{}]", storageName, fileName);
                 }
 
             } catch (ExecutionException e) {
