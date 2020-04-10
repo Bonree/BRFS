@@ -5,20 +5,17 @@ import javax.inject.Inject;
 import com.bonree.brfs.duplication.filenode.FileNode;
 import com.bonree.brfs.duplication.filenode.FilePathBuilder;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
-import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class IDFilePathMaker implements FilePathMaker {
-	private ServerIDManager idManager;
-	
+
 	@Inject
-	public IDFilePathMaker(ServerIDManager manager) {
-		this.idManager = manager;
+	public IDFilePathMaker() {
+
 	}
 
 	@Override
 	public String buildPath(FileNode fileNode, DuplicateNode dupNode) {
-		String serverId = idManager.getOtherSecondID(dupNode.getId(), fileNode.getStorageId());
-		return FilePathBuilder.buildFilePath(fileNode, serverId);
+		return FilePathBuilder.buildFilePath(fileNode, dupNode.getSecondId());
 	}
 
 }

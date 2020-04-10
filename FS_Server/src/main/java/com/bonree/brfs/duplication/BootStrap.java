@@ -164,7 +164,7 @@ public class BootStrap {
             TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup);
             finalizer.add(tcpClientGroup);
 
-            FilePathMaker pathMaker = new IDFilePathMaker(idManager);
+            FilePathMaker pathMaker = new IDFilePathMaker();
             /********************/
 
 

@@ -3,6 +3,7 @@ package com.bonree.brfs.duplication;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
+import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
@@ -33,10 +34,7 @@ public class RegionIDModule implements Module {
     @Override
     public void configure(Binder binder) {
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class).in(Scopes.SINGLETON);
-//        binder.bind(RouteLoader.class).to(SimpleRouteZKLoader.class).in(Scopes.SINGLETON);
-//        binder.bind(SecondIdsInterface.class).to(SecondIDRelationShip.class).in(Scopes.SINGLETON);
-//        binder.bind(PartitionNodeSelector.class).to(SimplePartitionNodeSelecotr.class);
-//        binder.bind(DuplicateNodeSelector.class).to()
+        LifecycleModule.register(binder,DiskPartitionInfoManager.class);
     }
     @Provides
     @Singleton

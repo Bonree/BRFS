@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description: 负责DataNode磁盘信息管理
  ******************************************************************************/
-@ManageLifecycle
 public class DiskPartitionInfoManager implements LifeCycle {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiskPartitionInfoManager.class);
@@ -46,7 +45,6 @@ public class DiskPartitionInfoManager implements LifeCycle {
         this.zkPath = zkPath;
     }
 
-    @LifecycleStart
     @Override
     public void start() throws Exception {
         this.childCache = CuratorCacheFactory.getPathCache();
@@ -55,7 +53,6 @@ public class DiskPartitionInfoManager implements LifeCycle {
 
     }
 
-    @LifecycleStop
     @Override
     public void stop() throws Exception {
         this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
