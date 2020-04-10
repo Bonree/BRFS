@@ -242,12 +242,13 @@ public class PartitionCheckingRoutine {
                     throw new RuntimeException("dir [" + dir + "] can't find vaild partition !!");
                 }
                 FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-                String key = StringUtils.join(fs.getDevName(), fs.getDirName(), usage.getTotal());
-                if (keepOnlyOne.add(key)) {
-                    fsMap.put(dir, fs);
-                } else {
-                    throw new RuntimeException("The configured directories are on the same disk partition!! dir:[" + dir + "],partition:[" + fs.getDirName() + "]");
-                }
+//                String key = StringUtils.join(fs.getDevName(), fs.getDirName(), usage.getTotal());
+                fsMap.put(dir, fs);
+//                if (keepOnlyOne.add(key)) {
+//                    fsMap.put(dir, fs);
+//                } else {
+//                    throw new RuntimeException("The configured directories are on the same disk partition!! dir:[" + dir + "],partition:[" + fs.getDirName() + "]");
+//                }
             }
         } catch (SigarException e) {
             throw new RuntimeException("Error checking internal files", e);
