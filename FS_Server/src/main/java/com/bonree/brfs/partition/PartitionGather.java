@@ -146,7 +146,7 @@ public class PartitionGather implements LifeCycle {
             obj.setRegisterTime(System.currentTimeMillis());
             obj.setTotalSize(local.getTotalSize());
             if(fs !=null){
-                FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDevName());
+                FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
                 obj.setFreeSize(usage.getAvail()/1024/1024);
             }
             return obj;
