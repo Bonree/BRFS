@@ -10,9 +10,10 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.configuration.units.RebalanceConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.rebalance.transfer.SimpleFileServer;
+import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalanceV2.task.TaskDispatcherV2;
 import com.bonree.brfs.rebalanceV2.task.TaskOperationV2;
+import com.bonree.brfs.rebalanceV2.transfer.SimpleFileServer;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,10 +32,12 @@ public class RebalanceManagerV2 implements Closeable {
     SimpleFileServer fileServer = null;
     ExecutorService simpleFileServer = Executors.newSingleThreadExecutor();
     private CuratorClient curatorClient = null;
+    private LocalPartitionInterface partitionInterface;
 
     @Inject
-    public RebalanceManagerV2(ZookeeperPaths zkPaths, ServerIDManager idManager, StorageRegionManager snManager, ServiceManager serviceManager) {
-    	String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+    public RebalanceManagerV2(ZookeeperPaths zkPaths, ServerIDManager idManager, StorageRegionManager snManager, ServiceManager serviceManager, LocalPartitionInterface partitionInterface) {
+    	this.partitionInterface = partitionInterface;
+        String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         curatorClient = CuratorClient.getClientInstance(zkAddresses, 500, 500);
         dispatch = new TaskDispatcherV2(curatorClient, zkPaths.getBaseRebalancePath(),
         		zkPaths.getBaseRoutePath(), idManager,
@@ -44,11 +47,11 @@ public class RebalanceManagerV2 implements Closeable {
         
         String dataPath = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT);
         opt = new TaskOperationV2(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager,
-        		dataPath, snManager, serviceManager);
+        		dataPath, snManager, serviceManager, partitionInterface);
         
 		int port = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT);
         try {
-            fileServer = new SimpleFileServer(port + 20, dataPath, 10);
+            fileServer = new SimpleFileServer(port + 20, this.partitionInterface, 10);
         } catch (IOException e) {
             LOG.info("fileServer launch error!!!", e);
         }

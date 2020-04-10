@@ -10,7 +10,7 @@ import java.util.List;
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年4月18日 下午4:43:40
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 通过change 生成 task
@@ -18,7 +18,7 @@ import java.util.List;
 public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
 
     @Override
-    public BalanceTaskSummaryV2 genVirtualTask(String changeID, int storageIndex, String partitionId,String virtualId, String selectID, String participator, List<String> inputPartitions, List<String> outputPartitions,List<String> alivePartitions, long delayTime) {
+    public BalanceTaskSummaryV2 genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId, String selectID, String participator, long delayTime) {
 
         BalanceTaskSummaryV2 taskSummary = new BalanceTaskSummaryV2();
         // changeID
@@ -40,15 +40,12 @@ public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
         taskSummary.setDelayTime(delayTime); // 1分钟后开始迁移
 
         taskSummary.setPartitionId(partitionId);
-        taskSummary.setInputPartitions(inputPartitions);
-        taskSummary.setOutputPartitions(outputPartitions);
-        taskSummary.setAlivePartitions(alivePartitions);
 
         return taskSummary;
     }
 
     @Override
-    public BalanceTaskSummaryV2 genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID, List<String> selectIDs, List<String> participators, List<String> inputPartitions, List<String> outputPartitions,List<String> alivePartitions,long delayTime) {
+    public BalanceTaskSummaryV2 genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID, List<String> selectIDs, List<String> participators, long delayTime) {
         BalanceTaskSummaryV2 taskSummary = new BalanceTaskSummaryV2();
 
         taskSummary.setChangeID(changeID);
@@ -70,10 +67,7 @@ public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
         taskSummary.setDelayTime(delayTime);
 
         taskSummary.setPartitionId(partitionId);
-        taskSummary.setInputPartitions(inputPartitions);
-        taskSummary.setOutputPartitions(outputPartitions);
-        taskSummary.setAlivePartitions(alivePartitions);
-        
+
         return taskSummary;
     }
 

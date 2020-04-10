@@ -17,8 +17,8 @@ import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.recover.FileRecoverMeta;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.rebalance.transfer.SimpleFileClient;
 import com.bonree.brfs.rebalanceV2.task.BalanceTaskSummaryV2;
+import com.bonree.brfs.rebalanceV2.transfer.SimpleFileClient;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年3月23日 下午2:16:13
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 恢复虚拟ServerID的
@@ -211,7 +211,7 @@ public class VirtualRecoverV2 implements DataRecover {
             if (!perFile.endsWith(".rd")) {
                 String timeFileName = brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
                         .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
-                                .getHourMinSecond();
+                        .getHourMinSecond();
                 String fileName = brfsPath.getFileName();
                 int replicaPot = 0;
                 String[] metaArr = fileName.split(NAME_SEPARATOR);
@@ -337,7 +337,9 @@ public class VirtualRecoverV2 implements DataRecover {
         return success;
     }
 
-    /** 概述：更新任务信息
+    /**
+     * 概述：更新任务信息
+     *
      * @param node
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
@@ -351,7 +353,9 @@ public class VirtualRecoverV2 implements DataRecover {
         }
     }
 
-    /** 概述：注册节点
+    /**
+     * 概述：注册节点
+     *
      * @param node
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */

@@ -13,29 +13,6 @@
  */
 package com.bonree.brfs.duplication;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-
-import java.time.Duration;
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.client.data.NextData;
 import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.client.utils.Strings;
@@ -50,13 +27,27 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
-import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
-import com.bonree.brfs.rocksdb.RocksDBManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.guice.ClusterConfig;
+import com.bonree.brfs.rocksdb.RocksDBManager;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.collect.ImmutableList;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.time.Duration;
+import java.util.List;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 
 @Path("/data")
 public class DataResource {
@@ -69,6 +60,7 @@ public class DataResource {
 
     private final StorageRegionWriter storageRegionWriter;
     private final BlockManagerInterface blockManager;
+    private RocksDBManager rocksDBManager;
 
 
     @Inject
@@ -78,13 +70,15 @@ public class DataResource {
             StorageRegionManager storageRegionManager,
             ZookeeperPaths zkPaths,
             StorageRegionWriter storageRegionWriter,
-            BlockManagerInterface blockManager) {
+            BlockManagerInterface blockManager,
+            RocksDBManager rocksDBManager) {
         this.clusterConfig = clusterConfig;
         this.serviceManager = serviceManager;
         this.storageRegionManager = storageRegionManager;
         this.zkPaths = zkPaths;
         this.storageRegionWriter = storageRegionWriter;
         this.blockManager = blockManager;
+        this.rocksDBManager = rocksDBManager;
     }
 
     @POST
@@ -120,6 +114,21 @@ public class DataResource {
 
                             @Override
                             public void complete(String fid) {
+//                                if(rocksDBManager.isWritalbe()){
+//                                    try {
+//                                        WriteStatus writeStatus = rocksDBManager.write(srName, packet.getFileName(), fid);
+//                                        if(WriteStatus.SUCCESS !=writeStatus){
+//                                            LOG.error("failed when write fid to rocksDB.");
+//                                            response.resume(new BRFSException("write fid to rocksDB failed."));
+//                                            return;
+//                                        }
+//                                    } catch (Exception e) {
+//                                        LOG.error("error when write fid to rocksDB.", e);
+//                                        response.resume(e);
+//                                        return;
+//                                    }
+//                                    LOG.info("sync catalog into rocksDB.");
+//                                }
                                 response.resume(ImmutableList.of(fid));
                                 LOG.info("response file :[{}]:fid[{}]",packet.getFileName(),fid);
                             }
@@ -145,6 +154,23 @@ public class DataResource {
                     }else if(result.isSuccess()){
                         String fid = new String (result.getData());
                         //todo rocksdb
+//                        if(rocksDBManager.isWritalbe()){
+//                            try {
+//                                WriteStatus writeStatus = rocksDBManager.write(srName, packet.getFileName(), fid);
+//                                if(WriteStatus.SUCCESS !=writeStatus){
+//                                    LOG.error("failed when write fid to rocksDB.");
+//                                    response.resume(new BRFSException("write fid to rocksDB failed."));
+//                                    return;
+//                                }
+//                            } catch (Exception e) {
+//                                LOG.error("error when write fid to rocksDB.", e);
+//                                response.resume(e);
+//                                return;
+//                            }
+//                            LOG.info("sync catalog into rocksDB.");
+//                        }
+
+
                         LOG.info("response fid:[{}]",fid);
                         response.resume(Response
                                 .ok()

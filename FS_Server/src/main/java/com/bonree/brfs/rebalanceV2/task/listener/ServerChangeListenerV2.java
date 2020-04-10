@@ -34,20 +34,22 @@ public class ServerChangeListenerV2 implements TreeCacheListener {
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         LOG.info("leaderLath:" + dispatcher.getLeaderLatch().hasLeadership());
         if (dispatcher.getLeaderLatch().hasLeadership()) {
-            // 检查event是否有数据
-            if (event.getType() != Type.NODE_REMOVED) { // 发现changes目录有新的任务产生
+
+            // 发现changes目录有新的任务产生，之所以不监听REMOVE事件是因为REMOVE事件是任务监听器逻辑控制的
+            if (event.getType() != Type.NODE_REMOVED) {
                 if (event.getData() != null && event.getData().getData() != null) {
                     // 需要进行检查，在切换leader的时候，变更记录需要加载进来。
                     if (!dispatcher.isLoad().get()) {
                         // 此处加载缓存
-                        LOG.info("load all changes");
+                        LOG.info("load all changes to summary cache.");
                         dispatcher.loadCache();
                         dispatcher.isLoad().set(true);
                     }
+
                     if (event.getData().getData() != null) {
-                        LOG.info("parse and add change:" + RebalanceUtils.convertEvent(event));
+                        LOG.info("parse and add change: {}", RebalanceUtils.convertEvent(event));
                         String absolutePath = event.getData().getPath();
-                        String chanName = StringUtils.substring(absolutePath, absolutePath.lastIndexOf('/') + 1, absolutePath.length());
+                        String chanName = StringUtils.substring(absolutePath, absolutePath.lastIndexOf('/') + 1, absolutePath.length());   // changeId
                         if (chanName.length() > 16) {
                             DiskPartitionChangeSummary summary = JsonUtils.toObjectQuietly(event.getData().getData(), DiskPartitionChangeSummary.class);
                             if (summary != null) {
@@ -55,12 +57,12 @@ public class ServerChangeListenerV2 implements TreeCacheListener {
                                 dispatcher.getDetailQueue().put(summary);
                             }
                         } else {
-                            LOG.info("ignore the change:" + RebalanceUtils.convertEvent(event));
+                            LOG.info("ignore the change: {}", RebalanceUtils.convertEvent(event));
                         }
                     }
 
                 } else {
-                    LOG.info("ignore the invalid change:" + event);
+                    LOG.info("ignore the invalid change: {}", event);
                 }
             }
         }
