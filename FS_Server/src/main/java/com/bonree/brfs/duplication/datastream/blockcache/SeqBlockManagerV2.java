@@ -9,7 +9,6 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.FidBuilder;
-import com.bonree.brfs.duplication.datastream.dataengine.impl.DataObject;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.rocksdb.RocksDBManager;
@@ -21,19 +20,17 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SeqBlockManager implements BlockManagerInterface{
+public class SeqBlockManagerV2 implements BlockManagerInterface{
     private StorageRegionWriter writer;
     private RocksDBManager rocksDBManager;
-    private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManagerV2.class);
     private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
     private static long initBlockSize = 1024 * 1024;
     private LinkedBlockingQueue<WriteFileRequest> fileWaiting = new LinkedBlockingQueue(100);
@@ -41,32 +38,20 @@ public class SeqBlockManager implements BlockManagerInterface{
     private ExecutorService fileWorker;
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
+    SeqBlockPool blockPool = new SeqBlockPool(blockSize,20,1);
 
-
-    private LoadingCache<BlockKey,BlockValue> blockcache = CacheBuilder.newBuilder().
-            concurrencyLevel(Runtime.getRuntime()
-                    .availableProcessors())
-            .maximumSize(64)
-            .initialCapacity(32)
-            .expireAfterAccess(30, TimeUnit.SECONDS)
-            .build(new CacheLoader<BlockKey, BlockValue>(){
-
-                @Override
-                public BlockValue load(BlockKey blockKey) throws Exception {
-                    return new BlockValue(new byte[(int)initBlockSize]);
-                }
-            });
+    private ConcurrentHashMap<BlockKey,BlockValue> blockcache = new ConcurrentHashMap<>();
     @Inject
-    public SeqBlockManager(BlockPool blockPool, StorageRegionWriter writer) {
+    public SeqBlockManagerV2(BlockPool blockPool, StorageRegionWriter writer) {
         this.writer = writer;
         this.fileWorker = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(),
-                new PooledThreadFactory("blockManager_"+SeqBlockManager.class.getSimpleName()));
+                new PooledThreadFactory("blockManager_"+ SeqBlockManagerV2.class.getSimpleName()));
 
         this.fileWorker.execute(new FileProcessor());
     }
     @Inject
-    public SeqBlockManager(BlockPool blockPool, StorageRegionWriter writer, RocksDBManager rocksDBManager) {
+    public SeqBlockManagerV2(BlockPool blockPool, StorageRegionWriter writer, RocksDBManager rocksDBManager) {
         this.writer = writer;
         this.rocksDBManager = rocksDBManager;
     }
@@ -95,6 +80,14 @@ public class SeqBlockManager implements BlockManagerInterface{
         LOG.debug("writing the file [{}]",fileName);
         try {
             BlockValue blockValue = blockcache.get(new BlockKey(packet.getStorageName(), packet.getFileName()));
+            if(blockValue == null){
+                HandleResult result = new HandleResult();
+                result.setSuccess(false);
+                result.setCause(new Exception("error when append block into block,cause by long time no write"));
+                LOG.debug("error when append block into block,cause error packet size[{}]",packet.getData().length);
+                callback.completed(result);
+                return null;
+            }
             if(packet.getData().length + blockValue.getBlockPos()>blockSize){
                 HandleResult result = new HandleResult();
                 result.setSuccess(false);
@@ -126,7 +119,6 @@ public class SeqBlockManager implements BlockManagerInterface{
                         new WriteBlockCallback(callback, packet, packet.isLastPacketInFile()));
                 LOG.info("flush a block into data pool ");
                 blockValue.reset();
-                return null;
             }
             if(packet.isTheFirstPacketInFile()){
                 LOG.info("response for the next packet of this file :seqno [{}]",packet.getSeqno());
@@ -137,7 +129,7 @@ public class SeqBlockManager implements BlockManagerInterface{
             handleResult.setCONTINUE();
             callback.completed(handleResult);
 
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             HandleResult result = new HandleResult();
             result.setSuccess(false);
             result.setCause(new Exception("error when get block from cache"));
@@ -157,6 +149,7 @@ public class SeqBlockManager implements BlockManagerInterface{
     class BlockKey{
         private int storageID;
         private String fileName;
+
         public BlockKey(int storageName, String fileName) {
             this.storageID = storageName;
             this.fileName = fileName;
@@ -185,40 +178,24 @@ public class SeqBlockManager implements BlockManagerInterface{
         }
     }
     class BlockValue{
-        private byte[] data;
+        private SeqBlock data;
         private List<String> fids = new ArrayList<String>();
-        private int pos = 0;
-        public BlockValue(byte[] bytes) {
-            this.data = bytes;
+        private volatile long accessTime;
+        public BlockValue(SeqBlock block) {
+            this.data = block;
+            accessTime = System.currentTimeMillis();
         }
 
         public byte[] getRealData(){
-            byte[] realData = new byte[pos];
-            System.arraycopy(data,0,realData,0,pos);
-            return realData;
+            return data.getRealData();
         }
         public int getBlockPos(){
-            return pos;
+            return data.getDataOffsetInBlock();
         }
         public boolean appendPacket(byte[] pData){
-            growDataIfNecessary(pData.length);
-            if(pos+pData.length == blockSize){
-                System.arraycopy(pData,0,data,pos,pData.length);
-                pos+=pData.length;
-                LOG.info("prepare flush a block ...");
-                return true;
-            }
-            System.arraycopy(pData,0,data,pos,pData.length);
-            pos+=pData.length;
-            return false;
-        }
-
-        private void growDataIfNecessary(int length) {
-            if(length+pos > data.length){
-                byte[] tmp = new byte[2 * data.length];
-                System.arraycopy(data,0,tmp,0,pos);
-                data = tmp;
-            }
+            data.appendPacket(pData);
+            accessTime = System.currentTimeMillis();
+            return data.isBlockSpill();
         }
 
         public byte[] writeFile(int storageName, String fileName) {
@@ -226,14 +203,17 @@ public class SeqBlockManager implements BlockManagerInterface{
             for (String fid : fids) {
                 sb.append(fid).append("\n");
             }
+            accessTime = System.currentTimeMillis();
             return sb.toString().getBytes();
         }
         public void reset(){
-            pos = 0;
+            data.reset();
         }
         public void releaseData(){
-            pos = 0;
-            data = null;
+            data.reset();
+            blockPool.putbackBlocks(data);
+            fileWritingCount.decrementAndGet();
+            LOG.info("decrement fileWritingCount , now its size is [{}]",fileWritingCount.get());
         }
         public void addFid(String fid) {
             fids.add(fid);
@@ -294,9 +274,6 @@ public class SeqBlockManager implements BlockManagerInterface{
                             " filename:" + fileName +
                             " storageName:" + storageName +
                             " done flush";
-                    result.setCONTINUE();
-                    result.setNextSeqno(seqno);
-                    callback.completed(result);
                     // DONE flush a block
                     LOG.info(response);
                 }else{
@@ -307,7 +284,7 @@ public class SeqBlockManager implements BlockManagerInterface{
                     LOG.info("flushing a big file in [{}],the filename is [{}]", storageName, fileName);
                 }
 
-            } catch (ExecutionException e) {
+            } catch (Exception e) {
                 result.setSuccess(false);
                 result.setCause(new Exception("error when append block into block,cause error packet size"));
                 LOG.error("error when append block into block in callback");
@@ -350,8 +327,6 @@ public class SeqBlockManager implements BlockManagerInterface{
 
         @Override
         public void complete(String fid) {
-            fileWritingCount.decrementAndGet();
-            LOG.info("decrement request pool , now its size is [{}]",fileWritingCount.get());
             HandleResult result = new HandleResult();
             if(fid == ""|| fid == null){
                 result.setSuccess(false);
@@ -429,10 +404,14 @@ public class SeqBlockManager implements BlockManagerInterface{
                     break;
                 }
 
-                if(fileWritingCount.get() < 20 ){
+                if(fileWritingCount.get() < 20 && fileWaiting.peek() != null){
                     try {
+
                         LOG.info("Processor : the waiting request size is [{}]",fileWritingCount.get());
                         unhandledRequest = fileWaiting.take();
+                        BlockKey blockKey = new BlockKey(unhandledRequest.fsPacket.getStorageName(), unhandledRequest.fsPacket.getFileName());
+                        SeqBlock block = blockPool.getBlock();
+                        blockcache.put(blockKey,new BlockValue(block));
                         LOG.info("Processor : writing file [{}]",unhandledRequest.fsPacket.getFileName());
                         fileWritingCount.incrementAndGet();
                         appendToBlock(unhandledRequest.getFsPacket(),unhandledRequest.getHandleResultCallback());

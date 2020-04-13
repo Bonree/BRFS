@@ -98,9 +98,12 @@ public class DataResource {
             int storage = packet.getStorageName();
 //            String storageName = storageRegionManager.findStorageRegionById(storage).getName();
             String file = packet.getFileName();
+            if(packet.getSeqno()==1){
+                LOG.info("file {} write next",packet.getFileName());
+            }
             LOG.debug("deserialize [{}]",packet);
             //如果是一个小于等于packet长度的文件，由handler直接写
-            if(packet.isATinyFile(blockManager.getBlockSize())){
+            if(packet.isATinyFile()){
                 LOG.debug("writing a tiny file [{}]",packet.getFileName());
                 storageRegionWriter.write(
                         packet.getStorageName(),
@@ -141,9 +144,7 @@ public class DataResource {
                         });
                 return;
             }
-            LOG.debug("append packet[{}] into block",packet);
-            //===== 追加数据的到blockManager
-            blockManager.appendToBlock(packet, new HandleResultCallback() {
+            HandleResultCallback callback = new HandleResultCallback() {
                 @Override
                 public void completed(HandleResult result) {
                     if(result.isCONTINUE()) {
@@ -180,7 +181,16 @@ public class DataResource {
                         response.resume(result.getCause());
                     }
                 }
-            });
+            };
+            if(packet.isTheFirstPacketInFile()){
+                blockManager.addToWaitingPool(packet,callback);
+                LOG.info("put a file [{}] into the waiting pool",packet.getFileName());
+                //todo server should tell client that file is waiting for write. but how
+                return;
+            }
+            LOG.debug("append packet[{}] into block",packet);
+            //===== 追加数据的到blockManager
+            blockManager.appendToBlock(packet, callback);
         } catch (Exception e) {
             LOG.error("handle write data message error", e);
             response.resume(e);
