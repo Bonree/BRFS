@@ -88,7 +88,7 @@ public class FSPacket {
         return (getOffsetInFile()/blockSize)*blockSize;
     }
     //是不是一个block的第一个packet
-    public boolean isTheFirstPacketInFile(long blockSize){
+    public boolean isTheFirstPacketInFile(){
         return getOffsetInFile()==0;
     }
     //释放protobuf反序列化的对象
@@ -116,8 +116,8 @@ public class FSPacket {
 
     }
 
-    public boolean isATinyFile(long blockSize) {
-        return isLastPacketInFile()&&isTheFirstPacketInFile(blockSize);
+    public boolean isATinyFile() {
+        return isLastPacketInFile()&&isTheFirstPacketInFile();
     }
     public void setProto(FSPacketProto proto){
         this.proto = proto;
