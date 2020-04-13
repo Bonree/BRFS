@@ -4,6 +4,7 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.identification.LevelServerIDGen;
 import com.google.inject.Inject;
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hyperic.sigar.*;
@@ -237,19 +238,23 @@ public class PartitionCheckingRoutine {
             Set<String> keepOnlyOne = new HashSet<>();
             for (String dir : dataDir) {
                 File file = new File(dir);
+                if(!file.exists()){
+                    FileUtils.forceMkdir(file);
+                }
                 fs = fileSystemMap.getMountPoint(file.getAbsolutePath());
                 if (fs == null) {
                     throw new RuntimeException("dir [" + dir + "] can't find vaild partition !!");
                 }
                 FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-                String key = StringUtils.join(fs.getDevName(), fs.getDirName(), usage.getTotal());
-                if (keepOnlyOne.add(key)) {
-                    fsMap.put(dir, fs);
-                } else {
-                    throw new RuntimeException("The configured directories are on the same disk partition!! dir:[" + dir + "],partition:[" + fs.getDirName() + "]");
-                }
+//                String key = StringUtils.join(fs.getDevName(), fs.getDirName(), usage.getTotal());
+                fsMap.put(dir, fs);
+//                if (keepOnlyOne.add(key)) {
+//                    fsMap.put(dir, fs);
+//                } else {
+//                    throw new RuntimeException("The configured directories are on the same disk partition!! dir:[" + dir + "],partition:[" + fs.getDirName() + "]");
+//                }
             }
-        } catch (SigarException e) {
+        } catch (SigarException|IOException e) {
             throw new RuntimeException("Error checking internal files", e);
         } finally {
             sigar.close();

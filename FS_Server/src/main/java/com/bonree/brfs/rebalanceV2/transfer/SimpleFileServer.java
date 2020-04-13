@@ -1,6 +1,7 @@
-package com.bonree.brfs.rebalance.transfer;
+package com.bonree.brfs.rebalanceV2.transfer;
 
 import com.bonree.brfs.common.utils.PooledThreadFactory;
+import com.bonree.brfs.identification.LocalPartitionInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,12 +17,12 @@ public class SimpleFileServer implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(SimpleFileServer.class);
 
     private ServerSocket serverSocket;
-    private String dataDir;
+    private LocalPartitionInterface partitionInterface;
     private ExecutorService es = null;
 
-    public SimpleFileServer(int port, String dataDir, int threadCount) throws IOException {
+    public SimpleFileServer(int port, LocalPartitionInterface partitionInterface, int threadCount) throws IOException {
         serverSocket = new ServerSocket(port);
-        this.dataDir = dataDir;
+        this.partitionInterface = partitionInterface;
         es = Executors.newFixedThreadPool(threadCount, new PooledThreadFactory("file_transfer"));
     }
 
@@ -31,7 +32,7 @@ public class SimpleFileServer implements Closeable {
             Socket sock = null;
             try {
                 sock = serverSocket.accept();
-                es.execute(new FileServThread(sock, dataDir, LOG));// 当成功连接客户端后开启新线程接收文件
+                es.execute(new FileServThread(sock, partitionInterface, LOG));// 当成功连接客户端后开启新线程接收文件
             } catch (IOException e) {
                 e.printStackTrace();
             }

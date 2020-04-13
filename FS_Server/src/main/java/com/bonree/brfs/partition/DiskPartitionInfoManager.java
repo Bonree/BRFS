@@ -55,10 +55,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
 
     @Override
     public void stop() throws Exception {
-        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
-    }
-    private void load()throws Exception{
-
+        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().GetConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
     public PartitionInfo getPartitionInfoByPartitionId(String partitionId) {
         return diskPartitionInfoCache.get(partitionId);
