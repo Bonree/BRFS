@@ -5,9 +5,11 @@ import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.FidBuilder;
+import com.bonree.brfs.duplication.datastream.dataengine.impl.DataObject;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.rocksdb.RocksDBManager;
@@ -19,11 +21,14 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.Queue;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SeqBlockManager implements BlockManagerInterface{
     private StorageRegionWriter writer;
@@ -31,6 +36,12 @@ public class SeqBlockManager implements BlockManagerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManager.class);
     private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
     private static long initBlockSize = 1024 * 1024;
+    private LinkedBlockingQueue<WriteFileRequest> fileWaiting = new LinkedBlockingQueue(100);
+    private AtomicInteger fileWritingCount = new AtomicInteger(0);
+    private ExecutorService fileWorker;
+    private final AtomicBoolean runningState = new AtomicBoolean(false);
+    private volatile boolean quit = false;
+
 
     private LoadingCache<BlockKey,BlockValue> blockcache = CacheBuilder.newBuilder().
             concurrencyLevel(Runtime.getRuntime()
@@ -48,20 +59,40 @@ public class SeqBlockManager implements BlockManagerInterface{
     @Inject
     public SeqBlockManager(BlockPool blockPool, StorageRegionWriter writer) {
         this.writer = writer;
+        this.fileWorker = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>(),
+                new PooledThreadFactory("blockManager_"+SeqBlockManager.class.getSimpleName()));
+
+        this.fileWorker.execute(new FileProcessor());
     }
     @Inject
     public SeqBlockManager(BlockPool blockPool, StorageRegionWriter writer, RocksDBManager rocksDBManager) {
         this.writer = writer;
         this.rocksDBManager = rocksDBManager;
     }
+
+    @Override
+    public void addToWaitingPool(FSPacket packet, HandleResultCallback callback) {
+        try {
+            fileWaiting.put(new WriteFileRequest(packet,callback));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        LOG.info("waiting pool size is [{}]",fileWaiting.size());
+        LOG.info("storage [{}] : file[{}] waiting for write.",packet.getStorageName(),packet.getFileName());
+    }
+
     @Override
     public Block appendToBlock(FSPacket packet, HandleResultCallback callback) {
         int storage = packet.getStorageName();
         long packetOffsetInFile = packet.getOffsetInFile();
         long blockOffsetInFile = packet.getBlockOffsetInFile(blockSize);
-        long blockSizeInFile;
-        long packetSizeInblock;
         String fileName = packet.getFileName();
+        // file waiting for write
+        if(packet.isTheFirstPacketInFile()){
+            LOG.info("After processor : storage [{}] : file[{}] waiting for write.",storage,fileName);
+        }
+        LOG.debug("writing the file [{}]",fileName);
         try {
             BlockValue blockValue = blockcache.get(new BlockKey(packet.getStorageName(), packet.getFileName()));
             if(packet.getData().length + blockValue.getBlockPos()>blockSize){
@@ -97,6 +128,9 @@ public class SeqBlockManager implements BlockManagerInterface{
                 blockValue.reset();
                 return null;
             }
+            if(packet.isTheFirstPacketInFile()){
+                LOG.info("response for the next packet of this file :seqno [{}]",packet.getSeqno());
+            }
             HandleResult handleResult = new HandleResult();
             LOG.debug("packet[{}] append to block and still not flushed。",packet);
             handleResult.setNextSeqno(packet.getSeqno());
@@ -114,6 +148,7 @@ public class SeqBlockManager implements BlockManagerInterface{
         }
         return null;
     }
+
 
     @Override
     public long getBlockSize() {
@@ -309,12 +344,14 @@ public class SeqBlockManager implements BlockManagerInterface{
             HandleResult result = new HandleResult();
             result.setSuccess(false);
             result.setCause(new BRFSException("brfs wrong usage : we can not flush more than 1 file when write a stream！"));
-            LOG.debug("error come here");
+            LOG.error("error come here");
             callback.completed(result);
         }
 
         @Override
         public void complete(String fid) {
+            fileWritingCount.decrementAndGet();
+            LOG.info("decrement request pool , now its size is [{}]",fileWritingCount.get());
             HandleResult result = new HandleResult();
             if(fid == ""|| fid == null){
                 result.setSuccess(false);
@@ -348,6 +385,67 @@ public class SeqBlockManager implements BlockManagerInterface{
         @Override
         public void error() {
             callback.completed(new HandleResult(false));
+        }
+    }
+
+    class WriteFileRequest{
+        private FSPacket fsPacket;
+        private HandleResultCallback handleResultCallback;
+
+        public WriteFileRequest(FSPacket fsPacket, HandleResultCallback handleResultCallback) {
+            this.fsPacket = fsPacket;
+            this.handleResultCallback = handleResultCallback;
+        }
+
+        public FSPacket getFsPacket() {
+            return fsPacket;
+        }
+
+        public void setFsPacket(FSPacket fsPacket) {
+            this.fsPacket = fsPacket;
+        }
+
+        public HandleResultCallback getHandleResultCallback() {
+            return handleResultCallback;
+        }
+
+        public void setHandleResultCallback(HandleResultCallback handleResultCallback) {
+            this.handleResultCallback = handleResultCallback;
+        }
+    }
+
+    private class FileProcessor implements Runnable {
+        @Override
+        public void run() {
+            if(!runningState.compareAndSet(false, true)) {
+                LOG.error("can not execute write file worker again, because it's started!", new IllegalStateException("Write file worker has been started!"));
+                return;
+            }
+            LOG.info("start process waiting request!");
+            WriteFileRequest unhandledRequest = null;
+
+            while(true) {
+                if(quit && fileWaiting.isEmpty()) {
+                    break;
+                }
+
+                if(fileWritingCount.get() < 20 ){
+                    try {
+                        LOG.info("Processor : the waiting request size is [{}]",fileWritingCount.get());
+                        unhandledRequest = fileWaiting.take();
+                        LOG.info("Processor : writing file [{}]",unhandledRequest.fsPacket.getFileName());
+                        fileWritingCount.incrementAndGet();
+                        appendToBlock(unhandledRequest.getFsPacket(),unhandledRequest.getHandleResultCallback());
+                    } catch (InterruptedException e) {
+                        LOG.error("data consumer interrupted.");
+                    } catch (Exception e) {
+                        LOG.error("process data error", e);
+                    }
+                }
+
+            }
+
+            LOG.info("Write file worker is shut down!");
         }
     }
 }

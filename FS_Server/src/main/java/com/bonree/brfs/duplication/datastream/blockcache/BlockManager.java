@@ -158,6 +158,12 @@ public class BlockManager implements BlockManagerInterface{
         callback.completed(handleResult);
         return block;
     }
+
+    @Override
+    public void addToWaitingPool(FSPacket packet, HandleResultCallback callback) {
+
+    }
+
     private FileEntry getFile(int storage,String file){
         if(!isFileExist(storage,file)){
             return null;
