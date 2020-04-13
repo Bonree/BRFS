@@ -46,6 +46,10 @@
 			<artifactId>brfs-rocksdb</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+		<dependency>
+            <groupId>org.rocksdb</groupId>
+            <artifactId>rocksdbjni</artifactId>
+        </dependency>
 
 		<dependency>
 			<groupId>com.bonree.fs</groupId>
@@ -100,9 +104,9 @@
 			<artifactId>javax.ws.rs-api</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>javax.annotation</groupId>
-			<artifactId>javax.annotation-api</artifactId>
-		</dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+        </dependency>
 
 		<dependency>
 			<groupId>com.google.guava</groupId>
