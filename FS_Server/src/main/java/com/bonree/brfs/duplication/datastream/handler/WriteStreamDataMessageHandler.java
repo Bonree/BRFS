@@ -10,7 +10,6 @@ import com.bonree.brfs.common.net.http.data.FSPacketUtil;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.datastream.blockcache.Block;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
-import com.bonree.brfs.duplication.datastream.writer.DefaultStorageRegionWriter;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.google.inject.Inject;
@@ -42,7 +41,7 @@ public class WriteStreamDataMessageHandler implements MessageHandler {
             String file = packet.getFileName();
             LOG.debug("从数据中反序列化packet [{}]",packet);
             //如果是一个小于等于packet长度的文件，由handler直接写
-            if(packet.isATinyFile(blockManager.getBlockSize())){
+            if(packet.isATinyFile()){
                 writer.write(storage,packet.getData(),new DataWriteCallback(callback));
                 LOG.debug("在[{}]的datapool中写了一个小于packetSize的小文件[{}]", storage, file);
                 return;
