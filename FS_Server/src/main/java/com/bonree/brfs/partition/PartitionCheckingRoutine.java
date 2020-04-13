@@ -4,7 +4,6 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.identification.LevelServerIDGen;
 import com.google.inject.Inject;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hyperic.sigar.*;
