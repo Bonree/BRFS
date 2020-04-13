@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -10,8 +12,9 @@
 
 	<groupId>com.bonree.fs</groupId>
 	<artifactId>BRFS</artifactId>
-	<version>1.0.2-SNAPSHOT</version>
+	<version>2.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
+
 	<repositories>
 		<repository>
 			<id>nexus</id>
@@ -38,6 +41,7 @@
 			<url>http://192.168.4.201:8081/nexus/content/repositories/snapshots/</url>
 		</snapshotRepository>
 	</distributionManagement>
+
 	<modules>
 		<module>FS_Proto</module>
 		<module>FS_Client</module>
@@ -49,8 +53,9 @@
 		<module>brfs-client</module>
 		<module>brfs-delivery</module>
 		<module>brfs-rocksdb</module>
-    <module>brfs-metrics</module>
-  </modules>
+		<module>brfs-gui-server</module>
+		<module>brfs-launcher</module>
+	</modules>
 
 	<name>${project.artifactId}</name>
 	<description>BRFS is a fast high-performance file system stored large small file by Bonree</description>
@@ -65,38 +70,71 @@
 	</licenses>
 
 	<properties>
-		<!-- Test libs -->
-		<junit_version>4.12</junit_version>
+		<project.build.targetJdk>1.8</project.build.targetJdk>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<!-- Build args -->
-		<skip_maven_deploy>false</skip_maven_deploy>
-		<updateReleaseInfo>true</updateReleaseInfo>
-		<project.build.sourceEncoding>${file_encoding}</project.build.sourceEncoding>
+		<!-- Target Java version for Modernizer -->
+		<brfs.modernizer.java-version>${project.build.targetJdk}</brfs.modernizer.java-version>
 
-		<profile.name>oss</profile.name>
-		<!-- for maven compiler plugin -->
-		<java_source_version>1.8</java_source_version>
-		<java_target_version>1.8</java_target_version>
-		<file_encoding>UTF-8</file_encoding>
-		<!-- Maven plugins -->
-		<maven_jar_version>3.0.2</maven_jar_version>
-		<maven_compiler_version>3.6.0</maven_compiler_version>
+		<!-- Default jvm size for compiler, tests etc. -->
+		<project.build.jvmsize>1024m</project.build.jvmsize>
 
-		<!-- dependencies jar -->
-		<guava_version>25.1-jre</guava_version>
-		<netty_version>4.1.19.Final</netty_version>
-		<jetty_version>9.4.8.v20171121</jetty_version>
-		<logback_version>1.2.3</logback_version>
-		<curator_version>4.0.0</curator_version>
-		<zookeeper_version>3.4.6</zookeeper_version>
+		<!-- Controls all the checkers run when building the project. -->
+		<!-- Can be activated with -Dair.check.skip-all=true on the command line. -->
+		<brfs.check.skip-all>false</brfs.check.skip-all>
+		<!-- Controls the basic checkers run when building the project. -->
+		<brfs.check.skip-basic>${brfs.check.skip-all}</brfs.check.skip-basic>
+		<!-- Controls the extended checkers run when building the project. -->
+		<brfs.check.skip-extended>${brfs.check.skip-all}</brfs.check.skip-extended>
+
+		<!-- basic checks -->
+		<brfs.check.skip-dependency>${brfs.check.skip-basic}</brfs.check.skip-dependency>
+		<brfs.check.skip-dependency-scope>${brfs.check.skip-basic}</brfs.check.skip-dependency-scope>
+		<brfs.check.skip-duplicate-finder>${brfs.check.skip-basic}</brfs.check.skip-duplicate-finder>
+
+		<!-- extended checks -->
+		<brfs.check.skip-spotbugs>${brfs.check.skip-extended}</brfs.check.skip-spotbugs>
+		<brfs.check.skip-modernizer>${brfs.check.skip-extended}</brfs.check.skip-modernizer>
+
+		<!-- all checks -->
+		<brfs.check.fail-all>true</brfs.check.fail-all>
+		<brfs.check.fail-basic>${brfs.check.fail-all}</brfs.check.fail-basic>
+		<brfs.check.fail-extended>${brfs.check.fail-all}</brfs.check.fail-extended>
+
+		<!-- basic checks -->
+		<brfs.check.fail-dependency>${brfs.check.fail-basic}</brfs.check.fail-dependency>
+		<brfs.check.fail-dependency-scope>${brfs.check.fail-basic}</brfs.check.fail-dependency-scope>
+		<brfs.check.fail-duplicate-finder>${brfs.check.fail-basic}</brfs.check.fail-duplicate-finder>
+
+		<!-- extended checks -->
+		<brfs.check.fail-spotbugs>${brfs.check.fail-extended}</brfs.check.fail-spotbugs>
+		<brfs.check.fail-modernizer>${air.check.fail-extended}</brfs.check.fail-modernizer>
+
+		<!-- dependency versions -->
+		<dep.guice.version>4.2.2</dep.guice.version>
+		<dep.guava.version>28.2-jre</dep.guava.version>
+		<dep.jsr305.version>3.0.2</dep.jsr305.version>
+		<dep.javax-inject.version>1</dep.javax-inject.version>
+		<dep.javax-servlet.version>4.0.1</dep.javax-servlet.version>
+		<dep.javax-validation.version>2.0.1.Final</dep.javax-validation.version>
+		<dep.jackson.version>2.9.8</dep.jackson.version>
+		<dep.bval.version>2.0.3</dep.bval.version>
+		<dep.joda.version>2.9.9</dep.joda.version>
+		<dep.curator.version>4.0.0</dep.curator.version>
+		<dep.zookeeper.version>3.4.6</dep.zookeeper.version>
+		<dep.netty.version>4.1.19.Final</dep.netty.version>
+		<dep.protobuf.version>3.4.0</dep.protobuf.version>
+		<dep.logback.version>1.2.3</dep.logback.version>
+		<dep.asm.version>6.2.1</dep.asm.version>
+		<dep.jersey.version>2.27</dep.jersey.version>
+		<dep.slf4j.version>1.7.30</dep.slf4j.version>
+		<dep.aether.version>1.13.1</dep.aether.version>
+
 		<httpasyncclient_version>4.1.3</httpasyncclient_version>
 		<sigar_version>1.6.4</sigar_version>
 		<quartz_version>2.0.2</quartz_version>
-		<jackson_version>2.9.8</jackson_version>
-		<protobuf_version>3.4.0</protobuf_version>
 		<protostuff_version>1.6.0</protostuff_version>
 		<commons_lang_version>3.4</commons_lang_version>
-		<joda_time>2.9.9</joda_time>
 		<configuration_version>2.2</configuration_version>
 		<beanutils_version>1.9.3</beanutils_version>
 		<rocksdb_version>5.18.3</rocksdb_version>
@@ -104,66 +142,188 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- brfs components -->
 			<dependency>
-				<groupId>joda-time</groupId>
-				<artifactId>joda-time</artifactId>
-				<version>${joda_time}</version>
+				<groupId>com.bonree.fs</groupId>
+				<artifactId>FS_Server</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit_version}</version>
-				<scope>test</scope>
+				<groupId>com.bonree.fs</groupId>
+				<artifactId>FS_Commons</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-lang3</artifactId>
-				<version>${commons_lang_version}</version>
+				<groupId>com.bonree.fs</groupId>
+				<artifactId>FS_Proto</artifactId>
+				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.bonree.fs</groupId>
+				<artifactId>FS_ResouceSchedule</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.bonree.fs</groupId>
+				<artifactId>brfs-client</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<!-- Google Guice -->
+			<dependency>
+				<groupId>com.google.inject</groupId>
+				<artifactId>guice</artifactId>
+				<version>${dep.guice.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.inject.extensions</groupId>
+				<artifactId>guice-servlet</artifactId>
+				<version>${dep.guice.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.inject.extensions</groupId>
+				<artifactId>guice-assistedinject</artifactId>
+				<version>${dep.guice.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.inject.extensions</groupId>
+				<artifactId>guice-multibindings</artifactId>
+				<version>${dep.guice.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.inject.extensions</groupId>
+				<artifactId>guice-throwingproviders</artifactId>
+				<version>${dep.guice.version}</version>
+			</dependency>
+
+			<!-- guava -->
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>${guava_version}</version>
+				<version>${dep.guava.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>io.netty</groupId>
-				<artifactId>netty-all</artifactId>
-				<version>${netty_version}</version>
+				<groupId>com.google.code.findbugs</groupId>
+				<artifactId>jsr305</artifactId>
+				<version>${dep.jsr305.version}</version>
+			</dependency>
+
+			<!-- Java APIs -->
+			<dependency>
+				<groupId>javax.inject</groupId>
+				<artifactId>javax.inject</artifactId>
+				<version>${dep.javax-inject.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.google.protobuf</groupId>
-				<artifactId>protobuf-java</artifactId>
-				<version>${protobuf_version}</version>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>${dep.javax-servlet.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>io.protostuff</groupId>
-				<artifactId>protostuff-core</artifactId>
-				<version>${protostuff_version}</version>
+				<groupId>javax.validation</groupId>
+				<artifactId>validation-api</artifactId>
+				<version>${dep.javax-validation.version}</version>
+			</dependency>
+
+			<!-- jaxrs -->
+			<dependency>
+				<groupId>javax.ws.rs</groupId>
+				<artifactId>javax.ws.rs-api</artifactId>
+				<version>2.1.1</version>
+			</dependency>
+
+			<!-- jsr 250 -->
+			<dependency>
+				<groupId>javax.annotation</groupId>
+				<artifactId>javax.annotation-api</artifactId>
+				<version>1.3.1</version>
 			</dependency>
 			<dependency>
-				<groupId>io.protostuff</groupId>
-				<artifactId>protostuff-runtime</artifactId>
-				<version>${protostuff_version}</version>
+				<groupId>javax.validation</groupId>
+				<artifactId>validation-api</artifactId>
+				<version>2.0.1.Final</version>
+			</dependency>
+
+			<!-- jackson -->
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>${dep.jackson.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-core</artifactId>
-				<version>${logback_version}</version>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>${dep.jackson.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-classic</artifactId>
-				<version>${logback_version}</version>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>${dep.jackson.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.module</groupId>
+				<artifactId>jackson-module-parameter-names</artifactId>
+				<version>${dep.jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-jdk8</artifactId>
+				<version>${dep.jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-jsr310</artifactId>
+				<version>${dep.jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-guava</artifactId>
+				<version>${dep.jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-joda</artifactId>
+				<version>${dep.jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.dataformat</groupId>
+				<artifactId>jackson-dataformat-yaml</artifactId>
+				<version>${dep.jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.dataformat</groupId>
+				<artifactId>jackson-dataformat-smile</artifactId>
+				<version>${dep.jackson.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.bval</groupId>
+				<artifactId>bval-jsr</artifactId>
+				<version>${dep.bval.version}</version>
+			</dependency>
+
+			<!-- joda -->
+			<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+				<version>${dep.joda.version}</version>
+			</dependency>
+
+			<!-- curator -->
 			<dependency>
 				<groupId>org.apache.curator</groupId>
 				<artifactId>curator-recipes</artifactId>
-				<version>${curator_version}</version>
+				<version>${dep.curator.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.curator</groupId>
+				<artifactId>curator-client</artifactId>
+				<version>${dep.curator.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.curator</groupId>
 				<artifactId>curator-framework</artifactId>
-				<version>${curator_version}</version>
+				<version>${dep.curator.version}</version>
 				<exclusions>
 					<exclusion>
 						<groupId>org.apache.zookeeper</groupId>
@@ -174,12 +334,14 @@
 			<dependency>
 				<groupId>org.apache.curator</groupId>
 				<artifactId>curator-x-discovery</artifactId>
-				<version>${curator_version}</version>
+				<version>${dep.curator.version}</version>
 			</dependency>
+
+			<!-- zookeeper -->
 			<dependency>
 				<groupId>org.apache.zookeeper</groupId>
 				<artifactId>zookeeper</artifactId>
-				<version>${zookeeper_version}</version>
+				<version>${dep.zookeeper.version}</version>
 				<exclusions>
 					<exclusion>
 						<groupId>io.netty</groupId>
@@ -187,11 +349,141 @@
 					</exclusion>
 				</exclusions>
 			</dependency>
+
+			<!-- netty -->
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<version>${dep.netty.version}</version>
+			</dependency>
+
+			<!-- protobuf -->
+			<dependency>
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-java</artifactId>
+				<version>${dep.protobuf.version}</version>
+			</dependency>
+
+			<!-- logback -->
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>${dep.logback.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>${dep.logback.version}</version>
+			</dependency>
+
+			<!-- resolver -->
+			<dependency>
+				<groupId>io.airlift.resolver</groupId>
+				<artifactId>resolver</artifactId>
+				<version>1.6</version>
+			</dependency>
+
+			<!-- asm -->
+			<dependency>
+				<groupId>org.ow2.asm</groupId>
+				<artifactId>asm</artifactId>
+				<version>${dep.asm.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.ow2.asm</groupId>
+				<artifactId>asm-tree</artifactId>
+				<version>${dep.asm.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.ow2.asm</groupId>
+				<artifactId>asm-util</artifactId>
+				<version>${dep.asm.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.ow2.asm</groupId>
+				<artifactId>asm-analysis</artifactId>
+				<version>${dep.asm.version}</version>
+			</dependency>
+
+			<!-- jersey -->
+			<dependency>
+				<groupId>org.glassfish.jersey.core</groupId>
+				<artifactId>jersey-server</artifactId>
+				<version>${dep.jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.core</groupId>
+				<artifactId>jersey-common</artifactId>
+				<version>${dep.jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.containers</groupId>
+				<artifactId>jersey-container-servlet</artifactId>
+				<version>${dep.jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.containers</groupId>
+				<artifactId>jersey-container-servlet-core</artifactId>
+				<version>${dep.jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.inject</groupId>
+				<artifactId>jersey-hk2</artifactId>
+				<version>${dep.jersey.version}</version>
+			</dependency>
+
+			<!-- slf4j -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${dep.slf4j.version}</version>
+			</dependency>
+
+			<!-- -->
+			<dependency>
+				<groupId>org.sonatype.aether</groupId>
+				<artifactId>aether-api</artifactId>
+				<version>${dep.aether.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.protostuff</groupId>
+				<artifactId>protostuff-core</artifactId>
+				<version>${protostuff_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.protostuff</groupId>
+				<artifactId>protostuff-api</artifactId>
+				<version>${protostuff_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.protostuff</groupId>
+				<artifactId>protostuff-runtime</artifactId>
+				<version>${protostuff_version}</version>
+			</dependency>
+
+
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpasyncclient</artifactId>
 				<version>${httpasyncclient_version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>4.5.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpcore</artifactId>
+				<version>4.4.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpcore-nio</artifactId>
+				<version>4.4.6</version>
+			</dependency>
+
 			<dependency>
 				<groupId>org.fusesource</groupId>
 				<artifactId>sigar</artifactId>
@@ -212,12 +504,12 @@
 					</exclusion>
 				</exclusions>
 			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-databind</artifactId>
-				<version>${jackson_version}</version>
-			</dependency>
 
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${commons_lang_version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-configuration2</artifactId>
@@ -235,16 +527,279 @@
 				<artifactId>rocksdbjni</artifactId>
 				<version>${rocksdb_version}</version>
 			</dependency>
+
+			<!-- testing -->
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.12</version>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	<developers>
-		<developer>
-			<id>bonree.com/brfs</id>
-			<name>The BRFS Project Contributors</name>
-			<email/>
-			<url>http://bonree.com/brfs</url>
-			<organization>The BRFS Project</organization>
-			<organizationUrl>http://bonree.com/brfs</organizationUrl>
-		</developer>
-	</developers>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.1</version>
+					<configuration>
+						<source>${project.build.targetJdk}</source>
+						<target>${project.build.targetJdk}</target>
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<maxmem>${project.build.jvmsize}</maxmem>
+						<showWarnings>true</showWarnings>
+						<fork>true</fork>
+						<compilerArgs>
+							<!-- Revert to <parameters>true</parameters> once IntelliJ 183.888 
+								is widespread -->
+							<arg>-parameters</arg>
+						</compilerArgs>
+					</configuration>
+				</plugin>
+
+				<!-- Always build a jar with the test classes -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>2.4</version>
+					<executions>
+						<execution>
+							<id>attach-tests</id>
+							<phase>package</phase>
+							<goals>
+								<goal>test-jar</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<!-- do not build an empty jar if the project is e.g. a pom project -->
+						<skipIfEmpty>true</skipIfEmpty>
+						<archive>
+							<manifest>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+								<addClasspath>false</addClasspath>
+							</manifest>
+							<manifestEntries>
+								<!-- This is actually the time when the build was done -->
+								<Build-Time>${git.build.time}</Build-Time>
+								<Git-Commit-Id>${git.commit.id}</Git-Commit-Id>
+								<Implementation-Version>${git.commit.id.describe}</Implementation-Version>
+							</manifestEntries>
+						</archive>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>3.1.2</version>
+					<configuration>
+						<skip>${brfs.check.skip-dependency}</skip>
+						<failOnWarning>${brfs.check.fail-dependency}</failOnWarning>
+						<ignoreNonCompile>true</ignoreNonCompile>
+					</configuration>
+					<executions>
+						<execution>
+							<id>default</id>
+							<phase>process-test-classes</phase>
+							<goals>
+								<goal>analyze-only</goal>
+								<goal>analyze-duplicate</goal>
+								<goal>analyze-dep-mgt</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<plugin>
+					<groupId>com.hubspot.maven.plugins</groupId>
+					<artifactId>dependency-scope-maven-plugin</artifactId>
+					<version>0.9</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>check</goal>
+							</goals>
+							<configuration>
+								<skip>${brfs.check.skip-dependency-scope}</skip>
+								<fail>${brfs.check.fail-dependency-scope}</fail>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+
+				<plugin>
+					<groupId>org.basepom.maven</groupId>
+					<artifactId>duplicate-finder-maven-plugin</artifactId>
+					<version>1.3.0</version>
+					<executions>
+						<execution>
+							<id>default</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<skip>${brfs.check.skip-duplicate-finder}</skip>
+						<failBuildInCaseOfConflict>${brfs.check.fail-duplicate-finder}</failBuildInCaseOfConflict>
+						<exceptions>
+							<exception>
+								<conflictingDependencies>
+									<dependency>
+										<groupId>commons-beanutils</groupId>
+										<artifactId>commons-beanutils</artifactId>
+									</dependency>
+									<dependency>
+										<groupId>commons-beanutils</groupId>
+										<artifactId>commons-beanutils-core</artifactId>
+									</dependency>
+									<dependency>
+										<groupId>commons-collections</groupId>
+										<artifactId>commons-collections</artifactId>
+									</dependency>
+								</conflictingDependencies>
+								<classes>
+									<class>org.apache.commons.collections.ArrayStack</class>
+									<class>org.apache.commons.collections.Buffer</class>
+									<class>org.apache.commons.collections.BufferUnderflowException</class>
+									<class>org.apache.commons.collections.FastHashMap</class>
+								</classes>
+							</exception>
+							<exception>
+								<conflictingDependencies>
+									<dependency>
+										<groupId>commons-beanutils</groupId>
+										<artifactId>commons-beanutils</artifactId>
+									</dependency>
+									<dependency>
+										<groupId>commons-beanutils</groupId>
+										<artifactId>commons-beanutils-core</artifactId>
+									</dependency>
+								</conflictingDependencies>
+								<packages>
+									<package>org.apache.commons.beanutils</package>
+								</packages>
+							</exception>
+						</exceptions>
+						<ignoredResourcePatterns>
+							<ignoredResourcePattern>.*\.html</ignoredResourcePattern>
+							<ignoredResourcePattern>META-INF/.*</ignoredResourcePattern>
+							<ignoredResourcePattern>about_files/.*</ignoredResourcePattern>
+							<ignoredResourcePattern>plugin\.properties</ignoredResourcePattern>
+							<ignoredResourcePattern>.*\.java</ignoredResourcePattern>
+							<ignoredResourcePattern>THIRD-PARTY</ignoredResourcePattern>
+						</ignoredResourcePatterns>
+						<ignoredClassPatterns>
+							<ignoredClassPattern>module-info</ignoredClassPattern>
+						</ignoredClassPatterns>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>3.1.0</version>
+					<configuration>
+						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>3.2.0</version>
+					<configuration>
+						<!-- must be true for jar-with-dependencies builds -->
+						<appendAssemblyId>true</appendAssemblyId>
+						<!-- Always use GNU tar mode. -->
+						<tarLongFileMode>gnu</tarLongFileMode>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>com.github.spotbugs</groupId>
+					<artifactId>spotbugs-maven-plugin</artifactId>
+					<version>4.0.0</version>
+					<configuration>
+						<skip>${brfs.check.skip-spotbugs}</skip>
+						<jvmArgs>-Xmx${project.build.jvmsize}</jvmArgs>
+						<failOnError>${brfs.check.fail-spotbugs}</failOnError>
+					</configuration>
+					<executions>
+						<execution>
+							<id>default</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<plugin>
+					<groupId>org.gaul</groupId>
+					<artifactId>modernizer-maven-plugin</artifactId>
+					<version>2.1.0</version>
+					<configuration>
+						<skip>${brfs.check.skip-modernizer}</skip>
+						<failOnViolations>${brfs.check.fail-modernizer}</failOnViolations>
+						<javaVersion>${brfs.modernizer.java-version}</javaVersion>
+					</configuration>
+					<executions>
+						<execution>
+							<id>modernizer</id>
+							<goals>
+								<goal>modernizer</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration combine.children="append">
+					<fork>false</fork>
+				</configuration>
+			</plugin>
+
+			<!-- Always build a jar with the test classes -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<!-- do not build an empty jar if the project is e.g. a pom project -->
+					<skipIfEmpty>true</skipIfEmpty>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							<addClasspath>false</addClasspath>
+						</manifest>
+						<manifestEntries>
+							<!-- This is actually the time when the build was done -->
+							<Build-Time>${git.build.time}</Build-Time>
+							<Git-Commit-Id>${git.commit.id}</Git-Commit-Id>
+							<Implementation-Version>${project.version}-${git.commit.id.abbrev}</Implementation-Version>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>

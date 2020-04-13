@@ -162,7 +162,7 @@ class JerseyServerHandler extends ChannelInboundHandlerAdapter {
                     public void removeProperty(String name) {
                         properties.remove(name);
                     }
-                }, resourceConfig);
+                });
 
         return requestContext;
     }

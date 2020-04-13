@@ -5,27 +5,41 @@
 	<parent>
 		<groupId>com.bonree.fs</groupId>
 		<artifactId>BRFS</artifactId>
-		<version>1.0.2-SNAPSHOT</version>
+		<version>2.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>FS_Server</artifactId>
 	<dependencies>
 		<dependency>
 			<groupId>com.bonree.fs</groupId>
 			<artifactId>FS_Commons</artifactId>
-			<version>${project.parent.version}</version>
 		</dependency>
-		
 		<dependency>
-            <groupId>com.bonree.fs</groupId>
-            <artifactId>brfs-client</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-		
+			<groupId>com.bonree.fs</groupId>
+			<artifactId>FS_Proto</artifactId>
+		</dependency>
 		<dependency>
-            <groupId>com.bonree.fs</groupId>
-            <artifactId>brfs-http-netty</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
+			<groupId>com.bonree.fs</groupId>
+			<artifactId>FS_ResouceSchedule</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.bonree.fs</groupId>
+			<artifactId>brfs-client</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.quartz-scheduler</groupId>
+			<artifactId>quartz</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>com.bonree.fs</groupId>
@@ -40,14 +54,13 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.bonree.fs</groupId>
-			<artifactId>FS_Proto</artifactId>
-			<version>${project.parent.version}</version>
+			<groupId>io.airlift.resolver</groupId>
+			<artifactId>resolver</artifactId>
 		</dependency>
+
 		<dependency>
-			<groupId>com.bonree.fs</groupId>
-			<artifactId>FS_ResouceSchedule</artifactId>
-			<version>${project.parent.version}</version>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm</artifactId>
 		</dependency>
 
 		<dependency>
@@ -64,9 +77,92 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.sonatype.aether</groupId>
+			<artifactId>aether-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.fusesource</groupId>
+			<artifactId>sigar</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
-			<version>4.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.annotation</groupId>
+			<artifactId>javax.annotation-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-framework</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-recipes</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.zookeeper</groupId>
+			<artifactId>zookeeper</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
 		</dependency>
 
 		<dependency>
@@ -79,76 +175,10 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.6</version>
 		</dependency>
-		<!--<dependency> -->
-		<!--<groupId>org.apache.kafka</groupId> -->
-		<!--<artifactId>kafka-clients</artifactId> -->
-		<!--<version>0.10.1.0</version> -->
-		<!--<exclusions> -->
-		<!--<exclusion> -->
-		<!--<groupId>org.apache.zookeeper</groupId> -->
-		<!--<artifactId>zookeeper</artifactId> -->
-		<!--</exclusion> -->
-		<!--<exclusion> -->
-		<!--<groupId>org.slf4j</groupId> -->
-		<!--<artifactId>slf4j-api</artifactId> -->
-		<!--</exclusion> -->
-		<!--</exclusions> -->
-		<!--</dependency> -->
+		<dependency>
+			<groupId>com.bonree</groupId>
+			<artifactId>MailUtil</artifactId>
+			<version>0.0.2-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
-	<build>
-		<finalName>FS_Server</finalName>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
-				<configuration>
-					<target>1.8</target>
-					<source>1.8</source>
-					<encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.7</version>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
-				<version>2.4</version>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>1.4</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
 </project>
