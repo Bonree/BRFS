@@ -15,28 +15,38 @@ package com.bonree.brfs.metrics.data;
 
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
+import com.bonree.brfs.metrics.TimedData;
+
 @Path("/stats")
 public class DataMetricsResource {
+    
+    private final DataStatisticReporter reporter;
+    
+    @Inject
+    public DataMetricsResource(DataStatisticReporter reporter) {
+        this.reporter = reporter;
+    }
 
     @GET
     @Path("/write/{srName}")
-    public List<DataStatistic> getWriteStatistics(
+    public List<TimedData<Long>> getWriteStatistics(
             @PathParam("srName") String srName,
             @DefaultValue("1") @QueryParam("minutes") int minutes) {
-        return null;
+        return reporter.getWriteStatistics(srName, minutes);
     }
     
     @GET
     @Path("/read/{srName}")
-    public List<DataStatistic> getReadStatistics(
+    public List<TimedData<Long>> getReadStatistics(
             @PathParam("srName") String srName,
             @DefaultValue("1") @QueryParam("minutes") int minutes) {
-        return null;
+        return reporter.getReadStatistics(srName, minutes);
     }
 }
