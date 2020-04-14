@@ -43,7 +43,7 @@
 	</distributionManagement>
 
 	<modules>
-		<module>brfs-assembly</module>
+		<module>build-tools</module>
 		<module>FS_Proto</module>
 		<module>FS_Client</module>
 		<module>FS_Commons</module>
@@ -171,7 +171,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.bonree.fs</groupId>
-				<artifactId>brfs-assembly</artifactId>
+				<artifactId>build-tools</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -718,7 +718,7 @@
 					<dependencies>
 						<dependency>
 							<groupId>com.bonree.fs</groupId>
-							<artifactId>brfs-assembly</artifactId>
+							<artifactId>build-tools</artifactId>
 							<version>${project.version}</version>
 						</dependency>
 					</dependencies>
