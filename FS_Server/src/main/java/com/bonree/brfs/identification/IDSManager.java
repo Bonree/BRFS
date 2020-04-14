@@ -130,4 +130,20 @@ public class IDSManager implements LifeCycle {
     public void stop() {
 
     }
+
+    public Collection<String> getSecondIds(String serverId, int storageRegionId) {
+        return this.secondMaintainer.getSecondIds(serverId,storageRegionId);
+    }
+
+    public String getSecondId(String partitionId, int storageRegionId) {
+        return this.secondMaintainer.getSecondId(partitionId,storageRegionId);
+    }
+
+    public String getFirstId(String secondId, int storageRegionId) {
+        return this.secondMaintainer.getFirstId(secondId,storageRegionId);
+    }
+
+    public String getPartitionId(String secondId, int storageRegionId) {
+        return this.secondMaintainer.getPartitionId(secondId,storageRegionId);
+    }
 }
