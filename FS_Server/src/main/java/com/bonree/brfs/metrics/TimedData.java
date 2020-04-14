@@ -11,31 +11,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.metrics.zookeeper;
+package com.bonree.brfs.metrics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class RootNode {
-    private final String name;
+public class TimedData<T> {
+    private final long time;
+    private final T data;
     
-    @JsonCreator
-    public RootNode(
-            @JsonProperty("root") String name) {
-        this.name = name;
+    public TimedData(
+            @JsonProperty("time") long time,
+            @JsonProperty("data") T data) {
+        this.time = time;
+        this.data = data;
     }
-    
-    @JsonProperty("root")
-    public String getName() {
-        return name;
+
+    @JsonProperty("time")
+    public long getTime() {
+        return time;
+    }
+
+    @JsonProperty("data")
+    public T getData() {
+        return data;
     }
     
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("name", name)
+                .add("time", time)
+                .add("data", data)
                 .toString();
     }
 }

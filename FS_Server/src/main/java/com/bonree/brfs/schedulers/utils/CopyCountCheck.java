@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -197,7 +196,7 @@ public class CopyCountCheck {
 				builder.setModel("collect file execute 模块服务发生问题");
 				builder.setException(e);
 				builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 执行任务时发生问题");
-				Map<String,String> map = new HashedMap();
+				Map<String,String> map = new HashMap<>();
 				map.put("remote ",service.getHost());
 				map.put("connectTimeout",String.valueOf(timeout));
 				map.put("sn", StringUtils.isEmpty(snName) ? "" :snName);

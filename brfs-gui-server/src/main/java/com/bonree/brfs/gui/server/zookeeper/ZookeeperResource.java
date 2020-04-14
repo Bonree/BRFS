@@ -11,10 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.metrics.zookeeper;
+package com.bonree.brfs.gui.server.zookeeper;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 
 import java.util.List;
 
@@ -26,24 +25,30 @@ import javax.ws.rs.Produces;
 @Path("/zookeeper")
 public class ZookeeperResource {
     
+    private final ZookeeperInfoReporter reporter;
+    
+    public ZookeeperResource(ZookeeperInfoReporter reporter) {
+        this.reporter = reporter;
+    }
+    
     @GET
     @Path("/root")
-    @Produces(TEXT_PLAIN)
-    public String rootNode() {
-        return null;
+    @Produces(APPLICATION_JSON)
+    public ZookeeperNode rootNode() {
+        return reporter.rootNode();
     }
     
     @GET
     @Path("/list/{nodePath}")
     @Produces(APPLICATION_JSON)
-    public List<String> list(@PathParam("nodePath") String nodePath) {
-        return null;
+    public List<ZookeeperNode> list(@PathParam("nodePath") String nodePath) {
+        return reporter.list(nodePath);
     }
     
     @GET
     @Path("/data/{nodePath}")
     @Produces(APPLICATION_JSON)
-    public NodeData get(@PathParam("nodePath") String nodePath) {
-        return null;
+    public ZookeeperNodeData getData(@PathParam("nodePath") String nodePath) {
+        return reporter.getData(nodePath);
     }
 }
