@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,6 @@ import com.bonree.brfs.disknode.client.TcpDiskNodeClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.email.EmailPool;
-import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
@@ -66,7 +66,7 @@ public class CopyRecovery {
 		
 		CuratorClient curatorClient = mcf.getClient();
 		StorageRegion sn;
-		SecondIDParser parser;
+		RouteParser parser;
 		String snName;
 		int snId;
 		AtomTaskResultModel atomR;
@@ -85,8 +85,7 @@ public class CopyRecovery {
 				continue;
 			}
 			snId = sn.getId();
-			parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
-			parser.updateRoute();
+			parser = new RouteParser(snId, mcf.getRouteLoader());
 			errors = recoveryFiles(sm, sim, parser, sn, atom,dataPath);
 			if(errors == null || errors.isEmpty()){
 				result.add(atomR);
@@ -127,7 +126,7 @@ public class CopyRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> recoveryFiles(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageRegion snNode,AtomTaskModel atom, String dataPath) {
+	public static List<String> recoveryFiles(ServiceManager sm,ServerIDManager sim, RouteParser parser, StorageRegion snNode,AtomTaskModel atom, String dataPath) {
 
 		String snName = atom.getStorageName();
 		long start = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
@@ -171,7 +170,7 @@ public class CopyRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, SecondIDParser parser, StorageRegion snNode, String fileName,String dirName, String dataPath,String operation){
+	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, RouteParser parser, StorageRegion snNode, String fileName,String dirName, String dataPath,String operation){
 		String[] sss;
 		String remoteName;
 		Service remoteService;
@@ -182,7 +181,7 @@ public class CopyRecovery {
 		boolean isSuccess = true;
 		String snName = snNode.getName();
 		int snId = snNode.getId();
-		sss = parser.getAliveSecondID(fileName);
+		sss = parser.searchVaildIds(fileName);
 		if (sss == null) {
 			LOG.warn("alive second Ids is empty");
 			return false;

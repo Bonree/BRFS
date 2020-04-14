@@ -4,7 +4,7 @@ import com.bonree.brfs.common.files.impl.BRFSDogFoodFilter;
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
-import com.bonree.brfs.rebalance.route.SecondIDParser;
+import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,15 +17,14 @@ import java.util.Map;
 public class BRFSDogFoodsFilter extends BRFSDogFoodFilter{
     private static final Logger LOG = LoggerFactory.getLogger(BRFSDogFoodsFilter.class);
     private ServerIDManager sim;
-    private SecondIDParser parser;
+    private RouteParser parser;
     private StorageRegion  region;
     private long lastTime;
 
-    public BRFSDogFoodsFilter(ServerIDManager sim, SecondIDParser parser, StorageRegion storageRegion, long lastTime){
+    public BRFSDogFoodsFilter(ServerIDManager sim, RouteParser parser, StorageRegion storageRegion, long lastTime){
         super();
         this.sim = sim;
         this.parser = parser;
-        this.parser.updateRoute();
         this.region = storageRegion;
         this.lastTime = lastTime;
     }

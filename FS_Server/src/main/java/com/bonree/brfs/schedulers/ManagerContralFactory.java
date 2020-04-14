@@ -9,6 +9,7 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
@@ -45,7 +46,7 @@ public class ManagerContralFactory {
 	private ZookeeperPaths zkPath = null;
 	private CuratorClient client = null;
 	private LimitServerResource limitServerResource;
-	
+	private RouteLoader routeLoader;
 	
 	String serverId;
 	String groupName;
@@ -137,5 +138,13 @@ public class ManagerContralFactory {
 
 	public void setLimitServerResource(LimitServerResource limitServerResource){
 		this.limitServerResource = limitServerResource;
+	}
+
+	public RouteLoader getRouteLoader() {
+		return routeLoader;
+	}
+
+	public void setRouteLoader(RouteLoader routeLoader) {
+		this.routeLoader = routeLoader;
 	}
 }

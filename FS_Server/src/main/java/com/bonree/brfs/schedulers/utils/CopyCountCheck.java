@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,6 @@ import com.bonree.brfs.disknode.client.DiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.email.EmailPool;
-import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.bonree.mail.worker.MailWorker;
@@ -152,7 +152,7 @@ public class CopyCountCheck {
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
         ServerIDManager sim = mcf.getSim();
         CuratorClient zkClient = mcf.getClient();
-        SecondIDParser parser;
+		RouteParser parser;
         String basePath = mcf.getZkPath().getBaseRoutePath();
         int timeout = 10000;
 		for(Service service : services){
@@ -161,8 +161,7 @@ public class CopyCountCheck {
 				long granule;
 				for(StorageRegion sn : snList){
 
-				    parser = new SecondIDParser(zkClient,sn.getId(),basePath);
-				    parser.updateRoute();
+				    parser = new RouteParser(sn.getId(),mcf.getRouteLoader());
 
 				    sid = sim.getOtherSecondID(service.getServiceId(),sn.getId());
 					granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
@@ -265,7 +264,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> getFileList(SecondIDParser parser, DiskNodeClient client,  String path, String sid)throws Exception{
+	public static List<String> getFileList(RouteParser parser, DiskNodeClient client,  String path, String sid)throws Exception{
 		if(client == null ) {
 		    throw new NullPointerException("disk client is null !!!");
 		}
@@ -285,7 +284,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> converToStringList(SecondIDParser parser,List<FileInfo> files,String dir, String sid){
+	public static List<String> converToStringList(RouteParser parser,List<FileInfo> files,String dir, String sid){
 		List<String> strs = new ArrayList<>();
 		String path;
 		String fileName;
@@ -320,8 +319,8 @@ public class CopyCountCheck {
 		}
 		return filterErrors(strs, errorFiles);
 	}
-	public static boolean isUnlaw(String sid, SecondIDParser parser, String fileName){
-	    String[] alives = parser.getAliveSecondID(fileName);
+	public static boolean isUnlaw(String sid, RouteParser parser, String fileName){
+	    String[] alives = parser.searchVaildIds(fileName);
 	    if(alives == null || alives.length == 0){
 	        LOG.warn("[{}] analys service error !! alives is null !!!", fileName);
 	        return true;

@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
+import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,6 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
-import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
@@ -58,7 +58,7 @@ public class WatchDog{
 		lastTime = System.currentTimeMillis();
 		// sn 目录及文件
 		int snId;
-		SecondIDParser parser;
+		RouteParser parser;
 		// 初始化zk连接
 		if(curatorClient == null){
 			curatorClient = ManagerContralFactory.getInstance().getClient();
@@ -80,9 +80,8 @@ public class WatchDog{
             if(sn.getReplicateNum()<=1) {
                 continue;
             }
-            parser = new SecondIDParser(curatorClient, snId, baseRoutesPath);
+            parser = new RouteParser( snId, ManagerContralFactory.getInstance().getRouteLoader());
             // 使用前必须更新路由规则，否则会解析错误
-            parser.updateRoute();
             snMap = new HashMap<>();
 			snMap.put(BRFSPath.STORAGEREGION,sn.getName());
             List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(sim,parser,sn,snLimitTime));
