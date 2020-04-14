@@ -42,8 +42,8 @@ then
   mkdir $LOG_DIR
 fi
 
-LOG_DUPLICATE_OUT=$BRFS_HOME/logs/duplicate.out
-LOG_DISK_OUT=$BRFS_HOME/logs/disk.out
+LOG_DUPLICATE_OUT=$BRFS_HOME/logs/regionnode.out
+LOG_DISK_OUT=$BRFS_HOME/logs/datanode.out
 #Server程序配置文件
 SERVER_CONFIG=$BRFS_HOME/config/server.properties
 #Server ID配置路径
@@ -57,7 +57,7 @@ fi
 JVM_PARAMS=`grep -v "^#.*$" $BRFS_HOME/config/jvm.config | cat`
 
 #资源管理lib路径
-RESOURCE_LIB_PATH=$BRFS_HOME/lib/native
+RESOURCE_LIB_PATH=$BRFS_HOME/native-lib
 
 #网络参数设置
 DISK_NET_BACKLOG=2048
@@ -67,12 +67,12 @@ DUPLICATE_IO_THREADS=16
 
 case $1 in
 		###启动副本管理###
-		duplication)
+		region)
 			nohup java $JVM_PARAMS \
 			-Dbrfs.home=$BRFS_HOME \
 			-Dserver.ids=$SERVER_ID_PATH \
 			-Dlog.dir=$LOG_DIR \
-			-Dlog.file.name='duplicatenode' \
+			-Dlog.file.name='regionnode' \
 			-Dconfiguration.file=$SERVER_CONFIG \
 			-Dlogback.configurationFile=$LOG_CONFIG \
 			-Dnet.backlog=$DUPLICATE_NET_BACKLOG \
@@ -80,10 +80,10 @@ case $1 in
 			-Dresource_lib_path=$RESOURCE_LIB_PATH \
 			-cp $CP "com.bonree.brfs.server.Main" node region \
 			> $LOG_DUPLICATE_OUT 2>&1 &
-			echo 'Startup duplication server complete!'
+			echo 'start region server completely!'
 		;;
 		###启动磁盘管理###
-		disk)
+		data)
 			nohup java $JVM_PARAMS \
 			-Dbrfs.home=$BRFS_HOME \
 			-Dlog.dir=$LOG_DIR \
@@ -96,7 +96,7 @@ case $1 in
 			-Dresource.lib.path=$RESOURCE_LIB_PATH \
 			-cp $CP "com.bonree.brfs.server.Main" node data \
 			> $LOG_DISK_OUT 2>&1 &
-			echo 'Startup disk server complete!'
+			echo 'start disk server completely!'
 		;;
 		init)
 			java -Dbrfs.home=${BRFS_HOME} \
@@ -106,8 +106,8 @@ case $1 in
 			echo "init process completed!"
 		;;
 		*)
-			sh $0 disk
+			sh $0 data
 			sleep 2
-			sh $0 duplication
+			sh $0 region
 		;;
 esac
