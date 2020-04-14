@@ -5,3 +5,5 @@
 *.bat		text eol=crlf
 *.sh		text eol=lf
 *.jpg		-text
+*.pdf		-text
+*.md		-text
