@@ -43,6 +43,7 @@
 	</distributionManagement>
 
 	<modules>
+		<module>brfs-assembly</module>
 		<module>FS_Proto</module>
 		<module>FS_Client</module>
 		<module>FS_Commons</module>
@@ -54,6 +55,7 @@
 		<module>brfs-delivery</module>
 		<module>brfs-rocksdb</module>
 		<module>brfs-gui-server</module>
+		<module>brfs-distribution</module>
 	</modules>
 
 	<name>${project.artifactId}</name>
@@ -165,6 +167,11 @@
 			<dependency>
 				<groupId>com.bonree.fs</groupId>
 				<artifactId>brfs-client</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.bonree.fs</groupId>
+				<artifactId>brfs-assembly</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -708,6 +715,13 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-assembly-plugin</artifactId>
 					<version>3.2.0</version>
+					<dependencies>
+						<dependency>
+							<groupId>com.bonree.fs</groupId>
+							<artifactId>brfs-assembly</artifactId>
+							<version>${project.version}</version>
+						</dependency>
+					</dependencies>
 					<configuration>
 						<!-- must be true for jar-with-dependencies builds -->
 						<appendAssemblyId>true</appendAssemblyId>

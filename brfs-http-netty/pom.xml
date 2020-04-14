@@ -46,10 +46,10 @@
 		</dependency>
 
 		<dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -60,7 +60,6 @@
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>jsr305</artifactId>
-			<version>3.0.2</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -93,4 +92,27 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>plugin-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptorRefs>
+								<descriptorRef>brfs-plugin</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
