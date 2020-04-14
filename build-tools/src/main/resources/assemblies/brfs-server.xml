@@ -31,7 +31,7 @@
 	<fileSets>
 		<!-- bin -->
 		<fileSet>
-			<directory>${basedir}/bin</directory>
+			<directory>${basedir}/src/main/bin</directory>
 			<includes>
 				<include>start-server.sh</include>
 				<include>stop-server.sh</include>
@@ -39,6 +39,17 @@
 			<outputDirectory>bin</outputDirectory>
 			<fileMode>0755</fileMode>
 		</fileSet>
+		
+		<!-- config -->
+		<fileSet>
+            <directory>${basedir}/src/main/config</directory>
+            <includes>
+                <include>jvm.config</include>
+                <include>logback.xml</include>
+                <include>server.properties.example</include>
+            </includes>
+            <outputDirectory>config</outputDirectory>
+        </fileSet>
 
 		<!-- plugins -->
 		<fileSet>
