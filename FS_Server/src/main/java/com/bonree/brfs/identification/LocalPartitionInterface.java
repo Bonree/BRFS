@@ -1,5 +1,7 @@
 package com.bonree.brfs.identification;
 
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
+
 import java.util.Collection;
 
 /*******************************************************************************
@@ -30,4 +32,10 @@ public interface LocalPartitionInterface {
      * @return
      */
     Collection<String> listPartitionId();
+
+    /**
+     * 获取本机存储目录信息
+     * @return
+     */
+    Collection<LocalPartitionInfo> getPartitions();
 }

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.bonree.brfs.common.utils.*;
+import com.bonree.brfs.identification.impl.DiskDaemon;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.utils.*;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -45,7 +48,6 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		LOG.debug("check task work");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
-		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
 		
 		if(BrStringUtils.isEmpty(content)){
@@ -65,13 +67,14 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 		String snName = null;
 		TaskResultModel result = new TaskResultModel();
 		TaskResultModel batchResult = null;
+		DiskDaemon daemon = ManagerContralFactory.getInstance().getDaemon();
 		for(AtomTaskModel atom : atoms){
 			snName = atom.getStorageName();
 			if(BrStringUtils.isEmpty(snName)){
 				LOG.warn("sn is empty !!!");
 				continue;
 			}
-			batchResult =checkFiles(atom, dataPath);
+			batchResult =checkFiles(atom, daemon);
 			if(batchResult == null){
 				continue;
 			}
@@ -88,21 +91,22 @@ public class SystemCheckJob extends QuartzOperationStateWithZKTask {
      * @param dataPath
      * @return
      */
-	public TaskResultModel checkFiles(AtomTaskModel atom ,String dataPath){
+	public TaskResultModel checkFiles(AtomTaskModel atom ,DiskDaemon daemon){
 		String snName  = atom.getStorageName();
 		int partitionNum = atom.getPatitionNum();
 		long startTime = TimeUtils.getMiles(atom.getDataStartTime(),TimeUtils.TIME_MILES_FORMATE);
 		long endTime = TimeUtils.getMiles(atom.getDataStopTime(),TimeUtils.TIME_MILES_FORMATE);
-
-        Map<String,String> snMap = new HashMap<>();
-        snMap.put(BRFSPath.STORAGEREGION,snName);
-        List<BRFSPath> eFiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSCheckFilter(startTime,endTime));
-        List<String> errors = new ArrayList<>();
-        if(eFiles != null ){
-            for(BRFSPath brfsPath: eFiles){
-                errors.add(brfsPath.getFileName());
-            }
-        }
+		List<String> errors = new ArrayList<>();
+		for(LocalPartitionInfo path : daemon.getPartitions()){
+			Map<String,String> snMap = new HashMap<>();
+			snMap.put(BRFSPath.STORAGEREGION,snName);
+			List<BRFSPath> eFiles = BRFSFileUtil.scanBRFSFiles(path.getDataDir(),snMap,snMap.size(),new BRFSCheckFilter(startTime,endTime));
+			if(eFiles != null ){
+				for(BRFSPath brfsPath: eFiles){
+					errors.add(brfsPath.getFileName());
+				}
+			}
+		}
         TaskResultModel result = new TaskResultModel();
 		AtomTaskResultModel  atomR = AtomTaskResultModel.getInstance(errors, snName, startTime, endTime, "", partitionNum);
         if(errors !=null && !errors.isEmpty()) {

@@ -46,7 +46,8 @@ public class WatchDogJob extends QuartzOperationStateTask {
 		List<StorageRegion> sns = snm.getStorageRegionList();
 		long preTime = System.currentTimeMillis();
 		LOG.info("Scan {} below data !!!",TimeUtils.formatTimeStamp(preTime));
-		WatchDog.searchPreys(sim, sns, zkHosts, baseRoutPath, dataPath, preTime);
+		// TODO: 4/14/20 lossssssssssssssssssssssssssssssssssssser 
+//		WatchDog.searchPreys(sim, sns, zkHosts, baseRoutPath, dataPath, preTime);
 	}
 
 }

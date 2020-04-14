@@ -7,6 +7,9 @@ import java.util.Map;
 
 import com.bonree.brfs.common.files.impl.BRFSTimeFilter;
 import com.bonree.brfs.common.utils.*;
+import com.bonree.brfs.identification.impl.DiskDaemon;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.schedulers.ManagerContralFactory;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.UnableToInterruptJobException;
@@ -67,6 +70,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		AtomTaskResultModel usrResult;
 		List<String> dSns = new ArrayList<String>();
 		String operation;
+		DiskDaemon daemon = ManagerContralFactory.getInstance().getDaemon();
 		for(AtomTaskModel atom : atoms){
 			snName = atom.getStorageName();
 			if("1".equals(currentIndex)) {
@@ -76,7 +80,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 					dSns.add(snName);
 				}
 			}
-			usrResult = deleteFiles(atom, dataPath);
+			usrResult = deleteFiles(atom, daemon);
 			if (usrResult == null) {
 				continue;
 			}
@@ -101,11 +105,10 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 	/**
 	 * 概述：封装执行结果
 	 * @param atom
-	 * @param dataPath
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public AtomTaskResultModel deleteFiles(AtomTaskModel atom, String dataPath){
+	public AtomTaskResultModel deleteFiles(AtomTaskModel atom, DiskDaemon daemon){
 		if(atom == null) {
 			return null;
 		}
@@ -117,21 +120,24 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 		atomR.setDataStopTime(TimeUtils.formatTimeStamp(endTime, TimeUtils.TIME_MILES_FORMATE));
 		atomR.setPartNum(atom.getPatitionNum());
 		atomR.setSn(snName);
-		Map<String,String> snMap = new HashMap<>();
-		snMap.put(BRFSPath.STORAGEREGION, snName);
-		List<BRFSPath> deleteDirs = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(),new BRFSTimeFilter(startTime,endTime));
-		LOG.debug("collection {}_{} dirs {}",atom.getDataStartTime(),atom.getDataStopTime(),deleteDirs);
-		if(deleteDirs == null || deleteDirs.isEmpty()) {
-			atomR.setOperationFileCount(0);
-			return atomR;
+		for(LocalPartitionInfo path : daemon.getPartitions()){
+
+			Map<String,String> snMap = new HashMap<>();
+			snMap.put(BRFSPath.STORAGEREGION, snName);
+			List<BRFSPath> deleteDirs = BRFSFileUtil.scanBRFSFiles(path.getDataDir(),snMap,snMap.size(),new BRFSTimeFilter(startTime,endTime));
+			LOG.debug("collection {}_{} dirs {}",atom.getDataStartTime(),atom.getDataStopTime(),deleteDirs);
+			if(deleteDirs == null || deleteDirs.isEmpty()) {
+				atomR.setOperationFileCount(0);
+				continue;
+			}
+			boolean isSuccess = true;
+			for(BRFSPath deletePath : deleteDirs) {
+				isSuccess = isSuccess && FileUtils.deleteDir(path.getDataDir()+FileUtils.FILE_SEPARATOR+deletePath.toString(), true);
+				LOG.debug("delete [{}], status [{}]",deletePath, isSuccess);
+			}
+			atomR.setOperationFileCount(atomR.getOperationFileCount()+deleteDirs.size());
+			atomR.setSuccess(atomR.isSuccess()&&isSuccess);
 		}
-		boolean isSuccess = true;
-		for(BRFSPath deletePath : deleteDirs) {
-			isSuccess = isSuccess && FileUtils.deleteDir(dataPath+FileUtils.FILE_SEPARATOR+deletePath.toString(), true);
-			LOG.debug("delete [{}], status [{}]",deletePath, isSuccess);
-		}
-		atomR.setOperationFileCount(deleteDirs.size());
-		atomR.setSuccess(isSuccess);
 		return atomR;
 	}
 }

@@ -46,7 +46,7 @@ public class WatchDog{
 	 * @param limitTime
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void searchPreys(ServerIDManager sim, Collection<StorageRegion> sns,String zkHosts,String baseRoutesPath, String dataPath, long limitTime) {
+	public static void searchPreys(ServerIDManager sim, Collection<StorageRegion> sns, String dataPath, long limitTime) {
 		if(sns == null || sns.isEmpty() || BrStringUtils.isEmpty(dataPath)) {
 			LOG.debug("skip search data because is empty");
 			return;

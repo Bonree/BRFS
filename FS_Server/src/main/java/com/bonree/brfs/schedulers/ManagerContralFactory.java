@@ -9,6 +9,7 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -46,7 +47,10 @@ public class ManagerContralFactory {
 	private ZookeeperPaths zkPath = null;
 	private CuratorClient client = null;
 	private LimitServerResource limitServerResource;
+	// TODO: 4/14/20 没有赋值操作
 	private RouteLoader routeLoader;
+	// TODO: 4/14/20 没有赋值操作
+	private DiskDaemon daemon;
 	
 	String serverId;
 	String groupName;
@@ -146,5 +150,13 @@ public class ManagerContralFactory {
 
 	public void setRouteLoader(RouteLoader routeLoader) {
 		this.routeLoader = routeLoader;
+	}
+
+	public DiskDaemon getDaemon() {
+		return daemon;
+	}
+
+	public void setDaemon(DiskDaemon daemon) {
+		this.daemon = daemon;
 	}
 }
