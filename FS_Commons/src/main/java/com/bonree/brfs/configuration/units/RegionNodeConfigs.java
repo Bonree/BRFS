@@ -1,10 +1,6 @@
 package com.bonree.brfs.configuration.units;
 
-import java.io.File;
-
-import com.bonree.brfs.common.net.http.netty.DefaultNettyHandleResultCallback;
 import com.bonree.brfs.configuration.ConfigUnit;
-import com.bonree.brfs.configuration.SystemProperties;
 
 public final class RegionNodeConfigs {
 	
@@ -48,10 +44,13 @@ public final class RegionNodeConfigs {
 			ConfigUnit.ofInt("regionnode.block.pool.init.count", 1);
 
 	public static final ConfigUnit<Integer> CLEAR_TIME_THRESHOLD =
-			ConfigUnit.ofInt("regionnode.file.clear.time.threshold", 30000);
+			ConfigUnit.ofInt("regionnode.file.clear.time.threshold", 300000);
 
 	public static final ConfigUnit<Integer> WAIT_FOR_BLOCK_TIME =
             ConfigUnit.ofInt("regionnode.waitfor.block.time", 10000);
+
+	public static final ConfigUnit<Integer> FILE_WAIT_FOR_WRITE_TIME =
+			ConfigUnit.ofInt("regionnode.waitfor.fileWrite.time", 300000);
 
 	public static final ConfigUnit<Integer> CONFIG_DUPLICATION_SELECT_TYPE = ConfigUnit.ofInt("regionnode.duplication.select.type",1);
 
