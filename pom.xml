@@ -54,7 +54,6 @@
 		<module>brfs-delivery</module>
 		<module>brfs-rocksdb</module>
 		<module>brfs-gui-server</module>
-		<module>brfs-distribution</module>
 	</modules>
 
 	<name>${project.artifactId}</name>
