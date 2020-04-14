@@ -90,7 +90,6 @@ public class DataResource {
             FSPacketProto data,
             @Suspended AsyncResponse response) {
         LOG.debug("DONE decode");
-        LOG.debug("{}",data);
         try {
             FSPacket packet = new FSPacket();
             packet.setProto(data);
@@ -99,7 +98,7 @@ public class DataResource {
 //            String storageName = storageRegionManager.findStorageRegionById(storage).getName();
             String file = packet.getFileName();
             if(packet.getSeqno()==1){
-                LOG.info("file {} write next",packet.getFileName());
+                LOG.info("file [{}] is allow to write!",packet.getFileName());
             }
             LOG.debug("deserialize [{}]",packet);
             //如果是一个小于等于packet长度的文件，由handler直接写
@@ -177,7 +176,7 @@ public class DataResource {
                                 .ok()
                                 .entity(ImmutableList.of(new String(result.getData()))).build());
                     }else{
-                        LOG.debug("response error");
+                        LOG.error("response error [{}]",result.getCause());
                         response.resume(result.getCause());
                     }
                 }

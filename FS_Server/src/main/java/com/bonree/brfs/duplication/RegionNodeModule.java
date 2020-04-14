@@ -37,6 +37,7 @@ import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
 import com.bonree.brfs.duplication.datastream.blockcache.SeqBlockManager;
+import com.bonree.brfs.duplication.datastream.blockcache.SeqBlockManagerV2;
 import com.bonree.brfs.duplication.datastream.catalog.NonRocksDBManager;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.connection.tcp.TcpDiskNodeConnectionPool;
@@ -207,7 +208,8 @@ public class RegionNodeModule implements Module {
         if(isOpen){
             return new SeqBlockManager(blockPool,writer);
         }
-        return new SeqBlockManager(blockPool,writer);
+//        return new SeqBlockManager(blockPool,writer);
+        return new SeqBlockManagerV2(blockPool,writer);
     }
     @Provides
     @Singleton

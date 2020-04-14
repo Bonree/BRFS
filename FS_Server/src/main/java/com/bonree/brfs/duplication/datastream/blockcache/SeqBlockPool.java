@@ -86,6 +86,10 @@ public class SeqBlockPool {
      * @param b
      */
     public void putbackBlocks(SeqBlock b) {
+        if(b==null){
+            LOG.warn("try to put back a null block , may be some block is miss now ");
+            return;
+        }
         int toAdd = this.maxCount - reclaimedBlocks.size();
         if (b.size == blockSize && toAdd > 0) {
             reclaimedBlocks.add(b);
