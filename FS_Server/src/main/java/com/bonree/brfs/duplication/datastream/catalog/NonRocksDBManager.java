@@ -1,9 +1,8 @@
 package com.bonree.brfs.duplication.datastream.catalog;
 
-import com.bonree.brfs.rocksdb.RocksDBDataUnit;
-import com.bonree.brfs.rocksdb.RocksDBManager;
-import com.bonree.brfs.rocksdb.WriteStatus;
-import org.rocksdb.RocksDB;
+import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.WriteStatus;
 
 import java.util.Map;
 
@@ -34,20 +33,10 @@ public class NonRocksDBManager implements RocksDBManager {
         return null;
     }
 
-//    @Override
-//    public WriteStatus write(String columnFamily, String fullPath, String fid) throws Exception {
-//        return WriteStatus.FAILED;
-//    }
-
     @Override
     public WriteStatus write(RocksDBDataUnit dataUnit) throws Exception {
         return null;
     }
-
-//    @Override
-//    public boolean isWritalbe() {
-//        return false;
-//    }
 
     @Override
     public void createColumnFamilyWithTtl(String columnFamily, int ttl) throws Exception {
@@ -65,13 +54,13 @@ public class NonRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public void dataTransfer(String srcPath) {
+    public void mergeData(String srcPath) {
 
     }
 
     @Override
-    public RocksDB getRocksDB() {
-        return null;
+    public void createNewBackup(String backupPath) throws Exception {
+
     }
 
     @Override

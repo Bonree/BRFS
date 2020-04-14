@@ -4,9 +4,9 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.StringUtils;
 import com.bonree.brfs.common.utils.ZipUtils;
-import com.bonree.brfs.rocksdb.RocksDBDataUnit;
-import com.bonree.brfs.rocksdb.RocksDBManager;
-import com.bonree.brfs.rocksdb.WriteStatus;
+import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.rocksdb.backup.RocksDBBackupEngine;
 import com.bonree.brfs.rocksdb.file.SimpleFileSender;
 import com.google.common.base.Throwables;
@@ -125,7 +125,7 @@ public class RocksDBResource {
         String backupPath = this.rocksDBConfig.getRocksDBBackupPath();
 
         try {
-            int backupId = this.backupEngine.createNewBackup();
+            int backupId = this.backupEngine.createNewBackup(backupPath);
             List<Integer> backupIds = this.backupEngine.getBackupIds();
             LOG.info("restore handler create new backup, this backupId:{}, all backupIds:{}", backupId, backupIds);
 

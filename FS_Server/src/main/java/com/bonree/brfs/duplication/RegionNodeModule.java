@@ -63,7 +63,7 @@ import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.guice.NodeConfig;
-import com.bonree.brfs.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;

@@ -30,7 +30,7 @@ import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.guice.ClusterConfig;
-import com.bonree.brfs.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;

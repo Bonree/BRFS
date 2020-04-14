@@ -9,7 +9,7 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.zk.BackupHeartBeatManager;
 import org.apache.curator.framework.CuratorFramework;
@@ -71,10 +71,10 @@ public class RocksDBBackupEngine implements LifeCycle {
 
                 try {
                     watcher.getElapsedTimeAndRefresh();
-                    int backupId = createNewBackup();
+                    int backupId = createNewBackup(backupPath);
                     LOG.info("current backup cost time:{}, backupId :{}", watcher.getElapsedTime(), backupId);
                     heartBeatManager.sendBackupHeartBeat(backupId);
-                } catch (RocksDBException e) {
+                } catch (Exception e) {
                     LOG.error("create new backup err", e);
                 }
 
@@ -114,8 +114,8 @@ public class RocksDBBackupEngine implements LifeCycle {
         return backupCycle - System.currentTimeMillis() % backupCycle;
     }
 
-    public int createNewBackup() throws RocksDBException {
-        backupEngine.createNewBackup(rocksDBManager.getRocksDB());
+    public int createNewBackup(String backupPath) throws Exception {
+        this.rocksDBManager.createNewBackup(backupPath);
         List<BackupInfo> backupInfos = backupEngine.getBackupInfo();
         return backupInfos.get(backupInfos.size() - 1).backupId();
     }

@@ -1,4 +1,4 @@
-package com.bonree.brfs.rocksdb;
+package com.bonree.brfs.common.rocksdb;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司

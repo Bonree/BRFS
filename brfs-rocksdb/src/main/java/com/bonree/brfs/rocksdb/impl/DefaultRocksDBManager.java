@@ -11,10 +11,10 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
-import com.bonree.brfs.rocksdb.RocksDBConfig;
-import com.bonree.brfs.rocksdb.RocksDBDataUnit;
-import com.bonree.brfs.rocksdb.RocksDBManager;
-import com.bonree.brfs.rocksdb.WriteStatus;
+import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.WriteStatus;
+import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.zk.ColumnFamilyInfoManager;
@@ -149,8 +149,9 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public RocksDB getRocksDB() {
-        return this.DB;
+    public void createNewBackup(String backupPath) throws RocksDBException {
+        BackupEngine backupEngine = BackupEngineFactory.getInstance().getBackupEngineByPath(backupPath);
+        backupEngine.createNewBackup(this.DB);
     }
 
     @Override
@@ -384,7 +385,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public void dataTransfer(String srcPath) {
+    public void mergeData(String srcPath) {
         List<ColumnFamilyHandle> cfHandles = new ArrayList<>();
         try (TtlDB srcDB = TtlDB.open(DB_OPTIONS, srcPath, this.columnFamilyInfo.getFirst(), cfHandles, this.columnFamilyInfo.getSecond(), true)) {
             for (ColumnFamilyHandle handle : cfHandles) {

@@ -5,7 +5,7 @@ import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.rocksdb.RocksDBDataUnit;
+import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.rocksdb.client.RegionNodeClient;
 import com.bonree.brfs.rocksdb.client.SyncHttpClient;
 import com.fasterxml.jackson.core.type.TypeReference;

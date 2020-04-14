@@ -12,7 +12,7 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.utils.ZipUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
@@ -152,7 +152,7 @@ public class RocksDBRestoreEngine implements LifeCycle {
                 }
                 LOG.info("restore complete, backupIds:{}, cost time: {}, from [{}] to [{}]", backupIds, watcher.getElapsedTimeAndRefresh(), restorePath, tmpRestorePath);
 
-                rocksDBManager.dataTransfer(tmpRestorePath);
+                rocksDBManager.mergeData(tmpRestorePath);
                 LOG.info("data transfer complete, cost time:{}", watcher.getElapsedTime());
 
                 FileUtils.deleteDir(restorePath, true);

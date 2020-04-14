@@ -11,7 +11,7 @@ import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.FidBuilder;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
-import com.bonree.brfs.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import org.slf4j.Logger;

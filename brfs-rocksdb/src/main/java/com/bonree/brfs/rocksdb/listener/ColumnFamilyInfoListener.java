@@ -7,7 +7,7 @@ import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.rocksdb.impl.RocksDBZkPaths;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.curator.framework.CuratorFramework;

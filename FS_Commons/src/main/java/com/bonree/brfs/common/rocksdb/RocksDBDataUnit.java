@@ -1,4 +1,4 @@
-package com.bonree.brfs.rocksdb;
+package com.bonree.brfs.common.rocksdb;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

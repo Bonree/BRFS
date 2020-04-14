@@ -1,6 +1,6 @@
 package com.bonree.brfs.rocksdb.client;
 
-import com.bonree.brfs.rocksdb.RocksDBDataUnit;
+import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
 
 import java.io.Closeable;
 import java.util.List;

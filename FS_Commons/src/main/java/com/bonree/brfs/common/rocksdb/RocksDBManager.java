@@ -1,7 +1,6 @@
-package com.bonree.brfs.rocksdb;
+package com.bonree.brfs.common.rocksdb;
 
 import com.bonree.brfs.common.process.LifeCycle;
-import org.rocksdb.RocksDB;
 
 import java.util.Map;
 
@@ -87,12 +86,14 @@ public interface RocksDBManager extends LifeCycle {
 
     /**
      * @param srcPath 其他RocksDB数据目录
-     * @description: 将其他数据目录的数据迁移到当前数据目录中
+     * @description: 将另一个RocksDB的数据合并到当前RocksDB中
      */
-    void dataTransfer(String srcPath);
+    void mergeData(String srcPath);
 
     /**
-     * @description: 获取RocksDB连接对象
+     * @param backupPath 备份路径
+     * @description: 创建一个RocksDB备份
      */
-    RocksDB getRocksDB();
+    void createNewBackup(String backupPath) throws Exception;
+
 }
