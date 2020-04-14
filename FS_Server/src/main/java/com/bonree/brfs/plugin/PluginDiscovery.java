@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
@@ -42,14 +43,15 @@ import com.google.common.collect.ImmutableSet;
 // This is a hack for development and does not support nested classes.
 final class PluginDiscovery {
     private static final String CLASS_FILE_SUFFIX = ".class";
-    private static final String SERVICES_FILE = "META-INF/services/" + BrfsModule.class.getName();
+    private static final String SERVICES_FILE = Paths.get("META-INF", "services", BrfsModule.class.getName()).toString();
+    private static final String TARGET_CLASSES = Paths.get("/target", "classes").toString();
 
     private PluginDiscovery() {
     }
 
     public static Set<String> discoverPlugins(Artifact artifact, ClassLoader classLoader) throws IOException {
         File file = artifact.getFile();
-        if (!file.getPath().endsWith("/target/classes")) {
+        if (!file.getPath().endsWith(TARGET_CLASSES)) {
             throw new RuntimeException("Unexpected file for main artifact: " + file);
         }
         if (!file.isDirectory()) {

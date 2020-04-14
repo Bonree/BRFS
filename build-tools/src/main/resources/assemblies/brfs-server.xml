@@ -23,7 +23,7 @@
 		<dependencySet>
 			<useProjectArtifact>false</useProjectArtifact>
 			<scope>runtime</scope>
-			<outputDirectory>libs</outputDirectory>
+			<outputDirectory>lib</outputDirectory>
 			<useTransitiveDependencies>true</useTransitiveDependencies>
 		</dependencySet>
 	</dependencySets>
@@ -39,17 +39,26 @@
 			<outputDirectory>bin</outputDirectory>
 			<fileMode>0755</fileMode>
 		</fileSet>
-		
+
 		<!-- config -->
 		<fileSet>
-            <directory>${basedir}/src/main/config</directory>
-            <includes>
-                <include>jvm.config</include>
-                <include>logback.xml</include>
-                <include>server.properties.example</include>
-            </includes>
-            <outputDirectory>config</outputDirectory>
-        </fileSet>
+			<directory>${basedir}/src/main/config</directory>
+			<includes>
+				<include>jvm.config</include>
+				<include>logback.xml</include>
+				<include>server.properties.example</include>
+			</includes>
+			<outputDirectory>config</outputDirectory>
+		</fileSet>
+
+		<!-- native-lib -->
+		<fileSet>
+			<directory>${basedir}/src/main/native-lib</directory>
+			<includes>
+				<include>*</include>
+			</includes>
+			<outputDirectory>native-lib</outputDirectory>
+		</fileSet>
 
 		<!-- plugins -->
 		<fileSet>

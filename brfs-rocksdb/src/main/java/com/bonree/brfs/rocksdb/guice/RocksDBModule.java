@@ -5,10 +5,12 @@ import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.plugin.BrfsModule;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.rocksdb.backup.RocksDBBackupEngine;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.connection.http.HttpRegionNodeConnectionPool;
+import com.bonree.brfs.rocksdb.impl.DefaultRocksDBManager;
 import com.bonree.brfs.rocksdb.listener.ColumnFamilyInfoListener;
 import com.bonree.brfs.rocksdb.restore.RocksDBRestoreEngine;
 import com.google.inject.Binder;
@@ -31,7 +33,7 @@ public class RocksDBModule implements BrfsModule {
         JsonConfigProvider.bind(binder, "rocksdb", RocksDBConfig.class);
 
         binder.bind(RegionNodeConnectionPool.class).to(HttpRegionNodeConnectionPool.class).in(ManageLifecycle.class);
-//        binder.bind(RocksDBManager.class).to(DefaultRocksDBManager.class).in(ManageLifecycle.class);
+        binder.bind(RocksDBManager.class).to(DefaultRocksDBManager.class).in(ManageLifecycle.class);
         binder.bind(RocksDBBackupEngine.class).in(ManageLifecycle.class);
 
         LifecycleModule.register(binder, ColumnFamilyInfoListener.class);

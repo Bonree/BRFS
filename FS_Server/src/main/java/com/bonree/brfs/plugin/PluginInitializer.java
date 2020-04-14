@@ -59,6 +59,8 @@ public class PluginInitializer {
                 .map(pluginRoot::resolve)
                 .map(Path::toFile)
                 .map(dir -> {
+                    log.info("load plugin from [{}]", dir);
+                    
                     try {
                         return buildClassLoaderFromDirectory(dir);
                     } catch (Exception e) {
@@ -73,6 +75,8 @@ public class PluginInitializer {
         return config.getPluginBundles()
                 .stream()
                 .map(plugin -> {
+                    log.info("load plugin from [{}]", plugin);
+                    
                     try {
                         return buildClassLoader(plugin, resolver);
                     } catch (Exception e) {

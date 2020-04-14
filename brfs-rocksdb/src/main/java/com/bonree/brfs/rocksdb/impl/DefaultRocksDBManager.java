@@ -3,6 +3,9 @@ package com.bonree.brfs.rocksdb.impl;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
@@ -11,9 +14,6 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
-import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
-import com.bonree.brfs.common.rocksdb.RocksDBManager;
-import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
@@ -409,15 +409,19 @@ public class DefaultRocksDBManager implements RocksDBManager {
             Sets.SetView<String> difference2 = Sets.difference(handleSet, cfSet);
 
             for (String d1 : difference1) {
+                if (CF_HANDLES.containsKey(d1)) {
+                    continue;
+                }
                 ColumnFamilyHandle handle = this.DB.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(d1.getBytes(), COLUMN_FAMILY_OPTIONS), columnFamilyMap.get(d1));
                 this.CF_HANDLES.put(d1, handle);
             }
 
             for (String d2 : difference2) {
-                this.DB.dropColumnFamily(this.CF_HANDLES.get(d2));
-                if (CF_HANDLES.containsKey(d2)) {
-                    this.CF_HANDLES.remove(d2);
+                if (!CF_HANDLES.containsKey(d2)) {
+                    continue;
                 }
+                this.DB.dropColumnFamily(this.CF_HANDLES.get(d2));
+                this.CF_HANDLES.remove(d2);
             }
 
             LOG.info("update column family handle :{}", this.CF_HANDLES.keySet());
