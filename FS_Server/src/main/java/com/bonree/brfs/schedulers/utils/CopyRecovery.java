@@ -5,11 +5,11 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -303,7 +303,7 @@ public class CopyRecovery {
 			builder.setException(e);
 			ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 			builder.setMessage(mcf.getGroupName()+"("+mcf.getServerId()+")服务 执行任务时发生问题");
-			Map<String,String> map = new HashedMap();
+			Map<String,String> map = new HashMap<>();
 			map.put("remote ",host);
 			map.put("remote path",remotePath);
 			map.put("local path", localPath);

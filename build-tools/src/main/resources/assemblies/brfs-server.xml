@@ -1,0 +1,60 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+	<id>brfs-server</id>
+	<includeBaseDirectory>true</includeBaseDirectory>
+
+	<formats>
+		<format>dir</format>
+		<format>tar.gz</format>
+	</formats>
+
+	<files>
+		<file>
+			<source>release/readme.txt</source>
+		</file>
+		<file>
+			<source>release/release-notes.txt</source>
+		</file>
+	</files>
+
+	<dependencySets>
+		<!-- libs -->
+		<dependencySet>
+			<useProjectArtifact>false</useProjectArtifact>
+			<scope>runtime</scope>
+			<outputDirectory>libs</outputDirectory>
+			<useTransitiveDependencies>true</useTransitiveDependencies>
+		</dependencySet>
+	</dependencySets>
+
+	<fileSets>
+		<!-- bin -->
+		<fileSet>
+			<directory>${basedir}/src/main/bin</directory>
+			<includes>
+				<include>start-server.sh</include>
+				<include>stop-server.sh</include>
+			</includes>
+			<outputDirectory>bin</outputDirectory>
+			<fileMode>0755</fileMode>
+		</fileSet>
+		
+		<!-- config -->
+		<fileSet>
+            <directory>${basedir}/src/main/config</directory>
+            <includes>
+                <include>jvm.config</include>
+                <include>logback.xml</include>
+                <include>server.properties.example</include>
+            </includes>
+            <outputDirectory>config</outputDirectory>
+        </fileSet>
+
+		<!-- plugins -->
+		<fileSet>
+			<directory>${project.build.directory}/dependency/brfs-http-netty-${project.version}</directory>
+			<outputDirectory>plugins/brfs-http-netty</outputDirectory>
+		</fileSet>
+	</fileSets>
+</assembly>

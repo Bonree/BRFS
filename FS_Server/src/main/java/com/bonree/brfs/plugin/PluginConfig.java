@@ -15,10 +15,13 @@ package com.bonree.brfs.plugin;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
+import java.util.List;
 
 import com.bonree.brfs.common.utils.StringUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
+
+import io.airlift.resolver.ArtifactResolver;
 
 public class PluginConfig {
     
@@ -26,7 +29,16 @@ public class PluginConfig {
     private String pluginDir = "plugins";
     
     @JsonProperty("loadList")
-    private Set<String> loadList;
+    private List<String> loadList = ImmutableList.of();
+    
+    @JsonProperty("bundles")
+    private List<String> pluginBundles = ImmutableList.of();
+    
+    @JsonProperty("maven.repo.local")
+    private String mavenLocalRepository = ArtifactResolver.USER_LOCAL_REPO;
+    
+    @JsonProperty("maven.repo.remote")
+    private List<String> mavenRemoteRepository = ImmutableList.of(ArtifactResolver.MAVEN_CENTRAL_URI);
 
     public Path getPluginDir() {
         return Paths.get(pluginDir);
@@ -38,13 +50,35 @@ public class PluginConfig {
         }
     }
 
-    public Set<String> getLoadList() {
+    public List<String> getLoadList() {
         return loadList;
     }
 
-    public void setLoadList(Set<String> loadList) {
+    public void setLoadList(List<String> loadList) {
         this.loadList = loadList;
     }
     
+    public void setPluginBundles(List<String> pluginBundles) {
+        this.pluginBundles = pluginBundles;
+    }
     
+    public List<String> getPluginBundles() {
+        return pluginBundles;
+    }
+
+    public String getMavenLocalRepository() {
+        return mavenLocalRepository;
+    }
+
+    public void setMavenLocalRepository(String mavenLocalRepository) {
+        this.mavenLocalRepository = mavenLocalRepository;
+    }
+
+    public List<String> getMavenRemoteRepository() {
+        return mavenRemoteRepository;
+    }
+
+    public void setMavenRemoteRepository(List<String> mavenRemoteRepository) {
+        this.mavenRemoteRepository = mavenRemoteRepository;
+    }
 }

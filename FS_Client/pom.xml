@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.bonree.fs</groupId>
 		<artifactId>BRFS</artifactId>
-		<version>1.0.2-SNAPSHOT</version>
+		<version>2.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>FS_Client</artifactId>
 
@@ -12,7 +12,6 @@
 		<dependency>
 			<groupId>com.bonree.fs</groupId>
 			<artifactId>FS_Commons</artifactId>
-			<version>${project.parent.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.quartz-scheduler</groupId>
@@ -66,6 +65,21 @@
 
 			</exclusions>
 		</dependency>
+		
+		<dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+		
+		<dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+        </dependency>
 
 		<dependency>
 			<groupId>com.alibaba</groupId>
@@ -76,14 +90,25 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.bonree.fs</groupId>
 			<artifactId>FS_Proto</artifactId>
-			<version>${project.parent.version}</version>
 		</dependency>
+		
+		<dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+        </dependency>
 	</dependencies>
 
 	<build>
@@ -101,21 +126,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.3</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-					<encoding>UTF-8</encoding>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.4</version>
 			</plugin>
 		</plugins>
 	</build>
