@@ -65,5 +65,11 @@
 			<directory>${project.build.directory}/dependency/brfs-http-netty-${project.version}</directory>
 			<outputDirectory>plugins/brfs-http-netty</outputDirectory>
 		</fileSet>
+
+		<!-- rocksdb plugin -->
+		<fileSet>
+			<directory>${project.build.directory}/dependency/brfs-rocksdb-${project.version}</directory>
+			<outputDirectory>plugins/brfs-rocksdb</outputDirectory>
+		</fileSet>
 	</fileSets>
 </assembly>
