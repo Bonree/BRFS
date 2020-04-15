@@ -20,6 +20,8 @@ if [ x$BRFS_HOME = "x" ]; then
   echo $BRFS_HOME
 fi
 
+cd $BRFS_HOME
+
 LIB_DIR="${DRUID_LIB_DIR:=${BRFS_HOME}/lib}"
 
 ###################配置文件信息########################
