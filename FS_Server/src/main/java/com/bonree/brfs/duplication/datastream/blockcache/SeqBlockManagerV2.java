@@ -101,7 +101,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                 if(packet.getBlockOffsetInFile(blockSize)==0){
                     writer.write(storage,blockValue.getRealData(),
                             new WriteFileCallback(callback,storage,fileName,false));
-                    LOG.info("flush a small file into the data pool");
+                    LOG.info("flushing a small file[{}] into the data pool",fileName);
                     blockValue.releaseData();
                     blockcache.remove(new BlockKey(storage,fileName));
                     return null;
@@ -109,7 +109,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                     // we should flush the last block to get its fid
                     writer.write(storage,blockValue.getRealData(),
                             new WriteBlockCallback(callback,packet,true));
-                    LOG.info("flush the last block into the data pool ");
+                    LOG.info("flushing the last block of file [{}] into the data pool ",fileName);
                     blockValue.releaseData();
                     return null;
                 }
@@ -124,6 +124,9 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
             }
             if(packet.isTheFirstPacketInFile()){
                 LOG.info("response for the next packet of this file :seqno [{}]",packet.getSeqno());
+            }
+            if(packet.isLastPacketInFile()){
+                LOG.info("the last packet of file [{}] has arrived",fileName);
             }
             HandleResult handleResult = new HandleResult();
             LOG.debug("packet[{}] append to block and still not flushed。",packet);
@@ -233,6 +236,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
         }
         public void addFid(String fid) {
             fids.add(fid);
+            accessTime = System.currentTimeMillis();
         }
 
         class ClearTimerTask extends TimerTask {
@@ -245,7 +249,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                 if(System.currentTimeMillis()-accessTime> timeout){
                     LOG.info("clear a file [{}] out of blockcache.",file);
                     // 3. clear file on heap
-
+                    if(!isPutBack())releaseData();
                     BlockValue remove = blockcache.remove(new BlockKey(storage, file));
                     if(remove == null ){
                         cancel();
