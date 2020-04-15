@@ -45,9 +45,9 @@ public class RebalanceManagerV2 implements Closeable {
         		Configs.getConfiguration().GetConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
         		Configs.getConfiguration().GetConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY));
         
-        String dataPath = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT);
+//        String dataPath = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT);
         opt = new TaskOperationV2(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager,
-        		dataPath, snManager, serviceManager, partitionInterface);
+        		 snManager, serviceManager, partitionInterface);
         
 		int port = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT);
         try {

@@ -33,6 +33,15 @@
             <type>zip</type>
             <scope>provided</scope>
         </dependency>
+
+		<!-- rocksdb plugin-->
+		<dependency>
+			<groupId>com.bonree.fs</groupId>
+			<artifactId>brfs-rocksdb</artifactId>
+			<version>${project.version}</version>
+			<type>zip</type>
+			<scope>provided</scope>
+		</dependency>
         
 	</dependencies>
 

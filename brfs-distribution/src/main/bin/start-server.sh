@@ -15,7 +15,7 @@ if [ x$BRFS_HOME = "x" ]; then
 
   PRGDIR=`dirname "$PRG"`
 
-  BRFS_HOME=`cd "$PRGDIR/.." >/dev/null; pwd`
+  BRFS_HOME=`cd "$PRGDIR/.." > /dev/null; pwd`
 
   echo $BRFS_HOME
 fi
@@ -23,7 +23,14 @@ fi
 LIB_DIR="${DRUID_LIB_DIR:=${BRFS_HOME}/lib}"
 
 ###################配置文件信息########################
-CONFIG_DIR_PARAM=$2
+if [ $# -ge 2 ] && [ -d "$2" ]
+then
+  if [ -d "$2" ]
+  then
+    CONFIG_DIR_PARAM=$(cd "$2"; pwd)
+  fi
+fi
+
 CONFIG_DIR="${CONFIG_DIR_PARAM:=${BRFS_HOME}/config}"
 
 # configuration file for server
@@ -56,6 +63,7 @@ DISK_IO_THREADS=16
 DUPLICATE_NET_BACKLOG=2048
 DUPLICATE_IO_THREADS=16
 
+cd ${BRFS_HOME}
 case $1 in
 		###启动副本管理###
 		region)

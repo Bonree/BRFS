@@ -36,3 +36,23 @@
 *META-INF/services/com.bonree.brfs.common.plugin.BrfsModule*
 
 并添加相应的实现类的完整名称作为文件内容，如果有多个实现类，则每个实现类名占一行。
+
+5、如果需要让插件和brfs一起打包发布，需要在brfs-distribution工程的pom.xml文件中添加对插件的依赖，其中依赖的type为zip，scope为provided，例如：
+
+​        ``<dependency>`
+​            `<groupId>com.bonree.fs</groupId>`
+​            `<artifactId>brfs-http-netty</artifactId>`
+​            `<version>${project.version}</version>`
+​            `<type>zip</type>`
+​            `<scope>provided</scope>`
+​        </dependency>`
+
+然后在build-tools工程下的*src/main/resources/assemblies/brfs-server.xml*文件中的fileSets标签中添加如下内容：
+
+```xml
+<fileSet>
+  <directory>${project.build.directory}/dependency/${name}-${project.version}</directory>
+  <outputDirectory>plugins/${name}</outputDirectory>
+</fileSet>
+```
+把${name}替换为相应的插件名即可。

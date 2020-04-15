@@ -27,7 +27,7 @@ public class SimpleFileServer implements Closeable {
     }
 
     public void start() {
-        LOG.info("start server!!!!");
+        LOG.info("start file server!!!");
         while (true) {
             Socket sock = null;
             try {
