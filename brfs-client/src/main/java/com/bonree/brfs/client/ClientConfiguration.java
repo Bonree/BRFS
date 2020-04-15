@@ -25,6 +25,14 @@ public interface ClientConfiguration {
     
     Duration getStorageRegionCacheRefreshDuration();
     
+    Duration getConnectTimeout();
+    
+    Duration getReadTimeout();
+    
+    Duration getWriteTimeout();
+    
+    Duration getRequestTimeout();
+    
     int getDataPackageSize();
     
     int getConnectionPoolSize();

@@ -20,6 +20,10 @@ public class ClientConfigurationBuilder {
     private Duration discoveryRefresh;
     private Duration storageRegionCacheExpire;
     private Duration storageRegionCacheRefresh;
+    private Duration connectTimeout = Duration.ofSeconds(10);
+    private Duration readTimeout = Duration.ofSeconds(30);
+    private Duration writeTimeout = Duration.ofSeconds(30);
+    private Duration requestTimeout = Duration.ofSeconds(30);
     private int dataPackageSize = 16 * 1024;
     private int connectionPoolSize;
     private int threadNum;
@@ -41,6 +45,26 @@ public class ClientConfigurationBuilder {
     
     public ClientConfigurationBuilder setStorageRegionCacheRefreshDuration(Duration refresh) {
         this.storageRegionCacheRefresh = refresh;
+        return this;
+    }
+    
+    public ClientConfigurationBuilder setConnectTimeout(Duration timeout) {
+        this.connectTimeout = timeout;
+        return this;
+    }
+    
+    public ClientConfigurationBuilder setReadTimeout(Duration timeout) {
+        this.readTimeout = timeout;
+        return this;
+    }
+    
+    public ClientConfigurationBuilder setWriteTimeout(Duration timeout) {
+        this.writeTimeout = timeout;
+        return this;
+    }
+    
+    public ClientConfigurationBuilder setRequestTimeout(Duration timeout) {
+        this.requestTimeout = timeout;
         return this;
     }
     
@@ -95,6 +119,26 @@ public class ClientConfigurationBuilder {
             @Override
             public int getDataPackageSize() {
                 return dataPackageSize;
+            }
+
+            @Override
+            public Duration getConnectTimeout() {
+                return connectTimeout;
+            }
+
+            @Override
+            public Duration getReadTimeout() {
+                return readTimeout;
+            }
+
+            @Override
+            public Duration getWriteTimeout() {
+                return writeTimeout;
+            }
+
+            @Override
+            public Duration getRequestTimeout() {
+                return requestTimeout;
             }
         };
     }

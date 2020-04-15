@@ -56,6 +56,10 @@ public class BRFSClientBuilder {
         OkHttpClient httpClient = new OkHttpClient.Builder()
                 .addNetworkInterceptor(new AuthorizationIterceptor(user, passwd))
                 .socketFactory(new SocketChannelSocketFactory())
+                .callTimeout(configuration.getRequestTimeout())
+                .connectTimeout(configuration.getConnectTimeout())
+                .readTimeout(configuration.getReadTimeout())
+                .writeTimeout(configuration.getWriteTimeout())
                 .build();
         
         JsonCodec codec = new JsonCodec(new ObjectMapper());
