@@ -83,7 +83,8 @@ public class WatchDog{
             // 使用前必须更新路由规则，否则会解析错误
             snMap = new HashMap<>();
 			snMap.put(BRFSPath.STORAGEREGION,sn.getName());
-            List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(sim,parser,sn,snLimitTime));
+			String secondId = sim.getSecondServerID(snId);
+            List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(parser,sn,secondId,snLimitTime));
             if(sfiles == null || sfiles.isEmpty()){
                 continue;
             }
@@ -95,10 +96,7 @@ public class WatchDog{
 		//若见采集结果不为空则调用删除线程
 		if(preys.size() > 0) {
 			isRun = true;
-			executor.execute(new Runnable() {
-
-				@Override
-				public void run() {
+			executor.execute(()-> {
 					// 为空跳出
 					if(preys == null) {
 						LOG.debug("queue is empty skip !!!");
@@ -124,7 +122,7 @@ public class WatchDog{
 					}
 					isRun = false;
 
-				}
+
 			});
 		}
 
