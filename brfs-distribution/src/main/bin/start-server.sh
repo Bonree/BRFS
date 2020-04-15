@@ -63,6 +63,7 @@ DISK_IO_THREADS=16
 DUPLICATE_NET_BACKLOG=2048
 DUPLICATE_IO_THREADS=16
 
+cd ${BRFS_HOME}
 case $1 in
 		###启动副本管理###
 		region)
