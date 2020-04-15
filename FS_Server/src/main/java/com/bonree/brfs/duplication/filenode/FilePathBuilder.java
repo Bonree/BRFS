@@ -42,7 +42,7 @@ public class FilePathBuilder {
 	    List<String> parts = Splitter.on(PATH_SEPARATOR).splitToList(path);
 	    int index = Integer.parseInt(parts.get(parts.size() - 6));
 	    String secondId = Splitter.on("_").splitToList(parts.get(parts.size() - 1)).get(index);
-	    String storageRegionName = parts.get(parts.size() - 4);
+	    String storageRegionName = parts.get(parts.size() - 7);
 	    
 	    return new String[] {storageRegionName, secondId};
 	}
