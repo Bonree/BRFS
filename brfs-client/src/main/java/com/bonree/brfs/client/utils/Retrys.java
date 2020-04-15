@@ -90,7 +90,7 @@ public final class Retrys {
                 T result = execute(element);
                 return Retryable.success(result);
             } catch (Exception e) {
-                log.warn("%s fail to execute on [%s]", description,  element);
+                log.warn("{} fail to execute on [{}]", description,  element);
                 cause = e;
                 
                 if(!continueRetry()) {
