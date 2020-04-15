@@ -27,13 +27,14 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
     private RocksDBManager rocksDBManager;
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManagerV2.class);
     private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
+    private static int blockPoolSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
     private static long initBlockSize = 1024 * 1024;
     private LinkedBlockingQueue<WriteFileRequest> fileWaiting = new LinkedBlockingQueue(100);
     private AtomicInteger fileWritingCount = new AtomicInteger(0);
     private ExecutorService fileWorker;
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
-    SeqBlockPool blockPool = new SeqBlockPool(blockSize,20,1);
+    SeqBlockPool blockPool = new SeqBlockPool(blockSize,blockPoolSize,1);
     private ExecutorService blockManageWatcher = this.fileWorker = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(),
             new PooledThreadFactory("watcher:"));
@@ -101,7 +102,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                 if(packet.getBlockOffsetInFile(blockSize)==0){
                     writer.write(storage,blockValue.getRealData(),
                             new WriteFileCallback(callback,storage,fileName,false));
-                    LOG.info("flush a small file into the data pool");
+                    LOG.info("flushing a small file[{}] into the data pool",fileName);
                     blockValue.releaseData();
                     blockcache.remove(new BlockKey(storage,fileName));
                     return null;
@@ -109,7 +110,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                     // we should flush the last block to get its fid
                     writer.write(storage,blockValue.getRealData(),
                             new WriteBlockCallback(callback,packet,true));
-                    LOG.info("flush the last block into the data pool ");
+                    LOG.info("flushing the last block of file [{}] into the data pool ",fileName);
                     blockValue.releaseData();
                     return null;
                 }
@@ -124,6 +125,9 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
             }
             if(packet.isTheFirstPacketInFile()){
                 LOG.info("response for the next packet of this file :seqno [{}]",packet.getSeqno());
+            }
+            if(packet.isLastPacketInFile()){
+                LOG.info("the last packet of file [{}] has arrived",fileName);
             }
             HandleResult handleResult = new HandleResult();
             LOG.debug("packet[{}] append to block and still not flushed。",packet);
@@ -233,6 +237,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
         }
         public void addFid(String fid) {
             fids.add(fid);
+            accessTime = System.currentTimeMillis();
         }
 
         class ClearTimerTask extends TimerTask {
@@ -245,7 +250,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                 if(System.currentTimeMillis()-accessTime> timeout){
                     LOG.info("clear a file [{}] out of blockcache.",file);
                     // 3. clear file on heap
-
+                    if(!isPutBack())releaseData();
                     BlockValue remove = blockcache.remove(new BlockKey(storage, file));
                     if(remove == null ){
                         cancel();
@@ -465,7 +470,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                     break;
                 }
 
-                if(fileWritingCount.get() < 20 && fileWaiting.peek() != null){
+                if(fileWritingCount.get() < blockPoolSize && fileWaiting.peek() != null){
                     try {
 
                         LOG.info("Processor : the waiting request size is [{}]",fileWritingCount.get());
