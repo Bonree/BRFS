@@ -35,6 +35,7 @@ import org.sonatype.aether.artifact.Artifact;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Streams;
 
@@ -59,7 +60,7 @@ public class PluginInitializer {
                 .map(pluginRoot::resolve)
                 .map(Path::toFile)
                 .map(dir -> {
-                    log.info("load plugin from [{}]", dir);
+                    log.info("loading plugin from [{}]", dir);
                     
                     try {
                         return buildClassLoaderFromDirectory(dir);
@@ -75,7 +76,7 @@ public class PluginInitializer {
         return config.getPluginBundles()
                 .stream()
                 .map(plugin -> {
-                    log.info("load plugin from [{}]", plugin);
+                    log.info("loading plugin from [{}]", plugin);
                     
                     try {
                         return buildClassLoader(plugin, resolver);
@@ -90,14 +91,16 @@ public class PluginInitializer {
         ImmutableSet.Builder<T> builder = ImmutableSet.builder();
         ServiceLoader.load(serviceCls, classLoader).forEach(builder::add);
         
-        return builder.build();
+        Set<T> plugins = builder.build();
+        log.info("load plugins: [{}]", Iterables.transform(plugins, Object::getClass));
+        
+        return plugins;
     }
     
     private static URLClassLoader buildClassLoader(String plugin, ArtifactResolver resolver)
             throws Exception
     {
         File file = new File(plugin);
-        log.info("load plugin [{}]", file.getAbsolutePath());
         if (file.isFile() && (file.getName().equals("pom.xml") || file.getName().endsWith(".pom"))) {
             return buildClassLoaderFromPom(file, resolver);
         }
