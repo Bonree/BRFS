@@ -80,6 +80,7 @@ public class DataNodeModule implements Module {
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
         JsonConfigProvider.bind(binder,"datanode.ids",IDConfig.class);
+        JsonConfigProvider.bind(binder,"datanode",StorageConfig.class);
         
         binder.bind(DiskContext.class).in(Scopes.SINGLETON);
         binder.bind(FileFormater.class).to(SimpleFileFormater.class).in(Scopes.SINGLETON);
@@ -234,7 +235,7 @@ public class DataNodeModule implements Module {
             @Override
             public void start() throws Exception {
                 writerManager.start();
-                writerManager.rebuildFileWriterbyDir(diskContext.getRootDir());
+                diskContext.getStorageDirs().forEach(writerManager::rebuildFileWriterbyDir);
             }
             
             @Override

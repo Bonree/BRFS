@@ -29,11 +29,11 @@ public class PartitionCheckingRoutine {
     private LevelServerIDGen idGen;
     // todo 磁盘变更主动发布接口
     //private xxx
-    private String dataConfig;
+    private List<String> dataConfig;
     private String innerDir;
     private String partitionGroup;
     @Inject
-    public PartitionCheckingRoutine(LevelServerIDGen idGen, String dataConfig, String innerDir, String partitionGroup) {
+    public PartitionCheckingRoutine(LevelServerIDGen idGen, List<String> dataConfig, String innerDir, String partitionGroup) {
         this.idGen = idGen;
         this.dataConfig = dataConfig;
         this.innerDir = innerDir;
@@ -41,7 +41,7 @@ public class PartitionCheckingRoutine {
     }
 
     public Collection<LocalPartitionInfo> checkVaildPartition() {
-        String[] dirs = StringUtils.split(dataConfig, ",");
+        String[] dirs = dataConfig.toArray(new String[dataConfig.size()]);
         // todo 若无数据目录则 抛出异常，
         if (dirs == null || dirs.length == 0) {
 
