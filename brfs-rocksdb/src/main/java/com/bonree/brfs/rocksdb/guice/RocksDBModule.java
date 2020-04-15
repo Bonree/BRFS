@@ -1,10 +1,13 @@
 package com.bonree.brfs.rocksdb.guice;
 
+import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
+
 import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.plugin.BrfsModule;
+import com.bonree.brfs.common.plugin.NodeType;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.rocksdb.backup.RocksDBBackupEngine;
@@ -16,8 +19,6 @@ import com.bonree.brfs.rocksdb.restore.RocksDBRestoreEngine;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 
-import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
-
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
@@ -26,10 +27,10 @@ import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description:
  ******************************************************************************/
-public class RocksDBModule implements BrfsModule {
+public class RocksDBModule extends BrfsModule {
 
     @Override
-    public void configure(Binder binder) {
+    public void configure(NodeType nodeType, Binder binder) {
         JsonConfigProvider.bind(binder, "rocksdb", RocksDBConfig.class);
 
         binder.bind(RegionNodeConnectionPool.class).to(HttpRegionNodeConnectionPool.class).in(ManageLifecycle.class);

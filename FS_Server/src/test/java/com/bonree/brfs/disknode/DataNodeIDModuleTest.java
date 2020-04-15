@@ -2,6 +2,7 @@ package com.bonree.brfs.disknode;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
+import com.bonree.brfs.common.plugin.NodeType;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.guice.ClusterConfig;
@@ -66,7 +67,7 @@ public class DataNodeIDModuleTest {
         List<Module> modules = new ArrayList<>();
         modules.add(new ZKPathModel());
         modules.add(new DataNodeIDModule());
-        Injector injector = Initialization.makeInjectorWithModules(Initialization.makeSetupInjector(), modules);
+        Injector injector = Initialization.makeInjectorWithModules(NodeType.REGION_NODE, Initialization.makeSetupInjector(), modules);
         CuratorFramework client = injector.getInstance(CuratorFramework.class);
         CuratorCacheFactory.init(client);
         DiskDaemon diskDaemon = injector.getInstance(DiskDaemon.class);

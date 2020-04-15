@@ -25,17 +25,18 @@ import com.bonree.brfs.common.http.HttpServer;
 import com.bonree.brfs.common.http.HttpServerConfig;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.plugin.BrfsModule;
+import com.bonree.brfs.common.plugin.NodeType;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 
 import io.netty.handler.ssl.SslContext;
 
-public class NettyHttpServerModule implements BrfsModule {
+public class NettyHttpServerModule extends BrfsModule {
 
     @Override
-    public void configure(Binder binder) {
-        JsonConfigProvider.bind(binder, "httpserver", NettyHttpServerConfig.class);
+    public void configure(NodeType nodeType, Binder binder) {
+        JsonConfigProvider.bind(binder, nodeType.nodeName() + ".httpserver", NettyHttpServerConfig.class);
         
         binder.bind(HttpServer.class).to(NettyHttpServer.class);
         binder.bind(HttpServerConfig.class).to(NettyHttpServerConfig.class).in(Scopes.SINGLETON);

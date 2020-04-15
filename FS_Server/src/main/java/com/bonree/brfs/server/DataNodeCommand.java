@@ -15,11 +15,12 @@ package com.bonree.brfs.server;
 
 import java.util.List;
 
-import com.bonree.brfs.disknode.DataNodeIDModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.authentication.SimpleAuthenticationModule;
+import com.bonree.brfs.common.plugin.NodeType;
+import com.bonree.brfs.disknode.DataNodeIDModule;
 import com.bonree.brfs.disknode.DataNodeModule;
 import com.bonree.brfs.email.EmailModule;
 import com.google.common.collect.ImmutableList;
@@ -41,10 +42,15 @@ public class DataNodeCommand extends BaseCommand {
     @Override
     protected List<Module> getModules() {
         return ImmutableList.of(
-                new EmailModule(),
+                new EmailModule().withNodeType(getNodeType()),
                 new SimpleAuthenticationModule(),
                 new DataNodeModule(),
                 new DataNodeIDModule());
+    }
+
+    @Override
+    protected NodeType getNodeType() {
+        return NodeType.DATA_NODE;
     }
 
 }
