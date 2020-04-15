@@ -11,17 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.metrics;
+package com.bonree.brfs.common.plugin;
 
-import com.bonree.brfs.common.http.rest.JaxrsBinder;
-import com.bonree.brfs.common.plugin.BrfsModule;
-import com.bonree.brfs.common.plugin.NodeType;
-import com.google.inject.Binder;
-
-public class MetricsModule extends BrfsModule {
-
-    public void configure(NodeType type, Binder binder) {
-        JaxrsBinder.jaxrs(binder).resource(NodeResource.class);
+public enum NodeType {
+    REGION_NODE("regionnode"),
+    DATA_NODE("datanode");
+    
+    private final String nodeName;
+    
+    private NodeType(String name) {
+        this.nodeName = name;
     }
-
+    
+    public String nodeName() {
+        return nodeName;
+    }
 }

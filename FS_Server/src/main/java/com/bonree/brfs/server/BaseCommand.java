@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 
 import com.bonree.brfs.common.lifecycle.Lifecycle;
+import com.bonree.brfs.common.plugin.NodeType;
 import com.bonree.brfs.guice.Initialization;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -39,11 +40,13 @@ public abstract class BaseCommand implements Runnable {
     }
     
     protected abstract List<Module> getModules();
+    
+    protected abstract NodeType getNodeType();
 
     @Override
     public void run() {
         try {
-            Injector injector = Initialization.makeInjectorWithModules(baseInjector, getModules());
+            Injector injector = Initialization.makeInjectorWithModules(getNodeType(), baseInjector, getModules());
             Lifecycle lifeCycle = injector.getInstance(Lifecycle.class);
             
             try {

@@ -12,6 +12,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.DataRecover;
@@ -19,7 +20,6 @@ import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalanceV2.task.BalanceTaskSummaryV2;
 import com.bonree.brfs.rebalanceV2.transfer.SimpleFileClient;
-import com.bonree.brfs.server.identification.ServerIDManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +53,7 @@ public class MultiRecoverV2 implements DataRecover {
     private SimpleFileClient fileClient;
     private final String storageName;
     private final ServiceManager serviceManager;
-    private ServerIDManager idManager;
+    private IDSManager idManager;
 
     private final String taskNode;
     private final String selfNode;
@@ -71,7 +71,7 @@ public class MultiRecoverV2 implements DataRecover {
     private BlockingQueue<FileRecoverMetaV2> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
 
-    public MultiRecoverV2(LocalPartitionInterface localPartitionInterface, BalanceTaskSummaryV2 summary, ServerIDManager idManager, ServiceManager serviceManager, String taskNode, CuratorClient client, String storageName, String baseRoutesPath) {
+    public MultiRecoverV2(LocalPartitionInterface localPartitionInterface, BalanceTaskSummaryV2 summary, IDSManager idManager, ServiceManager serviceManager, String taskNode, CuratorClient client, String storageName, String baseRoutesPath) {
         this.balanceSummary = summary;
         this.idManager = idManager;
         this.serviceManager = serviceManager;
@@ -84,7 +84,7 @@ public class MultiRecoverV2 implements DataRecover {
         // 开启监控
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(taskNode, new RecoverListener("recover_listener"));
-        this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstServerID();
+        this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstSever();
         this.delayTime = balanceSummary.getDelayTime();
         status = new AtomicReference<>(summary.getTaskStatus());
 
@@ -242,7 +242,7 @@ public class MultiRecoverV2 implements DataRecover {
             detail.setTotalDirectories(fileCounts);
             updateDetail(selfNode, detail);
 
-            LOG.info("deal the local server: {}", idManager.getSecondServerID(balanceSummary.getStorageIndex()));
+            LOG.info("deal the local server: {}", idManager.getSecondId(partitionInfo.getPartitionId(), balanceSummary.getStorageIndex()));
 
             // 遍历副本文件
             // dealReplicas(replicasNames, snDataDir);
@@ -341,11 +341,11 @@ public class MultiRecoverV2 implements DataRecover {
 
                     // 判断选取的新节点是否存活
                     if (isAlive(getAliveMultiIds(), selectMultiId)) {
-                        String secondServerIDSelected = idManager.getSecondServerID(balanceSummary.getStorageIndex());
+                        String secondServerIDSelected = idManager.getSecondId(balanceSummary.getPartitionId(), balanceSummary.getStorageIndex());
 
                         // 判断选取的新节点是否为本节点
                         if (!secondServerIDSelected.equals(selectMultiId)) {
-                            String firstID = idManager.getOtherFirstID(selectMultiId, balanceSummary.getStorageIndex());
+                            String firstID = idManager.getFirstId(selectMultiId, balanceSummary.getStorageIndex());
                             FileRecoverMetaV2 fileMeta = new FileRecoverMetaV2(perFile, fileName, selectMultiId, timeFileName, replica, pot + 1, firstID, partitionPath);
                             try {
                                 fileRecoverQueue.put(fileMeta);
@@ -469,7 +469,7 @@ public class MultiRecoverV2 implements DataRecover {
     public TaskDetail registerNodeDetail(String node) {
         TaskDetail detail;
         if (!client.checkExists(node)) {
-            detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
+            detail = new TaskDetail(idManager.getFirstSever(), ExecutionStatus.INIT, 0, 0, 0);
             client.createPersistent(node, false, JsonUtils.toJsonBytesQuietly(detail));
         } else {
             byte[] data = client.getData(node);

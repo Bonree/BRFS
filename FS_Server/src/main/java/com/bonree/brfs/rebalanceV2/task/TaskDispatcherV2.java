@@ -18,6 +18,8 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.email.EmailPool;
+import com.bonree.brfs.identification.IDSManager;
+import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.task.ChangeType;
@@ -27,7 +29,6 @@ import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalanceV2.BalanceTaskGeneratorV2;
 import com.bonree.brfs.rebalanceV2.task.listener.ServerChangeListenerV2;
 import com.bonree.brfs.rebalanceV2.task.listener.TaskStatusListenerV2;
-import com.bonree.brfs.server.identification.ServerIDManager;
 import com.bonree.mail.worker.MailWorker;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -72,7 +73,7 @@ public class TaskDispatcherV2 implements Closeable {
 
     private CuratorClient curatorClient;
     private LeaderLatch leaderLath;
-    private ServerIDManager idManager;
+    private IDSManager idManager;
     private StorageRegionManager snManager;
     private TaskMonitor monitor = new TaskMonitor();
 
@@ -85,6 +86,7 @@ public class TaskDispatcherV2 implements Closeable {
     private final String virtualRoutePath;
     private final String normalRoutePath;
     private final BalanceTaskGeneratorV2 taskGenerator;
+    private DiskPartitionInfoManager partitionInfoManager;
 
     private int virtualDelay;
     private int normalDelay;
@@ -105,7 +107,7 @@ public class TaskDispatcherV2 implements Closeable {
     // 为了能够有序的处理变更，需要将变更添加到队列中
     private BlockingQueue<DiskPartitionChangeSummary> detailQueue = new ArrayBlockingQueue<>(256);
 
-    public TaskDispatcherV2(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, ServerIDManager idManager, ServiceManager serviceManager, StorageRegionManager snManager, int virtualDelay, int normalDelay) {
+    public TaskDispatcherV2(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath, IDSManager idManager, ServiceManager serviceManager, StorageRegionManager snManager, int virtualDelay, int normalDelay, DiskPartitionInfoManager partitionInfoManager) {
         String balancePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
         this.virtualRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE;
         this.normalRoutePath = BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRoutesPath, "baseRoutesPath is not null!")) + Constants.SEPARATOR + Constants.NORMAL_ROUTE;
@@ -116,6 +118,7 @@ public class TaskDispatcherV2 implements Closeable {
         this.idManager = idManager;
         this.serviceManager = serviceManager;
         this.snManager = snManager;
+        this.partitionInfoManager = partitionInfoManager;
 
         taskGenerator = new SimpleTaskGeneratorV2();
         this.curatorClient = curatorClient;
@@ -336,7 +339,7 @@ public class TaskDispatcherV2 implements Closeable {
 
                             // 删除virtual server ID
                             LOG.info("delete the virtual server id:" + bts.getServerId());
-                            idManager.deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
+                            idManager.deleteVirtualId(bts.getStorageIndex(), bts.getServerId());
                         } else if (bts.getTaskType() == RecoverType.NORMAL) {
                             LOG.info("one normal task finish,detail:" + RebalanceUtils.convertEvent(event));
                             String normalRouteNode = ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
@@ -400,7 +403,7 @@ public class TaskDispatcherV2 implements Closeable {
 
                 // 删除virtual server ID
                 LOG.info("delete the virtual server id:" + bts.getServerId());
-                idManager.deleteVirtualID(bts.getStorageIndex(), bts.getServerId());
+                idManager.deleteVirtualId(bts.getStorageIndex(), bts.getServerId());
             } else if (bts.getTaskType() == RecoverType.NORMAL) {
                 LOG.info("one normal task finish, detail: {}", taskSummary);
                 String normalRouteNode = ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
@@ -527,13 +530,16 @@ public class TaskDispatcherV2 implements Closeable {
         // 检测是否能进行数据恢复。
         for (DiskPartitionChangeSummary cs : changeSummaries) {
             if (cs.getChangeType().equals(ChangeType.REMOVE)) {
-                List<String> aliveFirstIDs = getAliveServices();
-                List<String> joinerFirstIDs = cs.getCurrentServers();
-                LOG.info("aliveFirstIDs: {}", aliveFirstIDs);
-                LOG.info("joinerFirstIDs: {}", joinerFirstIDs);
+//                List<String> aliveFirstIDs = getAliveServices();
+//                List<String> joinerFirstIDs = cs.getCurrentServers();
+
+                List<String> alivePartitionIds = this.partitionInfoManager.getCurrentPartitionIds();
+                List<String> joinerPartitionIds = cs.getCurrentPartitionIds();
+                LOG.info("alivePartitionIds: {}", alivePartitionIds);
+                LOG.info("joinerPartitionIds: {}", joinerPartitionIds);
                 LOG.info("further to filter dead server...");
-                List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
-                List<String> joinerSecondIDs = joinerFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
+                List<String> aliveSecondIDs = alivePartitionIds.stream().map((x) -> idManager.getSecondId(x, cs.getStorageIndex())).collect(Collectors.toList());
+                List<String> joinerSecondIDs = joinerPartitionIds.stream().map((x) -> idManager.getSecondId(x, cs.getStorageIndex())).collect(Collectors.toList());
 
                 // 挂掉的机器不能做生存者和参与者，此处进行再次过滤，防止其他情况
                 if (aliveSecondIDs.contains(cs.getChangeServer())) {
@@ -608,8 +614,8 @@ public class TaskDispatcherV2 implements Closeable {
                 String changeID = changeSummary.getChangeID();
                 int storageIndex = changeSummary.getStorageIndex();
                 List<String> currentFirstIDs = getAliveServices();
-                List<String> virtualServerIds = idManager.listNormalVirtualID(changeSummary.getStorageIndex());
-                String virtualServersPath = idManager.getVirtualServersPath();
+                List<String> virtualServerIds = idManager.listValidVirtualIds(changeSummary.getStorageIndex());
+                String virtualServersPath = idManager.getVirtualIdContainerPath();
                 if (virtualServerIds != null && !virtualServerIds.isEmpty()) {
                     Collections.sort(virtualServerIds);
                     for (String virtualID : virtualServerIds) {
@@ -623,7 +629,7 @@ public class TaskDispatcherV2 implements Closeable {
                             // 需要寻找一个可以恢复的虚拟serverID，此处选择新来的或者没参与过的
                             String selectID = selectIds.get(0); // TODO 选择一个可用的server来进行迁移，如果新来的在可迁移里，则选择新来的，若新来的不在可迁移里，可能为挂掉重启。此时选择？
                             // 构建任务需要使用2级serverid
-                            String selectSecondID = idManager.getOtherSecondID(selectID, storageIndex);
+                            String selectSecondID = idManager.getSecondId(changeSummary.getChangePartitionId(), storageIndex);
 
                             String secondParticipator = null;
                             List<String> aliveServices = getAliveServices();
@@ -631,11 +637,7 @@ public class TaskDispatcherV2 implements Closeable {
                             // 选择一个活着的可用的参与者
                             for (String participator : participators) {
                                 if (aliveServices.contains(participator)) {
-                                    if (participator.equals(idManager.getFirstServerID())) {
-                                        secondParticipator = idManager.getSecondServerID(storageIndex);
-                                    } else {
-                                        secondParticipator = idManager.getOtherSecondID(participator, storageIndex);
-                                    }
+                                    secondParticipator = idManager.getSecondId(changeSummary.getChangePartitionId(), storageIndex);
                                     break;
                                 }
                             }
@@ -658,7 +660,7 @@ public class TaskDispatcherV2 implements Closeable {
                             // 无效化virtualID,直到成功
                             boolean flag = false;
                             do {
-                                flag = idManager.invalidVirtualID(taskSummary.getStorageIndex(), virtualID);
+                                flag = idManager.invalidVirtualId(taskSummary.getStorageIndex(), virtualID);
                             } while (!flag);
                             // 虚拟serverID置为无效
                             // 虚拟serverID迁移完成，会清理缓存和zk上的任务
@@ -748,7 +750,7 @@ public class TaskDispatcherV2 implements Closeable {
                                     currentTask.setInterval(DEFAULT_INTERVAL);
                                 } else if (interval == 0) {
                                     List<String> aliveServices = getAliveServices();
-                                    String otherFirstID = idManager.getOtherFirstID(currentTask.getInputServers().get(0), currentTask.getStorageIndex());
+                                    String otherFirstID = idManager.getFirstId(currentTask.getInputServers().get(0), currentTask.getStorageIndex());
                                     if (!aliveServices.contains(otherFirstID)) {
                                         if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
                                             updateTaskStatus(currentTask, TaskStatus.CANCEL);
@@ -760,7 +762,7 @@ public class TaskDispatcherV2 implements Closeable {
                                             removeRunTask(currentTask.getStorageIndex());
                                             delBalanceTask(currentTask);
                                             // 将virtual serverID 标为可用
-                                            idManager.normalVirtualID(currentTask.getStorageIndex(), currentTask.getServerId());
+                                            idManager.validVirtualId(currentTask.getStorageIndex(), currentTask.getServerId());
                                         }
                                     }
                                 } else if (interval > 0) {
@@ -778,19 +780,19 @@ public class TaskDispatcherV2 implements Closeable {
                                         currentTask.setInterval(currentTask.getInterval() - 1);
                                     } else if (interval == 0) {
                                         List<String> aliveServices = getAliveServices();
-                                        String otherFirstID = idManager.getOtherFirstID(currentTask.getOutputServers().get(0), runChangeSummary.getStorageIndex());
+                                        String otherFirstID = idManager.getFirstId(currentTask.getOutputServers().get(0), runChangeSummary.getStorageIndex());
                                         if (!aliveServices.contains(otherFirstID)) {
                                             LOG.info("joiner is not aliver,reselct route role");
                                             // 重新选择
-                                            String virtualServersPath = idManager.getVirtualServersPath();
+                                            String virtualServersPath = idManager.getVirtualIdContainerPath();
                                             List<String> participators = curatorClient.getChildren(virtualServersPath + Constants.SEPARATOR + currentTask.getStorageIndex() + Constants.SEPARATOR + currentTask.getServerId());
                                             String secondParticipator = null;
                                             for (String participator : participators) {
                                                 if (aliveServices.contains(participator)) {
-                                                    if (participator.equals(idManager.getFirstServerID())) {
-                                                        secondParticipator = idManager.getSecondServerID(currentTask.getStorageIndex());
+                                                    if (participator.equals(idManager.getFirstSever())) {
+                                                        secondParticipator = idManager.getSecondId(runChangeSummary.getChangePartitionId(), currentTask.getStorageIndex());
                                                     } else {
-                                                        secondParticipator = idManager.getOtherSecondID(participator, currentTask.getStorageIndex());
+                                                        secondParticipator = idManager.getSecondId(cs.getChangePartitionId(), currentTask.getStorageIndex());
                                                     }
                                                     break;
                                                 }
@@ -838,8 +840,9 @@ public class TaskDispatcherV2 implements Closeable {
                             } else { // 不为同一个serverID
                                 // 如果任务暂停，查看回来的是否为曾经的参与者
                                 if (currentTask.getTaskStatus().equals(TaskStatus.PAUSE)) {
-                                    List<String> aliveFirstIDs = getAliveServices();
-                                    List<String> aliveSecondIDs = aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex())).collect(Collectors.toList());
+//                                    List<String> aliveFirstIDs = getAliveServices();
+                                    List<String> alivePartitionIds = this.partitionInfoManager.getCurrentPartitionIds();
+                                    List<String> aliveSecondIDs = alivePartitionIds.stream().map((x) -> idManager.getSecondId(x, cs.getStorageIndex())).collect(Collectors.toList());
                                     // 参与者和接收者都存活
                                     if (aliveSecondIDs.containsAll(currentTask.getOutputServers()) && aliveSecondIDs.containsAll(currentTask.getInputServers())) {
                                         updateTaskStatus(currentTask, TaskStatus.RUNNING);
@@ -972,7 +975,7 @@ public class TaskDispatcherV2 implements Closeable {
         return changeSummaryCache;
     }
 
-    public ServerIDManager getServerIDManager() {
+    public IDSManager getServerIDManager() {
         return idManager;
     }
 

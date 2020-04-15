@@ -19,6 +19,7 @@ import com.bonree.brfs.common.http.rest.JaxrsModule;
 import com.bonree.brfs.common.jackson.JsonModule;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.plugin.BrfsModule;
+import com.bonree.brfs.common.plugin.NodeType;
 import com.bonree.brfs.common.zookeeper.curator.CuratorModule;
 import com.bonree.brfs.plugin.PluginConfig;
 import com.bonree.brfs.plugin.PluginInitializer;
@@ -41,7 +42,7 @@ public class Initialization {
                 ));
     }
 
-    public static Injector makeInjectorWithModules(final Injector baseInjector, Iterable<? extends Module> modules) {
+    public static Injector makeInjectorWithModules(NodeType nodeType, final Injector baseInjector, Iterable<? extends Module> modules) {
         ImmutableList.Builder<Module> defaultModules = ImmutableList.<Module>builder()
         .add(new LifecycleModule())
         .add(new CuratorModule())
@@ -53,7 +54,7 @@ public class Initialization {
         PluginConfig pluginConfig = baseInjector.getInstance(PluginConfig.class);
         ImmutableList.Builder<Module> pluginModules = ImmutableList.builder();
         for(BrfsModule pluginModule : PluginInitializer.loadPlugins(BrfsModule.class, pluginConfig)){
-            pluginModules.add(pluginModule);
+            pluginModules.add(pluginModule.withNodeType(nodeType));
         }
         
         return Guice.createInjector(Modules.override(nodeModule).with(pluginModules.build()));
