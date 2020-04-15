@@ -43,19 +43,17 @@ public class TaskOperationV2 implements Closeable {
     private ServerIDManager idManager;
     private CuratorTreeCache treeCache;
     private String tasksPath;
-    private String dataDir;
     private StorageRegionManager snManager;
     private ServiceManager serviceManager;
     private String baseRoutesPath;
     private LocalPartitionInterface partitionInterface;
     private ExecutorService es = Executors.newFixedThreadPool(10, new PooledThreadFactory("task_executor"));
 
-    public TaskOperationV2(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, ServerIDManager idManager, String dataDir, StorageRegionManager snManager, ServiceManager serviceManager, LocalPartitionInterface partitionInterface) {
+    public TaskOperationV2(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, ServerIDManager idManager, StorageRegionManager snManager, ServiceManager serviceManager, LocalPartitionInterface partitionInterface) {
         this.client = client;
         this.idManager = idManager;
         this.tasksPath = ZKPaths.makePath(baseBalancePath, Constants.TASKS_NODE);
         this.baseRoutesPath = baseRoutesPath;
-        this.dataDir = dataDir;
         treeCache = CuratorCacheFactory.getTreeCache();
         this.snManager = snManager;
         this.serviceManager = serviceManager;
@@ -88,7 +86,7 @@ public class TaskOperationV2 implements Closeable {
                     return;
                 }
                 String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
-                recover = new VirtualRecoverV2(client, taskSummary, taskPath, dataDir, storageName, idManager, serviceManager);
+                recover = new VirtualRecoverV2(client, taskSummary, taskPath, storageName, idManager, serviceManager, partitionInterface);
             }
 
             updateTaskStatus(taskSummary, TaskStatus.RUNNING);

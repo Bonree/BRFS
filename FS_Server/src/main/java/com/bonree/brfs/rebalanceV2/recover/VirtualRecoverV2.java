@@ -13,8 +13,9 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.identification.LocalPartitionInterface;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.DataRecover;
-import com.bonree.brfs.rebalance.recover.FileRecoverMeta;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalanceV2.task.BalanceTaskSummaryV2;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -45,37 +47,41 @@ public class VirtualRecoverV2 implements DataRecover {
 
     private static final String NAME_SEPARATOR = "_";
 
-    private final String dataDir;
-
     private final String storageName;
-
     private ServerIDManager idManager;
 
     private final String taskNode;
-
     private final String selfNode;
 
     private BalanceTaskSummaryV2 balanceSummary;
-
     private CuratorNodeCache nodeCache;
-
     private SimpleFileClient fileClient;
-
     private final CuratorClient client;
-
     private final long delayTime;
-
     private final ServiceManager serviceManager;
-
     private boolean overFlag = false;
-
     private TaskDetail detail;
-
     private int currentCount = 0;
+    private LocalPartitionInterface localPartitionInterface;
+    private AtomicReference<TaskStatus> status;
 
-    private final BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
+    private final BlockingQueue<FileRecoverMetaV2> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
-    private AtomicReference<TaskStatus> status = null;
+    public VirtualRecoverV2(CuratorClient client, BalanceTaskSummaryV2 balanceSummary, String taskNode, String storageName, ServerIDManager idManager, ServiceManager serviceManager, LocalPartitionInterface localPartitionInterface) {
+        this.balanceSummary = balanceSummary;
+        this.taskNode = taskNode;
+        this.client = client;
+        this.idManager = idManager;
+        this.serviceManager = serviceManager;
+        this.storageName = storageName;
+        this.fileClient = new SimpleFileClient();
+        // 恢复需要对节点进行监听
+        nodeCache = CuratorCacheFactory.getNodeCache();
+        nodeCache.addListener(taskNode, new RecoverListener("recover_listener"));
+        this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstServerID();
+        this.delayTime = balanceSummary.getDelayTime();
+        status = new AtomicReference<>(balanceSummary.getTaskStatus());
+    }
 
     private class RecoverListener extends AbstractNodeCacheListener {
 
@@ -98,7 +104,7 @@ public class VirtualRecoverV2 implements DataRecover {
                     LOG.info("stats:" + stats);
                 } else { // 不是同一个任务
                     LOG.info("newID:{} not match oldID:{}", newID, oldID);
-                    LOG.info("cancel multirecover:{}", balanceSummary);
+                    LOG.info("cancel multi recover:{}", balanceSummary);
                     status.set(TaskStatus.CANCEL);
                 }
             } else {
@@ -107,23 +113,6 @@ public class VirtualRecoverV2 implements DataRecover {
             }
         }
 
-    }
-
-    public VirtualRecoverV2(CuratorClient client, BalanceTaskSummaryV2 balanceSummary, String taskNode, String dataDir, String storageName, ServerIDManager idManager, ServiceManager serviceManager) {
-        this.balanceSummary = balanceSummary;
-        this.taskNode = taskNode;
-        this.client = client;
-        this.idManager = idManager;
-        this.serviceManager = serviceManager;
-        this.dataDir = dataDir;
-        this.storageName = storageName;
-        this.fileClient = new SimpleFileClient();
-        // 恢复需要对节点进行监听
-        nodeCache = CuratorCacheFactory.getNodeCache();
-        nodeCache.addListener(taskNode, new RecoverListener("recover"));
-        this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstServerID();
-        this.delayTime = balanceSummary.getDelayTime();
-        status = new AtomicReference<TaskStatus>(balanceSummary.getTaskStatus());
     }
 
     @Override
@@ -178,70 +167,75 @@ public class VirtualRecoverV2 implements DataRecover {
         updateDetail(selfNode, detail);
 
         int timeFileCounts = 0;
-        String snDataDir = dataDir + FileUtils.FILE_SEPARATOR + storageName;
+        Collection<LocalPartitionInfo> localPartitionInfos = this.localPartitionInterface.getPartitions();
 
-        if (!FileUtils.isExist(snDataDir)) {
-            finishTask();
-            return;
-        }
+        for (LocalPartitionInfo partitionInfo : localPartitionInfos) {
+            String partitionPath = partitionInfo.getDataDir();
+            String snDataDir = partitionPath + FileUtils.FILE_SEPARATOR + storageName;
 
-        List<String> replicasNames = FileUtils.listFileNames(snDataDir);
-        for (String replicasName : replicasNames) {
-            String replicasPath = snDataDir + FileUtils.FILE_SEPARATOR + replicasName;
-            timeFileCounts += FileUtils.listFileNames(replicasPath).size();
-        }
-
-        Thread cosumerThread = new Thread(consumerQueue());
-        cosumerThread.start();
-
-        detail.setTotalDirectories(timeFileCounts);
-        updateDetail(selfNode, detail);
-
-        String remoteSecondId = balanceSummary.getInputServers().get(0);
-        String remoteFirstID = idManager.getOtherFirstID(remoteSecondId, balanceSummary.getStorageIndex());
-        String virtualID = balanceSummary.getServerId();
-
-        LOG.info("balance virtual serverId:" + virtualID);
-        List<BRFSPath> allPaths = BRFSFileUtil.scanFile(dataDir, storageName);
-        for (BRFSPath brfsPath : allPaths) {
-            if (status.get().equals(TaskStatus.CANCEL)) {
-                break;
+            if (!FileUtils.isExist(snDataDir)) {
+                finishTask();
+                return;
             }
-            String perFile = dataDir + FileUtils.FILE_SEPARATOR + brfsPath.toString();
-            if (!perFile.endsWith(".rd")) {
-                String timeFileName = brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
-                        .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
-                        .getHourMinSecond();
-                String fileName = brfsPath.getFileName();
-                int replicaPot = 0;
-                String[] metaArr = fileName.split(NAME_SEPARATOR);
-                List<String> fileServerIds = new ArrayList<>();
-                for (int j = 1; j < metaArr.length; j++) {
-                    fileServerIds.add(metaArr[j]);
+
+            List<String> replicasNames = FileUtils.listFileNames(snDataDir);
+            for (String replicasName : replicasNames) {
+                String replicasPath = snDataDir + FileUtils.FILE_SEPARATOR + replicasName;
+                timeFileCounts += FileUtils.listFileNames(replicasPath).size();
+            }
+
+            Thread cosumerThread = new Thread(consumerQueue());
+            cosumerThread.start();
+
+            detail.setTotalDirectories(timeFileCounts);
+            updateDetail(selfNode, detail);
+
+            String remoteSecondId = balanceSummary.getInputServers().get(0);
+            String remoteFirstID = idManager.getOtherFirstID(remoteSecondId, balanceSummary.getStorageIndex());
+            String virtualID = balanceSummary.getServerId();
+
+            LOG.info("balance virtual serverId:" + virtualID);
+            List<BRFSPath> allPaths = BRFSFileUtil.scanFile(partitionPath, storageName);
+            for (BRFSPath brfsPath : allPaths) {
+                if (status.get().equals(TaskStatus.CANCEL)) {
+                    break;
                 }
-                if (fileServerIds.contains(virtualID)) {
-                    // 此处位置需要加1，副本数从1开始
-                    replicaPot = fileServerIds.indexOf(virtualID) + 1;
-                    FileRecoverMeta fileMeta = new FileRecoverMeta(perFile, fileName, storageName, timeFileName, Integer
-                            .parseInt(brfsPath.getIndex()), replicaPot, remoteFirstID);
-                    try {
-                        fileRecoverQueue.put(fileMeta);
-                    } catch (InterruptedException e) {
-                        LOG.error("put file: " + fileMeta, e);
+                String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
+                if (!perFile.endsWith(".rd")) {
+                    String timeFileName = brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
+                            .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
+                            .getHourMinSecond();
+                    String fileName = brfsPath.getFileName();
+                    int replicaPot = 0;
+                    String[] metaArr = fileName.split(NAME_SEPARATOR);
+                    List<String> fileServerIds = new ArrayList<>();
+                    for (int j = 1; j < metaArr.length; j++) {
+                        fileServerIds.add(metaArr[j]);
+                    }
+                    if (fileServerIds.contains(virtualID)) {
+                        // 此处位置需要加1，副本数从1开始
+                        replicaPot = fileServerIds.indexOf(virtualID) + 1;
+                        FileRecoverMetaV2 fileMeta = new FileRecoverMetaV2(perFile, fileName, storageName, timeFileName, Integer
+                                .parseInt(brfsPath.getIndex()), replicaPot, remoteFirstID, partitionPath);
+                        try {
+                            fileRecoverQueue.put(fileMeta);
+                        } catch (InterruptedException e) {
+                            LOG.error("put file: " + fileMeta, e);
+                        }
                     }
                 }
             }
-        }
 
-        // 所有的文件已经处理完毕，等待队列为空
-        overFlag = true;
-        try {
-            cosumerThread.join();
-        } catch (InterruptedException e) {
-            LOG.error("cosumerThread error!", e);
-        }
+            // 所有的文件已经处理完毕，等待队列为空
+            overFlag = true;
+            try {
+                cosumerThread.join();
+            } catch (InterruptedException e) {
+                LOG.error("cosumerThread error!", e);
+            }
 
-        finishTask();
+            finishTask();
+        }
     }
 
     public void finishTask() {
@@ -271,7 +265,7 @@ public class VirtualRecoverV2 implements DataRecover {
             @Override
             public void run() {
                 try {
-                    FileRecoverMeta fileRecover = null;
+                    FileRecoverMetaV2 fileRecover = null;
                     while (fileRecover != null || !overFlag) {
                         if (status.get().equals(TaskStatus.CANCEL)) {
                             break;
@@ -282,24 +276,23 @@ public class VirtualRecoverV2 implements DataRecover {
                                     .getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
                             String remoteDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover
                                     .getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
-                            String localFilePath = dataDir + FileUtils.FILE_SEPARATOR + logicPath + FileUtils.FILE_SEPARATOR + fileRecover
+                            String localFilePath = fileRecover.getPartitionPath() + FileUtils.FILE_SEPARATOR + logicPath + FileUtils.FILE_SEPARATOR + fileRecover
                                     .getFileName();
-                            boolean success = false;
-                            LOG.info("transfer :" + fileRecover);
+                            boolean success;
+                            LOG.info("transfer: {}", fileRecover);
                             String firstID = fileRecover.getFirstServerID();
 
                             while (true) {
                                 Service service = serviceManager.getServiceById(Configs.getConfiguration()
                                         .GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
                                 if (service == null) {
-                                    LOG.warn("first id is {},maybe down!", firstID);
+                                    LOG.warn("first id is {}, maybe down!", firstID);
                                     Thread.sleep(1000);
                                     continue;
                                 }
 
-                                // if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
-                                success = sucureCopyTo(service, localFilePath, remoteDir, fileRecover.getFileName());
-                                // }
+                                String partitionIdRecoverFileName = balanceSummary.getPartitionId() + ":" + fileRecover.getFileName();
+                                success = secureCopyTo(service, localFilePath, remoteDir, partitionIdRecoverFileName);
                                 if (success) {
                                     break;
                                 }
@@ -309,10 +302,6 @@ public class VirtualRecoverV2 implements DataRecover {
                             detail.setCurentCount(currentCount);
                             detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
                             updateDetail(selfNode, detail);
-                            if (success) {
-                                // BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
-                                // fileRecover.getSimpleWriter().writeRecord(record.toString());
-                            }
                             LOG.info("update:" + selfNode + "-------------" + detail);
                         }
                     }
@@ -323,7 +312,7 @@ public class VirtualRecoverV2 implements DataRecover {
         };
     }
 
-    public boolean sucureCopyTo(Service service, String localPath, String remoteDir, String fileName) {
+    public boolean secureCopyTo(Service service, String localPath, String remoteDir, String fileName) {
         boolean success = true;
         try {
             if (!FileUtils.isExist(localPath + ".rd")) {
