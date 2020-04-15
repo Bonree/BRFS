@@ -87,26 +87,26 @@ public class RegionNodeModule implements Module {
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
         JsonConfigProvider.bind(binder, "regionnode", NodeConfig.class);
-        
+
         binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
-        
+
         binder.bind(ServerIDManager.class).in(Scopes.SINGLETON);
         binder.bind(TimeExchangeEventEmitter.class).in(Scopes.SINGLETON);
 
         binder.bind(DiskNodeConnectionPool.class).to(TcpDiskNodeConnectionPool.class).in(Scopes.SINGLETON);
-        
+
         binder.bind(FilePathMaker.class).to(IDFilePathMaker.class).in(Scopes.SINGLETON);
-        
+
         binder.bind(FileObjectSyncProcessor.class).to(DefaultFileObjectSyncProcessor.class).in(Scopes.SINGLETON);
         binder.bind(FileObjectSynchronizer.class).to(DefaultFileObjectSynchronier.class).in(Scopes.SINGLETON);
-        
+
         binder.bind(FileNodeStorer.class).to(ZkFileNodeStorer.class).in(Scopes.SINGLETON);
         binder.bind(FileObjectFactory.class).to(DefaultFileObjectFactory.class).in(Scopes.SINGLETON);
         binder.bind(FileObjectCloser.class).to(DefaultFileObjectCloser.class).in(Scopes.SINGLETON);
         binder.bind(FileNodeSinkManager.class).to(ZkFileNodeSinkManager.class).in(Scopes.SINGLETON);
         binder.bind(FileNodeSinkSelector.class).toInstance(new RandomFileNodeSinkSelector());
         binder.bind(FileObjectSupplierFactory.class).to(DefaultFileObjectSupplierFactory.class).in(Scopes.SINGLETON);
-        
+
         binder.bind(DataPoolFactory.class).to(BlockingQueueDataPoolFactory.class).in(Scopes.SINGLETON);
         binder.bind(DiskWriter.class).in(Scopes.SINGLETON);
         binder.bind(DataEngineFactory.class).to(DefaultDataEngineFactory.class).in(Scopes.SINGLETON);
@@ -119,25 +119,25 @@ public class RegionNodeModule implements Module {
         binder.bind(RocksDBManager.class).to(NonRocksDBManager.class);
         jaxrs(binder).resource(DiscoveryResource.class);
 //        jaxrs(binder).resource(RouterResource.class);
-        
+
         jaxrs(binder).resource(JsonMapper.class);
-        
+
         jaxrs(binder).resource(DataResource.class);
         jaxrs(binder).resource(FSPackageProtoMapper.class);
-        
+
         LifecycleModule.register(binder, SimpleAuthentication.class);
-        
+
         binder.requestStaticInjection(CuratorCacheFactory.class);
-        
+
         binder.bind(Deliver.class).toInstance(Deliver.NOOP);
     }
-    
+
     @Provides
     @Singleton
     public ZookeeperPaths getPaths(ClusterConfig clusterConfig, CuratorFramework zkClient, Lifecycle lifecycle) {
         ZookeeperPaths paths = ZookeeperPaths.create(clusterConfig.getName(), zkClient);
         lifecycle.addAnnotatedInstance(paths);
-        
+
         return paths;
     }
 
@@ -149,28 +149,28 @@ public class RegionNodeModule implements Module {
             ServiceManager serviceManager,
             Lifecycle lifecycle) {
         String host = serverConfig.getHost();
-        if(host == null) {
+        if (host == null) {
             List<InetAddress> addresses = NetworkUtils.getAllLocalIps();
-            if(addresses.isEmpty()) {
+            if (addresses.isEmpty()) {
                 throw new RuntimeException("no network interface is found");
             }
-            
+
             host = addresses.get(0).getHostAddress();
         }
-        
+
         Service service = new Service(
                 UUID.randomUUID().toString(),
                 clusterConfig.getRegionNodeGroup(),
                 host,
                 serverConfig.getPort());
-        
+
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
-            
+
             @Override
             public void start() throws Exception {
                 serviceManager.registerService(service);
             }
-            
+
             @Override
             public void stop() {
                 try {
@@ -179,12 +179,12 @@ public class RegionNodeModule implements Module {
                     log.warn("unregister service[{}] error", service, e);
                 }
             }
-            
+
         }, Lifecycle.Stage.SERVER);
-        
+
         return service;
     }
-    
+
     @Provides
     @Singleton
     public TcpDiskNodeConnectionPool getTcpConnectionPool(
@@ -193,30 +193,31 @@ public class RegionNodeModule implements Module {
             Lifecycle lifecycle) {
         AsyncTcpClientGroup tcpClientGroup = new AsyncTcpClientGroup(config.getWriteWorkerThreads());
         TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup);
-        
+
         lifecycle.addCloseable(tcpClientGroup);
-        
+
         return connectionPool;
     }
 
     @Provides
     @Singleton
     public BlockManagerInterface getBlockManager(
-            BlockPool blockPool ,
-            StorageRegionWriter writer){
-        boolean isOpen = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_SWITCH);
-        if(isOpen){
-            return new SeqBlockManager(blockPool,writer);
+            BlockPool blockPool,
+            StorageRegionWriter writer,
+            RocksDBManager rocksDBManager) {
+        if (rocksDBManager.isOpen()) {
+            return new SeqBlockManager(blockPool, writer);
         }
 //        return new SeqBlockManager(blockPool,writer);
-        return new SeqBlockManagerV2(blockPool,writer);
+        return new SeqBlockManagerV2(blockPool, writer);
     }
+
     @Provides
     @Singleton
-    public BlockPool getBlockPool(){
+    public BlockPool getBlockPool() {
         long blocksize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
         int maxCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
         Integer initCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_INIT_COUNT);
-        return new BlockPool(blocksize,maxCount, initCount);
+        return new BlockPool(blocksize, maxCount, initCount);
     }
 }

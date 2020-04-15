@@ -342,6 +342,11 @@ public class DefaultRocksDBManager implements RocksDBManager {
         }
     }
 
+    @Override
+    public boolean isOpen() {
+        return true;
+    }
+
     /**
      * @description: 从ZK中加载列族信息
      */

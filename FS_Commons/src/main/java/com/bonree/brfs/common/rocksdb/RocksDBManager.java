@@ -96,4 +96,9 @@ public interface RocksDBManager extends LifeCycle {
      */
     void createNewBackup(String backupPath) throws Exception;
 
+    /**
+     * @description: 用于标识是否使用RocksDB插件
+     * @return: true:使用; false:不使用
+     */
+    boolean isOpen();
 }
