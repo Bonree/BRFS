@@ -5,7 +5,6 @@ import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.rebalance.Constants;
-import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
@@ -19,18 +18,18 @@ import java.util.concurrent.TimeUnit;
  * 任务终结检查类,定时检查任务状态，
  */
 @ManageLifecycle
-public class RebalanceTaskDestoryer implements RebalanceTaskMonitor {
+public class CycleRebalanceTaskMonitor implements com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor {
     private volatile boolean execute = false;
     private CheckTaskThread checkTaskThread;
     private int intervalTime = 5;
     private ScheduledExecutorService pool = null;
 
-    public RebalanceTaskDestoryer(CuratorFramework client, String monitorPath, int intervalTime) {
+    public CycleRebalanceTaskMonitor(CuratorFramework client, String monitorPath, int intervalTime) {
         checkTaskThread = new CheckTaskThread(client,monitorPath+ Constants.SEPARATOR+Constants.TASKS_NODE);
         this.intervalTime = intervalTime;
     }
     @Inject
-    public RebalanceTaskDestoryer(CuratorFramework client, ZookeeperPaths monitorPath) {
+    public CycleRebalanceTaskMonitor(CuratorFramework client, ZookeeperPaths monitorPath) {
         this(client,monitorPath.getBaseRebalancePath(),1);
     }
     @LifecycleStart
