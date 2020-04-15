@@ -660,7 +660,7 @@ public class TaskDispatcherV2 implements Closeable {
                             // 无效化virtualID,直到成功
                             boolean flag = false;
                             do {
-                                flag = idManager.validVirtualId(taskSummary.getStorageIndex(), virtualID);
+                                flag = idManager.invalidVirtualId(taskSummary.getStorageIndex(), virtualID);
                             } while (!flag);
                             // 虚拟serverID置为无效
                             // 虚拟serverID迁移完成，会清理缓存和zk上的任务
