@@ -13,17 +13,22 @@
  */
 package com.bonree.brfs.disknode;
 
+import java.util.List;
+
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
 
 public class StorageConfig {
-    private String workDirectory = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT);
+    @JsonProperty("storage.dirs")
+    private List<String> storageDirs = ImmutableList.of(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
 
-    public String getWorkDirectory() {
-        return workDirectory;
+    public List<String> getStorageDirs() {
+        return storageDirs;
     }
 
-    public void setWorkDirectory(String workDirectory) {
-        this.workDirectory = workDirectory;
+    public void setStorageDirs(List<String> storageDirs) {
+        this.storageDirs = storageDirs;
     }
 }

@@ -1,5 +1,7 @@
 package com.bonree.brfs.duplication.filenode;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,5 +36,14 @@ public class FilePathBuilder {
 		.append(fileNode.getName());
 		
 		return builder.toString();
+	}
+	
+	public static String[] parsePath(String path) {
+	    List<String> parts = Splitter.on(PATH_SEPARATOR).splitToList(path);
+	    int index = parts.size() - 3;
+	    String secondId = Splitter.on("_").splitToList(parts.get(parts.size() - 1)).get(index);
+	    String storageRegionName = parts.get(parts.size() - 4);
+	    
+	    return new String[] {storageRegionName, secondId};
 	}
 }

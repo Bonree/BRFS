@@ -1,10 +1,9 @@
 package com.bonree.brfs.partition;
 
-import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.identification.impl.DiskNodeIDImpl;
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
-import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
@@ -13,8 +12,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.util.Collection;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.identification.impl.DiskNodeIDImpl;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
+import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import com.google.common.collect.ImmutableList;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -36,7 +39,7 @@ public class PartitionGatherTest {
     private Service firstServer;
     private PartitionInfoRegister register = null;
     private PartitionCheckingRoutine routine;
-    private String dataDir = "/data/brfs/data";
+    private List<String> dataDir = ImmutableList.of("/data/brfs/data");
     private String partitionGroup = "diskNodeIDS";
     @Before
     public void checkZK(){

@@ -1,12 +1,8 @@
 package com.bonree.brfs.identification.impl;
 
-import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.partition.PartitionCheckingRoutine;
-import com.bonree.brfs.partition.PartitionGather;
-import com.bonree.brfs.partition.PartitionInfoRegister;
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
-import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
@@ -15,8 +11,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.util.Collection;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.partition.PartitionCheckingRoutine;
+import com.bonree.brfs.partition.PartitionGather;
+import com.bonree.brfs.partition.PartitionInfoRegister;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
+import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import com.google.common.collect.ImmutableList;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -54,7 +56,7 @@ public class DiskDaemonTest {
     public void initTest(){
         String partitionSeqPath = ID_SEQ_PATH;
         String path = "D:/tmp";
-        String rootPath = path+"/data";
+        List<String> rootPath = ImmutableList.of(path+"/data");
         String innerPath = path+"/partitionIds";
         String partitionGroup = "partition";
         Service firstServer = new Service("13","zhucgTest","192.168.4.13",20000);

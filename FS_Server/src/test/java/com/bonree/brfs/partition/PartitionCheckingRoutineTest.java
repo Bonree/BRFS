@@ -1,10 +1,10 @@
 package com.bonree.brfs.partition;
 
-import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.identification.impl.DiskNodeIDImpl;
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
-import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -15,9 +15,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.identification.impl.DiskNodeIDImpl;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
+import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import com.google.common.collect.ImmutableList;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -65,7 +68,7 @@ public class PartitionCheckingRoutineTest {
      */
     @Test
     public void constructorTest(){
-        String dataDir = "C:/";
+        List<String> dataDir = ImmutableList.of("C:/");
         String partitionGroup = "diskPartitionGroup";
         PartitionCheckingRoutine routine = new PartitionCheckingRoutine(idImpl,dataDir,FILE_DIR,partitionGroup);
     }
@@ -75,7 +78,7 @@ public class PartitionCheckingRoutineTest {
      */
     @Test
     public void readIdsEmptyTest(){
-        String dataDir = "C:/";
+        List<String> dataDir = ImmutableList.of("C:/");
         String partitionGroup = "diskPartitionGroup";
         String idsPath = EMPTY_DIR;
         File idsFile = new File(idsPath);
@@ -97,7 +100,7 @@ public class PartitionCheckingRoutineTest {
      */
     @Test
     public void collectVaildFileSystemNormal(){
-        String dataDir = "D:/";
+        List<String> dataDir = ImmutableList.of("D:/");
         String partitionGroup = "diskPartitionGroup";
         String idsPath = EMPTY_DIR;
         File idsFile = new File(idsPath);
@@ -121,7 +124,7 @@ public class PartitionCheckingRoutineTest {
      */
     @Test(expected=RuntimeException.class)
     public void collectVaildFileSystemSameDir(){
-        String dataDir = "D:/zhucg/tmp";
+        List<String> dataDir = ImmutableList.of("D:/zhucg/tmp");
         String partitionGroup = "diskPartitionGroup";
         String idsPath = EMPTY_DIR;
         File idsFile = new File(idsPath);
@@ -140,7 +143,7 @@ public class PartitionCheckingRoutineTest {
     }
     @Test
     public void overallProcessWithNoInnerTest(){
-        String dataDir = "D:/zhucg/tmp";
+        List<String> dataDir = ImmutableList.of("D:/zhucg/tmp");
         String partitionGroup = "diskPartitionGroup";
         String idsPath = EMPTY_DIR;
         File idsFile = new File(idsPath);
@@ -158,7 +161,7 @@ public class PartitionCheckingRoutineTest {
     }
     @Test
     public void overallProcessWithSingleFileTest(){
-        String dataDir = "D:/zhucg/tmp";
+        List<String> dataDir = ImmutableList.of("D:/zhucg/tmp");
         String partitionGroup = "diskPartitionGroup";
         String idsPath = ONE_DIR;
         File idsFile = new File(idsPath);
@@ -177,7 +180,7 @@ public class PartitionCheckingRoutineTest {
     }
     @Test
     public void overallProcessWithRemoveTest(){
-        String dataDir = "D:/zhucg/tmp";
+        List<String> dataDir = ImmutableList.of("D:/zhucg/tmp");
         String partitionGroup = "diskPartitionGroup";
         String idsPath = ONE_DIR;
         File idsFile = new File(idsPath);

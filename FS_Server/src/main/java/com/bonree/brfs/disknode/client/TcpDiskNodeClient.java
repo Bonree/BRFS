@@ -7,8 +7,6 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.core.util.CloseUtil;
-
 import com.bonree.brfs.common.net.tcp.BaseMessage;
 import com.bonree.brfs.common.net.tcp.BaseResponse;
 import com.bonree.brfs.common.net.tcp.ResponseCode;
@@ -21,7 +19,6 @@ import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.disknode.boot.DataNodeBootStrap;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.disknode.server.tcp.handler.data.DeleteFileMessage;
 import com.bonree.brfs.disknode.server.tcp.handler.data.FileRecoveryMessage;
@@ -32,8 +29,20 @@ import com.bonree.brfs.disknode.server.tcp.handler.data.WriteFileMessage;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.primitives.Longs;
 
+import ch.qos.logback.core.util.CloseUtil;
+
 public class TcpDiskNodeClient implements DiskNodeClient {
 	private static final Logger LOG = LoggerFactory.getLogger(TcpDiskNodeClient.class);
+	
+	public static final int TYPE_OPEN_FILE = 0;
+        public static final int TYPE_WRITE_FILE = 1;
+        public static final int TYPE_CLOSE_FILE = 2;
+        public static final int TYPE_DELETE_FILE = 3;
+        public static final int TYPE_PING_PONG = 4;
+        public static final int TYPE_FLUSH_FILE = 5;
+        public static final int TYPE_METADATA = 6;
+        public static final int TYPE_LIST_FILE = 7;
+        public static final int TYPE_RECOVER_FILE = 8;
 	
 	private TcpClient<BaseMessage, BaseResponse> client;
 	private TcpClient<ReadObject, FileContentPart> readClient;
@@ -56,7 +65,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	@Override
 	public boolean ping() {
 		try {
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_PING_PONG);
+			BaseMessage message = new BaseMessage(TYPE_PING_PONG);
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
 			client.sendMessage(message, new ResponseHandler<BaseResponse>() {
 				
@@ -89,7 +98,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			openFileMessage.setFilePath(path);
 			openFileMessage.setCapacity(capacity);
 			
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_OPEN_FILE);
+			BaseMessage message = new BaseMessage(TYPE_OPEN_FILE);
 			message.setBody(ProtoStuffUtils.serialize(openFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -120,7 +129,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	@Override
 	public long closeFile(String path) {
 		try {
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_CLOSE_FILE);
+			BaseMessage message = new BaseMessage(TYPE_CLOSE_FILE);
 			message.setBody(BrStringUtils.toUtf8Bytes(path));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -159,7 +168,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			writeFileMessage.setFilePath(path);
 			writeFileMessage.setDatas(new WriteFileData[]{data});
 			
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_WRITE_FILE);
+			BaseMessage message = new BaseMessage(TYPE_WRITE_FILE);
 			message.setBody(ProtoStuffUtils.serialize(writeFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -219,7 +228,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			writeFileMessage.setFilePath(path);
 			writeFileMessage.setDatas(datas);
 			
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_WRITE_FILE);
+			BaseMessage message = new BaseMessage(TYPE_WRITE_FILE);
 			message.setBody(ProtoStuffUtils.serialize(writeFileMessage));
 			
 			LOG.info("TIME_TEST prepare data for file[{}] take {} ms", path, tw.getElapsedTimeAndRefresh());
@@ -260,7 +269,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	@Override
 	public boolean flush(String file) throws IOException {
 		try {
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_FLUSH_FILE);
+			BaseMessage message = new BaseMessage(TYPE_FLUSH_FILE);
 			message.setBody(BrStringUtils.toUtf8Bytes(file));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -360,7 +369,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			listFileMessage.setPath(path);
 			listFileMessage.setLevel(level);
 			
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_LIST_FILE);
+			BaseMessage message = new BaseMessage(TYPE_LIST_FILE);
 			message.setBody(ProtoStuffUtils.serialize(listFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -402,7 +411,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			deleteFileMessage.setForce(force);
 			deleteFileMessage.setRecursive(recursive);
 			
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_DELETE_FILE);
+			BaseMessage message = new BaseMessage(TYPE_DELETE_FILE);
 			message.setBody(ProtoStuffUtils.serialize(deleteFileMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -433,7 +442,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 	@Override
 	public long getFileLength(String path) {
 		try {
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_METADATA);
+			BaseMessage message = new BaseMessage(TYPE_METADATA);
 			message.setBody(BrStringUtils.toUtf8Bytes(path));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
@@ -471,7 +480,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 			String[] states = new String[fullstates.size()];
 			recoveryMessage.setSources(fullstates.toArray(states));
 			
-			BaseMessage message = new BaseMessage(DataNodeBootStrap.TYPE_RECOVER_FILE);
+			BaseMessage message = new BaseMessage(TYPE_RECOVER_FILE);
 			message.setBody(ProtoStuffUtils.serialize(recoveryMessage));
 			
 			CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
