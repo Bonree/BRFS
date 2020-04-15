@@ -27,13 +27,14 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
     private RocksDBManager rocksDBManager;
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManagerV2.class);
     private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
+    private static int blockPoolSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
     private static long initBlockSize = 1024 * 1024;
     private LinkedBlockingQueue<WriteFileRequest> fileWaiting = new LinkedBlockingQueue(100);
     private AtomicInteger fileWritingCount = new AtomicInteger(0);
     private ExecutorService fileWorker;
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
-    SeqBlockPool blockPool = new SeqBlockPool(blockSize,20,1);
+    SeqBlockPool blockPool = new SeqBlockPool(blockSize,blockPoolSize,1);
     private ExecutorService blockManageWatcher = this.fileWorker = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(),
             new PooledThreadFactory("watcher:"));
@@ -469,7 +470,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                     break;
                 }
 
-                if(fileWritingCount.get() < 20 && fileWaiting.peek() != null){
+                if(fileWritingCount.get() < blockPoolSize && fileWaiting.peek() != null){
                     try {
 
                         LOG.info("Processor : the waiting request size is [{}]",fileWritingCount.get());
