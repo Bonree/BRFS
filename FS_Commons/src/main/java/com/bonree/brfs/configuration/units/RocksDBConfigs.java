@@ -15,9 +15,6 @@ public class RocksDBConfigs {
     private RocksDBConfigs() {
     }
 
-    public static final ConfigUnit<Boolean> ROCKSDB_SWITCH =
-            ConfigUnit.ofBoolean("rocksdb.switch", true);
-
     /**
      * @description: RocksDB数据存储目录
      */

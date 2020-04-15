@@ -72,4 +72,9 @@ public class NonRocksDBManager implements RocksDBManager {
     public void stop() throws Exception {
 
     }
+
+    @Override
+    public boolean isOpen() {
+        return false;
+    }
 }
