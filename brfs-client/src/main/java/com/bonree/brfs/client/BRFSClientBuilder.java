@@ -17,10 +17,21 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.Executors;
 
+import com.bonree.brfs.client.data.read.FidContentReader;
+import com.bonree.brfs.client.data.read.FilePathMapper;
+import com.bonree.brfs.client.data.read.HttpFilePathMapper;
+import com.bonree.brfs.client.data.read.StringSubFidParser;
+import com.bonree.brfs.client.data.read.SubFidParser;
+import com.bonree.brfs.client.data.read.TcpFidContentReader;
 import com.bonree.brfs.client.discovery.CachedDiscovery;
 import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.HttpDiscovery;
+import com.bonree.brfs.client.discovery.NodeSelector;
 import com.bonree.brfs.client.json.JsonCodec;
+import com.bonree.brfs.client.ranker.ShiftRanker;
+import com.bonree.brfs.client.route.HttpRouterClient;
+import com.bonree.brfs.client.route.Router;
+import com.bonree.brfs.client.route.RouterClient;
 import com.bonree.brfs.client.utils.DaemonThreadFactory;
 import com.bonree.brfs.client.utils.SocketChannelSocketFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,8 +80,23 @@ public class BRFSClientBuilder {
                 Executors.newSingleThreadExecutor(new DaemonThreadFactory("brfs-discovery-%s")),
                 configuration.getDiscoveryExpiredDuration(),
                 configuration.getDiscoreryRefreshDuration());
+        
+        NodeSelector nodeSelector = new NodeSelector(discovery, new ShiftRanker<>());
+        
+        RouterClient routerClient = new HttpRouterClient(httpClient, nodeSelector, codec);
+        FidContentReader contentReader = new TcpFidContentReader();
+        FilePathMapper pathMapper = new HttpFilePathMapper(httpClient, nodeSelector);
+        SubFidParser subFidParser = new StringSubFidParser();
                 
-        return new BRFSClient(configuration, httpClient, discovery, codec);
+        return new BRFSClient(
+                configuration,
+                httpClient,
+                nodeSelector,
+                new Router(routerClient),
+                contentReader,
+                pathMapper,
+                subFidParser,
+                codec);
     }
     
     /**

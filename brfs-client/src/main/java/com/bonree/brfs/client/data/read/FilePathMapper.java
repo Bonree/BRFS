@@ -11,8 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.gui.server;
+package com.bonree.brfs.client.data.read;
 
-public class SystemMetricsResource {
+import java.nio.file.Path;
 
+public interface FilePathMapper {
+    String getFidByPath(String srName, Path path);
 }

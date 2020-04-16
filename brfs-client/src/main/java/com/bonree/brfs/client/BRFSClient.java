@@ -19,10 +19,10 @@ import static java.util.Objects.requireNonNull;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
@@ -47,28 +48,35 @@ import com.bonree.brfs.client.data.FixedSizeDataSplitter;
 import com.bonree.brfs.client.data.NextData;
 import com.bonree.brfs.client.data.PutObjectCallMaker;
 import com.bonree.brfs.client.data.compress.Compression;
-import com.bonree.brfs.client.discovery.Discovery;
+import com.bonree.brfs.client.data.read.FidContentReader;
+import com.bonree.brfs.client.data.read.FilePathMapper;
+import com.bonree.brfs.client.data.read.SubFidParser;
 import com.bonree.brfs.client.discovery.Discovery.ServiceType;
-import com.bonree.brfs.client.discovery.ServerNode;
+import com.bonree.brfs.client.discovery.NodeSelector;
 import com.bonree.brfs.client.json.JsonCodec;
-import com.bonree.brfs.client.ranker.Ranker;
-import com.bonree.brfs.client.ranker.ShiftRanker;
+import com.bonree.brfs.client.route.Router;
 import com.bonree.brfs.client.storageregion.CreateStorageRegionRequest;
 import com.bonree.brfs.client.storageregion.ListStorageRegionRequest;
 import com.bonree.brfs.client.storageregion.StorageRegionID;
 import com.bonree.brfs.client.storageregion.StorageRegionInfo;
 import com.bonree.brfs.client.storageregion.UpdateStorageRegionRequest;
+import com.bonree.brfs.client.utils.AggregateInputStream;
 import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.client.utils.IteratorUtils;
+import com.bonree.brfs.client.utils.Range;
 import com.bonree.brfs.client.utils.Retrys;
 import com.bonree.brfs.client.utils.Strings;
 import com.bonree.brfs.client.utils.URIRetryable;
 import com.bonree.brfs.client.utils.URIRetryable.TaskResult;
+import com.bonree.brfs.common.proto.FileDataProtos.Fid;
+import com.bonree.brfs.common.write.data.FidDecoder;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 
@@ -92,17 +100,29 @@ public class BRFSClient implements BRFS {
     private static final Duration DEFAULT_REFRESH_DURATION = Duration.ofMinutes(10);
     
     private final OkHttpClient httpClient;
-    private final Discovery discovery;
     private final JsonCodec codec;
+    private final NodeSelector nodeSelector;
+    
+    private final Router router;
+    private final FidContentReader fidReader;
+    private final FilePathMapper pathMapper;
+    private final SubFidParser subFidParser;
     
     private final DataSplitter dataSplitter;
     
     private final LoadingCache<String, Integer> storageRegionCache;
-    private final Ranker<ServerNode> nodeRanker;
     
-    public BRFSClient(ClientConfiguration config, OkHttpClient httpClient, Discovery discovery, JsonCodec codec) {
+    public BRFSClient(
+            ClientConfiguration config,
+            OkHttpClient httpClient,
+            NodeSelector nodeSelector,
+            Router router,
+            FidContentReader fidReader,
+            FilePathMapper pathMapper,
+            SubFidParser subFidParser,
+            JsonCodec codec) {
         this.httpClient = requireNonNull(httpClient, "http client is null");
-        this.discovery = requireNonNull(discovery, "discovery is null");
+        this.nodeSelector = requireNonNull(nodeSelector, "nodeSelector is null");
         this.codec = requireNonNull(codec, "codec is null");
         this.dataSplitter = new FixedSizeDataSplitter(config.getDataPackageSize());
         
@@ -119,7 +139,10 @@ public class BRFSClient implements BRFS {
                     
                 });
         
-        this.nodeRanker = new ShiftRanker<>();
+        this.router = requireNonNull(router, "router is null");
+        this.fidReader = requireNonNull(fidReader, "fidReader is null");
+        this.pathMapper = requireNonNull(pathMapper, "pathMapper is null");
+        this.subFidParser = requireNonNull(subFidParser, "subFidParser is null");
     }
 
     public StorageRegionID createStorageRegion(CreateStorageRegionRequest request) throws Exception {
@@ -127,7 +150,7 @@ public class BRFSClient implements BRFS {
         
         return Retrys.execute(new URIRetryable<StorageRegionID> (
                 format("create storage region[%s]", request.getStorageRegionName()),
-                getNodeHttpLocations(ServiceType.REGION),
+                nodeSelector.getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
                     Request httpRequest = new Request.Builder()
                             .url(HttpUrl.get(uri)
@@ -172,7 +195,7 @@ public class BRFSClient implements BRFS {
     private StorageRegionID getStorageRegionIDFromRemote(String srName) {
         return Retrys.execute(new URIRetryable<StorageRegionID> (
                 format("get the id of storage region[%s]", srName),
-                getNodeHttpLocations(ServiceType.REGION),
+                nodeSelector.getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
                     Request httpRequest = new Request.Builder()
                             .url(HttpUrl.get(uri)
@@ -208,7 +231,7 @@ public class BRFSClient implements BRFS {
     public boolean doesStorageRegionExists(String srName) {
         return Retrys.execute(new URIRetryable<Boolean> (
                 format("check the existance of storage region[%s]", srName),
-                getNodeHttpLocations(ServiceType.REGION),
+                nodeSelector.getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
                     Request httpRequest = new Request.Builder()
                             .url(HttpUrl.get(uri)
@@ -243,7 +266,7 @@ public class BRFSClient implements BRFS {
     public List<String> listStorageRegions(ListStorageRegionRequest request) {
         return Retrys.execute(new URIRetryable<List<String>> (
                 "list storage region names",
-                getNodeHttpLocations(ServiceType.REGION),
+                nodeSelector.getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
                     Request httpRequest = new Request.Builder()
                             .url(HttpUrl.get(uri)
@@ -280,7 +303,7 @@ public class BRFSClient implements BRFS {
         
         return Retrys.execute(new URIRetryable<Boolean> (
                 format("update storage region[%s]", srName),
-                getNodeHttpLocations(ServiceType.REGION),
+                nodeSelector.getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
                     Request httpRequest = new Request.Builder()
                             .url(HttpUrl.get(uri)
@@ -312,7 +335,7 @@ public class BRFSClient implements BRFS {
     public StorageRegionInfo getStorageRegionInfo(String srName) {
         return Retrys.execute(new URIRetryable<StorageRegionInfo> (
                 format("get storage region[%s] info", srName),
-                getNodeHttpLocations(ServiceType.REGION),
+                nodeSelector.getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
                     Request httpRequest = new Request.Builder()
                             .url(HttpUrl.get(uri)
@@ -348,7 +371,7 @@ public class BRFSClient implements BRFS {
     public void deleteStorageRegion(String srName) {
         Retrys.execute(new URIRetryable<Void> (
                 format("delete storage region[%s]", srName),
-                getNodeHttpLocations(ServiceType.REGION),
+                nodeSelector.getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
                     Request httpRequest = new Request.Builder()
                             .url(HttpUrl.get(uri)
@@ -433,7 +456,7 @@ public class BRFSClient implements BRFS {
         
         return Retrys.execute(new URIRetryable<PutObjectCallback> (
                 format("put object to storage region[%s]", srName),
-                getNodeHttpLocations(ServiceType.REGION),
+                nodeSelector.getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
                     SettableFuture<PutObjectCallback> retryFuture = SettableFuture.create();
                     
@@ -465,25 +488,129 @@ public class BRFSClient implements BRFS {
                 })).get();
     }
 
-    public BRFSObject getObject(GetObjectRequest request) {
-        // TODO Auto-generated method stub
-        return null;
+    public BRFSObject getObject(GetObjectRequest request) throws Exception {
+        String fid = null;
+        if(request.getPath() != null) {
+            fid = pathMapper.getFidByPath(request.getStorageRegionName(), request.getPath());
+            if(fid == null) {
+                throw new FileNotFoundException(request.getPath().toString());
+            }
+        }
+        
+        if(request.getFID() != null) {
+            if(fid != null && !fid.equals(request.getFID())) {
+                throw new IllegalArgumentException(
+                        Strings.format("filePath[%s] has a diffrent fid[%s] from specified fid[%s]",
+                                request.getPath(),
+                                fid,
+                                request.getFID()));
+            }
+            
+            fid = request.getFID();
+        }
+        
+        if(fid == null) {
+            throw new IllegalArgumentException("either fid or file path should be supplied");
+        }
+        
+        return getObject(request.getStorageRegionName(), request.getFID(), request.getRange());
+    }
+    
+    private BRFSObject getObject(String srName, String fid, Range range) throws Exception {
+        Fid fidObj = FidDecoder.build(fid);
+        if(fidObj.getStorageNameCode() != getStorageRegionID(srName)) {
+            throw new IllegalStateException(
+                    Strings.format("fid[%s] is not belong to sr[%s]",
+                            fid,
+                            srName));
+        }
+        
+        if(!fidObj.getIsBigFile()) {
+            InputStream content = getActualContentofFile(srName, fidObj, range);
+            return BRFSObject.from(content);
+        }
+        
+        InputStream content = getActualContentofFile(srName, fidObj, null);
+        List<Fid> subFids = subFidParser.readFids(content);
+        ImmutableList.Builder<InputStream> streamBuilder = ImmutableList.builderWithExpectedSize(subFids.size());
+        long accumulatedOffset = 0;
+        for(Fid subFid : subFids) {
+            if(range == null) {
+                streamBuilder.add(getActualContentofFile(srName, subFid, null));
+                continue;
+            }
+            
+            try {
+                if(accumulatedOffset + subFid.getSize() <= range.getOffset()) {
+                    continue;
+                }
+                
+                long actualOffset = Math.max(accumulatedOffset, range.getOffset());
+                long actualSize = Math.min(subFid.getSize(), range.getEndOffset())  - actualOffset;
+                
+                streamBuilder.add(getActualContentofFile(srName, subFid, new Range(actualOffset, actualSize)));
+            } finally {
+                accumulatedOffset += subFid.getSize();
+                if(accumulatedOffset >= range.getEndOffset()) {
+                    break;
+                }
+            }
+        }
+        
+        return BRFSObject.from(new AggregateInputStream(streamBuilder.build().iterator()));
+    }
+    
+    private InputStream getActualContentofFile(String srName, Fid fidObj, Range range) {
+        long offset = range == null ? fidObj.getOffset() : fidObj.getOffset() + range.getOffset();
+        long size = range == null ? fidObj.getSize() : Math.min(fidObj.getSize(), range.getSize());
+        
+        return Retrys.execute(new URIRetryable<InputStream> (
+                format("read content of fid[%s]", fidObj),
+                router.getServerLocation(srName, fidObj.getUuid(), fidObj.getServerIdList()),
+                uri -> {
+                    try {
+                        return TaskResult.success(fidReader.read(uri, fidObj, offset, size));
+                    } catch (IOException e) {
+                        return TaskResult.retry(e);
+                    } catch (Exception cause) {
+                        return TaskResult.fail(cause);
+                    }
+                }));
+    }
+    
+    @Override
+    public void getObject(GetObjectRequest request, File outputFile) throws Exception {
+        getObject(request, outputFile, r -> r.run()).get();
     }
 
-    public ListenableFuture<?> getObject(GetObjectRequest request, File outputFile) {
-        // TODO Auto-generated method stub
-        return null;
+    @Override
+    public ListenableFuture<?> getObject(GetObjectRequest request, File outputFile, Executor executor) {
+        SettableFuture<?> future = SettableFuture.create();
+        executor.execute(() -> {
+            try(InputStream stream = getObject(request).getObjectContent()) {
+                if(stream == null) {
+                    future.setException(new ClientException("No content is responsed"));
+                    return;
+                }
+                
+                Files.asByteSink(outputFile).writeFrom(stream);
+                future.set(null);
+            } catch (Exception e) {
+                future.setException(e);
+            }
+        });
+        
+        return future;
     }
 
     public boolean doesObjectExists(String srName, Path path) {
-        // TODO Auto-generated method stub
-        return false;
+        return pathMapper.getFidByPath(srName, path) != null;
     }
 
     public void deleteObjects(String srName, long startTime, long endTime) {
         Retrys.execute(new URIRetryable<Void> (
                 format("delete data of storage region[%s]", srName),
-                getNodeHttpLocations(ServiceType.REGION),
+                nodeSelector.getNodeHttpLocations(ServiceType.REGION),
                 uri -> {
                     Request httpRequest = new Request.Builder()
                             .url(HttpUrl.get(uri)
@@ -512,25 +639,6 @@ public class BRFSClient implements BRFS {
     private static String formatTime(long time) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
         return format.format(new Date(time));
-    }
-    
-    private URI buildUri(String scheme, String host, int port) {
-        try {
-            return new URI(scheme, null, host, port, null, null, null);
-        }
-        catch (URISyntaxException e) {
-            throw new IllegalArgumentException(e);
-        }
-    }
-    
-    private Iterable<URI> getNodeHttpLocations(ServiceType type) {
-        return getNodeLocations(type, "http");
-    }
-    
-    private Iterable<URI> getNodeLocations(ServiceType type, String scheme) {
-        return Iterables.transform(
-                nodeRanker.rank(discovery.getServiceList(type)),
-                node -> buildUri(scheme, node.getHost(), node.getPort()));
     }
     
     private class PutObjectCallback implements Callback {
@@ -589,7 +697,8 @@ public class BRFSClient implements BRFS {
                     return;
                 }
                 
-                resultFuture.set(new SimplePutObjectResult(
+                
+                resultFuture.set(PutObjectResult.of(
                         Iterables.getOnlyElement(
                                 codec.fromJsonBytes(
                                         body.bytes(),
@@ -614,7 +723,7 @@ public class BRFSClient implements BRFS {
         httpClient.dispatcher().executorService().shutdown();
         httpClient.connectionPool().evictAll();
         
-        closeQuietly(discovery);
+        closeQuietly(nodeSelector);
     }
     
     private void closeQuietly(Closeable closeable) {

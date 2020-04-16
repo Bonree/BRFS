@@ -11,18 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client;
+package com.bonree.brfs.client.route;
 
-public class SimplePutObjectResult implements PutObjectResult {
-    private final String fid;
+import java.util.List;
+
+public interface RouterClient {
     
-    public SimplePutObjectResult(String fid) {
-        this.fid = fid;
-    }
-
-    @Override
-    public String getFID() {
-        return fid;
-    }
-
+    List<SecondServerID> getSecondServerId(String srName);
+    
+    List<NormalRouterNode> getNormalRouter(String srName);
+    
+    List<VirtualRouterNode> getVirtualRouter(String srName);
 }
