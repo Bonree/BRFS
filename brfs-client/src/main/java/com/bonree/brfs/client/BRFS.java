@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import com.bonree.brfs.client.storageregion.CreateStorageRegionRequest;
 import com.bonree.brfs.client.storageregion.ListStorageRegionRequest;
@@ -54,7 +55,9 @@ public interface BRFS {
     
     BRFSObject getObject(GetObjectRequest request) throws Exception;
     
-    ListenableFuture<?> getObject(GetObjectRequest request, File outputFile);
+    void getObject(GetObjectRequest request, File outputFile) throws Exception;
+    
+    ListenableFuture<?> getObject(GetObjectRequest request, File outputFile, Executor executor);
     
     boolean doesObjectExists(String srName, Path path) throws Exception;
     

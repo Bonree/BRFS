@@ -15,4 +15,8 @@ package com.bonree.brfs.client;
 
 public interface PutObjectResult {
     String getFID();
+    
+    static PutObjectResult of(String fid) {
+        return () -> fid;
+    }
 }

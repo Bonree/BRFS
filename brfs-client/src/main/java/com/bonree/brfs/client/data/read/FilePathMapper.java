@@ -11,20 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client;
+package com.bonree.brfs.client.data.read;
 
-import java.io.InputStream;
+import java.nio.file.Path;
 
-public interface BRFSObject {
-    InputStream getObjectContent();
-    
-    static BRFSObject from(InputStream input) {
-        return new BRFSObject() {
-            
-            @Override
-            public InputStream getObjectContent() {
-                return input;
-            }
-        };
-    }
+public interface FilePathMapper {
+    String getFidByPath(String srName, Path path);
 }
