@@ -107,7 +107,7 @@ public class PartitionCheckingRoutine {
             local.setMountPoint(fs.getDirName());
             local.setDevName(fs.getDevName());
             FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-            local.setTotalSize(usage.getTotal() / 1024 / 1024);
+            local.setTotalSize(usage.getTotal());
             // 无效的磁盘分区无法申请磁盘id
             if(!PartitionGather.isValid(local,fs,sigar)){
                 throw new RuntimeException("Add invalid disk partition ! path:["+local.getDataDir()+"] devName:["+local.getDevName()+"]");
@@ -154,8 +154,6 @@ public class PartitionCheckingRoutine {
             }
             loss = innerMap.get(inner);
             iterator.remove();
-            // 生成磁盘变更信息
-            // 发布磁盘变更信息
             // 发布磁盘变更信息后，删除内部文件
             FileUtils.deleteQuietly(new File(this.innerDir+File.separator+loss.getPartitionId()));
             LOG.error("partition is loss [{}]",loss);
@@ -245,13 +243,13 @@ public class PartitionCheckingRoutine {
                     throw new RuntimeException("dir [" + dir + "] can't find vaild partition !!");
                 }
                 FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-//                String key = StringUtils.join(fs.getDevName(), fs.getDirName(), usage.getTotal());
-                fsMap.put(dir, fs);
-//                if (keepOnlyOne.add(key)) {
-//                    fsMap.put(dir, fs);
-//                } else {
-//                    throw new RuntimeException("The configured directories are on the same disk partition!! dir:[" + dir + "],partition:[" + fs.getDirName() + "]");
-//                }
+                String key = StringUtils.join(fs.getDevName(), fs.getDirName(), usage.getTotal());
+//                fsMap.put(dir, fs);
+                if (keepOnlyOne.add(key)) {
+                    fsMap.put(dir, fs);
+                } else {
+                    throw new RuntimeException("The configured directories are on the same disk partition!! dir:[" + dir + "],partition:[" + fs.getDirName() + "]");
+                }
             }
         } catch (SigarException|IOException e) {
             throw new RuntimeException("Error checking internal files", e);
