@@ -11,20 +11,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client;
+package com.bonree.brfs.client.data.read;
 
 import java.io.InputStream;
+import java.util.List;
 
-public interface BRFSObject {
-    InputStream getObjectContent();
-    
-    static BRFSObject from(InputStream input) {
-        return new BRFSObject() {
-            
-            @Override
-            public InputStream getObjectContent() {
-                return input;
-            }
-        };
-    }
+import com.bonree.brfs.common.proto.FileDataProtos.Fid;
+
+public interface SubFidParser {
+    List<Fid> readFids(InputStream content) throws Exception;
 }

@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.utils;
+package com.bonree.brfs.client.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

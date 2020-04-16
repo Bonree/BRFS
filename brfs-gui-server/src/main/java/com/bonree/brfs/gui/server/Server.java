@@ -34,7 +34,7 @@ public class Server {
 
 //                    jaxrsBinder(binder).bind(ZookeeperResource.class);
                     jaxrsBinder(binder).bind(DashBoardResource.class);
-                    jaxrsBinder(binder).bind(SystemMetricsResource.class);
+                    jaxrsBinder(binder).bind(SystemMonitorResource.class);
                     
                     newSetBinder(binder, Filter.class, TheServlet.class).addBinding().to(HeaderFilter.class);
                 })

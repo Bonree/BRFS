@@ -8,9 +8,9 @@ import org.apache.curator.shaded.com.google.common.base.Charsets;
 import org.apache.curator.shaded.com.google.common.base.Joiner;
 import org.apache.curator.shaded.com.google.common.primitives.Ints;
 
+import com.bonree.brfs.client.utils.InputUtils;
 import com.bonree.brfs.common.net.tcp.file.ReadObject;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
-import com.bonree.brfs.common.utils.InputUtils;
 import com.bonree.brfs.common.write.data.FidDecoder;
 
 public class SimpleClient {

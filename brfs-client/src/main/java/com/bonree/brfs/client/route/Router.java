@@ -13,6 +13,63 @@
  */
 package com.bonree.brfs.client.route;
 
-public class Router {
+import static java.util.function.Function.identity;
 
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
+public class Router {
+    private final LoadingCache<String, Map<String, SecondServerID>> secondServerIds;
+    
+    public Router(RouterClient routerClient) {
+        this.secondServerIds = CacheBuilder.newBuilder()
+                .build(new SecondServerIdLoader(routerClient));
+    }
+    
+    public List<URI> getServerLocation(String srName, String uuid, List<String> secondServerIdList) {
+        
+        
+        String sid = null;
+        
+        List<NormalRouterNode> normals;
+        List<VirtualRouterNode> virtuals;
+        
+        try {
+            Map<String, SecondServerID> maps = secondServerIds.get(srName);
+            SecondServerID id = maps.get(sid);
+            id.getServiceId();
+        } catch (ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    private String finalServerId(String uuid, String serverId) {
+        //TODO
+        return serverId;
+    }
+    
+    private static class SecondServerIdLoader extends CacheLoader<String, Map<String, SecondServerID>> {
+        private final RouterClient routerClient;
+        
+        public SecondServerIdLoader(RouterClient routerClient) {
+            this.routerClient = routerClient;
+        }
+
+        @Override
+        public Map<String, SecondServerID> load(String srName) throws Exception {
+            List<SecondServerID> secondServerIDs = routerClient.getSecondServerId(srName);
+            return secondServerIDs.stream()
+                    .collect(Collectors.toMap(SecondServerID::getSecondServerId, identity()));
+        }
+        
+    }
 }
