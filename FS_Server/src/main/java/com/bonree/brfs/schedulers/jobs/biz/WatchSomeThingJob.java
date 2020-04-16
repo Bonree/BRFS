@@ -19,7 +19,7 @@ import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.brfs.schedulers.utils.WatchDog;
 import com.bonree.mail.worker.MailWorker;
-
+@Deprecated
 public class WatchSomeThingJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(WatchSomeThingJob.class);
 	private static Map<Integer,Boolean> StateMap = new ConcurrentHashMap<Integer, Boolean>();

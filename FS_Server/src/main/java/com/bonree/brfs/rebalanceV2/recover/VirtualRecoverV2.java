@@ -13,6 +13,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.DataRecover;
@@ -20,7 +21,6 @@ import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalanceV2.task.BalanceTaskSummaryV2;
 import com.bonree.brfs.rebalanceV2.transfer.SimpleFileClient;
-import com.bonree.brfs.server.identification.ServerIDManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,7 @@ public class VirtualRecoverV2 implements DataRecover {
     private static final String NAME_SEPARATOR = "_";
 
     private final String storageName;
-    private ServerIDManager idManager;
+    private IDSManager idManager;
 
     private final String taskNode;
     private final String selfNode;
@@ -67,7 +67,7 @@ public class VirtualRecoverV2 implements DataRecover {
 
     private final BlockingQueue<FileRecoverMetaV2> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
-    public VirtualRecoverV2(CuratorClient client, BalanceTaskSummaryV2 balanceSummary, String taskNode, String storageName, ServerIDManager idManager, ServiceManager serviceManager, LocalPartitionInterface localPartitionInterface) {
+    public VirtualRecoverV2(CuratorClient client, BalanceTaskSummaryV2 balanceSummary, String taskNode, String storageName, IDSManager idManager, ServiceManager serviceManager, LocalPartitionInterface localPartitionInterface) {
         this.balanceSummary = balanceSummary;
         this.taskNode = taskNode;
         this.client = client;
@@ -78,7 +78,7 @@ public class VirtualRecoverV2 implements DataRecover {
         // 恢复需要对节点进行监听
         nodeCache = CuratorCacheFactory.getNodeCache();
         nodeCache.addListener(taskNode, new RecoverListener("recover_listener"));
-        this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstServerID();
+        this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstSever();
         this.delayTime = balanceSummary.getDelayTime();
         status = new AtomicReference<>(balanceSummary.getTaskStatus());
     }
@@ -191,7 +191,7 @@ public class VirtualRecoverV2 implements DataRecover {
             updateDetail(selfNode, detail);
 
             String remoteSecondId = balanceSummary.getInputServers().get(0);
-            String remoteFirstID = idManager.getOtherFirstID(remoteSecondId, balanceSummary.getStorageIndex());
+            String remoteFirstID = idManager.getFirstId(remoteSecondId, balanceSummary.getStorageIndex());
             String virtualID = balanceSummary.getServerId();
 
             LOG.info("balance virtual serverId:" + virtualID);
@@ -352,7 +352,7 @@ public class VirtualRecoverV2 implements DataRecover {
         TaskDetail detail = null;
         try {
             if (!client.checkExists(node)) {
-                detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
+                detail = new TaskDetail(idManager.getFirstSever(), ExecutionStatus.INIT, 0, 0, 0);
                 client.createPersistent(node, false, JsonUtils.toJsonBytes(detail));
             } else {
                 byte[] data = client.getData(node);

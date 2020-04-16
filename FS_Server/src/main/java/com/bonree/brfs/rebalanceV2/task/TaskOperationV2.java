@@ -9,6 +9,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
@@ -16,7 +17,6 @@ import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalanceV2.recover.MultiRecoverV2;
 import com.bonree.brfs.rebalanceV2.recover.VirtualRecoverV2;
 import com.bonree.brfs.rebalanceV2.task.listener.TaskExecutorListenerV2;
-import com.bonree.brfs.server.identification.ServerIDManager;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public class TaskOperationV2 implements Closeable {
     private final static Logger LOG = LoggerFactory.getLogger(TaskOperationV2.class);
 
     private CuratorClient client;
-    private ServerIDManager idManager;
+    private IDSManager idManager;
     private CuratorTreeCache treeCache;
     private String tasksPath;
     private StorageRegionManager snManager;
@@ -49,7 +49,7 @@ public class TaskOperationV2 implements Closeable {
     private LocalPartitionInterface partitionInterface;
     private ExecutorService es = Executors.newFixedThreadPool(10, new PooledThreadFactory("task_executor"));
 
-    public TaskOperationV2(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, ServerIDManager idManager, StorageRegionManager snManager, ServiceManager serviceManager, LocalPartitionInterface partitionInterface) {
+    public TaskOperationV2(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, IDSManager idManager, StorageRegionManager snManager, ServiceManager serviceManager, LocalPartitionInterface partitionInterface) {
         this.client = client;
         this.idManager = idManager;
         this.tasksPath = ZKPaths.makePath(baseBalancePath, Constants.TASKS_NODE);
@@ -69,7 +69,7 @@ public class TaskOperationV2 implements Closeable {
         DataRecover recover = null;
         List<String> multiIds = taskSummary.getOutputServers();  // 二级serverId集合
 
-        if (multiIds.contains(idManager.getSecondServerID(taskSummary.getStorageIndex()))) {
+        if (multiIds.contains(idManager.getSecondId(taskSummary.getPartitionId(), taskSummary.getStorageIndex()))) {
             // 注册自身的selfMultiId,并设置为created阶段
             if (taskSummary.getTaskType() == RecoverType.NORMAL) { // 正常迁移任务
                 StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
