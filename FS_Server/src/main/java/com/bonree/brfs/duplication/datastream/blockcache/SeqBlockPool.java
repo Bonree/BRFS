@@ -18,21 +18,19 @@ import java.util.concurrent.atomic.AtomicLong;
  * 1. 流量限制
  * 2. require，release
  */
-public class SeqBlockPool {
+public class SeqBlockPool implements BlockPoolInterface{
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockPool.class);
     private static long waitForBlock = Configs.getConfiguration().GetConfig(RegionNodeConfigs.WAIT_FOR_BLOCK_TIME);
-
     private final long blockSize;
-    private static final long defaulBlockSize = 64 * 1024 * 1024;
     private int maxCount;
-    private final BlockingQueue<SeqBlock> reclaimedBlocks;
+    private final BlockingQueue<BlockInterface> reclaimedBlocks;
     private AtomicInteger blockID = new AtomicInteger(1);
     // mapping from SeqBlock IDs to Blocks
     private Map<Integer, SeqBlock> blockIdMap = new ConcurrentHashMap<Integer, SeqBlock>();
 
 
     //for statistics
-    private final AtomicLong BlockCount = new AtomicLong();
+    private final AtomicLong blockCount = new AtomicLong();
     public SeqBlockPool(long blockSize, int maxCount, int initialCount) {
         this.blockSize = blockSize;
         this.maxCount = maxCount;
@@ -52,18 +50,18 @@ public class SeqBlockPool {
      * 如果已经到了blockpool的最大块数，尝试从回收队列中取一个已有的，如果3秒后还是获取不到，则返回空block
      */
 
-    public SeqBlock getBlock() throws InterruptedException {
-        SeqBlock SeqBlock = reclaimedBlocks.poll();
+    public BlockInterface getBlock() throws InterruptedException {
+        BlockInterface SeqBlock = reclaimedBlocks.poll();
         if (SeqBlock != null) {
             SeqBlock.reset();
 //            for statistics
-//            reusedBlockCount.increment();
+//            reusedblockCount.increment();
         } else {
             // Make a SeqBlock if we have not yet created the maxCount Blocks
             while (true) {
-                long created = this.BlockCount.get();
+                long created = this.blockCount.get();
                 if (created < this.maxCount) {
-                    if (this.BlockCount.compareAndSet(created, created + 1)) {
+                    if (this.blockCount.compareAndSet(created, created + 1)) {
                         SeqBlock = createBlock();
                         SeqBlock.init();
                         break;
@@ -85,13 +83,13 @@ public class SeqBlockPool {
      * Blocks
      * @param b
      */
-    public void putbackBlocks(SeqBlock b) {
+    public void putbackBlocks(BlockInterface b) {
         if(b==null){
             LOG.warn("try to put back a null block , may be some block is miss now ");
             return;
         }
         int toAdd = this.maxCount - reclaimedBlocks.size();
-        if (b.size == blockSize && toAdd > 0) {
+        if (b.getSize() == blockSize && toAdd > 0) {
             reclaimedBlocks.add(b);
         } else {
             // remove the SeqBlock (that is not going to pool)
@@ -115,7 +113,7 @@ public class SeqBlockPool {
         blockIdMap.remove(id);
     }
     //for test
-    protected BlockingQueue<SeqBlock> getReclaimedBlocks() {
+    protected BlockingQueue<BlockInterface> getReclaimedBlocks() {
         return reclaimedBlocks;
     }
 

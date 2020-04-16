@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author wangchao
  * @date 2020/3/20 - 10:54 上午
  */
-public class SeqBlock {
+public class SeqBlock implements BlockInterface{
 
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlock.class);
 
@@ -76,7 +76,7 @@ public class SeqBlock {
      * byte数组长度是固定的(1024位)，重复利用，这里把offset拨回0，老值不管了，用offset记录有效值的长度
      *
      */
-    void reset() {
+    public void reset() {
         if (realDataSize.get() != UNINITIALIZED) {
             realDataSize.set(0);
             allocCount.set(0);
