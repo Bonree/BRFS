@@ -6,7 +6,7 @@ import org.apache.curator.retry.RetryNTimes;
 import org.junit.Before;
 import org.junit.Test;
 
-public class RebalanceTaskDestoryerTest {
+public class CycleRebalanceTaskMonitorTest {
     private String zkAddress = "localhost:2181";
     private CuratorFramework client = null;
     private String testZkPath = "/brfs/test/rebalance";
@@ -18,7 +18,7 @@ public class RebalanceTaskDestoryerTest {
     }
     @Test
     public void constructTest(){
-        RebalanceTaskDestoryer monitor = new RebalanceTaskDestoryer(client,testZkPath,1);
+        CycleRebalanceTaskMonitor monitor = new CycleRebalanceTaskMonitor(client,testZkPath,1);
         monitor.start();
         for (int i = 0 ;i<100000;i++){
             System.out.println(i+"--"+monitor.isExecute());

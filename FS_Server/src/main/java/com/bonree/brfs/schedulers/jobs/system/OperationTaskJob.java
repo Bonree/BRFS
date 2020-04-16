@@ -16,7 +16,6 @@ import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.biz.SystemCheckJob;
 import com.bonree.brfs.schedulers.jobs.biz.SystemDeleteJob;
 import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
-import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
@@ -70,7 +69,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		String serverId = mcf.getServerId();
 		SumbitTaskInterface sumbitTask;
 		//判断是否有恢复任务，有恢复任务则不进行创建
-		boolean rebalanceFlag = WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE);
+		boolean rebalanceFlag = mcf.getTaskMonitor().isExecute();
 		for(TaskType taskType : switchList){
 			sumbitTask = null;
 			try {
@@ -96,7 +95,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 					continue;
 				}
 				currentTaskName = taskPair.getFirst();
-				
+
 				task = TaskStateLifeContral.changeRunTaskModel(taskPair.getSecond(), dataPath);
 				// 获取执行策略
 				runPattern = runTask.taskRunnPattern(task);
@@ -146,8 +145,8 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * 概述：生成任务信息
 	 * @param taskModel
@@ -156,7 +155,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 	 * @param serverId
 	 * @param clazzName
 	 * @return
-	 * @throws JsonException 
+	 * @throws JsonException
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId,String clazzName,String path) throws Exception{
@@ -174,7 +173,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		task.setClassInstanceName(clazzName);
 		return task;
 	}
-	
-	
+
+
 
 }
