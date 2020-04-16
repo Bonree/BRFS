@@ -20,6 +20,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class SecondServerID {
     private final String serviceId;
+    private final String host;
+    private final int port;
+    private final int readPort;
     private final int storageRegionIndex;
     private final String secondServerId;
     private final String storagePath;
@@ -27,10 +30,16 @@ public class SecondServerID {
     @JsonCreator
     public SecondServerID(
             @JsonProperty("serviceId") String serviceId,
+            @JsonProperty("host") String host,
+            @JsonProperty("port") int port,
+            @JsonProperty("readPort") int readPort,
             @JsonProperty("storageRegionIndex") int storageRegionIndex,
             @JsonProperty("secondServerId") String secondServerId,
             @JsonProperty("storagePath") String storagePath) {
         this.serviceId = serviceId;
+        this.host = host;
+        this.port = port;
+        this.readPort = readPort;
         this.storageRegionIndex = storageRegionIndex;
         this.secondServerId = secondServerId;
         this.storagePath = storagePath;
@@ -39,6 +48,21 @@ public class SecondServerID {
     @JsonProperty("serviceId")
     public String getServiceId() {
         return serviceId;
+    }
+    
+    @JsonProperty("host")
+    public String getHost() {
+        return host;
+    }
+    
+    @JsonProperty("port")
+    public int getPort() {
+        return port;
+    }
+    
+    @JsonProperty("readPort")
+    public int getReadPort() {
+        return readPort;
     }
 
     @JsonProperty("storageRegionIndex")
@@ -60,6 +84,9 @@ public class SecondServerID {
     public String toString() {
         return toStringHelper(getClass())
                 .add("serviceId", serviceId)
+                .add("host", host)
+                .add("port", port)
+                .add("readPort", readPort)
                 .add("storageRegionIndex", storageRegionIndex)
                 .add("secondServerId", secondServerId)
                 .add("storagePath", storagePath)

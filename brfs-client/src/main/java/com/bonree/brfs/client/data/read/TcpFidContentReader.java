@@ -13,18 +13,73 @@
  */
 package com.bonree.brfs.client.data.read;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URI;
 
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
+import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
+import com.bonree.brfs.common.write.data.FileDecoder;
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
+import com.google.common.primitives.Ints;
 
 public class TcpFidContentReader implements FidContentReader {
 
     @Override
-    public InputStream read(URI service, Fid fidObj, long offset, long size) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+    public InputStream read(URI service, String srName, Fid fidObj, long offset, long size, int uriIndex) throws Exception {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(service.getHost(), service.getPort()));
+
+            socket.getOutputStream().write(toReadString(srName, fidObj, uriIndex));
+
+            byte[] length = new byte[Integer.BYTES * 2];
+            readBytes(socket.getInputStream(), length, 0, length.length);
+
+            int l = Ints.fromBytes(length[4], length[5], length[6], length[7]);
+
+            byte[] b = new byte[l];
+            readBytes(socket.getInputStream(), b, 0, b.length);
+
+            FileContent content = FileDecoder.contents(b);
+            return new ByteArrayInputStream(content.getData().toByteArray(), (int) offset, (int) size);
+        } finally {}
+    }
+    
+    private static byte[] toReadString(String srName, Fid fidObj, int index) {
+        StringBuilder nameBuilder = new StringBuilder(fidObj.getUuid());
+        String[] serverList = new String[fidObj.getServerIdCount()];
+        for (int i = 0; i < fidObj.getServerIdCount(); i++) {
+                String id = fidObj.getServerId(i);
+                nameBuilder.append('_').append(id);
+                serverList[i] = id;
+        }
+        
+        return Joiner.on(';').useForNull("-")
+                .join(
+                        srName,
+                        index,
+                        fidObj.getTime(),
+                        fidObj.getDuration(),
+                        nameBuilder.toString(),
+                        null,
+                        fidObj.getOffset(),
+                        fidObj.getSize(),
+                        0,
+                        0,
+                        "\n")
+        .getBytes(Charsets.UTF_8);
     }
 
+    private static void readBytes(InputStream input, byte[] des, int offset, int length) throws IOException {
+        int read = 0;
+
+        while (length > 0 && (read = input.read(des, offset, length)) >= 0) {
+            offset += read;
+            length -= read;
+        }
+    }
 }

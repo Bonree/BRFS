@@ -29,8 +29,10 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -564,12 +566,13 @@ public class BRFSClient implements BRFS {
         long offset = range == null ? fidObj.getOffset() : fidObj.getOffset() + range.getOffset();
         long size = range == null ? fidObj.getSize() : Math.min(fidObj.getSize(), range.getSize());
         
+        Map<URI, Integer> idIndex = new HashMap<>();
         return Retrys.execute(new URIRetryable<InputStream> (
                 format("read content of fid[%s]", fidObj),
-                router.getServerLocation(srName, fidObj.getUuid(), fidObj.getServerIdList()),
+                router.getServerLocation(srName, fidObj.getUuid(), fidObj.getServerIdList(), idIndex),
                 uri -> {
                     try {
-                        return TaskResult.success(fidReader.read(uri, fidObj, offset, size));
+                        return TaskResult.success(fidReader.read(uri, srName, fidObj, offset, size, idIndex.get(uri)));
                     } catch (IOException e) {
                         return TaskResult.retry(e);
                     } catch (Exception cause) {

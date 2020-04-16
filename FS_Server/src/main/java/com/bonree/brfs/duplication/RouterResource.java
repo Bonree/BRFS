@@ -32,6 +32,7 @@ import com.bonree.brfs.client.route.VirtualRouterNode;
 import com.bonree.brfs.client.utils.Strings;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -83,7 +84,7 @@ public class RouterResource {
         
         return serviceManager.getServiceListByGroup(clusterConfig.getDataNodeGroup())
                 .stream()
-                .map(node -> getSecondServerID(node.getServiceId(), storageRegion.getId()))
+                .map(node -> getSecondServerID(node, storageRegion.getId()))
                 .flatMap(List::stream)
                 .collect(toImmutableList());
     }
@@ -98,7 +99,12 @@ public class RouterResource {
             throw new StorageRegionNonexistentException(srName);
         }
         
-        return getSecondServerID(dataNodeId, storageRegion.getId());
+        Service node = serviceManager.getServiceById(clusterConfig.getDataNodeGroup(), dataNodeId);
+        if(node == null) {
+            return ImmutableList.of();
+        }
+        
+        return getSecondServerID(node, storageRegion.getId());
     }
     
     @GET
@@ -165,11 +171,14 @@ public class RouterResource {
         return builder.build();
     }
     
-    private List<SecondServerID> getSecondServerID(String dataNodeId, int srId) {
+    private List<SecondServerID> getSecondServerID(Service service, int srId) {
         ImmutableList.Builder<SecondServerID> builder = ImmutableList.builder();
-        for(String secondId : secondIds.getSecondIds(dataNodeId, srId)) {
+        for(String secondId : secondIds.getSecondIds(service.getServiceId(), srId)) {
             builder.add(new SecondServerID(
-                    dataNodeId,
+                    service.getServiceId(),
+                    service.getHost(),
+                    service.getPort(),
+                    service.getExtraPort(),
                     srId,
                     secondId,
                     partitions.getDataDir(secondId, srId)));
