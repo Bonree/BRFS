@@ -1,4 +1,4 @@
-package com.bonree.brfs.common.catalog;
+package com.bonree.brfs.duplication.catalog;
 
 import java.util.List;
 

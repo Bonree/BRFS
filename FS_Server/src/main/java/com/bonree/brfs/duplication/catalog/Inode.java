@@ -1,6 +1,4 @@
-package com.bonree.brfs.common.catalog;
-
-import com.bonree.brfs.common.proto.FileDataProtos;
+package com.bonree.brfs.duplication.catalog;
 
 public class Inode {
     private String storageRegion;
