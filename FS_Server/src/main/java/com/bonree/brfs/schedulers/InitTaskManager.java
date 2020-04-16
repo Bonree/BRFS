@@ -33,7 +33,6 @@ import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
 import com.bonree.brfs.schedulers.jobs.biz.WatchDogJob;
-import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
 import com.bonree.brfs.schedulers.jobs.system.OperationTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -55,9 +54,9 @@ public class InitTaskManager {
 	private static final Logger LOG = LoggerFactory.getLogger("InitTaskManager");
 	public static final String RESOURCE_MANAGER = "RESOURCE_MANAGER";
 	public static final String TASK_OPERATION_MANAGER = "TASK_OPERATION_MANAGER";
-	
+
 	private static LeaderLatch leaderLatch = null;
-			
+
 	/**
 	 * 概述：初始化任务服务系统
 	 * @throws ParamsErrorException
@@ -186,7 +185,7 @@ public class InitTaskManager {
 		SchedulerManagerInterface manager = mcf.getStm();
 		MetaTaskManagerInterface release = mcf.getTm();
 		String serverId = mcf.getServerId();
-		
+
 		Properties prop = DefaultBaseSchedulers.createSimplePrope(3, 1000);
 		boolean createFlag = manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
 		if(!createFlag){
@@ -212,14 +211,9 @@ public class InitTaskManager {
 		if(sumbitFlag){
 			LOG.info("operation task sumbit complete !!!");
 		}
-		
+
 		String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
 		Map<String,String>watchMap = JobDataMapConstract.createWatchJobMap(zkAddresses);
-		SumbitTaskInterface watchJob = QuartzSimpleInfo.createCycleTaskInfo("WATCH_TASK", 5000, -1, watchMap, WatchSomeThingJob.class);
-		sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, watchJob);
-		if(sumbitFlag){
-			LOG.info("watch task sumbit complete !!!");
-		}
 		Map<String,String> watchDogMap = JobDataMapConstract.createWatchDogDataMap(zkAddresses, zkPath.getBaseRoutePath(),
 				Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
 		LOG.info("watch dog map {}",watchDogMap);
@@ -347,7 +341,7 @@ public class InitTaskManager {
 		LOG.info("GATHER successful !!!");
 	}
 
-	
+
 	/**
 	 * 概述：根据switchMap 创建线程池
 	 * @param manager
@@ -382,7 +376,7 @@ public class InitTaskManager {
 			count++;
 		}
 		LOG.info("pool :{} count: {} started !!!", manager.getAllPoolKey(), count);
-		
+
 	}
 	/**
 	 * 概述：生成任务信息
@@ -404,7 +398,7 @@ public class InitTaskManager {
 		if(dataMap != null && !dataMap.isEmpty()){
 			task.setTaskContent(dataMap);
 		}
-		
+
 		task.setClassInstanceName(clazzName);
 		return task;
 	}

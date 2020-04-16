@@ -17,7 +17,6 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.biz.BatchTaskFactory;
-import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
@@ -51,9 +50,9 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			// 获取当前的任务信息
 			taskTypeCode = data.getInt(JobDataMapConstract.TASK_TYPE);
 			taskType = TaskType.valueOf(taskTypeCode);
-			
+
 			batchSize = data.getInt(JobDataMapConstract.BATCH_SIZE);
-					
+
 			if(!data.containsKey(JobDataMapConstract.CURRENT_TASK_NAME)){
 				data.put(JobDataMapConstract.CURRENT_TASK_NAME, "");
 			}
@@ -86,7 +85,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			emailPool.sendEmail(builder);
 		}finally{
 			//判断是否有恢复任务，有恢复任务则不进行创建
-			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)){
+			if(ManagerContralFactory.getInstance().getTaskMonitor().isExecute()){
 				LOG.warn("rebalance task is running !! skip check copy task");
 				return;
 			}
@@ -99,7 +98,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 			//最后一次执行更新任务状态并处理任务
 			if(batchIndex == 1){
 				String result = data.getString(JobDataMapConstract.TASK_RESULT);
-				TaskResultModel tResult = new TaskResultModel(); 
+				TaskResultModel tResult = new TaskResultModel();
 				if(!BrStringUtils.isEmpty(result)) {
 					tResult = JsonUtils.toObjectQuietly(result, TaskResultModel.class);
 				}
@@ -121,10 +120,10 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 				//更新任务状态
 				data.put(JobDataMapConstract.CURRENT_INDEX, (batchIndex-1)+"" );
 			}
-			
+
 		}
 	}
-	
+
 	public void createBatchData(MetaTaskManagerInterface release,JobDataMap data,String serverId, TaskType taskType, int batchSize, int limitCount){
 		// 从zk获取任务信息最后一次执行成功的  若任务为空则返回
 		Pair<String,TaskModel> taskPair = TaskStateLifeContral.getCurrentOperationTask(release, taskType.name(), serverId, limitCount);
@@ -150,7 +149,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 		}
 		data.putAll(batchDatas);
 		data.put(JobDataMapConstract.CURRENT_TASK_NAME, currentTaskName);
-		
+
 		//更新zk任务状态
 		TaskStateLifeContral.updateTaskRunState(serverId, currentTaskName, taskType.name());
 	}

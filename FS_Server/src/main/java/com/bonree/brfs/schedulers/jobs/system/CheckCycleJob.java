@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 import org.joda.time.DateTime;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -22,7 +23,6 @@ import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
@@ -52,8 +52,8 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 		MetaTaskManagerInterface release = mcf.getTm();
 		StorageRegionManager snm = mcf.getSnm();
 		ServiceManager sm = mcf.getSm();
-
-		if (WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
+		RebalanceTaskMonitor taskMonitor = mcf.getTaskMonitor();
+		if (taskMonitor.isExecute()) {
 			LOG.warn("rebalance task is running !! skip check copy task ,wait next time to check");
 			return;
 		}
@@ -124,7 +124,7 @@ public class CheckCycleJob extends QuartzOperationStateTask {
 			if(!snTimes.containsKey(snName)) {
 				snTimes.put(snName, times);
 			}
-			
+
 		}
 		return snTimes;
 	}

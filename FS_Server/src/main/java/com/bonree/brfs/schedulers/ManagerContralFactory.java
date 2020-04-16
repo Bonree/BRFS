@@ -6,7 +6,6 @@ import java.util.List;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
@@ -16,6 +15,7 @@ import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 
 public class ManagerContralFactory {
 	/**
@@ -51,7 +51,9 @@ public class ManagerContralFactory {
 	private RouteLoader routeLoader;
 	// TODO: 4/14/20 没有赋值操作
 	private DiskDaemon daemon;
-	
+	// TODO: 4/14/20 没有赋值操作
+	private RebalanceTaskMonitor taskMonitor;
+
 	String serverId;
 	String groupName;
 	private ManagerContralFactory(){
@@ -86,7 +88,7 @@ public class ManagerContralFactory {
 	public void setTm(MetaTaskManagerInterface tm) {
 		this.tm = tm;
 	}
-	
+
 	public SchedulerManagerInterface getStm() {
 		return stm;
 	}
@@ -158,5 +160,13 @@ public class ManagerContralFactory {
 
 	public void setDaemon(DiskDaemon daemon) {
 		this.daemon = daemon;
+	}
+
+	public RebalanceTaskMonitor getTaskMonitor() {
+		return taskMonitor;
+	}
+
+	public void setTaskMonitor(RebalanceTaskMonitor taskMonitor) {
+		this.taskMonitor = taskMonitor;
 	}
 }

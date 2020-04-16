@@ -147,7 +147,7 @@ public class PartitionGather implements LifeCycle {
             obj.setTotalSize(local.getTotalSize());
             if(fs !=null){
                 FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-                obj.setFreeSize(usage.getAvail()/1024/1024);
+                obj.setFreeSize(usage.getAvail());
             }
             return obj;
         }
@@ -183,23 +183,23 @@ public class PartitionGather implements LifeCycle {
             // 设备名称不一致
             if(!local.getDevName().equals(fs.getDevName())){
                 LOG.warn("devName is not same before[{}],after[{}]",local.getDevName(),fs.getDevName());
-//                return false;
+                return false;
             }
             // 挂载点不一致
             if(!local.getMountPoint().equals(fs.getDirName())){
                 LOG.warn("mountPoint is not same before[{}],after[{}]",local.getMountPoint(),fs.getDirName());
-//                return false;
+                return false;
             }
             // 磁盘分区使用信息为空
             FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-            if(usage != null){
-//                return false;
-                double value = (double)(usage.getTotal()/1024/1024);
-                // 磁盘分区大小不一致
-                if(local.getTotalSize() != value){
-                    LOG.warn("size is not same before[{}],after[{}]",local.getTotalSize(),value);
-//                return false;
-                }
+            if(usage == null){
+                return false;
+            }
+            long value = usage.getTotal();
+            // 磁盘分区大小不一致
+            if(local.getTotalSize() != value){
+                LOG.warn("size is not same before[{}],after[{}]",local.getTotalSize(),value);
+                return false;
             }
         } catch (SigarException e) {
             LOG.error("gather{} FileSystemUsage happen ",local.getDevName(),e);
