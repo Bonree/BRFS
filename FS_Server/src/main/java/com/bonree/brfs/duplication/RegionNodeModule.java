@@ -21,12 +21,17 @@ import java.util.UUID;
 
 import javax.inject.Singleton;
 
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
+import com.bonree.brfs.duplication.catalog.DefaultBrfsCatalog;
+import com.bonree.brfs.duplication.catalog.NonRocksDBManager;
+import com.bonree.brfs.duplication.datastream.dataengine.impl.*;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.http.HttpServerConfig;
 import com.bonree.brfs.common.jackson.JsonMapper;
@@ -35,7 +40,6 @@ import com.bonree.brfs.common.lifecycle.Lifecycle.LifeCycleObject;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.tcp.client.AsyncTcpClientGroup;
-import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
@@ -47,18 +51,14 @@ import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
-import com.bonree.brfs.duplication.datastream.blockcache.SeqBlockManager;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockPoolInterface;
 import com.bonree.brfs.duplication.datastream.blockcache.SeqBlockManagerV2;
-import com.bonree.brfs.duplication.datastream.catalog.NonRocksDBManager;
+import com.bonree.brfs.duplication.datastream.blockcache.SeqBlockPool;
+import com.bonree.brfs.duplication.datastream.catalog.NilBrfsCatalog;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.connection.tcp.TcpDiskNodeConnectionPool;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineManager;
-import com.bonree.brfs.duplication.datastream.dataengine.impl.BlockingQueueDataPoolFactory;
-import com.bonree.brfs.duplication.datastream.dataengine.impl.DataPoolFactory;
-import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineFactory;
-import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineManager;
 import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectCloser;
 import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectFactory;
 import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectSupplierFactory;
@@ -121,8 +121,10 @@ public class RegionNodeModule implements Module {
 
         binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
 //        binder.bind(StorageRegionWriter.class).to(TestFileWriter.class).in(Scopes.SINGLETON);
-//        binder.bind(BlockManagerInterface.class).to(BlockManager.class).in(Scopes.SINGLETON);
-        binder.bind(RocksDBManager.class).to(NonRocksDBManager.class);
+        binder.bind(RocksDBManager.class).to(NonRocksDBManager.class).in(Scopes.SINGLETON);
+        binder.bind(BrfsCatalog.class).to(DefaultBrfsCatalog.class).in(Scopes.SINGLETON);
+//        binder.bind(BlockManagerInterface.class).to(SeqBlockManagerV2.class).in(Scopes.SINGLETON);
+
         jaxrs(binder).resource(DiscoveryResource.class);
 //        jaxrs(binder).resource(RouterResource.class);
 
@@ -146,7 +148,6 @@ public class RegionNodeModule implements Module {
 
         return paths;
     }
-
     @Provides
     @Singleton
     public Service getService(
@@ -208,22 +209,19 @@ public class RegionNodeModule implements Module {
     @Provides
     @Singleton
     public BlockManagerInterface getBlockManager(
-            BlockPool blockPool,
             StorageRegionWriter writer,
-            RocksDBManager rocksDBManager) {
-        if (rocksDBManager.isOpen()) {
-            return new SeqBlockManager(blockPool, writer);
-        }
-//        return new SeqBlockManager(blockPool,writer);
-        return new SeqBlockManagerV2(blockPool, writer);
+            BlockPoolInterface blockpool,
+            StorageRegionWriter write,
+            BrfsCatalog brfsCatalog) {
+        return new SeqBlockManagerV2(blockpool, writer,brfsCatalog);
     }
 
     @Provides
     @Singleton
-    public BlockPool getBlockPool() {
+    public BlockPoolInterface getBlockPool() {
         long blocksize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
         int maxCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
         Integer initCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_INIT_COUNT);
-        return new BlockPool(blocksize, maxCount, initCount);
+        return new SeqBlockPool(blocksize, maxCount, initCount);
     }
 }
