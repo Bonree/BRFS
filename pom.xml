@@ -109,7 +109,7 @@
 
 		<!-- extended checks -->
 		<brfs.check.fail-spotbugs>${brfs.check.fail-extended}</brfs.check.fail-spotbugs>
-		<brfs.check.fail-modernizer>${air.check.fail-extended}</brfs.check.fail-modernizer>
+		<brfs.check.fail-modernizer>${brfs.check.fail-extended}</brfs.check.fail-modernizer>
 
 		<!-- dependency versions -->
 		<dep.guice.version>4.2.2</dep.guice.version>
