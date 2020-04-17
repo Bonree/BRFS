@@ -13,8 +13,6 @@
  */
 package com.bonree.brfs.client.read;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.URI;
 
 import com.bonree.brfs.client.BRFS;
@@ -35,10 +33,9 @@ public class ReadTest {
         try {
             BRFSObject obj = client.getObject(GetObjectRequest.of(
                     "guice_test",
-                    "CAAQABgCIiA5YzgxZTFmNjFkYzA0OTU4YmExOTNiZWMxNTEzNjcyNCj95+iumC4wgN3bAToCMjE6AjMwQABIOg=="));
+                    "CAAQABgCIiAxNTY4ZGRjOGM3YzM0NDIyOGE3MzUwYWYzMDMzZDkzOCiXjKy3mC4wgN3bAToCMjI6AjMwQABIOg=="));
             
-            BufferedReader reader = new BufferedReader(new InputStreamReader(obj.getObjectContent()));
-            System.out.println(reader.readLine());
+            System.out.println(obj.string());
         } catch (Exception e) {
             e.printStackTrace();
         }
