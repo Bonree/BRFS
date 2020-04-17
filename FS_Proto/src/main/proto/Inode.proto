@@ -2,6 +2,6 @@ syntax = "proto2";
 option java_package = "com.bonree.brfs.common.proto";
 option java_outer_classname = "InodeProtos";
 message InodeValueProto{
-    optional int64 inodeID = 1;     // 在rockDB中的唯一id,只有目录有这个id
+    optional string inodeID = 1;     // 在rockDB中的唯一id,只有目录有这个id
     optional string fid = 2;        // fid，只有文件有这个fid
 }
