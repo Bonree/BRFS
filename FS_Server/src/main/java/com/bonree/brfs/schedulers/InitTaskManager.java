@@ -9,6 +9,7 @@ import java.util.Properties;
 import javax.inject.Inject;
 
 import com.bonree.brfs.configuration.units.ResourceConfigs;
+import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -48,7 +49,6 @@ import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
-import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class InitTaskManager {
 	private static final Logger LOG = LoggerFactory.getLogger("InitTaskManager");
@@ -68,11 +68,11 @@ public class InitTaskManager {
 	        ZookeeperPaths zkPath,
 	        ServiceManager sm,
 	        StorageRegionManager snm,
-	        ServerIDManager sim,
+	        IDSManager sim,
 	        CuratorFramework client) throws Exception {
         managerConfig.printDetail();
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-        String serverId = sim.getFirstServerID();
+        String serverId = sim.getFirstSever();
         mcf.setServerId(serverId);
         mcf.setGroupName(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
         double diskRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE);
@@ -124,7 +124,8 @@ public class InitTaskManager {
         run.setLimitParameter(limit);
         mcf.setRt(run);
         mcf.setZkPath(zkPath);
-        mcf.setSim(sim);
+        // todo 缺少赋值操作------------------------------------------------
+//        mcf.setSim();
 
         // 创建任务线程池
         if (managerConfig.isTaskFrameWorkSwitch()) {

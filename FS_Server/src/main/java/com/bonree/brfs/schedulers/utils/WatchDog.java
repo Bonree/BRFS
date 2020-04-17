@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
+import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import org.slf4j.Logger;
@@ -19,7 +20,6 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
-import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -45,7 +45,7 @@ public class WatchDog{
 	 * @param limitTime
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void searchPreys(ServerIDManager sim, Collection<StorageRegion> sns, String dataPath, long limitTime) {
+	public static void searchPreys(IDSManager sim, Collection<StorageRegion> sns, String dataPath,String partition, long limitTime) {
 		if(sns == null || sns.isEmpty() || BrStringUtils.isEmpty(dataPath)) {
 			LOG.debug("skip search data because is empty");
 			return;
@@ -83,7 +83,7 @@ public class WatchDog{
             // 使用前必须更新路由规则，否则会解析错误
             snMap = new HashMap<>();
 			snMap.put(BRFSPath.STORAGEREGION,sn.getName());
-			String secondId = sim.getSecondServerID(snId);
+			String secondId = sim.getSecondId(partition,snId);
             List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(parser,sn,secondId,snLimitTime));
             if(sfiles == null || sfiles.isEmpty()){
                 continue;

@@ -8,13 +8,13 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
-import com.bonree.brfs.server.identification.ServerIDManager;
 import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 
 public class ManagerContralFactory {
@@ -39,7 +39,7 @@ public class ManagerContralFactory {
 	 */
 	private SchedulerManagerInterface stm;
 	private RunnableTaskInterface rt;
-	private ServerIDManager sim;
+	private IDSManager sim;
 	/**
 	 * 开启任务列表
 	 */
@@ -119,10 +119,10 @@ public class ManagerContralFactory {
 	public void setRt(RunnableTaskInterface rt) {
 		this.rt = rt;
 	}
-	public ServerIDManager getSim() {
+	public IDSManager getSim() {
 		return sim;
 	}
-	public void setSim(ServerIDManager sim) {
+	public void setSim(IDSManager sim) {
 		this.sim = sim;
 	}
 	public ZookeeperPaths getZkPath() {

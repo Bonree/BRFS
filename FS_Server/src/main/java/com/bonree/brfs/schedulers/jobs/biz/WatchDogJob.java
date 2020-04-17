@@ -14,8 +14,6 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
-import com.bonree.brfs.schedulers.utils.WatchDog;
-import com.bonree.brfs.server.identification.ServerIDManager;
 
 public class WatchDogJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(WatchDogJob.class);
@@ -41,13 +39,13 @@ public class WatchDogJob extends QuartzOperationStateTask {
 			return;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		ServerIDManager sim = mcf.getSim();
+//		ServerIDManager sim = mcf.getSim();
 		StorageRegionManager snm = mcf.getSnm();
 		List<StorageRegion> sns = snm.getStorageRegionList();
 		long preTime = System.currentTimeMillis();
 		LOG.info("Scan {} below data !!!",TimeUtils.formatTimeStamp(preTime));
 		// TODO: 4/14/20 lossssssssssssssssssssssssssssssssssssser
-		WatchDog.searchPreys(sim, sns,  dataPath, preTime);
+//		WatchDog.searchPreys(sim, sns,  dataPath, preTime);
 	}
 
 }
