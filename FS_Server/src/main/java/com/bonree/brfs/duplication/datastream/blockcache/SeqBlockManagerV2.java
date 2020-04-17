@@ -29,7 +29,6 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManagerV2.class);
     private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
     private static int blockPoolSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
-    private static long initBlockSize = 1024 * 1024;
     private LinkedBlockingQueue<WriteFileRequest> fileWaiting = new LinkedBlockingQueue();
     private AtomicInteger fileWritingCount = new AtomicInteger(0);
     private ExecutorService fileWorker;
@@ -398,14 +397,8 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                    fid =  FidBuilder.setFileType(fid);
                 }
                 LOG.debug("flushed a file,fid[{}]", fid);
-                //todo 写目录树
-
-                result.setData(JsonUtils.toJsonBytes(fid));
+                result.setData(fid.getBytes());
                 result.setSuccess(true);
-            } catch (JsonUtils.JsonException e) {
-                LOG.error("can not json fids", e);
-                result.setSuccess(false);
-                result.setCause(e);
             } catch (BRFSException e) {
                 LOG.error("can not set big file flag decode fids", e);
                 result.setSuccess(false);
@@ -515,7 +508,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                         fileWritingCount.get(),
                         blockcache.size());
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(600000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

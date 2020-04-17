@@ -24,13 +24,14 @@ import com.bonree.brfs.common.net.http.data.FSPacket;
 import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.guice.ClusterConfig;
-import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
@@ -45,6 +46,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.time.Duration;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
@@ -60,7 +62,7 @@ public class DataResource {
 
     private final StorageRegionWriter storageRegionWriter;
     private final BlockManagerInterface blockManager;
-    private RocksDBManager rocksDBManager;
+    private final BrfsCatalog brfsCatalog;
 
 
     @Inject
@@ -71,14 +73,15 @@ public class DataResource {
             ZookeeperPaths zkPaths,
             StorageRegionWriter storageRegionWriter,
             BlockManagerInterface blockManager,
-            RocksDBManager rocksDBManager) {
+            BrfsCatalog brfsCatalog) {
         this.clusterConfig = clusterConfig;
         this.serviceManager = serviceManager;
         this.storageRegionManager = storageRegionManager;
         this.zkPaths = zkPaths;
         this.storageRegionWriter = storageRegionWriter;
         this.blockManager = blockManager;
-        this.rocksDBManager = rocksDBManager;
+        this.brfsCatalog = brfsCatalog;
+
     }
 
     @POST
@@ -116,21 +119,15 @@ public class DataResource {
 
                             @Override
                             public void complete(String fid) {
-//                                if(rocksDBManager.isWritalbe()){
-//                                    try {
-//                                        WriteStatus writeStatus = rocksDBManager.write(srName, packet.getFileName(), fid);
-//                                        if(WriteStatus.SUCCESS !=writeStatus){
-//                                            LOG.error("failed when write fid to rocksDB.");
-//                                            response.resume(new BRFSException("write fid to rocksDB failed."));
-//                                            return;
-//                                        }
-//                                    } catch (Exception e) {
-//                                        LOG.error("error when write fid to rocksDB.", e);
-//                                        response.resume(e);
-//                                        return;
-//                                    }
-//                                    LOG.info("sync catalog into rocksDB.");
-//                                }
+                                LOG.info("rocskDb is open ?:[{}]",brfsCatalog.isUsable());
+                                if(brfsCatalog.isUsable() && brfsCatalog.validPath(file)){
+                                    if(!brfsCatalog.writeFid(srName, file, fid)){
+                                        LOG.error("failed when write fid to rocksDB.");
+                                        response.resume(new Exception("write fid to rocksDB failed."));
+                                        return;
+                                    }
+                                    LOG.info("sync catalog into rocksDB.");
+                                }
                                 response.resume(ImmutableList.of(fid));
                                 LOG.info("response file :[{}]:fid[{}]",packet.getFileName(),fid);
                             }
@@ -152,25 +149,17 @@ public class DataResource {
                                 .status(HttpStatus.CODE_NEXT)
                                 .entity(new NextData(result.getNextSeqno())).build());
                     }else if(result.isSuccess()){
-                        String fid = new String (result.getData());
+                        String fid = new String(result.getData());
                         //todo rocksdb
-//                        if(rocksDBManager.isWritalbe()){
-//                            try {
-//                                WriteStatus writeStatus = rocksDBManager.write(srName, packet.getFileName(), fid);
-//                                if(WriteStatus.SUCCESS !=writeStatus){
-//                                    LOG.error("failed when write fid to rocksDB.");
-//                                    response.resume(new BRFSException("write fid to rocksDB failed."));
-//                                    return;
-//                                }
-//                            } catch (Exception e) {
-//                                LOG.error("error when write fid to rocksDB.", e);
-//                                response.resume(e);
-//                                return;
-//                            }
-//                            LOG.info("sync catalog into rocksDB.");
-//                        }
-
-
+                        LOG.info("rocskDb is open ?:[{}]",brfsCatalog.isUsable());
+                        if(brfsCatalog.isUsable() && brfsCatalog.validPath(file)){
+                            if(!brfsCatalog.writeFid(srName, file, fid)){
+                                LOG.error("failed when write fid to rocksDB.");
+                                response.resume(new Exception("write fid to rocksDB failed."));
+                                return;
+                            }
+                            LOG.info("sync catalog into rocksDB.");
+                        }
                         LOG.info("response fid:[{}]",fid);
                         response.resume(Response
                                 .ok()
@@ -196,7 +185,6 @@ public class DataResource {
         }
 
     }
-
     @DELETE
     @Path("{srName}")
     public Response deleteData(
@@ -257,5 +245,23 @@ public class DataResource {
         if (cuGra <= sGra || cuGra < eGra) {
             throw new IllegalArgumentException("forbid delete current error");
         }
+    }
+
+    @GET
+    @Path("fid/{srName}")
+    public String getFid (
+            @PathParam("srName") String srName,
+            @QueryParam("absPath") String absPath)throws Exception{
+        LOG.info("test for get fid,[{}],[{}]" ,srName,absPath);
+        LOG.info("get fid request srName[{}],absPath[{}]",srName,absPath);
+        //todo 参数检查
+        if(!brfsCatalog.isUsable()){
+            throw new Exception("get fid error caused by the catalog is not open");
+        }
+        String fid = brfsCatalog.getFid(srName, absPath);
+        if(fid == null) {
+            throw new Exception("error when get fid from catalog!");
+        }
+        return fid;
     }
 }
