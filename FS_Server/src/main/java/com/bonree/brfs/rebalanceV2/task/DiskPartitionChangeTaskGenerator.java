@@ -3,7 +3,6 @@ package com.bonree.brfs.rebalanceV2.task;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
-import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
@@ -48,7 +47,6 @@ import java.util.stream.Collectors;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description: 监听磁盘信息变更并发布
  ******************************************************************************/
-@ManageLifecycle
 public class DiskPartitionChangeTaskGenerator implements LifeCycle {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiskPartitionChangeTaskGenerator.class);
@@ -68,20 +66,19 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
     private DiskPartitionChangeListener listener;
 
     @Inject
-    public DiskPartitionChangeTaskGenerator(final CuratorFramework client, final ServiceManager serverManager, IDSManager idManager, final String baseRebalancePath, final int delayDeal, StorageRegionManager snManager, ZookeeperPaths zkPath, DiskPartitionInfoManager partitionInfoManager) {
+    public DiskPartitionChangeTaskGenerator(final CuratorFramework client, final ServiceManager serverManager, IDSManager idManager, StorageRegionManager snManager, ZookeeperPaths zkPath, DiskPartitionInfoManager partitionInfoManager) {
         this.serverManager = serverManager;
         this.snManager = snManager;
-        this.delayDeal = delayDeal;
+        this.delayDeal = 3000;
         this.zkPath = zkPath;
-        this.leaderPath = ZKPaths.makePath(baseRebalancePath, Constants.CHANGE_LEADER);
-        this.changesPath = ZKPaths.makePath(baseRebalancePath, Constants.CHANGES_NODE);
+        this.leaderPath = ZKPaths.makePath(this.zkPath.getBaseRebalancePath(), Constants.CHANGE_LEADER);
+        this.changesPath = ZKPaths.makePath(this.zkPath.getBaseRebalancePath(), Constants.CHANGES_NODE);
         this.client = CuratorClient.wrapClient(client);
         this.leaderLath = new LeaderLatch(client, this.leaderPath);
         this.idManager = idManager;
         this.partitionInfoManager = partitionInfoManager;
     }
 
-    @LifecycleStart
     @Override
     public void start() throws Exception {
         leaderLath.addListener(new DiskPartitionChangeLeaderLatchListener());
@@ -89,11 +86,11 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         this.childCache = CuratorCacheFactory.getPathCache();
         this.listener = new DiskPartitionChangeListener("disk_partition_change");
         this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        LOG.info("disk partition change task generator start.");
     }
 
-    @LifecycleStop
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 

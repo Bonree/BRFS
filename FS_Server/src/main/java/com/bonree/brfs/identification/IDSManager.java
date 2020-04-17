@@ -4,6 +4,8 @@ import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +20,7 @@ import java.util.List;
  * @description: id综合查询管理类，负责二级serverid，虚拟serverid 的查询，以及datanode一级server查询
  **/
 public class IDSManager implements LifeCycle {
+    private static final Logger LOG = LoggerFactory.getLogger(IDSManager.class);
     private String firstSever = null;
     private SecondMaintainerInterface secondMaintainer;
     private VirtualServerID virtualServerID;
@@ -125,6 +128,7 @@ public class IDSManager implements LifeCycle {
         Collection<LocalPartitionInfo> partitions = this.diskDaemon.getPartitions();
         Collection<String> parts = convertToId(partitions);
         this.secondMaintainer.addAllPartitionRelation(parts,firstSever);
+        LOG.info("IDSManager start.");
     }
     @Override
     public void stop() {

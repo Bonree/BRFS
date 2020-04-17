@@ -135,7 +135,7 @@ public class PartitionGather implements LifeCycle {
                     LOG.error("check partition happen error !!{}",elePart.getDataDir(),e);
                 }
             }
-            LOG.info("partition gather work end !!");
+            LOG.debug("partition gather work end !!");
         }
         private PartitionInfo packagePartition(LocalPartitionInfo local,FileSystem fs)throws Exception{
             PartitionInfo obj = new PartitionInfo();

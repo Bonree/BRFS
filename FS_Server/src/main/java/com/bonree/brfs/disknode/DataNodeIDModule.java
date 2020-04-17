@@ -3,6 +3,7 @@ package com.bonree.brfs.disknode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -36,6 +37,7 @@ public class DataNodeIDModule implements Module {
     public void configure(Binder binder) {
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class);
         binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class);
+
 //        LifecycleModule.register(binder, DiskDaemon.class);
         LifecycleModule.register(binder, IDSManager.class);
         LifecycleModule.register(binder, DiskPartitionChangeTaskGenerator.class);
@@ -117,14 +119,31 @@ public class DataNodeIDModule implements Module {
 
     @Provides
     @Singleton
-    public DiskPartitionChangeTaskGenerator getDiskPartitionChangeTaskGenerator(
+    public DiskPartitionChangeTaskGenerator diskPartitionChangeTaskGenerator(
             CuratorFramework client,
             ServiceManager serviceManager,
-            IDSManager idManager,
-            ZookeeperPaths paths,
+            IDSManager idsManager,
             StorageRegionManager storageRegionManager,
-            DiskPartitionInfoManager diskPartitionInfoManager) {
-        return new DiskPartitionChangeTaskGenerator(
-                client, serviceManager, idManager, paths.getBaseRebalancePath(), 3000, storageRegionManager, paths, diskPartitionInfoManager);
+            ZookeeperPaths zkPaths,
+            DiskPartitionInfoManager diskPartitionInfoManager,
+            Lifecycle lifecycle) {
+        DiskPartitionChangeTaskGenerator generator = new DiskPartitionChangeTaskGenerator(client, serviceManager, idsManager, storageRegionManager, zkPaths, diskPartitionInfoManager);
+        lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
+            @Override
+            public void start() throws Exception {
+                generator.start();
+            }
+
+            @Override
+            public void stop() {
+                try {
+                    generator.stop();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        return generator;
     }
+
 }

@@ -97,7 +97,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		StateMetaServerModel metaSource = GatherResource.gatherResource(dataDir, ip,mountPoints);
 		if (metaSource != null) {
 			queue.add(metaSource);
-			LOG.info("gather stat info !!! {}", queue.size());
+			LOG.debug("gather stat info !!! {}", queue.size());
 			
 		}
 		int queueSize = queue.size();
@@ -131,7 +131,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if(!saveDataToZK(client, rPath, rdata)) {
 			LOG.error("resource content :{} save to zk fail !!!",JsonUtils.toJsonStringQuietly(resource));
 		}else {
-			LOG.info("resource: succefull !!!");
+			LOG.debug("resource: succefull !!!");
 		}
 		
 		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir,mountPoints);

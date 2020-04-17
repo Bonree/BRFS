@@ -65,7 +65,6 @@ import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.guice.NodeConfig;
-import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -91,7 +90,7 @@ public class RegionNodeModule implements Module {
 
         binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
 
-        binder.bind(ServerIDManager.class).in(Scopes.SINGLETON);
+//        binder.bind(ServerIDManager.class).in(Scopes.SINGLETON);
         binder.bind(TimeExchangeEventEmitter.class).in(Scopes.SINGLETON);
 
         binder.bind(DiskNodeConnectionPool.class).to(TcpDiskNodeConnectionPool.class).in(Scopes.SINGLETON);
@@ -143,6 +142,7 @@ public class RegionNodeModule implements Module {
 
         return paths;
     }
+
     @Provides
     @Singleton
     public Service getService(
@@ -208,7 +208,7 @@ public class RegionNodeModule implements Module {
             BlockPoolInterface blockpool,
             StorageRegionWriter write,
             BrfsCatalog brfsCatalog) {
-        return new SeqBlockManagerV2(blockpool, writer,brfsCatalog);
+        return new SeqBlockManagerV2(blockpool, writer, brfsCatalog);
     }
 
     @Provides
