@@ -16,12 +16,14 @@ import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.duplication.datastream.file.FileObject;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 
+@ManageLifecycle
 public class DefaultFileObjectSynchronier implements FileObjectSynchronizer, LifeCycle {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileObjectSynchronier.class);
 	

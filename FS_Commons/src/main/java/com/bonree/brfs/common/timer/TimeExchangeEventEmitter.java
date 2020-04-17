@@ -20,12 +20,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 
+@ManageLifecycle
 public class TimeExchangeEventEmitter implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(TimeExchangeEventEmitter.class);
 	

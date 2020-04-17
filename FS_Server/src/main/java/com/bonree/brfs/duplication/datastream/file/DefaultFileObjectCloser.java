@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
@@ -24,6 +25,7 @@ import com.bonree.brfs.duplication.filenode.FileNode;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 
+@ManageLifecycle
 public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultFileObjectCloser.class);
 	

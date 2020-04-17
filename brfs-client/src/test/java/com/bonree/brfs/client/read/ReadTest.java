@@ -33,7 +33,7 @@ public class ReadTest {
         try {
             BRFSObject obj = client.getObject(GetObjectRequest.of(
                     "guice_test",
-                    "CAAQABgCIiAxNTY4ZGRjOGM3YzM0NDIyOGE3MzUwYWYzMDMzZDkzOCiXjKy3mC4wgN3bAToCMjI6AjMwQABIOg=="));
+                    "CAAQABgCIiBmOWYxNDRjZDI5ODY0MjAwYTc0MjdhYTA3OTE4ZTM3ZCjljrG5mC4wgN3bAToCMjI6AjMwQABIOg=="));
             
             System.out.println(obj.string());
         } catch (Exception e) {

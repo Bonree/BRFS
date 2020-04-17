@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngine;
@@ -27,6 +28,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 
+@ManageLifecycle
 public class DefaultDataEngineManager implements DataEngineManager, Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultDataEngineManager.class);
 	
