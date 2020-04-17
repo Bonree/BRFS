@@ -11,34 +11,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.write;
+package com.bonree.brfs.client.sr;
 
 import java.net.URI;
+import java.util.List;
 
 import com.bonree.brfs.client.BRFS;
 import com.bonree.brfs.client.BRFSClientBuilder;
-import com.bonree.brfs.client.ClientConfigurationBuilder;
-import com.bonree.brfs.client.PutObjectResult;
 
-public class WriteTest {
+public class ListTest {
 
     /**
      * @param args
      * @throws Exception 
      */
-    public static void main(String[] args) {
-        BRFS client = new BRFSClientBuilder()
-                .config(new ClientConfigurationBuilder()
-                        .setDataPackageSize(3)
-                        .build())
-                .build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
+    public static void main(String[] args) throws Exception {
+        BRFS client = new BRFSClientBuilder().build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
         
-        try {
-            PutObjectResult r = client.putObject("guice_test", "1234567890abcd".getBytes());
-            System.out.println(r.getFID());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        List<String> srs = client.listStorageRegions();
+        System.out.println("list : " + srs);
     }
 
 }

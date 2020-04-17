@@ -5,6 +5,8 @@ import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.factory.SingleRouteFactory;
+import com.google.common.collect.ImmutableList;
+
 import org.apache.curator.framework.CuratorFramework;
 
 import java.util.ArrayList;
@@ -30,47 +32,49 @@ public class SimpleRouteZKLoader implements RouteLoader {
 
     @Override
     public Collection<VirtualRoute> loadVirtualRoutes(int storageRegionId) throws Exception {
+        ImmutableList.Builder<VirtualRoute> result = ImmutableList.builder();
         String storageRegionPath = basePath + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE + Constants.SEPARATOR + storageRegionId;
         if(client.checkExists().forPath(storageRegionPath) == null){
-            return null;
+            return result.build();
         }
 
         List<String> virtualRoutes = client.getChildren().forPath(storageRegionPath);
         if (virtualRoutes == null || virtualRoutes.isEmpty()) {
-            return null;
+            return result.build();
         }
-        Collection<VirtualRoute> routes = new ArrayList<>();
+        
         for (String virtualNode : virtualRoutes) {
             String dataPath = storageRegionPath + Constants.SEPARATOR + virtualNode;
             byte[] data = client.getData().forPath(dataPath);
             VirtualRoute v = SingleRouteFactory.createVirtualRoute(data);
             if(v !=null){
-                routes.add(v);
+                result.add(v);
             }
         }
-        return routes.isEmpty() ? null : routes;
+        return result.build();
     }
 
     @Override
     public Collection<NormalRouteInterface> loadNormalRoutes(int storageRegionId) throws Exception {
+        ImmutableList.Builder<NormalRouteInterface> result = ImmutableList.builder();
         String storageRegionPath = basePath + Constants.SEPARATOR + Constants.NORMAL_ROUTE + Constants.SEPARATOR + storageRegionId;
         if(client.checkExists().forPath(storageRegionPath) == null){
-            return null;
+            return result.build();
         }
 
         List<String> normalNodes = client.getChildren().forPath(storageRegionPath);
         if (normalNodes == null || normalNodes.isEmpty()) {
-            return null;
+            return result.build();
         }
-        Collection<NormalRouteInterface> routes = new ArrayList<>();
+        
         for (String normalNode : normalNodes) {
             String dataPath = storageRegionPath + Constants.SEPARATOR + normalNode;
             byte[] data = client.getData().forPath(dataPath);
             NormalRouteInterface normal = SingleRouteFactory.createRoute(data);
             if(normal !=null){
-                routes.add(normal);
+                result.add(normal);
             }
         }
-        return routes.isEmpty() ? null : routes;
+        return result.build();
     }
 }

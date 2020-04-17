@@ -47,7 +47,7 @@ public class WatchDogJob extends QuartzOperationStateTask {
 		long preTime = System.currentTimeMillis();
 		LOG.info("Scan {} below data !!!",TimeUtils.formatTimeStamp(preTime));
 		// TODO: 4/14/20 lossssssssssssssssssssssssssssssssssssser
-//		WatchDog.searchPreys(sim, sns, zkHosts, baseRoutPath, dataPath, preTime);
+		WatchDog.searchPreys(sim, sns,  dataPath, preTime);
 	}
 
 }

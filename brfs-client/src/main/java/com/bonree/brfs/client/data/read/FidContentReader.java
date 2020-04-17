@@ -13,7 +13,6 @@
  */
 package com.bonree.brfs.client.data.read;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
@@ -21,5 +20,5 @@ import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 
 public interface FidContentReader {
     
-    InputStream read(URI service, Fid fidObj, long offset, long size) throws IOException;
+    InputStream read(URI service, String srName, Fid fidObj, long offset, long size, int uriIndex) throws Exception;
 }

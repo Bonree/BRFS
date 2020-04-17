@@ -3,6 +3,7 @@ package com.bonree.brfs.schedulers.jobs.system;
 import java.util.List;
 import java.util.Map;
 
+import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,6 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
@@ -38,7 +38,7 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 
 	@Override
 	public void interrupt(){
-		
+
 	}
 
 	@Override
@@ -52,7 +52,8 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 		List<String> srs = TaskStateLifeContral.getSRs(snm);
 		TaskStateLifeContral.watchSR(release, srs, TaskType.SYSTEM_COPY_CHECK.name());
 		//判断是否有恢复任务，有恢复任务则不进行创建
-		if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)){
+		RebalanceTaskMonitor taskMonitor = mcf.getTaskMonitor();
+		if(taskMonitor.isExecute()){
 			LOG.warn("rebalance task is running !! skip check copy task");
 			return;
 		}

@@ -49,19 +49,19 @@ public final class GetObjectRequest {
         return range;
     }
     
-    static GetObjectRequest of(String srName, String fid) {
+    public static GetObjectRequest of(String srName, String fid) {
         return new GetObjectRequest(srName, fid, null, null);
     }
     
-    static GetObjectRequest of(String srName, Path filePath) {
+    public static GetObjectRequest of(String srName, Path filePath) {
         return new GetObjectRequest(srName, null, filePath, null);
     }
     
-    static GetObjectRequest of(String srName, String fid, long offset) {
+    public static GetObjectRequest of(String srName, String fid, long offset) {
         return of(srName, fid, offset, Long.MAX_VALUE);
     }
     
-    static GetObjectRequest of(String srName, String fid, long offset, long size) {
+    public static GetObjectRequest of(String srName, String fid, long offset, long size) {
         if(offset < 0 || size < 0) {
             throw new IllegalArgumentException(
                     Strings.format("offset and size should be greater or equal to 0, but [%d, %d]",
@@ -72,11 +72,11 @@ public final class GetObjectRequest {
         return new GetObjectRequest(srName, fid, null, new Range(offset, size));
     }
     
-    static GetObjectRequest of(String srName, Path filePath, long offset) {
+    public static GetObjectRequest of(String srName, Path filePath, long offset) {
         return of(srName, filePath, offset, Long.MAX_VALUE);
     }
     
-    static GetObjectRequest of(String srName, Path filePath, long offset, long size) {
+    public static GetObjectRequest of(String srName, Path filePath, long offset, long size) {
         if(offset < 0 || size < 0) {
             throw new IllegalArgumentException(
                     Strings.format("offset and size should be greater or equal to 0, but [%d, %d]",

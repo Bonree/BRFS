@@ -4,15 +4,6 @@ import com.bonree.brfs.configuration.ConfigUnit;
 
 public final class RegionNodeConfigs {
 	
-	public static final ConfigUnit<String> CONFIG_HOST =
-			ConfigUnit.ofString("regionnode.service.host", "127.0.0.1");
-	
-	public static final ConfigUnit<Integer> CONFIG_PORT =
-			ConfigUnit.ofInt("regionnode.service.port", 8880);
-	
-	public static final ConfigUnit<Integer> CONFIG_SERVER_IO_THREAD_NUM =
-			ConfigUnit.ofInt("regionnode.server.io.num", Runtime.getRuntime().availableProcessors());
-	
 	public static final ConfigUnit<Integer> CONFIG_FILE_CLEAN_COUNT =
 			ConfigUnit.ofInt("regionnode.file.clean.count", 10);
 	

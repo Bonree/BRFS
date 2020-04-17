@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class NormalRouterNode implements RouterNode {
     private final String changeId;
     private final int storageRegionIndex;
-    private final String virtualId;
+    private final String baseSecondId;
     private final Map<String, Integer> newSecondIDs;
     private final String version;
     
@@ -31,12 +31,12 @@ public class NormalRouterNode implements RouterNode {
     public NormalRouterNode(
             @JsonProperty("changeId") String changeId,
             @JsonProperty("storageRegionIndex") int storageRegionIndex,
-            @JsonProperty("virtualId") String virtualId,
+            @JsonProperty("baseSecondId") String baseSecondId,
             @JsonProperty("newSecondIDs") Map<String, Integer> newSecondIDs,
             @JsonProperty("version") String version) {
         this.changeId = changeId;
         this.storageRegionIndex = storageRegionIndex;
-        this.virtualId = virtualId;
+        this.baseSecondId = baseSecondId;
         this.newSecondIDs = newSecondIDs;
         this.version = version;
     }
@@ -51,9 +51,9 @@ public class NormalRouterNode implements RouterNode {
         return storageRegionIndex;
     }
 
-    @JsonProperty("virtualId")
-    public String getVirtualId() {
-        return virtualId;
+    @JsonProperty("baseSecondId")
+    public String getBaseSecondId() {
+        return baseSecondId;
     }
 
     @JsonProperty("newSecondIDs")
@@ -72,7 +72,7 @@ public class NormalRouterNode implements RouterNode {
                 .add("type", RouterNode.NORMAL)
                 .add("changeId", changeId)
                 .add("storageRegionIndex", storageRegionIndex)
-                .add("virtualId", virtualId)
+                .add("baseSecondId", baseSecondId)
                 .add("newSecondIDs", newSecondIDs)
                 .add("version", version)
                 .toString();

@@ -11,21 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.write;
+package com.bonree.brfs.client.read;
 
 import java.net.URI;
 
 import com.bonree.brfs.client.BRFS;
 import com.bonree.brfs.client.BRFSClientBuilder;
+import com.bonree.brfs.client.BRFSObject;
 import com.bonree.brfs.client.ClientConfigurationBuilder;
-import com.bonree.brfs.client.PutObjectResult;
+import com.bonree.brfs.client.GetObjectRequest;
 
-public class WriteTest {
-
-    /**
-     * @param args
-     * @throws Exception 
-     */
+public class ReadTest {
+    
     public static void main(String[] args) {
         BRFS client = new BRFSClientBuilder()
                 .config(new ClientConfigurationBuilder()
@@ -34,11 +31,13 @@ public class WriteTest {
                 .build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
         
         try {
-            PutObjectResult r = client.putObject("guice_test", "1234567890abcd".getBytes());
-            System.out.println(r.getFID());
+            BRFSObject obj = client.getObject(GetObjectRequest.of(
+                    "guice_test",
+                    "CAAQABgCIiBmOWYxNDRjZDI5ODY0MjAwYTc0MjdhYTA3OTE4ZTM3ZCjljrG5mC4wgN3bAToCMjI6AjMwQABIOg=="));
+            
+            System.out.println(obj.string());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 }

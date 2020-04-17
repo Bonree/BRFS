@@ -21,6 +21,7 @@ import com.bonree.brfs.common.jackson.JsonMapper;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.Lifecycle.LifeCycleObject;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.tcp.client.AsyncTcpClientGroup;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
@@ -64,7 +65,6 @@ import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.guice.ClusterConfig;
-import com.bonree.brfs.guice.NodeConfig;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -87,41 +87,38 @@ public class RegionNodeModule implements Module {
     @Override
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
-        JsonConfigProvider.bind(binder, "regionnode", NodeConfig.class);
 
-        binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
+        binder.bind(ServiceManager.class).to(DefaultServiceManager.class);
 
         binder.bind(ServerIDManager.class).in(Scopes.SINGLETON);
-        binder.bind(TimeExchangeEventEmitter.class).in(Scopes.SINGLETON);
+        binder.bind(TimeExchangeEventEmitter.class);
 
         binder.bind(DiskNodeConnectionPool.class).to(TcpDiskNodeConnectionPool.class).in(Scopes.SINGLETON);
 
         binder.bind(FilePathMaker.class).to(IDFilePathMaker.class).in(Scopes.SINGLETON);
 
         binder.bind(FileObjectSyncProcessor.class).to(DefaultFileObjectSyncProcessor.class).in(Scopes.SINGLETON);
-        binder.bind(FileObjectSynchronizer.class).to(DefaultFileObjectSynchronier.class).in(Scopes.SINGLETON);
+        binder.bind(FileObjectSynchronizer.class).to(DefaultFileObjectSynchronier.class);
 
         binder.bind(FileNodeStorer.class).to(ZkFileNodeStorer.class).in(Scopes.SINGLETON);
         binder.bind(FileObjectFactory.class).to(DefaultFileObjectFactory.class).in(Scopes.SINGLETON);
-        binder.bind(FileObjectCloser.class).to(DefaultFileObjectCloser.class).in(Scopes.SINGLETON);
-        binder.bind(FileNodeSinkManager.class).to(ZkFileNodeSinkManager.class).in(Scopes.SINGLETON);
+        binder.bind(FileObjectCloser.class).to(DefaultFileObjectCloser.class);
+        binder.bind(FileNodeSinkManager.class).to(ZkFileNodeSinkManager.class);
         binder.bind(FileNodeSinkSelector.class).toInstance(new RandomFileNodeSinkSelector());
         binder.bind(FileObjectSupplierFactory.class).to(DefaultFileObjectSupplierFactory.class).in(Scopes.SINGLETON);
 
         binder.bind(DataPoolFactory.class).to(BlockingQueueDataPoolFactory.class).in(Scopes.SINGLETON);
-        binder.bind(DiskWriter.class).in(Scopes.SINGLETON);
+        binder.bind(DiskWriter.class).in(ManageLifecycle.class);
         binder.bind(DataEngineFactory.class).to(DefaultDataEngineFactory.class).in(Scopes.SINGLETON);
-        binder.bind(DataEngineManager.class).to(DefaultDataEngineManager.class).in(Scopes.SINGLETON);
+        binder.bind(DataEngineManager.class).to(DefaultDataEngineManager.class);
 
 
         binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
-//        binder.bind(StorageRegionWriter.class).to(TestFileWriter.class).in(Scopes.SINGLETON);
         binder.bind(RocksDBManager.class).to(NonRocksDBManager.class).in(Scopes.SINGLETON);
         binder.bind(BrfsCatalog.class).to(DefaultBrfsCatalog.class).in(Scopes.SINGLETON);
-//        binder.bind(BlockManagerInterface.class).to(SeqBlockManagerV2.class).in(Scopes.SINGLETON);
 
         jaxrs(binder).resource(DiscoveryResource.class);
-//        jaxrs(binder).resource(RouterResource.class);
+        jaxrs(binder).resource(RouterResource.class);
 
         jaxrs(binder).resource(JsonMapper.class);
 

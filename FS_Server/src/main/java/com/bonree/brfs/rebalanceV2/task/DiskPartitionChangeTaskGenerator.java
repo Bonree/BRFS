@@ -1,6 +1,9 @@
 package com.bonree.brfs.rebalanceV2.task;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
@@ -15,10 +18,10 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.email.EmailPool;
+import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.partition.model.PartitionInfo;
 import com.bonree.brfs.rebalance.task.ChangeType;
-import com.bonree.brfs.server.identification.ServerIDManager;
 import com.bonree.mail.worker.MailWorker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -29,6 +32,7 @@ import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.List;
@@ -44,6 +48,7 @@ import java.util.stream.Collectors;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description: 监听磁盘信息变更并发布
  ******************************************************************************/
+@ManageLifecycle
 public class DiskPartitionChangeTaskGenerator implements LifeCycle {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiskPartitionChangeTaskGenerator.class);
@@ -51,7 +56,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
     private LeaderLatch leaderLath;
     private String leaderPath;
     private String changesPath;
-    private ServerIDManager idManager;
+    private IDSManager idManager;
     private ServiceManager serverManager;
     private CuratorClient client;
     private StorageRegionManager snManager;
@@ -62,7 +67,8 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
     private CuratorPathCache childCache;
     private DiskPartitionChangeListener listener;
 
-    public DiskPartitionChangeTaskGenerator(final CuratorFramework client, final ServiceManager serverManager, ServerIDManager idManager, final String baseRebalancePath, final int delayDeal, StorageRegionManager snManager, ZookeeperPaths zkPath, DiskPartitionInfoManager partitionInfoManager) {
+    @Inject
+    public DiskPartitionChangeTaskGenerator(final CuratorFramework client, final ServiceManager serverManager, IDSManager idManager, final String baseRebalancePath, final int delayDeal, StorageRegionManager snManager, ZookeeperPaths zkPath, DiskPartitionInfoManager partitionInfoManager) {
         this.serverManager = serverManager;
         this.snManager = snManager;
         this.delayDeal = delayDeal;
@@ -75,6 +81,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         this.partitionInfoManager = partitionInfoManager;
     }
 
+    @LifecycleStart
     @Override
     public void start() throws Exception {
         leaderLath.addListener(new DiskPartitionChangeLeaderLatchListener());
@@ -84,6 +91,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 
+    @LifecycleStop
     @Override
     public void stop() throws Exception {
         this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
@@ -140,7 +148,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
 
         for (StorageRegion snModel : snList) {
             if (snModel.getReplicateNum() > 1) {   // 是否配置SN恢复
-                String secondID = idManager.getOtherSecondID(partitionInfo.getServiceId(), snModel.getId());
+                String secondID = idManager.getSecondId(partitionInfo.getPartitionId(), snModel.getId());
 
                 if (StringUtils.isNotEmpty(secondID)) {
                     try {

@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
@@ -34,6 +35,7 @@ import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 
+@ManageLifecycle
 public class ZkFileNodeSinkManager implements FileNodeSinkManager {
 	private static final Logger LOG = LoggerFactory.getLogger(ZkFileNodeSinkManager.class);
 	

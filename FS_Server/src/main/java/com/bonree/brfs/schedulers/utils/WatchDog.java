@@ -19,13 +19,12 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
-import com.bonree.brfs.schedulers.jobs.biz.WatchSomeThingJob;
 import com.bonree.brfs.server.identification.ServerIDManager;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年6月20日 下午4:51:04
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @Description: 负责清理不必要的文件
@@ -67,7 +66,7 @@ public class WatchDog{
 		long granule;
 		long snLimitTime;
 		for(StorageRegion sn : sns) {
-			if(WatchSomeThingJob.getState(WatchSomeThingJob.RECOVERY_STATUSE)) {
+			if(ManagerContralFactory.getInstance().getTaskMonitor().isExecute()) {
 				LOG.warn("skip search data because there is one reblance");
 				return;
 			}
@@ -84,7 +83,8 @@ public class WatchDog{
             // 使用前必须更新路由规则，否则会解析错误
             snMap = new HashMap<>();
 			snMap.put(BRFSPath.STORAGEREGION,sn.getName());
-            List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(sim,parser,sn,snLimitTime));
+			String secondId = sim.getSecondServerID(snId);
+            List<BRFSPath> sfiles = BRFSFileUtil.scanBRFSFiles(dataPath,snMap,snMap.size(), new BRFSDogFoodsFilter(parser,sn,secondId,snLimitTime));
             if(sfiles == null || sfiles.isEmpty()){
                 continue;
             }
@@ -96,10 +96,7 @@ public class WatchDog{
 		//若见采集结果不为空则调用删除线程
 		if(preys.size() > 0) {
 			isRun = true;
-			executor.execute(new Runnable() {
-				
-				@Override
-				public void run() {
+			executor.execute(()-> {
 					// 为空跳出
 					if(preys == null) {
 						LOG.debug("queue is empty skip !!!");
@@ -124,8 +121,8 @@ public class WatchDog{
 						}
 					}
 					isRun = false;
-					
-				}
+
+
 			});
 		}
 

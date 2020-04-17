@@ -14,12 +14,12 @@ public class LocalPartitionInfo {
     private String devName;
     private String mountPoint;
     private String dataDir;
-    private double totalSize;
+    private long totalSize;
 
     public LocalPartitionInfo() {
     }
 
-    public LocalPartitionInfo(String partitionId, String devName, String mountPoint, String dataDir, double totalSize) {
+    public LocalPartitionInfo(String partitionId, String devName, String mountPoint, String dataDir, long totalSize) {
         this.partitionId = partitionId;
         this.devName = devName;
         this.mountPoint = mountPoint;
@@ -71,7 +71,7 @@ public class LocalPartitionInfo {
         return totalSize;
     }
 
-    public void setTotalSize(double totalSize) {
+    public void setTotalSize(long totalSize) {
         this.totalSize = totalSize;
     }
 

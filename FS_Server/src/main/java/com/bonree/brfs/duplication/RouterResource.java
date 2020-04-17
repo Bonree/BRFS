@@ -14,6 +14,7 @@
 package com.bonree.brfs.duplication;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ import com.bonree.brfs.client.route.VirtualRouterNode;
 import com.bonree.brfs.client.utils.Strings;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -49,7 +52,6 @@ public class RouterResource {
     private static final Logger log = LoggerFactory.getLogger(RouterResource.class);
     
     private final SecondIdsInterface secondIds;
-    private final PartitionInterface partitions;
     private final RouteLoader routerLoader;
     
     private final StorageRegionManager storageRegionManager;
@@ -61,13 +63,11 @@ public class RouterResource {
     public RouterResource(
             ClusterConfig clusterConfig,
             SecondIdsInterface secondIds,
-            PartitionInterface partitions,
             RouteLoader routerLoader,
             StorageRegionManager storageRegionManager,
             ServiceManager serviceManager) {
         this.clusterConfig = clusterConfig;
         this.secondIds = secondIds;
-        this.partitions = partitions;
         this.routerLoader = routerLoader;
         this.storageRegionManager = storageRegionManager;
         this.serviceManager = serviceManager;
@@ -75,6 +75,7 @@ public class RouterResource {
 
     @GET
     @Path("secondServerID/{srName}")
+    @Produces(APPLICATION_JSON)
     public List<SecondServerID> getAllSecondServerID(@PathParam("srName") String srName) throws StorageRegionNonexistentException {
         StorageRegion storageRegion = storageRegionManager.findStorageRegionByName(srName);
         if(storageRegion == null) {
@@ -83,13 +84,14 @@ public class RouterResource {
         
         return serviceManager.getServiceListByGroup(clusterConfig.getDataNodeGroup())
                 .stream()
-                .map(node -> getSecondServerID(node.getServiceId(), storageRegion.getId()))
+                .map(node -> getSecondServerID(node, storageRegion.getId()))
                 .flatMap(List::stream)
                 .collect(toImmutableList());
     }
     
     @GET
     @Path("secondServerID/{srName}/{dataNodeId}")
+    @Produces(APPLICATION_JSON)
     public List<SecondServerID> getSercondServerID(
             @PathParam("srName") String srName,
             @PathParam("dataNodeId") String dataNodeId) throws StorageRegionNonexistentException {
@@ -98,11 +100,17 @@ public class RouterResource {
             throw new StorageRegionNonexistentException(srName);
         }
         
-        return getSecondServerID(dataNodeId, storageRegion.getId());
+        Service node = serviceManager.getServiceById(clusterConfig.getDataNodeGroup(), dataNodeId);
+        if(node == null) {
+            return ImmutableList.of();
+        }
+        
+        return getSecondServerID(node, storageRegion.getId());
     }
     
     @GET
     @Path("update/{srName}")
+    @Produces(APPLICATION_JSON)
     public List<RouterNode> getUpdate(@PathParam("srName") String srName) throws StorageRegionNonexistentException {
         StorageRegion storageRegion = storageRegionManager.findStorageRegionByName(srName);
         if(storageRegion == null) {
@@ -117,6 +125,7 @@ public class RouterResource {
     
     @GET
     @Path("update/virtual/{srName}")
+    @Produces(APPLICATION_JSON)
     public List<VirtualRouterNode> getVirtualUpdate(@PathParam("srName") String srName) throws StorageRegionNonexistentException {
         StorageRegion storageRegion = storageRegionManager.findStorageRegionByName(srName);
         if(storageRegion == null) {
@@ -142,6 +151,7 @@ public class RouterResource {
     
     @GET
     @Path("update/normal/{srName}")
+    @Produces(APPLICATION_JSON)
     public List<NormalRouterNode> getNormalUpdate(@PathParam("srName") String srName) throws StorageRegionNonexistentException {
         StorageRegion storageRegion = storageRegionManager.findStorageRegionByName(srName);
         if(storageRegion == null) {
@@ -165,14 +175,16 @@ public class RouterResource {
         return builder.build();
     }
     
-    private List<SecondServerID> getSecondServerID(String dataNodeId, int srId) {
+    private List<SecondServerID> getSecondServerID(Service service, int srId) {
         ImmutableList.Builder<SecondServerID> builder = ImmutableList.builder();
-        for(String secondId : secondIds.getSecondIds(dataNodeId, srId)) {
+        for(String secondId : secondIds.getSecondIds(service.getServiceId(), srId)) {
             builder.add(new SecondServerID(
-                    dataNodeId,
+                    service.getServiceId(),
+                    service.getHost(),
+                    service.getPort(),
+                    service.getExtraPort(),
                     srId,
-                    secondId,
-                    partitions.getDataDir(secondId, srId)));
+                    secondId));
         }
         
         return builder.build();

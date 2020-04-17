@@ -28,6 +28,7 @@ import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.Lifecycle.LifeCycleObject;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.tcp.MessageChannelInitializer;
 import com.bonree.brfs.common.net.tcp.ServerConfig;
@@ -86,9 +87,9 @@ public class DataNodeModule implements Module {
         binder.bind(FileFormater.class).to(SimpleFileFormater.class).in(Scopes.SINGLETON);
         
         binder.bind(ServerIDManager.class).in(Scopes.SINGLETON);
-        binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
+        binder.bind(ServiceManager.class).to(DefaultServiceManager.class);
         
-        binder.bind(RebalanceManager.class).in(Scopes.SINGLETON);
+        binder.bind(RebalanceManager.class).in(ManageLifecycle.class);
         LifecycleModule.register(binder, RebalanceManager.class);
         
         binder.requestStaticInjection(CuratorCacheFactory.class);

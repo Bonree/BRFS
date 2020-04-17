@@ -13,10 +13,35 @@
  */
 package com.bonree.brfs.client;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import com.google.common.io.ByteStreams;
 
 public interface BRFSObject {
     InputStream getObjectContent();
+    
+    default String string() {
+        byte[] bytes = byteArray();
+        if(bytes == null) {
+            return null;
+        }
+        
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+    
+    default byte[] byteArray() {
+        try(InputStream input = getObjectContent()) {
+            if(input == null) {
+                return null;
+            }
+            
+            return ByteStreams.toByteArray(input);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     
     static BRFSObject from(InputStream input) {
         return new BRFSObject() {

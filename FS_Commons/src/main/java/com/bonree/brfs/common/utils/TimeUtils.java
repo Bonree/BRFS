@@ -79,7 +79,12 @@ public final class TimeUtils {
 	 */
 	public static String buildPath(ReadObject readObject, LoadingCache<TimePair, String> timeCache) throws ExecutionException {
 		StringBuilder pathBuilder = new StringBuilder();
-		pathBuilder.append(File.separatorChar).append(readObject.getSn()).append(File.separatorChar).append(readObject.getIndex()).append(File.separatorChar).append(timeCache.get(new TimePair(TimeUtils.prevTimeStamp(readObject.getTime(), readObject.getDuration()), readObject.getDuration()))).append(File.separatorChar).append(readObject.getFileName());
+		pathBuilder
+		.append(File.separatorChar).append(readObject.getSn())
+		.append(File.separatorChar).append(readObject.getIndex())
+		.append(File.separatorChar)
+		.append(timeCache.get(new TimePair(TimeUtils.prevTimeStamp(readObject.getTime(), readObject.getDuration()), readObject.getDuration())))
+		.append(File.separatorChar).append(readObject.getFileName());
 
 		return pathBuilder.toString();
 	}
