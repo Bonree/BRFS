@@ -33,7 +33,6 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
-import com.bonree.brfs.schedulers.jobs.biz.WatchDogJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
 import com.bonree.brfs.schedulers.jobs.system.OperationTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
@@ -44,7 +43,6 @@ import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultRunnableTask;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultSchedulersManager;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
-import com.bonree.brfs.schedulers.task.meta.impl.QuartzCronInfo;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
@@ -221,11 +219,7 @@ public class InitTaskManager {
 		if(watchDogMap == null|| watchDogMap.isEmpty()) {
 			System.exit(1);
 		}
-		SumbitTaskInterface watchDogTask = QuartzCronInfo.getInstance("WATCH_DOG", "WATCH_DOG", confg.getWatchDogCron(), watchDogMap, WatchDogJob.class);
-		sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, watchDogTask);
-		if(sumbitFlag){
-			LOG.info("watch dog task sumbit complete !!!");
-		}
+
 	}
 	/**
 	 * 概述：修复任务状态

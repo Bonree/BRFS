@@ -3,7 +3,6 @@ package com.bonree.brfs.tasks.maintain;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
-import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -12,7 +11,7 @@ import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
-import com.bonree.brfs.schedulers.utils.BRFSDogFoodsFilter;
+import com.bonree.brfs.schedulers.utils.InvaildFileBlockFilter;
 import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
@@ -159,7 +158,7 @@ public class FileBlockMaintainer implements LifeCycle {
             String dataDir = localPartitionInfo.getDataDir();
             String partitionId = localPartitionInfo.getPartitionId();
             String secondId = secondIdsInterface.getSecondId(partitionId, storageRegion.getId());
-            BRFSDogFoodsFilter filter = new BRFSDogFoodsFilter(parser, storageRegion, secondId, lastTime);
+            InvaildFileBlockFilter filter = new InvaildFileBlockFilter(parser, storageRegion, secondId, lastTime);
             List<BRFSPath> invalidFileBlocks = BRFSFileUtil.scanBRFSFiles(dataDir, snMap, snMap.size(), filter);
             return invalidFileBlocks == null || invalidFileBlocks.isEmpty() ? null : invalidFileBlocks.stream().map(f -> {
                 return dataDir + File.separator + f.toString();
