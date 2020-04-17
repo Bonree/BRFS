@@ -58,17 +58,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.airlift</groupId>
-			<artifactId>airline</artifactId>
-			<version>0.9</version>
-			<exclusions>
-				<exclusion>
-					<!--LGPL licenced library -->
-					<groupId>com.google.code.findbugs</groupId>
-					<artifactId>annotations</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+            <groupId>io.airlift</groupId>
+            <artifactId>airline</artifactId>
+        </dependency>
 
 		<dependency>
 			<groupId>org.sonatype.aether</groupId>
