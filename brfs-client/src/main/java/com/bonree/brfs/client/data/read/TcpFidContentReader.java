@@ -45,7 +45,7 @@ public class TcpFidContentReader implements FidContentReader {
             readBytes(socket.getInputStream(), b, 0, b.length);
 
             FileContent content = FileDecoder.contents(b);
-            return new ByteArrayInputStream(content.getData().toByteArray(), (int) offset, (int) size);
+            return new ByteArrayInputStream(content.getData().toByteArray());
         } finally {}
     }
     
