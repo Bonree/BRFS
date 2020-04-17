@@ -23,7 +23,12 @@ public interface BRFSObject {
     InputStream getObjectContent();
     
     default String string() {
-        return new String(byteArray(), StandardCharsets.UTF_8);
+        byte[] bytes = byteArray();
+        if(bytes == null) {
+            return null;
+        }
+        
+        return new String(bytes, StandardCharsets.UTF_8);
     }
     
     default byte[] byteArray() {
