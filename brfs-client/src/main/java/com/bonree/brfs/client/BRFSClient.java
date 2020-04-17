@@ -519,6 +519,10 @@ public class BRFSClient implements BRFS {
     }
     
     private BRFSObject getObject(String srName, String fid, Range range) throws Exception {
+        if(range != null) {
+            throw new ClientException("range is not supported now.");
+        }
+        
         Fid fidObj = FidDecoder.build(fid);
         if(fidObj.getStorageNameCode() != getStorageRegionID(srName)) {
             throw new IllegalStateException(

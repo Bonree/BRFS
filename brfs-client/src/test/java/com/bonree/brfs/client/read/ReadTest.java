@@ -26,14 +26,14 @@ public class ReadTest {
     public static void main(String[] args) {
         BRFS client = new BRFSClientBuilder()
                 .config(new ClientConfigurationBuilder()
-                        .setDataPackageSize(3)
+                        .setDataPackageSize(100)
                         .build())
                 .build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
-        
+//        CAAQABgCIiA5ZGUxNTk4MzhmZDc0Nzk2YmY1YTkzN2E4ODA3ZTc0NyiK/7a5mC4wgN3bAToCMjI6AjMwQP4ESDo=
         try {
             BRFSObject obj = client.getObject(GetObjectRequest.of(
                     "guice_test",
-                    "CAAQABgCIiBmOWYxNDRjZDI5ODY0MjAwYTc0MjdhYTA3OTE4ZTM3ZCjljrG5mC4wgN3bAToCMjI6AjMwQABIOg=="));
+                    "CAAQABgCIiAzYTJkNmZkY2RlNjE0ZjhjYTgyNzIwZmVlM2E5YmE2YSjysPe6mC4wgN3bAToCMjI6AjMwQDpIOg=="));
             
             System.out.println(obj.string());
         } catch (Exception e) {
