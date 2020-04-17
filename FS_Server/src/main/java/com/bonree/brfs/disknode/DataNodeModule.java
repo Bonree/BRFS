@@ -13,16 +13,6 @@
  */
 package com.bonree.brfs.disknode;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.inject.Singleton;
-
-import org.apache.curator.framework.CuratorFramework;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
@@ -48,15 +38,7 @@ import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.fileformat.impl.SimpleFileFormater;
-import com.bonree.brfs.disknode.server.tcp.handler.CloseFileMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.DeleteFileMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.FileRecoveryMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.FlushFileMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.ListFileMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.MetadataFetchMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.OpenFileMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.PingPongMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.WriteFileMessageHandler;
+import com.bonree.brfs.disknode.server.tcp.handler.*;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
@@ -64,14 +46,22 @@ import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManage
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
-import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
+import com.bonree.brfs.rebalanceV2.RebalanceManagerV2;
 import com.bonree.brfs.schedulers.InitTaskManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Singleton;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DataNodeModule implements Module {
     private static final Logger log = LoggerFactory.getLogger(DataNodeModule.class);
@@ -85,11 +75,11 @@ public class DataNodeModule implements Module {
         binder.bind(DiskContext.class).in(Scopes.SINGLETON);
         binder.bind(FileFormater.class).to(SimpleFileFormater.class).in(Scopes.SINGLETON);
         
-        binder.bind(ServerIDManager.class).in(Scopes.SINGLETON);
+//        binder.bind(ServerIDManager.class).in(Scopes.SINGLETON);
         binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
         
-        binder.bind(RebalanceManager.class).in(Scopes.SINGLETON);
-        LifecycleModule.register(binder, RebalanceManager.class);
+        binder.bind(RebalanceManagerV2.class).in(Scopes.SINGLETON);
+        LifecycleModule.register(binder, RebalanceManagerV2.class);
         
         binder.requestStaticInjection(CuratorCacheFactory.class);
         binder.requestStaticInjection(InitTaskManager.class);
