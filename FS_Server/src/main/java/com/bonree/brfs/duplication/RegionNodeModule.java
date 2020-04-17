@@ -64,7 +64,6 @@ import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.guice.ClusterConfig;
-import com.bonree.brfs.guice.NodeConfig;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -87,7 +86,6 @@ public class RegionNodeModule implements Module {
     @Override
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
-        JsonConfigProvider.bind(binder, "regionnode", NodeConfig.class);
 
         binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
 
@@ -121,7 +119,7 @@ public class RegionNodeModule implements Module {
 //        binder.bind(BlockManagerInterface.class).to(SeqBlockManagerV2.class).in(Scopes.SINGLETON);
 
         jaxrs(binder).resource(DiscoveryResource.class);
-//        jaxrs(binder).resource(RouterResource.class);
+        jaxrs(binder).resource(RouterResource.class);
 
         jaxrs(binder).resource(JsonMapper.class);
 

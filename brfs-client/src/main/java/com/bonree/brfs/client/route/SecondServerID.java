@@ -25,7 +25,6 @@ public class SecondServerID {
     private final int readPort;
     private final int storageRegionIndex;
     private final String secondServerId;
-    private final String storagePath;
     
     @JsonCreator
     public SecondServerID(
@@ -34,15 +33,13 @@ public class SecondServerID {
             @JsonProperty("port") int port,
             @JsonProperty("readPort") int readPort,
             @JsonProperty("storageRegionIndex") int storageRegionIndex,
-            @JsonProperty("secondServerId") String secondServerId,
-            @JsonProperty("storagePath") String storagePath) {
+            @JsonProperty("secondServerId") String secondServerId) {
         this.serviceId = serviceId;
         this.host = host;
         this.port = port;
         this.readPort = readPort;
         this.storageRegionIndex = storageRegionIndex;
         this.secondServerId = secondServerId;
-        this.storagePath = storagePath;
     }
 
     @JsonProperty("serviceId")
@@ -74,11 +71,6 @@ public class SecondServerID {
     public String getSecondServerId() {
         return secondServerId;
     }
-
-    @JsonProperty("storagePath")
-    public String getStoragePath() {
-        return storagePath;
-    }
     
     @Override
     public String toString() {
@@ -89,7 +81,6 @@ public class SecondServerID {
                 .add("readPort", readPort)
                 .add("storageRegionIndex", storageRegionIndex)
                 .add("secondServerId", secondServerId)
-                .add("storagePath", storagePath)
                 .toString();
     }
 }

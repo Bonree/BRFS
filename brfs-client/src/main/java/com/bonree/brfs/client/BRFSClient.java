@@ -700,7 +700,6 @@ public class BRFSClient implements BRFS {
                     return;
                 }
                 
-                
                 resultFuture.set(PutObjectResult.of(
                         Iterables.getOnlyElement(
                                 codec.fromJsonBytes(
