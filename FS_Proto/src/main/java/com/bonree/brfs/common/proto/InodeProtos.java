@@ -23,7 +23,7 @@ public final class InodeProtos {
      * 在rockDB中的唯一id,只有目录有这个id
      * </pre>
      *
-     * <code>optional int64 inodeID = 1;</code>
+     * <code>optional string inodeID = 1;</code>
      */
     boolean hasInodeID();
     /**
@@ -31,9 +31,18 @@ public final class InodeProtos {
      * 在rockDB中的唯一id,只有目录有这个id
      * </pre>
      *
-     * <code>optional int64 inodeID = 1;</code>
+     * <code>optional string inodeID = 1;</code>
      */
-    long getInodeID();
+    java.lang.String getInodeID();
+    /**
+     * <pre>
+     * 在rockDB中的唯一id,只有目录有这个id
+     * </pre>
+     *
+     * <code>optional string inodeID = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getInodeIDBytes();
 
     /**
      * <pre>
@@ -74,7 +83,7 @@ public final class InodeProtos {
       super(builder);
     }
     private InodeValueProto() {
-      inodeID_ = 0L;
+      inodeID_ = "";
       fid_ = "";
     }
 
@@ -106,9 +115,10 @@ public final class InodeProtos {
               }
               break;
             }
-            case 8: {
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
-              inodeID_ = input.readInt64();
+              inodeID_ = bs;
               break;
             }
             case 18: {
@@ -143,13 +153,13 @@ public final class InodeProtos {
 
     private int bitField0_;
     public static final int INODEID_FIELD_NUMBER = 1;
-    private long inodeID_;
+    private volatile java.lang.Object inodeID_;
     /**
      * <pre>
      * 在rockDB中的唯一id,只有目录有这个id
      * </pre>
      *
-     * <code>optional int64 inodeID = 1;</code>
+     * <code>optional string inodeID = 1;</code>
      */
     public boolean hasInodeID() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
@@ -159,10 +169,41 @@ public final class InodeProtos {
      * 在rockDB中的唯一id,只有目录有这个id
      * </pre>
      *
-     * <code>optional int64 inodeID = 1;</code>
+     * <code>optional string inodeID = 1;</code>
      */
-    public long getInodeID() {
-      return inodeID_;
+    public java.lang.String getInodeID() {
+      java.lang.Object ref = inodeID_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          inodeID_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     * 在rockDB中的唯一id,只有目录有这个id
+     * </pre>
+     *
+     * <code>optional string inodeID = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getInodeIDBytes() {
+      java.lang.Object ref = inodeID_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        inodeID_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     public static final int FID_FIELD_NUMBER = 2;
@@ -232,7 +273,7 @@ public final class InodeProtos {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeInt64(1, inodeID_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, inodeID_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, fid_);
@@ -246,8 +287,7 @@ public final class InodeProtos {
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(1, inodeID_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, inodeID_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, fid_);
@@ -270,8 +310,8 @@ public final class InodeProtos {
       boolean result = true;
       result = result && (hasInodeID() == other.hasInodeID());
       if (hasInodeID()) {
-        result = result && (getInodeID()
-            == other.getInodeID());
+        result = result && getInodeID()
+            .equals(other.getInodeID());
       }
       result = result && (hasFid() == other.hasFid());
       if (hasFid()) {
@@ -291,8 +331,7 @@ public final class InodeProtos {
       hash = (19 * hash) + getDescriptor().hashCode();
       if (hasInodeID()) {
         hash = (37 * hash) + INODEID_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getInodeID());
+        hash = (53 * hash) + getInodeID().hashCode();
       }
       if (hasFid()) {
         hash = (37 * hash) + FID_FIELD_NUMBER;
@@ -427,7 +466,7 @@ public final class InodeProtos {
       }
       public Builder clear() {
         super.clear();
-        inodeID_ = 0L;
+        inodeID_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
         fid_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -506,7 +545,9 @@ public final class InodeProtos {
       public Builder mergeFrom(com.bonree.brfs.common.proto.InodeProtos.InodeValueProto other) {
         if (other == com.bonree.brfs.common.proto.InodeProtos.InodeValueProto.getDefaultInstance()) return this;
         if (other.hasInodeID()) {
-          setInodeID(other.getInodeID());
+          bitField0_ |= 0x00000001;
+          inodeID_ = other.inodeID_;
+          onChanged();
         }
         if (other.hasFid()) {
           bitField0_ |= 0x00000002;
@@ -541,13 +582,13 @@ public final class InodeProtos {
       }
       private int bitField0_;
 
-      private long inodeID_ ;
+      private java.lang.Object inodeID_ = "";
       /**
        * <pre>
        * 在rockDB中的唯一id,只有目录有这个id
        * </pre>
        *
-       * <code>optional int64 inodeID = 1;</code>
+       * <code>optional string inodeID = 1;</code>
        */
       public boolean hasInodeID() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
@@ -557,20 +598,55 @@ public final class InodeProtos {
        * 在rockDB中的唯一id,只有目录有这个id
        * </pre>
        *
-       * <code>optional int64 inodeID = 1;</code>
+       * <code>optional string inodeID = 1;</code>
        */
-      public long getInodeID() {
-        return inodeID_;
+      public java.lang.String getInodeID() {
+        java.lang.Object ref = inodeID_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            inodeID_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
        * <pre>
        * 在rockDB中的唯一id,只有目录有这个id
        * </pre>
        *
-       * <code>optional int64 inodeID = 1;</code>
+       * <code>optional string inodeID = 1;</code>
        */
-      public Builder setInodeID(long value) {
-        bitField0_ |= 0x00000001;
+      public com.google.protobuf.ByteString
+          getInodeIDBytes() {
+        java.lang.Object ref = inodeID_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          inodeID_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       * 在rockDB中的唯一id,只有目录有这个id
+       * </pre>
+       *
+       * <code>optional string inodeID = 1;</code>
+       */
+      public Builder setInodeID(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
         inodeID_ = value;
         onChanged();
         return this;
@@ -580,11 +656,28 @@ public final class InodeProtos {
        * 在rockDB中的唯一id,只有目录有这个id
        * </pre>
        *
-       * <code>optional int64 inodeID = 1;</code>
+       * <code>optional string inodeID = 1;</code>
        */
       public Builder clearInodeID() {
         bitField0_ = (bitField0_ & ~0x00000001);
-        inodeID_ = 0L;
+        inodeID_ = getDefaultInstance().getInodeID();
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * 在rockDB中的唯一id,只有目录有这个id
+       * </pre>
+       *
+       * <code>optional string inodeID = 1;</code>
+       */
+      public Builder setInodeIDBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        inodeID_ = value;
         onChanged();
         return this;
       }
@@ -752,7 +845,7 @@ public final class InodeProtos {
   static {
     java.lang.String[] descriptorData = {
       "\n\013Inode.proto\"/\n\017InodeValueProto\022\017\n\007inod" +
-      "eID\030\001 \001(\003\022\013\n\003fid\030\002 \001(\tB+\n\034com.bonree.brf" +
+      "eID\030\001 \001(\t\022\013\n\003fid\030\002 \001(\tB+\n\034com.bonree.brf" +
       "s.common.protoB\013InodeProtos"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
