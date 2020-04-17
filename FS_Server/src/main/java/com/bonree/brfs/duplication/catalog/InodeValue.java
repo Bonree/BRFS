@@ -21,10 +21,10 @@ public class InodeValue {
         return InodeValueProto.parseFrom(value).getFid();
     }
     public byte[] getInodeID(){
-        return Bytes.long2Bytes(proto.getInodeID());
+        return proto.getInodeID().getBytes();
     }
 
-    public InodeValueProto.Builder setID(long id) {
+    public InodeValueProto.Builder setID(String id) {
         return builder.setInodeID(id);
     }
     public static InodeValue deSerialize(byte [] value) throws InvalidProtocolBufferException {
@@ -35,5 +35,13 @@ public class InodeValue {
 
     private void setProto(InodeValueProto proto) {
         this.proto = proto;
+    }
+
+    public String getFid() {
+        return proto.getFid();
+    }
+
+    public InodeValueProto.Builder setFid(String fid) {
+        return builder.setFid(fid);
     }
 }
