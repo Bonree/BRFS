@@ -18,7 +18,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     public static final byte[] rootID = "0".getBytes();
     AtomicLong idGen = new AtomicLong(0l);
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBrfsCatalog.class);
-    private static final String pattern = "^\\/(\\.*[\\w]+\\.*\\/?)+$";
+    private static final String pattern = "^\\/(\\.*[\\w,\\-]+\\.*\\/?)+$";
 
     @Inject
     public DefaultBrfsCatalog(RocksDBManager rocksDBManager) {
