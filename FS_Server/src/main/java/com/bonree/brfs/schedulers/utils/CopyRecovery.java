@@ -205,7 +205,7 @@ public class CopyRecovery {
 			LOG.debug("create dir :{}, stat:{}",localDir,createFlag);
 		}
 		if(CopyCheckJob.RECOVERY_CRC.equals(operation)) {
-			boolean flag = FileCollection.check(dataPath + localPath);
+			boolean flag = FileBlockChecker.check(dataPath + localPath);
 			LOG.debug("locaPath : {}, CRCSTATUS: {}", dataPath+localPath, flag);
 			if(flag) {
 				return true;
