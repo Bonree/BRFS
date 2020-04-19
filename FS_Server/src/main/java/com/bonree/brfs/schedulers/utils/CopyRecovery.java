@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import com.bonree.brfs.identification.IDSManager;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,11 +42,10 @@ public class CopyRecovery {
 	/**
 	 * 概述：修复目录
 	 * @param content
-	 * @param baseRoutesPath
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static TaskResultModel recoveryDirs(String content,String dataPath,String partitionId) {
+	public static TaskResultModel recoveryDirs(String content) {
 		TaskResultModel result = new TaskResultModel();
 		BatchAtomModel batch = converStringToBatch(content);
 		if(batch == null){
@@ -64,7 +64,6 @@ public class CopyRecovery {
 		ServiceManager sm = mcf.getSm();
 		StorageRegionManager snm = mcf.getSnm();
 
-		CuratorClient curatorClient = mcf.getClient();
 		StorageRegion sn;
 		RouteParser parser;
 		String snName;
@@ -86,15 +85,15 @@ public class CopyRecovery {
 			}
 			snId = sn.getId();
 			parser = new RouteParser(snId, mcf.getRouteLoader());
-			errors = recoveryFiles(sm, sim, parser, sn, atom,dataPath,partitionId);
-			if(errors == null || errors.isEmpty()){
-				result.add(atomR);
-				LOG.debug("result is empty snName:{}", snName);
-				continue;
+			for(LocalPartitionInfo local : mcf.getDaemon().getPartitions()){
+				errors = recoveryFiles(sm, sim, parser, sn, atom,local.getDataDir(),local.getPartitionId());
+				if(errors != null &&!errors.isEmpty()){
+					atomR.addAll(errors);
+					atomR.setSuccess(false);
+					result.setSuccess(false);
+				}
 			}
-			atomR.addAll(errors);
-			atomR.setSuccess(false);
-			result.setSuccess(false);
+			result.add(atomR);
 		}
 		return result;
 	}

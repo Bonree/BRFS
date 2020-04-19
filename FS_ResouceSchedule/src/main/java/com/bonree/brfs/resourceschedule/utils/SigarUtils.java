@@ -7,14 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.hyperic.sigar.Cpu;
-import org.hyperic.sigar.FileSystem;
-import org.hyperic.sigar.FileSystemUsage;
-import org.hyperic.sigar.Mem;
-import org.hyperic.sigar.NetInterfaceConfig;
-import org.hyperic.sigar.NetInterfaceStat;
-import org.hyperic.sigar.Sigar;
-import org.hyperic.sigar.SigarException;
+import org.hyperic.sigar.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,45 +185,28 @@ public enum SigarUtils {
     
     /**
      * 概述：采集分区信息
-     * @param rootPath
      * @return key：0-分区大小，1-分区可用大小，2-硬盘读取kb数, 3-硬盘写入kb数
      * @throws SigarException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public Map<Integer,Map<String,Long>> gatherPartitionInfo(String rootPath,Collection<String> mountPoints) throws SigarException {
+    public Map<Integer,Map<String,Long>> gatherPartitionInfo(Collection<String> dataDirs) throws SigarException {
         Map<Integer,Map<String,Long>> objMap = new ConcurrentHashMap<>();
-        if(BrStringUtils.isEmpty(rootPath)){
-            return objMap;
-        }
-        File file = new File(rootPath);
-        if(!file.exists()||file.isFile()){
-        	LOG.warn("{} is not directory !!", rootPath);
-            return objMap;
-        }
-        FileSystem[] fileSystems = sigar.getFileSystemList();
-        String mountedPoint;
+
+        FileSystemMap fsMap = sigar.getFileSystemMap();
         FileSystemUsage usage;
         int type = -1;
-        for(FileSystem fileSystem : fileSystems){
-            mountedPoint = fileSystem.getDirName();
-            type = fileSystem.getType();
-            if(BrStringUtils.isEmpty(mountedPoint)){
+        for(String dataDir : dataDirs){
+            if(BrStringUtils.isEmpty(dataDir)){
                 continue;
             }
-            //目录无关的分区
-            if(!mountedPoint.contains(file.getAbsolutePath()) && !file.getAbsolutePath().contains(mountedPoint)){
-                continue;
-            }
-            // 过滤无关的磁盘
-            if(mountPoints != null && mountPoints.contains(mountedPoint)){
-                continue;
-            }
+            FileSystem fileSystem = fsMap.getFileSystem(dataDir);
+
             if(type == 2||type == 3){
             	usage = sigar.getFileSystemUsage(fileSystem.getDirName());
-            	addDataToMap(objMap,0,mountedPoint,usage.getTotal());
-            	addDataToMap(objMap,1,mountedPoint,usage.getAvail());
-            	addDataToMap(objMap,2,mountedPoint,usage.getDiskReadBytes());
-            	addDataToMap(objMap,3,mountedPoint,usage.getDiskWriteBytes());
+            	addDataToMap(objMap,0,dataDir,usage.getTotal());
+            	addDataToMap(objMap,1,dataDir,usage.getAvail());
+            	addDataToMap(objMap,2,dataDir,usage.getDiskReadBytes());
+            	addDataToMap(objMap,3,dataDir,usage.getDiskWriteBytes());
             }
         }
         return objMap;

@@ -1,15 +1,12 @@
 
 package com.bonree.brfs.schedulers.jobs.resource;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.bonree.brfs.identification.impl.DiskDaemon;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -51,7 +48,6 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	private static Queue<StateMetaServerModel> queue = new ConcurrentLinkedQueue<StateMetaServerModel>();
 	private static long preTime = 0L;
 	private static long INVERTTIME = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT)*1000;
-	private static Collection<String> mountPoints = null;
 
 	@Override
 	public void interrupt(){
@@ -59,23 +55,10 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 
 	@Override
 	public void operation(JobExecutionContext context) throws Exception {
-		if(mountPoints == null){
-			String[] mounts = StringUtils.split(Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_UNMONITOR_PARTITION),",");
-			if(mounts != null){
-				mountPoints = new ArrayList<>(mounts.length);
-				for(String mount : mounts){
-					if(BrStringUtils.isEmpty(mount)){
-						continue;
-					}
-					mountPoints.add(mount.trim());
-				}
-			}
-		}
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		if (data == null || data.isEmpty()) {
 			throw new NullPointerException("job data map is empty");
 		}
-		String dataDir = data.getString(JobDataMapConstract.DATA_PATH);
 		String zkPath = data.getString(JobDataMapConstract.BASE_SERVER_ID_PATH);
 		String ip = data.getString(JobDataMapConstract.IP);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
@@ -86,12 +69,13 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		}
 		String basePath = zkPath+"/"+mcf.getGroupName();
 		String bPath = basePath+"/base/"+mcf.getServerId();
+		Collection<String> dataDir = getDataDirs(mcf.getDaemon());
 		if(!client.checkExists(bPath)) {
-			saveLocal(client, mcf.getServerId(), dataDir, bPath);
+			saveLocal(client, dataDir, bPath);
 		}
 		long gatherInveral = data.getLongValueFromString(JobDataMapConstract.GATHER_INVERAL_TIME);
 		int count = data.getIntFromString(JobDataMapConstract.CALC_RESOURCE_COUNT);
-		StateMetaServerModel metaSource = GatherResource.gatherResource(dataDir, ip,mountPoints);
+		StateMetaServerModel metaSource = GatherResource.gatherResource(ip,dataDir);
 		if (metaSource != null) {
 			queue.add(metaSource);
 			LOG.info("gather stat info !!! {}", queue.size());
@@ -102,7 +86,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			return ;
 		}
 		// 更新任务的可执行资源
-		StatServerModel sum = calcStateServer(gatherInveral, dataDir,count);
+		StatServerModel sum = calcStateServer(gatherInveral, count);
 		if (sum != null) {
 			RunnableTaskInterface rt = mcf.getRt();
 			rt.update(sum);
@@ -131,7 +115,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 			LOG.info("resource: succefull !!!");
 		}
 		
-		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir,mountPoints);
+		BaseMetaServerModel local = GatherResource.gatherBase(dataDir);
 		if(local == null) {
 			LOG.error("gather base data is empty !!!");
 			return;
@@ -140,7 +124,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		if(!saveDataToZK(client, bPath, bData)) {
 			LOG.error("base content : {} save to zk fail!!!",JsonUtils.toJsonStringQuietly(local));
 		}
-		saveLocal(client,mcf.getServerId(), dataDir, bPath);
+		saveLocal(client,dataDir, bPath);
 		
 	}
 	public void sendWarnEmail(ResourceModel resource, LimitServerResource limit){
@@ -169,8 +153,16 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		}
 
 	}
-	public void saveLocal(CuratorClient client,String serverId, String dataDir,String bPath) {
-		BaseMetaServerModel local = GatherResource.gatherBase(serverId, dataDir,mountPoints);
+	public Collection<String> getDataDirs(DiskDaemon diskDaemon){
+		Collection<LocalPartitionInfo> partitions = diskDaemon.getPartitions();
+		Collection<String> dirs = new HashSet<>();
+		for(LocalPartitionInfo local : partitions){
+			dirs.add(local.getDataDir());
+		}
+		return dirs;
+	}
+	public void saveLocal(CuratorClient client,Collection<String> dataDirs,String bPath) {
+		BaseMetaServerModel local = GatherResource.gatherBase( dataDirs);
 		if(local == null) {
 			LOG.error("gather base data is empty !!!");
 			return;
@@ -236,11 +228,10 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	/**
 	 * 概述：计算队列的状态信息
 	 * @param inverTime
-	 * @param dataDir
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private StatServerModel calcStateServer(long inverTime, String dataDir,int count) {
+	private StatServerModel calcStateServer(long inverTime, int count) {
 		StatServerModel sum = null;
 		// 0.计算原始状态信息
 		List<StatServerModel> lists = GatherResource.calcState(queue,count);
@@ -256,7 +247,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 		List<StorageRegion> storageNames = snManager.getStorageRegionList();
 		List<String> storagenameList = getStorageNames(storageNames);
 		// 3.计算状态值
-		sum = GatherResource.calcStatServerModel(lists, storagenameList, inverTime, dataDir);
+		sum = GatherResource.calcStatServerModel(lists,  inverTime);
 		return sum;
 	}
 

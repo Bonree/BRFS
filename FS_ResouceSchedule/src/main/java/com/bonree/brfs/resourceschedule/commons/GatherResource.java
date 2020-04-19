@@ -28,14 +28,13 @@ public class GatherResource {
 
 	/**
 	 * 概述：采集状态信息
-	 * @param dataDir
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static StateMetaServerModel gatherResource(String dataDir, String ip,Collection<String> mountPoints){
+	public static StateMetaServerModel gatherResource(String ip,Collection<String> mountPoints){
 		StateMetaServerModel obj = new StateMetaServerModel();
 		try {
-			if(BrStringUtils.isEmpty(dataDir) || BrStringUtils.isMathNumeric(ip)){
+			if(BrStringUtils.isMathNumeric(ip)){
 				return null;
 			}
 			int cpuCore = SigarUtils.instance.gatherCpuCoreCount();
@@ -51,7 +50,7 @@ public class GatherResource {
 				obj.setNetRByte(netData.getFirst());
 				obj.setNetTByte(netData.getSecond());
 			}
-			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir,mountPoints);
+			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(mountPoints);
 			if(partition.containsKey(0)){
 				obj.setPartitionTotalSizeMap(partition.get(0));
 			}
@@ -72,11 +71,11 @@ public class GatherResource {
 	
 	/**
 	 * 概述：基本信息
-	 * @param dataDir
+	 * @param dataDirs
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static BaseMetaServerModel gatherBase(String serverId, String dataDir,Collection<String> mountPoints){
+	public static BaseMetaServerModel gatherBase(Collection<String> dataDirs){
 		BaseMetaServerModel obj = new BaseMetaServerModel();
 		try {
 			int cpuCore = SigarUtils.instance.gatherCpuCoreCount();
@@ -84,7 +83,7 @@ public class GatherResource {
 		
 			long memorySize = SigarUtils.instance.gatherMemSize();
 			obj.setMemoryTotalSize(memorySize);
-			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDir,mountPoints);
+			Map<Integer,Map<String,Long>> partition = SigarUtils.instance.gatherPartitionInfo(dataDirs);
 			if(partition.containsKey(0)){
 				long totalDiskSize = CalcUtils.collectDataMap(partition.get(0));
 				obj.setDiskTotalSize(totalDiskSize);
@@ -152,7 +151,7 @@ public class GatherResource {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static StatServerModel calcStatServerModel(final List<StatServerModel> arrays, List<String> snList, long inverTime, String dataPath){
+	public static StatServerModel calcStatServerModel(final List<StatServerModel> arrays,  long inverTime){
 		if(arrays == null || arrays.isEmpty()){
 			return null;
 		}
@@ -164,12 +163,7 @@ public class GatherResource {
 			}
 			obj = tmp.sum(obj);
 		}
-		obj.calc(snList,  dataPath, inverTime);
-		
-		Map<String,String> snToDiskMap = matchSnToPatition(snList,obj.getPartitionTotalSizeMap().keySet(),dataPath);
-		if(snToDiskMap !=null && !snToDiskMap.isEmpty()){
-			obj.setStorageNameOnPartitionMap(snToDiskMap);
-		}
+		obj.calc(inverTime);
 		return obj;
 	}
 	/**
@@ -266,6 +260,7 @@ public class GatherResource {
      * @return
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
+	 @Deprecated
     public static Map<String,String> matchSnToPatition(Collection<String> snList, Collection<String> mountPoints, String dataDir){
     	Map<String, String> objMap = new ConcurrentHashMap<String,String>();
     	if(snList == null || mountPoints == null){

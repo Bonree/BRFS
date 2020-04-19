@@ -47,7 +47,6 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 		LOG.debug("----------> system delete work");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
-		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
 		LOG.debug("batch {}", content);
 		// 获取当前执行的任务类型

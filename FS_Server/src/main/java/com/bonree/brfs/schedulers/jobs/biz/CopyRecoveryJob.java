@@ -19,13 +19,9 @@ public class CopyRecoveryJob extends CycleJobWithZKTask {
 
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
-		String baseRoutPath = data.getString(JobDataMapConstract.BASE_ROUTE_PATH);
-		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		TaskResultModel result = null;
 		String content = data.getString(currentIndex);
-		// todo :  缺少partitionid 需要补充 。。。。。。。。。。。。。。。。。。。。。。。。。。
-		String partitionId = "40";
-		result = CopyRecovery.recoveryDirs(content,dataPath,partitionId);
+		result = CopyRecovery.recoveryDirs(content);
 
 		LOG.debug("CURRENT_INDEX: {} status:{}",currentIndex, result.isSuccess());
 		TaskStateLifeContral.updateMapTaskMessage(context, result);
