@@ -33,11 +33,6 @@ import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateWithZK
 public class SystemCheckJob extends QuartzOperationStateWithZKTask {
 	private static final Logger LOG = LoggerFactory.getLogger(SystemCheckJob.class);
 	@Override
-	public void caughtException(JobExecutionContext context) {
-		LOG.info("Error ......   ");
-	}
-
-	@Override
 	public void interrupt(){
 
 

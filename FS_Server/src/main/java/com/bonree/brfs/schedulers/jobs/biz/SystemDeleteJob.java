@@ -36,10 +36,7 @@ import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 	private static final Logger LOG = LoggerFactory.getLogger(SystemDeleteJob.class);
 
-	@Override
-	public void caughtException(JobExecutionContext context) {
 
-	}
 
 	@Override
 	public void interrupt(){

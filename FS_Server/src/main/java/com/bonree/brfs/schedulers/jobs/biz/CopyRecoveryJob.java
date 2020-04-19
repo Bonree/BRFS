@@ -31,10 +31,7 @@ public class CopyRecoveryJob extends CycleJobWithZKTask {
 		TaskStateLifeContral.updateMapTaskMessage(context, result);
 	}
 
-	@Override
-	public void caughtException(JobExecutionContext context) {
 
-	}
 
 	@Override
 	public void interrupt(){

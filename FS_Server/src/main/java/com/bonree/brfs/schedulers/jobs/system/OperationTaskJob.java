@@ -30,9 +30,6 @@ import com.bonree.mail.worker.MailWorker;
 
 public class OperationTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(OperationTaskJob.class);
-	@Override
-	public void caughtException(JobExecutionContext context) {
-	}
 
 	@Override
 	public void interrupt(){

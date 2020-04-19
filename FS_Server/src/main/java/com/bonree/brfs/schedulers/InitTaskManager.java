@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import javax.inject.Inject;
 
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.configuration.units.ResourceConfigs;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
@@ -62,17 +63,17 @@ public class InitTaskManager {
 	 */
 	@Inject
 	public static void initManager(
-	        ResourceTaskConfig managerConfig,
-	        ZookeeperPaths zkPath,
-	        ServiceManager sm,
-	        StorageRegionManager snm,
-	        IDSManager sim,
-	        CuratorFramework client) throws Exception {
+			ResourceTaskConfig managerConfig,
+			ZookeeperPaths zkPath,
+			ServiceManager sm,
+			StorageRegionManager snm,
+			IDSManager sim,
+			CuratorFramework client, Service localServer) throws Exception {
         managerConfig.printDetail();
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
         String serverId = sim.getFirstSever();
-        mcf.setServerId(serverId);
-        mcf.setGroupName(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+        mcf.setServerId(localServer.getServiceId());
+        mcf.setGroupName(localServer.getServiceGroup());
 
 
         LimitServerResource lmit = new LimitServerResource();
@@ -90,13 +91,9 @@ public class InitTaskManager {
         mcf.setStm(manager);
 
         // 工厂类添加发布接口
-        MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
-        if (release == null) {
-            LOG.error("Meta task is empty");
-            System.exit(1);
-        }
-        String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-        release.setPropreties(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
+		String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+		MetaTaskManagerInterface release = new DefaultReleaseTask(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
+
         if (client == null) {
             LOG.error("zk client is empty");
             System.exit(1);
@@ -115,7 +112,7 @@ public class InitTaskManager {
         // 创建任务线程池
         if (managerConfig.isTaskFrameWorkSwitch()) {
             // 1.创建任务管理服务
-            createMetaTaskManager(manager, zkPath, managerConfig, serverId);
+            createMetaTaskManager(manager, zkPath, managerConfig, serverId,client);
             // 2.启动任务线程池
             List<TaskType> tasks = managerConfig.getSwitchOnTaskType();
             if (tasks == null || tasks.isEmpty()) {
@@ -148,12 +145,8 @@ public class InitTaskManager {
 	 * @throws Exception
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config,String serverId) throws Exception{
+	public static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,ResourceTaskConfig config,String serverId,CuratorFramework client) throws Exception{
 		MetaTaskLeaderManager leader = new MetaTaskLeaderManager(manager, config);
-		RetryPolicy retryPolicy = new RetryNTimes(3, 1000);
-		String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-		CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddresses, retryPolicy);
-		client.start();
 		leaderLatch = new LeaderLatch(client, zkPaths.getBaseLocksPath() + "/TaskManager/MetaTaskLeaderLock", serverId);
 		leaderLatch.addListener(leader);
 		leaderLatch.start();

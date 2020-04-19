@@ -52,9 +52,6 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	private static long preTime = 0L;
 	private static long INVERTTIME = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT)*1000;
 	private static Collection<String> mountPoints = null;
-	@Override
-	public void caughtException(JobExecutionContext context) {
-	}
 
 	@Override
 	public void interrupt(){

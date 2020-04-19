@@ -53,8 +53,7 @@ public class TasksUtils {
 		 	}
 		 	
 		 	String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-		 	MetaTaskManagerInterface release = DefaultReleaseTask.getInstance();
-		 	release.setPropreties(zkAddresses, zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
+		 	MetaTaskManagerInterface release = new DefaultReleaseTask(zkAddresses, zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
 	    	TaskTypeModel tmodel = release.getTaskTypeInfo(TaskType.USER_DELETE.name());
 	    	if(!tmodel.isSwitchFlag()) {
 	    		return ReturnCode.FORBID_DELETE_DATA_ERROR;

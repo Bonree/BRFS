@@ -134,14 +134,7 @@ public interface MetaTaskManagerInterface {
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	boolean isInit();
-	/**
-	 * 概述：初始化接口
-	 * @param zkUrl
-	 * @param taskPath
-	 * @param args
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	void setPropreties(String zkUrl, String taskPath, String lockPath, String... args);
+
 	/**
 	 * 概述：维护任务数据状态，包括删除及任务状态校验
 	 * @param taskType

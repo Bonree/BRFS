@@ -22,11 +22,7 @@ import com.bonree.mail.worker.MailWorker;
 
 public class ManagerMetaTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(ManagerMetaTaskJob.class);
-	
 
-	@Override
-	public void caughtException(JobExecutionContext context) {
-	}
 
 	@Override
 	public void interrupt(){

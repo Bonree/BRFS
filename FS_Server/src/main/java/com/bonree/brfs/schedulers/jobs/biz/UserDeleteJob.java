@@ -35,9 +35,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 	public static final String DELETE_SN_ALL = "0";
 	public static final String DELETE_PART = "1";
 	private static final Logger LOG = LoggerFactory.getLogger(UserDeleteJob.class);
-	@Override
-	public void caughtException(JobExecutionContext context) {
-	}
+
 
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {

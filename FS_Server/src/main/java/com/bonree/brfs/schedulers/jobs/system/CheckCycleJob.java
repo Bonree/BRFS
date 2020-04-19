@@ -33,10 +33,6 @@ import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 public class CheckCycleJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(CheckCycleJob.class);
 	@Override
-	public void caughtException(JobExecutionContext context) {
-		LOG.error("Create Task error !! {}", TaskType.SYSTEM_COPY_CHECK.name());
-	}
-	@Override
 	public void interrupt(){
 	}
 	@Override
