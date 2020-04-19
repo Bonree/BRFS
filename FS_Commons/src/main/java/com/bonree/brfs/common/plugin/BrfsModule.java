@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 
+import io.airlift.airline.Cli;
+
 public abstract class BrfsModule implements Module {
     private final AtomicReference<NodeType> nodeTypeRef = new AtomicReference<>();
     
@@ -42,4 +44,6 @@ public abstract class BrfsModule implements Module {
     }
     
     protected abstract void configure(NodeType nodeType, Binder binder);
+    
+    public void addCommands(Cli.CliBuilder<Runnable> builder) {}
 }

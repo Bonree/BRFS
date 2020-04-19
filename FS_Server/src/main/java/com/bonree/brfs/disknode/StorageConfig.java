@@ -15,14 +15,12 @@ package com.bonree.brfs.disknode;
 
 import java.util.List;
 
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 
 public class StorageConfig {
     @JsonProperty("storage.dirs")
-    private List<String> storageDirs = ImmutableList.of(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
+    private List<String> storageDirs = ImmutableList.of("data");
 
     public List<String> getStorageDirs() {
         return storageDirs;
