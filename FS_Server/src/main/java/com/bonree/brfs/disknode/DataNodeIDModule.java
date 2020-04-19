@@ -36,6 +36,7 @@ public class DataNodeIDModule implements Module {
     public void configure(Binder binder) {
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class);
         binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class);
+        binder.bind(SecondIdsInterface.class).to(SecondMaintainerInterface.class);
 //        LifecycleModule.register(binder, DiskDaemon.class);
         LifecycleModule.register(binder, IDSManager.class);
         LifecycleModule.register(binder, DiskPartitionChangeTaskGenerator.class);

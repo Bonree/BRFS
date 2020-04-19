@@ -43,6 +43,9 @@ public class FileBlockMaintainer implements LifeCycle {
     private RouteLoader loader;
     private long intervalTime;
     @Inject
+    public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor, StorageRegionManager manager, SecondIdsInterface secondIds, RouteLoader loader) {
+        this(localPartitionInterface,monitor,manager,secondIds,loader,1);
+    }
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor, StorageRegionManager manager, SecondIdsInterface secondIds, RouteLoader loader, long intervalTime) {
         this.localPartitionInterface = localPartitionInterface;
         this.monitor = monitor;
@@ -55,7 +58,7 @@ public class FileBlockMaintainer implements LifeCycle {
     @Override
     public void start() throws Exception {
         pool = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("FileBlockMaintainer").build());
-        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface,monitor,manager,secondIds,loader),0,intervalTime, TimeUnit.SECONDS);
+        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface,monitor,manager,secondIds,loader),0,intervalTime, TimeUnit.HOURS);
     }
     @LifecycleStop
     @Override
