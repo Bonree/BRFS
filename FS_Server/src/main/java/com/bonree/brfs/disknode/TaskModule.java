@@ -1,15 +1,18 @@
 package com.bonree.brfs.disknode;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.impl.SimpleRouteZKLoader;
+import com.bonree.brfs.tasks.maintain.FileBlockMaintainer;
+import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
+import com.bonree.brfs.tasks.monitor.impl.CycleRebalanceTaskMonitor;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.apache.curator.framework.CuratorFramework;
 
-import static io.protostuff.CollectionSchema.MessageFactories.List;
 
 /**
  * 版权信息: 北京博睿宏远数据科技股份有限公司
@@ -22,7 +25,8 @@ import static io.protostuff.CollectionSchema.MessageFactories.List;
 public class TaskModule implements Module {
     @Override
     public void configure(Binder binder) {
-
+        binder.bind(RebalanceTaskMonitor.class).to(CycleRebalanceTaskMonitor.class).in(ManageLifecycle.class);
+        binder.bind(FileBlockMaintainer.class).in(ManageLifecycle.class);
     }
 
     @Provides
