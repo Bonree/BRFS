@@ -36,10 +36,6 @@ import com.bonree.brfs.identification.impl.VirtualServerIDImpl;
  ******************************************************************************/
 public class ServerIDManager {
 	private static final Logger LOG = LoggerFactory.getLogger(ServerIDManager.class);
-    /**
-     * 一级serverId注册序列
-     */
-    private FirstLevelServerIDImpl firstLevelServerID;
 
     private final String firstServerId;
     /**
@@ -110,13 +106,12 @@ public class ServerIDManager {
 
     @Inject
     public ServerIDManager(CuratorFramework client, ZookeeperPaths zkBasePaths,FirstLevelServerIDImpl firstLevelServerID) {
-        this.firstLevelServerID = firstLevelServerID;
         virtualServerID = new VirtualServerIDImpl(client, zkBasePaths.getBaseServerIdSeqPath());
         loadSecondServerIDCache(client, zkBasePaths.getBaseServerIdPath());
         secondIDCache = CuratorCacheFactory.getTreeCache();
         secondIDCache.addListener(zkBasePaths.getBaseServerIdPath(), new SecondIDCacheListener());
 
-        firstServerId = this.firstLevelServerID.initOrLoadServerID();
+        firstServerId = firstLevelServerID.initOrLoadServerID();
 
         secondServerID = new SecondLevelServerID(client, zkBasePaths.getBaseServerIdPath() + '/' + firstServerId, zkBasePaths.getBaseServerIdSeqPath(), zkBasePaths.getBaseRoutePath());
         secondServerID.loadServerID();

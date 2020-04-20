@@ -10,6 +10,7 @@ import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
@@ -33,7 +34,7 @@ public class FirstLevelServerIDImpl {
     private String firstZKPath;
 
     private String firstServer = null;
-
+	@Inject
     public FirstLevelServerIDImpl(CuratorFramework client, String firstZKPath, String firstServerIDFile, String seqPath) {
         this.client = client;
         this.firstZKPath = firstZKPath;
