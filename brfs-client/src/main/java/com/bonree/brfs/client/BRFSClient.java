@@ -515,8 +515,7 @@ public class BRFSClient implements BRFS {
         if(fid == null) {
             throw new IllegalArgumentException("either fid or file path should be supplied");
         }
-        
-        return getObject(request.getStorageRegionName(), request.getFID(), request.getRange());
+        return getObject(request.getStorageRegionName(), fid, request.getRange());
     }
     
     private BRFSObject getObject(String srName, String fid, Range range) throws Exception {
