@@ -40,6 +40,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ import com.bonree.brfs.client.storageregion.ListStorageRegionRequest;
 import com.bonree.brfs.client.storageregion.StorageRegionID;
 import com.bonree.brfs.client.storageregion.StorageRegionInfo;
 import com.bonree.brfs.client.storageregion.UpdateStorageRegionRequest;
-import com.bonree.brfs.client.utils.AggregateInputStream;
+import com.bonree.brfs.client.utils.LazeAggregateInputStream;
 import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.client.utils.IteratorUtils;
 import com.bonree.brfs.client.utils.Range;
@@ -538,11 +539,11 @@ public class BRFSClient implements BRFS {
         
         InputStream content = getActualContentofFile(srName, fidObj, null);
         List<Fid> subFids = subFidParser.readFids(content);
-        ImmutableList.Builder<InputStream> streamBuilder = ImmutableList.builderWithExpectedSize(subFids.size());
+        ImmutableList.Builder<Supplier<InputStream>> streamBuilder = ImmutableList.builderWithExpectedSize(subFids.size());
         long accumulatedOffset = 0;
         for(Fid subFid : subFids) {
             if(range == null) {
-                streamBuilder.add(getActualContentofFile(srName, subFid, null));
+                streamBuilder.add(() -> getActualContentofFile(srName, subFid, null));
                 continue;
             }
             
@@ -554,7 +555,7 @@ public class BRFSClient implements BRFS {
                 long actualOffset = Math.max(accumulatedOffset, range.getOffset());
                 long actualSize = Math.min(subFid.getSize(), range.getEndOffset())  - actualOffset;
                 
-                streamBuilder.add(getActualContentofFile(srName, subFid, new Range(actualOffset, actualSize)));
+                streamBuilder.add(() -> getActualContentofFile(srName, subFid, new Range(actualOffset, actualSize)));
             } finally {
                 accumulatedOffset += subFid.getSize();
                 if(accumulatedOffset >= range.getEndOffset()) {
@@ -563,7 +564,7 @@ public class BRFSClient implements BRFS {
             }
         }
         
-        return BRFSObject.from(new AggregateInputStream(streamBuilder.build().iterator()));
+        return BRFSObject.from(new LazeAggregateInputStream(streamBuilder.build().iterator()));
     }
     
     private InputStream getActualContentofFile(String srName, Fid fidObj, Range range) {

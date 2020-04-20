@@ -16,20 +16,25 @@ package com.bonree.brfs.client.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.function.Supplier;
 
 import com.google.common.io.Closeables;
 
-public class AggregateInputStream extends InputStream {
-    private final Iterator<InputStream> inputs;
+public class LazeAggregateInputStream extends InputStream {
+    private final Iterator<Supplier<InputStream>> inputSuppliers;
     private InputStream currentStream;
     
-    public AggregateInputStream(Iterator<InputStream> inputs) {
-        this.inputs = inputs;
+    public LazeAggregateInputStream(Iterator<Supplier<InputStream>> inputSuppliers) {
+        this.inputSuppliers = inputSuppliers;
         this.currentStream = nextInput();
     }
     
     private InputStream nextInput() {
-        return inputs.hasNext() ? inputs.next() : null;
+        if(!inputSuppliers.hasNext()) {
+            return null;
+        }
+        
+        return inputSuppliers.next().get();
     }
 
     @Override
@@ -76,8 +81,8 @@ public class AggregateInputStream extends InputStream {
     @Override
     public void close() throws IOException {
         Closeables.closeQuietly(currentStream);
-        while(inputs.hasNext()) {
-            Closeables.closeQuietly(inputs.next());
+        while(inputSuppliers.hasNext()) {
+            Closeables.closeQuietly(inputSuppliers.next().get());
         }
     }
 

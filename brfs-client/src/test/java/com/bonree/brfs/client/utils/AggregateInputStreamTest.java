@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableList;
 
@@ -28,14 +29,14 @@ public class AggregateInputStreamTest {
      * @throws IOException 
      */
     public static void main(String[] args) throws IOException {
-        ImmutableList<InputStream> list = ImmutableList.of(
-                new ByteArrayInputStream("1234567890".getBytes()),
-                new ByteArrayInputStream("first\nhahaha".getBytes()),
-                new ByteArrayInputStream("no\ncontinue".getBytes()),
-                new ByteArrayInputStream("here".getBytes()),
-                new ByteArrayInputStream("end".getBytes())
+        ImmutableList<Supplier<InputStream>> list = ImmutableList.of(
+                () -> new ByteArrayInputStream("1234567890".getBytes()),
+                () -> new ByteArrayInputStream("first\nhahaha".getBytes()),
+                () -> new ByteArrayInputStream("no\ncontinue".getBytes()),
+                () -> new ByteArrayInputStream("here".getBytes()),
+                () -> new ByteArrayInputStream("end".getBytes())
                 );
-        InputStream input = new AggregateInputStream(list.iterator());
+        InputStream input = new LazeAggregateInputStream(list.iterator());
         
         BufferedReader r = new BufferedReader(new InputStreamReader(input));
         String l = null;

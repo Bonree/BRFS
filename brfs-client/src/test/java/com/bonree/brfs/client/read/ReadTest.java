@@ -35,7 +35,7 @@ public class ReadTest {
                     "guice_test",
                     "CAAQABgCIiAzYTJkNmZkY2RlNjE0ZjhjYTgyNzIwZmVlM2E5YmE2YSjysPe6mC4wgN3bAToCMjI6AjMwQDpIOg=="));
             
-            System.out.println(obj.string());
+            System.out.println("[" + obj.string() + "]");
         } catch (Exception e) {
             e.printStackTrace();
         }
