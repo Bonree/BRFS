@@ -16,10 +16,4 @@ public interface OperationInterface<T>{
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	void operation(T context) throws Exception;
-	/**
-	 * 概述：捕获异常
-	 * @param context
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	void caughtException(T context);
 }

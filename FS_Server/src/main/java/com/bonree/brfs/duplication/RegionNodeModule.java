@@ -65,6 +65,7 @@ import com.bonree.brfs.duplication.filenode.zk.RandomFileNodeSinkSelector;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeSinkManager;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.guice.ClusterConfig;
+import com.bonree.brfs.metadata.MetadataBackupServer;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -126,6 +127,7 @@ public class RegionNodeModule implements Module {
         jaxrs(binder).resource(FSPackageProtoMapper.class);
 
         LifecycleModule.register(binder, SimpleAuthentication.class);
+        LifecycleModule.register(binder, MetadataBackupServer.class);
 
         binder.requestStaticInjection(CuratorCacheFactory.class);
 
@@ -140,6 +142,7 @@ public class RegionNodeModule implements Module {
 
         return paths;
     }
+
     @Provides
     @Singleton
     public Service getService(
@@ -205,7 +208,7 @@ public class RegionNodeModule implements Module {
             BlockPoolInterface blockpool,
             StorageRegionWriter write,
             BrfsCatalog brfsCatalog) {
-        return new SeqBlockManagerV2(blockpool, writer,brfsCatalog);
+        return new SeqBlockManagerV2(blockpool, writer, brfsCatalog);
     }
 
     @Provides

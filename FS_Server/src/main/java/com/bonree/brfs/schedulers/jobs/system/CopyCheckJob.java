@@ -31,10 +31,6 @@ public class CopyCheckJob extends QuartzOperationStateTask{
 	private static final Logger LOG = LoggerFactory.getLogger(CopyCheckJob.class);
 	public static final String RECOVERY_NUM = "1";
 	public static final String RECOVERY_CRC = "0";
-	@Override
-	public void caughtException(JobExecutionContext context) {
-		LOG.error("Create Task error !! {} {}",TaskType.SYSTEM_COPY_CHECK.name(),context.get("ExceptionMessage"));
-	}
 
 	@Override
 	public void interrupt(){

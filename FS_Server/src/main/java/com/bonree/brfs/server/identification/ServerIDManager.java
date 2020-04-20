@@ -29,7 +29,7 @@ import com.bonree.brfs.identification.impl.VirtualServerIDImpl;
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年3月27日 下午5:41:58
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 管理Identification
@@ -40,7 +40,7 @@ public class ServerIDManager {
      * 一级serverId注册序列
      */
     private FirstLevelServerIDImpl firstLevelServerID;
-    
+
     private final String firstServerId;
     /**
      * 二级serverId
@@ -109,15 +109,15 @@ public class ServerIDManager {
     }
 
     @Inject
-    public ServerIDManager(CuratorFramework client, ZookeeperPaths zkBasePaths) {
-        firstLevelServerID = new FirstLevelServerIDImpl(client, zkBasePaths.getBaseServerIdPath(), SINGLE_FILE_DIR, zkBasePaths.getBaseServerIdSeqPath());
+    public ServerIDManager(CuratorFramework client, ZookeeperPaths zkBasePaths,FirstLevelServerIDImpl firstLevelServerID) {
+        this.firstLevelServerID = firstLevelServerID;
         virtualServerID = new VirtualServerIDImpl(client, zkBasePaths.getBaseServerIdSeqPath());
         loadSecondServerIDCache(client, zkBasePaths.getBaseServerIdPath());
         secondIDCache = CuratorCacheFactory.getTreeCache();
         secondIDCache.addListener(zkBasePaths.getBaseServerIdPath(), new SecondIDCacheListener());
-        
-        firstServerId = firstLevelServerID.initOrLoadServerID();
-        
+
+        firstServerId = this.firstLevelServerID.initOrLoadServerID();
+
         secondServerID = new SecondLevelServerID(client, zkBasePaths.getBaseServerIdPath() + '/' + firstServerId, zkBasePaths.getBaseServerIdSeqPath(), zkBasePaths.getBaseRoutePath());
         secondServerID.loadServerID();
     }

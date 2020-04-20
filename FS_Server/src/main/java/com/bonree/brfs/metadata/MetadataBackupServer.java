@@ -1,13 +1,21 @@
 package com.bonree.brfs.metadata;
 
+import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
+import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.metadata.backup.DefaultMetadataBackupEngine;
 import com.bonree.brfs.metadata.backup.MetadataBackupEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -23,22 +31,27 @@ import java.util.concurrent.TimeUnit;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description: 负责周期备份元数据
  ******************************************************************************/
+@ManageLifecycle
 public class MetadataBackupServer implements LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(MetadataBackupServer.class);
 
+    private ZookeeperPaths zkPaths;
     private ScheduledExecutorService metadataExecutor;
 
-    public MetadataBackupServer() {
+    @Inject
+    public MetadataBackupServer(ZookeeperPaths zkPaths) {
+        this.zkPaths = zkPaths;
         metadataExecutor = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("metadata_backup"));
     }
 
+    @LifecycleStart
     @Override
-    public void start() {
-        // read from config
-        String zkHost = "";
-        String zkPath = "";
-        String metadataPath = "";
-        long backupCycle = 3000L;
+    public void start() throws IOException {
+        String zkHost = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+        String zkPath = zkPaths.getBaseClusterName();
+        String metadataPath = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_METADATA_BACKUP_PATH) + "/brfs.metadata";
+        FileUtils.createFile(metadataPath, true);
+        long backupCycle = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_METADATA_BACKUP_CYCLE) * 60 * 1000;
 
         metadataExecutor.scheduleWithFixedDelay(new Runnable() {
             @Override
@@ -51,7 +64,7 @@ public class MetadataBackupServer implements LifeCycle {
                 try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(metadataPath))) {
                     if (root != null) {
                         oos.writeObject(root);
-                        LOG.info("metadata backup success, path: {}, cost time: {} ms", metadataPath, watcher.getElapsedTime());
+                        LOG.info("metadata backup success, backup file: {}, cost time: {} ms", metadataPath, watcher.getElapsedTime());
                     }
                 } catch (IOException e) {
                     LOG.error("metadata executor error", e);
@@ -60,6 +73,7 @@ public class MetadataBackupServer implements LifeCycle {
         }, 3000, backupCycle, TimeUnit.MILLISECONDS);
     }
 
+    @LifecycleStop
     @Override
     public void stop() throws Exception {
         if (metadataExecutor != null) {

@@ -5,9 +5,12 @@ import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.rebalance.Constants;
+import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -18,7 +21,8 @@ import java.util.concurrent.TimeUnit;
  * 任务终结检查类,定时检查任务状态，
  */
 @ManageLifecycle
-public class CycleRebalanceTaskMonitor implements com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor {
+public class CycleRebalanceTaskMonitor implements RebalanceTaskMonitor {
+    private static final Logger LOG = LoggerFactory.getLogger(CycleRebalanceTaskMonitor.class);
     private volatile boolean execute = false;
     private CheckTaskThread checkTaskThread;
     private int intervalTime = 5;
@@ -38,6 +42,7 @@ public class CycleRebalanceTaskMonitor implements com.bonree.brfs.tasks.monitor.
             checkTaskThread.setBreakFlag(false);
             pool = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("TaskMonitor").build());
             pool.scheduleAtFixedRate(checkTaskThread,0,intervalTime, TimeUnit.SECONDS);
+            LOG.info("monitor server start");
         }
     }
     @LifecycleStop
@@ -48,6 +53,7 @@ public class CycleRebalanceTaskMonitor implements com.bonree.brfs.tasks.monitor.
         if(pool!=null){
             pool.shutdownNow();
         }
+        LOG.info("monitor server stop");
     }
 
     @Override

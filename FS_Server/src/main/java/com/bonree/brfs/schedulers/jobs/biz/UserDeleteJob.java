@@ -35,9 +35,7 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 	public static final String DELETE_SN_ALL = "0";
 	public static final String DELETE_PART = "1";
 	private static final Logger LOG = LoggerFactory.getLogger(UserDeleteJob.class);
-	@Override
-	public void caughtException(JobExecutionContext context) {
-	}
+
 
 	@Override
 	public void interrupt() throws UnableToInterruptJobException {
@@ -47,7 +45,6 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 	public void operation(JobExecutionContext context) throws Exception {
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 		String currentIndex = data.getString(JobDataMapConstract.CURRENT_INDEX);
-		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		String content = data.getString(currentIndex);
 		// 获取当前执行的任务类型
 		if(BrStringUtils.isEmpty(content)) {
@@ -91,11 +88,14 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 			
 		}
 		if("1".equals(currentIndex)) {
-			for(String sn : dSns) {
-				if(FileUtils.deleteDir(dataPath+"/"+sn, true)) {
-					LOG.debug("deltete {} successfull", sn);
-				}else {
-					result.setSuccess(false);
+			for(LocalPartitionInfo local : daemon.getPartitions()){
+
+				for(String sn : dSns) {
+					if(FileUtils.deleteDir(local.getDataDir()+"/"+sn, true)) {
+						LOG.debug("deltete {} successfull", sn);
+					}else {
+						result.setSuccess(false);
+					}
 				}
 			}
 		}

@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import com.bonree.brfs.identification.IDSManager;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +35,6 @@ import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
-import com.bonree.brfs.server.identification.ServerIDManager;
 import com.bonree.mail.worker.MailWorker;
 
 public class CopyRecovery {
@@ -41,11 +42,10 @@ public class CopyRecovery {
 	/**
 	 * 概述：修复目录
 	 * @param content
-	 * @param baseRoutesPath
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static TaskResultModel recoveryDirs(String content, String baseRoutesPath,String dataPath) {
+	public static TaskResultModel recoveryDirs(String content) {
 		TaskResultModel result = new TaskResultModel();
 		BatchAtomModel batch = converStringToBatch(content);
 		if(batch == null){
@@ -60,11 +60,10 @@ public class CopyRecovery {
 			return result;
 		}
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-		ServerIDManager sim = mcf.getSim();
+		IDSManager sim = mcf.getSim();
 		ServiceManager sm = mcf.getSm();
 		StorageRegionManager snm = mcf.getSnm();
-		
-		CuratorClient curatorClient = mcf.getClient();
+
 		StorageRegion sn;
 		RouteParser parser;
 		String snName;
@@ -86,15 +85,15 @@ public class CopyRecovery {
 			}
 			snId = sn.getId();
 			parser = new RouteParser(snId, mcf.getRouteLoader());
-			errors = recoveryFiles(sm, sim, parser, sn, atom,dataPath);
-			if(errors == null || errors.isEmpty()){
-				result.add(atomR);
-				LOG.debug("result is empty snName:{}", snName);
-				continue;
+			for(LocalPartitionInfo local : mcf.getDaemon().getPartitions()){
+				errors = recoveryFiles(sm, sim, parser, sn, atom,local.getDataDir(),local.getPartitionId());
+				if(errors != null &&!errors.isEmpty()){
+					atomR.addAll(errors);
+					atomR.setSuccess(false);
+					result.setSuccess(false);
+				}
 			}
-			atomR.addAll(errors);
-			atomR.setSuccess(false);
-			result.setSuccess(false);
+			result.add(atomR);
 		}
 		return result;
 	}
@@ -126,7 +125,7 @@ public class CopyRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> recoveryFiles(ServiceManager sm,ServerIDManager sim, RouteParser parser, StorageRegion snNode,AtomTaskModel atom, String dataPath) {
+	public static List<String> recoveryFiles(ServiceManager sm,IDSManager sim, RouteParser parser, StorageRegion snNode,AtomTaskModel atom, String dataPath,String partitionId) {
 
 		String snName = atom.getStorageName();
 		long start = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
@@ -152,7 +151,7 @@ public class CopyRecovery {
 		boolean isSuccess;
 		List<String> errors = new ArrayList<>();
 		for (String fileName : fileNames) {
-			isSuccess = recoveryFileByName( sm, sim, parser, snNode, fileName, dirName, dataPath,atom.getTaskOperation());
+			isSuccess = recoveryFileByName( sm, sim, parser, snNode, fileName, dirName, dataPath,partitionId,atom.getTaskOperation());
 			if(!isSuccess){
 				errors.add(fileName);
 			}
@@ -170,7 +169,7 @@ public class CopyRecovery {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static boolean recoveryFileByName(ServiceManager sm,ServerIDManager sim, RouteParser parser, StorageRegion snNode, String fileName,String dirName, String dataPath,String operation){
+	public static boolean recoveryFileByName(ServiceManager sm,IDSManager sim, RouteParser parser, StorageRegion snNode, String fileName,String dirName, String dataPath,String partitionId,String operation){
 		String[] sss;
 		String remoteName;
 		Service remoteService;
@@ -186,7 +185,7 @@ public class CopyRecovery {
 			LOG.warn("alive second Ids is empty");
 			return false;
 		}
-		String secondId = sim.getSecondServerID(snId);
+		String secondId = sim.getSecondId(partitionId,snId);
 		if (BrStringUtils.isEmpty(secondId)) {
 			LOG.warn("{} {} secondid is empty ",snName, snId);
 			return false;
@@ -196,7 +195,7 @@ public class CopyRecovery {
 			LOG.info("{} {} {} is not mine !! skip",secondId, snName, fileName );
 			return true;
 		}
-		
+
 		localPath = "/"+snName + "/" + localIndex + "/" + dirName + "/" + fileName;
 		String localDir = "/"+snName + "/" + localIndex + "/" + dirName+"/";
 		File dir = new File(dataPath + localDir);
@@ -205,7 +204,7 @@ public class CopyRecovery {
 			LOG.debug("create dir :{}, stat:{}",localDir,createFlag);
 		}
 		if(CopyCheckJob.RECOVERY_CRC.equals(operation)) {
-			boolean flag = FileCollection.check(dataPath + localPath);
+			boolean flag = FileBlockChecker.check(dataPath + localPath);
 			LOG.debug("locaPath : {}, CRCSTATUS: {}", dataPath+localPath, flag);
 			if(flag) {
 				return true;
@@ -228,8 +227,8 @@ public class CopyRecovery {
 				LOG.debug(" my son is right,not need to do {} {} {}",fileName, secondId,snsid);
 				continue;
 			}
-			
-			remoteName = sim.getOtherFirstID(snsid, snId);
+
+			remoteName = sim.getFirstId(snsid, snId);
 			if(BrStringUtils.isEmpty(remoteName)){
 				LOG.warn("remote name is empty");
 				continue;
@@ -242,7 +241,7 @@ public class CopyRecovery {
 			remotePath = "/"+snName + "/" + remoteIndex + "/" + dirName + "/" + fileName;
 			isSuccess = copyFrom(remoteService.getHost(), remoteService.getPort(),remoteService.getExtraPort(),5000, remotePath, dataPath + localPath);
 			LOG.info("remote address [{}: {} ：{}], remote [{}], local [{}], stat [{}]",
-				remoteService.getHost(), remoteService.getPort(), remoteService.getExtraPort(), 
+				remoteService.getHost(), remoteService.getPort(), remoteService.getExtraPort(),
 				remotePath, localPath, isSuccess ? "success" :"fail");
 			if(isSuccess){
 				return true;
@@ -250,7 +249,7 @@ public class CopyRecovery {
 		}
 		return isSuccess;
 	}
-	
+
 	/**
 	 * 概述：判断serverID是否存在
 	 * @param context
@@ -321,7 +320,7 @@ public class CopyRecovery {
 					LOG.error("close error ", e);
 				}
 			}
-			
+
 		}
 	}
 }

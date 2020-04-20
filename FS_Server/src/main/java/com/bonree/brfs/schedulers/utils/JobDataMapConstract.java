@@ -30,14 +30,7 @@ public class JobDataMapConstract {
 	 * serverid
 	 */
 	public static final String SERVER_ID = "SERVER_ID";
-	/**
-	 * 数据目录
-	 */
-	public static final String DATA_PATH = "DATA_PATH";
-	/**
-	 * 集群分组
-	 */
-	public static final String CLUSTER_NAME = "CLUSTER_NAME";
+
 	/**
 	 * ip地址
 	 */
@@ -87,7 +80,6 @@ public class JobDataMapConstract {
 	 */
 	public static Map<String,String> createGatherResourceDataMap(ResourceTaskConfig resource, String serverId, String zkServerPath,String zkaddress){
 		Map<String, String>  dataMap = new HashMap<>();
-		dataMap.put(DATA_PATH, Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT));
 		String host = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST);
 		dataMap.put(IP, host);
 		dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
@@ -131,9 +123,8 @@ public class JobDataMapConstract {
 		dataMap.put(CHECK_TTL, resource.getCheckTtl()+"");
 		return dataMap;
 	}
-	public static Map<String, String> createOperationDataMap(String taskName,String serviceId, TaskModel task, TaskRunPattern pattern,String path) throws Exception{
+	public static Map<String, String> createOperationDataMap(String taskName,String serviceId, TaskModel task, TaskRunPattern pattern) throws Exception{
 		Map<String, String> dataMap = new HashMap<>();
-		dataMap.put(DATA_PATH, path);
 		dataMap.put(TASK_NAME, taskName);
 		dataMap.put(SERVER_ID, serviceId);
 		dataMap.put(TASK_TYPE, task.getTaskType() +"");
@@ -181,30 +172,14 @@ public class JobDataMapConstract {
 		}
 		return batchMap;
 	}
-	/**
-	 * 概述：重启时，检查
-	 * @return
-	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-	 */
-	public static Map<String, String> createRebootTaskOpertionDataMap(String dataPath,Map<String,String> switchMap) {
-		Map<String, String> dataMap = new HashMap<>();
-		dataMap.put(DATA_PATH, dataPath);
-		if (switchMap != null && switchMap.isEmpty()) {
-			dataMap.putAll(switchMap);
-		}
-		return dataMap;
-	}
+
 	public static Map<String,String> createCopyCheckMap(ResourceTaskConfig config){
 		Map<String, String> dataMap = new HashMap<>();
 		dataMap.put(CHECK_TTL, config.getCheckTtl()+"");
 		return dataMap;
 	}
-	public static Map<String,String> createWatchJobMap(String zkHost){
-		Map<String,String> dataMap = new HashMap<>();
-		dataMap.put(ZOOKEEPER_ADDRESS, zkHost);
-		return dataMap;
-	}
-	public static Map<String, String> createCOPYDataMap(String taskName,String serviceId, long invertalTime, String zkHost, String path,String dataPath){
+
+	public static Map<String, String> createCOPYDataMap(String taskName,String serviceId, long invertalTime, String zkHost, String path){
 		Map<String, String> dataMap = new HashMap<>();
 		dataMap.put(TASK_NAME, "");
 		dataMap.put(SERVER_ID, serviceId);
@@ -215,20 +190,13 @@ public class JobDataMapConstract {
 		dataMap.put(TASK_REPEAT_RUN_COUNT, "-1");
 		dataMap.put(TASK_RUN_INVERAL_TIME, invertalTime+"");
 		dataMap.put(BATCH_SIZE, "10");
-		dataMap.put(DATA_PATH, dataPath);
-		
+
 		return dataMap;
 	}
 	public static Map<String, String> createCylcCheckDataMap(int day) {
 	    Map dataMap = new HashMap();
-	    dataMap.put(CHECK_TIME_RANGE, day + "");
+	    dataMap.put(CHECK_TIME_RANGE+"", day + "");
 	    return dataMap;
 	  }
-	public static Map<String, String> createWatchDogDataMap(String zkHost, String path,String dataPath){
-		Map<String, String> dataMap = new HashMap<>();
-		dataMap.put(ZOOKEEPER_ADDRESS, zkHost);
-		dataMap.put(BASE_ROUTE_PATH, path);
-		dataMap.put(DATA_PATH, dataPath);
-		return dataMap;
-	}
+
 }

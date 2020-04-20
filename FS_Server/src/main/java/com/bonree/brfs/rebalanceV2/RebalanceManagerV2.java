@@ -3,6 +3,7 @@ package com.bonree.brfs.rebalanceV2;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@ManageLifecycle
 public class RebalanceManagerV2 implements Closeable {
     private final static Logger LOG = LoggerFactory.getLogger(RebalanceManagerV2.class);
 

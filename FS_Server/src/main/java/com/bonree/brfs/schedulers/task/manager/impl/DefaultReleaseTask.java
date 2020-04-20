@@ -4,7 +4,6 @@ package com.bonree.brfs.schedulers.task.manager.impl;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -35,16 +34,24 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	private ZookeeperClient client = null;
 	private String taskQueue = null;
 	private String taskTransfer = null;
-	private static class releaseInstance {
-		public static DefaultReleaseTask instance = new DefaultReleaseTask();
-	}
 
-	private DefaultReleaseTask() {
 
-	}
-
-	public static DefaultReleaseTask getInstance() {
-		return releaseInstance.instance;
+	public DefaultReleaseTask(String zkUrl,String taskRootPath,String lockPath) {
+		this.zkUrl = zkUrl;
+		this.taskRootPath = taskRootPath;
+		if (BrStringUtils.isEmpty(this.zkUrl)) {
+			throw new NullPointerException("zookeeper address is empty");
+		}
+		if (BrStringUtils.isEmpty(this.taskRootPath)) {
+			throw new NullPointerException("task root path is empty");
+		}
+		if(BrStringUtils.isEmpty(lockPath)){
+			throw new NullPointerException("task lock path is empty");
+		}
+		this.taskLockPath = lockPath;
+		this.taskQueue = this.taskRootPath + "/" + QUEUE;
+		this.taskTransfer = this.taskRootPath + "/" + TRANSFER;
+		client = CuratorClient.getClientInstance(this.zkUrl);
 	}
 
 	@Override
@@ -377,7 +384,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		return true;
 	}
 
-	@Override
+//	@Override
 	public void setPropreties(String zkUrl, String taskPath,String lockPath, String... args) {
 		try {
 			this.zkUrl = zkUrl;

@@ -30,9 +30,6 @@ import com.bonree.mail.worker.MailWorker;
 
 public class OperationTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(OperationTaskJob.class);
-	@Override
-	public void caughtException(JobExecutionContext context) {
-	}
 
 	@Override
 	public void interrupt(){
@@ -41,7 +38,6 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 	@Override
 	public void operation(JobExecutionContext context){
 		JobDataMap data = context.getJobDetail().getJobDataMap();
-		String dataPath = data.getString(JobDataMapConstract.DATA_PATH);
 		ManagerContralFactory mcf = ManagerContralFactory.getInstance();
 		MetaTaskManagerInterface release = mcf.getTm();
 		if(release == null){
@@ -96,7 +92,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				}
 				currentTaskName = taskPair.getFirst();
 
-				task = TaskStateLifeContral.changeRunTaskModel(taskPair.getSecond(), dataPath);
+				task = TaskStateLifeContral.changeRunTaskModel(taskPair.getSecond(), mcf.getDaemon());
 				// 获取执行策略
 				runPattern = runTask.taskRunnPattern(task);
 				if(runPattern == null){
@@ -107,13 +103,13 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 				}
 				// 创建任务提交信息
 				if(TaskType.SYSTEM_DELETE.equals(taskType)){
-					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemDeleteJob.class.getCanonicalName(),dataPath);
+					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemDeleteJob.class.getCanonicalName());
 				}
 				if(TaskType.SYSTEM_CHECK.equals(taskType)){
-					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName(),dataPath);
+					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), SystemCheckJob.class.getCanonicalName());
 				}
 				if(TaskType.USER_DELETE.equals(taskType)){
-					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), UserDeleteJob.class.getCanonicalName(),dataPath);
+					sumbitTask = createSimpleTask(task, runPattern, currentTaskName, mcf.getServerId(), UserDeleteJob.class.getCanonicalName());
 				}
 				if(rebalanceFlag && TaskType.SYSTEM_CHECK.equals(taskType)) {
 					LOG.warn("rebalance task running !! Skip {} sumbit",taskType.name());
@@ -158,7 +154,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 	 * @throws JsonException
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId,String clazzName,String path) throws Exception{
+	private SumbitTaskInterface createSimpleTask(TaskModel taskModel, TaskRunPattern runPattern, String taskName, String serverId,String clazzName) throws Exception{
 		QuartzSimpleInfo task = new QuartzSimpleInfo();
 		task.setRunNowFlag(true);
 		task.setCycleFlag(false);
@@ -166,7 +162,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 		task.setTaskGroupName(TaskType.valueOf(taskModel.getTaskType()).name());
 		task.setRepeateCount(runPattern.getRepeateCount());
 		task.setInterval(runPattern.getSleepTime());
-		Map<String,String> dataMap = JobDataMapConstract.createOperationDataMap(taskName,serverId, taskModel, runPattern,path);
+		Map<String,String> dataMap = JobDataMapConstract.createOperationDataMap(taskName,serverId, taskModel, runPattern);
 		if(dataMap != null && !dataMap.isEmpty()){
 			task.setTaskContent(dataMap);
 		}
