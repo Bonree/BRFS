@@ -1,6 +1,7 @@
 package com.bonree.brfs.disknode;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.impl.SimpleRouteZKLoader;
@@ -27,6 +28,8 @@ public class TaskModule implements Module {
     public void configure(Binder binder) {
         binder.bind(RebalanceTaskMonitor.class).to(CycleRebalanceTaskMonitor.class).in(ManageLifecycle.class);
         binder.bind(FileBlockMaintainer.class).in(ManageLifecycle.class);
+        LifecycleModule.register(binder,RebalanceTaskMonitor.class);
+        LifecycleModule.register(binder,FileBlockMaintainer.class);
     }
 
     @Provides

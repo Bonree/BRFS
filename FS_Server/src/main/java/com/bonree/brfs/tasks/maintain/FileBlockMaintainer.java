@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
  */
 @ManageLifecycle
 public class FileBlockMaintainer implements LifeCycle {
+    private static final Logger LOG = LoggerFactory.getLogger(FileBlockMaintainer.class);
     private ScheduledExecutorService pool = null;
     private LocalPartitionInterface localPartitionInterface;
     private RebalanceTaskMonitor monitor;
@@ -59,6 +60,7 @@ public class FileBlockMaintainer implements LifeCycle {
     public void start() throws Exception {
         pool = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("FileBlockMaintainer").build());
         pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface,monitor,manager,secondIds,loader),0,intervalTime, TimeUnit.HOURS);
+        LOG.info(" block server start");
     }
     @LifecycleStop
     @Override
@@ -66,6 +68,7 @@ public class FileBlockMaintainer implements LifeCycle {
         if(pool !=null){
             pool.shutdownNow();
         }
+        LOG.info(" block server stop");
     }
 
     private class FileBlockWorker implements Runnable {
