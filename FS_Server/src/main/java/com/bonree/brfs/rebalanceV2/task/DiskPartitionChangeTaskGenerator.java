@@ -14,6 +14,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
+import com.bonree.brfs.configuration.units.PartitionIdsConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.email.EmailPool;
@@ -79,19 +80,21 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         this.partitionInfoManager = partitionInfoManager;
     }
 
+    @LifecycleStart
     @Override
     public void start() throws Exception {
         leaderLath.addListener(new DiskPartitionChangeLeaderLatchListener());
         this.leaderLath.start();
         this.childCache = CuratorCacheFactory.getPathCache();
         this.listener = new DiskPartitionChangeListener("disk_partition_change");
-        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().GetConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
         LOG.info("disk partition change task generator start.");
     }
 
+    @LifecycleStop
     @Override
     public void stop() {
-        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().GetConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 
     private class DiskPartitionChangeListener extends AbstractPathChildrenCacheListener {

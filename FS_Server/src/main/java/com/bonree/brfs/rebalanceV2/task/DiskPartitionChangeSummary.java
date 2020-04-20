@@ -65,6 +65,11 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         return currentPartitionIds;
     }
 
+    @SuppressWarnings("unused")
+    private DiskPartitionChangeSummary() {
+
+    }
+
     public DiskPartitionChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer, String changePartitionId, List<String> currentServers, List<String> currentPartitionIds) {
         this.storageIndex = storageIndex;
         this.changeID = createTime;
