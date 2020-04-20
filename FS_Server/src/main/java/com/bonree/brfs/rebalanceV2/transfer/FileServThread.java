@@ -52,7 +52,7 @@ class FileServThread implements Runnable {
             fos.close();
             sock.close();
         } catch (Exception ex) {
-            throw new RuntimeException(ip + "异常!!!");
+            throw new RuntimeException(ip + "异常!!!", ex);
         }
     }
 
@@ -72,6 +72,7 @@ class FileServThread implements Runnable {
 
         String[] split = StringUtils.split(transferFileName, ":");
         String dataDir = this.partitionInterface.getDataPaths(split[0]);
+        LOG.info("get partition path by partition id, partition id:{}, dataDir:{}", split[0], dataDir);
         String filePath = dataDir + FileUtils.FILE_SEPARATOR + split[1];
 
         File file = new File(filePath);  //保存到相应的位置

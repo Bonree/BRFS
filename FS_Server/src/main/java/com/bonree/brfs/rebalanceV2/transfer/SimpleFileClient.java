@@ -69,19 +69,4 @@ public class SimpleFileClient {
         }
         return info;
     }
-
-    public static void main(String[] args) throws Exception {
-//        for (int i = 0; i < 1000; i++) {
-//            FileUtils.writeFileFromList("E:/111/"+i, Lists.newArrayList("aaaa"));
-//        }
-//        SimpleFileClient client = new SimpleFileClient();
-//        File dir = new File("E:/111");
-//        File[] files = dir.listFiles();
-//        for (int i = 0; i < files.length; i++) {
-//            client.sendFile("192.168.4.111", 10007, files[i].getAbsolutePath(), "111", files[i].getName());
-//        }
-
-        // client.sendFile("192.168.4.111", 10007, "d:/apache-maven-3.2.5.rar", "111", "apache-maven-3.2.5.rar");
-
-    }
 }
