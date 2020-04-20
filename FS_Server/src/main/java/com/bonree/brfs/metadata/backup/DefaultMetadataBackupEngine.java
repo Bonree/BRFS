@@ -73,7 +73,7 @@ public class DefaultMetadataBackupEngine implements MetadataBackupEngine{
         try {
             while (true) {
                 if (pool.awaitTermination(1, TimeUnit.SECONDS)) {
-                    LOG.info("Completed.");
+                    LOG.info("Metadata backup completed.");
                     break;
                 }
                 LOG.info("Processing, total = {}, processed = {}", totalCounter, processedCounter);

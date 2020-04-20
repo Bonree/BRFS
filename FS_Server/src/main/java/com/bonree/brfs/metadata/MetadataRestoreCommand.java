@@ -1,5 +1,11 @@
 package com.bonree.brfs.metadata;
 
+import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.utils.FileUtils;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.metadata.restore.DefaultMetadataRestoreEngine;
 import com.bonree.brfs.metadata.restore.MetadataRestoreEngine;
 import io.airlift.airline.Command;
@@ -29,20 +35,27 @@ public class MetadataRestoreCommand implements Runnable {
 
     @Override
     public void run() {
-        // read from server.properties
-        String zkHost = "";
-        String zkPath = "";
-        String metadataPath = "";
+        String zkHost = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+        CuratorClient client = CuratorClient.getClientInstance(zkHost);
+        ZookeeperPaths zkPaths = ZookeeperPaths.create(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME), client.getInnerClient());
+        CuratorCacheFactory.init(client.getInnerClient());
+
+        String zkPath = zkPaths.getBaseClusterName();
+        String metadataPath = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_METADATA_BACKUP_PATH) + "/brfs.metadata";
 
         ZooKeeper zookeeper = null;
 
+        if (!FileUtils.isExist(metadataPath)) {
+            LOG.info("metadata backup file not exists!");
+            System.exit(1);
+        }
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(metadataPath))) {
             ZNode root = (ZNode) ois.readObject();
             if (root != null) {
                 zookeeper = new ZooKeeper(zkHost, 40000, new LoggingWatcher());
                 MetadataRestoreEngine restoreEngine = new DefaultMetadataRestoreEngine(zookeeper, zkPath, root, true, true, -1, 1000);
                 restoreEngine.restore();
-                LOG.info("restore brfs zk metadata complete, metadata path: {}", metadataPath);
+                LOG.info("restore brfs zk metadata complete.");
             }
         } catch (Exception e) {
             LOG.error("restore brfs zk metadata failed", e);
