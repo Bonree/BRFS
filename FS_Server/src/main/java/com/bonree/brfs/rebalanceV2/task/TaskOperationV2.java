@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,8 +69,11 @@ public class TaskOperationV2 implements Closeable {
     public void launchDelayTaskExecutor(BalanceTaskSummaryV2 taskSummary, String taskPath) {
         DataRecover recover = null;
         List<String> multiIds = taskSummary.getOutputServers();  // 二级serverId集合
+        Collection<String> currentSecondIds = idManager.getSecondIds(idManager.getFirstSever(), taskSummary.getStorageIndex());  // 获取本机二级serverId集合
+        LOG.info("multiIds :{}, currentSecondIds :{}", multiIds, currentSecondIds);
+        boolean contain = multiIds.stream().anyMatch(currentSecondIds::contains);
 
-        if (multiIds.contains(idManager.getSecondId(taskSummary.getPartitionId(), taskSummary.getStorageIndex()))) {
+        if (contain) {
             // 注册自身的selfMultiId,并设置为created阶段
             if (taskSummary.getTaskType() == RecoverType.NORMAL) { // 正常迁移任务
                 StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
