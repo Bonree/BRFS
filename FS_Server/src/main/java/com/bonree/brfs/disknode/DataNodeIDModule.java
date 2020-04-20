@@ -3,6 +3,7 @@ package com.bonree.brfs.disknode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -36,6 +37,7 @@ public class DataNodeIDModule implements Module {
     public void configure(Binder binder) {
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class);
         binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class);
+        binder.bind(DiskPartitionInfoManager.class).in(ManageLifecycle.class);
 
 //        LifecycleModule.register(binder, DiskDaemon.class);
         LifecycleModule.register(binder, IDSManager.class);

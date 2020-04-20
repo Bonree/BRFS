@@ -116,6 +116,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
                     if (info != null) {
                         diskPartitionInfoCache.put(info.getPartitionId(), info);
                         LOG.info("disk partition info cache added, path:{}, info: {}", event.getData().getPath(), info);
+                        LOG.info("current disk partition ids: {}", diskPartitionInfoCache.keySet());
                     }
                 }
             } else if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_REMOVED)) {
@@ -124,6 +125,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
                     if (diskPartitionInfoCache.containsKey(partitionId)) {
                         diskPartitionInfoCache.remove(partitionId);
                         LOG.info("disk partition info cache removed, path:{}", event.getData().getPath());
+                        LOG.info("current disk partition ids: {}", diskPartitionInfoCache.keySet());
                     }
                 }
             }
