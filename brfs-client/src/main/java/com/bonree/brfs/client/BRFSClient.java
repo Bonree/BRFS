@@ -79,6 +79,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.io.Closer;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -113,6 +114,8 @@ public class BRFSClient implements BRFS {
     
     private final DataSplitter dataSplitter;
     
+    private final Closer closer;
+    
     private final LoadingCache<String, Integer> storageRegionCache;
     
     public BRFSClient(
@@ -123,7 +126,9 @@ public class BRFSClient implements BRFS {
             FidContentReader fidReader,
             FilePathMapper pathMapper,
             SubFidParser subFidParser,
-            JsonCodec codec) {
+            JsonCodec codec,
+            Closer closer) {
+        this.closer = closer;
         this.httpClient = requireNonNull(httpClient, "http client is null");
         this.nodeSelector = requireNonNull(nodeSelector, "nodeSelector is null");
         this.codec = requireNonNull(codec, "codec is null");
@@ -727,10 +732,7 @@ public class BRFSClient implements BRFS {
 
     @Override
     public void shutdown() {
-        httpClient.dispatcher().executorService().shutdown();
-        httpClient.connectionPool().evictAll();
-        
-        closeQuietly(nodeSelector);
+        closeQuietly(closer);
     }
     
     private void closeQuietly(Closeable closeable) {

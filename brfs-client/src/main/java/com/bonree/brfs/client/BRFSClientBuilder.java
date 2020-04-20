@@ -20,9 +20,11 @@ import java.util.concurrent.Executors;
 import com.bonree.brfs.client.data.read.FidContentReader;
 import com.bonree.brfs.client.data.read.FilePathMapper;
 import com.bonree.brfs.client.data.read.HttpFilePathMapper;
+import com.bonree.brfs.client.data.read.PooledTcpFidContentReader;
 import com.bonree.brfs.client.data.read.StringSubFidParser;
 import com.bonree.brfs.client.data.read.SubFidParser;
 import com.bonree.brfs.client.data.read.TcpFidContentReader;
+import com.bonree.brfs.client.data.read.connection.DataConnectionPool;
 import com.bonree.brfs.client.discovery.CachedDiscovery;
 import com.bonree.brfs.client.discovery.Discovery;
 import com.bonree.brfs.client.discovery.HttpDiscovery;
@@ -35,6 +37,7 @@ import com.bonree.brfs.client.route.RouterClient;
 import com.bonree.brfs.client.utils.DaemonThreadFactory;
 import com.bonree.brfs.client.utils.SocketChannelSocketFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Closer;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -64,6 +67,8 @@ public class BRFSClientBuilder {
             configuration = new ClientConfigurationBuilder().build();
         }
         
+        Closer closer = Closer.create();
+        
         OkHttpClient httpClient = new OkHttpClient.Builder()
                 .addNetworkInterceptor(new AuthorizationIterceptor(user, passwd))
                 .socketFactory(new SocketChannelSocketFactory())
@@ -72,6 +77,10 @@ public class BRFSClientBuilder {
                 .readTimeout(configuration.getReadTimeout())
                 .writeTimeout(configuration.getWriteTimeout())
                 .build();
+        closer.register(() -> {
+            httpClient.dispatcher().executorService().shutdown();
+            httpClient.connectionPool().evictAll();
+        });
         
         JsonCodec codec = new JsonCodec(new ObjectMapper());
         
@@ -82,9 +91,15 @@ public class BRFSClientBuilder {
                 configuration.getDiscoreryRefreshDuration());
         
         NodeSelector nodeSelector = new NodeSelector(discovery, new ShiftRanker<>());
+        closer.register(nodeSelector);
         
         RouterClient routerClient = new HttpRouterClient(httpClient, nodeSelector, codec);
-        FidContentReader contentReader = new TcpFidContentReader();
+        
+        DataConnectionPool pool = new DataConnectionPool();
+        closer.register(pool);
+        
+        FidContentReader contentReader = new PooledTcpFidContentReader(pool);
+        
         FilePathMapper pathMapper = new HttpFilePathMapper(httpClient, nodeSelector);
         SubFidParser subFidParser = new StringSubFidParser();
                 
@@ -96,7 +111,8 @@ public class BRFSClientBuilder {
                 contentReader,
                 pathMapper,
                 subFidParser,
-                codec);
+                codec,
+                closer);
     }
     
     /**
