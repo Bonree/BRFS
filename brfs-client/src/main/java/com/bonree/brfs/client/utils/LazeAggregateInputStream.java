@@ -45,6 +45,7 @@ public class LazeAggregateInputStream extends InputStream {
                 return b;
             }
             
+            Closeables.closeQuietly(currentStream);
             currentStream = nextInput();
         }
         
@@ -67,6 +68,7 @@ public class LazeAggregateInputStream extends InputStream {
                 return readLength;
             }
             
+            Closeables.closeQuietly(currentStream);
             currentStream = nextInput();
         }
         
