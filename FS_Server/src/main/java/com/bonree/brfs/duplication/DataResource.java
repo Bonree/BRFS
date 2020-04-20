@@ -100,6 +100,13 @@ public class DataResource {
             int storage = packet.getStorageName();
 //            String storageName = storageRegionManager.findStorageRegionById(storage).getName();
             String file = packet.getFileName();
+            if(brfsCatalog.isUsable()){
+                if(!brfsCatalog.validPath(file)){
+                    LOG.error("file path [{}]is invalid.",file);
+                    response.resume(new IllegalArgumentException("file path is invalid!"));
+                    return;
+                }
+            }
             if(packet.getSeqno()==1){
                 LOG.info("file [{}] is allow to write!",packet.getFileName());
             }
@@ -152,13 +159,15 @@ public class DataResource {
                         String fid = new String(result.getData());
                         //todo rocksdb
                         LOG.info("rocskDb is open ?:[{}]",brfsCatalog.isUsable());
+                        LOG.debug("before sync : [{}]",fid);
+
                         if(brfsCatalog.isUsable() && brfsCatalog.validPath(file)){
                             if(!brfsCatalog.writeFid(srName, file, fid)){
                                 LOG.error("failed when write fid to rocksDB.");
                                 response.resume(new Exception("write fid to rocksDB failed."));
                                 return;
                             }
-                            LOG.info("sync catalog into rocksDB.");
+                            LOG.info("sync catalog into rocksDB. filename:[{}]",file);
                         }
                         LOG.info("response fid:[{}]",fid);
                         response.resume(Response
@@ -256,7 +265,12 @@ public class DataResource {
         LOG.info("get fid request srName[{}],absPath[{}]",srName,absPath);
         //todo 参数检查
         if(!brfsCatalog.isUsable()){
+            LOG.error("get fid error caused by the catalog is not open");
             throw new Exception("get fid error caused by the catalog is not open");
+        }
+        if(!brfsCatalog.validPath(absPath)){
+            LOG.error("invalid file path [{}]",absPath);
+            throw new IllegalArgumentException("invalid file path:"+absPath);
         }
         String fid = brfsCatalog.getFid(srName, absPath);
         if(fid == null) {
