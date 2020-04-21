@@ -179,6 +179,32 @@ public final class DataTransferProtos {
      * <code>optional int32 storageName = 9;</code>
      */
     int getStorageName();
+
+    /**
+     * <pre>
+     *写入时的uuid
+     * </pre>
+     *
+     * <code>optional string writeID = 10;</code>
+     */
+    boolean hasWriteID();
+    /**
+     * <pre>
+     *写入时的uuid
+     * </pre>
+     *
+     * <code>optional string writeID = 10;</code>
+     */
+    java.lang.String getWriteID();
+    /**
+     * <pre>
+     *写入时的uuid
+     * </pre>
+     *
+     * <code>optional string writeID = 10;</code>
+     */
+    com.google.protobuf.ByteString
+        getWriteIDBytes();
   }
   /**
    * Protobuf type {@code FSPacketProto}
@@ -202,6 +228,7 @@ public final class DataTransferProtos {
       compress_ = 0;
       offsetInFile_ = 0L;
       storageName_ = 0;
+      writeID_ = "";
     }
 
     @java.lang.Override
@@ -276,6 +303,12 @@ public final class DataTransferProtos {
             case 72: {
               bitField0_ |= 0x00000100;
               storageName_ = input.readInt32();
+              break;
+            }
+            case 82: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000200;
+              writeID_ = bs;
               break;
             }
           }
@@ -541,6 +574,60 @@ public final class DataTransferProtos {
       return storageName_;
     }
 
+    public static final int WRITEID_FIELD_NUMBER = 10;
+    private volatile java.lang.Object writeID_;
+    /**
+     * <pre>
+     *写入时的uuid
+     * </pre>
+     *
+     * <code>optional string writeID = 10;</code>
+     */
+    public boolean hasWriteID() {
+      return ((bitField0_ & 0x00000200) == 0x00000200);
+    }
+    /**
+     * <pre>
+     *写入时的uuid
+     * </pre>
+     *
+     * <code>optional string writeID = 10;</code>
+     */
+    public java.lang.String getWriteID() {
+      java.lang.Object ref = writeID_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          writeID_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <pre>
+     *写入时的uuid
+     * </pre>
+     *
+     * <code>optional string writeID = 10;</code>
+     */
+    public com.google.protobuf.ByteString
+        getWriteIDBytes() {
+      java.lang.Object ref = writeID_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        writeID_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -579,6 +666,9 @@ public final class DataTransferProtos {
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         output.writeInt32(9, storageName_);
+      }
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 10, writeID_);
       }
       unknownFields.writeTo(output);
     }
@@ -622,6 +712,9 @@ public final class DataTransferProtos {
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(9, storageName_);
+      }
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(10, writeID_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -684,6 +777,11 @@ public final class DataTransferProtos {
         result = result && (getStorageName()
             == other.getStorageName());
       }
+      result = result && (hasWriteID() == other.hasWriteID());
+      if (hasWriteID()) {
+        result = result && getWriteID()
+            .equals(other.getWriteID());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -735,6 +833,10 @@ public final class DataTransferProtos {
       if (hasStorageName()) {
         hash = (37 * hash) + STORAGENAME_FIELD_NUMBER;
         hash = (53 * hash) + getStorageName();
+      }
+      if (hasWriteID()) {
+        hash = (37 * hash) + WRITEID_FIELD_NUMBER;
+        hash = (53 * hash) + getWriteID().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -883,6 +985,8 @@ public final class DataTransferProtos {
         bitField0_ = (bitField0_ & ~0x00000080);
         storageName_ = 0;
         bitField0_ = (bitField0_ & ~0x00000100);
+        writeID_ = "";
+        bitField0_ = (bitField0_ & ~0x00000200);
         return this;
       }
 
@@ -943,6 +1047,10 @@ public final class DataTransferProtos {
           to_bitField0_ |= 0x00000100;
         }
         result.storageName_ = storageName_;
+        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+          to_bitField0_ |= 0x00000200;
+        }
+        result.writeID_ = writeID_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -1013,6 +1121,11 @@ public final class DataTransferProtos {
         }
         if (other.hasStorageName()) {
           setStorageName(other.getStorageName());
+        }
+        if (other.hasWriteID()) {
+          bitField0_ |= 0x00000200;
+          writeID_ = other.writeID_;
+          onChanged();
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -1528,6 +1641,106 @@ public final class DataTransferProtos {
         onChanged();
         return this;
       }
+
+      private java.lang.Object writeID_ = "";
+      /**
+       * <pre>
+       *写入时的uuid
+       * </pre>
+       *
+       * <code>optional string writeID = 10;</code>
+       */
+      public boolean hasWriteID() {
+        return ((bitField0_ & 0x00000200) == 0x00000200);
+      }
+      /**
+       * <pre>
+       *写入时的uuid
+       * </pre>
+       *
+       * <code>optional string writeID = 10;</code>
+       */
+      public java.lang.String getWriteID() {
+        java.lang.Object ref = writeID_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            writeID_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <pre>
+       *写入时的uuid
+       * </pre>
+       *
+       * <code>optional string writeID = 10;</code>
+       */
+      public com.google.protobuf.ByteString
+          getWriteIDBytes() {
+        java.lang.Object ref = writeID_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          writeID_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <pre>
+       *写入时的uuid
+       * </pre>
+       *
+       * <code>optional string writeID = 10;</code>
+       */
+      public Builder setWriteID(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000200;
+        writeID_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       *写入时的uuid
+       * </pre>
+       *
+       * <code>optional string writeID = 10;</code>
+       */
+      public Builder clearWriteID() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        writeID_ = getDefaultInstance().getWriteID();
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       *写入时的uuid
+       * </pre>
+       *
+       * <code>optional string writeID = 10;</code>
+       */
+      public Builder setWriteIDBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000200;
+        writeID_ = value;
+        onChanged();
+        return this;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
@@ -1591,13 +1804,13 @@ public final class DataTransferProtos {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\022DataTransfer.proto\"\274\001\n\rFSPacketProto\022\017" +
+      "\n\022DataTransfer.proto\"\315\001\n\rFSPacketProto\022\017" +
       "\n\007crcFlag\030\001 \001(\010\022\024\n\014crcCheckCode\030\002 \001(\003\022\r\n" +
       "\005seqno\030\003 \001(\003\022\030\n\020lastPacketInFile\030\004 \001(\010\022\020" +
       "\n\010fileName\030\005 \001(\t\022\014\n\004data\030\006 \001(\014\022\020\n\010compre" +
       "ss\030\007 \001(\005\022\024\n\014offsetInFile\030\010 \001(\003\022\023\n\013storag" +
-      "eName\030\t \001(\005B2\n\034com.bonree.brfs.common.pr" +
-      "otoB\022DataTransferProtos"
+      "eName\030\t \001(\005\022\017\n\007writeID\030\n \001(\tB2\n\034com.bonr" +
+      "ee.brfs.common.protoB\022DataTransferProtos"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1616,7 +1829,7 @@ public final class DataTransferProtos {
     internal_static_FSPacketProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_FSPacketProto_descriptor,
-        new java.lang.String[] { "CrcFlag", "CrcCheckCode", "Seqno", "LastPacketInFile", "FileName", "Data", "Compress", "OffsetInFile", "StorageName", });
+        new java.lang.String[] { "CrcFlag", "CrcCheckCode", "Seqno", "LastPacketInFile", "FileName", "Data", "Compress", "OffsetInFile", "StorageName", "WriteID", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
