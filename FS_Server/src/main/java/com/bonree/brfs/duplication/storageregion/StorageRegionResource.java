@@ -213,6 +213,7 @@ public class StorageRegionResource {
         }
         
         try {
+            rocksDBManager.deleteColumnFamily(name);
             if(storageRegionManager.removeStorageRegion(name)) {
                 return Response.ok().build();
             }
