@@ -20,6 +20,26 @@ if [ x$BRFS_HOME = "x" ]; then
   echo $BRFS_HOME
 fi
 
+case $1 in
+  region)
+    NODE_TYPE=regionnode
+  ;;
+  data)
+    NODE_TYPE=datanode
+  ;;
+  init)
+    java -Dbrfs.home=${BRFS_HOME} \
+            -Dconfiguration.file=${BRFS_HOME}/config/regionnode \
+            -cp $LIB_DIR/*:${BRFS_HOME}/config/regionnode "com.bonree.brfs.server.Main" tools init
+    echo "init process completed!"
+    exit
+  ;;
+  *)
+    echo "usage: start-server.sh [region | node] [config_dir]"
+    exit 1
+  ;;
+esac
+
 LIB_DIR="${DRUID_LIB_DIR:=${BRFS_HOME}/lib}"
 
 ###################配置文件信息########################
@@ -31,7 +51,7 @@ then
   fi
 fi
 
-CONFIG_DIR="${CONFIG_DIR_PARAM:=${BRFS_HOME}/config}"
+CONFIG_DIR="${CONFIG_DIR_PARAM:=${BRFS_HOME}/config/${NODE_TYPE}}"
 
 # configuration file for server
 CONFIG_FILE=${CONFIG_DIR}/server.properties
@@ -64,14 +84,14 @@ DUPLICATE_NET_BACKLOG=2048
 DUPLICATE_IO_THREADS=16
 
 cd ${BRFS_HOME}
-case $1 in
+case ${NODE_TYPE} in
 		###启动副本管理###
 		region)
 			nohup java $JVM_PARAMS \
 			-Dbrfs.home=$BRFS_HOME \
 			-Dserver.ids=$SERVER_ID_PATH \
 			-Dlog.dir=$LOG_DIR \
-			-Dlog.file.name='regionnode' \
+			-Dlog.file.name=${NODE_TYPE} \
 			-Dconfiguration.file=${CONFIG_FILE} \
 			-Dlogback.configurationFile=$LOG_CONFIG \
 			-Dnet.backlog=$DUPLICATE_NET_BACKLOG \
@@ -86,7 +106,7 @@ case $1 in
 			nohup java $JVM_PARAMS \
 			-Dbrfs.home=$BRFS_HOME \
 			-Dlog.dir=$LOG_DIR \
-			-Dlog.file.name='disknode' \
+			-Dlog.file.name=${NODE_TYPE} \
 			-Dserver.ids=$SERVER_ID_PATH \
 			-Dconfiguration.file=${CONFIG_FILE} \
 			-Dlogback.configurationFile=$LOG_CONFIG \
@@ -97,16 +117,8 @@ case $1 in
 			> $BRFS_HOME/logs/datanode.out 2>&1 &
 			echo 'start disk server completely!'
 		;;
-		init)
-			java -Dbrfs.home=${BRFS_HOME} \
-			-Dconfiguration.file=${CONFIG_FILE} \
-			-Dresource_lib_path=${RESOURCE_LIB_PATH} \
-			-cp $LIB_DIR/*:${CONFIG_DIR} "com.bonree.brfs.server.Main" tools init
-			echo "init process completed!"
-		;;
 		*)
-			sh $0 data
-			sleep 2
-			sh $0 region
+		    echo "script error"
+		    exit 1
 		;;
 esac
