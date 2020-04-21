@@ -21,7 +21,7 @@ import com.bonree.brfs.duplication.datastream.dataengine.DataEngineManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
-import com.google.common.base.Optional;
+import com.bonree.brfs.duplication.storageregion.exception.StorageRegionNonexistentException;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -30,108 +30,98 @@ import com.google.common.cache.RemovalNotification;
 
 @ManageLifecycle
 public class DefaultDataEngineManager implements DataEngineManager, Closeable {
-	private static final Logger LOG = LoggerFactory.getLogger(DefaultDataEngineManager.class);
-	
-	private StorageRegionManager storageRegionManager;
-	private DataEngineFactory storageRegionFactory;
-	
-	private LoadingCache<Integer, Optional<DataEngine>> dataEngineContainer;
-	
-	@Inject
-	public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory) {
-		this(storageRegionManager, factory,
-				Duration.parse(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_DATA_ENGINE_IDLE_TIME)));
-	}
-	
-	public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory, Duration idleTime) {
-		this.storageRegionManager = storageRegionManager;
-		this.storageRegionFactory = factory;
-		this.dataEngineContainer = CacheBuilder.newBuilder()
-				.expireAfterAccess(idleTime.toMillis(), TimeUnit.MILLISECONDS)
-				.removalListener(new StorageRegionRemovalListener())
-				.build(new DataEngineLoader());
-		
-		this.storageRegionManager.addStorageRegionStateListener(new StorageRegionStateHandler());
-	}
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultDataEngineManager.class);
 
-	@Override
-	public DataEngine getDataEngine(int baseId) {
-		try {
-			Optional<DataEngine> optional = dataEngineContainer.get(baseId);
-			
-			if(!optional.isPresent()) {
-				LOG.info("get null dataengine when get data engin!");
-				dataEngineContainer.invalidate(baseId);
-			}
-			
-			return optional.orNull();
-		} catch (ExecutionException e) {
-			LOG.error("get dataEngine by id[{}] error.", baseId, e);
-		}
-		
-		return null;
-	}
+    private StorageRegionManager storageRegionManager;
+    private DataEngineFactory storageRegionFactory;
 
-	private class DataEngineLoader extends CacheLoader<Integer, Optional<DataEngine>> {
+    private LoadingCache<Integer, DataEngine> dataEngineContainer;
 
-		@Override
-		public Optional<DataEngine> load(Integer storageRegionId) throws Exception {
-			StorageRegion storageRegion = storageRegionManager.findStorageRegionById(storageRegionId);
-			if(storageRegion == null) {
-				return Optional.absent();
-			}
-			
-			return Optional.fromNullable(storageRegionFactory.createDataEngine(storageRegion));
-		}
-		
-	}
-	
-	private class StorageRegionRemovalListener implements RemovalListener<Integer, Optional<DataEngine>> {
+    @Inject
+    public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory) {
+        this(storageRegionManager, factory,
+                Duration.parse(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_DATA_ENGINE_IDLE_TIME)));
+    }
 
-		@Override
-		public void onRemoval(RemovalNotification<Integer, Optional<DataEngine>> notification) {
-			Optional<DataEngine> optional = notification.getValue();
-			if(optional.isPresent()) {
-				LOG.info("closing dataEngine[id={}]...", notification.getKey());
-				DataEngine dataEngine = optional.get();
-				try {
-					dataEngine.close();
-				} catch (IOException e) {
-					LOG.error("close dataEngine[id={}] failed", notification.getKey());
-				}
-			}
-		}
-		
-	}
-	
-	private class StorageRegionStateHandler implements StorageRegionStateListener {
+    public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory,
+            Duration idleTime) {
+        this.storageRegionManager = storageRegionManager;
+        this.storageRegionFactory = factory;
+        this.dataEngineContainer = CacheBuilder.newBuilder()
+                .expireAfterAccess(idleTime.toMillis(), TimeUnit.MILLISECONDS)
+                .removalListener(new StorageRegionRemovalListener()).build(new DataEngineLoader());
 
-		@Override
-		public void storageRegionAdded(StorageRegion node) {}
+        this.storageRegionManager.addStorageRegionStateListener(new StorageRegionStateHandler());
+    }
 
-		@Override
-		public void storageRegionUpdated(StorageRegion node) {
-			//Storage Region属性的变化也许要重新加载Data Engine
-			LOG.info("Storage region[{},{}] is updated!", node.getName(), node.getId());
-			dataEngineContainer.invalidate(node.getId());
-		}
+    @Override
+    public DataEngine getDataEngine(int baseId) {
+        try {
+            return dataEngineContainer.get(baseId);
+        } catch (ExecutionException e) {
+            LOG.error("get dataEngine by id[{}] error.", baseId, e);
+        }
 
-		@Override
-		public void storageRegionRemoved(StorageRegion node) {
-			LOG.info("Storage region[{},{}] is removed!", node.getName(), node.getId());
-			dataEngineContainer.invalidate(node.getId());
-		}
-		
-	}
-	
+        return null;
+    }
 
-	@LifecycleStop
-	@Override
-	public void close() throws IOException {
-		if(dataEngineContainer == null) {
-			return;
-		}
-		LOG.info("cloing all dataengin ...");
-		dataEngineContainer.invalidateAll();
-	}
+    private class DataEngineLoader extends CacheLoader<Integer, DataEngine> {
+
+        @Override
+        public DataEngine load(Integer storageRegionId) throws Exception {
+            StorageRegion storageRegion = storageRegionManager.findStorageRegionById(storageRegionId);
+            if (storageRegion == null) {
+                throw new StorageRegionNonexistentException("id[" + storageRegionId + "]");
+            }
+
+            return storageRegionFactory.createDataEngine(storageRegion);
+        }
+    }
+
+    private class StorageRegionRemovalListener implements RemovalListener<Integer, DataEngine> {
+
+        @Override
+        public void onRemoval(RemovalNotification<Integer, DataEngine> notification) {
+            LOG.info("closing dataEngine[id={}]...", notification.getKey());
+            DataEngine dataEngine = notification.getValue();
+            try {
+                dataEngine.close();
+            } catch (IOException e) {
+                LOG.error("close dataEngine[id={}] failed", notification.getKey());
+            }
+        }
+
+    }
+
+    private class StorageRegionStateHandler implements StorageRegionStateListener {
+
+        @Override
+        public void storageRegionAdded(StorageRegion node) {
+        }
+
+        @Override
+        public void storageRegionUpdated(StorageRegion node) {
+            // Storage Region属性的变化也许要重新加载Data Engine
+            LOG.info("Storage region[{},{}] is updated!", node.getName(), node.getId());
+            dataEngineContainer.invalidate(node.getId());
+        }
+
+        @Override
+        public void storageRegionRemoved(StorageRegion node) {
+            LOG.info("Storage region[{},{}] is removed!", node.getName(), node.getId());
+            dataEngineContainer.invalidate(node.getId());
+        }
+
+    }
+
+    @LifecycleStop
+    @Override
+    public void close() throws IOException {
+        if (dataEngineContainer == null) {
+            return;
+        }
+
+        dataEngineContainer.invalidateAll();
+    }
+    
 }
