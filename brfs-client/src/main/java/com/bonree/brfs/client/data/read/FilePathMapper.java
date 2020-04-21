@@ -13,8 +13,8 @@
  */
 package com.bonree.brfs.client.data.read;
 
-import java.nio.file.Path;
+import com.bonree.brfs.client.BRFSPath;
 
 public interface FilePathMapper {
-    String getFidByPath(String srName, Path path);
+    String getFidByPath(String srName, BRFSPath path);
 }

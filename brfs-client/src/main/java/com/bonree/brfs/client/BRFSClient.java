@@ -63,9 +63,9 @@ import com.bonree.brfs.client.storageregion.ListStorageRegionRequest;
 import com.bonree.brfs.client.storageregion.StorageRegionID;
 import com.bonree.brfs.client.storageregion.StorageRegionInfo;
 import com.bonree.brfs.client.storageregion.UpdateStorageRegionRequest;
-import com.bonree.brfs.client.utils.LazeAggregateInputStream;
 import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.client.utils.IteratorUtils;
+import com.bonree.brfs.client.utils.LazeAggregateInputStream;
 import com.bonree.brfs.client.utils.Range;
 import com.bonree.brfs.client.utils.Retrys;
 import com.bonree.brfs.client.utils.Strings;
@@ -153,6 +153,7 @@ public class BRFSClient implements BRFS {
         this.subFidParser = requireNonNull(subFidParser, "subFidParser is null");
     }
 
+    @Override
     public StorageRegionID createStorageRegion(CreateStorageRegionRequest request) throws Exception {
         RequestBody body = RequestBody.create(JSON, codec.toJson(request.getAttributes()));
         
@@ -236,6 +237,7 @@ public class BRFSClient implements BRFS {
                 }));
     }
 
+    @Override
     public boolean doesStorageRegionExists(String srName) {
         return Retrys.execute(new URIRetryable<Boolean> (
                 format("check the existance of storage region[%s]", srName),
@@ -267,10 +269,12 @@ public class BRFSClient implements BRFS {
                 }));
     }
 
+    @Override
     public List<String> listStorageRegions() {
         return listStorageRegions(ListStorageRegionRequest.newBuilder().build());
     }
 
+    @Override
     public List<String> listStorageRegions(ListStorageRegionRequest request) {
         return Retrys.execute(new URIRetryable<List<String>> (
                 "list storage region names",
@@ -306,6 +310,7 @@ public class BRFSClient implements BRFS {
                 }));
     }
 
+    @Override
     public boolean updateStorageRegion(String srName, UpdateStorageRegionRequest request) throws Exception {
         RequestBody body = RequestBody.create(JSON, codec.toJson(request.getAttributes()));
         
@@ -340,6 +345,7 @@ public class BRFSClient implements BRFS {
 
     }
 
+    @Override
     public StorageRegionInfo getStorageRegionInfo(String srName) {
         return Retrys.execute(new URIRetryable<StorageRegionInfo> (
                 format("get storage region[%s] info", srName),
@@ -376,6 +382,7 @@ public class BRFSClient implements BRFS {
                 }));
     }
 
+    @Override
     public void deleteStorageRegion(String srName) {
         Retrys.execute(new URIRetryable<Void> (
                 format("delete storage region[%s]", srName),
@@ -411,10 +418,12 @@ public class BRFSClient implements BRFS {
                 }));
     }
 
+    @Override
     public PutObjectResult putObject(String srName, byte[] bytes) throws Exception {
-        return putObject(srName, dataSplitter.split(bytes), Optional.of(Paths.get(UUID.randomUUID().toString())));
+        return putObject(srName, dataSplitter.split(bytes), Optional.of(BRFSPath.get(UUID.randomUUID().toString())));
     }
 
+    @Override
     public PutObjectResult putObject(String srName, File file) throws Exception {
         try(FileInputStream input = new FileInputStream(file)) {
             return putObject(srName, input);
@@ -423,15 +432,18 @@ public class BRFSClient implements BRFS {
         }
     }
 
+    @Override
     public PutObjectResult putObject(String srName, InputStream input) throws Exception {
-        return putObject(srName, dataSplitter.split(input), Optional.of(Paths.get(UUID.randomUUID().toString())));
+        return putObject(srName, dataSplitter.split(input), Optional.of(BRFSPath.get(UUID.randomUUID().toString())));
     }
 
-    public PutObjectResult putObject(String srName, Path objectPath, byte[] bytes) throws Exception {
+    @Override
+    public PutObjectResult putObject(String srName, BRFSPath objectPath, byte[] bytes) throws Exception {
         return putObject(srName, dataSplitter.split(bytes), Optional.of(objectPath));
     }
 
-    public PutObjectResult putObject(String srName, Path objectPath, File file) throws Exception {
+    @Override
+    public PutObjectResult putObject(String srName, BRFSPath objectPath, File file) throws Exception {
         try(FileInputStream input = new FileInputStream(file)) {
             return putObject(srName, objectPath, input);
         } catch (IOException e) {
@@ -439,17 +451,18 @@ public class BRFSClient implements BRFS {
         }
     }
 
-    public PutObjectResult putObject(String srName, Path objectPath, InputStream input) throws Exception {
+    @Override
+    public PutObjectResult putObject(String srName, BRFSPath objectPath, InputStream input) throws Exception {
         return putObject(srName, dataSplitter.split(input), Optional.of(objectPath));
     }
     
-    private PutObjectResult putObject(String srName, Iterator<ByteBuffer> buffers, Optional<Path> objectPath) throws Exception {
+    private PutObjectResult putObject(String srName, Iterator<ByteBuffer> buffers, Optional<BRFSPath> objectPath) throws Exception {
         AtomicInteger sequenceIDs = new AtomicInteger();
         Iterator<Function<URI, Call>> callProvider = IteratorUtils.from(buffers)
                 .map(new FSPackageProtoMaker(
                         () -> sequenceIDs.getAndIncrement(),
                         getStorageRegionID(srName),
-                        objectPath.map(Path::toString),
+                        objectPath.map(BRFSPath::getPath),
                         false,
                         Compression.NONE))
                 .map(new PutObjectCallMaker(httpClient, OCTET_STREAM, srName))
@@ -496,6 +509,7 @@ public class BRFSClient implements BRFS {
                 })).get();
     }
 
+    @Override
     public BRFSObject getObject(GetObjectRequest request) throws Exception {
         String fid = null;
         if(request.getPath() != null) {
@@ -615,10 +629,12 @@ public class BRFSClient implements BRFS {
         return future;
     }
 
-    public boolean doesObjectExists(String srName, Path path) {
+    @Override
+    public boolean doesObjectExists(String srName, BRFSPath path) {
         return pathMapper.getFidByPath(srName, path) != null;
     }
 
+    @Override
     public void deleteObjects(String srName, long startTime, long endTime) {
         Retrys.execute(new URIRetryable<Void> (
                 format("delete data of storage region[%s]", srName),

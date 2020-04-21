@@ -16,8 +16,8 @@ package com.bonree.brfs.client.data.read;
 import static com.bonree.brfs.client.utils.Strings.format;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
+import com.bonree.brfs.client.BRFSPath;
 import com.bonree.brfs.client.discovery.Discovery.ServiceType;
 import com.bonree.brfs.client.discovery.NodeSelector;
 import com.bonree.brfs.client.utils.HttpStatus;
@@ -43,7 +43,7 @@ public class HttpFilePathMapper implements FilePathMapper {
     }
 
     @Override
-    public String getFidByPath(String srName, Path path) {
+    public String getFidByPath(String srName, BRFSPath path) {
         return Retrys.execute(new URIRetryable<String> (
                 format("get fid of path[%s] in sr[%s]", path, srName),
                 nodeSelector.getNodeHttpLocations(ServiceType.REGION),
@@ -53,7 +53,7 @@ public class HttpFilePathMapper implements FilePathMapper {
                                     .newBuilder()
                                     .encodedPath("/data/fid")
                                     .addEncodedPathSegment(srName)
-                                    .addQueryParameter("absPath", path.toString())
+                                    .addQueryParameter("absPath", path.getPath())
                                     .build())
                             .get()
                             .build();

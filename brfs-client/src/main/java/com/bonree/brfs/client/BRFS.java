@@ -15,7 +15,6 @@ package com.bonree.brfs.client;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -47,11 +46,11 @@ public interface BRFS {
     
     PutObjectResult putObject(String srName, InputStream input) throws Exception;
     
-    PutObjectResult putObject(String srName, Path objectPath, byte[] bytes) throws Exception;
+    PutObjectResult putObject(String srName, BRFSPath objectPath, byte[] bytes) throws Exception;
     
-    PutObjectResult putObject(String srName, Path objectPath, File file) throws Exception;
+    PutObjectResult putObject(String srName, BRFSPath objectPath, File file) throws Exception;
     
-    PutObjectResult putObject(String srName, Path objectPath, InputStream input) throws Exception;
+    PutObjectResult putObject(String srName, BRFSPath objectPath, InputStream input) throws Exception;
     
     BRFSObject getObject(GetObjectRequest request) throws Exception;
     
@@ -59,7 +58,7 @@ public interface BRFS {
     
     ListenableFuture<?> getObject(GetObjectRequest request, File outputFile, Executor executor);
     
-    boolean doesObjectExists(String srName, Path path) throws Exception;
+    boolean doesObjectExists(String srName, BRFSPath path) throws Exception;
     
     void deleteObjects(String srName, long startTime, long endTime) throws Exception;
     
