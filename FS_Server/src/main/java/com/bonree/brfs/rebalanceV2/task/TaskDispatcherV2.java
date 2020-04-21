@@ -627,7 +627,6 @@ public class TaskDispatcherV2 implements Closeable {
 
                         if (selectIds != null && !selectIds.isEmpty()) {
                             // 需要寻找一个可以恢复的虚拟serverID，此处选择新来的或者没参与过的
-                            String selectID = selectIds.get(0); // TODO 选择一个可用的server来进行迁移，如果新来的在可迁移里，则选择新来的，若新来的不在可迁移里，可能为挂掉重启。此时选择？
                             // 构建任务需要使用2级serverid
                             String selectSecondID = idManager.getSecondId(changeSummary.getChangePartitionId(), storageIndex);
 

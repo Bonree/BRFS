@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /*******************************************************************************
@@ -67,6 +68,7 @@ public class MultiRecoverV2 implements DataRecover {
     private int currentCount = 0;
     private LocalPartitionInterface localPartitionInterface;
     private AtomicReference<TaskStatus> status;
+    private AtomicInteger snDirNonExistNum = new AtomicInteger();
 
     private BlockingQueue<FileRecoverMetaV2> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
@@ -227,8 +229,8 @@ public class MultiRecoverV2 implements DataRecover {
             String partitionPath = partitionInfo.getDataDir();
             String snDataDir = partitionPath + FileUtils.FILE_SEPARATOR + storageName;
             if (!FileUtils.isExist(snDataDir)) {
-                finishTask();
-                return;
+                snDirNonExistNum.incrementAndGet();
+                continue;
             }
 
             List<BRFSPath> allPaths = BRFSFileUtil.scanFile(partitionPath, storageName);
@@ -268,6 +270,11 @@ public class MultiRecoverV2 implements DataRecover {
                 LOG.error("consumerThread error!", e);
             }
 
+            finishTask();
+        }
+
+        if (snDirNonExistNum.get() == localPartitionInfos.size()) {
+            LOG.info("normal finish task because of snDirNonExistNum equal localPartitionInfos size");
             finishTask();
         }
     }
