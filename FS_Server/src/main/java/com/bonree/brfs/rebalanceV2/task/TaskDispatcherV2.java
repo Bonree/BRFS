@@ -630,24 +630,24 @@ public class TaskDispatcherV2 implements Closeable {
                             // 构建任务需要使用2级serverid
                             String selectSecondID = idManager.getSecondId(changeSummary.getChangePartitionId(), storageIndex);
 
-                            String secondParticipator = null;
+                            Collection<String> secondParticipators = null;
                             List<String> aliveServices = getAliveServices();
 
                             // 选择一个活着的可用的参与者
                             for (String participator : participators) {
                                 if (aliveServices.contains(participator)) {
-                                    secondParticipator = idManager.getSecondId(changeSummary.getChangePartitionId(), storageIndex);
+                                    secondParticipators = idManager.getSecondIds(participator, storageIndex);
                                     break;
                                 }
                             }
 
-                            if (secondParticipator == null) {
+                            if (secondParticipators == null || secondParticipators.isEmpty()) {
                                 LOG.error("select participator for virtual recover error!!");
                                 return addFlag;
                             }
 
                             // 构造任务
-                            BalanceTaskSummaryV2 taskSummary = taskGenerator.genVirtualTask(changeID, storageIndex, changeSummary.getChangePartitionId(), virtualID, selectSecondID, secondParticipator, virtualDelay);
+                            BalanceTaskSummaryV2 taskSummary = taskGenerator.genVirtualTask(changeID, storageIndex, changeSummary.getChangePartitionId(), virtualID, Lists.newArrayList(selectSecondID), (List<String>) secondParticipators, virtualDelay);
                             // 只在任务节点上创建任务，taskOperator会监听，去执行任务
 
                             dispatchTask(taskSummary);
