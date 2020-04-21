@@ -23,18 +23,18 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
 
 public class DefaultDataEngine implements DataEngine {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultDataEngine.class);
-	
+
 	private DataPool dataPool;
 	private FileObjectSupplier fileSupplier;
 	private DiskWriter diskWriter;
-	
+
 	private ExecutorService mainThread;
-	
+
 	private final StorageRegion storageRegion;
-	
+
 	private final AtomicBoolean runningState = new AtomicBoolean(false);
 	private volatile boolean quit = false;
-	
+
 	public DefaultDataEngine(StorageRegion storageRegion, DataPool pool, FileObjectSupplier fileSupplier, DiskWriter writer) {
 		this.storageRegion = storageRegion;
 		this.dataPool = pool;
@@ -43,30 +43,30 @@ public class DefaultDataEngine implements DataEngine {
 		this.mainThread = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(),
                 new PooledThreadFactory("dataengine_" + storageRegion.getName()));
-		
+
 		this.mainThread.execute(new DataProcessor());
 	}
-	
+
 	@Override
 	public StorageRegion getStorageRegion() {
 		return storageRegion;
 	}
-	
+
 	@Override
 	public void store(byte[] data, DataStoreCallback callback) {
 		try {
 			dataPool.put(new DataObject() {
-				
+
 				@Override
 				public int length() {
 					return data.length;
 				}
-				
+
 				@Override
 				public byte[] getBytes() {
 					return data;
 				}
-				
+
 				@Override
 				public void processComplete(String result) {
 					callback.dataStored(result);
@@ -77,13 +77,13 @@ public class DefaultDataEngine implements DataEngine {
 			callback.dataStored(null);
 		}
 	}
-	
+
 	@Override
 	public void close() throws IOException {
 		quit = true;
 		mainThread.shutdownNow();
 	}
-	
+
 	private class DataProcessor implements Runnable {
 
 		@Override
@@ -92,46 +92,46 @@ public class DefaultDataEngine implements DataEngine {
 				LOG.error("can not execute data engine again, because it's started!", new IllegalStateException("Data engine has been started!"));
 				return;
 			}
-			
+
 			DataObject unhandledData = null;
-			
+
 			while(true) {
 				if(quit && dataPool.isEmpty()) {
 					break;
 				}
-				
+
 				try {
 					DataObject data = unhandledData == null ? (unhandledData = dataPool.take()) : unhandledData;
-					
+
 					LOG.debug("fetch file with {}", data.length());
 					FileObject file = fileSupplier.fetch(data.length());
 					unhandledData = null;
-					
+
 					if(file == null) {
 						data.processComplete(null);
 						continue;
 					}
-					
+
 					List<DataObject> dataList = new ArrayList<DataObject>();
 					dataList.add(data);
-					
+
 					while(true) {
 						data = dataPool.peek();
 						if(data == null) {
 							break;
 						}
-						
+
 						if(!file.apply(data.length())) {
 							break;
 						}
-						
+
 						dataList.add(data);
 						dataPool.remove();
 					}
-					
+
 					LOG.debug("out => {}", file.node().getName());
 					diskWriter.write(file, dataList, new WriteProgressListener() {
-						
+
 						@Override
 						public void writeCompleted(FileObject file, boolean errorOccurred) {
 							LOG.debug("in => {}, sync => {}", file.node().getName(), errorOccurred);
@@ -139,12 +139,12 @@ public class DefaultDataEngine implements DataEngine {
 						}
 					});
 				} catch (InterruptedException e) {
-					LOG.error("data consumer interrupted.");
+					LOG.error("data consumer interrupted!",e);
 				} catch (Exception e) {
 					LOG.error("process data error", e);
 				}
 			}
-			
+
 			LOG.info("data engine[region={}] is shut down!", storageRegion.getName());
 			try {
 				fileSupplier.close();
@@ -152,8 +152,8 @@ public class DefaultDataEngine implements DataEngine {
 				LOG.error("close file supplier of data engine[region={}] error.", storageRegion.getName());
 			}
 		}
-		
+
 	}
-	
-	
+
+
 }
