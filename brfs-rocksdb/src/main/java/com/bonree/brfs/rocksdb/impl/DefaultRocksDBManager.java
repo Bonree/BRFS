@@ -14,6 +14,8 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
@@ -27,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -56,16 +59,18 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private RocksDBConfig config;
     private CuratorFramework client;
     private ServiceManager serviceManager;
+    private StorageRegionManager srManager;
     private String regionGroupName;
     private RegionNodeConnectionPool regionNodeConnectionPool;
     private ColumnFamilyInfoManager columnFamilyInfoManager;
     private Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo;
 
     @Inject
-    public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager, RegionNodeConnectionPool regionNodeConnectionPool) {
+    public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager, StorageRegionManager srManager, RegionNodeConnectionPool regionNodeConnectionPool) {
         this.client = client.usingNamespace(zkPaths.getBaseRocksDBPath().substring(1));
         this.service = service;
         this.serviceManager = serviceManager;
+        this.srManager = srManager;
         this.regionGroupName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
         this.regionNodeConnectionPool = regionNodeConnectionPool;
         this.columnFamilyInfoManager = new ColumnFamilyInfoManager(this.client);
@@ -141,6 +146,9 @@ public class DefaultRocksDBManager implements RocksDBManager {
             int openTime = watcher.getElapsedTime();
             LOG.info("RocksDB init complete, open RocksDB cost time:{}", openTime);
             cacheCFHandles(cfHandles);
+
+            // 同步sr信息和列族信息，使其一致
+            syncColumnFamilyByStorageRegionInfo();
             LOG.info("load column family info:{}", this.CF_HANDLES.keySet());
         } catch (RocksDBException e) {
             LOG.error("RocksDB start error", e);
@@ -387,6 +395,20 @@ public class DefaultRocksDBManager implements RocksDBManager {
         for (ColumnFamilyHandle cfHandle : cfHandles) {
             this.CF_HANDLES.put(new String(cfHandle.getName()), cfHandle);
         }
+    }
+
+    private void syncColumnFamilyByStorageRegionInfo() {
+        List<StorageRegion> srList = this.srManager.getStorageRegionList();
+        if (srList == null || srList.isEmpty()) {
+            return;
+        }
+
+        Map<String, Integer> srNameAndDataTtl = new HashMap<>();
+        for (StorageRegion sr : srList) {
+            srNameAndDataTtl.put(sr.getName(), (int) Duration.parse(sr.getDataTtl()).getSeconds());
+        }
+        updateColumnFamilyHandles(srNameAndDataTtl);
+        LOG.info("sync column family by storage region info complete");
     }
 
     @Override
