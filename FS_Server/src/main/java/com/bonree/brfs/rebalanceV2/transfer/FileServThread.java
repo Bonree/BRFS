@@ -74,6 +74,11 @@ class FileServThread implements Runnable {
         String fileName = split[1];
 
         String dataDir = this.partitionInterface.getDataPaths(partitionId);
+        if (dataDir == null) {
+            LOG.warn("get partition path is null");
+            return null;
+        }
+
         LOG.info("get partition path by partition id, partition id:{}, dataDir:{}", partitionId, dataDir);
         String filePath = dataDir + FileUtils.FILE_SEPARATOR + fileName;
 

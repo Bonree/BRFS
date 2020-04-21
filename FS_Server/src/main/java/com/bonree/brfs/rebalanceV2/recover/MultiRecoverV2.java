@@ -398,7 +398,9 @@ public class MultiRecoverV2 implements DataRecover {
                                         Thread.sleep(1000);
                                         continue;
                                     }
-                                    String partitionIdRecoverFileName = balanceSummary.getPartitionId() + ":" + fileRecover.getFileName();
+
+                                    String selectedPartitionId = idManager.getPartitionId(fileRecover.getSelectedSecondId(), balanceSummary.getStorageIndex());
+                                    String partitionIdRecoverFileName = selectedPartitionId + ":" + fileRecover.getFileName();
                                     success = secureCopyTo(service, localFilePath, remoteDir, partitionIdRecoverFileName);
                                     if (success) {
                                         break;

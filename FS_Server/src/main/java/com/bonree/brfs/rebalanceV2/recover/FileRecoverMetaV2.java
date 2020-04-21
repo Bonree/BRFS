@@ -6,18 +6,18 @@ public class FileRecoverMetaV2 {
 
     private final String filePath;
     private final String fileName;
-    private final String storageName;
+    private final String selectedSecondId;
     private final String time;
     private final int replica;
     private final int pot;
     private final String firstServerID;
     private final String partitionPath;
 
-    public FileRecoverMetaV2(String filePath, String fileName, String storageName, String time, int replica, int pot, String firstServerID, String partitionPath) {
+    public FileRecoverMetaV2(String filePath, String fileName, String selectedSecondId, String time, int replica, int pot, String firstServerID, String partitionPath) {
         super();
         this.filePath = filePath;
         this.fileName = fileName;
-        this.storageName = storageName;
+        this.selectedSecondId = selectedSecondId;
         this.time = time;
         this.replica = replica;
         this.pot = pot;
@@ -29,8 +29,8 @@ public class FileRecoverMetaV2 {
         return fileName;
     }
 
-    public String getStorageName() {
-        return storageName;
+    public String getSelectedSecondId() {
+        return selectedSecondId;
     }
 
     public String getTime() {
@@ -62,7 +62,7 @@ public class FileRecoverMetaV2 {
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
                 .add("fileName", fileName)
-                .add("storageName", storageName)
+                .add("selectedSecondId", selectedSecondId)
                 .add("time", time)
                 .add("replica", replica)
                 .add("pot", pot)
