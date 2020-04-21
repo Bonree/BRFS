@@ -69,6 +69,7 @@ class FileServThread implements Runnable {
         int lenInfo = 0;
         lenInfo = sockIn.read(bufName);  // 获取文件名
         String transferFileName = new String(bufName, 0, lenInfo, StandardCharsets.UTF_8);
+        LOG.info("transferFileName: {}", transferFileName);
 
         String[] split = StringUtils.split(transferFileName, ":");
         String dataDir = this.partitionInterface.getDataPaths(split[0]);

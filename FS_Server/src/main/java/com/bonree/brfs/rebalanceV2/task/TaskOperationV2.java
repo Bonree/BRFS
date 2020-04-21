@@ -76,6 +76,7 @@ public class TaskOperationV2 implements Closeable {
         if (contain) {
             // 注册自身的selfMultiId,并设置为created阶段
             if (taskSummary.getTaskType() == RecoverType.NORMAL) { // 正常迁移任务
+                LOG.info("current storage region list: {}", snManager.getStorageRegionList());
                 StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
                 if (node == null) {
                     LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
