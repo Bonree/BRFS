@@ -29,6 +29,7 @@ import com.google.protobuf.ByteString;
 public class FSPackageProtoMaker implements Transformer<ByteBuffer, FSPacketProto> {
     private final LongSupplier sequenceGen;
     private final int storageRegionId;
+    private final String fileId;
     private final Optional<String> fileName;
     private final boolean useCrc;
     private final Compression compression;
@@ -38,11 +39,13 @@ public class FSPackageProtoMaker implements Transformer<ByteBuffer, FSPacketProt
     public FSPackageProtoMaker(
             LongSupplier sequenceGen,
             int storageRegionId,
+            String fileId,
             Optional<String> fileName,
             boolean useCrc,
             Compression compression) {
         this.sequenceGen = sequenceGen;
         this.storageRegionId = storageRegionId;
+        this.fileId = fileId;
         this.fileName = fileName;
         this.useCrc = useCrc;
         this.compression = compression;
@@ -54,6 +57,8 @@ public class FSPackageProtoMaker implements Transformer<ByteBuffer, FSPacketProt
         builder.setSeqno(sequenceGen.getAsLong());
         builder.setLastPacketInFile(noMoreElement);
         builder.setStorageName(storageRegionId);
+        builder.setWriteID(fileId);
+        
         if(fileName.isPresent()) {
             builder.setFileName(fileName.get());
         }
