@@ -71,6 +71,7 @@ class FileServThread implements Runnable {
 
         String[] split = StringUtils.split(transferFileName, ":");
         String partitionId = StringUtils.substringAfterLast(split[0], "/");
+        String datePath = StringUtils.substringBeforeLast(split[0], "/");
         String fileName = split[1];
 
         String dataDir = this.partitionInterface.getDataPaths(partitionId);
@@ -80,7 +81,7 @@ class FileServThread implements Runnable {
         }
 
         LOG.info("get partition path by partition id, partition id:{}, dataDir:{}", partitionId, dataDir);
-        String filePath = dataDir + FileUtils.FILE_SEPARATOR + fileName;
+        String filePath = dataDir + FileUtils.FILE_SEPARATOR + datePath + FileUtils.FILE_SEPARATOR + fileName;
 
         File file = new File(filePath);  //保存到相应的位置
         if (file.isDirectory()) {
