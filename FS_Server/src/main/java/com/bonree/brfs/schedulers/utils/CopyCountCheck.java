@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -25,17 +26,16 @@ import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
-import com.bonree.brfs.server.identification.ServerIDManager;
 import com.bonree.mail.worker.MailWorker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年5月22日 下午4:05:31
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
- * @Description:检查集群副本数量是否一致 
+ * @Description:检查集群副本数量是否一致
  *****************************************************************************
  */
 public class CopyCountCheck {
@@ -112,7 +112,7 @@ public class CopyCountCheck {
 		Map fileCopyCount;
 		Pair<List<String>,List<String>> result;
 		Map<StorageRegion,Pair<List<String>, List<String>>> copyMap = new HashMap<StorageRegion,Pair<List<String>, List<String>>>();
-		
+
 		for(Map.Entry<StorageRegion, List<String>> entry : snFiles.entrySet()){
 			sn = entry.getKey();
 			files = entry.getValue();
@@ -131,7 +131,7 @@ public class CopyCountCheck {
 		}
 		return copyMap;
 	}
-		
+
 	/**
 	 * 概述：获取集群对应目录的文件
 	 * @param services
@@ -148,12 +148,9 @@ public class CopyCountCheck {
 		List<String> strs;
 		long time;
 		String dirName;
-        String sid;
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-        ServerIDManager sim = mcf.getSim();
-        CuratorClient zkClient = mcf.getClient();
+        IDSManager sim = mcf.getSim();
 		RouteParser parser;
-        String basePath = mcf.getZkPath().getBaseRoutePath();
         int timeout = 10000;
 		for(Service service : services){
             try{
@@ -163,7 +160,6 @@ public class CopyCountCheck {
 
 				    parser = new RouteParser(sn.getId(),mcf.getRouteLoader());
 
-				    sid = sim.getOtherSecondID(service.getServiceId(),sn.getId());
 					granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
 					reCount = sn.getReplicateNum();
 					snName = sn.getName();
@@ -173,20 +169,24 @@ public class CopyCountCheck {
 					}
 					time = snTimes.get(snName);
 					dirName = TimeUtils.timeInterval(time, granule);
-					LOG.info("[TEST 2 copyTaskCreator ] sn: {} time: {} path:{}",snName,TimeUtils.formatTimeStamp(time),dirName);
-					for(int i = 1; i <=reCount; i++){
-						path = "/"+snName+"/"+i+"/"+dirName;
-						LOG.debug("path :{}",path);
-						strs = getFileList(parser, client, path, sid);
-						if(strs == null || strs.isEmpty()) {
-							LOG.debug("files is empty {}", path);
-							continue;
+					Collection<String> sids = sim.getSecondIds(service.getServiceId(),sn.getId());
+					for(String sid : sids){
+
+						LOG.info("[TEST 2 copyTaskCreator ] sn: {} time: {} path:{}",snName,TimeUtils.formatTimeStamp(time),dirName);
+						for(int i = 1; i <=reCount; i++){
+							path = "/"+snName+"/"+i+"/"+dirName;
+							LOG.debug("path :{}",path);
+							strs = getFileList(parser, client, path, sid);
+							if(strs == null || strs.isEmpty()) {
+								LOG.debug("files is empty {}", path);
+								continue;
+							}
+							LOG.info("Collection dirName :{},{} size :{}",dirName,path, strs.size());
+							if(!snMap.containsKey(sn)){
+								snMap.put(sn, new ArrayList<>());
+							}
+							snMap.get(sn).addAll(strs);
 						}
-						LOG.info("Collection dirName :{},{} size :{}",dirName,path, strs.size());
-						if(!snMap.containsKey(sn)){
-							snMap.put(sn, new ArrayList<>());
-						}
-						snMap.get(sn).addAll(strs);
 					}
 				}
             }catch(Exception e){
@@ -216,7 +216,7 @@ public class CopyCountCheck {
 					}
 				}
 			}
-			
+
 		}
 		return clearUnLawFiles(snMap);
 	}
@@ -355,7 +355,7 @@ public class CopyCountCheck {
 			rFiles.add(file);
 		}
 		return rFiles;
-		
+
 	}
 	/***
 	 * 概述：获取文件名
@@ -402,10 +402,10 @@ public class CopyCountCheck {
 			filters.add(sn);
 		}
 		return filters;
-		
+
 	}
 	/**
-	 * 概述：统计副本的个数 
+	 * 概述：统计副本的个数
 	 * @param files
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
@@ -447,7 +447,7 @@ public class CopyCountCheck {
 		}
 		return new Pair<>(filterLitterResult,filterBiggestResult);
 	}
-	
+
 	/**
 	 * 概述：添加第一次出现的sn
 	 * @param sourceTimes

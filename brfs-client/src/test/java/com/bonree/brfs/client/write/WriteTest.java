@@ -29,7 +29,7 @@ public class WriteTest {
     public static void main(String[] args) {
         BRFS client = new BRFSClientBuilder()
                 .config(new ClientConfigurationBuilder()
-                        .setDataPackageSize(3)
+                        .setDataPackageSize(300)
                         .build())
                 .build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
         
@@ -39,6 +39,8 @@ public class WriteTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        client.shutdown();
     }
 
 }

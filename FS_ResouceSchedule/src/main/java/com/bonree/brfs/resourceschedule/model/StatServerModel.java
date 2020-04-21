@@ -84,10 +84,12 @@ public class StatServerModel{
 	
 	/**
 	 * storagename与分区的映射关系
+	 *
 	 */
+	@Deprecated
 	private Map<String,String> storageNameOnPartitionMap = new ConcurrentHashMap<String,String>();
 	
-	public void calc(Collection<String> snSet,String dataPath, long time) {
+	public void calc(long time) {
 		long count = time < 0 ? 1 : time;
 		
 		/**
@@ -101,7 +103,7 @@ public class StatServerModel{
 		/**
 		 * 转换sn与partition的关系
 		 */
-		this.storageNameOnPartitionMap = matchSnToPatition(snSet, this.partitionTotalSizeMap.keySet(), dataPath);
+//		this.storageNameOnPartitionMap = matchSnToPatition(snSet, this.partitionTotalSizeMap.keySet(), dataPath);
 		
 		if(this.calcCount == 0 || this.calcCount ==1){
 			return;
@@ -125,6 +127,7 @@ public class StatServerModel{
 		this.calcCount = 1;
 		
 	}
+	@Deprecated
 	private Map<String,String> matchSnToPatition(Collection<String> snList, Set<String> mountPoints, String dataPath){
     	Map<String, String> objMap = new ConcurrentHashMap<String,String>();
     	if(snList == null || mountPoints == null || BrStringUtils.isEmpty(dataPath)){
@@ -242,11 +245,11 @@ public class StatServerModel{
 	public void setNetRSpeedMap(Map<String, Long> netRSpeedMap) {
 		this.netRSpeedMap = netRSpeedMap;
 	}
-
+	@Deprecated
 	public Map<String, String> getStorageNameOnPartitionMap() {
 		return storageNameOnPartitionMap;
 	}
-
+	@Deprecated
 	public void setStorageNameOnPartitionMap(Map<String, String> storageNameOnPartitionMap) {
 		this.storageNameOnPartitionMap = storageNameOnPartitionMap;
 	}

@@ -26,9 +26,6 @@ import com.bonree.brfs.schedulers.utils.TasksUtils;
 
 public class CreateSystemTaskJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(CreateSystemTaskJob.class);
-	@Override
-	public void caughtException(JobExecutionContext context) {
-	}
 
 	@Override
 	public void interrupt(){

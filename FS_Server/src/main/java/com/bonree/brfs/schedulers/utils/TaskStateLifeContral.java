@@ -4,6 +4,8 @@ import java.util.*;
 
 import com.bonree.brfs.common.files.impl.BRFSTimeFilter;
 import com.bonree.brfs.common.utils.*;
+import com.bonree.brfs.identification.impl.DiskDaemon;
+import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -199,7 +201,7 @@ public class TaskStateLifeContral {
 		
 		return new Pair<>(task.getFirst(), cTask);
 	}
-	public static TaskModel changeRunTaskModel(final TaskModel message, String dataPath){
+	public static TaskModel changeRunTaskModel(final TaskModel message, DiskDaemon diskDaemon){
 		if(message == null){
 			return null;
 		}
@@ -235,16 +237,18 @@ public class TaskStateLifeContral {
 
             map = new HashMap<>();
             map.put(BRFSPath.STORAGEREGION,snName);
-            List<BRFSPath> dirPaths = BRFSFileUtil.scanBRFSFiles(dataPath,map,map.size(), new BRFSTimeFilter(startTime, endTime));
-            if(dirPaths == null || dirPaths.isEmpty()){
-                LOG.debug("It's no dir to take task [{}]:[{}]-[{}]",snName,TimeUtils.timeInterval(startTime,granule),TimeUtils.timeInterval(endTime,granule));
-                continue;
-            }
-            List<Long> times = filterRepeatDirs(dirPaths);
-            for(Long time : times){
-                rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, time, time+atom.getGranule(), 0);
-                changeTask.addAtom(rAtom);
-            }
+            for(LocalPartitionInfo local : diskDaemon.getPartitions()){
+				List<BRFSPath> dirPaths = BRFSFileUtil.scanBRFSFiles(local.getDataDir(),map,map.size(), new BRFSTimeFilter(startTime, endTime));
+				if(dirPaths == null || dirPaths.isEmpty()){
+					LOG.debug("It's no dir to take task [{}]:[{}]-[{}]",snName,TimeUtils.timeInterval(startTime,granule),TimeUtils.timeInterval(endTime,granule));
+					continue;
+				}
+				List<Long> times = filterRepeatDirs(dirPaths);
+				for(Long time : times){
+					rAtom = AtomTaskModel.getInstance(null, snName, atom.getTaskOperation(), partNum, time, time+atom.getGranule(), 0);
+					changeTask.addAtom(rAtom);
+				}
+			}
 		}
 		return changeTask;
 	}

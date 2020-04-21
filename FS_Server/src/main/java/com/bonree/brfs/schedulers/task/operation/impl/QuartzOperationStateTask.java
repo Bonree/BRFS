@@ -20,7 +20,6 @@ public abstract class QuartzOperationStateTask implements QuartzOperationStateIn
 			operation(context);
 		}catch(Exception e){
 			context.put("ExceptionMessage", e.getMessage());
-			caughtException(context);
 			LOG.info("Run task error {}",e);
 			EmailPool emailPool = EmailPool.getInstance();
 			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
@@ -33,8 +32,7 @@ public abstract class QuartzOperationStateTask implements QuartzOperationStateIn
 		}
 		
 	}
-	@Override
-	public abstract  void caughtException(JobExecutionContext context);
+
 
 	@Override
 	public abstract void interrupt() throws UnableToInterruptJobException;

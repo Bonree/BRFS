@@ -15,6 +15,7 @@ package com.bonree.brfs.server;
 
 import java.util.List;
 
+import com.bonree.brfs.disknode.TaskModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,8 @@ public class DataNodeCommand extends BaseCommand {
                 new EmailModule().withNodeType(getNodeType()),
                 new SimpleAuthenticationModule(),
                 new DataNodeModule(),
-                new DataNodeIDModule());
+                new DataNodeIDModule(),
+                new TaskModule());
     }
 
     @Override

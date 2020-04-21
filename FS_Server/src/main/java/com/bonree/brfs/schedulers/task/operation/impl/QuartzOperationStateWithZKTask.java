@@ -46,7 +46,6 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 			
 		}catch(Exception e){
 			context.put("ExceptionMessage", e.getMessage());
-			caughtException(context);
 			isSuccess = false;
 			LOG.error("task {}-{} happen exception:{}",taskTypeName,taskName,e);
 			EmailPool emailPool = EmailPool.getInstance();
@@ -94,8 +93,6 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
 		}
 		
 	}
-	@Override
-	public abstract  void caughtException(JobExecutionContext context);
 
 	@Override
 	public abstract void interrupt() throws UnableToInterruptJobException;

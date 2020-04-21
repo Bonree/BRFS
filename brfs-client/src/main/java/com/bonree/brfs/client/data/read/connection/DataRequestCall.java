@@ -11,10 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.data.read;
+package com.bonree.brfs.client.data.read.connection;
 
-import com.bonree.brfs.client.BRFSPath;
-
-public interface FilePathMapper {
-    String getFidByPath(String srName, BRFSPath path);
+public interface DataRequestCall<T> {
+    T call();
 }

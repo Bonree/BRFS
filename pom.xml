@@ -175,6 +175,20 @@
 				<version>${project.version}</version>
 			</dependency>
 
+			<!-- command line -->
+			<dependency>
+				<groupId>io.airlift</groupId>
+				<artifactId>airline</artifactId>
+				<version>0.9</version>
+				<exclusions>
+					<exclusion>
+						<!--LGPL licenced library -->
+						<groupId>com.google.code.findbugs</groupId>
+						<artifactId>annotations</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
 			<!-- Google Guice -->
 			<dependency>
 				<groupId>com.google.inject</groupId>

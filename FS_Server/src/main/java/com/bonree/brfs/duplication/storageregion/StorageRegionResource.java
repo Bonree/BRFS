@@ -16,8 +16,10 @@ package com.bonree.brfs.duplication.storageregion;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -34,6 +36,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,17 +62,20 @@ public class StorageRegionResource {
     private final ServiceManager serviceManager;
     
     private final ZookeeperPaths zkPaths;
+    private final RocksDBManager rocksDBManager;
     
     @Inject
     public StorageRegionResource(
             ClusterConfig clusterConfig,
             StorageRegionManager storageRegionManager,
             ServiceManager serviceManager,
-            ZookeeperPaths zkPaths) {
+            ZookeeperPaths zkPaths,
+            RocksDBManager rocksDBManager) {
         this.clusterConfig = clusterConfig;
         this.storageRegionManager = storageRegionManager;
         this.serviceManager = serviceManager;
         this.zkPaths = zkPaths;
+        this.rocksDBManager = rocksDBManager;
     }
     
     @PUT
@@ -89,6 +95,7 @@ public class StorageRegionResource {
             StorageRegion storageRegion = storageRegionManager.createStorageRegion(
                     name,
                     StorageRegionProperties.withDefault().override(attributes));
+            rocksDBManager.createColumnFamilyWithTtl(name, (int)Duration.parse(StorageRegionProperties.withDefault().override(attributes).getDataTtl()).getSeconds());
             return Response.ok(new StorageRegionID(storageRegion.getName(), storageRegion.getId())).build();
         } catch (Exception e) {
             log.error(StringUtils.format("can not create storage region[%s]", name), e);

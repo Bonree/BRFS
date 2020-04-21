@@ -30,8 +30,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 	@Override
 	public abstract void operation(JobExecutionContext context) throws Exception;
 
-	@Override
-	public abstract void caughtException(JobExecutionContext context);
+
 
 	@Override
 	public abstract void interrupt() throws UnableToInterruptJobException;
@@ -73,7 +72,6 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
 		}catch (Exception e) {
 			LOG.info("happend Exception :{}",e);
 			context.put("ExceptionMessage", e.getMessage());
-			caughtException(context);
 			isSuccess = false;
 			EmailPool emailPool = EmailPool.getInstance();
 			MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
