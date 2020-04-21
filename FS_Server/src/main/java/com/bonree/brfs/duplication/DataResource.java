@@ -24,7 +24,6 @@ import com.bonree.brfs.common.net.http.data.FSPacket;
 import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
@@ -46,7 +45,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.time.Duration;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
@@ -96,24 +94,28 @@ public class DataResource {
         try {
             FSPacket packet = new FSPacket();
             packet.setProto(data);
-            LOG.debug("write request data length：[{}]，prepare to append to block，",packet.getData().length);
+            LOG.debug("write request data length：[{}]，prepare to append to block，", packet.getData().length);
             int storage = packet.getStorageName();
 //            String storageName = storageRegionManager.findStorageRegionById(storage).getName();
             String file = packet.getFileName();
-            if(brfsCatalog.isUsable()){
-                if(!brfsCatalog.validPath(file)){
-                    LOG.error("file path [{}]is invalid.",file);
-                    response.resume(new IllegalArgumentException("file path is invalid!"));
-                    return;
+            if (brfsCatalog.isUsable()) {
+                if (!brfsCatalog.validPath(file)) {
+                    LOG.warn("file path [{}]is invalid.", file);
+                    throw new BadRequestException("file path [{}]is invalid");
                 }
             }
-            if(packet.getSeqno()==1){
-                LOG.info("file [{}] is allow to write!",packet.getFileName());
+            if (brfsCatalog.validPath(file)) {
+                String resp = "the rocksDB is not open, can not write wich file name";
+                LOG.warn(resp);
+                throw new BadRequestException(resp);
             }
-            LOG.debug("deserialize [{}]",packet);
+            if (packet.getSeqno() == 1) {
+                LOG.info("file [{}] is allow to write!", packet.getFileName());
+            }
+            LOG.debug("deserialize [{}]", packet);
             //如果是一个小于等于packet长度的文件，由handler直接写
-            if(packet.isATinyFile()){
-                LOG.debug("writing a tiny file [{}]",packet.getFileName());
+            if (packet.isATinyFile()) {
+                LOG.debug("writing a tiny file [{}]", packet.getFileName());
                 storageRegionWriter.write(
                         packet.getStorageName(),
                         packet.getData(),
@@ -126,9 +128,9 @@ public class DataResource {
 
                             @Override
                             public void complete(String fid) {
-                                LOG.info("rocskDb is open ?:[{}]",brfsCatalog.isUsable());
-                                if(brfsCatalog.isUsable() && brfsCatalog.validPath(file)){
-                                    if(!brfsCatalog.writeFid(srName, file, fid)){
+                                LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
+                                if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
+                                    if (!brfsCatalog.writeFid(srName, file, fid)) {
                                         LOG.error("failed when write fid to rocksDB.");
                                         response.resume(new Exception("write fid to rocksDB failed."));
                                         return;
@@ -136,13 +138,13 @@ public class DataResource {
                                     LOG.info("sync catalog into rocksDB.");
                                 }
                                 response.resume(ImmutableList.of(fid));
-                                LOG.info("response file :[{}]:fid[{}]",packet.getFileName(),fid);
+                                LOG.info("response file :[{}]:fid[{}]", packet.getFileName(), fid);
                             }
 
                             @Override
                             public void complete(String[] fids) {
                                 response.resume(ImmutableList.of(fids));
-                                LOG.info("response file[{}]:fid[{}]",packet.getFileName(),fids[0]);
+                                LOG.info("response file[{}]:fid[{}]", packet.getFileName(), fids[0]);
                             }
                         });
                 return;
@@ -150,44 +152,46 @@ public class DataResource {
             HandleResultCallback callback = new HandleResultCallback() {
                 @Override
                 public void completed(HandleResult result) {
-                    if(result.isCONTINUE()) {
-                        LOG.debug("response seqno：{}",result.getNextSeqno());
+                    if (result.isCONTINUE()) {
+                        LOG.debug("response seqno：{}", result.getNextSeqno());
                         response.resume(Response
                                 .status(HttpStatus.CODE_NEXT)
                                 .entity(new NextData(result.getNextSeqno())).build());
-                    }else if(result.isSuccess()){
+                    } else if (result.isSuccess()) {
                         String fid = new String(result.getData());
                         //todo rocksdb
-                        LOG.info("rocskDb is open ?:[{}]",brfsCatalog.isUsable());
-                        LOG.debug("before sync : [{}]",fid);
+                        LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
+                        LOG.debug("before sync : [{}]", fid);
 
-                        if(brfsCatalog.isUsable() && brfsCatalog.validPath(file)){
-                            if(!brfsCatalog.writeFid(srName, file, fid)){
+                        if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
+                            if (!brfsCatalog.writeFid(srName, file, fid)) {
                                 LOG.error("failed when write fid to rocksDB.");
                                 response.resume(new Exception("write fid to rocksDB failed."));
                                 return;
                             }
-                            LOG.info("sync catalog into rocksDB. filename:[{}]",file);
+                            LOG.info("sync catalog into rocksDB. filename:[{}]", file);
                         }
-                        LOG.info("response fid:[{}]",fid);
+                        LOG.info("response fid:[{}]", fid);
                         response.resume(Response
                                 .ok()
                                 .entity(ImmutableList.of(new String(result.getData()))).build());
-                    }else{
-                        LOG.error("response error [{}]",result.getCause());
+                    } else {
+                        LOG.error("response error [{}]", result.getCause());
                         response.resume(result.getCause());
                     }
                 }
             };
-            if(packet.isTheFirstPacketInFile()){
-                blockManager.addToWaitingPool(packet,callback);
-                LOG.info("put a file [{}] into the waiting pool",packet.getFileName());
+            if (packet.isTheFirstPacketInFile()) {
+                blockManager.addToWaitingPool(packet, callback);
+                LOG.info("put a file [{}] into the waiting pool", packet.getFileName());
                 //todo server should tell client that file is waiting for write. but how
                 return;
             }
-            LOG.debug("append packet[{}] into block",packet);
+            LOG.debug("append packet[{}] into block", packet);
             //===== 追加数据的到blockManager
             blockManager.appendToBlock(packet, callback);
+        }catch (BadRequestException e){
+            throw e;
         } catch (Exception e) {
             LOG.error("handle write data message error", e);
             response.resume(e);
