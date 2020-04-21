@@ -495,6 +495,10 @@ public class BRFSClient implements BRFS {
                         
                         @Override
                         public void onFailure(Call call, IOException cause) {
+                            if(!retryFuture.isDone()) {
+                                retryFuture.setException(cause);
+                            }
+                            
                             resultFuture.setException(cause);
                         }
                     });
