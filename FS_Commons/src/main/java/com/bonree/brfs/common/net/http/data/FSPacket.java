@@ -122,4 +122,8 @@ public class FSPacket {
     public void setProto(FSPacketProto proto){
         this.proto = proto;
     }
+
+    public String getWriteID() {
+        return proto.getWriteID();
+    }
 }
