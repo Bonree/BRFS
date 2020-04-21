@@ -74,6 +74,7 @@ public class VirtualRecoverV2 implements DataRecover {
         this.idManager = idManager;
         this.serviceManager = serviceManager;
         this.storageName = storageName;
+        this.localPartitionInterface = localPartitionInterface;
         this.fileClient = new SimpleFileClient();
         // 恢复需要对节点进行监听
         nodeCache = CuratorCacheFactory.getNodeCache();
@@ -291,7 +292,8 @@ public class VirtualRecoverV2 implements DataRecover {
                                     continue;
                                 }
 
-                                String partitionIdRecoverFileName = balanceSummary.getPartitionId() + ":" + fileRecover.getFileName();
+                                String selectedPartitionId = idManager.getPartitionId(fileRecover.getSelectedSecondId(), balanceSummary.getStorageIndex());
+                                String partitionIdRecoverFileName = selectedPartitionId + ":" + fileRecover.getFileName();
                                 success = secureCopyTo(service, localFilePath, remoteDir, partitionIdRecoverFileName);
                                 if (success) {
                                     break;
