@@ -23,7 +23,6 @@ import com.bonree.brfs.client.data.read.HttpFilePathMapper;
 import com.bonree.brfs.client.data.read.PooledTcpFidContentReader;
 import com.bonree.brfs.client.data.read.StringSubFidParser;
 import com.bonree.brfs.client.data.read.SubFidParser;
-import com.bonree.brfs.client.data.read.TcpFidContentReader;
 import com.bonree.brfs.client.data.read.connection.DataConnectionPool;
 import com.bonree.brfs.client.discovery.CachedDiscovery;
 import com.bonree.brfs.client.discovery.Discovery;

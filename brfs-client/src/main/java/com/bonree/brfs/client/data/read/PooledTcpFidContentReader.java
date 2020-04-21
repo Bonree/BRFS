@@ -18,10 +18,8 @@ import static java.util.Objects.requireNonNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.util.Objects;
 
 import com.bonree.brfs.client.data.read.connection.DataConnectionPool;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
