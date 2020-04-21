@@ -56,14 +56,12 @@ class FileServThread implements Runnable {
         }
     }
 
-    public void writeOutInfo(Socket sock, String infoStr) throws Exception// 将信息反馈给服务端
-    {
+    public void writeOutInfo(Socket sock, String infoStr) throws Exception {    // 将信息反馈给服务端
         OutputStream sockOut = sock.getOutputStream();
         sockOut.write(infoStr.getBytes(StandardCharsets.UTF_8));
     }
 
-    public File getClientFileName(InputStream sockIn) throws Exception // 获取文件名并创建
-    {
+    public File getClientFileName(InputStream sockIn) throws Exception {    // 获取文件名并创建
         // 获取客户端请求发送的文件名,创建路径
         byte[] bufName = new byte[1024];
         int lenInfo = 0;
