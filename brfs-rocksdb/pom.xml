@@ -25,6 +25,12 @@
             <artifactId>FS_Commons</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.bonree.fs</groupId>
+            <artifactId>FS_Server</artifactId>
+            <scope>provided</scope>
+        </dependency>
         
         <dependency>
             <groupId>com.google.inject</groupId>

@@ -418,7 +418,7 @@ public class BRFSClient implements BRFS {
 
     @Override
     public PutObjectResult putObject(String srName, byte[] bytes) throws Exception {
-        return putObject(srName, dataSplitter.split(bytes), Optional.of(BRFSPath.get(UUID.randomUUID().toString())));
+        return putObject(srName, dataSplitter.split(bytes), Optional.empty());
     }
 
     @Override
@@ -432,7 +432,7 @@ public class BRFSClient implements BRFS {
 
     @Override
     public PutObjectResult putObject(String srName, InputStream input) throws Exception {
-        return putObject(srName, dataSplitter.split(input), Optional.of(BRFSPath.get(UUID.randomUUID().toString())));
+        return putObject(srName, dataSplitter.split(input), Optional.empty());
     }
 
     @Override
@@ -460,6 +460,7 @@ public class BRFSClient implements BRFS {
                 .map(new FSPackageProtoMaker(
                         () -> sequenceIDs.getAndIncrement(),
                         getStorageRegionID(srName),
+                        UUID.randomUUID().toString(),
                         objectPath.map(BRFSPath::getPath),
                         false,
                         Compression.NONE))

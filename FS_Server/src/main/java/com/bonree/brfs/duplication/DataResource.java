@@ -96,6 +96,7 @@ public class DataResource {
             packet.setProto(data);
             LOG.debug("write request data length：[{}]，prepare to append to block，", packet.getData().length);
             int storage = packet.getStorageName();
+            String writeID = packet.getWriteID();
 //            String storageName = storageRegionManager.findStorageRegionById(storage).getName();
             String file = packet.getFileName();
             if (brfsCatalog.isUsable()) {
@@ -103,11 +104,10 @@ public class DataResource {
                     LOG.warn("file path [{}]is invalid.", file);
                     throw new BadRequestException("file path [{}]is invalid");
                 }
-            }
-            if (brfsCatalog.validPath(file)) {
-                String resp = "the rocksDB is not open, can not write wich file name";
-                LOG.warn(resp);
-                throw new BadRequestException(resp);
+            }else if (file != "" && file != null) {
+                    String resp = "the rocksDB is not open, can not write with file name";
+                    LOG.warn(resp);
+                    throw new BadRequestException(resp);
             }
             if (packet.getSeqno() == 1) {
                 LOG.info("file [{}] is allow to write!", packet.getFileName());
@@ -159,7 +159,6 @@ public class DataResource {
                                 .entity(new NextData(result.getNextSeqno())).build());
                     } else if (result.isSuccess()) {
                         String fid = new String(result.getData());
-                        //todo rocksdb
                         LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
                         LOG.debug("before sync : [{}]", fid);
 
