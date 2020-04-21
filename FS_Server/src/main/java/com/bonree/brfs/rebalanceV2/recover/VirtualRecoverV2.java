@@ -178,8 +178,9 @@ public class VirtualRecoverV2 implements DataRecover {
             LOG.info("storage data dir: {}", snDataDir);
 
             if (!FileUtils.isExist(snDataDir)) {
-                snDirNonExistNum.incrementAndGet();
-                continue;
+//                snDirNonExistNum.incrementAndGet();   todo 暂时先创建虚拟serverId目录
+//                continue;
+                FileUtils.createDir(snDataDir, true);
             }
 
             List<String> replicasNames = FileUtils.listFileNames(snDataDir);
