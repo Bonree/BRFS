@@ -70,9 +70,12 @@ class FileServThread implements Runnable {
         LOG.info("transferFileName: {}", transferFileName);
 
         String[] split = StringUtils.split(transferFileName, ":");
-        String dataDir = this.partitionInterface.getDataPaths(split[0]);
-        LOG.info("get partition path by partition id, partition id:{}, dataDir:{}", split[0], dataDir);
-        String filePath = dataDir + FileUtils.FILE_SEPARATOR + split[1];
+        String partitionId = StringUtils.substringAfterLast(split[0], "/");
+        String fileName = split[1];
+
+        String dataDir = this.partitionInterface.getDataPaths(partitionId);
+        LOG.info("get partition path by partition id, partition id:{}, dataDir:{}", partitionId, dataDir);
+        String filePath = dataDir + FileUtils.FILE_SEPARATOR + fileName;
 
         File file = new File(filePath);  //保存到相应的位置
         if (file.isDirectory()) {
@@ -85,9 +88,9 @@ class FileServThread implements Runnable {
             writeOutInfo(sock, "服务端已存在同名文件!"); // 反馈给客户端的信息
             return null;
         }
-        LOG.info("将客户端发来的文件 {} 存到 {}", split[1], file.getAbsolutePath());
+        LOG.info("将客户端发来的文件 {} 存到 {}", fileName, file.getAbsolutePath());
         FileUtils.createFile(filePath, true);
-        LOG.info("成功创建文件 {} 准备写入数据", split[1]);
+        LOG.info("成功创建文件 {} 准备写入数据", fileName);
         writeOutInfo(sock, "FileSendNow");    // 告诉客户端,开始传送数据吧
         return file;
 
