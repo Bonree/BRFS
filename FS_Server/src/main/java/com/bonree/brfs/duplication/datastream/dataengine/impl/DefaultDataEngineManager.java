@@ -60,6 +60,7 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
 			Optional<DataEngine> optional = dataEngineContainer.get(baseId);
 			
 			if(!optional.isPresent()) {
+				LOG.info("get null dataengine when get data engin!");
 				dataEngineContainer.invalidate(baseId);
 			}
 			
@@ -130,7 +131,7 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
 		if(dataEngineContainer == null) {
 			return;
 		}
-		
+		LOG.info("cloing all dataengin ...");
 		dataEngineContainer.invalidateAll();
 	}
 }
