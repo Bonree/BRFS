@@ -28,12 +28,13 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultReleaseTask.class);
 	private static final String QUEUE = "queue";
 	private static final String TRANSFER = "transfer";
+	private static final String HISTORY="history";
 	private String zkUrl = null;
 	private String taskRootPath = null;
-	private String taskLockPath = null;
 	private ZookeeperClient client = null;
 	private String taskQueue = null;
 	private String taskTransfer = null;
+	private String taskHistory=null;
 
 
 	public DefaultReleaseTask(String zkUrl,String taskRootPath,String lockPath) {
@@ -48,14 +49,17 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		if(BrStringUtils.isEmpty(lockPath)){
 			throw new NullPointerException("task lock path is empty");
 		}
-		this.taskLockPath = lockPath;
 		this.taskQueue = this.taskRootPath + "/" + QUEUE;
 		this.taskTransfer = this.taskRootPath + "/" + TRANSFER;
+		this.taskHistory = this.taskRootPath+"/"+HISTORY;
 		client = CuratorClient.getClientInstance(this.zkUrl);
 	}
 
 	@Override
 	public String updateTaskContentNode(TaskModel data, String taskType, String taskName){
+		return updateTaskContentNode(data,taskType,taskName,this.taskQueue);
+	}
+	private String updateTaskContentNode(TaskModel data, String taskType, String taskName,String taskQueuePath){
 		String pathNode = null;
 		try {
 			if (data == null) {
@@ -75,7 +79,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			int taskTypeIndex = current == null ? 0 : current.code();
 
 			StringBuilder pathBuilder = new StringBuilder();
-			pathBuilder.append(this.taskQueue).append("/").append(taskType).append("/");
+			pathBuilder.append(taskQueuePath).append("/").append(taskType).append("/");
 			if(BrStringUtils.isEmpty(taskName)){
 				pathBuilder.append(taskTypeIndex);
 			}else{
@@ -98,22 +102,10 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	}
 
 	@Override
-	public String getCurrentTaskIndex(String taskType){
-		try {
-			List<String> taskInfos = getTaskList(taskType);
-			if(taskInfos == null || taskInfos.isEmpty()){
-				return null;
-			}
-			return taskInfos.get(taskInfos.size() - 1);
-		}
-		catch (Exception e) {
-			LOG.error("get current task index error {}",e);
-		}
-		return null;
-	}
-
-	@Override
 	public int queryTaskState(String taskName, String taskType){
+		return queryTaskState(taskName,taskType,this.taskQueue);
+	}
+	private int queryTaskState(String taskName, String taskType,String taskQueuePath){
 		try {
 			if (BrStringUtils.isEmpty(taskName)) {
 				return -1;
@@ -122,7 +114,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return -2;
 			}
 			StringBuilder taskPath = new StringBuilder();
-			taskPath.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName);
+			taskPath.append(taskQueuePath).append("/").append(taskType).append("/").append(taskName);
 			String path = taskPath.toString();
 			if (!client.checkExists(path)) {
 				return -3;
@@ -140,7 +132,20 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	}
 	@Override
 	public boolean updateServerTaskContentNode(String serverId, String taskName, String taskType, TaskServerNodeModel data){
-		
+		return updateServerTaskContentNode(serverId,taskName,taskType,data,this.taskQueue);
+	}
+
+	/**
+	 * 更新服务节点任务信息
+	 * @param serverId
+	 * @param taskName
+	 * @param taskType
+	 * @param data
+	 * @param taskQueuePath
+	 * @return
+	 */
+	private boolean updateServerTaskContentNode(String serverId, String taskName, String taskType, TaskServerNodeModel data,String taskQueuePath){
+
 		try {
 			if (BrStringUtils.isEmpty(serverId)) {
 				return false;
@@ -161,7 +166,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return false;
 			}
 			StringBuilder taskPath = new StringBuilder();
-			taskPath.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName).append("/").append(serverId);
+			taskPath.append(taskQueuePath).append("/").append(taskType).append("/").append(taskName).append("/").append(serverId);
 			String path = taskPath.toString();
 			if (client.checkExists(path)) {
 				client.setData(path, datas);
@@ -184,7 +189,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			}
 			if (BrStringUtils.isEmpty(taskType)) {
 				return false;
-			}			
+			}
 			TaskModel tmp = getTaskContentNodeInfo(taskType, taskName);
 			if(tmp == null){
 				return false;
@@ -198,31 +203,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		}
 		return false;
 	}
-	@Override
-	public boolean changeTaskServerNodeContentState(String taskName, String taskType, String serverId, int taskState){
-		try {
-			if (BrStringUtils.isEmpty(taskName)) {
-				return false;
-			}
-			if (BrStringUtils.isEmpty(taskType)) {
-				return false;
-			}
-			if (BrStringUtils.isEmpty(serverId)){
-				return false;
-			}
-			TaskServerNodeModel tmp = getTaskServerContentNodeInfo(taskType, taskName, serverId);
-			if(tmp == null){
-				return false;
-			}
-			tmp.setTaskState(taskState);
-			updateServerTaskContentNode(serverId, taskName, taskType, tmp);
-			return true;
-		}
-		catch (Exception e) {
-			LOG.error("change task server node cotent error {}",e);
-		}
-		return false;
-	}
+
 
 	@Override
 	public String getLastSuccessTaskIndex(String taskType, String serverId){
@@ -281,6 +262,9 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	}
 	@Override
 	public boolean deleteTask(String taskName, String taskType) {
+		return deleteTask(taskName,taskType,this.taskQueue);
+	}
+	private boolean deleteTask(String taskName,String taskType,String taskQueuePath){
 		try {
 			if (BrStringUtils.isEmpty(taskName)) {
 				return false;
@@ -288,7 +272,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			if (BrStringUtils.isEmpty(taskType)) {
 				return false;
 			}
-			String path = this.taskQueue + "/" + taskType + "/" + taskName;
+			String path = taskQueuePath + "/" + taskType + "/" + taskName;
 			if (!client.checkExists(path)) {
 				return false;
 			}
@@ -303,6 +287,9 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 
 	@Override
 	public int deleteTasks(long deleteTime, String taskType) {
+		return deleteTasks(deleteTime,taskType,this.taskQueue);
+	}
+	public int deleteTasks(long deleteTime, String taskType,String taskQueuePath) {
 		try {
 			if (BrStringUtils.isEmpty(taskType)) {
 				return -1;
@@ -315,7 +302,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			if (size == 0) {
 				return 0;
 			}
-			long firstTime = getTaskCreateTime(nodes.get(0), taskType);
+			long firstTime = getTaskCreateTime(nodes.get(0), taskType,taskQueuePath);
 			if (deleteTime < firstTime) {
 				return 0;
 			}
@@ -326,11 +313,11 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				if (BrStringUtils.isEmpty(taskName)) {
 					continue;
 				}
-				cTime = getTaskCreateTime(taskName, taskType);
+				cTime = getTaskCreateTime(taskName, taskType,taskQueuePath);
 				if (cTime > deleteTime) {
 					continue;
 				}
-				if (deleteTask(taskName, taskType)) {
+				if (deleteTask(taskName, taskType,taskQueuePath)) {
 					count++;
 				}
 			}
@@ -342,7 +329,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		return -1;
 	}
 
-	private long getTaskCreateTime(String taskName, String taskType) {
+	private long getTaskCreateTime(String taskName, String taskType,String taskQueuePath) {
 		try {
 			if (BrStringUtils.isEmpty(taskName)) {
 				return -1;
@@ -350,7 +337,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			if (BrStringUtils.isEmpty(taskType)) {
 				return -2;
 			}
-			String path = this.taskQueue + "/" + taskType + "/" + taskName;
+			String path = taskQueuePath + "/" + taskType + "/" + taskName;
 			if (!client.checkExists(path)) {
 				return -3;
 			}
@@ -384,29 +371,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		return true;
 	}
 
-//	@Override
-	public void setPropreties(String zkUrl, String taskPath,String lockPath, String... args) {
-		try {
-			this.zkUrl = zkUrl;
-			this.taskRootPath = taskPath;
-			if (BrStringUtils.isEmpty(this.zkUrl)) {
-				throw new NullPointerException("zookeeper address is empty");
-			}
-			if (BrStringUtils.isEmpty(this.taskRootPath)) {
-				throw new NullPointerException("task root path is empty");
-			}
-			if(BrStringUtils.isEmpty(lockPath)){
-				throw new NullPointerException("task lock path is empty");
-			}
-			this.taskLockPath = lockPath;
-			this.taskQueue = this.taskRootPath + "/" + QUEUE;
-			this.taskTransfer = this.taskRootPath + "/" + TRANSFER;
-			client = CuratorClient.getClientInstance(this.zkUrl);
-		}
-		catch (Exception e) {
-			LOG.error("set property eoor {}",e);
-		}
-	}
+
 
 	@Override
 	public Pair<Integer,Integer> reviseTaskStat(String taskType, long ttl, Collection<String> aliveServers){
@@ -424,16 +389,52 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				return counts;
 			}
 			// 删除任务
-			int deleteCount = deleteTasks(taskQueues, taskType, ttl);
+			int deleteCount = deleteTasks(ttl,taskType,taskQueue);
+			deleteCount +=deleteTasks(ttl,taskType,taskHistory);
 			// 维护任务状态
 			int reviseCount = reviseTaskState(taskQueues, aliveServers, taskType, deleteCount);
 			counts.setFirst(deleteCount);
 			counts.setSecond(reviseCount);
+			//将维护过后的任务状态为finish的迁移至history
+			mvHistoryQueue(taskType,this.taskQueue,this.taskHistory);
 		}
 		catch (Exception e) {
 			LOG.error("revise task error {}",e);
 		}
 		return counts;
+	}
+	private int mvHistoryQueue(String taskType,String taskQueue,String historyQueue){
+		// 获取子任务名称队列
+		List<String> taskQueues = getTaskList(taskType,taskQueue);
+		if(taskQueue == null || taskQueue.isEmpty()){
+			return 0;
+		}
+		int i = 0;
+		for(String taskName : taskQueues){
+			TaskModel taskModel = getTaskContentNodeInfo(taskType,taskName,taskQueue);
+			if(TaskState.FINISH.code() != taskModel.getTaskState()){
+				continue;
+			}
+			if(taskModel == null){
+				deleteTask(taskName,taskType,taskQueue);
+				i++;
+				continue;
+			}
+			updateTaskContentNode(taskModel,taskType,taskName,historyQueue);
+			List<String> sTasks = getTaskServerList(taskType,taskName,taskQueue);
+			if(sTasks !=null && !sTasks.isEmpty()){
+				for(String sTaskName :sTasks){
+					TaskServerNodeModel sModel = getTaskServerContentNodeInfo(taskType,taskName,sTaskName);
+					if(sModel == null){
+						continue;
+					}
+					updateServerTaskContentNode(sTaskName,taskName,taskType,sModel,historyQueue);
+				}
+			}
+			deleteTask(taskName,taskType,taskQueue);
+			i++;
+		}
+		return i;
 	}
 	/**
 	 * 概述：维护任务的状态
@@ -505,7 +506,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 					taskContent.setTaskState(TaskState.EXCEPTION.code());
 					updateTaskContentNode(taskContent, taskType, taskName);
 				}
-				
+
 			}
 		}catch (Exception e) {
 			LOG.error("revise task error {}",e);
@@ -520,7 +521,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	 * @return 删除任务的个数
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	private int deleteTasks(List<String> taskQueue, String taskType, long ttl) {
+	private int deleteTasks(List<String> taskQueue,String taskQueuePath, String taskType, long ttl) {
 		try {
 			long currentTime = System.currentTimeMillis();
 			// 1.判断任务是否永久保存，永久保存，则不进行删除
@@ -539,7 +540,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				if(BrStringUtils.isEmpty(aTaskQueue)) {
 					continue;
 				}
-				cTime = getTaskCreateTime(aTaskQueue, taskType);
+				cTime = getTaskCreateTime(aTaskQueue, taskType,taskQueuePath);
 				if(cTime > deleteTime) {
 					break;
 				}
@@ -553,7 +554,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 				if(cTime == -4) {
 					LOG.warn("delete taskType: {}, taskName: {}, content: taskcontent is null", taskType, aTaskQueue);
 				}
-				if(deleteTask(aTaskQueue, taskType)) {
+				if(deleteTask(aTaskQueue, taskType,taskQueuePath)) {
 					count++;
 				}
 			}
@@ -565,35 +566,13 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		}
 		return 0;
 	}
-//	/**
-//	 * 概述：获取队列有效的创建时间，若存在无效的任务节点将被删除
-//	 * @param taskQueue
-//	 * @param taskType
-//	 * @return
-//	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-//	 */
-//	private Pair<Integer, Long> getAvailableFirstTime(List<String> taskQueue, String taskType){
-//		int index = 0;
-//		long createTime = 0l;
-//		long tmp;
-//		for(String taskName : taskQueue){
-//			tmp = getTaskCreateTime(taskName, taskType);
-//			LOG.info("select taskName :{} createTime :{}", taskName, tmp);
-//			if(tmp > 0){
-//				createTime = tmp;
-//				break;
-//			}
-//			if(createTime == -4){
-//				LOG.warn("Delete taskType : {}, taskName : {}, content : taskcontent is null", taskType, taskName);
-//				deleteTask(taskName, taskType);
-//			}
-//			index ++;
-//		}
-//		return new Pair<Integer,Long>(index,createTime);
-//	}
+
 
 	@Override
 	public TaskModel getTaskContentNodeInfo(String taskType, String taskName) {
+		return getTaskContentNodeInfo(taskType,taskName,this.taskQueue);
+	}
+	private TaskModel getTaskContentNodeInfo(String taskType, String taskName,String taskQueuePath) {
 		try {
 			if (BrStringUtils.isEmpty(taskName)) {
 				return null;
@@ -601,7 +580,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			if (BrStringUtils.isEmpty(taskType)) {
 				return null;
 			}
-			String path = this.taskQueue + "/" + taskType + "/" + taskName;
+			String path = taskQueuePath + "/" + taskType + "/" + taskName;
 			if(!client.checkExists(path)){
 				return null;
 			}
@@ -619,6 +598,9 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 
 	@Override
 	public TaskServerNodeModel getTaskServerContentNodeInfo(String taskType, String taskName, String serverId) {
+		return getTaskServerContentNodeInfo(taskType,taskName,serverId,taskQueue);
+	}
+	public TaskServerNodeModel getTaskServerContentNodeInfo(String taskType, String taskName, String serverId,String taskQueuePath) {
 		try {
 			if (BrStringUtils.isEmpty(taskName)) {
 				return null;
@@ -626,7 +608,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 			if (BrStringUtils.isEmpty(taskType)) {
 				return null;
 			}
-			String path = this.taskQueue + "/" + taskType + "/" + taskName + "/" + serverId;
+			String path = taskQueuePath + "/" + taskType + "/" + taskName + "/" + serverId;
 			if(!client.checkExists(path)){
 				return null;
 			}
@@ -642,24 +624,6 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		return null;
 	}
 
-	@Override
-	public String getNextTaskName(String taskType, String taskName) {
-		if(BrStringUtils.isEmpty(taskType) || BrStringUtils.isEmpty(taskName)){
-			return null;
-		}
-		List<String> orderTaskName = getTaskList(taskType);
-		if(orderTaskName == null || orderTaskName.isEmpty()){
-			return null;
-		}
-		int index = orderTaskName.indexOf(taskName);
-		if(index <0){
-			return null;
-		}
-		if(index == orderTaskName.size()-1){
-			return null;
-		}
-		return orderTaskName.get(index + 1);
-	}
 
 	@Override
 	public String getFirstTaskName(String taskType) {
@@ -673,42 +637,6 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		return orderTaskName.get(0);
 	}
 
-	@Override
-	public boolean changeTaskContentNodeStateByLock(String serverId, String taskName, String taskType, int taskState) {
-		try {
-			if(BrStringUtils.isEmpty(serverId)){
-				return false;
-			}
-			if (BrStringUtils.isEmpty(taskName)) {
-				return false;
-			}
-			if (BrStringUtils.isEmpty(taskType)) {
-				return false;
-			}
-			String locks = this.taskLockPath + "/" + taskType + "/" + taskName;
-			byte[] data = serverId.getBytes(StandardCharsets.UTF_8);
-			if(!client.checkExists(locks)){
-				client.createEphemeral(locks, true, data);
-			}
-			byte[]tData = client.getData(locks);
-			String zkStr = new String(tData, StandardCharsets.UTF_8);
-			if(!serverId.equals(zkStr)){
-				return false;
-			}
-			TaskModel tmp = getTaskContentNodeInfo(taskType, taskName);
-			if(tmp == null){
-				return false;
-			}
-			tmp.setTaskState(taskState);
-			updateTaskContentNode(tmp, taskType, taskName);
-			client.delete(locks, false);
-			return true;
-		}
-		catch (Exception e) {
-			LOG.error("change task state by lock error {}",e);
-		}
-		return false;
-	}
 
 	@Override
 	public List<Pair<String, Integer>> getServerStatus(String taskType, String taskName) {
@@ -733,6 +661,9 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 
 	@Override
 	public List<String> getTaskServerList(String taskType, String taskName) {
+		return getTaskServerList(taskType,taskName,this.taskQueue);
+	}
+	public List<String> getTaskServerList(String taskType, String taskName,String taskQueuePath) {
 		List<String> childeServers = new ArrayList<>();
 		if(BrStringUtils.isEmpty(taskType)){
 			return childeServers;
@@ -740,7 +671,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		if(BrStringUtils.isEmpty(taskName)){
 			return childeServers;
 		}
-		String path = this.taskQueue + "/" + taskType + "/" + taskName;
+		String path = taskQueuePath + "/" + taskType + "/" + taskName;
 		childeServers = client.getChildren(path);
 		if (childeServers == null || childeServers.isEmpty()) {
 			return childeServers;
@@ -751,10 +682,13 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 	}
 	@Override
 	public List<String> getTaskList(String taskType) {
+		return getTaskList(taskType,this.taskQueue);
+	}
+	public List<String> getTaskList(String taskType,String taskQueuePath) {
 		if (StringUtils.isEmpty(taskType)) {
 			throw new NullPointerException("taskType is empty");
 		}
-		String path = this.taskQueue + "/" + taskType;
+		String path = taskQueuePath + "/" + taskType;
 		if (!client.checkExists(path)) {
 			return null;
 		}
@@ -767,15 +701,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 		return childNodes;
 	}
 
-	@Override
-	public List<String> getTaskTypeList() {
-		List<String> taskTypeList = new ArrayList<>();
-		if (!client.checkExists(this.taskQueue)) {
-			return taskTypeList;
-		}
-		taskTypeList = client.getChildren(this.taskQueue);
-		return taskTypeList;
-	}
+
 
 	@Override
 	public TaskTypeModel getTaskTypeInfo(String taskType) {
