@@ -150,9 +150,9 @@ public class PartitionCheckingRoutine {
             }
             loss = innerMap.get(inner);
             iterator.remove();
-            // 发布磁盘变更信息后，删除内部文件
-            FileUtils.deleteQuietly(new File(this.innerDir+File.separator+loss.getPartitionId()));
-            LOG.error("partition is loss [{}]",loss);
+            // 发布磁盘变更信息后，内部文件不删除，
+//            FileUtils.deleteQuietly(new File(this.innerDir+File.separator+loss.getPartitionId()));
+            LOG.warn("partition is loss [{}]",loss);
         }
     }
 
