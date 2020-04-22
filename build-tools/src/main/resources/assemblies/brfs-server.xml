@@ -42,14 +42,23 @@
 
 		<!-- config -->
 		<fileSet>
-			<directory>${basedir}/src/main/config</directory>
+			<directory>${basedir}/src/main/config/regionnode</directory>
 			<includes>
 				<include>jvm.config</include>
 				<include>logback.xml</include>
 				<include>server.properties.example</include>
 			</includes>
-			<outputDirectory>config</outputDirectory>
+			<outputDirectory>config/regionnode</outputDirectory>
 		</fileSet>
+		<fileSet>
+            <directory>${basedir}/src/main/config/datanode</directory>
+            <includes>
+                <include>jvm.config</include>
+                <include>logback.xml</include>
+                <include>server.properties.example</include>
+            </includes>
+            <outputDirectory>config/datanode</outputDirectory>
+        </fileSet>
 
 		<!-- native-lib -->
 		<fileSet>

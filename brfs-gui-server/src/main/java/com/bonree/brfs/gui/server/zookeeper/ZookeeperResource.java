@@ -25,30 +25,30 @@ import javax.ws.rs.Produces;
 @Path("/zookeeper")
 public class ZookeeperResource {
     
-    private final ZookeeperInfoReporter reporter;
+    private final ZookeeperInfoTaker taker;
     
-    public ZookeeperResource(ZookeeperInfoReporter reporter) {
-        this.reporter = reporter;
+    public ZookeeperResource(ZookeeperInfoTaker taker) {
+        this.taker = taker;
     }
     
     @GET
     @Path("/root")
     @Produces(APPLICATION_JSON)
     public ZookeeperNode rootNode() {
-        return reporter.rootNode();
+        return taker.rootNode();
     }
     
     @GET
     @Path("/list/{nodePath}")
     @Produces(APPLICATION_JSON)
     public List<ZookeeperNode> list(@PathParam("nodePath") String nodePath) {
-        return reporter.list(nodePath);
+        return taker.list(nodePath);
     }
     
     @GET
     @Path("/data/{nodePath}")
     @Produces(APPLICATION_JSON)
     public ZookeeperNodeData getData(@PathParam("nodePath") String nodePath) {
-        return reporter.getData(nodePath);
+        return taker.getData(nodePath);
     }
 }

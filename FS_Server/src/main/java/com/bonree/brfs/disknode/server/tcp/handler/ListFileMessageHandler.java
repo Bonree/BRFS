@@ -1,6 +1,8 @@
 package com.bonree.brfs.disknode.server.tcp.handler;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -40,8 +42,12 @@ public class ListFileMessageHandler implements MessageHandler<BaseResponse> {
 		String dirPath = null;
 		try {
 			dirPath = context.getConcreteFilePath(message.getPath());
+			Path d = Paths.get(dirPath);
+			if(d.getFileName().toString().startsWith("0_")) {
+			    d = d.getParent();
+			}
 			
-			File dir = new File(dirPath);
+			File dir = d.toFile();
 			if(!dir.exists()) {
 				writer.write(new BaseResponse(ResponseCode.ERROR));
 				return;
