@@ -15,7 +15,7 @@ package com.bonree.brfs.gui.server.zookeeper;
 
 import java.util.List;
 
-public interface ZookeeperInfoReporter {
+public interface ZookeeperInfoTaker {
     ZookeeperNode rootNode();
     
     List<ZookeeperNode> list(String nodePath);
