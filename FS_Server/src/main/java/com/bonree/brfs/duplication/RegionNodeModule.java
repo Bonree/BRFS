@@ -122,7 +122,7 @@ public class RegionNodeModule implements Module {
         jaxrs(binder).resource(RouterResource.class);
 
         jaxrs(binder).resource(JsonMapper.class);
-
+        jaxrs(binder).resource(CatalogResource.class);
         jaxrs(binder).resource(DataResource.class);
         jaxrs(binder).resource(FSPackageProtoMapper.class);
 
