@@ -20,6 +20,8 @@ if [ x$BRFS_HOME = "x" ]; then
   echo $BRFS_HOME
 fi
 
+LIB_DIR="${DRUID_LIB_DIR:=${BRFS_HOME}/lib}"
+
 case $1 in
   region)
     NODE_TYPE=regionnode
@@ -39,8 +41,6 @@ case $1 in
     exit 1
   ;;
 esac
-
-LIB_DIR="${DRUID_LIB_DIR:=${BRFS_HOME}/lib}"
 
 ###################配置文件信息########################
 if [ $# -ge 2 ] && [ -d "$2" ]
@@ -86,7 +86,7 @@ DUPLICATE_IO_THREADS=16
 cd ${BRFS_HOME}
 case ${NODE_TYPE} in
 		###启动副本管理###
-		region)
+		regionnode)
 			nohup java $JVM_PARAMS \
 			-Dbrfs.home=$BRFS_HOME \
 			-Dserver.ids=$SERVER_ID_PATH \
@@ -102,7 +102,7 @@ case ${NODE_TYPE} in
 			echo 'start region server completely!'
 		;;
 		###启动磁盘管理###
-		data)
+		datanode)
 			nohup java $JVM_PARAMS \
 			-Dbrfs.home=$BRFS_HOME \
 			-Dlog.dir=$LOG_DIR \
