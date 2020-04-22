@@ -51,7 +51,7 @@ public class HttpFilePathMapper implements FilePathMapper {
                     Request httpRequest = new Request.Builder()
                             .url(HttpUrl.get(uri)
                                     .newBuilder()
-                                    .encodedPath("/data/fid")
+                                    .encodedPath("/catalog/fid")
                                     .addEncodedPathSegment(srName)
                                     .addQueryParameter("absPath", path.getPath())
                                     .build())

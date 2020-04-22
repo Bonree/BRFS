@@ -258,27 +258,4 @@ public class DataResource {
             throw new IllegalArgumentException("forbid delete current error");
         }
     }
-
-    @GET
-    @Path("fid/{srName}")
-    public String getFid (
-            @PathParam("srName") String srName,
-            @QueryParam("absPath") String absPath)throws Exception{
-        LOG.info("test for get fid,[{}],[{}]" ,srName,absPath);
-        LOG.info("get fid request srName[{}],absPath[{}]",srName,absPath);
-        //todo 参数检查
-        if(!brfsCatalog.isUsable()){
-            LOG.error("get fid error caused by the catalog is not open");
-            throw new Exception("get fid error caused by the catalog is not open");
-        }
-        if(!brfsCatalog.validPath(absPath)){
-            LOG.error("invalid file path [{}]",absPath);
-            throw new IllegalArgumentException("invalid file path:"+absPath);
-        }
-        String fid = brfsCatalog.getFid(srName, absPath);
-        if(fid == null) {
-            throw new Exception("error when get fid from catalog!");
-        }
-        return fid;
-    }
 }
