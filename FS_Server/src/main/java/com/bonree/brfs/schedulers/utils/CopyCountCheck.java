@@ -176,7 +176,7 @@ public class CopyCountCheck {
 						for(int i = 1; i <=reCount; i++){
 							path = "/"+snName+"/"+i+"/"+dirName;
 							LOG.debug("path :{}",path);
-							strs = getFileList(parser, client, path, sid);
+							strs = getFileList(parser, client, path+"/"+buildDirName(sid,i), sid);
 							if(strs == null || strs.isEmpty()) {
 								LOG.debug("files is empty {}", path);
 								continue;
@@ -219,6 +219,14 @@ public class CopyCountCheck {
 
 		}
 		return clearUnLawFiles(snMap);
+	}
+	public static String buildDirName(String secondId,int dirIndex){
+		StringBuilder dirBuilder = new StringBuilder();
+		for(int i=0;i<dirIndex;i++){
+			dirBuilder.append("0_");
+		}
+		dirBuilder.append(secondId);
+		return dirBuilder.toString();
 	}
 	public static Map<StorageRegion, List<String>> clearUnLawFiles(Map<StorageRegion,List<String>> data){
 		Map<StorageRegion, List<String>> rMap = new HashMap<>();
@@ -276,7 +284,7 @@ public class CopyCountCheck {
 			LOG.debug("path : [{}] is not data", path);
 			return null;
 		}
-		return converToStringList(parser, files, path, sid);
+		return converToStringList(parser, files, sid);
 	}
 	 /**
 	 * 概述：转换集合为str集合
@@ -284,7 +292,7 @@ public class CopyCountCheck {
 	 * @return
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
-	public static List<String> converToStringList(RouteParser parser,List<FileInfo> files,String dir, String sid){
+	public static List<String> converToStringList(RouteParser parser,List<FileInfo> files, String sid){
 		List<String> strs = new ArrayList<>();
 		String path;
 		String fileName;
