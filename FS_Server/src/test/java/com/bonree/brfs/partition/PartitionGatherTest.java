@@ -33,6 +33,7 @@ public class PartitionGatherTest {
     private static String ONE_DIR = FILE_DIR+ File.separator+"one";
     private static String ID_BAS_PATH="/brfsDevTest/discovery";
     private static String BASE_ID_PATH = "/brfsDevTest/identification/server_id_sequences";
+    private static String SECOND_ID_PATH = "/brfsDevTest/identification/server_ids";
     private static String ZKADDRES = RouteParserTest.ZK_ADDRESS;
     private CuratorFramework framework = null;
     private DiskNodeIDImpl idImpl = null;
@@ -50,7 +51,7 @@ public class PartitionGatherTest {
         } catch (InterruptedException e) {
             Assert.fail("zookeeper client is invaild !! address: "+ZKADDRES);
         }
-        idImpl = new DiskNodeIDImpl(framework,BASE_ID_PATH);
+        idImpl = new DiskNodeIDImpl(framework,BASE_ID_PATH,SECOND_ID_PATH);
         firstServer = new Service("10","dataGroup","127.0.0.1",13000,System.currentTimeMillis());
         String libPath = "/data/brfs/lib";
         File file = new File(libPath);

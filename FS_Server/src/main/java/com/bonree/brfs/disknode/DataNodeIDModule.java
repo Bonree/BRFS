@@ -46,7 +46,7 @@ public class DataNodeIDModule implements Module {
     @Singleton
     public DiskDaemon getDiskDaemon(CuratorFramework client, ZookeeperPaths zkpath, Service firstLevelServerID, StorageConfig storageConfig, PartitionConfig partitionConfig, IDConfig idConfig, Lifecycle lifecycle) {
         // 1.生成注册id实例
-        DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client, zkpath.getBaseServerIdSeqPath());
+        DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client, zkpath.getBaseServerIdSeqPath(),zkpath.getBaseV2SecondIDPath());
         // 2.生成磁盘分区id检查类
         PartitionCheckingRoutine routine = new PartitionCheckingRoutine(diskNodeID, storageConfig.getStorageDirs(), idConfig.getPartitionIds(), partitionConfig.getPartitionGroupName());
         Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();
