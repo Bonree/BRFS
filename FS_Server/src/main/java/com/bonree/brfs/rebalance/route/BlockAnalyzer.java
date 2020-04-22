@@ -15,5 +15,11 @@ public interface BlockAnalyzer {
      * @return
      */
     String[] searchVaildIds(String fileName);
+
+    /**
+     * 更新路由规则
+     */
     void update();
+
+
 }

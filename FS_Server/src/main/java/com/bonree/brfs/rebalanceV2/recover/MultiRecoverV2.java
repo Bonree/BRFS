@@ -2,6 +2,7 @@ package com.bonree.brfs.rebalanceV2.recover;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
+import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -16,6 +17,7 @@ import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.DataRecover;
+import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalanceV2.task.BalanceTaskSummaryV2;
@@ -24,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -31,6 +34,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -294,6 +298,14 @@ public class MultiRecoverV2 implements DataRecover {
         }
     }
 
+    /**
+     *
+     * @param perFile 文件块路径
+     * @param fileName 文件块名称
+     * @param timeFileName 相对的时间块
+     * @param replica 所在的位置
+     * @param partitionPath 本地存储根目录
+     */
     private void dealFile(String perFile, String fileName, String timeFileName, int replica, String partitionPath) {
         // 对文件名进行分割处理
         String[] metaArr = fileName.split(NAME_SEPARATOR);
@@ -301,6 +313,8 @@ public class MultiRecoverV2 implements DataRecover {
         String namePart = metaArr[0];
 
         // 整理2级serverID，转换虚拟serverID
+        RouteParser parser = new RouteParser(0,null);
+
         List<String> fileServerIds = new ArrayList<>();
         for (int j = 1; j < metaArr.length; j++) {
             if (metaArr[j].charAt(0) == Constants.VIRTUAL_ID) {
@@ -315,6 +329,7 @@ public class MultiRecoverV2 implements DataRecover {
                 fileServerIds.add(metaArr[j]);
             }
         }
+
 
         // 这里要判断一个副本是否需要进行迁移
         // 挑选出的可迁移的servers
@@ -365,6 +380,76 @@ public class MultiRecoverV2 implements DataRecover {
             }
         }
     }
+
+    /**
+     *
+     * @param brfsPath 本机文件块信息
+     * @param partitionPath 本机磁盘id根目录
+     * @param parser 路由规则解析
+     * @param normal 由changgeSummary转化来的路由规则
+     */
+    private void dealFileV2(BRFSPath brfsPath, String partitionPath, RouteParser parser, NormalRouteInterface normal) {
+
+        // 1.由路由规则解析出来的服务
+        String[] analysisSecondIds = parser.searchVaildIds(brfsPath.getFileName());
+        List<String> vaildSecondIds = new ArrayList<>();
+        // 2.检查元素，若存在虚拟id，则不进行恢复
+        for(String id :analysisSecondIds){
+            if(parser.isVirtualID(id)){
+                return;
+            }
+            vaildSecondIds.add(id);
+        }
+
+        // 3.收集已经不可用的服务集合，若集合为空，则文件不需要恢复
+        List<String> deadSecondIds = vaildSecondIds.stream().filter(x->{return !getAliveMultiIds().contains(x);}).collect(Collectors.toList());
+        if(deadSecondIds == null || deadSecondIds.isEmpty()){
+            return;
+        }
+        // 4.解析文件名 用于当前需要发布的路由规则
+        Pair<String,List<String>> fileInfoPair = parser.analyzingFileName(brfsPath.getFileName());
+        int fileCode = parser.sumName(fileInfoPair.getFirst());
+        List<String> excludes = fileInfoPair.getSecond();
+        // 5.遍历不可用的服务
+        for (String deadServer : deadSecondIds) {
+            LOG.info("deadServer: {}", deadServer);
+            int pot = vaildSecondIds.indexOf(deadServer)+1;
+            // 5-1.若发现不可用的secondid，则可能发生新的变更，将由下次任务执行，本次不进行操作
+            if(!deadServer.equals(normal.getBaseSecondId())){
+                LOG.warn("recovery find unable file:[{}],analysis:{} second {} route:[{}]",brfsPath.getFileName(),vaildSecondIds,deadServer,normal);
+                continue;
+            }
+            // 5-2.根据预发布的路由规则进行解析，
+            String selectMultiId = normal.locateNormalServer(fileCode,excludes);
+
+            // 5-3.判断选取的新节点是否存活
+            if (isAlive(getAliveMultiIds(), selectMultiId)) {
+                String secondServerIDSelected = idManager.getSecondId(balanceSummary.getPartitionId(), balanceSummary.getStorageIndex());
+                // 5-4.判断要恢复的secondId 与选中的secondid是否一致，一致，则表明该节点已经启动，则不做处理，不一致则需要作恢复
+                if (!secondServerIDSelected.equals(selectMultiId)) {
+                    String firstID = idManager.getFirstId(selectMultiId, balanceSummary.getStorageIndex());
+                    FileRecoverMetaV2 fileMeta = new FileRecoverMetaV2(partitionPath+ File.separator+brfsPath.toString(), brfsPath.getFileName(), selectMultiId, getTimeDir(brfsPath), Integer.parseInt(brfsPath.getIndex()), pot, firstID, partitionPath);
+                    try {
+                        fileRecoverQueue.put(fileMeta);
+                    } catch (InterruptedException e) {
+                        LOG.error("put file: " + fileMeta, e);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 获取BRFS文件块的时间目录
+     * @param brfsPath
+     * @return
+     */
+    private String getTimeDir(BRFSPath brfsPath){
+        return brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
+                .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
+                .getHourMinSecond();
+    }
+
 
     private Runnable consumerQueue() {
         return new Runnable() {

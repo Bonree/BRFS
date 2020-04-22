@@ -68,14 +68,14 @@ public class RouteParser implements BlockAnalyzer {
         return secondIds.toArray(new String[0]);
     }
 
+    public boolean isVirtualID(String serverID){
+        return serverID.charAt(0) == Constants.VIRTUAL_ID;
+    }
     @Override
     public void update() {
         try {
             Collection<VirtualRoute> virtualRoutes = this.loader.loadVirtualRoutes(this.storageRegionID);
             Collection<NormalRouteInterface>normalRoutes = this.loader.loadNormalRoutes(this.storageRegionID);
-            if(virtualRoutes != null && !virtualRoutes.isEmpty()){
-
-            }
             if(normalRoutes !=null && !normalRoutes.isEmpty()){
                 for(NormalRouteInterface normal : normalRoutes){
                     this.normalRouteTree.put(normal.getBaseSecondId(),normal);
@@ -103,10 +103,10 @@ public class RouteParser implements BlockAnalyzer {
         String tmpSecondId = secondId;
         List<String> excludes = new ArrayList<>();
         // 1.判断secondId的类型，若为虚拟serverid 并且未迁移 则返回null
-        if (secondId.charAt(0) == Constants.VIRTUAL_ID&&virtualRouteRelationship.get(secondId) == null) {
+        if (isVirtualID(secondId)&&virtualRouteRelationship.get(secondId) == null) {
             return secondId;
             //2. 判断secondId的类型，若为虚拟serverid 并发生迁移则进行转换。
-        }else if(secondId.charAt(0) == Constants.VIRTUAL_ID){
+        }else if(isVirtualID(secondId)){
             tmpSecondId = virtualRouteRelationship.get(secondId).getNewSecondID();
         }
         excludes.addAll(excludeSecondIds);
@@ -140,7 +140,7 @@ public class RouteParser implements BlockAnalyzer {
      * @param fileBocker 文件块名称
      * @return Pair\<String,List\<String>> key: 文件的uuid，value 二级serverId集合，按照其顺序排列
      */
-    private Pair<String, List<String>> analyzingFileName(String fileBocker){
+    public Pair<String, List<String>> analyzingFileName(String fileBocker){
         String[] splitStr = fileBocker.split("_");
         String fileUUID = splitStr[0];
         List<String> fileServerIDs = new ArrayList<>(splitStr.length - 1);
@@ -155,7 +155,7 @@ public class RouteParser implements BlockAnalyzer {
      * @param name
      * @return
      */
-    protected int sumName(String name) {
+    public int sumName(String name) {
         int sum = 0;
         for (int i = 0; i < name.length(); i++) {
             sum = sum + name.charAt(i);
