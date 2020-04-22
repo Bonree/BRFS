@@ -1,0 +1,343 @@
+###############################################
+#############Common config#####################
+###############################################
+
+# 机器集群名
+# cluster.name = cluster_name
+
+# Zookeeper地址
+# zookeeper.addresses = ip1:2181,ip2:2181
+
+# 磁盘节点服务所在的服务组
+# datanode.service.group = data_group
+
+# 副本节点服务群组名
+# regionnode.service.group = region_group
+
+###############################################
+###############磁盘分区配置####################
+###############################################
+
+# 磁盘节点组名
+# partition.group = partition_group
+
+# 磁盘分区的检查周期 单位秒
+# partition.check.interval.time = 5
+
+###############################################
+##############Region Node Config###################
+###############################################
+
+# 副本节点服务地址
+# regionnode.service.host = localhost
+
+# 副本节点服务端口
+# regionnode.service.port = 8880
+
+# 副本节点服务的IO线程数
+# regionnode.server.io.num = 8
+
+# 需要进行文件清理的文件个数
+# 副本节点中维护的文件数量超过此值，文件清理程序
+# 才会进行文件清理
+#regionnode.file.clean.count = 10
+
+# 副本节点能打开的最大文件数量
+#regionnode.file.max.count = 15
+
+# 文件可以被清理的字节下限
+# 文件清理程序只会清理文件空间使用比率大于此值的文件
+# regionnode.file.clean.usage.rate = 0.99
+
+# 副本节点向磁盘节点写数据的线程数
+# regionnode.writer.worker.num = 24
+
+# 每个Storage Region可以缓存的数据数量
+# regionnode.data.pool.capacity = 512
+
+# 数据处理程序的空闲时间
+# 每个Storage Region都会对应有一个DataEngine
+# 当第一条数据到达时DataEngine才会创建，如果在最后
+# 一条数据写入后，在Idle设定时长的时间里都没有数据到
+# 达，则删除DataEngine
+# regionnode.dataengine.idle.time = PT1H
+
+###############################################
+##############Data Node Config###################
+###############################################
+# 磁盘节点的服务地址
+# datanode.service.host = localhost
+
+# 磁盘节点的服务端口
+# datanode.service.port = 8881
+
+# 磁盘节点中文件读取端口
+# datanode.file.server.port = 8900
+
+# 磁盘节点保存数据文件的目录路径
+# datanode.data.root = /data
+
+# 磁盘文件的最大容量（字节）
+#datanode.file.max.capacity = 6815744
+
+# 磁盘节点处理数据写入的线程数
+# 默认为机器CPU核数
+# datanode.writer.worker.num = 8
+
+# 数据文件的写入缓存
+# 单位（字节）
+# datanode.writer.data.cache = 524288
+
+# 数据写入记录的缓存大小
+# datanode.writer.record.cache = 65536
+
+# 文件的空闲时间
+# 如果文件空闲时间超过此值，则会把缓存中的内容刷入磁盘
+# datanode.file.idle.time = PT3S
+
+# 磁盘节点中用于处理Http请求的线程数
+# datanode.request.handler.num = 8
+
+# datanode中进行文件读取的线程数
+# datanode.file.reader.num = 8
+
+# datanode 一级serverid存储目录，内部配置
+# datanode.ids.server.dir = ./ids
+
+# datanode 磁盘id存储目录 内部配置
+# datanode.ids.partition.dir = ./ids/partitionids
+###############################################
+##############文件平衡模块 Config################
+###############################################
+# 虚拟服务文件的迁移触发时间（秒）
+# -1为立即触发
+# rebalance.virtual.recover.time = 3600
+
+# 磁盘节点异常的迁移触发时间（秒）
+# -1为立即触发
+# rebalance.serverdown.recover.time = 3600
+
+###############################################
+##############Storage Config###################
+###############################################
+# Storage中文件的有效期
+# 负数为无穷期限，例如"P-1D"
+# storage.data.ttl = P30D
+
+# Storage中文件的副本数
+# storage.replicate.count = 2
+
+# Storage Region中每个文件的容量大小（字节）
+# storage.file.capacity = 67108864
+
+# 默认Storage Region中分隔文件的时间段大小;
+# 文件会被按照时间存储到不同的文件夹下，每个文件夹会包含此值
+# 所指定的时间间隔内的所有文件
+# storage.file.patition.duration = PT1H
+
+###############################################
+##############任务管理模块 Config################
+###############################################
+# 任务开关 true 开  false 关，当为false时，将不会创建相应的线程池
+# 系统删除任务开关
+# system.delete.pool.switch = true
+
+# 任务线程池大小设置，当任务开关为true，但是设置的值小于0 则为默认值
+# 系统删除任务线程池设置
+# system.delete.pool.size = 1
+
+# 系统归并任务开关
+# system.merge.pool.switch = false
+
+# 系统归并任务线程池设置
+# system.merge.pool.size = 1
+
+# 系统校验任务开关
+# system.check.pool.switch = false
+
+# 系统校验任务线程池设置
+# system.check.pool.size = 1
+
+# 系统副本恢复任务开关
+# system.recovery.pool.switch = false
+
+# 系统副本恢复任务线程池设置
+# system.recovery.pool.size = 1
+
+# 副本校验任务开关
+# system.copy.pool.switch = false
+
+# 副本校验线程池大小
+# system.copy.pool.size = 1
+
+# 用户删除任务开关
+# user.delete.pool.switch = true
+
+# 用户删除任务线程池设置
+# user.delete.pool.size = 1
+
+# 系统任务创建时间间隔 单位s
+# system.create.task.inverval.time = 60
+
+# 副本校验任务执行的时间间隔 单位s
+# system.copy.check.create.inveratal.time = 60
+
+# 执行任务的时间间隔 单位s
+# execute.task.inverval.time = 60
+
+# 任务管理信息
+# 任务总体控制开关
+# task.framework.switch = true
+
+# 资源采集功能控制开关
+# resource.framework.switch = true
+
+# 任务信息保留时长，单位s
+# task.expired.time = 680400
+
+# 对过多久的数据检查 单位s
+# system.check.data.ttl = 3600
+
+# 周期检查副本数的触发时刻，格式为24小时格式 HH:MM 默认为 02:30
+# cycle.check.copy.count.time = 2:30
+
+# 周期检查副本数的时间范围，单位天
+# cycle.check.copy.count.time.range = 7
+
+# 周期清理多余文件的触发时刻，格式为24小时格式 HH:MM 默认为 02:30
+# watchdog.trigger.time = 2:30
+
+# 周期清理多余文件的时间间隔，单位天
+# watch.dog.trigger.interval = 7
+
+###############################################
+##############资源管理模块 Config################
+###############################################
+#资源采集
+#资源采集的时间间隔 单位s
+# gather.resource.inveral.time = 10
+
+# 当有N个采样点时，计算资源值，最小值为2
+# calc.resource.value.count = 5
+
+# 资源选择的比值大小
+# resource.cent.size=1000
+
+# 资源限制 磁盘剩余率
+# limit.resource.value.disk.remain.rate = 0.001
+
+# 资源磁盘剩余限制值，当分区剩余量低于该值，则不会参与写入服务选择， 单位kb
+# limit.resource.value.force.disk.remain.size=10485760
+#资源磁盘剩余告警值，当分区剩余大小低于该值，则会发送邮件告警，单位KB
+# limit.resource.value.disk.remain.size=20971520
+# 资源限制 磁盘写入率
+# limit.resource.value.disk.write.speed.rate = 0.9
+
+# 资源限制 磁盘读取率
+# limit.resource.value.diskreadspeedrate = 0.9
+
+# 资源限制 网卡发送率
+# limit.resource.value.nettspeedrate = 0.9
+
+# 资源限制 网卡接收率
+# limit.resource.value.netrspeedrate = 0.9
+# 资源报警邮件发送时间间隔控制 单位s
+# resource.email.time = 300
+# 不监控的磁盘分区，若brfs数据存储路径上存在多个磁盘分区时，可通过该配置项过滤掉不想监控的磁盘分区
+# 例如brfs数据存储目录为/data/files 其中/目录挂在一个分区，/data目录挂载一个分区，不想监控/目录对应的分区则可以将/放入该配置项中，若存在多个，用，分割。 默认为空
+# unmounitor.partition = /
+######################
+#####报警邮件配置######
+######################
+# 邮件开关，true发送邮件，false不发送邮件 默认为不开启
+# email.switch=false
+# 邮箱服务地址
+# email.smtp=mail.bonree.com
+# 邮箱服务发送端口
+# email.smtp.port=25
+# 邮箱发送者
+# email.send.user=redalert@bonree.com
+# 邮箱发送者密码
+# email.send.user.password=alert!^*90
+# 是否开启ssl发送
+# email.use_ssl=false
+# 接收者列表，通过，分割
+# email.recipient=zhucg@bonree.com
+# 邮件内容标题，并非邮件主题
+# email.header=BRFS集群
+# 邮件默认模块
+# email.model=brfs
+# 公司信息
+# email.company=北京博睿宏远数据科技股份有限公司 版权所有   京 ICP备 08104257 号 京公网安备 1101051190
+# 版权信息
+# email.copyright=Copyright ©2007-2019 All rights reserved
+# 发送email线程池大小
+# email.pool.size=3
+
+# deliver的开关，false为关闭，不进行推送
+# deliver.switch=false
+
+# kafka的brokers的地址列表
+# kafka.brokers=192.168.4.114:9092
+
+# deliver推送的kafka的topic
+# kafka.topic=brfs_metric
+
+# deliver缓存大小，超过大小后，将丢弃数据
+# deliver.queue.size=200000
+
+# deliver解析字段地址
+# deliver.meta.url=http://devtest.ibr.cc:20003/v1
+
+# deliver数据源
+# deliver.datasource=sdk_data_brfs
+
+# deliver的写性能表
+# deliver.table.writer=brfs_writer_metric
+
+# deliver的读性能表
+# deliver.table.reader=brfs_reader_metric
+
+###############################################
+##############RocksDB Config###################
+###############################################
+# rocksdb存储自定义文件名和FID的磁盘路径
+rocksdb.storage.path = /tmp/rocksdb
+# rocksdb的数据备份磁盘路径
+rocksdb.backup.path = /tmp/rocksdb_backup
+# rocksdb用于接收其他节点的备份文件的恢复目录
+rocksdb.restore.path = /tmp/rocksdb_restore
+# rocksdb用于临时数据恢复的目录，恢复完成后，将数据迁移到rocksdb.storage.path
+rocksdb.restore.temporary.path = /tmp/rocksdb_temporary
+# 备份文件socket传输时使用的端口
+rocksdb.backup.file.transfer.port = 9696
+# 备份周期，单位毫秒
+rocksdb.backup.cycle = 600000
+# rocksdb将数据从memtable flush到level 0的并发线程数目，默认为1
+rocksdb.max.background.flush = 4
+# rocksdb由低级level向更高级的level进行数据归并操作的并发线程数目，默认为1
+rocksdb.max.background.compaction = 4
+# 最大打开文件句柄数，默认为-1
+rocksdb.max.open.files = -1
+# 支持compaction的并行度，为1时表示不支持，默认为1
+rocksdb.max.subcompaction = 4
+# 配置LRU cache的大小，用来缓存未经过压缩的block，单位MB
+rocksdb.block.cache = 1024
+# 单个memtable的大小，单位MB。默认是64MB
+rocksdb.write.buffer.size = 128
+# 指定一个RocksDB中一个列族下memtable和immutable memtable的最大数目
+rocksdb.max.write.buffer.number = 4
+# 至少有2个immutable memtable后才进行flush操作
+rocksdb.min.write.buffer.num.to.merge = 2
+# L0达到指定个数的sstable后，触发compaction L0->L1，默认是4
+rocksdb.level0.file.num.compaction.trigger = 8
+# L1单个文件大小，单位MB
+rocksdb.target.file.size.base = 256
+# L1的总大小，L1的大小建议设置成和L0大小一致，提升L0->L1的compaction效率，单位MB
+rocksdb.max.bytes.level.base = 2048
+# 写数据时的blocksize，最好与dn的文件块大小一致
+regionnode.block.size = 65536
+# blockpool的最大值
+regionnode.block.pool.capacity = 10
+# blockpool的初始值
+regionnode.block.pool.init.count = 1
