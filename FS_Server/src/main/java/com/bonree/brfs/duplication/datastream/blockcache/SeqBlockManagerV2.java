@@ -506,12 +506,12 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                 if(quit && fileWaiting.isEmpty()) {
                     break;
                 }
-//                LOG.info("Watcher : enqueue file count is [{}]" +
-//                                "file writing count is [{}]" +
-//                                "file in blockcache is [{}]" ,
-//                        fileWaiting.size(),
-//                        fileWritingCount.get(),
-//                        blockcache.size());
+                LOG.info("Watcher : enqueue file count is [{}]" +
+                                "file writing count is [{}]" +
+                                "file in blockcache is [{}]" ,
+                        fileWaiting.size(),
+                        fileWritingCount.get(),
+                        blockcache.size());
                 try {
                     Thread.sleep(600000);
                 } catch (InterruptedException e) {
