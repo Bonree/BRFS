@@ -5,13 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author wangchao
  * @date 2020/3/20 - 10:54 上午
  */
-public class SeqBlock implements BlockInterface{
+public class SeqBlock implements Block {
 
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlock.class);
 

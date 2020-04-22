@@ -18,12 +18,12 @@ import java.util.concurrent.atomic.AtomicLong;
  * 1. 流量限制
  * 2. require，release
  */
-public class SeqBlockPool implements BlockPoolInterface{
+public class SeqBlockPool implements BlockPool {
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockPool.class);
     private static long waitForBlock = Configs.getConfiguration().GetConfig(RegionNodeConfigs.WAIT_FOR_BLOCK_TIME);
     private final long blockSize;
     private int maxCount;
-    private final BlockingQueue<BlockInterface> reclaimedBlocks;
+    private final BlockingQueue<Block> reclaimedBlocks;
     private AtomicInteger blockID = new AtomicInteger(1);
     // mapping from SeqBlock IDs to Blocks
     private Map<Integer, SeqBlock> blockIdMap = new ConcurrentHashMap<Integer, SeqBlock>();
@@ -50,8 +50,8 @@ public class SeqBlockPool implements BlockPoolInterface{
      * 如果已经到了blockpool的最大块数，尝试从回收队列中取一个已有的，如果3秒后还是获取不到，则返回空block
      */
 
-    public BlockInterface getBlock() throws InterruptedException {
-        BlockInterface SeqBlock = reclaimedBlocks.poll();
+    public Block getBlock() throws InterruptedException {
+        Block SeqBlock = reclaimedBlocks.poll();
         if (SeqBlock != null) {
             SeqBlock.reset();
 //            for statistics
@@ -83,7 +83,7 @@ public class SeqBlockPool implements BlockPoolInterface{
      * Blocks
      * @param b
      */
-    public void putbackBlocks(BlockInterface b) {
+    public void putbackBlocks(Block b) {
         if(b==null){
             LOG.warn("try to put back a null block , may be some block is miss now ");
             return;
@@ -113,7 +113,7 @@ public class SeqBlockPool implements BlockPoolInterface{
         blockIdMap.remove(id);
     }
     //for test
-    protected BlockingQueue<BlockInterface> getReclaimedBlocks() {
+    protected BlockingQueue<Block> getReclaimedBlocks() {
         return reclaimedBlocks;
     }
 

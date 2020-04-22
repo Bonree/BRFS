@@ -38,8 +38,8 @@ import com.bonree.brfs.duplication.catalog.DefaultBrfsCatalog;
 import com.bonree.brfs.duplication.catalog.NonRocksDBManager;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockPoolInterface;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockPool;
 import com.bonree.brfs.duplication.datastream.blockcache.SeqBlockManagerV2;
 import com.bonree.brfs.duplication.datastream.blockcache.SeqBlockPool;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
@@ -203,9 +203,9 @@ public class RegionNodeModule implements Module {
 
     @Provides
     @Singleton
-    public BlockManagerInterface getBlockManager(
+    public BlockManager getBlockManager(
             StorageRegionWriter writer,
-            BlockPoolInterface blockpool,
+            BlockPool blockpool,
             StorageRegionWriter write,
             BrfsCatalog brfsCatalog) {
         return new SeqBlockManagerV2(blockpool, writer, brfsCatalog);
@@ -213,7 +213,7 @@ public class RegionNodeModule implements Module {
 
     @Provides
     @Singleton
-    public BlockPoolInterface getBlockPool() {
+    public BlockPool getBlockPool() {
         long blocksize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
         int maxCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
         Integer initCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_INIT_COUNT);

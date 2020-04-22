@@ -5,7 +5,6 @@ import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
@@ -22,8 +21,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SeqBlockManagerV2 implements BlockManagerInterface{
-    private final BlockPoolInterface blockPool;
+public class SeqBlockManagerV2 implements BlockManager {
+    private final BlockPool blockPool;
     private StorageRegionWriter writer;
     private final BrfsCatalog brfsCatalog;
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManagerV2.class);
@@ -41,7 +40,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
 
     private ConcurrentHashMap<BlockKey,BlockValue> blockcache = new ConcurrentHashMap<>();
     @Inject
-    public SeqBlockManagerV2(BlockPoolInterface blockPool, StorageRegionWriter writer, BrfsCatalog brfsCatalog) {
+    public SeqBlockManagerV2(BlockPool blockPool, StorageRegionWriter writer, BrfsCatalog brfsCatalog) {
         this.writer = writer;
         this.fileWorker = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(),
@@ -182,7 +181,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
         }
     }
     class BlockValue{
-        private BlockInterface data;
+        private Block data;
         private List<String> fids = new ArrayList<String>();
         private int storage;
         private String file;
@@ -192,7 +191,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
         private volatile int clearTimeOut = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CLEAR_TIME_THRESHOLD);
         ClearTimerTask fooTimerTask = new ClearTimerTask(clearTimeOut);
         private Timer timer = new Timer();
-        public BlockValue(BlockInterface block,int storage,String file, String writeID) {
+        public BlockValue(Block block, int storage, String file, String writeID) {
             this.data = block;
             accessTime = System.currentTimeMillis();
             createTime = accessTime;
@@ -480,7 +479,7 @@ public class SeqBlockManagerV2 implements BlockManagerInterface{
                             continue;
                         }
                         BlockKey blockKey = new BlockKey(unhandledRequest.getFsPacket().getStorageName(),unhandledRequest.getFsPacket().getWriteID());
-                        BlockInterface block = blockPool.getBlock();
+                        Block block = blockPool.getBlock();
                         blockcache.put(blockKey,new BlockValue(block,unhandledRequest.getFsPacket().getStorageName(),unhandledRequest.getFsPacket().getFileName(),unhandledRequest.getFsPacket().getWriteID()));
                         LOG.info("Processor : writing file [{}]",unhandledRequest.fsPacket.getFileName());
                         fileWritingCount.incrementAndGet();
