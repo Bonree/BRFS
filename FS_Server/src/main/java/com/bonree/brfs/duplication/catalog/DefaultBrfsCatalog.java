@@ -8,15 +8,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class DefaultBrfsCatalog implements BrfsCatalog {
     RocksDBManager rocksDBManager;
     public static final byte[] rootID = "0".getBytes();
-    AtomicLong idGen = new AtomicLong(0l);
+//    AtomicLong idGen = new AtomicLong(0l);
+    static final Base64.Decoder decoder = Base64.getDecoder();
+    static final Base64.Encoder encoder = Base64.getEncoder();
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBrfsCatalog.class);
     private static final String pattern = "^\\/(\\.*[\\w,\\-]+\\.*\\/?)+$";
 
@@ -33,8 +40,35 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     @Override
     public List<Inode> list(String srName, String path, int pageNo, int pageSize) {
         int startPos = (pageNo-1) * pageSize;
-        int endPos = startPos + pageSize;
         ArrayList<Inode> inodes = new ArrayList<>(pageSize);
+        String[] allAncesstors = getAllAncesstors(path);
+        byte[] parentID = rootID;
+        for (String ancesstor : allAncesstors) {
+            parentID = rocksDBManager.read(srName, Bytes.byteMerge(parentID,("/"+ancesstor).getBytes()));
+            if (parentID == null){
+                throw new NotFoundException("the path :"+path+" is not exsit");
+            }
+        }
+
+        String lastNodeName = getLastNodeName(path);
+        byte[] read = rocksDBManager.read(srName, Bytes.byteMerge(parentID, lastNodeName.getBytes()));
+        Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName, read);
+        for (byte[] key : map.keySet()) {
+            String nodeName = getLastNodeName(new String(key));
+            byte[] value = map.get(key);
+            if(null == value){
+                String resp = "the path["+path+"]'child["+nodeName+"] is not store correctly";
+                LOG.error(resp);
+                throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
+            }
+            try {
+                //todo work suspend here
+                InodeValue inodeValue = InodeValue.deSerialize(value);
+            } catch (InvalidProtocolBufferException e) {
+                LOG.error("deserialize error!");
+                throw new ProcessingException("deserialize error!");
+            }
+        }
 
         return null;
     }
@@ -115,7 +149,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
      * @return
      */
     private String creatDir(String srName, byte[] queryKey) throws Exception {
-        String id = String.valueOf(idGen.incrementAndGet());
+        String id = encoder.encodeToString(queryKey);
         byte[] writeValue = new InodeValue()
                 .setID(id)
                 .build()
@@ -133,6 +167,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         for (String s : ancesstors) {
             parentID = rocksDBManager.read(srName, Bytes.byteMerge(parentID,("/"+s).getBytes()));
             if(parentID == null){
+                LOG.info("the path [{}]does not exsit in the rocksdb ",path);
                 return null;
             }
             try {
@@ -154,6 +189,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             }
             return inodeValue.getFid();
         }
+        LOG.info("the path [{}]does not exsit in the rocksdb ",path);
         return null;
     }
 
