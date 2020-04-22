@@ -178,8 +178,12 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface {
         try {
             if(client.checkExists().forPath(pPath) == null){
                 client.create().creatingParentsIfNeeded().forPath(pPath,firstServer.getBytes(StandardCharsets.UTF_8));
+            }else {
+                LOG.info("partition ship is exists partition id {}({})",partitionId,firstServer);
             }
         } catch (Exception ignore) {
+            LOG.info("add partition relation happen error !ignore it ! message :{} ", ignore.getMessage());
+
         }
         try {
             byte[] fdata = client.getData().forPath(pPath);
