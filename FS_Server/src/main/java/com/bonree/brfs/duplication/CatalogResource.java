@@ -18,34 +18,43 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 
 @Path("/catalog")
 public class CatalogResource {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogResource.class);
     private final BrfsCatalog catalog;
     @Inject
-    public CatalogResource(
-            BrfsCatalog catalog) {
+    public CatalogResource(BrfsCatalog catalog) {
         this.catalog = catalog;
-
     }
     @GET
     @Path("fid/{srName}")
-    public String getSercondServerID(
+    public String getFid (
             @PathParam("srName") String srName,
-            @QueryParam("absPath") String absPath) throws  Exception{
+            @QueryParam("absPath") String absPath) {
+        LOG.info("test for get fid,[{}],[{}]" ,srName,absPath);
         LOG.info("get fid request srName[{}],absPath[{}]",srName,absPath);
         //todo 参数检查
         if(!catalog.isUsable()){
-            throw new Exception("get fid error caused by the catalog is not open");
+            LOG.error("get fid error caused by the catalog is not open");
+            throw new ServiceUnavailableException("get fid error caused by the catalog is not open");
         }
-        String fid = catalog.getFid(srName, absPath);
+        if(!catalog.validPath(absPath)){
+            LOG.error("invalid file path [{}]",absPath);
+            throw new BadRequestException("invalid file path:"+absPath);
+        }
+        String fid = null;
+        try {
+            fid = catalog.getFid(srName, absPath);
+        }catch (Exception e){
+            LOG.error("error when get fid from rocksDb!");
+            throw new ProcessingException("error when get fid from rocksDb");
+        }
+
         if(fid == null) {
-            throw new Exception("error when get fid from catalog!");
+            LOG.error("get null from rocksDB");
+            throw new ServiceUnavailableException("get null when get fid from catalog!");
         }
         return fid;
     }
