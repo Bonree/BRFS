@@ -25,7 +25,7 @@ import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.catalog.BrfsCatalog;
-import com.bonree.brfs.duplication.datastream.blockcache.BlockManagerInterface;
+import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
@@ -59,7 +59,7 @@ public class DataResource {
     private final ZookeeperPaths zkPaths;
 
     private final StorageRegionWriter storageRegionWriter;
-    private final BlockManagerInterface blockManager;
+    private final BlockManager blockManager;
     private final BrfsCatalog brfsCatalog;
 
 
@@ -70,7 +70,7 @@ public class DataResource {
             StorageRegionManager storageRegionManager,
             ZookeeperPaths zkPaths,
             StorageRegionWriter storageRegionWriter,
-            BlockManagerInterface blockManager,
+            BlockManager blockManager,
             BrfsCatalog brfsCatalog) {
         this.clusterConfig = clusterConfig;
         this.serviceManager = serviceManager;
