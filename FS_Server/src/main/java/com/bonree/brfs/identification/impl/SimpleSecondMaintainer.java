@@ -1,11 +1,16 @@
 package com.bonree.brfs.identification.impl;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
+import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.rebalance.route.factory.SingleRouteFactory;
 import com.bonree.brfs.identification.LevelServerIDGen;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
@@ -14,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.*;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -22,14 +28,16 @@ import java.util.*;
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description: 注册二级serverid维护类 datanode服务独享，client 需要使用
  ******************************************************************************/
-
-public class SimpleSecondMaintainer implements SecondMaintainerInterface {
+@ManageLifecycle
+public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(SimpleSecondMaintainer.class);
     private LevelServerIDGen secondIdWorker;
     private CuratorFramework client = null;
     private String secondBasePath;
     private String routeBasePath;
     private SecondIdsInterface secondIds;
+    private BlockingQueue<RegisterInfo> queue = new LinkedBlockingQueue<>();
+    private ExecutorService pool = null;
     public SimpleSecondMaintainer(CuratorFramework client, String secondBasePath, String routeBasePath, String secondIdSeqPath) {
         this.client = client;
         this.secondBasePath = secondBasePath;
@@ -253,9 +261,6 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface {
         return validPartitions;
     }
 
-    private String getKey(String partition,String storageId){
-        return partition+":"+storageId;
-    }
 
     @Override
     public Collection<String> getSecondIds(String serverId, int storageRegionId) {
@@ -275,5 +280,64 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface {
     @Override
     public String getPartitionId(String secondId, int storageRegionId) {
         return this.secondIds.getPartitionId(secondId,storageRegionId);
+    }
+    @LifecycleStart
+    @Override
+    public void start() throws Exception {
+        LOG.info("second maintainer thread start !!");
+        pool = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("SecondIdMaintainer").build());
+        pool.execute(new Runnable() {
+            @Override
+            public void run() {
+                RegisterInfo info = null;
+                do {
+                    try {
+                        info = queue.take();
+                        Collection<String> secondIds = SimpleSecondMaintainer.this.registerSecondIds(info.getFirstId(), info.getStorageId());
+                        if (secondIds == null || secondIds.isEmpty()) {
+                            LOG.info("register {} {} fail next 100ms ..",info.firstId,info.storageId);
+                            queue.add(info);
+                        }
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        LOG.error("repeat register secondId happen error ", e);
+                    }
+                } while (info.storageId<0);
+                LOG.info("second id maintain thread shutdown !!");
+            }
+        });
+    }
+    @LifecycleStop
+    @Override
+    public void stop() throws Exception {
+        if(pool != null){
+            queue.put(new RegisterInfo("",-1));
+            pool.shutdownNow();
+        }
+    }
+
+    private class RegisterInfo{
+        private String firstId;
+        private int storageId;
+        public RegisterInfo(String firstId, int storageId) {
+            this.firstId = firstId;
+            this.storageId = storageId;
+        }
+
+        public String getFirstId() {
+            return firstId;
+        }
+
+        public void setFirstId(String firstId) {
+            this.firstId = firstId;
+        }
+
+        public int getStorageId() {
+            return storageId;
+        }
+
+        public void setStorageId(int storageId) {
+            this.storageId = storageId;
+        }
     }
 }

@@ -62,7 +62,7 @@ public class DiskDaemonTest {
         Service firstServer = new Service("13","zhucgTest","192.168.4.13",20000);
         String partitionGroupBasepath = "/brfs/DevTest/disconvery";
         // 1.生成注册id实例
-        DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client,partitionSeqPath);
+        DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client,partitionSeqPath,ID_BAS_PATH);
         // 2.生成磁盘分区id检查类
         PartitionCheckingRoutine routine = new PartitionCheckingRoutine(diskNodeID,rootPath,innerPath,partitionGroup);
         Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();

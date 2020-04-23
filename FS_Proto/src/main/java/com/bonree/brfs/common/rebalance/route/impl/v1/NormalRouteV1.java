@@ -12,21 +12,26 @@ import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class NormalRouteV1 extends SuperNormalRoute {
     private static final TaskVersion CURRENT_VERSION = TaskVersion.V1;
     private List<String> newSecondIDs;
     @JsonIgnore
-    private Map<String,Integer> routes;
+    private Map<String, Integer> routes;
 
-    public NormalRouteV1(@JsonProperty("changeID")String changeID, @JsonProperty("storageIndex")int storageIndex, @JsonProperty("secondID")String secondID,  @JsonProperty("newSecondIDs")List<String> newSecondIDs) {
+    public NormalRouteV1(@JsonProperty("changeID") String changeID,
+                         @JsonProperty("storageIndex") int storageIndex,
+                         @JsonProperty("secondID") String secondID,
+                         @JsonProperty("newSecondIDs") List<String> newSecondIDs) {
         super(changeID, storageIndex, secondID, CURRENT_VERSION);
         this.newSecondIDs = newSecondIDs;
         routes = new HashMap<>();
-        for(String id : this.newSecondIDs){
-            routes.put(id,1);
+        for (String id : this.newSecondIDs) {
+            routes.put(id, 1);
         }
     }
 
@@ -55,12 +60,18 @@ public class NormalRouteV1 extends SuperNormalRoute {
 
     @Override
     public String toString() {
-        return "NormalRouteV1{" +
-                "newSecondIDs=" + newSecondIDs +
-                ", changeID='" + changeID + '\'' +
-                ", storageIndex=" + storageIndex +
-                ", secondID='" + secondID + '\'' +
-                ", version=" + version +
-                '}';
+        return "NormalRouteV1{"
+            +
+            "newSecondIDs=" + newSecondIDs
+            +
+            ", changeID='" + changeID + '\''
+            +
+            ", storageIndex=" + storageIndex
+            +
+            ", secondID='" + secondID + '\''
+            +
+            ", version=" + version
+            +
+            '}';
     }
 }

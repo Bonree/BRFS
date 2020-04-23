@@ -12,13 +12,21 @@ import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.impl.v1.NormalRouteV1;
 import com.bonree.brfs.common.rebalance.route.impl.v2.NormalRouteV2;
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
-import java.util.*;
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY,property = "version")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "version")
 @JsonSubTypes(value = {
-        @JsonSubTypes.Type(value = NormalRouteV1.class, name = "V1"),
-        @JsonSubTypes.Type(value = NormalRouteV2.class, name = "V2")
+    @JsonSubTypes.Type(value = NormalRouteV1.class, name = "V1"),
+    @JsonSubTypes.Type(value = NormalRouteV2.class, name = "V2")
 })
 public abstract class SuperNormalRoute implements NormalRouteInterface {
     /**
@@ -37,8 +45,12 @@ public abstract class SuperNormalRoute implements NormalRouteInterface {
      * 系统版本
      */
     protected TaskVersion version;
+
     @JsonCreator
-    public SuperNormalRoute( @JsonProperty("changeID")String changeID, @JsonProperty("storageIndex")int storageIndex, @JsonProperty("secondID")String secondID, @JsonProperty("version")TaskVersion version) {
+    public SuperNormalRoute(@JsonProperty("changeID") String changeID,
+                            @JsonProperty("storageIndex") int storageIndex,
+                            @JsonProperty("secondID") String secondID,
+                            @JsonProperty("version") TaskVersion version) {
         this.changeID = changeID;
         this.storageIndex = storageIndex;
         this.secondID = secondID;
@@ -50,6 +62,7 @@ public abstract class SuperNormalRoute implements NormalRouteInterface {
      *
      * @param fileCode
      * @param size
+     *
      * @return
      */
     protected int hashFileName(int fileCode, int size) {
@@ -57,29 +70,30 @@ public abstract class SuperNormalRoute implements NormalRouteInterface {
         return matchSm;
     }
 
-
-
     /**
      * 过滤
+     *
      * @param services
+     *
      * @return
      */
-    protected List<String> filterService(Collection<String> newSecondIDs, Collection<String> services){
+    protected List<String> filterService(Collection<String> newSecondIDs,
+                                         Collection<String> services) {
         List<String> selectors = new ArrayList<>();
         // 1.过滤掉已经使用的service
-        if(services!=null&& !services.isEmpty()){
-            for(String ele : newSecondIDs){
-                if(services.contains(ele)){
+        if (services != null && !services.isEmpty()) {
+            for (String ele : newSecondIDs) {
+                if (services.contains(ele)) {
                     continue;
                 }
                 selectors.add(ele);
             }
-        }else {
+        } else {
             selectors.addAll(newSecondIDs);
         }
         // 2.判断集合是否为空，为空，则解析失败。
         // todo 1 定义无服务 的异常内容
-        if(selectors.isEmpty()){
+        if (selectors.isEmpty()) {
             throw new IllegalArgumentException("errror");
         }
         // 3.对select 服务进行排序。

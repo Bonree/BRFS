@@ -96,6 +96,7 @@
 		<!-- extended checks -->
 		<brfs.check.skip-spotbugs>${brfs.check.skip-extended}</brfs.check.skip-spotbugs>
 		<brfs.check.skip-modernizer>${brfs.check.skip-extended}</brfs.check.skip-modernizer>
+		<brfs.check.skip-checkstyle>${brfs.check.skip-extended}</brfs.check.skip-checkstyle>
 
 		<!-- all checks -->
 		<brfs.check.fail-all>true</brfs.check.fail-all>
@@ -110,6 +111,10 @@
 		<!-- extended checks -->
 		<brfs.check.fail-spotbugs>${brfs.check.fail-extended}</brfs.check.fail-spotbugs>
 		<brfs.check.fail-modernizer>${brfs.check.fail-extended}</brfs.check.fail-modernizer>
+		<brfs.check.fail-checkstyle>${brfs.check.fail-extended}</brfs.check.fail-checkstyle>
+
+		<!-- code style -->
+		<brfs.checkstyle.config-file>checkstyle/brfs-checks.xml</brfs.checkstyle.config-file>
 
 		<!-- dependency versions -->
 		<dep.guice.version>4.2.2</dep.guice.version>
@@ -167,11 +172,6 @@
 			<dependency>
 				<groupId>com.bonree.fs</groupId>
 				<artifactId>brfs-client</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.bonree.fs</groupId>
-				<artifactId>build-tools</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -648,6 +648,39 @@
 				</plugin>
 
 				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>3.1.1</version>
+					<dependencies>
+						<dependency>
+							<groupId>com.puppycrawl.tools</groupId>
+							<artifactId>checkstyle</artifactId>
+							<version>8.31</version>
+						</dependency>
+						<dependency>
+							<groupId>com.bonree.fs</groupId>
+							<artifactId>build-tools</artifactId>
+							<version>${project.version}</version>
+						</dependency>
+					</dependencies>
+					<executions>
+						<execution>
+							<id>checkstyle</id>
+							<phase>validate</phase>
+							<goals>
+								<goal>check</goal>
+							</goals>
+							<configuration>
+								<skip>${brfs.check.skip-checkstyle}</skip>
+								<failOnViolation>${brfs.check.fail-checkstyle}</failOnViolation>
+								<includeTestSourceDirectory>true</includeTestSourceDirectory>
+								<configLocation>${brfs.checkstyle.config-file}</configLocation>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+
+				<plugin>
 					<groupId>org.basepom.maven</groupId>
 					<artifactId>duplicate-finder-maven-plugin</artifactId>
 					<version>1.3.0</version>
@@ -842,6 +875,11 @@
 						</manifestEntries>
 					</archive>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

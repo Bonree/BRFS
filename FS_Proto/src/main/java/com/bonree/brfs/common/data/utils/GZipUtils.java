@@ -1,5 +1,7 @@
 package com.bonree.brfs.common.data.utils;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -11,17 +13,15 @@ public class GZipUtils {
     public static final int BUFFER = 1024;
     public static final String EXT = ".gz";
 
-    /** 
-     * 数据压缩 
-     *  
-     * @param data 
-     * @return 
-     * @throws Exception 
+    /**
+     * 数据压缩
+     *
+     * @param data
+     * @return
+     * @throws Exception
      */
     public static byte[] compress(byte[] data) throws Exception {
-        if (data == null) {
-            return null;
-        }
+        requireNonNull(data);
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         // 压缩
@@ -33,17 +33,17 @@ public class GZipUtils {
         return output;
     }
 
-    /** 
-     * 数据压缩 
-     *  
-     * @param is 
-     * @param os 
-     * @throws Exception 
+    /**
+     * 数据压缩
+     *
+     * @param is
+     * @param os
+     * @throws Exception
      */
     public static void compress(InputStream is, OutputStream os) throws Exception {
         GZIPOutputStream gos = new GZIPOutputStream(os);
         int count;
-        byte data[] = new byte[BUFFER];
+        byte[] data = new byte[BUFFER];
         while ((count = is.read(data, 0, BUFFER)) != -1) {
             gos.write(data, 0, count);
         }
@@ -52,16 +52,15 @@ public class GZipUtils {
         gos.close();
     }
 
-    /** 
-     * 数据解压缩 
-     * @param data 
-     * @return 
-     * @throws Exception 
+    /**
+     * 数据解压缩
+     *
+     * @param data
+     * @return
+     * @throws Exception
      */
     public static byte[] decompress(byte[] data) throws Exception {
-        if (data == null) {
-            
-        }
+        requireNonNull(data);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ByteArrayInputStream bais = null;
         try {
@@ -79,17 +78,17 @@ public class GZipUtils {
         return data;
     }
 
-    /** 
-     * 数据解压缩 
-     *  
-     * @param is 
-     * @param os 
-     * @throws Exception 
+    /**
+     * 数据解压缩
+     *
+     * @param is
+     * @param os
+     * @throws Exception
      */
     public static void decompress(InputStream is, OutputStream os) throws Exception {
         GZIPInputStream gis = new GZIPInputStream(is);
         int count;
-        byte data[] = new byte[BUFFER];
+        byte[] data = new byte[BUFFER];
         while ((count = gis.read(data, 0, BUFFER)) != -1) {
             os.write(data, 0, count);
         }

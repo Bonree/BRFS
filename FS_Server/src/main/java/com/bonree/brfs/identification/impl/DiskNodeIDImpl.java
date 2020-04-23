@@ -23,25 +23,36 @@ public class DiskNodeIDImpl implements LevelServerIDGen {
     public final static int PARTITION_ID_PREFIX = 4;
 
     private SequenceNumberBuilder firstServerIDCreator;
+    private CuratorFramework client = null;
+    private String secondIdSetPath = null;
 	@Inject
-    public DiskNodeIDImpl(CuratorFramework client, String basePath) {
-        this.firstServerIDCreator = new ZkSequenceNumberBuilder(client, ZKPaths.makePath(basePath, PARTITION_ID));
+    public DiskNodeIDImpl(CuratorFramework client, String basePath,String secondIdSetPath) {
+		this.client = client;
+        this.firstServerIDCreator = new ZkSequenceNumberBuilder(this.client, ZKPaths.makePath(basePath, PARTITION_ID));
+        this.secondIdSetPath = secondIdSetPath;
+
     }
 
     @Override
     public String genLevelID() {
+		String partitionId = null;
 		try {
-			int uniqueId = firstServerIDCreator.nextSequenceNumber();
-			
-			StringBuilder idBuilder = new StringBuilder();
-	    	idBuilder.append(PARTITION_ID_PREFIX).append(uniqueId);
-	    	
-	    	return idBuilder.toString();
+			do {
+				if(partitionId !=null){
+					LOG.info("apple repeat partitionId {}",partitionId);
+				}
+				int uniqueId = firstServerIDCreator.nextSequenceNumber();
+
+				StringBuilder idBuilder = new StringBuilder();
+				idBuilder.append(PARTITION_ID_PREFIX).append(uniqueId);
+
+				partitionId = idBuilder.toString();
+			}while (this.client.checkExists().forPath(this.secondIdSetPath+"/"+partitionId) != null);
 		} catch (Exception e) {
 			LOG.info("create disk id error", e);
 		}
-		
-		return null;
+
+		return partitionId;
     }
 
 }

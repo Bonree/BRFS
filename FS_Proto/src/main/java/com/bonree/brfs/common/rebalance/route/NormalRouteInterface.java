@@ -9,45 +9,52 @@
 package com.bonree.brfs.common.rebalance.route;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
-
 import java.util.Collection;
 import java.util.Map;
 
 public interface NormalRouteInterface {
     /**
      * 获取 storageRegion id
+     *
      * @return
      */
     int getStorageRegionIndex();
 
     /**
      * 获取 路由规则的serverId
+     *
      * @return
      */
     String getBaseSecondId();
 
     /**
      * 获取变更Id
+     *
      * @return
      */
     String getChangeId();
 
     /**
      * 获取版本信息
+     *
      * @return
      */
     TaskVersion getRouteVersion();
+
     /**
      * 通过路由规则定位
+     *
      * @param fileUUIDCode 文件块的uuidcode
      * @param services
+     *
      * @return
      */
-     String locateNormalServer(int fileUUIDCode, Collection<String> services);
+    String locateNormalServer(int fileUUIDCode, Collection<String> services);
 
     /**
      * 获取路由规则内容，该方法只获取V2版本的路由规则
+     *
      * @return
      */
-     Map<String,Integer> getRoutes();
+    Map<String, Integer> getRoutes();
 }

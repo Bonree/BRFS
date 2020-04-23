@@ -17,8 +17,9 @@ import org.junit.Test;
  * @description:
  ******************************************************************************/
 public class DiskNodeIDImplTest {
-    private static String ID_BAS_PATH="/brfsDevTest/identification/DiskNodes";
-    private static String ZKADDRES = RouteParserTest.ZK_ADDRESS;
+    private static String ID_BAS_PATH="/brfs/data1/disk";
+    private static String ID_SECOND_PATH="/brfs/data1/secondIDSet";
+    private static String ZKADDRES = "192.168.150.236:2181";
     private CuratorFramework framework = null;
     @Before
     public void checkZK(){
@@ -36,7 +37,7 @@ public class DiskNodeIDImplTest {
      */
     @Test
     public void newConstructorTest(){
-        DiskNodeIDImpl impl = new DiskNodeIDImpl(framework,ID_BAS_PATH);
+        DiskNodeIDImpl impl = new DiskNodeIDImpl(framework,ID_BAS_PATH,ID_SECOND_PATH);
     }
 
     /**
@@ -44,7 +45,17 @@ public class DiskNodeIDImplTest {
      */
     @Test
     public void getLevelTest(){
-        DiskNodeIDImpl impl = new DiskNodeIDImpl(framework,ID_BAS_PATH);
+        DiskNodeIDImpl impl = new DiskNodeIDImpl(framework,ID_BAS_PATH,ID_SECOND_PATH);
+        try {
+            if(framework.checkExists().forPath(ID_BAS_PATH) != null){
+                framework.delete().deletingChildrenIfNeeded().forPath(ID_BAS_PATH);
+            }
+            if(framework.checkExists().forPath(ID_SECOND_PATH+"/40") == null){
+                framework.create().creatingParentsIfNeeded().forPath(ID_SECOND_PATH+"/40");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         System.out.println(impl.genLevelID());
 
     }

@@ -1,6 +1,7 @@
 package com.bonree.brfs.partition;
 
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.identification.LevelServerIDGen;
 import com.google.inject.Inject;
@@ -42,10 +43,6 @@ public class PartitionCheckingRoutine {
 
     public Collection<LocalPartitionInfo> checkVaildPartition() {
         String[] dirs = dataConfig.toArray(new String[dataConfig.size()]);
-        // todo 若无数据目录则 抛出异常，
-        if (dirs == null || dirs.length == 0) {
-
-        }
         // 获取已注册过的磁盘分区节点信息
         Map<String, LocalPartitionInfo> innerMap = readIds(innerDir);
         // 获取有效的磁盘分区，判断是否存在多个目录位于一个磁盘分区的情况，若存在则抛异常。
@@ -118,7 +115,6 @@ public class PartitionCheckingRoutine {
             throw new RuntimeException("Acquisition error while creating model !! path:[" + add + "]", e);
         }
     }
-
     private Collection<String> findAdd(Map<String, LocalPartitionInfo> innerMap, Map<String, FileSystem> validMap) {
         Set<String> adds = new HashSet<>();
         // 若无内部文件，则为所有的磁盘分区申请id
@@ -154,9 +150,9 @@ public class PartitionCheckingRoutine {
             }
             loss = innerMap.get(inner);
             iterator.remove();
-            // 发布磁盘变更信息后，删除内部文件
-            FileUtils.deleteQuietly(new File(this.innerDir+File.separator+loss.getPartitionId()));
-            LOG.error("partition is loss [{}]",loss);
+            // 发布磁盘变更信息后，内部文件不删除，
+//            FileUtils.deleteQuietly(new File(this.innerDir+File.separator+loss.getPartitionId()));
+            LOG.warn("partition is loss [{}]",loss);
         }
     }
 

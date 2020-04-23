@@ -7,16 +7,17 @@ import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
  * *****************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年2月3日 下午6:43:11
  * @Author: <a href=mailto:zhangnl@bonree.com>张念礼</a>
  * @Description: 文件编码
- *****************************************************************************
+ * ****************************************************************************
  */
 public class FileEncoder {
 
     /**
      * 概述：消息开头
+     *
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
@@ -26,6 +27,7 @@ public class FileEncoder {
 
     /**
      * 概述：消息结尾
+     *
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
@@ -35,7 +37,8 @@ public class FileEncoder {
 
     /**
      * 概述：编码文件的header
-     * @param version 协议版本
+     *
+     * @param version      协议版本
      * @param validateType 校验标识 0:crc 1,2,3:保留
      * @return
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
@@ -43,22 +46,24 @@ public class FileEncoder {
     public static byte[] header(int version, int validateType) {
         int ver = version << 5;
         int val = validateType << 3;
-        return new byte[] { (byte) (ver | val) };
+        return new byte[] {(byte) (ver | val)};
     }
 
     /**
      * 概述：编码大文件的校验码
+     *
      * @param validate 校验码
      * @return
      * @throws Exception
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static byte[] validate(long validateCode) {
-        return FSCode.LongToByte(validateCode, 8);
+        return FSCode.longToByte(validateCode, 8);
     }
 
     /**
      * 概述：编码一条消息
+     *
      * @param file 消息内容
      * @return
      * @throws Exception
@@ -109,14 +114,16 @@ public class FileEncoder {
         }
         int describeLength = describeLengthByte[0] & 0xFF;
         describeLengthByte[0] = (byte) (compress | crcFlag | describeLength);
-        
+
         byte[] dataLengthByte = FSCode.moreFlagEncoder(dataLength, 7);
 
-        return FSCode.addBytes(dataLengthByte, describeLengthByte, describeByte, contentLengthByte, contentByte, validateByte);
+        return FSCode.addBytes(dataLengthByte, describeLengthByte, describeByte, contentLengthByte,
+            contentByte, validateByte);
     }
-    
+
     /**
      * 概述：编码一条消息
+     *
      * @param file 消息内容
      * @return
      * @throws Exception
@@ -167,9 +174,10 @@ public class FileEncoder {
         }
         int describeLength = describeLengthByte[0] & 0xFF;
         describeLengthByte[0] = (byte) (compress | crcFlag | describeLength);
-        
+
         byte[] dataLengthByte = FSCode.moreFlagEncoder(dataLength, 7);
 
-        return FSCode.addBytes(dataLengthByte, describeLengthByte, describeByte, contentLengthByte, contentByte, validateByte);
+        return FSCode.addBytes(dataLengthByte, describeLengthByte, describeByte, contentLengthByte,
+            contentByte, validateByte);
     }
 }

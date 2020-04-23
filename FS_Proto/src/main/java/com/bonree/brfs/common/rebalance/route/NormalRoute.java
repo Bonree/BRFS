@@ -8,26 +8,24 @@
 
 package com.bonree.brfs.common.rebalance.route;
 
-import java.util.List;
-
 import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import java.util.List;
 
 @Deprecated
 public class NormalRoute {
     @JsonProperty("changeID")
     private String changeID;
-    
+
     @JsonProperty("storageIndex")
     private int storageIndex;
-    
+
     @JsonProperty("secondID")
     private String secondID;
-    
+
     @JsonProperty("newSecondIDs")
     private List<String> newSecondIDs;
-    
+
     @JsonProperty("version")
     private TaskVersion version;
 
@@ -35,7 +33,8 @@ public class NormalRoute {
     private NormalRoute() {
     }
 
-    public NormalRoute(String changeID, int storageIndex, String secondID, List<String> newSecondIDs, TaskVersion version) {
+    public NormalRoute(String changeID, int storageIndex, String secondID,
+                       List<String> newSecondIDs, TaskVersion version) {
         this.changeID = changeID;
         this.storageIndex = storageIndex;
         this.secondID = secondID;
@@ -82,5 +81,5 @@ public class NormalRoute {
     public void setChangeID(String changeID) {
         this.changeID = changeID;
     }
-    
+
 }
