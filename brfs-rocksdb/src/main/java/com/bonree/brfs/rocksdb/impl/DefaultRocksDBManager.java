@@ -433,7 +433,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             Set<String> updatedCfs = columnFamilyMap.keySet();
             Set<String> currentCfs = this.cfHandles.keySet();
             Sets.SetView<String> diffUpdatedCfs = Sets.difference(updatedCfs, currentCfs);
-            Sets.SetView<String> diffCurrentCfs = Sets.difference(currentCfs, currentCfs);
+            Sets.SetView<String> diffCurrentCfs = Sets.difference(currentCfs, updatedCfs);
 
             for (String diff : diffUpdatedCfs) {
                 if (!cfHandles.containsKey(diff)) {
