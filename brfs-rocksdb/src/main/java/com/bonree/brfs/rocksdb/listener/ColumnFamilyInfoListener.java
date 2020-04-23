@@ -68,7 +68,7 @@ public class ColumnFamilyInfoListener implements LifeCycle {
             byte[] data = ColumnFamilyInfoListener.this.nodeCache.getCurrentData().getData();
             Map<String, Integer> cfMap = JsonUtils.toObject(data, new TypeReference<Map<String, Integer>>() {
             });
-            ColumnFamilyInfoListener.this.rocksDBManager.updateColumnFamilyHandles(cfMap);
+            ColumnFamilyInfoListener.this.rocksDBManager.updateColumnFamilyHandles(cfMap, false);
         }
     }
 }
