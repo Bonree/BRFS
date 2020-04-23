@@ -29,7 +29,7 @@ public final class RegionNodeConfigs {
 			ConfigUnit.ofLong("regionnode.block.size", 64 * 1024 * 1024);
 
 	public static final ConfigUnit<Integer> CONFIG_BLOCK_POOL_CAPACITY =
-			ConfigUnit.ofInt("regionnode.block.pool.capacity", 20);
+			ConfigUnit.ofInt("regionnode.block.pool.capacity", 40);
 
 	public static final ConfigUnit<Integer> CONFIG_BLOCK_POOL_INIT_COUNT =
 			ConfigUnit.ofInt("regionnode.block.pool.init.count", 1);
