@@ -1,7 +1,6 @@
 package com.bonree.brfs.duplication.datastream.blockcache;
 
 import com.bonree.brfs.client.BRFSException;
-import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.common.net.http.HandleResult;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
@@ -9,17 +8,28 @@ import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.FidBuilder;
+import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SeqBlockManagerV2 implements BlockManager {
     private final BlockPool blockPool;
@@ -29,11 +39,12 @@ public class SeqBlockManagerV2 implements BlockManager {
     private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
     private static int blockPoolSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
     private LinkedBlockingQueue<WriteFileRequest> fileWaiting = new LinkedBlockingQueue();
+    private static Lock LOCK = new ReentrantLock();
+    private Condition allowWrite = LOCK.newCondition();
     private AtomicInteger fileWritingCount = new AtomicInteger(0);
     private ExecutorService fileWorker;
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
-//    SeqBlockPool blockPool = new SeqBlockPool(blockSize,blockPoolSize,1);
     private ExecutorService blockManageWatcher = this.fileWorker = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>(),
             new PooledThreadFactory("watcher:"));
@@ -228,10 +239,13 @@ public class SeqBlockManagerV2 implements BlockManager {
             data.reset();
         }
         public void releaseData(){
+            LOCK.lock();
             data.reset();
             blockPool.putbackBlocks(data);
             fileWritingCount.decrementAndGet();
+            allowWrite.signal();
             data = null;
+            LOCK.unlock();
             LOG.info("decrement fileWritingCount , now its size is [{}]",fileWritingCount.get());
         }
         public void addFid(String fid) {
@@ -461,15 +475,15 @@ public class SeqBlockManagerV2 implements BlockManager {
             WriteFileRequest unhandledRequest = null;
 
             while(true) {
+                LOCK.lock();
                 if(quit && fileWaiting.isEmpty()) {
                     break;
                 }
 
                 if(fileWritingCount.get() < blockPoolSize && fileWaiting.peek() != null){
                     try {
-
-                        LOG.info("Processor : the waiting request size is [{}]",fileWritingCount.get());
                         unhandledRequest = fileWaiting.take();
+                        LOG.info("Processor : the waiting request size is [{}]",fileWritingCount.get());
                         if(unhandledRequest.ifRequestIsTimeOut()){
                             LOG.info("abandon a file write request because of Time out");
                             HandleResult result = new HandleResult();
@@ -482,15 +496,17 @@ public class SeqBlockManagerV2 implements BlockManager {
                         Block block = blockPool.getBlock();
                         blockcache.put(blockKey,new BlockValue(block,unhandledRequest.getFsPacket().getStorageName(),unhandledRequest.getFsPacket().getFileName(),unhandledRequest.getFsPacket().getWriteID()));
                         LOG.info("Processor : writing file [{}]",unhandledRequest.fsPacket.getFileName());
-                        fileWritingCount.incrementAndGet();
-                        appendToBlock(unhandledRequest.getFsPacket(),unhandledRequest.getHandleResultCallback());
+                        Block writingBlock = appendToBlock(unhandledRequest.getFsPacket(), unhandledRequest.getHandleResultCallback());
+                        if(fileWritingCount.incrementAndGet() >= blockPoolSize){
+                            allowWrite.await();
+                        }
                     } catch (InterruptedException e) {
                         LOG.error("data consumer interrupted.");
                     } catch (Exception e) {
                         LOG.error("process data error", e);
                     }
                 }
-
+                LOCK.unlock();
             }
 
             LOG.info("Write file worker is shut down!");
@@ -512,7 +528,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                         fileWritingCount.get(),
                         blockcache.size());
                 try {
-                    Thread.sleep(600000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
