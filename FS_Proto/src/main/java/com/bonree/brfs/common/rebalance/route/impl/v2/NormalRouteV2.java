@@ -3,8 +3,10 @@ package com.bonree.brfs.common.rebalance.route.impl.v2;
 import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
-import java.util.*;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -18,8 +20,11 @@ public class NormalRouteV2 extends SuperNormalRoute {
     private static final TaskVersion CURRENT_VERSION = TaskVersion.V2;
     private Map<String, Integer> newSecondIDs;
 
-    public NormalRouteV2(@JsonProperty("changeID")String changeID, @JsonProperty("storageIndex")int storageIndex, @JsonProperty("secondID")String secondID,  @JsonProperty("newSecondIDs")Map<String, Integer> newSecondIDs) {
-        super(changeID,storageIndex,secondID,CURRENT_VERSION);
+    public NormalRouteV2(@JsonProperty("changeID") String changeID,
+                         @JsonProperty("storageIndex") int storageIndex,
+                         @JsonProperty("secondID") String secondID,
+                         @JsonProperty("newSecondIDs") Map<String, Integer> newSecondIDs) {
+        super(changeID, storageIndex, secondID, CURRENT_VERSION);
         this.newSecondIDs = newSecondIDs;
     }
 
@@ -67,7 +72,7 @@ public class NormalRouteV2 extends SuperNormalRoute {
         String server = null;
         for (int index = 0; index < chosenServices.size(); index++) {
             server = chosenServices.get(index);
-            if (this.newSecondIDs.get(server)==null) {
+            if (this.newSecondIDs.get(server) == null) {
                 continue;
             }
             sum += this.newSecondIDs.get(server);
@@ -81,20 +86,23 @@ public class NormalRouteV2 extends SuperNormalRoute {
 
     /**
      * 过滤
+     *
      * @param services
      * @return
      */
-    private List<String> filterService(Collection<String> services){
-        return filterService(this.newSecondIDs.keySet(),services);
+    private List<String> filterService(Collection<String> services) {
+        return filterService(this.newSecondIDs.keySet(), services);
     }
+
     /**
      * 计算权值
+     *
      * @param services
      * @return
      */
     private int calcWeight(Collection<String> services) {
         // 1.若services的为空则该权值计算无效返回-1
-        if(services == null || services.isEmpty()){
+        if (services == null || services.isEmpty()) {
             return -1;
         }
         // 2. 累计权值
@@ -103,7 +111,7 @@ public class NormalRouteV2 extends SuperNormalRoute {
         for (String service : services) {
             if (this.newSecondIDs.get(service) != null) {
                 tmp = this.newSecondIDs.get(service);
-                weight+=tmp;
+                weight += tmp;
             }
         }
         // 3.若tmp为-1 则表明未匹配上service，则其权值计算无效，范围-1
@@ -112,12 +120,12 @@ public class NormalRouteV2 extends SuperNormalRoute {
 
     @Override
     public String toString() {
-        return "NormalRouteV2{" +
-                "newSecondIDs=" + newSecondIDs +
-                ", changeID='" + changeID + '\'' +
-                ", storageIndex=" + storageIndex +
-                ", secondID='" + secondID + '\'' +
-                ", version=" + version +
-                '}';
+        return "NormalRouteV2{"
+            + "newSecondIDs=" + newSecondIDs
+            + ", changeID='" + changeID + '\''
+            + ", storageIndex=" + storageIndex
+            + ", secondID='" + secondID + '\''
+            + ", version=" + version
+            + '}';
     }
 }

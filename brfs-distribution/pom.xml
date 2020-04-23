@@ -17,6 +17,7 @@
 	<url>http://maven.apache.org</url>
 
 	<properties>
+		<brfs.check.skip-all>true</brfs.check.skip-all>
 	</properties>
 
 	<dependencies>

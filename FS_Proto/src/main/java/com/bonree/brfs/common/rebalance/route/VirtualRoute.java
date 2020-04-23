@@ -7,16 +7,16 @@ public class VirtualRoute {
 
     @JsonProperty("changeID")
     private String changeID;
-    
+
     @JsonProperty("storageIndex")
     private int storageIndex;
-    
+
     @JsonProperty("virtualID")
     private String virtualID;
-    
+
     @JsonProperty("newSecondID")
     private String newSecondID;
-    
+
     @JsonProperty("version")
     private TaskVersion version;
 
@@ -24,7 +24,8 @@ public class VirtualRoute {
     private VirtualRoute() {
     }
 
-    public VirtualRoute(String changeID, int storageIndex, String virtualID, String newSecondID, TaskVersion version) {
+    public VirtualRoute(String changeID, int storageIndex, String virtualID, String newSecondID,
+                        TaskVersion version) {
         this.changeID = changeID;
         this.storageIndex = storageIndex;
         this.virtualID = virtualID;

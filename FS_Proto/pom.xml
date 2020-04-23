@@ -72,6 +72,14 @@
 					<clearOutputDirectory>false</clearOutputDirectory>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<configuration>
+					<excludes>**/proto/*</excludes>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>
