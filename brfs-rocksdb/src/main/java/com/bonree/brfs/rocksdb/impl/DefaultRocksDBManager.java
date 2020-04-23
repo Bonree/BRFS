@@ -408,7 +408,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             srNameAndDataTtl.put(sr.getName(), (int) Duration.parse(sr.getDataTtl()).getSeconds());
         }
         updateColumnFamilyHandles(srNameAndDataTtl);
-        LOG.info("sync column family by storage region info complete");
+        LOG.info("sync column family by storage region info complete, sr list:{}", srList);
     }
 
     @Override
