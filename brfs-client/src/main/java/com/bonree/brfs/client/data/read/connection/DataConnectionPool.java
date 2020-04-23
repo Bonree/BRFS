@@ -13,14 +13,13 @@
  */
 package com.bonree.brfs.client.data.read.connection;
 
+import com.google.common.io.Closeables;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.util.NoSuchElementException;
 import java.util.function.Function;
-
 import org.apache.commons.pool2.KeyedObjectPool;
 import org.apache.commons.pool2.KeyedPooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -28,8 +27,6 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.EvictionConfig;
 import org.apache.commons.pool2.impl.EvictionPolicy;
 import org.apache.commons.pool2.impl.GenericKeyedObjectPool;
-
-import com.google.common.io.Closeables;
 
 public class DataConnectionPool implements Closeable {
     private final KeyedObjectPool<URI, DataConnection> connections;
@@ -57,31 +54,27 @@ public class DataConnectionPool implements Closeable {
     public <T> DataRequestCall<T> newRequest(URI uri, Function<DataConnection, T> call) throws Exception {
         DataConnection connection = null;
         try {
-            connection = connections.borrowObject(uri);
+            synchronized (connections) {
+                connection = connections.borrowObject(uri);
+            }
             
             final DataConnection param = connection;
             return () -> call.apply(param);
-        } catch(Exception e) {
-            if(connection != null) {
-                connections.invalidateObject(uri, connection);
+        } catch (Exception e) {
+            if (connection != null) {
+                synchronized (connections) {
+                    connections.invalidateObject(uri, connection);
+                }
                 connection = null;
             }
             
             throw e;
         } finally {
             // make sure the object is returned to the pool
-            if(null != connection) {
+            if (null != connection) {
                 connections.returnObject(uri, connection);
             }
         }
-    }
-    
-    public DataConnection getConnection(URI uri) throws NoSuchElementException, IllegalStateException, Exception {
-        return connections.borrowObject(uri);
-    }
-    
-    public void release(DataConnection connection) throws Exception {
-        connections.returnObject(connection.uri(), connection);
     }
     
     private static class UriConnectionFactory implements KeyedPooledObjectFactory<URI, DataConnection> {
