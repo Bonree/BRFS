@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.node;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -26,16 +27,16 @@ public class NodeSummaryInfo {
     private final double memUsage;
     private final double brfsDiskUsage;
     private final double systemDiskUsage;
-    
+
     @JsonCreator
     public NodeSummaryInfo(
-            @JsonProperty("state") NodeState state,
-            @JsonProperty("hostName") String hostName,
-            @JsonProperty("ip") String ip,
-            @JsonProperty("cpuUsage") double cpuUsage,
-            @JsonProperty("memUsage") double memUsage,
-            @JsonProperty("brfsDiskUsage") double brfsDiskUsage,
-            @JsonProperty("systemDiskUsage") double systemDiskUsage) {
+        @JsonProperty("state") NodeState state,
+        @JsonProperty("hostName") String hostName,
+        @JsonProperty("ip") String ip,
+        @JsonProperty("cpuUsage") double cpuUsage,
+        @JsonProperty("memUsage") double memUsage,
+        @JsonProperty("brfsDiskUsage") double brfsDiskUsage,
+        @JsonProperty("systemDiskUsage") double systemDiskUsage) {
         this.state = state;
         this.hostName = hostName;
         this.ip = ip;
@@ -44,7 +45,7 @@ public class NodeSummaryInfo {
         this.brfsDiskUsage = brfsDiskUsage;
         this.systemDiskUsage = systemDiskUsage;
     }
-    
+
     @JsonProperty("state")
     public NodeState getNodeState() {
         return state;
@@ -79,17 +80,17 @@ public class NodeSummaryInfo {
     public double getSystemDiskUsage() {
         return systemDiskUsage;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("state", state)
-                .add("hostName", hostName)
-                .add("ip", ip)
-                .add("cpuUsage", cpuUsage)
-                .add("memUsage", memUsage)
-                .add("brfsDiskUsage", brfsDiskUsage)
-                .add("systemDiskUsage", systemDiskUsage)
-                .toString();
+            .add("state", state)
+            .add("hostName", hostName)
+            .add("ip", ip)
+            .add("cpuUsage", cpuUsage)
+            .add("memUsage", memUsage)
+            .add("brfsDiskUsage", brfsDiskUsage)
+            .add("systemDiskUsage", systemDiskUsage)
+            .toString();
     }
 }

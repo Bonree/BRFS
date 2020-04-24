@@ -11,28 +11,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.stats;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.util.List;
-
 import com.bonree.brfs.gui.server.TimedData;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
 public class BusinessStats {
     private final String business;
     private final List<TimedData<DataStatistic>> datas;
-    
+
     @JsonCreator
     public BusinessStats(
-            @JsonProperty("business") String business,
-            @JsonProperty("datas") List<TimedData<DataStatistic>> datas) {
+        @JsonProperty("business") String business,
+        @JsonProperty("datas") List<TimedData<DataStatistic>> datas) {
         this.business = business;
         this.datas = datas;
     }
-    
+
     @JsonProperty("business")
     public String getBusiness() {
         return business;
@@ -42,12 +42,12 @@ public class BusinessStats {
     public List<TimedData<DataStatistic>> getDatas() {
         return datas;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("business", business)
-                .add("datas", datas)
-                .toString();
+            .add("business", business)
+            .add("datas", datas)
+            .toString();
     }
 }

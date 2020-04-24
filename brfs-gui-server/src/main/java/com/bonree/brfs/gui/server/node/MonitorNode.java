@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.node;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -24,14 +25,14 @@ public class MonitorNode {
     private final String cpuBrand;
     private final long totalMemSize;
     private final String os;
-    
+
     @JsonCreator
     public MonitorNode(
-            @JsonProperty("id") String id,
-            @JsonProperty("cpuCores") int cpuCores,
-            @JsonProperty("cpuBrand") String cpuBrand,
-            @JsonProperty("totalMemSize") long totalMemSize,
-            @JsonProperty("os") String os) {
+        @JsonProperty("id") String id,
+        @JsonProperty("cpuCores") int cpuCores,
+        @JsonProperty("cpuBrand") String cpuBrand,
+        @JsonProperty("totalMemSize") long totalMemSize,
+        @JsonProperty("os") String os) {
         this.id = id;
         this.cpuCores = cpuCores;
         this.cpuBrand = cpuBrand;
@@ -63,15 +64,15 @@ public class MonitorNode {
     public String getOs() {
         return os;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("id", id)
-                .add("cpuCores", cpuCores)
-                .add("cpuBrand", cpuBrand)
-                .add("totalMemSize", totalMemSize)
-                .add("os", os)
-                .toString();
+            .add("id", id)
+            .add("cpuCores", cpuCores)
+            .add("cpuBrand", cpuBrand)
+            .add("totalMemSize", totalMemSize)
+            .add("os", os)
+            .toString();
     }
 }
