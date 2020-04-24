@@ -34,8 +34,8 @@ public class SeqBlockManagerV2 implements BlockManager {
     private final BlockPool blockPool;
     private StorageRegionWriter writer;
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManagerV2.class);
-    private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
-    private static int blockPoolSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
+    private static long blockSize = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
+    private static int blockPoolSize = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
     private LinkedBlockingQueue<WriteRequest> fileWaiting;
     private static Lock LOCK = new ReentrantLock();
     private Condition allowWrite = LOCK.newCondition();
@@ -132,7 +132,7 @@ public class SeqBlockManagerV2 implements BlockManager {
             HandleResult handleResult = new HandleResult();
             LOG.debug("packet[{}] append to block and still not flushed。",packet);
             handleResult.setNextSeqno(packet.getSeqno());
-            handleResult.setCONTINUE();
+            handleResult.setToContinue();
             callback.completed(handleResult);
 
         } catch (Exception e) {
@@ -182,7 +182,7 @@ public class SeqBlockManagerV2 implements BlockManager {
         private String file;
         private String writeID;
         private volatile long accessTime;
-        private volatile int clearTimeOut = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CLEAR_TIME_THRESHOLD);
+        private volatile int clearTimeOut = Configs.getConfiguration().getConfig(RegionNodeConfigs.CLEAR_TIME_THRESHOLD);
         ClearTimerTask fooTimerTask = new ClearTimerTask(clearTimeOut);
 
         public BlockValue(Block block, int storage, String file, String writeID) {
@@ -323,7 +323,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                             " storageName:" + storageName +
                             " done flush";
                     // DONE flush a block
-                    result.setCONTINUE();
+                    result.setToContinue();
                     result.setNextSeqno(seqno);
                     callback.completed(result);
                     LOG.info(response);
