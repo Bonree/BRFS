@@ -7,6 +7,10 @@ public interface BrfsCatalog {
     List<Inode> list(String srName, String path, int pageNo, int pageSize );
     boolean isFileNode(String srName, String path);
     boolean validPath(String path);
-    boolean writeFid(String srName, String path, String fid);
+
+    default boolean writeFid(String srName, String path, String fid) {
+        return true;
+    }
+
     String getFid(String srName, String path);
 }

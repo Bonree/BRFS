@@ -169,7 +169,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         stopWatch.start();
         if(!validPath(path)){
             LOG.error("invalid path : [{}]",path);
-            return false;
+            return true;
         }
         byte[] key;
         try {
@@ -180,18 +180,18 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             stopWatch.split();
             LOG.info("write the path[{}] cost [{}]",path,stopWatch.getSplitTime());
             if(write != WriteStatus.SUCCESS){
-            return false;
+            return true;
             }
         } catch (ProcessingException e) {
             LOG.error("get path [{}] Cache error",path);
-            return false;
+            return true;
         } catch (Exception e) {
             LOG.error("Maybe its rocksDB can not write");
-            return false;
+            return true;
         }finally {
             stopWatch.stop();
         }
-        return true;
+        return false;
     }
 
     /**
