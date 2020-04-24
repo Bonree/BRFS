@@ -9,13 +9,13 @@ package com.bonree.brfs.rocksdb.file;
  * @Description: 文件传送工具类
  ******************************************************************************/
 public class FileTransUtil {
-    public final static String FILE_SEPARATOR = "/";
-    public final static String OK_AND_START = "OK_AND_START";
-    public final static String FALLED_AND_END = "FALLED_AND_END";
-    public final static String OK_AND_FINISH = "OK_AND_FINISH";
-    public final static String UNSUPPORT_DIR = "UNSUPPORT_DIR";
-    public final static String FILE_NOT_OVERWRITE = "FILE_NOT_OVERWRITE";
-    public final static String COMMA = ",";
-    public final static String POINT = ".";
+    public static final String FILE_SEPARATOR = "/";
+    public static final String OK_AND_START = "OK_AND_START";
+    public static final String FALLED_AND_END = "FALLED_AND_END";
+    public static final String OK_AND_FINISH = "OK_AND_FINISH";
+    public static final String UNSUPPORT_DIR = "UNSUPPORT_DIR";
+    public static final String FILE_NOT_OVERWRITE = "FILE_NOT_OVERWRITE";
+    public static final String COMMA = ",";
+    public static final String POINT = ".";
 
 }
