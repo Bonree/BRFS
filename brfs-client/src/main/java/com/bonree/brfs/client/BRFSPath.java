@@ -11,23 +11,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client;
 
 import com.google.common.base.Strings;
 
 public class BRFSPath {
     private static final char PATH_SEPARATER = '/';
-    
+
     private final String path;
-    
+
     private BRFSPath(String path) {
         this.path = path;
     }
-    
+
     public String getPath() {
         return path;
     }
-    
+
     @Override
     public int hashCode() {
         return path.hashCode();
@@ -35,14 +36,14 @@ public class BRFSPath {
 
     @Override
     public boolean equals(Object obj) {
-        if(path == obj) {
+        if (path == obj) {
             return true;
         }
-        
-        if(!(obj instanceof BRFSPath)) {
+
+        if (!(obj instanceof BRFSPath)) {
             return false;
         }
-        
+
         BRFSPath oth = (BRFSPath) obj;
         return path.equals(oth.path);
     }
@@ -54,28 +55,28 @@ public class BRFSPath {
 
     public static BRFSPath get(String root, String... subPath) {
         StringBuilder pathBuilder = new StringBuilder();
-        if(root.startsWith("/")) {
+        if (root.startsWith("/")) {
             pathBuilder.append(PATH_SEPARATER);
         }
-        
+
         appendPath(pathBuilder, trimPath(root));
-        for(String path : subPath) {
+        for (String path : subPath) {
             appendPath(pathBuilder, trimPath(path));
         }
-        
-        if(pathBuilder.length() > 1) {
+
+        if (pathBuilder.length() > 1) {
             pathBuilder.deleteCharAt(pathBuilder.length() - 1);
         }
-        
+
         return new BRFSPath(pathBuilder.toString());
     }
-    
+
     private static void appendPath(StringBuilder builder, String path) {
-        if(!Strings.isNullOrEmpty(path)) {
+        if (!Strings.isNullOrEmpty(path)) {
             builder.append(path).append(PATH_SEPARATER);
         }
     }
-    
+
     private static String trimPath(String value) {
         int len = value.length();
         int st = 0;
@@ -86,7 +87,7 @@ public class BRFSPath {
         while ((st < len) && (value.charAt(len - 1) <= ' ' || value.charAt(len - 1) == PATH_SEPARATER)) {
             len--;
         }
-        
+
         return ((st > 0) || (len < value.length())) ? value.substring(st, len) : value;
     }
 }

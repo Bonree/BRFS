@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.data.read.connection;
 
 import static java.util.Objects.requireNonNull;
@@ -23,16 +24,16 @@ import java.net.URI;
 public class DataConnection implements Closeable {
     private final URI uri;
     private final Socket socket;
-    
+
     public DataConnection(URI uri, Socket socket) {
         this.uri = requireNonNull(uri);
         this.socket = requireNonNull(socket);
     }
-    
+
     public URI uri() {
         return uri;
     }
-    
+
     public Socket getSocket() {
         return socket;
     }

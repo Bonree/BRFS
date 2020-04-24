@@ -11,31 +11,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
-import java.io.IOException;
-
 import com.google.protobuf.MessageLite;
-
+import java.io.IOException;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okio.BufferedSink;
 
 public final class RequestBodys {
-    
+
     public static RequestBody create(MediaType mediaType, MessageLite message) {
         return new RequestBody() {
-            
+
             @Override
             public MediaType contentType() {
                 return mediaType;
             }
-            
+
             @Override
             public void writeTo(BufferedSink sink) throws IOException {
                 message.writeDelimitedTo(sink.outputStream());
             }
-            
+
         };
     }
 }

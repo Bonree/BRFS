@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
 import static java.util.Objects.requireNonNull;
@@ -21,7 +22,7 @@ import java.nio.ByteBuffer;
 
 public class ByteBufferInputStream extends InputStream {
     private final ByteBuffer buffer;
-    
+
     public ByteBufferInputStream(ByteBuffer buffer) {
         this.buffer = requireNonNull(buffer);
     }
@@ -38,24 +39,24 @@ public class ByteBufferInputStream extends InputStream {
         } else if (off < 0 || len < 0 || len > b.length - off) {
             throw new IndexOutOfBoundsException();
         }
-        
-        if(!buffer.hasRemaining()) {
+
+        if (!buffer.hasRemaining()) {
             return -1;
         }
-        
+
         int readableLength = Math.min(len - off, buffer.remaining());
         buffer.get(b, off, readableLength);
-        
+
         return readableLength;
     }
 
     @Override
     public long skip(long n) throws IOException {
         long skip = buffer.remaining();
-        if(n < skip) {
+        if (n < skip) {
             skip = n < 0 ? 0 : n;
         }
-        
+
         int newPosition = buffer.position();
         buffer.position(Math.toIntExact(newPosition + skip));
         return skip;
@@ -65,7 +66,7 @@ public class ByteBufferInputStream extends InputStream {
     public int available() throws IOException {
         return buffer.remaining();
     }
-    
+
     @Override
     public boolean markSupported() {
         return true;
@@ -82,6 +83,7 @@ public class ByteBufferInputStream extends InputStream {
     }
 
     @Override
-    public void close() throws IOException {}
+    public void close() throws IOException {
+    }
 
 }

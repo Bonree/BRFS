@@ -11,37 +11,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
 public interface Retryable<T> {
     String getDescription();
-    
+
     Result<T> tryExecute();
-    
+
     static interface Result<T> {
         T getResult();
-        
+
         Throwable getCause();
-        
+
         Retryable<T> retry();
     }
-    
+
     static <T> Result<T> success(T result) {
         return retry(result, null, null);
     }
-    
+
     static <T> Result<T> fail(Throwable cause) {
         return retry(null, null, cause);
     }
-    
+
     static <T> Result<T> retry(Retryable<T> retryable) {
         return retry(null, retryable, null);
     }
-    
+
     static <T> Result<T> retry(Retryable<T> retryable, Throwable cause) {
         return retry(null, retryable, cause);
     }
-    
+
     static <T> Result<T> retry(T result, Retryable<T> retryable, Throwable cause) {
         return new Result<T>() {
 
@@ -58,6 +59,7 @@ public interface Retryable<T> {
             @Override
             public Retryable<T> retry() {
                 return retryable;
-            }};
+            }
+        };
     }
 }

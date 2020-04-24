@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
 import static java.util.Objects.requireNonNull;
@@ -19,7 +20,7 @@ import java.util.concurrent.ThreadFactory;
 
 public class DaemonThreadFactory implements ThreadFactory {
     private final String threadPool;
-    
+
     public DaemonThreadFactory(String threadPool) {
         this.threadPool = requireNonNull(threadPool);
     }
@@ -28,7 +29,7 @@ public class DaemonThreadFactory implements ThreadFactory {
     public Thread newThread(Runnable r) {
         Thread t = new Thread(r, threadPool);
         t.setDaemon(true);
-        
+
         return t;
     }
 

@@ -11,9 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.utils;
 
-import javax.net.SocketFactory;
+package com.bonree.brfs.client.utils;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -21,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.channels.SocketChannel;
+import javax.net.SocketFactory;
 
 /**
  * Workaround for JDK IPv6 bug on Mac. Sockets created with the basic socket
@@ -28,40 +28,34 @@ import java.nio.channels.SocketChannel;
  * NIO sockets do not have this problem, even if used in blocking mode.
  */
 public class SocketChannelSocketFactory
-        extends SocketFactory
-{
+    extends SocketFactory {
     @Override
     public Socket createSocket()
-            throws IOException
-    {
+        throws IOException {
         return SocketChannel.open().socket();
     }
 
     @Override
     public Socket createSocket(String host, int port)
-            throws IOException
-    {
+        throws IOException {
         return SocketChannel.open(new InetSocketAddress(host, port)).socket();
     }
 
     @Override
     public Socket createSocket(String host, int port, InetAddress localAddress, int localPort)
-            throws IOException
-    {
+        throws IOException {
         throw new SocketException("not supported");
     }
 
     @Override
     public Socket createSocket(InetAddress address, int port)
-            throws IOException
-    {
+        throws IOException {
         return SocketChannel.open(new InetSocketAddress(address, port)).socket();
     }
 
     @Override
     public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort)
-            throws IOException
-    {
+        throws IOException {
         throw new SocketException("not supported");
     }
 }

@@ -11,15 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.route;
 
 import java.util.List;
 
 public interface RouterClient {
-    
+
     List<SecondServerID> getSecondServerId(String srName);
-    
+
     List<NormalRouterNode> getNormalRouter(String srName);
-    
+
     List<VirtualRouterNode> getVirtualRouter(String srName);
 }

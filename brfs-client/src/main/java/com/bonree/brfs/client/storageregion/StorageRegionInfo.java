@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.storageregion;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -21,29 +22,29 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class StorageRegionInfo {
     private final StorageRegionID id;
     private final StorageRegionAttributes attributes;
-    
+
     public StorageRegionInfo(
-            @JsonProperty("id") StorageRegionID id,
-            @JsonProperty("attributes") StorageRegionAttributes attributes) {
+        @JsonProperty("id") StorageRegionID id,
+        @JsonProperty("attributes") StorageRegionAttributes attributes) {
         this.id = requireNonNull(id);
         this.attributes = requireNonNull(attributes);
     }
-    
+
     @JsonProperty("id")
     public StorageRegionID getStorageRegion() {
         return id;
     }
-    
+
     @JsonProperty("attributes")
     public StorageRegionAttributes getAttributes() {
         return attributes;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("id", id)
-                .add("attributes", attributes)
-                .toString();
+            .add("id", id)
+            .add("attributes", attributes)
+            .toString();
     }
 }

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.data;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -20,21 +21,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class NextData {
     private final long nextSequence;
-    
+
     @JsonCreator
     public NextData(@JsonProperty("next") long nextSequence) {
         this.nextSequence = nextSequence;
     }
-    
+
     @JsonProperty("next")
     public long getNextSequence() {
         return this.nextSequence;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("nextSequence", nextSequence)
-                .toString();
+            .add("nextSequence", nextSequence)
+            .toString();
     }
 }

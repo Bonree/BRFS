@@ -11,24 +11,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.data;
 
+import com.bonree.brfs.client.utils.Strings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import com.bonree.brfs.client.utils.Strings;
-
 public class FixedSizeDataSplitter implements DataSplitter {
     private final int maxSize;
-    
+
     public FixedSizeDataSplitter(int maxSize) {
-        if(maxSize <= 0) {
+        if (maxSize <= 0) {
             throw new IllegalArgumentException(Strings.format("max size should > 0, but %d", maxSize));
         }
-        
+
         this.maxSize = maxSize;
     }
 
@@ -36,7 +36,7 @@ public class FixedSizeDataSplitter implements DataSplitter {
     public Iterator<ByteBuffer> split(InputStream input) {
         return new InputStreamIterator(input);
     }
-    
+
     @Override
     public Iterator<ByteBuffer> split(byte[] bytes) {
         return new ByteArrayIterator(bytes);
@@ -46,14 +46,14 @@ public class FixedSizeDataSplitter implements DataSplitter {
         private final InputStream input;
         private final byte[] bytes;
         private int readLength;
-        
+
         public InputStreamIterator(InputStream input) {
             this.input = input;
             this.bytes = new byte[maxSize];
-            
+
             advance();
         }
-        
+
         private void advance() {
             try {
                 readLength = input.read(bytes);
@@ -69,17 +69,17 @@ public class FixedSizeDataSplitter implements DataSplitter {
 
         @Override
         public ByteBuffer next() {
-            if(!hasNext()) {
+            if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            
+
             try {
                 return ByteBuffer.wrap(bytes, 0, readLength);
             } finally {
                 advance();
             }
         }
-        
+
     }
 
     private class ByteArrayIterator implements Iterator<ByteBuffer> {
@@ -89,7 +89,7 @@ public class FixedSizeDataSplitter implements DataSplitter {
         public ByteArrayIterator(byte[] bytes) {
             this.byteBuf = ByteBuffer.wrap(bytes);
         }
-        
+
         @Override
         public boolean hasNext() {
             return byteBuf.hasRemaining();
@@ -97,20 +97,20 @@ public class FixedSizeDataSplitter implements DataSplitter {
 
         @Override
         public ByteBuffer next() {
-            if(!hasNext()) {
+            if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            
+
             try {
                 ByteBuffer next = byteBuf.duplicate();
                 offset += Math.min(byteBuf.remaining(), maxSize);
                 next.limit(offset);
-                
+
                 return next;
             } finally {
                 byteBuf.position(offset);
             }
         }
-        
+
     }
 }

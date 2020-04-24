@@ -11,12 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.data;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Optional;
-import java.util.function.LongSupplier;
+package com.bonree.brfs.client.data;
 
 import com.bonree.brfs.client.ClientException;
 import com.bonree.brfs.client.data.compress.Compression;
@@ -25,6 +21,10 @@ import com.bonree.brfs.client.utils.CrcUtils;
 import com.bonree.brfs.client.utils.IteratorUtils.Transformer;
 import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
 import com.google.protobuf.ByteString;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Optional;
+import java.util.function.LongSupplier;
 
 public class FSPackageProtoMaker implements Transformer<ByteBuffer, FSPacketProto> {
     private final LongSupplier sequenceGen;
@@ -33,16 +33,16 @@ public class FSPackageProtoMaker implements Transformer<ByteBuffer, FSPacketProt
     private final Optional<String> fileName;
     private final boolean useCrc;
     private final Compression compression;
-    
+
     private long contentLengthAccumulator;
-    
+
     public FSPackageProtoMaker(
-            LongSupplier sequenceGen,
-            int storageRegionId,
-            String fileId,
-            Optional<String> fileName,
-            boolean useCrc,
-            Compression compression) {
+        LongSupplier sequenceGen,
+        int storageRegionId,
+        String fileId,
+        Optional<String> fileName,
+        boolean useCrc,
+        Compression compression) {
         this.sequenceGen = sequenceGen;
         this.storageRegionId = storageRegionId;
         this.fileId = fileId;
@@ -58,29 +58,29 @@ public class FSPackageProtoMaker implements Transformer<ByteBuffer, FSPacketProt
         builder.setLastPacketInFile(noMoreElement);
         builder.setStorageName(storageRegionId);
         builder.setWriteID(fileId);
-        
-        if(fileName.isPresent()) {
+
+        if (fileName.isPresent()) {
             builder.setFileName(fileName.get());
         }
-        
+
         builder.setCrcFlag(useCrc);
-        if(useCrc) {
+        if (useCrc) {
             builder.setCrcCheckCode(CrcUtils.crc(buffer.duplicate()));
         }
-        
+
         builder.setOffsetInFile(contentLengthAccumulator);
         contentLengthAccumulator += buffer.remaining();
-        
+
         builder.setCompress(compression.code());
         try {
             builder.setData(
-                    ByteString.readFrom(
-                            compression.compressor()
-                            .compress(new ByteBufferInputStream(buffer))));
+                ByteString.readFrom(
+                    compression.compressor()
+                               .compress(new ByteBufferInputStream(buffer))));
         } catch (IOException e) {
             throw new ClientException(e, "Can not set data");
         }
-        
+
         return builder.build();
     }
 

@@ -11,12 +11,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
 import java.util.Locale;
 
 public final class Strings {
-    
+
     public static String format(String format, Object... args) {
         return String.format(Locale.ENGLISH, format, args);
     }

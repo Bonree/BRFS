@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.storageregion;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -24,14 +25,14 @@ public class StorageRegionAttributes {
     private final String dataTTL;
     private final long fileCapacity;
     private final String filePartition;
-    
+
     @JsonCreator
     public StorageRegionAttributes(
-            @JsonProperty("enabled") boolean enabled,
-            @JsonProperty("replicates") int replicateNum,
-            @JsonProperty("ttl") String dataTTL,
-            @JsonProperty("capacity") long fileCapacity,
-            @JsonProperty("partition") String filePartition) {
+        @JsonProperty("enabled") boolean enabled,
+        @JsonProperty("replicates") int replicateNum,
+        @JsonProperty("ttl") String dataTTL,
+        @JsonProperty("capacity") long fileCapacity,
+        @JsonProperty("partition") String filePartition) {
         this.enabled = enabled;
         this.replicateNum = replicateNum;
         this.dataTTL = dataTTL;
@@ -63,15 +64,15 @@ public class StorageRegionAttributes {
     public String getFilePartition() {
         return filePartition;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("enabled", enabled)
-                .add("replicateNum", replicateNum)
-                .add("dataTTL", dataTTL)
-                .add("fileCapacity", fileCapacity)
-                .add("filePartition", filePartition)
-                .toString();
+            .add("enabled", enabled)
+            .add("replicateNum", replicateNum)
+            .add("dataTTL", dataTTL)
+            .add("fileCapacity", fileCapacity)
+            .add("filePartition", filePartition)
+            .toString();
     }
 }
