@@ -11,8 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
+import com.google.common.collect.ImmutableList;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -20,30 +22,29 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.function.Supplier;
 
-import com.google.common.collect.ImmutableList;
-
 public class AggregateInputStreamTest {
 
     /**
      * @param args
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public static void main(String[] args) throws IOException {
         ImmutableList<Supplier<InputStream>> list = ImmutableList.of(
-                () -> new ByteArrayInputStream("1234567890".getBytes()),
-                () -> new ByteArrayInputStream("first\nhahaha".getBytes()),
-                () -> new ByteArrayInputStream("no\ncontinue".getBytes()),
-                () -> new ByteArrayInputStream("here".getBytes()),
-                () -> new ByteArrayInputStream("end".getBytes())
-                );
+            () -> new ByteArrayInputStream("1234567890".getBytes()),
+            () -> new ByteArrayInputStream("first\nhahaha".getBytes()),
+            () -> new ByteArrayInputStream("no\ncontinue".getBytes()),
+            () -> new ByteArrayInputStream("here".getBytes()),
+            () -> new ByteArrayInputStream("end".getBytes())
+        );
         InputStream input = new LazeAggregateInputStream(list.iterator());
-        
+
         BufferedReader r = new BufferedReader(new InputStreamReader(input));
         String l = null;
-        while((l = r.readLine()) != null) {
+        while ((l = r.readLine()) != null) {
             System.out.println(l);
         }
-        
+
         r.close();
     }
 

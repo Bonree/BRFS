@@ -42,18 +42,18 @@ public class HttpClient implements Closeable {
         this.clientConfig = clientConfig;
 
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
-                                                            .setBufferSize(clientConfig.getBufferSize())
-                                                            .setCharset(Consts.UTF_8)
-                                                            .build();
+            .setBufferSize(clientConfig.getBufferSize())
+            .setCharset(Consts.UTF_8)
+            .build();
 
         IOReactorConfig ioConfig = IOReactorConfig.custom()
-                                                  .setSoKeepAlive(clientConfig.isKeepAlive())
-                                                  .setConnectTimeout(clientConfig.getConnectTimeout())
-                                                  .setSndBufSize(clientConfig.getSocketSendBufferSize())
-                                                  .setRcvBufSize(clientConfig.getSocketRecvBufferSize())
-                                                  .setIoThreadCount(clientConfig.getIOThreadNum())
-                                                  .setTcpNoDelay(true)
-                                                  .build();
+            .setSoKeepAlive(clientConfig.isKeepAlive())
+            .setConnectTimeout(clientConfig.getConnectTimeout())
+            .setSndBufSize(clientConfig.getSocketSendBufferSize())
+            .setRcvBufSize(clientConfig.getSocketRecvBufferSize())
+            .setIoThreadCount(clientConfig.getIOThreadNum())
+            .setTcpNoDelay(true)
+            .build();
 
         List<Header> defaultHeaders = new ArrayList<Header>();
         if (clientConfig.isKeepAlive()) {
@@ -61,29 +61,29 @@ public class HttpClient implements Closeable {
         }
 
         client = HttpAsyncClientBuilder.create()
-                                       .setMaxConnPerRoute(clientConfig.getMaxConnectionPerRoute())
-                                       .setMaxConnTotal(clientConfig.getMaxConnection())
-                                       .setDefaultConnectionConfig(connectionConfig)
-                                       .setDefaultIOReactorConfig(ioConfig)
-                                       .setConnectionReuseStrategy(new ConnectionReuseStrategy() {
+            .setMaxConnPerRoute(clientConfig.getMaxConnectionPerRoute())
+            .setMaxConnTotal(clientConfig.getMaxConnection())
+            .setDefaultConnectionConfig(connectionConfig)
+            .setDefaultIOReactorConfig(ioConfig)
+            .setConnectionReuseStrategy(new ConnectionReuseStrategy() {
 
-                                           @Override
-                                           public boolean keepAlive(org.apache.http.HttpResponse response, HttpContext context) {
-                                               return clientConfig.isKeepAlive();
-                                           }
+                @Override
+                public boolean keepAlive(org.apache.http.HttpResponse response, HttpContext context) {
+                    return clientConfig.isKeepAlive();
+                }
 
-                                       })
-                                       .setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
+            })
+            .setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
 
-                                           @Override
-                                           public long getKeepAliveDuration(org.apache.http.HttpResponse response,
-                                                                            HttpContext context) {
-                                               return clientConfig.getIdleTimeout();
-                                           }
+                @Override
+                public long getKeepAliveDuration(org.apache.http.HttpResponse response,
+                                                 HttpContext context) {
+                    return clientConfig.getIdleTimeout();
+                }
 
-                                       })
-                                       .setDefaultHeaders(defaultHeaders)
-                                       .build();
+            })
+            .setDefaultHeaders(defaultHeaders)
+            .build();
 
         client.start();
     }

@@ -20,20 +20,20 @@ public class FSPacket {
                     byte[] data) {
 
         Preconditions.checkArgument(data.length <= MAX_DATA_LEN,
-                                    "the data is too large to a packet. " +
-                                        "the max data length should less than [{}] byte,now it is [{}]byte"
-            , MAX_DATA_LEN
-            , data.length);
+                                    "the data is too large to a packet. "
+                                        + "the max data length should less than [{}] byte,now it is [{}]byte",
+                                    MAX_DATA_LEN,
+                                    data.length);
         Preconditions.checkArgument(null != fileName && !"".equals(fileName),
                                     "[{}]is not a valid fileName!!you must specify the fileName", fileName);
         builder = FSPacketProto.newBuilder();
         builder.setStorageName(storageName)
-               .setCrcFlag(false)
-               .setFileName(fileName)
-               .setOffsetInFile(offsetInFile)
-               .setSeqno(seqno)
-               .setData(ByteString.copyFrom(data))
-               .setLastPacketInFile(false);
+            .setCrcFlag(false)
+            .setFileName(fileName)
+            .setOffsetInFile(offsetInFile)
+            .setSeqno(seqno)
+            .setData(ByteString.copyFrom(data))
+            .setLastPacketInFile(false);
     }
 
     /**
@@ -113,11 +113,12 @@ public class FSPacket {
 
     @Override
     public String toString() {
-        return "FSPacket of StorageName:[" + getStorageName() +
-            "] file[" + getFileName() +
-            "] offset:[" + getOffsetInFile() + "] len:[" + getData().length +
-            "]byte seqno: [" + getSeqno() +
-            "] islast[" + isLastPacketInFile() + "]";
+        return "FSPacket of StorageName:[" + getStorageName()
+            + "] file[" + getFileName()
+            + "] offset:[" + getOffsetInFile()
+            + "] len:[" + getData().length
+            + "]byte seqno: [" + getSeqno()
+            + "] islast[" + isLastPacketInFile() + "]";
     }
 
     /**

@@ -214,9 +214,9 @@ public class RegionNodeModule implements Module {
     @Provides
     @Singleton
     public BlockPool getBlockPool() {
-        long blocksize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
-        int maxCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
-        Integer initCount = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_INIT_COUNT);
+        long blocksize = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
+        int maxCount = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
+        Integer initCount = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_INIT_COUNT);
         return new SeqBlockPool(blocksize, maxCount, initCount);
     }
 }

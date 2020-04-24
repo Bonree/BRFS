@@ -78,16 +78,15 @@ public class ServiceCacheImpl<T> implements ServiceCache<T>,
     public void close() throws IOException {
         Preconditions.checkState(state.compareAndSet(State.STARTED, State.STOPPED), "Already closed or has not been started");
 
-        listenerContainer.forEach
-            (
-                new Function<ServiceCacheListener, Void>() {
-                    @Override
-                    public Void apply(ServiceCacheListener listener) {
-                        discovery.getClient().getConnectionStateListenable().removeListener(listener);
-                        return null;
-                    }
+        listenerContainer.forEach(
+            new Function<ServiceCacheListener, Void>() {
+                @Override
+                public Void apply(ServiceCacheListener listener) {
+                    discovery.getClient().getConnectionStateListenable().removeListener(listener);
+                    return null;
                 }
-            );
+            }
+        );
         listenerContainer.clear();
 
         CloseableUtils.closeQuietly(cache);
@@ -123,25 +122,25 @@ public class ServiceCacheImpl<T> implements ServiceCache<T>,
             notifyListeners = true;
             break;
         }
-
         case CHILD_REMOVED: {
             instances.remove(instanceIdFromData(event.getData()));
             notifyListeners = true;
             break;
         }
+        default:
+            break;
         }
 
         if (notifyListeners) {
-            listenerContainer.forEach
-                (
-                    new Function<ServiceCacheListener, Void>() {
-                        @Override
-                        public Void apply(ServiceCacheListener listener) {
-                            listener.cacheChanged();
-                            return null;
-                        }
+            listenerContainer.forEach(
+                new Function<ServiceCacheListener, Void>() {
+                    @Override
+                    public Void apply(ServiceCacheListener listener) {
+                        listener.cacheChanged();
+                        return null;
                     }
-                );
+                }
+            );
         }
     }
 

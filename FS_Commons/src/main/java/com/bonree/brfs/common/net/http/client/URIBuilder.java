@@ -45,6 +45,7 @@ public class URIBuilder {
         try {
             return builder.build();
         } catch (URISyntaxException ignore) {
+            // ignore
         }
 
         return null;

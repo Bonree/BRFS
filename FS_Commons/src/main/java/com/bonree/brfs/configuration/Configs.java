@@ -7,8 +7,8 @@ public class Configs {
         String configFileName = System.getProperty(SystemProperties.PROP_CONFIGURATION_FILE);
         if (configFileName == null) {
             throw new RuntimeException(
-                "no configuration file is specified, provide by using property[" + SystemProperties.PROP_CONFIGURATION_FILE +
-                    "]");
+                "no configuration file is specified, provide by using property["
+                    + SystemProperties.PROP_CONFIGURATION_FILE + "]");
         }
 
         CONFIG = ConfigurationLoader.load(configFileName);

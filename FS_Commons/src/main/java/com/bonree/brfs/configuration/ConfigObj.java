@@ -9,7 +9,7 @@ public class ConfigObj {
         this.config = config;
     }
 
-    public <T> T GetConfig(ConfigUnit<T> unit) {
+    public <T> T getConfig(ConfigUnit<T> unit) {
         T value = null;
         try {
             value = (T) config.get(unit.type(), unit.name(), unit.defaultValue());

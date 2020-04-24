@@ -16,9 +16,9 @@ public class InitServer {
 
     public static void main(String[] args) {
         try {
-            String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+            String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
             CuratorClient client = CuratorClient.getClientInstance(zkAddresses);
-            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME), client.getInnerClient());
+            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_CLUSTER_NAME), client.getInnerClient());
             CuratorCacheFactory.init(client.getInnerClient());
             String passwd = null;
             Scanner sc = new Scanner(System.in);

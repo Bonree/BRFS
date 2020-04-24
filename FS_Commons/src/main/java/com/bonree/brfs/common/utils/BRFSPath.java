@@ -12,20 +12,20 @@ import org.slf4j.LoggerFactory;
 
 public class BRFSPath {
     private static final Logger LOG = LoggerFactory.getLogger(BRFSPath.class);
-    public final static String FILE_SEPARATOR = "/";
-    public final static String STORAGEREGION = "SOTRAGE_REGION";
-    public final static String INDEX = "INDEX";
-    public final static String YEAR = "YEAR";
-    public final static String MONTH = "MONTH";
-    public final static String DAY = "DAY";
-    public final static String TIME = "TIME";
-    public final static String FILE = "FILE";
-    public final static List<String> PATHLIST = Arrays.asList(new String[] {STORAGEREGION, INDEX, YEAR, MONTH, DAY, TIME, FILE});
+    public static final String FILE_SEPARATOR = "/";
+    public static final String STORAGEREGION = "SOTRAGE_REGION";
+    public static final String INDEX = "INDEX";
+    public static final String YEAR = "YEAR";
+    public static final String MONTH = "MONTH";
+    public static final String DAY = "DAY";
+    public static final String TIME = "TIME";
+    public static final String FILE = "FILE";
+    public static final List<String> PATHLIST = Arrays.asList(new String[] {STORAGEREGION, INDEX, YEAR, MONTH, DAY, TIME, FILE});
 
-    private final static DateTimeFormatter yearDate = DateTimeFormat.forPattern("yyyy");
-    private final static DateTimeFormatter yearMonth = DateTimeFormat.forPattern("yyyy-MM");
-    private final static DateTimeFormatter yearMonthDay = DateTimeFormat.forPattern("yyyy-MM-dd");
-    private final static DateTimeFormatter yearMonthDayTime = DateTimeFormat.forPattern("yyyy-MM-dd HH_mm_ss");
+    private static final DateTimeFormatter yearDate = DateTimeFormat.forPattern("yyyy");
+    private static final DateTimeFormatter yearMonth = DateTimeFormat.forPattern("yyyy-MM");
+    private static final DateTimeFormatter yearMonthDay = DateTimeFormat.forPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter yearMonthDayTime = DateTimeFormat.forPattern("yyyy-MM-dd HH_mm_ss");
 
     private String storageRegion = null;
     private String index = null;

@@ -23,7 +23,7 @@ public class DefaultNettyHandleResultCallback implements HandleResultCallback {
     @Override
     public void completed(HandleResult result) {
         HttpResponseStatus status;
-        if (result.isCONTINUE()) {
+        if (result.isToContinue()) {
             status = HttpResponseStatus.CONTINUE;
         } else {
             status = result.isSuccess() ? HttpResponseStatus.OK : HttpResponseStatus.INTERNAL_SERVER_ERROR;

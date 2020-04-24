@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
  **/
 public class DuplicateNodeFactory {
     public static DuplicateNodeSelector create(ServiceManager serviceManager, DiskNodeConnectionPool connectionPool, FileNodeStorer storer,PartitionNodeSelector pSelector, SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths, CuratorFramework client)throws Exception{
-        int type = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_DUPLICATION_SELECT_TYPE);
+        int type = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_DUPLICATION_SELECT_TYPE);
         // 1随机，2资源
         if(type == 1){
             return createRandom(serviceManager,connectionPool,pSelector,secondIds);

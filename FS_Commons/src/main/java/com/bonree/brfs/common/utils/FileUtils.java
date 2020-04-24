@@ -20,10 +20,10 @@ import org.slf4j.LoggerFactory;
 
 public class FileUtils {
 
-    private final static Logger LOG = LoggerFactory.getLogger(FileUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileUtils.class);
 
     // public final static String FILE_SEPARATOR = File.separator;
-    public final static String FILE_SEPARATOR = "/";
+    public static final String FILE_SEPARATOR = "/";
 
     /**
      * 概述：创建目录

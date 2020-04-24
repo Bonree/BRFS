@@ -108,17 +108,14 @@ public class BrStringUtils {
         // 空对象
         if (null == args) {
             bool = true;
-        }
-        // 空字符串
-        else if ("".equals(args.trim())) {
+        } else if ("".equals(args.trim())) {
+            // 空字符串
             bool = true;
-        }
-        // 全角
-        else if ("　".equals(args)) {
+        } else if ("　".equals(args)) {
+            // 全角
             bool = true;
-        }
-        // null字符串
-        else if ("null".equals(args)) {
+        } else if ("null".equals(args)) {
+            // null字符串
             bool = true;
         } else if ("[]".equals(args)) {
             bool = true;

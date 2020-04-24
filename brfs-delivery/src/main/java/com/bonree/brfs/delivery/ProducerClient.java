@@ -52,18 +52,18 @@ public class ProducerClient implements Deliver {
     private ProducerClient() {
 
         this.queueSize = //100000;
-            Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_QUEUE_SIZE);
+            Configs.getConfiguration().getConfig(KafkaConfig.CONFIG_QUEUE_SIZE);
         msgQueue = new ArrayBlockingQueue(queueSize);
         this.deliverSwitch = //true;
-            Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_DELIVER_SWITCH);
+            Configs.getConfiguration().getConfig(KafkaConfig.CONFIG_DELIVER_SWITCH);
 
-        this.dataSource = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_DATA_SOURCE);
-        this.topic = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_TOPIC);
-        this.metaUrl = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_META_URL);
-        this.tableReader = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_READER_TABLE);
-        this.tableWriter = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_WRITER_TABLE);
+        this.dataSource = Configs.getConfiguration().getConfig(KafkaConfig.CONFIG_DATA_SOURCE);
+        this.topic = Configs.getConfiguration().getConfig(KafkaConfig.CONFIG_TOPIC);
+        this.metaUrl = Configs.getConfiguration().getConfig(KafkaConfig.CONFIG_META_URL);
+        this.tableReader = Configs.getConfiguration().getConfig(KafkaConfig.CONFIG_READER_TABLE);
+        this.tableWriter = Configs.getConfiguration().getConfig(KafkaConfig.CONFIG_WRITER_TABLE);
 
-        this.brokers = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_BROKERS);
+        this.brokers = Configs.getConfiguration().getConfig(KafkaConfig.CONFIG_BROKERS);
 
         if (deliverSwitch) {
             try {

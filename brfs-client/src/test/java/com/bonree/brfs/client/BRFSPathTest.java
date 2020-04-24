@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client;
 
 import java.nio.file.Paths;
@@ -23,39 +24,39 @@ public class BRFSPathTest {
     public static void main(String[] args) {
         System.out.println(Paths.get("abd"));
         System.out.println(BRFSPath.get("abd"));
-        
+
         System.out.println("########################");
-        
+
         System.out.println(Paths.get("/", "a/b"));
         System.out.println(BRFSPath.get("/", "a/b"));
-        
+
         System.out.println("########################");
-        
+
         System.out.println(Paths.get("/c", "/a/b/"));
         System.out.println(BRFSPath.get("/c", "/a/b/"));
-        
+
         System.out.println("########################");
-        
+
         System.out.println(Paths.get("/c", "/a / b/"));
         System.out.println(BRFSPath.get("/c", "/a / b/"));
-        
+
         System.out.println("########################");
-        
+
         System.out.println(Paths.get("", "/a / b/"));
         System.out.println(BRFSPath.get("", "/a / b/"));
-        
+
         System.out.println("########################");
-        
+
         System.out.println(Paths.get("", "a / b/"));
         System.out.println(BRFSPath.get("", "a / b/"));
-        
+
         System.out.println("########################");
-        
+
         System.out.println(Paths.get("/", ""));
         System.out.println(BRFSPath.get("/", ""));
-        
+
         System.out.println("########################");
-        
+
         System.out.println(Paths.get("", ""));
         System.out.println(BRFSPath.get("", ""));
     }

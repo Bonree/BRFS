@@ -11,17 +11,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client;
 
+import com.bonree.brfs.client.data.DataSplitter;
+import com.bonree.brfs.client.data.FixedSizeDataSplitter;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import com.bonree.brfs.client.data.DataSplitter;
-import com.bonree.brfs.client.data.FixedSizeDataSplitter;
 
 public class DataSplitterTest {
 
@@ -30,35 +30,35 @@ public class DataSplitterTest {
      */
     public static void main(String[] args) {
         DataSplitter splitter = new FixedSizeDataSplitter(3);
-        
+
         Iterator<ByteBuffer> iter = splitter.split(new ByteArrayInputStream("1234567890".getBytes(StandardCharsets.UTF_8)));
         List<ByteBuffer> bs = new ArrayList<ByteBuffer>();
-        while(iter.hasNext()) {
+        while (iter.hasNext()) {
             ByteBuffer bb = iter.next();
             System.out.println("size:" + bb.toString() + (!iter.hasNext() ? "last" : "next"));
-            
+
             bs.add(bb);
         }
-        
+
         bs.forEach(buf -> {
             byte[] bytes = new byte[buf.remaining()];
             buf.get(bytes);
-            
+
             System.out.println("-->" + new String(bytes));
         });
-        
+
         Iterator<ByteBuffer> iter2 = splitter.split("1234567890".getBytes(StandardCharsets.UTF_8));
         List<ByteBuffer> bufs = new ArrayList<ByteBuffer>();
-        while(iter2.hasNext()) {
+        while (iter2.hasNext()) {
             ByteBuffer bb = iter2.next();
             System.out.println("size2:" + bb.toString() + (!iter2.hasNext() ? "last" : "next"));
             bufs.add(bb);
         }
-        
+
         bufs.forEach(buf -> {
             byte[] bytes = new byte[buf.remaining()];
             buf.get(bytes);
-            
+
             System.out.println("-->" + new String(bytes));
         });
     }

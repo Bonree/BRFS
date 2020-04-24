@@ -287,7 +287,7 @@ public class VirtualRecover3 implements DataRecover {
                             boolean success = false;
                             LOG.info("transfer :" + fileRecover);
                             String firstID = fileRecover.getFirstServerID();
-                            Service service = serviceManager.getServiceById(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
+                            Service service = serviceManager.getServiceById(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
                             while (true) {
 
                                 // if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {

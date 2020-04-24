@@ -25,8 +25,8 @@ public class ZkSequenceNumberBuilder implements SequenceNumberBuilder {
         String numberPath = null;
         try {
             numberPath = client.create().creatingParentsIfNeeded()
-                               .withMode(CreateMode.PERSISTENT_SEQUENTIAL)
-                               .forPath(ZKPaths.makePath(numberContainerPath, NUMBER_PREFIX));
+                .withMode(CreateMode.PERSISTENT_SEQUENTIAL)
+                .forPath(ZKPaths.makePath(numberContainerPath, NUMBER_PREFIX));
 
             if (numberPath == null) {
                 throw new RuntimeException("can not create id node on zookeeper!");

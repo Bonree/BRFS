@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
-import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -47,7 +46,7 @@ public class GatherResourceJob extends QuartzOperationStateTask {
 	private static final Logger LOG = LoggerFactory.getLogger(GatherResourceJob.class);
 	private static Queue<StateMetaServerModel> queue = new ConcurrentLinkedQueue<StateMetaServerModel>();
 	private static long preTime = 0L;
-	private static long INVERTTIME = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT)*1000;
+	private static long INVERTTIME = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT)*1000;
 
 	@Override
 	public void interrupt(){

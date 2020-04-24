@@ -17,9 +17,9 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 
 public class FileChannelInitializer extends ChannelInitializer<SocketChannel> {
     private SimpleChannelInboundHandler fileReadHandler;
-    private static boolean useZeroCopy = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_READ_BY_ZEROCOPY);
+    private static boolean useZeroCopy = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_READ_BY_ZEROCOPY);
     private LoadingCache<TimePair, String> timeCache = CacheBuilder.newBuilder()
-                                                                   .maximumSize(1024).build(new CacheLoader<TimePair, String>() {
+        .maximumSize(1024).build(new CacheLoader<TimePair, String>() {
 
             @Override
             public String load(TimePair pair) throws Exception {
@@ -38,8 +38,6 @@ public class FileChannelInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        //		pipeline.addLast(new JsonBytesDecoder(true));
-        //		pipeline.addLast(new ReadObjectDecoder());
         pipeline.addLast(new LineBasedFrameDecoder(1024 * 16));
         pipeline.addLast(new ReadObjectStringDecoder());
         pipeline.addLast(new ChunkedWriteHandler());

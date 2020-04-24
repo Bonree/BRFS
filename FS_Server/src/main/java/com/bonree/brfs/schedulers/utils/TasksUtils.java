@@ -19,7 +19,6 @@ import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
-import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.biz.UserDeleteJob;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
@@ -52,7 +51,7 @@ public class TasksUtils {
 		 		return ReturnCode.STORAGE_NONEXIST_ERROR;
 		 	}
 		 	
-		 	String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+		 	String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
 		 	MetaTaskManagerInterface release = new DefaultReleaseTask(zkAddresses, zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
 	    	TaskTypeModel tmodel = release.getTaskTypeInfo(TaskType.USER_DELETE.name());
 	    	if(!tmodel.isSwitchFlag()) {

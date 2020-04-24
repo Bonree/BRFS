@@ -26,7 +26,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     private static long preTime = 0L;
     //记录重复数值的
     private static long repeatTime = 0L;
-    private static long INVERTTIME = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT) * 1000;
+    private static long INVERTTIME = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT) * 1000;
     private DiskNodeConnectionPool connectionPool;
     private String groupName;
     private int centSize;

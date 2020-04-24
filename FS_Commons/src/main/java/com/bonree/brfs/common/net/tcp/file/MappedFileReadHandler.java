@@ -55,25 +55,30 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
     private LinkedList<BufferRef> releaseList = new LinkedList<>();
     private LoadingCache<String, BufferRef> bufferCache =
-        CacheBuilder.newBuilder().concurrencyLevel(Runtime.getRuntime().availableProcessors()).maximumSize(64).initialCapacity(32)
-                    .expireAfterAccess(30, TimeUnit.SECONDS).removalListener(new RemovalListener<String, BufferRef>() {
+        CacheBuilder.newBuilder()
+            .concurrencyLevel(Runtime.getRuntime().availableProcessors())
+            .maximumSize(64)
+            .initialCapacity(32)
+            .expireAfterAccess(30, TimeUnit.SECONDS)
+            .removalListener(new RemovalListener<String, BufferRef>() {
 
-            @Override
-            public void onRemoval(RemovalNotification<String, BufferRef> notification) {
-                LOG.info("remove file mapping of [{}] from cache", notification.getKey());
-                synchronized (releaseList) {
-                    releaseList.addLast(notification.getValue());
+                @Override
+                public void onRemoval(RemovalNotification<String, BufferRef> notification) {
+                    LOG.info("remove file mapping of [{}] from cache", notification.getKey());
+                    synchronized (releaseList) {
+                        releaseList.addLast(notification.getValue());
+                    }
                 }
-            }
-        }).build(new CacheLoader<String, BufferRef>() {
+            })
+            .build(new CacheLoader<String, BufferRef>() {
 
-            @Override
-            public BufferRef load(String filePath) throws Exception {
-                LOG.info("loading file[{}] to memory...", filePath);
-                return new BufferRef(Files.map(new File(filePath), MapMode.READ_ONLY));
-            }
+                @Override
+                public BufferRef load(String filePath) throws Exception {
+                    LOG.info("loading file[{}] to memory...", filePath);
+                    return new BufferRef(Files.map(new File(filePath), MapMode.READ_ONLY));
+                }
 
-        });
+            });
 
     private LoadingCache<TimePair, String> timeCache;
 
@@ -114,8 +119,8 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         readMetric.setDataCount(1);
         TimeWatcher timeWatcher = new TimeWatcher();
 
-        String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
-            translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
+        String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0
+            ? translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
 
         MappedByteBuffer fileBuffer = null;
         try {
@@ -130,7 +135,7 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             if (readOffset < 0 || readOffset > fileLength) {
                 LOG.error("unexcepted file[{}] offset : {}, file length : {}", filePath, readOffset, fileLength);
                 ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
-                   .addListener(ChannelFutureListener.CLOSE);
+                    .addListener(ChannelFutureListener.CLOSE);
                 return;
             }
 
@@ -158,12 +163,12 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         } catch (ExecutionException e) {
             LOG.error("can not open file channel for {}", filePath, e);
             ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
-               .addListener(ChannelFutureListener.CLOSE);
+                .addListener(ChannelFutureListener.CLOSE);
             return;
         } catch (Exception e) {
             LOG.error("read file error", e);
             ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
-               .addListener(ChannelFutureListener.CLOSE);
+                .addListener(ChannelFutureListener.CLOSE);
             return;
         } finally {
             bufferCache.cleanUp();

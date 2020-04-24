@@ -45,9 +45,9 @@ public class RocksDBDataUnit {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
-                          .add("columnFamily", columnFamily)
-                          .add("key", new String(key))
-                          .add("value", new String(value))
-                          .toString();
+            .add("columnFamily", columnFamily)
+            .add("key", new String(key))
+            .add("value", new String(value))
+            .toString();
     }
 }

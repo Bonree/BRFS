@@ -73,30 +73,30 @@ public class AsyncTcpClientGroup implements TcpClientGroup<BaseMessage, BaseResp
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline().addLast(new IdleStateHandler(0, DEFAULT_WRITE_IDLE_TIMEOUT_SECONDS, 0))
-                  .addLast(new BaseMessageEncoder())
-                  .addLast(new BaseResponseDecoder())
-                  .addLast(new SimpleChannelInboundHandler<TokenMessage<BaseResponse>>() {
+                    .addLast(new BaseMessageEncoder())
+                    .addLast(new BaseResponseDecoder())
+                    .addLast(new SimpleChannelInboundHandler<TokenMessage<BaseResponse>>() {
 
-                      @Override
-                      protected void channelRead0(
-                          ChannelHandlerContext ctx,
-                          TokenMessage<BaseResponse> msg) throws Exception {
-                          client.handle(msg.messageToken(), msg.message());
-                      }
+                        @Override
+                        protected void channelRead0(
+                            ChannelHandlerContext ctx,
+                            TokenMessage<BaseResponse> msg) throws Exception {
+                            client.handle(msg.messageToken(), msg.message());
+                        }
 
-                      @Override
-                      public void userEventTriggered(
-                          ChannelHandlerContext ctx, Object evt)
-                          throws Exception {
-                          if (evt instanceof IdleStateEvent) {
-                              IdleStateEvent e = (IdleStateEvent) evt;
-                              if (e.state() == IdleState.WRITER_IDLE) {
-                                  ctx.writeAndFlush(new BaseMessage(-1));
-                              }
-                          }
-                      }
+                        @Override
+                        public void userEventTriggered(
+                            ChannelHandlerContext ctx, Object evt)
+                            throws Exception {
+                            if (evt instanceof IdleStateEvent) {
+                                IdleStateEvent e = (IdleStateEvent) evt;
+                                if (e.state() == IdleState.WRITER_IDLE) {
+                                    ctx.writeAndFlush(new BaseMessage(-1));
+                                }
+                            }
+                        }
 
-                  });
+                    });
             }
 
         });

@@ -17,38 +17,38 @@ import org.slf4j.LoggerFactory;
  ******************************************************************************/
 public class ZookeeperPaths {
 
-    private final static Logger LOG = LoggerFactory.getLogger(ZookeeperPaths.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperPaths.class);
 
-    public final static String SEPARATOR = "/";
+    public static final String SEPARATOR = "/";
 
-    public final static String ROOT = "brfs";
+    public static final String ROOT = "brfs";
 
-    public final static String SERVER_ID_SEQUENCES = "server_id_sequences";
+    public static final String SERVER_ID_SEQUENCES = "server_id_sequences";
 
-    public final static String SEQUENCES = "sequences";
+    public static final String SEQUENCES = "sequences";
 
-    public final static String SERVER_IDS = "server_ids";
+    public static final String SERVER_IDS = "server_ids";
 
-    public final static String LOCKS = "locks";
+    public static final String LOCKS = "locks";
 
-    public final static String STORAGE_NAME = "storage_name";
+    public static final String STORAGE_NAME = "storage_name";
 
-    public final static String REBALANCE = "rebalance";
+    public static final String REBALANCE = "rebalance";
 
-    public final static String ROUTES = "routes";
+    public static final String ROUTES = "routes";
 
-    public final static String USERS = "users";
+    public static final String USERS = "users";
 
-    public final static String TASKS = "tasks";
+    public static final String TASKS = "tasks";
 
-    public final static String RESOURCES = "resources";
+    public static final String RESOURCES = "resources";
 
-    public final static String ROCKSDB = "rocksdb";
+    public static final String ROCKSDB = "rocksdb";
 
-    public final static String DISCOVER = "discovery";
+    public static final String DISCOVER = "discovery";
     // todo 为了兼容旧版本客户端，增加路径
-    public final static String BAS_SECOND_ID = "secondIDSet";
-    public final static String BAS_NEW_ROUTE = "routeSet";
+    public static final String BAS_SECOND_ID = "secondIDSet";
+    public static final String BAS_NEW_ROUTE = "routeSet";
 
     private final String clusterName;
 

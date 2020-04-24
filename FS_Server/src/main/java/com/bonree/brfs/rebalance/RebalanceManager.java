@@ -36,19 +36,19 @@ public class RebalanceManager implements Closeable {
 
     @Inject
     public RebalanceManager(ZookeeperPaths zkPaths, ServerIDManager idManager, StorageRegionManager snManager, ServiceManager serviceManager) {
-    	String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+    	String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         curatorClient = CuratorClient.getClientInstance(zkAddresses, 500, 500);
         dispatch = new TaskDispatcher(curatorClient, zkPaths.getBaseRebalancePath(),
         		zkPaths.getBaseRoutePath(), idManager,
         		serviceManager, snManager,
-        		Configs.getConfiguration().GetConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
-        		Configs.getConfiguration().GetConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY));
+        		Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
+        		Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY));
         
-        String dataPath = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT);
+        String dataPath = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_DATA_ROOT);
         opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager,
         		dataPath, snManager, serviceManager);
         
-		int port = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT);
+		int port = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT);
         try {
             fileServer = new SimpleFileServer(port + 20, dataPath, 10);
         } catch (IOException e) {

@@ -68,9 +68,9 @@ public final class ConfigurationLoader {
             Parameters params = new Parameters();
             CONFIGURATION_BUILDER.resetResult();
             CONFIGURATION_BUILDER.configure(params.properties()
-                                                  .setFileName(fileName)
-                                                  .setEncoding(Charsets.UTF_8.name())
-                                                  .setThrowExceptionOnMissing(true));
+                                                .setFileName(fileName)
+                                                .setEncoding(Charsets.UTF_8.name())
+                                                .setThrowExceptionOnMissing(true));
 
             config = new ConfigObj(CONFIGURATION_BUILDER.getConfiguration());
 

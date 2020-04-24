@@ -80,7 +80,7 @@ public class JobDataMapConstract {
 	 */
 	public static Map<String,String> createGatherResourceDataMap(ResourceTaskConfig resource, String serverId, String zkServerPath,String zkaddress){
 		Map<String, String>  dataMap = new HashMap<>();
-		String host = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST);
+		String host = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_HOST);
 		dataMap.put(IP, host);
 		dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
 		dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");

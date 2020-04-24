@@ -14,10 +14,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  ******************************************************************************/
 public class RocksDBConfig {
     @JsonProperty("storage.path")
-    public String rocksDBStoragePath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
+    public String rocksDBStoragePath = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH);
 
     @JsonProperty("backup.path")
-    public String rocksDBBackupPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
+    public String rocksDBBackupPath = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
 
     public String getRocksDBStoragePath() {
         return rocksDBStoragePath;

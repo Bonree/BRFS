@@ -13,7 +13,8 @@ public class HashUtils {
      * @return hash结果
      */
     public static int additiveHash(String key, int prime) {
-        int hash, i;
+        int hash;
+        int i;
         for (hash = key.length(), i = 0; i < key.length(); i++) {
             hash += key.charAt(i);
         }
@@ -31,7 +32,8 @@ public class HashUtils {
      * @return hash值
      */
     public static int rotatingHash(String key, int prime) {
-        int hash, i;
+        int hash;
+        int i;
         for (hash = key.length(), i = 0; i < key.length(); ++i) {
             hash = (hash << 4) ^ (hash >> 28) ^ key.charAt(i);
         }
@@ -58,7 +60,8 @@ public class HashUtils {
      * @return 输出hash值
      */
     public static int oneByOneHash(String key) {
-        int hash, i;
+        int hash;
+        int i;
         for (hash = 0, i = 0; i < key.length(); ++i) {
             hash += key.charAt(i);
             hash += (hash << 10);
@@ -116,7 +119,9 @@ public class HashUtils {
      * Universal Hashing
      */
     public static int universal(char[] key, int mask, int[] tab) {
-        int hash = key.length, i, len = key.length;
+        int hash = key.length;
+        int i;
+        int len = key.length;
         for (i = 0; i < (len << 3); i += 8) {
             char k = key[i >> 3];
             if ((k & 0x01) == 0) {
@@ -153,7 +158,8 @@ public class HashUtils {
      * Zobrist Hashing
      */
     public static int zobrist(char[] key, int mask, int[][] tab) {
-        int hash, i;
+        int hash;
+        int i;
         for (hash = key.length, i = 0; i < key.length; ++i) {
             hash ^= tab[i][key[i]];
         }
@@ -175,7 +181,7 @@ public class HashUtils {
      *
      * @return int值
      */
-    public static int FNVHash(byte[] data) {
+    public static int fnvhash(byte[] data) {
         int hash = (int) 2166136261L;
         for (byte b : data) {
             hash = (hash * 16777619) ^ b;
@@ -195,7 +201,7 @@ public class HashUtils {
      *
      * @return int值
      */
-    public static int FNVHash1(byte[] data) {
+    public static int fnvhash1(byte[] data) {
         final int p = 16777619;
         int hash = (int) 2166136261L;
         for (byte b : data) {
@@ -218,7 +224,7 @@ public class HashUtils {
      *
      * @return int值
      */
-    public static int FNVHash1(String data) {
+    public static int fnvhash1(String data) {
         final int p = 16777619;
         int hash = (int) 2166136261L;
         for (int i = 0; i < data.length(); i++) {
@@ -254,7 +260,7 @@ public class HashUtils {
      *
      * @param str 字符串
      */
-    public static int RSHash(String str) {
+    public static int rshash(String str) {
         int b = 378551;
         int a = 63689;
         int hash = 0;
@@ -273,7 +279,7 @@ public class HashUtils {
     /**
      * JS算法
      */
-    public static int JSHash(String str) {
+    public static int jshash(String str) {
         int hash = 1315423911;
 
         for (int i = 0; i < str.length(); i++) {
@@ -289,19 +295,19 @@ public class HashUtils {
     /**
      * PJW算法
      */
-    public static int PJWHash(String str) {
-        int BitsInUnsignedInt = 32;
-        int ThreeQuarters = (BitsInUnsignedInt * 3) / 4;
-        int OneEighth = BitsInUnsignedInt / 8;
-        int HighBits = 0xFFFFFFFF << (BitsInUnsignedInt - OneEighth);
+    public static int pjwhash(String str) {
+        int bitsInUnsignedInt = 32;
+        int threeQuarters = (bitsInUnsignedInt * 3) / 4;
+        int oneEighth = bitsInUnsignedInt / 8;
+        int highBits = 0xFFFFFFFF << (bitsInUnsignedInt - oneEighth);
         int hash = 0;
         int test = 0;
 
         for (int i = 0; i < str.length(); i++) {
-            hash = (hash << OneEighth) + str.charAt(i);
+            hash = (hash << oneEighth) + str.charAt(i);
 
-            if ((test = hash & HighBits) != 0) {
-                hash = ((hash ^ (test >> ThreeQuarters)) & (~HighBits));
+            if ((test = hash & highBits) != 0) {
+                hash = ((hash ^ (test >> threeQuarters)) & (~highBits));
             }
         }
 
@@ -314,7 +320,7 @@ public class HashUtils {
     /**
      * ELF算法
      */
-    public static int ELFHash(String str) {
+    public static int elfhash(String str) {
         int hash = 0;
         int x = 0;
 
@@ -335,7 +341,7 @@ public class HashUtils {
     /**
      * BKDR算法
      */
-    public static int BKDRHash(String str) {
+    public static int bkdrhash(String str) {
         int seed = 131; // 31 131 1313 13131 131313 etc..
         int hash = 0;
 
@@ -352,7 +358,7 @@ public class HashUtils {
     /**
      * SDBM算法
      */
-    public static int SDBMHash(String str) {
+    public static int sdbmhash(String str) {
         int hash = 0;
 
         for (int i = 0; i < str.length(); i++) {
@@ -368,7 +374,7 @@ public class HashUtils {
     /**
      * DJB算法
      */
-    public static int DJBHash(String str) {
+    public static int djbhash(String str) {
         int hash = 5381;
 
         for (int i = 0; i < str.length(); i++) {
@@ -384,7 +390,7 @@ public class HashUtils {
     /**
      * DEK算法
      */
-    public static int DEKHash(String str) {
+    public static int dekhash(String str) {
         int hash = str.length();
 
         for (int i = 0; i < str.length(); i++) {
@@ -400,7 +406,7 @@ public class HashUtils {
     /**
      * AP算法
      */
-    public static int APHash(String str) {
+    public static int aphash(String str) {
         int hash = 0;
 
         for (int i = 0; i < str.length(); i++) {
@@ -436,7 +442,7 @@ public class HashUtils {
     public static long mixHash(String str) {
         long hash = str.hashCode();
         hash <<= 32;
-        hash |= FNVHash1(str);
+        hash |= fnvhash1(str);
         return hash;
     }
 

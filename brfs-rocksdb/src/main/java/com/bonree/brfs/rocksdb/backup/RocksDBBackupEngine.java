@@ -54,8 +54,8 @@ public class RocksDBBackupEngine implements LifeCycle {
     @LifecycleStart
     @Override
     public void start() throws Exception {
-        String backupPath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
-        long backupCycle = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_CYCLE);
+        String backupPath = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_BACKUP_PATH);
+        long backupCycle = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_BACKUP_CYCLE);
         LOG.info("start backup engine, backup path:{}, backup cycle:{}", backupPath, backupCycle);
 
         File file = new File(backupPath);

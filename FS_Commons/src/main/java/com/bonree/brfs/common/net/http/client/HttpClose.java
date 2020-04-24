@@ -5,7 +5,7 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 
 public class HttpClose extends HttpEntityEnclosingRequestBase {
 
-    public final static String METHOD_NAME = "CLOSE";
+    public static final String METHOD_NAME = "CLOSE";
 
     public HttpClose() {
         super();

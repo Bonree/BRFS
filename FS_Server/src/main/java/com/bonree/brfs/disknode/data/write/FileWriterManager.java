@@ -47,16 +47,16 @@ public class FileWriterManager implements LifeCycle {
 	private WriteWorkerSelector workerSelector;
 	private RecordCollectionManager recorderManager;
 
-	private static int recordCacheSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_RECORD_CACHE_SIZE);
-	private static int dataCacheSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_DATA_CACHE_SIZE);
+	private static int recordCacheSize = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_WRITER_RECORD_CACHE_SIZE);
+	private static int dataCacheSize = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_WRITER_DATA_CACHE_SIZE);
 
 	private ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>>();
 
-	Duration fileIdleDuration = Duration.parse(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_IDLE_TIME));
+	Duration fileIdleDuration = Duration.parse(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_FILE_IDLE_TIME));
 	private WheelTimer<String> timeoutWheel = new WheelTimer<String>((int) fileIdleDuration.getSeconds());
 
 	public FileWriterManager(RecordCollectionManager recorderManager) {
-		this(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager);
+		this(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager);
 	}
 
 	public FileWriterManager(int workerNum, RecordCollectionManager recorderManager) {
