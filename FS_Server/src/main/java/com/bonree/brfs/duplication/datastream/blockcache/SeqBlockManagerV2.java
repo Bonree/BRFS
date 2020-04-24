@@ -128,7 +128,6 @@ public class SeqBlockManagerV2 implements BlockManager {
                         new WriteBlockCallback(callback, packet, packet.isLastPacketInFile()));
                 LOG.info("flush a block of file[{}] into data pool ",fileName);
                 blockValue.reset();
-                //todo 这里应该在block返回fid后才可以申请下一个  加return
                 return null;
             }
             if(packet.isTheFirstPacketInFile()){
@@ -373,6 +372,10 @@ public class SeqBlockManagerV2 implements BlockManager {
                     " blockOffsetInfile：" + blockOffsetInfile +
                     " block" + block +
                     " flush error！", fileName);
+            BlockValue blockValue = blockcache.remove(new BlockKey(storageName,writeID));
+            if(blockValue != null && fileWritingCount.get()>0){
+                blockValue.releaseData();
+            }
             callback.completed(new HandleResult(false));
         }
     }
@@ -428,6 +431,7 @@ public class SeqBlockManagerV2 implements BlockManager {
 
         @Override
         public void error() {
+
             callback.completed(new HandleResult(false));
         }
     }

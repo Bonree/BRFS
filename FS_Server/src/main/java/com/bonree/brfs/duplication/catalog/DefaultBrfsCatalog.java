@@ -18,6 +18,7 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,6 +135,8 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
      */
     @Override
     public boolean writeFid(String srName, String path, String fid) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         if(!validPath(path)){
             LOG.error("invalid path : [{}]",path);
             return false;
@@ -145,8 +148,10 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             //写文件
             key = transferToKey(path);
             WriteStatus write = rocksDBManager.write(srName, key, fid.getBytes(),true);
-                if(write != WriteStatus.SUCCESS){
-                return false;
+            stopWatch.split();
+            LOG.info("write the path[{}] cost [{}]",path,stopWatch.getSplitTime());
+            if(write != WriteStatus.SUCCESS){
+            return false;
             }
         } catch (ProcessingException e) {
             LOG.error("get path [{}] Cache error",path);
@@ -154,6 +159,8 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         } catch (Exception e) {
             LOG.error("Maybe its rocksDB can not write {}",e);
             return false;
+        }finally {
+            stopWatch.stop();
         }
         return true;
     }

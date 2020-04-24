@@ -7,6 +7,7 @@ import com.bonree.brfs.duplication.datastream.dataengine.DataStoreCallback;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import javax.inject.Inject;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,19 +43,30 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
 	}
 
 	public void write(int storageRegionId, byte[] data,StorageRegionWriteCallback callback){
-		DataEngine dataEngine = dataEngineManager.getDataEngine(storageRegionId);
-		if(dataEngine == null) {
-			LOG.error("can not get data engine by region[id={}]", storageRegionId);
+		try{
+			StopWatch stopWatch = new StopWatch();
+			stopWatch.start();
+			DataEngine dataEngine = dataEngineManager.getDataEngine(storageRegionId);
+			stopWatch.split();
+			LOG.info("require a dataEngine cost [{}]" , stopWatch.getSplitTime());
+			if(dataEngine == null) {
+				LOG.error("can not get data engine by region[id={}]", storageRegionId);
+				callback.error();
+				return;
+			}
+			if(data == null){
+				LOG.error("null data to write into the datapool！");
+				callback.error();
+				return;
+			}
+			dataEngine.store(data, new SingleDataCallback(callback));
+			stopWatch.split();
+			LOG.info("enqueue the datapool cost [{}]" , stopWatch.getSplitTime());
+			stopWatch.stop();
+		}catch (Exception e){
+			LOG.error("error when srWriter write the data");
 			callback.error();
-			return;
 		}
-		if(data == null){
-			LOG.error("null data to write into the datapool！");
-			callback.error();
-			return;
-		}
-		dataEngine.store(data, new SingleDataCallback(callback));
-		LOG.debug("a data entry is enqueue the datapool！" );
 	}
 	private static class SingleDataCallback implements DataStoreCallback {
 		private StorageRegionWriteCallback callback;
