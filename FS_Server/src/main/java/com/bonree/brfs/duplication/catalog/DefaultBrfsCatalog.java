@@ -7,11 +7,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -102,16 +102,21 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             LOG.error("dir [{}] is not found.",path);
             throw new NotFoundException();
         }
-        for (byte[] key : map.keySet()) {
+        TreeMap<String,byte[]> treeMap = new TreeMap<>();
+        for (byte[] bytes : map.keySet()) {
+            treeMap.put(new String(bytes),map.get(bytes));
+        }
+        map.clear();
+        for (String key : treeMap.keySet()) {
             //去掉自己
-            if(Arrays.equals(key,prefixQueryKey)){
+            if(new String(prefixQueryKey).equals(key)){
                 continue;
             }
             if(count >= (startPos + pageSize)){
                 break;
             }
-            String nodeName = getLastNodeNameWithOutSep(new String(key));
-            byte[] value = map.get(key);
+            String nodeName = getLastNodeNameWithOutSep(key);
+            byte[] value = treeMap.get(key);
             if(null == value){
                 String resp = "the path["+path+"]'child["+nodeName+"] is not store correctly";
                 LOG.error(resp);
