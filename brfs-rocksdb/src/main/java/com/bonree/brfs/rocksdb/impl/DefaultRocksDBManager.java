@@ -393,7 +393,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     private void syncColumnFamilyByStorageRegionInfo() {
         Map<String, Integer> srNameAndDataTtl = getStorageRegionNameAndDataTtl();
-        updateColumnFamilyHandles(getStorageRegionNameAndDataTtl(), true);
+        updateColumnFamilyHandles(getStorageRegionNameAndDataTtl());   // 先更新本地缓存
+        this.columnFamilyInfoManager.resetColumnFamilyInfo(srNameAndDataTtl);  // 再重置zk上保存的列族信息
         LOG.info("sync column family by storage region info complete, sr list:{}", srNameAndDataTtl);
     }
 
@@ -426,7 +427,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public void updateColumnFamilyHandles(Map<String, Integer> columnFamilyMap, boolean updateZk) {
+    public void updateColumnFamilyHandles(Map<String, Integer> columnFamilyMap) {
         try {
             columnFamilyMap.put("default", -1);  // CF_HANDLE中默认有default列族，所以比较前需要先put
             Set<String> updatedCfs = columnFamilyMap.keySet();
@@ -436,23 +437,15 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
             for (String diff : diffUpdatedCfs) {
                 if (!cfHandles.containsKey(diff)) {
-                    if (updateZk) {
-                        createColumnFamilyWithTtl(diff, columnFamilyMap.get(diff));
-                    } else {
-                        ColumnFamilyHandle handle = this.db.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(diff.getBytes(), columnFamilyOptions), columnFamilyMap.get(diff));
-                        this.cfHandles.put(diff, handle);
-                    }
+                    ColumnFamilyHandle handle = this.db.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(diff.getBytes(), columnFamilyOptions), columnFamilyMap.get(diff));
+                    this.cfHandles.put(diff, handle);
                 }
             }
 
             for (String diff : diffCurrentCfs) {
                 if (cfHandles.containsKey(diff)) {
-                    if (updateZk) {
-                        deleteColumnFamily(diff);
-                    } else {
-                        this.db.dropColumnFamily(this.cfHandles.get(diff));
-                        this.cfHandles.remove(diff);
-                    }
+                    this.db.dropColumnFamily(this.cfHandles.get(diff));
+                    this.cfHandles.remove(diff);
                 }
             }
 
