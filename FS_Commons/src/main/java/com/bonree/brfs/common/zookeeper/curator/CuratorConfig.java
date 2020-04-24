@@ -11,33 +11,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.common.zookeeper.curator;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.Min;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class CuratorConfig {
-    
+
     @JsonProperty("addresses")
     private String addresses = "localhost:2181";
-    
+
     @JsonProperty("acl")
     private boolean enableAcl = false;
-    
+
     @JsonProperty("compress")
     private boolean enableCompression = true;
-    
+
     @JsonProperty("user")
     private String zkUser;
-    
+
     @JsonProperty("passwd")
     private String zkPasswd;
-    
+
     @JsonProperty("sessionTimeoutMs")
     @Min(0)
     private int zkSessionTimeoutMs = 30000;
-    
+
     @JsonProperty("authScheme")
     private String authScheme = "digest";
 
@@ -96,5 +96,5 @@ public class CuratorConfig {
     public void setEnableCompression(boolean enableCompression) {
         this.enableCompression = enableCompression;
     }
-    
+
 }

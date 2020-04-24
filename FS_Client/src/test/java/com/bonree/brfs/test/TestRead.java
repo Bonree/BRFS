@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.test;
 
 import com.bonree.brfs.client.BRFileSystem;
@@ -23,21 +24,22 @@ public class TestRead {
 
     /**
      * @param args
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     public static void main(String[] args) throws Exception {
         String fid = "CAAQABgNIiAxY2EwOTE4N2JkNjE0YTJiYTU1M2VlZDc2ZGRiMTU2ZCit7Nqe5i0wgN3bAToDMjI3OgMyMjZAAEhX";
-        
+
         FileSystemConfig config = FileSystemConfig.newBuilder()
-                .setClusterName("brfs_sdk2")
-                .setUsername("root")
-                .setPasswd("12345")
-                .setConnectionPoolSize(10)
-                .setZkAddresses("192.168.13.91:2181")
-                .build();
+                                                  .setClusterName("brfs_sdk2")
+                                                  .setUsername("root")
+                                                  .setPasswd("12345")
+                                                  .setConnectionPoolSize(10)
+                                                  .setZkAddresses("192.168.13.91:2181")
+                                                  .build();
         BRFileSystem fileSystem = new DefaultBRFileSystem(config);
         StorageNameStick stick = fileSystem.openStorageName("T_WINSDK_STAT_ERROR_SNAPSHOT");
-        
+
         InputItem input = stick.readData(fid);
         System.out.println(input);
     }

@@ -11,23 +11,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.sr;
 
-import java.net.URI;
-import java.util.List;
+package com.bonree.brfs.client.sr;
 
 import com.bonree.brfs.client.BRFS;
 import com.bonree.brfs.client.BRFSClientBuilder;
+import java.net.URI;
+import java.util.List;
 
 public class ListTest {
 
     /**
      * @param args
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     public static void main(String[] args) throws Exception {
         BRFS client = new BRFSClientBuilder().build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
-        
+
         List<String> srs = client.listStorageRegions();
         System.out.println("list : " + srs);
     }

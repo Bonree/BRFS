@@ -11,11 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.data.compress;
 
 public enum Compression {
     NONE(0) {
-        
         @Override
         public Compressor compressor() {
             return Compressor.NONE;
@@ -25,19 +25,20 @@ public enum Compression {
         public Decompressor decompressor() {
             return Decompressor.NONE;
         }
-        
+
     };
-    
+
     private final int code;
-    
+
     private Compression(int code) {
         this.code = code;
     }
-    
+
     public int code() {
         return code;
     }
-    
+
     public abstract Compressor compressor();
+
     public abstract Decompressor decompressor();
 }

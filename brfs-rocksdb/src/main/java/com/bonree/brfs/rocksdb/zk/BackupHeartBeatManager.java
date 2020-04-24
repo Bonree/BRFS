@@ -71,7 +71,7 @@ public class BackupHeartBeatManager {
     public int getBackupIdByLatestBackupTiming() {
         List<String> hosts = new ArrayList<>();
 
-        List<Service> services = this.serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME));
+        List<Service> services = this.serviceManager.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME));
         for (Service service : services) {
             hosts.add(service.getHost());
         }

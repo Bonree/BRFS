@@ -19,7 +19,7 @@ public class KafkaConfig {
             ConfigUnit.ofString("kafka.brokers", "127.0.0.1:9092");
 
     public static final ConfigUnit<String> CONFIG_TOPIC =
-            ConfigUnit.ofString("kafka.topic","brfs_merit");
+            ConfigUnit.ofString("kafka.topic", "brfs_merit");
 
     public static final ConfigUnit<Integer> CONFIG_QUEUE_SIZE =
             ConfigUnit.ofInt("deliver.queue.size", 200000);

@@ -9,19 +9,13 @@ import java.util.Properties;
 import javax.inject.Inject;
 
 import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.configuration.units.ResourceConfigs;
-import com.bonree.brfs.disknode.StorageConfig;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
-import io.protostuff.CollectionSchema;
-import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
-import org.apache.curator.retry.RetryNTimes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +28,6 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.CommonConfigs;
-import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
@@ -82,7 +75,7 @@ public class InitTaskManager {
         SchedulerManagerInterface manager = DefaultSchedulersManager.getInstance();
 
         // 工厂类添加发布接口
-        String zkAddresses = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+        String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         MetaTaskManagerInterface release = new DefaultReleaseTask(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
 
         if (client == null) {
@@ -303,7 +296,7 @@ public class InitTaskManager {
         LibUtils.loadLibraryPath(config.getLibPath());
         // 2.采集基本信息上传到 zk
         String serverId = ManagerContralFactory.getInstance().getServerId();
-        String zkAddress = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+        String zkAddress = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         // 3.创建资源采集线程池
         Properties prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);
         manager.createTaskPool(RESOURCE_MANAGER, prop);

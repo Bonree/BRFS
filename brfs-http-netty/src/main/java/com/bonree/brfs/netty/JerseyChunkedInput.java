@@ -16,14 +16,6 @@
 
 package com.bonree.brfs.netty;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
-
-import javax.inject.Provider;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
@@ -32,6 +24,12 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.stream.ChunkedInput;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Provider;
 
 /**
  * Netty {@link ChunkedInput} implementation which also serves as an output
@@ -172,7 +170,7 @@ public class JerseyChunkedInput extends OutputStream implements ChunkedInput<Byt
         write(new Provider<ByteBuffer>() {
             @Override
             public ByteBuffer get() {
-                return ByteBuffer.wrap(new byte[]{(byte) b});
+                return ByteBuffer.wrap(new byte[] {(byte) b});
             }
         });
     }

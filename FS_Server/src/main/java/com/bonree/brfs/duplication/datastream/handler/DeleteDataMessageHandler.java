@@ -80,7 +80,7 @@ public class DeleteDataMessageHandler implements MessageHandler {
 		long endTime = DateTime.parse(times.get(1)).getMillis();
 		LOG.info("DELETE DATA [{}-->{}]", times.get(0), times.get(1));
 		
-		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 
         code = TasksUtils.createUserDeleteTask(serviceList, zkPaths, sn, startTime, endTime,false);
         

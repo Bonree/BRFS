@@ -11,15 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.data.read;
 
 import static java.util.Objects.requireNonNull;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.Socket;
-import java.net.URI;
 
 import com.bonree.brfs.client.data.read.connection.DataConnectionPool;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
@@ -28,10 +23,15 @@ import com.bonree.brfs.common.write.data.FileDecoder;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
+import java.net.URI;
 
 public class PooledTcpFidContentReader implements FidContentReader {
     private final DataConnectionPool pool;
-    
+
     public PooledTcpFidContentReader(DataConnectionPool pool) {
         this.pool = requireNonNull(pool);
     }
@@ -58,30 +58,30 @@ public class PooledTcpFidContentReader implements FidContentReader {
             }
         }).call();
     }
-    
+
     private static byte[] toReadString(String srName, Fid fidObj, int index) {
         StringBuilder nameBuilder = new StringBuilder(fidObj.getUuid());
         String[] serverList = new String[fidObj.getServerIdCount()];
         for (int i = 0; i < fidObj.getServerIdCount(); i++) {
-                String id = fidObj.getServerId(i);
-                nameBuilder.append('_').append(id);
-                serverList[i] = id;
+            String id = fidObj.getServerId(i);
+            nameBuilder.append('_').append(id);
+            serverList[i] = id;
         }
-        
+
         return Joiner.on(';').useForNull("-")
-                .join(
-                        srName,
-                        index,
-                        fidObj.getTime(),
-                        fidObj.getDuration(),
-                        nameBuilder.toString(),
-                        null,
-                        fidObj.getOffset(),
-                        fidObj.getSize(),
-                        0,
-                        0,
-                        "\n")
-        .getBytes(Charsets.UTF_8);
+                     .join(
+                         srName,
+                         index,
+                         fidObj.getTime(),
+                         fidObj.getDuration(),
+                         nameBuilder.toString(),
+                         null,
+                         fidObj.getOffset(),
+                         fidObj.getSize(),
+                         0,
+                         0,
+                         "\n")
+                     .getBytes(Charsets.UTF_8);
     }
 
     private static void readBytes(InputStream input, byte[] des, int offset, int length) throws IOException {

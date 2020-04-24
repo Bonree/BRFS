@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.email;
 
 import com.bonree.brfs.common.guice.JsonConfigProvider;
@@ -24,8 +25,8 @@ public class EmailModule extends BrfsModule {
     @Override
     public void configure(NodeType nodeType, Binder binder) {
         JsonConfigProvider.bind(binder, "email", EmailConfig.class);
-        
+
         LifecycleModule.register(binder, EmailPoolInitializer.class);
     }
-    
+
 }

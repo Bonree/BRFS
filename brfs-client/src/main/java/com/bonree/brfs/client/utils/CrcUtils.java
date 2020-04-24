@@ -11,19 +11,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
 import java.nio.ByteBuffer;
 import java.util.zip.CRC32;
 
 public final class CrcUtils {
-    
+
     public static long crc(byte[] bytes) {
         CRC32 crc = new CRC32();
         crc.update(bytes);
         return crc.getValue();
     }
-    
+
     public static long crc(ByteBuffer buffer) {
         CRC32 crc = new CRC32();
         crc.update(buffer);

@@ -290,7 +290,7 @@ public class VirtualRecover implements DataRecover {
 
                             while (true) {
                                 Service service = serviceManager.getServiceById(Configs.getConfiguration()
-                                        .GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
+                                        .getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
                                 if (service == null) {
                                     LOG.warn("first id is {},maybe down!", firstID);
                                     Thread.sleep(1000);

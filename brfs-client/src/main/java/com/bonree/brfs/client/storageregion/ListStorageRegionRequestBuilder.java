@@ -11,15 +11,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.storageregion;
 
 public class ListStorageRegionRequestBuilder {
     private boolean disableAllowed = true;
     private String prefix;
     private int maxKeys = Integer.MAX_VALUE;
-    
-    ListStorageRegionRequestBuilder() {}
-    
+
+    ListStorageRegionRequestBuilder() {
+    }
+
     public ListStorageRegionRequestBuilder setDisableAllowed(boolean allowed) {
         this.disableAllowed = allowed;
         return this;
@@ -34,20 +36,20 @@ public class ListStorageRegionRequestBuilder {
         this.maxKeys = maxKeys;
         return this;
     }
-    
+
     public ListStorageRegionRequest build() {
         return new ListStorageRegionRequest() {
-            
+
             @Override
             public boolean disableAllowed() {
                 return disableAllowed;
             }
-            
+
             @Override
             public String getPrefix() {
                 return prefix;
             }
-            
+
             @Override
             public int getMaxKeys() {
                 return maxKeys;

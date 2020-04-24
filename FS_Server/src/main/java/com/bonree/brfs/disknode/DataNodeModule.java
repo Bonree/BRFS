@@ -49,7 +49,6 @@ import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
 import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
-import com.bonree.brfs.rebalanceV2.RebalanceManagerV2;
 import com.bonree.brfs.schedulers.InitTaskManager;
 import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.inject.Binder;
@@ -150,9 +149,9 @@ public class DataNodeModule implements Module {
         Service service = new Service(
                 idManager.initOrLoadServerID(),
                 clusterConfig.getDataNodeGroup(),
-                Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST),
-                Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT));
-        service.setExtraPort(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_PORT));
+                Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_HOST),
+                Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT));
+        service.setExtraPort(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_FILE_PORT));
 
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
 
@@ -263,7 +262,7 @@ public class DataNodeModule implements Module {
         AsyncFileReaderGroup readerGroup = new AsyncFileReaderGroup(Math.min(2, Runtime.getRuntime().availableProcessors() / 2));
 
         ExecutorService threadPool = Executors.newFixedThreadPool(
-                        Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),
+                        Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),
                         new PooledThreadFactory("message_handler"));
 
         MessageChannelInitializer initializer = new MessageChannelInitializer(threadPool);
@@ -282,9 +281,9 @@ public class DataNodeModule implements Module {
         ServerConfig config = new ServerConfig();
         config.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")));
         config.setBossThreadNums(1);
-        config.setWorkerThreadNums(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_SERVER_IO_NUM));
-        config.setPort(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PORT));
-        config.setHost(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST));
+        config.setWorkerThreadNums(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_SERVER_IO_NUM));
+        config.setPort(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT));
+        config.setHost(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_HOST));
 
         TcpServer server = new TcpServer(config, initializer);
 
@@ -323,9 +322,9 @@ public class DataNodeModule implements Module {
         ServerConfig fileServerConfig = new ServerConfig();
         fileServerConfig.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")));
         fileServerConfig.setBossThreadNums(1);
-        fileServerConfig.setWorkerThreadNums(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_READER_NUM));
-        fileServerConfig.setPort(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_PORT));
-        fileServerConfig.setHost(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_HOST));
+        fileServerConfig.setWorkerThreadNums(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_FILE_READER_NUM));
+        fileServerConfig.setPort(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_FILE_PORT));
+        fileServerConfig.setHost(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_HOST));
         FileChannelInitializer fileInitializer = new FileChannelInitializer(new ReadObjectTranslator() {
 
                 @Override

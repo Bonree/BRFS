@@ -88,13 +88,13 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         this.leaderLath.start();
         this.childCache = CuratorCacheFactory.getPathCache();
         this.listener = new DiskPartitionChangeListener("disk_partition_change");
-        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 
     @LifecycleStop
     @Override
     public void stop() throws Exception {
-        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 
     private class DiskPartitionChangeListener extends AbstractPathChildrenCacheListener {
@@ -190,7 +190,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     private List<String> getCurrentServers(ServiceManager serviceManager) {
-        List<Service> servers = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+        List<Service> servers = serviceManager.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
         return servers.stream().map(Service::getServiceId).collect(Collectors.toList());
     }
 

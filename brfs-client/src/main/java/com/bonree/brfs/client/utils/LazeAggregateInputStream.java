@@ -11,44 +11,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
+import com.google.common.io.Closeables;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.function.Supplier;
 
-import com.google.common.io.Closeables;
-
 public class LazeAggregateInputStream extends InputStream {
     private final Iterator<Supplier<InputStream>> inputSuppliers;
     private InputStream currentStream;
-    
+
     public LazeAggregateInputStream(Iterator<Supplier<InputStream>> inputSuppliers) {
         this.inputSuppliers = inputSuppliers;
         this.currentStream = nextInput();
     }
-    
+
     private InputStream nextInput() {
-        if(!inputSuppliers.hasNext()) {
+        if (!inputSuppliers.hasNext()) {
             return null;
         }
-        
+
         return inputSuppliers.next().get();
     }
 
     @Override
     public int read() throws IOException {
-        while(currentStream != null) {
+        while (currentStream != null) {
             int b = currentStream.read();
-            if(b != -1) {
+            if (b != -1) {
                 return b;
             }
-            
+
             Closeables.closeQuietly(currentStream);
             currentStream = nextInput();
         }
-        
+
         return -1;
     }
 
@@ -61,17 +61,17 @@ public class LazeAggregateInputStream extends InputStream {
         } else if (len == 0) {
             return 0;
         }
-        
-        while(currentStream != null) {
+
+        while (currentStream != null) {
             int readLength = currentStream.read(b, off, len);
-            if(readLength != -1) {
+            if (readLength != -1) {
                 return readLength;
             }
-            
+
             Closeables.closeQuietly(currentStream);
             currentStream = nextInput();
         }
-        
+
         return -1;
     }
 
@@ -83,10 +83,9 @@ public class LazeAggregateInputStream extends InputStream {
     @Override
     public void close() throws IOException {
         Closeables.closeQuietly(currentStream);
-        while(inputSuppliers.hasNext()) {
+        while (inputSuppliers.hasNext()) {
             Closeables.closeQuietly(inputSuppliers.next().get());
         }
     }
 
-    
 }

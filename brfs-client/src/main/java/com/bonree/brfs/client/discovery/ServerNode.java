@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.discovery;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
 
 public class ServerNode {
     private final String serviceGroup;
@@ -26,14 +26,14 @@ public class ServerNode {
     private final String host;
     private final int port;
     private final int extraPort;
-    
+
     @JsonCreator
     public ServerNode(
-            @JsonProperty("serviceGroup") String serviceGroup,
-            @JsonProperty("serviceId") String serviceId,
-            @JsonProperty("host") String host,
-            @JsonProperty("port") int port,
-            @JsonProperty("extraPort") int extraPort) {
+        @JsonProperty("serviceGroup") String serviceGroup,
+        @JsonProperty("serviceId") String serviceId,
+        @JsonProperty("host") String host,
+        @JsonProperty("port") int port,
+        @JsonProperty("extraPort") int extraPort) {
         this.serviceGroup = serviceGroup;
         this.serviceId = serviceId;
         this.host = host;
@@ -68,30 +68,30 @@ public class ServerNode {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj == this) {
+        if (obj == this) {
             return true;
         }
-        
-        if(!(obj instanceof ServerNode)) {
+
+        if (!(obj instanceof ServerNode)) {
             return false;
         }
-        
+
         ServerNode node = (ServerNode) obj;
         return Objects.equals(serviceGroup, node.serviceGroup)
-                && Objects.equals(serviceId, node.serviceId)
-                && Objects.equals(host, node.host)
-                && port == node.port
-                && extraPort == node.extraPort;
+            && Objects.equals(serviceId, node.serviceId)
+            && Objects.equals(host, node.host)
+            && port == node.port
+            && extraPort == node.extraPort;
     }
 
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("serviceGroup", serviceGroup)
-                .add("serviceId", serviceId)
-                .add("host", host)
-                .add("port", port)
-                .add("extraPort", extraPort)
-                .toString();
+            .add("serviceGroup", serviceGroup)
+            .add("serviceId", serviceId)
+            .add("host", host)
+            .add("port", port)
+            .add("extraPort", extraPort)
+            .toString();
     }
 }

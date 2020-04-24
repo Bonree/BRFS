@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.route;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
 public class NormalRouterNode implements RouterNode {
     private final String changeId;
@@ -26,21 +26,21 @@ public class NormalRouterNode implements RouterNode {
     private final String baseSecondId;
     private final Map<String, Integer> newSecondIDs;
     private final String version;
-    
+
     @JsonCreator
     public NormalRouterNode(
-            @JsonProperty("changeId") String changeId,
-            @JsonProperty("storageRegionIndex") int storageRegionIndex,
-            @JsonProperty("baseSecondId") String baseSecondId,
-            @JsonProperty("newSecondIDs") Map<String, Integer> newSecondIDs,
-            @JsonProperty("version") String version) {
+        @JsonProperty("changeId") String changeId,
+        @JsonProperty("storageRegionIndex") int storageRegionIndex,
+        @JsonProperty("baseSecondId") String baseSecondId,
+        @JsonProperty("newSecondIDs") Map<String, Integer> newSecondIDs,
+        @JsonProperty("version") String version) {
         this.changeId = changeId;
         this.storageRegionIndex = storageRegionIndex;
         this.baseSecondId = baseSecondId;
         this.newSecondIDs = newSecondIDs;
         this.version = version;
     }
-    
+
     @JsonProperty("changeId")
     public String getChangeId() {
         return changeId;
@@ -65,16 +65,16 @@ public class NormalRouterNode implements RouterNode {
     public String getVersion() {
         return version;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("type", RouterNode.NORMAL)
-                .add("changeId", changeId)
-                .add("storageRegionIndex", storageRegionIndex)
-                .add("baseSecondId", baseSecondId)
-                .add("newSecondIDs", newSecondIDs)
-                .add("version", version)
-                .toString();
+            .add("type", RouterNode.NORMAL)
+            .add("changeId", changeId)
+            .add("storageRegionIndex", storageRegionIndex)
+            .add("baseSecondId", baseSecondId)
+            .add("newSecondIDs", newSecondIDs)
+            .add("version", version)
+            .toString();
     }
 }

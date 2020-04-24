@@ -74,4 +74,24 @@ public class ColumnFamilyInfoManager {
 
     }
 
+    public void resetColumnFamilyInfo(Map<String, Integer> columnFamilyMap) {
+        try {
+
+            if (this.client.checkExists().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO) == null) {
+                byte[] bytes = JsonUtils.toJsonBytes(columnFamilyMap);
+                this.client.create()
+                        .creatingParentContainersIfNeeded()
+                        .withMode(CreateMode.PERSISTENT)
+                        .forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, bytes);
+                LOG.info("first reset column family info complete:{}", columnFamilyMap);
+            } else {
+                this.client.setData().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, JsonUtils.toJsonBytes(columnFamilyMap));
+                LOG.info("reset column family info complete:{}", columnFamilyMap);
+            }
+
+        } catch (Exception e) {
+            LOG.error("reset column family info err, map:{}", columnFamilyMap, e);
+        }
+    }
+
 }

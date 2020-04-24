@@ -1,18 +1,16 @@
 package com.bonree.brfs.common.zookeeper.curator.cache;
 
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.google.common.base.Preconditions;
 import javax.inject.Inject;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.google.common.base.Preconditions;
-
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年4月9日 上午11:51:55
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 包括三种常用的cache，每个cache都为一个单例模式
@@ -28,7 +26,7 @@ public class CuratorCacheFactory {
     private static volatile CuratorPathCache pathCache = null;
 
     private static CuratorClient client = null;
-    
+
     @Inject
     public static void init(CuratorFramework framework) {
         client = CuratorClient.wrapClient(framework);

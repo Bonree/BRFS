@@ -45,7 +45,7 @@ import com.google.common.collect.Table;
 class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener, Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(FileNodeDistributor.class);
 	
-	private static final String DUPLICATE_SERVICE_GROUP = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
+	private static final String DUPLICATE_SERVICE_GROUP = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
 	
 	private Table<String, String, Long> serviceTimeTable = HashBasedTable.create();
 	private Map<String, PathChildrenCache> childWatchers = new HashMap<String, PathChildrenCache>();

@@ -4,7 +4,7 @@ public class TimePair {
     private final long time;
     private final long duration;
 
-    public TimePair(long time, long duration){
+    public TimePair(long time, long duration) {
         this.time = time;
         this.duration = duration;
     }
@@ -17,26 +17,26 @@ public class TimePair {
         return duration;
     }
 
-    public long time(){
+    public long time() {
         return this.time;
     }
 
-    public long duration(){
+    public long duration() {
         return this.duration;
     }
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return (int) (this.time * 37 + this.duration);
     }
 
     @Override
-    public boolean equals(Object obj){
-        if(obj == null) {
+    public boolean equals(Object obj) {
+        if (obj == null) {
             return false;
         }
 
-        if(!(obj instanceof TimePair)) {
+        if (!(obj instanceof TimePair)) {
             return false;
         }
 

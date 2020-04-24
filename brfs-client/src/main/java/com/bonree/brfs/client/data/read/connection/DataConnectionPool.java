@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.data.read.connection;
 
 import com.google.common.io.Closeables;
@@ -30,44 +31,41 @@ import org.apache.commons.pool2.impl.GenericKeyedObjectPool;
 
 public class DataConnectionPool implements Closeable {
     private final KeyedObjectPool<URI, DataConnection> connections;
-    
+
     public DataConnectionPool() {
         this.connections = buildPool();
-        
+
     }
-    
+
     private static KeyedObjectPool<URI, DataConnection> buildPool() {
         GenericKeyedObjectPool<URI, DataConnection> pool = new GenericKeyedObjectPool<>(new UriConnectionFactory());
         pool.setTimeBetweenEvictionRunsMillis(30 * 1000);
         pool.setMinEvictableIdleTimeMillis(60 * 1000);
+        pool.setBlockWhenExhausted(true);
         pool.setEvictionPolicy(new EvictionPolicy<DataConnection>() {
-            
+
             @Override
             public boolean evict(EvictionConfig config, PooledObject<DataConnection> underTest, int idleCount) {
                 return (System.currentTimeMillis() - underTest.getLastReturnTime()) > config.getIdleEvictTime();
             }
         });
-        
+
         return pool;
     }
-    
+
     public <T> DataRequestCall<T> newRequest(URI uri, Function<DataConnection, T> call) throws Exception {
         DataConnection connection = null;
         try {
-            synchronized (connections) {
-                connection = connections.borrowObject(uri);
-            }
-            
+            connection = connections.borrowObject(uri);
+
             final DataConnection param = connection;
             return () -> call.apply(param);
         } catch (Exception e) {
             if (connection != null) {
-                synchronized (connections) {
-                    connections.invalidateObject(uri, connection);
-                }
+                connections.invalidateObject(uri, connection);
                 connection = null;
             }
-            
+
             throw e;
         } finally {
             // make sure the object is returned to the pool
@@ -76,21 +74,21 @@ public class DataConnectionPool implements Closeable {
             }
         }
     }
-    
+
     private static class UriConnectionFactory implements KeyedPooledObjectFactory<URI, DataConnection> {
 
         @Override
         public PooledObject<DataConnection> makeObject(URI uri) throws Exception {
             Socket socket = new Socket();
             socket.connect(new InetSocketAddress(uri.getHost(), uri.getPort()));
-            
+
             return new DefaultPooledObject<>(new DataConnection(uri, socket));
         }
 
         @Override
         public void destroyObject(URI key, PooledObject<DataConnection> p) throws Exception {
             DataConnection connection = p.getObject();
-            if(connection != null) {
+            if (connection != null) {
                 connection.close();
             }
         }
@@ -101,11 +99,13 @@ public class DataConnectionPool implements Closeable {
         }
 
         @Override
-        public void activateObject(URI key, PooledObject<DataConnection> p) throws Exception {}
+        public void activateObject(URI key, PooledObject<DataConnection> p) throws Exception {
+        }
 
         @Override
-        public void passivateObject(URI key, PooledObject<DataConnection> p) throws Exception {}
-        
+        public void passivateObject(URI key, PooledObject<DataConnection> p) throws Exception {
+        }
+
     }
 
     @Override

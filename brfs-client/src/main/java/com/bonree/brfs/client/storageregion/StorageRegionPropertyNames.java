@@ -11,10 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.storageregion;
 
 public final class StorageRegionPropertyNames {
-    
+
     public static final String PROP_ENABLED = "enable";
     public static final String PROP_REPLICATE_NUM = "replicates";
     public static final String PROP_DATATTL = "ttl";

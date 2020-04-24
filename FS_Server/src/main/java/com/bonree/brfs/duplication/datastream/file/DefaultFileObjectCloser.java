@@ -43,7 +43,7 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
                 FileNodeStorer fileNodeStorer,
                 DiskNodeConnectionPool connectionPool,
                 FilePathMaker pathMaker) {
-	    this(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_CLOSER_THREAD_NUM),
+	    this(Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_CLOSER_THREAD_NUM),
 	            fileSynchronizer,
 	            fileNodeStorer,
 	            connectionPool,

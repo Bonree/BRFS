@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.ranker;
 
 import java.util.AbstractList;
@@ -21,17 +22,17 @@ public class ShiftRanker<E> implements Ranker<E> {
 
     @Override
     public List<E> rank(List<E> nodes) {
-        if(nodes.isEmpty()) {
+        if (nodes.isEmpty()) {
             return nodes;
         }
-        
+
         return new ShiftedList<>(nodes, ThreadLocalRandom.current().nextInt(nodes.size()));
     }
 
     private static class ShiftedList<T> extends AbstractList<T> {
         private final List<T> delegate;
         private final int offset;
-        
+
         public ShiftedList(List<T> delegate, int shiftOffset) {
             this.delegate = delegate;
             this.offset = shiftOffset;
@@ -46,6 +47,6 @@ public class ShiftRanker<E> implements Ranker<E> {
         public T get(int index) {
             return delegate.get((index + offset) % delegate.size());
         }
-        
+
     }
 }

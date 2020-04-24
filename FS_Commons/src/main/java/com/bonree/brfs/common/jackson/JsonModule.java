@@ -11,9 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.common.jackson;
 
-import javax.inject.Singleton;
+package com.bonree.brfs.common.jackson;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -25,6 +24,7 @@ import com.google.inject.Binder;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import javax.inject.Singleton;
 
 public class JsonModule implements Module {
 
@@ -50,7 +50,8 @@ public class JsonModule implements Module {
 
         // Skip fields that are null or absent (Optional) when serializing objects.
         // This only applies to mapped object fields, not containers like Map or List.
-        objectMapper.setDefaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_ABSENT, JsonInclude.Include.ALWAYS));
+        objectMapper
+            .setDefaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_ABSENT, JsonInclude.Include.ALWAYS));
 
         // disable auto detection of json properties... all properties must be explicit
         objectMapper.disable(MapperFeature.AUTO_DETECT_CREATORS);

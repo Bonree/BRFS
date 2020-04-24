@@ -2,29 +2,41 @@ package com.bonree.brfs.common.utils;
 
 public class HashUtils {
 
-    /**//**
-        * 加法hash
-        * @param key 字符串
-        * @param prime 一个质数
-        * @return hash结果
-        */
+    /**/
+
+    /**
+     * 加法hash
+     *
+     * @param key   字符串
+     * @param prime 一个质数
+     *
+     * @return hash结果
+     */
     public static int additiveHash(String key, int prime) {
-        int hash, i;
-        for (hash = key.length(), i = 0; i < key.length(); i++)
+        int hash;
+        int i;
+        for (hash = key.length(), i = 0; i < key.length(); i++) {
             hash += key.charAt(i);
+        }
         return (hash % prime);
     }
 
-    /**//**
-        * 旋转hash
-        * @param key 输入字符串
-        * @param prime 质数
-        * @return hash值
-        */
+    /**/
+
+    /**
+     * 旋转hash
+     *
+     * @param key   输入字符串
+     * @param prime 质数
+     *
+     * @return hash值
+     */
     public static int rotatingHash(String key, int prime) {
-        int hash, i;
-        for (hash = key.length(), i = 0; i < key.length(); ++i)
+        int hash;
+        int i;
+        for (hash = key.length(), i = 0; i < key.length(); ++i) {
             hash = (hash << 4) ^ (hash >> 28) ^ key.charAt(i);
+        }
         return (hash % prime);
         // return (hash ^ (hash>>10) ^ (hash>>20));
     }
@@ -32,18 +44,24 @@ public class HashUtils {
     // 使用：hash = (hash ^ (hash>>10) ^ (hash>>20)) & mask;
     // 替代：hash %= prime;
 
-    /**//**
-        * MASK值，随便找一个值，最好是质数
-        */
+    /**/
+    /**
+     * MASK值，随便找一个值，最好是质数
+     */
     static int M_MASK = 0x8765fed1;
 
-    /**//**
-        * 一次一个hash
-        * @param key 输入字符串
-        * @return 输出hash值
-        */
+    /**/
+
+    /**
+     * 一次一个hash
+     *
+     * @param key 输入字符串
+     *
+     * @return 输出hash值
+     */
     public static int oneByOneHash(String key) {
-        int hash, i;
+        int hash;
+        int i;
         for (hash = 0, i = 0; i < key.length(); ++i) {
             hash += key.charAt(i);
             hash += (hash << 10);
@@ -56,17 +74,22 @@ public class HashUtils {
         return hash;
     }
 
-    /**//**
-        * Bernstein's hash
-        * @param key 输入字节数组
-        * @param level 初始hash常量
-        * @return 结果hash
-        */
+    /**/
+
+    /**
+     * Bernstein's hash
+     *
+     * @param key   输入字节数组
+     * @param level 初始hash常量
+     *
+     * @return 结果hash
+     */
     public static int bernstein(String key) {
         int hash = 0;
         int i;
-        for (i = 0; i < key.length(); ++i)
+        for (i = 0; i < key.length(); ++i) {
             hash = 33 * hash + key.charAt(i);
+        }
         return hash;
     }
 
@@ -90,40 +113,56 @@ public class HashUtils {
     // return (hash & mask);
     // }
 
-    /**//**
-        * Universal Hashing
-        */
+    /**/
+
+    /**
+     * Universal Hashing
+     */
     public static int universal(char[] key, int mask, int[] tab) {
-        int hash = key.length, i, len = key.length;
+        int hash = key.length;
+        int i;
+        int len = key.length;
         for (i = 0; i < (len << 3); i += 8) {
             char k = key[i >> 3];
-            if ((k & 0x01) == 0)
+            if ((k & 0x01) == 0) {
                 hash ^= tab[i + 0];
-            if ((k & 0x02) == 0)
+            }
+            if ((k & 0x02) == 0) {
                 hash ^= tab[i + 1];
-            if ((k & 0x04) == 0)
+            }
+            if ((k & 0x04) == 0) {
                 hash ^= tab[i + 2];
-            if ((k & 0x08) == 0)
+            }
+            if ((k & 0x08) == 0) {
                 hash ^= tab[i + 3];
-            if ((k & 0x10) == 0)
+            }
+            if ((k & 0x10) == 0) {
                 hash ^= tab[i + 4];
-            if ((k & 0x20) == 0)
+            }
+            if ((k & 0x20) == 0) {
                 hash ^= tab[i + 5];
-            if ((k & 0x40) == 0)
+            }
+            if ((k & 0x40) == 0) {
                 hash ^= tab[i + 6];
-            if ((k & 0x80) == 0)
+            }
+            if ((k & 0x80) == 0) {
                 hash ^= tab[i + 7];
+            }
         }
         return (hash & mask);
     }
 
-    /**//**
-        * Zobrist Hashing
-        */
+    /**/
+
+    /**
+     * Zobrist Hashing
+     */
     public static int zobrist(char[] key, int mask, int[][] tab) {
-        int hash, i;
-        for (hash = key.length, i = 0; i < key.length; ++i)
+        int hash;
+        int i;
+        for (hash = key.length, i = 0; i < key.length; ++i) {
             hash ^= tab[i][key[i]];
+        }
         return (hash & mask);
     }
 
@@ -133,30 +172,41 @@ public class HashUtils {
     // 32位FNV算法
     static int M_SHIFT = 0;
 
-    /**//**
-        * 32位的FNV算法
-        * @param data 数组
-        * @return int值
-        */
-    public static int FNVHash(byte[] data) {
+    /**/
+
+    /**
+     * 32位的FNV算法
+     *
+     * @param data 数组
+     *
+     * @return int值
+     */
+    public static int fnvhash(byte[] data) {
         int hash = (int) 2166136261L;
-        for (byte b : data)
+        for (byte b : data) {
             hash = (hash * 16777619) ^ b;
-        if (M_SHIFT == 0)
+        }
+        if (M_SHIFT == 0) {
             return hash;
+        }
         return (hash ^ (hash >> M_SHIFT)) & M_MASK;
     }
 
-    /**//**
-        * 改进的32位FNV算法1
-        * @param data 数组
-        * @return int值
-        */
-    public static int FNVHash1(byte[] data) {
+    /**/
+
+    /**
+     * 改进的32位FNV算法1
+     *
+     * @param data 数组
+     *
+     * @return int值
+     */
+    public static int fnvhash1(byte[] data) {
         final int p = 16777619;
         int hash = (int) 2166136261L;
-        for (byte b : data)
+        for (byte b : data) {
             hash = (hash ^ b) * p;
+        }
         hash += hash << 13;
         hash ^= hash >> 7;
         hash += hash << 3;
@@ -165,16 +215,21 @@ public class HashUtils {
         return hash;
     }
 
-    /**//**
-        * 改进的32位FNV算法1
-        * @param data 字符串
-        * @return int值
-        */
-    public static int FNVHash1(String data) {
+    /**/
+
+    /**
+     * 改进的32位FNV算法1
+     *
+     * @param data 字符串
+     *
+     * @return int值
+     */
+    public static int fnvhash1(String data) {
         final int p = 16777619;
         int hash = (int) 2166136261L;
-        for (int i = 0; i < data.length(); i++)
+        for (int i = 0; i < data.length(); i++) {
             hash = (hash ^ data.charAt(i)) * p;
+        }
         hash += hash << 13;
         hash ^= hash >> 7;
         hash += hash << 3;
@@ -183,9 +238,11 @@ public class HashUtils {
         return hash;
     }
 
-    /**//**
-        * Thomas Wang的算法，整数hash
-        */
+    /**/
+
+    /**
+     * Thomas Wang的算法，整数hash
+     */
     public static int intHash(int key) {
         key += ~(key << 15);
         key ^= (key >>> 10);
@@ -196,11 +253,14 @@ public class HashUtils {
         return key;
     }
 
-    /**//**
-        * RS算法hash
-        * @param str 字符串
-        */
-    public static int RSHash(String str) {
+    /**/
+
+    /**
+     * RS算法hash
+     *
+     * @param str 字符串
+     */
+    public static int rshash(String str) {
         int b = 378551;
         int a = 63689;
         int hash = 0;
@@ -214,10 +274,12 @@ public class HashUtils {
     }
     /**//* End Of RS Hash Function */
 
-    /**//**
-        * JS算法
-        */
-    public static int JSHash(String str) {
+    /**/
+
+    /**
+     * JS算法
+     */
+    public static int jshash(String str) {
         int hash = 1315423911;
 
         for (int i = 0; i < str.length(); i++) {
@@ -228,22 +290,24 @@ public class HashUtils {
     }
     /**//* End Of JS Hash Function */
 
-    /**//**
-        * PJW算法
-        */
-    public static int PJWHash(String str) {
-        int BitsInUnsignedInt = 32;
-        int ThreeQuarters = (BitsInUnsignedInt * 3) / 4;
-        int OneEighth = BitsInUnsignedInt / 8;
-        int HighBits = 0xFFFFFFFF << (BitsInUnsignedInt - OneEighth);
+    /**/
+
+    /**
+     * PJW算法
+     */
+    public static int pjwhash(String str) {
+        int bitsInUnsignedInt = 32;
+        int threeQuarters = (bitsInUnsignedInt * 3) / 4;
+        int oneEighth = bitsInUnsignedInt / 8;
+        int highBits = 0xFFFFFFFF << (bitsInUnsignedInt - oneEighth);
         int hash = 0;
         int test = 0;
 
         for (int i = 0; i < str.length(); i++) {
-            hash = (hash << OneEighth) + str.charAt(i);
+            hash = (hash << oneEighth) + str.charAt(i);
 
-            if ((test = hash & HighBits) != 0) {
-                hash = ((hash ^ (test >> ThreeQuarters)) & (~HighBits));
+            if ((test = hash & highBits) != 0) {
+                hash = ((hash ^ (test >> threeQuarters)) & (~highBits));
             }
         }
 
@@ -251,10 +315,12 @@ public class HashUtils {
     }
     /**//* End Of P. J. Weinberger Hash Function */
 
-    /**//**
-        * ELF算法
-        */
-    public static int ELFHash(String str) {
+    /**/
+
+    /**
+     * ELF算法
+     */
+    public static int elfhash(String str) {
         int hash = 0;
         int x = 0;
 
@@ -270,10 +336,12 @@ public class HashUtils {
     }
     /**//* End Of ELF Hash Function */
 
-    /**//**
-        * BKDR算法
-        */
-    public static int BKDRHash(String str) {
+    /**/
+
+    /**
+     * BKDR算法
+     */
+    public static int bkdrhash(String str) {
         int seed = 131; // 31 131 1313 13131 131313 etc..
         int hash = 0;
 
@@ -285,10 +353,12 @@ public class HashUtils {
     }
     /**//* End Of BKDR Hash Function */
 
-    /**//**
-        * SDBM算法
-        */
-    public static int SDBMHash(String str) {
+    /**/
+
+    /**
+     * SDBM算法
+     */
+    public static int sdbmhash(String str) {
         int hash = 0;
 
         for (int i = 0; i < str.length(); i++) {
@@ -299,10 +369,12 @@ public class HashUtils {
     }
     /**//* End Of SDBM Hash Function */
 
-    /**//**
-        * DJB算法
-        */
-    public static int DJBHash(String str) {
+    /**/
+
+    /**
+     * DJB算法
+     */
+    public static int djbhash(String str) {
         int hash = 5381;
 
         for (int i = 0; i < str.length(); i++) {
@@ -313,10 +385,12 @@ public class HashUtils {
     }
     /**//* End Of DJB Hash Function */
 
-    /**//**
-        * DEK算法
-        */
-    public static int DEKHash(String str) {
+    /**/
+
+    /**
+     * DEK算法
+     */
+    public static int dekhash(String str) {
         int hash = str.length();
 
         for (int i = 0; i < str.length(); i++) {
@@ -327,14 +401,17 @@ public class HashUtils {
     }
     /**//* End Of DEK Hash Function */
 
-    /**//**
-        * AP算法
-        */
-    public static int APHash(String str) {
+    /**/
+
+    /**
+     * AP算法
+     */
+    public static int aphash(String str) {
         int hash = 0;
 
         for (int i = 0; i < str.length(); i++) {
-            hash ^= ((i & 1) == 0) ? ((hash << 7) ^ str.charAt(i) ^ (hash >> 3)) : (~((hash << 11) ^ str.charAt(i) ^ (hash >> 5)));
+            hash ^=
+                ((i & 1) == 0) ? ((hash << 7) ^ str.charAt(i) ^ (hash >> 3)) : (~((hash << 11) ^ str.charAt(i) ^ (hash >> 5)));
         }
 
         // return (hash & 0x7FFFFFFF);
@@ -342,9 +419,11 @@ public class HashUtils {
     }
     /**//* End Of AP Hash Function */
 
-    /**//**
-        * JAVA自己带的算法
-        */
+    /**/
+
+    /**
+     * JAVA自己带的算法
+     */
     public static int java(String str) {
         int h = 0;
         int off = 0;
@@ -355,13 +434,15 @@ public class HashUtils {
         return h;
     }
 
-    /**//**
-        * 混合hash算法，输出64位的值
-        */
+    /**/
+
+    /**
+     * 混合hash算法，输出64位的值
+     */
     public static long mixHash(String str) {
         long hash = str.hashCode();
         hash <<= 32;
-        hash |= FNVHash1(str);
+        hash |= fnvhash1(str);
         return hash;
     }
 

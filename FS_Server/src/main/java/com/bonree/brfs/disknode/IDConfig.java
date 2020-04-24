@@ -17,12 +17,12 @@ public class IDConfig {
      * 一级serverid的id文件目录
      */
     @JsonProperty("server.dir")
-    private String serverIds = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_SERVER_IDS_DIR);
+    private String serverIds = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_SERVER_IDS_DIR);
     /**
      * 磁盘id的id文件目录
      */
     @JsonProperty("partition.dir")
-    private String partitionIds = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_PARTITION_IDS_DIR);
+    private String partitionIds = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PARTITION_IDS_DIR);
 
 
     public String getServerIds() {

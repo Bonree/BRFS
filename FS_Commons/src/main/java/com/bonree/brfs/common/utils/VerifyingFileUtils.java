@@ -1,7 +1,6 @@
 package com.bonree.brfs.common.utils;
 
 import java.io.File;
-
 import org.slf4j.Logger;
 
 public class VerifyingFileUtils {
@@ -23,10 +22,12 @@ public class VerifyingFileUtils {
     }
 
     public File validate(File file) {
-        if (warnForRelativePath)
+        if (warnForRelativePath) {
             doWarnForRelativePath(file);
-        if (failForNonExistingPath)
+        }
+        if (failForNonExistingPath) {
             doFailForNonExistingPath(file);
+        }
         return file;
     }
 
@@ -37,10 +38,12 @@ public class VerifyingFileUtils {
     }
 
     private void doWarnForRelativePath(File file) {
-        if (file.isAbsolute())
+        if (file.isAbsolute()) {
             return;
-        if (file.getPath().substring(0, 2).equals("." + File.separator))
+        }
+        if (file.getPath().substring(0, 2).equals("." + File.separator)) {
             return;
+        }
         log.warn(file.getPath() + " is relative. Prepend ." + File.separator + " to indicate that you're sure!");
     }
 

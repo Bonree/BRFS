@@ -11,10 +11,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.route;
 
 import static java.util.function.Function.identity;
 
+import com.bonree.brfs.client.ClientException;
+import com.google.common.base.Strings;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Iterables;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -23,13 +30,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import com.bonree.brfs.client.ClientException;
-import com.google.common.base.Strings;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Iterables;
 
 public class Router {
     private final RouterClient routerClient;
@@ -41,83 +41,84 @@ public class Router {
     public Router(RouterClient routerClient) {
         this.routerClient = routerClient;
         this.secondServerIds = CacheBuilder.newBuilder()
-                .expireAfterWrite(10, TimeUnit.SECONDS)
-                .refreshAfterWrite(5, TimeUnit.SECONDS)
-                .build(new SecondServerIdLoader());
+                                           .expireAfterWrite(10, TimeUnit.SECONDS)
+                                           .refreshAfterWrite(5, TimeUnit.SECONDS)
+                                           .build(new SecondServerIdLoader());
 
         this.normalUpdates = CacheBuilder.newBuilder()
-                .expireAfterWrite(10, TimeUnit.SECONDS)
-                .refreshAfterWrite(5, TimeUnit.SECONDS)
-                .build(new NormalUpdateLoader());
+                                         .expireAfterWrite(10, TimeUnit.SECONDS)
+                                         .refreshAfterWrite(5, TimeUnit.SECONDS)
+                                         .build(new NormalUpdateLoader());
 
         this.virtualUpdates = CacheBuilder.newBuilder()
-                .expireAfterWrite(10, TimeUnit.SECONDS)
-                .refreshAfterWrite(5, TimeUnit.SECONDS)
-                .build(new VirtualUpdateLoader());
+                                          .expireAfterWrite(10, TimeUnit.SECONDS)
+                                          .refreshAfterWrite(5, TimeUnit.SECONDS)
+                                          .build(new VirtualUpdateLoader());
     }
 
-    public Iterable<URI> getServerLocation(String srName, String uuid, List<String> secondServerIdList, Map<URI, Integer> uriIndex) {
+    public Iterable<URI> getServerLocation(String srName, String uuid, List<String> secondServerIdList,
+                                           Map<URI, Integer> uriIndex) {
         try {
             Map<String, SecondServerID> secondServers = secondServerIds.get(srName);
             Map<String, NormalRouterNode> normalMapper = normalUpdates.get(srName);
             Map<String, VirtualRouterNode> virtualMapper = virtualUpdates.get(srName);
-            
+
             int code = RouteAnalysis.indexCode(uuid);
             return Iterables.filter(
-                    Iterables.transform(
-                            secondServerIdList,
-                            serverId -> {
-                                String finalId = finalServerId(code, serverId, secondServerIdList, normalMapper, virtualMapper);
-                                if(finalId == null) {
-                                    return null;
-                                }
-                                
-                                SecondServerID secondId = secondServers.get(finalId);
-                                if(secondId == null) {
-                                    return null;
-                                }
-                                
-                                try {
-                                    URI uri = new URI("http", null, secondId.getHost(), secondId.getReadPort(), null, null, null);
-                                    uriIndex.put(uri, secondServerIdList.indexOf(serverId) + 1);
-                                    
-                                    return uri;
-                                } catch (URISyntaxException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }),
-                    Objects::nonNull);
+                Iterables.transform(
+                    secondServerIdList,
+                    serverId -> {
+                        String finalId = finalServerId(code, serverId, secondServerIdList, normalMapper, virtualMapper);
+                        if (finalId == null) {
+                            return null;
+                        }
+
+                        SecondServerID secondId = secondServers.get(finalId);
+                        if (secondId == null) {
+                            return null;
+                        }
+
+                        try {
+                            URI uri = new URI("http", null, secondId.getHost(), secondId.getReadPort(), null, null, null);
+                            uriIndex.put(uri, secondServerIdList.indexOf(serverId) + 1);
+
+                            return uri;
+                        } catch (URISyntaxException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }),
+                Objects::nonNull);
         } catch (ExecutionException cause) {
             throw new ClientException(cause, "get update of router error");
         }
     }
 
     private String finalServerId(
-            int code,
-            String serverId,
-            List<String> secondServerIdList,
-            Map<String, NormalRouterNode> normalMapper,
-            Map<String, VirtualRouterNode> virtualMapper) {
+        int code,
+        String serverId,
+        List<String> secondServerIdList,
+        Map<String, NormalRouterNode> normalMapper,
+        Map<String, VirtualRouterNode> virtualMapper) {
         String secondId = null;
-        if(serverId.startsWith("3")) {
+        if (serverId.startsWith("3")) {
             //virtual id
             VirtualRouterNode update = virtualMapper.get(serverId);
-            if(update == null) {
+            if (update == null) {
                 return serverId;
             }
-            
+
             secondId = update.getNewSecondId();
         }
-        
-        if(Strings.isNullOrEmpty(secondId)) {
+
+        if (Strings.isNullOrEmpty(secondId)) {
             return serverId;
         }
-        
+
         NormalRouterNode normalUpdate;
-        while((normalUpdate = normalMapper.get(serverId)) != null){
+        while ((normalUpdate = normalMapper.get(serverId)) != null) {
             secondId = RouteAnalysis.analysisNormal(code, secondId, secondServerIdList, normalUpdate);
         }
-        
+
         return secondId;
     }
 

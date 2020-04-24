@@ -1,9 +1,9 @@
 package com.bonree.brfs.common.exception;
 
-public class ConfigParseException extends Exception{
+public class ConfigParseException extends Exception {
 
     private static final long serialVersionUID = 3404439704959289003L;
-    
+
     public ConfigParseException() {
         super();
     }

@@ -11,45 +11,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.common.http.rest;
 
-import java.util.Objects;
+package com.bonree.brfs.common.http.rest;
 
 import com.google.inject.Binder;
 import com.google.inject.Key;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
+import java.util.Objects;
 
 public class JaxrsBinder {
-    
+
     private final Binder binder;
     private final Multibinder<Object> setBinder;
-    
+
     private JaxrsBinder(Binder binder) {
         this.binder = Objects.requireNonNull(binder, "binder is null");
         this.setBinder = Multibinder.newSetBinder(binder, Object.class, JaxrsResource.class);
     }
-    
+
     public static JaxrsBinder jaxrs(Binder binder) {
         return new JaxrsBinder(binder);
     }
-    
+
     public void resource(Class<?> rsCls) {
         binder.bind(rsCls).in(Scopes.SINGLETON);
         setBinder.addBinding().to(rsCls).in(Scopes.SINGLETON);
     }
-    
+
     public void resource(TypeLiteral<?> implementation) {
         binder.bind(implementation).in(Scopes.SINGLETON);
         setBinder.addBinding().to(implementation).in(Scopes.SINGLETON);
     }
-    
+
     public void resource(Key<?> key) {
         binder.bind(key).in(Scopes.SINGLETON);
         setBinder.addBinding().to(key).in(Scopes.SINGLETON);
     }
-    
+
     public void resource(Object instance) {
         setBinder.addBinding().toInstance(instance);
     }

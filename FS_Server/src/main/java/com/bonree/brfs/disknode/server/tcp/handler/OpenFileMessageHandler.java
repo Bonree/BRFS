@@ -27,7 +27,7 @@ public class OpenFileMessageHandler implements MessageHandler<BaseResponse> {
 	private DiskContext diskContext;
 	private FileWriterManager writerManager;
 	
-	private static final long MAX_CAPACITY = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY);
+	private static final long MAX_CAPACITY = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY);
 	
 	public OpenFileMessageHandler(DiskContext diskContext, FileWriterManager writerManager) {
 		this.diskContext = diskContext;

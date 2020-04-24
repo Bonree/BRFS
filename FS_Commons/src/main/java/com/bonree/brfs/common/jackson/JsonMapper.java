@@ -11,32 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.common.jackson;
-
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.util.Locale;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -51,11 +27,33 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.HttpHeaders;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.ext.MessageBodyReader;
+import javax.ws.rs.ext.MessageBodyWriter;
+import javax.ws.rs.ext.Provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // This code is based on JacksonJsonProvider
 @Provider
-@Consumes({ MediaType.APPLICATION_JSON, "text/json" })
-@Produces({ MediaType.APPLICATION_JSON, "text/json" })
+@Consumes({MediaType.APPLICATION_JSON, "text/json"})
+@Produces({MediaType.APPLICATION_JSON, "text/json"})
 public class JsonMapper implements MessageBodyReader<Object>, MessageBodyWriter<Object> {
     /**
      * Looks like we need to worry about accidental data binding for types we
@@ -63,16 +61,16 @@ public class JsonMapper implements MessageBodyReader<Object>, MessageBodyWriter<
      * let's start by blacklisting things we are not to handle.
      */
     private static final Set<Class<?>> IO_CLASSES = ImmutableSet.<Class<?>>builder()
-            .add(InputStream.class)
-            .add(java.io.Reader.class)
-            .add(OutputStream.class)
-            .add(java.io.Writer.class)
-            .add(byte[].class)
-            .add(char[].class)
-            .add(javax.ws.rs.core.StreamingOutput.class)
-            .add(Response.class)
-            .build();
-    
+        .add(InputStream.class)
+        .add(java.io.Reader.class)
+        .add(OutputStream.class)
+        .add(java.io.Writer.class)
+        .add(byte[].class)
+        .add(char[].class)
+        .add(javax.ws.rs.core.StreamingOutput.class)
+        .add(Response.class)
+        .build();
+
     public static final Logger log = LoggerFactory.getLogger(JsonMapper.class);
 
     private final ObjectMapper objectMapper;
@@ -107,7 +105,7 @@ public class JsonMapper implements MessageBodyReader<Object>, MessageBodyWriter<
         if (IO_CLASSES.contains(type)) {
             return false;
         }
-        
+
         for (Class<?> ioClass : IO_CLASSES) {
             if (ioClass.isAssignableFrom(type)) {
                 return false;
@@ -119,9 +117,9 @@ public class JsonMapper implements MessageBodyReader<Object>, MessageBodyWriter<
 
     @Override
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType,
-            MultivaluedMap<String, String> httpHeaders, InputStream inputStream) throws IOException {
+                           MultivaluedMap<String, String> httpHeaders, InputStream inputStream) throws IOException {
         Object object;
-        
+
         try {
             JsonParser jsonParser = objectMapper.getFactory().createParser(inputStream);
 
@@ -146,7 +144,7 @@ public class JsonMapper implements MessageBodyReader<Object>, MessageBodyWriter<
             // overridden using a mapper.
             throw new JsonMapperParsingException(type, e);
         }
-        
+
         return object;
     }
 
@@ -159,7 +157,7 @@ public class JsonMapper implements MessageBodyReader<Object>, MessageBodyWriter<
 
     @Override
     public void writeTo(Object value, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType,
-            MultivaluedMap<String, Object> httpHeaders, OutputStream outputStream) throws IOException {
+                        MultivaluedMap<String, Object> httpHeaders, OutputStream outputStream) throws IOException {
         // Prevent broken browser from attempting to render the json as html
         httpHeaders.add(HttpHeaders.X_CONTENT_TYPE_OPTIONS, "nosniff");
 
@@ -185,7 +183,7 @@ public class JsonMapper implements MessageBodyReader<Object>, MessageBodyWriter<
             // just need this for generics, let's only use generic type if it's truly
             // generic.
             if (genericType.getClass() != Class.class) { // generic types are other implementations of
-                                                         // 'java.lang.reflect.Type'
+                // 'java.lang.reflect.Type'
                 // This is still not exactly right; should root type be further
                 // specialized with 'value.getClass()'? Let's see how well this works before
                 // trying to come up with more complete solution.

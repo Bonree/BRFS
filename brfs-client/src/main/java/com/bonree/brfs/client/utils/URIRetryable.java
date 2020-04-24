@@ -11,22 +11,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
 import static java.util.Objects.requireNonNull;
 
+import com.bonree.brfs.client.NoNodeException;
+import com.bonree.brfs.client.utils.Retrys.MultiObjectRetryable;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.bonree.brfs.client.NoNodeException;
-import com.bonree.brfs.client.utils.Retrys.MultiObjectRetryable;
-
 public class URIRetryable<T> extends MultiObjectRetryable<T, URI> {
     private final AtomicBoolean retryable = new AtomicBoolean(true);
-    
+
     private final Task<T> task;
-    
+
     public URIRetryable(String description, Iterable<URI> iterable, Task<T> task) {
         this(description, iterable.iterator(), task);
     }
@@ -49,29 +49,29 @@ public class URIRetryable<T> extends MultiObjectRetryable<T, URI> {
     @Override
     protected T execute(URI uri) throws Exception {
         TaskResult<T> result = task.execute(uri);
-        if(result.isCompleted()) {
+        if (result.isCompleted()) {
             retryable.set(false);
-            if(result.getCause() != null) {
+            if (result.getCause() != null) {
                 throw result.getCause();
             }
-            
+
             return result.getResult();
         }
-        
+
         throw requireNonNull(result.getCause());
     }
-    
+
     public static interface Task<T> {
         TaskResult<T> execute(URI uri);
     }
 
     public static interface TaskResult<T> {
         boolean isCompleted();
-        
+
         Exception getCause();
-        
+
         T getResult();
-        
+
         static <T> TaskResult<T> success(T result) {
             return new TaskResult<T>() {
 
@@ -91,7 +91,7 @@ public class URIRetryable<T> extends MultiObjectRetryable<T, URI> {
                 }
             };
         }
-        
+
         static <T> TaskResult<T> fail(Exception cause) {
             return new TaskResult<T>() {
 
@@ -111,7 +111,7 @@ public class URIRetryable<T> extends MultiObjectRetryable<T, URI> {
                 }
             };
         }
-        
+
         static <T> TaskResult<T> retry(Exception cause) {
             return new TaskResult<T>() {
 
