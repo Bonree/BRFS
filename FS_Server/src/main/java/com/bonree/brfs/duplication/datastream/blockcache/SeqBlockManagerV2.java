@@ -532,7 +532,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                         fileWritingCount.get(),
                         blockcache.size());
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(60000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
