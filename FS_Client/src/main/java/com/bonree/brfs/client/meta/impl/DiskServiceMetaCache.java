@@ -1,24 +1,22 @@
 package com.bonree.brfs.client.meta.impl;
 
+import com.bonree.brfs.client.route.ServiceMetaInfo;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.service.ServiceManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.client.route.ServiceMetaInfo;
-import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.common.service.ServiceManager;
-
 public class DiskServiceMetaCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiskServiceMetaCache.class);
-    
+
     private String zkServerIDPath;
 
     private int snIndex;
@@ -39,20 +37,23 @@ public class DiskServiceMetaCache {
         this.group = group;
         this.zkClient = curatorClient;
     }
-    
+
     private void loadSecondServerId(String serviceId) {
-    	try {
-        	byte[] data = zkClient.getData().forPath(ZKPaths.makePath(zkServerIDPath, serviceId, String.valueOf(snIndex)));
-        	if(data != null) {
-        		secondServerCache.put(new String(data, "utf-8"), serviceId);
-        	}
-		} catch (Exception e) {
-			LOG.warn("load server id error", e);
-		}
+        try {
+            byte[] data = zkClient.getData().forPath(ZKPaths.makePath(zkServerIDPath, serviceId, String.valueOf(snIndex)));
+            if (data != null) {
+                secondServerCache.put(new String(data, "utf-8"), serviceId);
+            }
+        } catch (Exception e) {
+            LOG.warn("load server id error", e);
+        }
     }
 
-    /** 概述：加载所有关于该SN的2级SID对应的1级SID
+    /**
+     * 概述：加载所有关于该SN的2级SID对应的1级SID
+     *
      * @param service
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void loadMetaCachae(ServiceManager sm) {
@@ -64,20 +65,26 @@ public class DiskServiceMetaCache {
         }
     }
 
-    /** 概述：ADD 一个server
+    /**
+     * 概述：ADD 一个server
+     *
      * @param service
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void addService(Service service) {
         // serverID信息加载
         LOG.info("addService");
         firstServerCache.put(service.getServiceId(), service);
-        
+
         loadSecondServerId(service.getServiceId());
     }
 
-    /** 概述：移除该SN对应的2级SID对应的1级SID
+    /**
+     * 概述：移除该SN对应的2级SID对应的1级SID
+     *
      * @param service
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void removeService(Service service) {
@@ -91,12 +98,12 @@ public class DiskServiceMetaCache {
 
     }
 
-    public ServiceMetaInfo getFirstServerCache(String SecondID) {
+    public ServiceMetaInfo getFirstServerCache(String secondID) {
         return new ServiceMetaInfo() {
 
             @Override
             public Service getFirstServer() {
-                String firstServerID = secondServerCache.get(SecondID);
+                String firstServerID = secondServerCache.get(secondID);
                 if (firstServerID == null) {
                     return null;
                 }
