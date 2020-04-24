@@ -1,7 +1,6 @@
 package com.bonree.brfs.rocksdb.connection;
 
 import com.bonree.brfs.rocksdb.client.RegionNodeClient;
-
 import java.io.Closeable;
 
 /*******************************************************************************

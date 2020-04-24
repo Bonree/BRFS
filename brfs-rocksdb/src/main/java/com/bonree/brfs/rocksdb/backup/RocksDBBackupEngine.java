@@ -4,28 +4,27 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.process.LifeCycle;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
 import com.bonree.brfs.rocksdb.zk.BackupHeartBeatManager;
-import org.apache.curator.framework.CuratorFramework;
-import org.rocksdb.BackupEngine;
-import org.rocksdb.BackupInfo;
-import org.rocksdb.RocksDBException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import org.apache.curator.framework.CuratorFramework;
+import org.rocksdb.BackupEngine;
+import org.rocksdb.BackupInfo;
+import org.rocksdb.RocksDBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -44,9 +43,11 @@ public class RocksDBBackupEngine implements LifeCycle {
     private BackupEngine backupEngine;
 
     @Inject
-    public RocksDBBackupEngine(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager, RocksDBManager rocksDBManager) {
+    public RocksDBBackupEngine(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
+                               RocksDBManager rocksDBManager) {
         this.rocksDBManager = rocksDBManager;
-        this.heartBeatManager = new BackupHeartBeatManager(client.usingNamespace(zkPaths.getBaseRocksDBPath().substring(1)), service, serviceManager);
+        this.heartBeatManager =
+            new BackupHeartBeatManager(client.usingNamespace(zkPaths.getBaseRocksDBPath().substring(1)), service, serviceManager);
         this.executor = Executors.newScheduledThreadPool(1, new PooledThreadFactory("rocksdb_backup"));
     }
 
@@ -88,6 +89,7 @@ public class RocksDBBackupEngine implements LifeCycle {
 
     /**
      * @param backupId 备份时间点最晚的节点的当前backupId
+     *
      * @description: 根据backupId清理过期备份文件
      */
     public void cleanExpiredBackupFile(int backupId) {
@@ -107,7 +109,9 @@ public class RocksDBBackupEngine implements LifeCycle {
 
     /**
      * @param backupCycle 备份周期
+     *
      * @return 距离第一次备份任务执行的时间长度
+     *
      * @description: 根据备份周期计算距离第一次备份任务执行的时间长度，也就是线程池的initialDelay参数值
      */
     private long calculateInitialDelay(long backupCycle) {

@@ -6,14 +6,13 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.rocksdb.impl.RocksDBZkPaths;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -40,6 +39,7 @@ public class BackupHeartBeatManager {
 
     /**
      * @param backupId 当前备份ID
+     *
      * @description: 更新备份心跳信息到ZK，节点名称为service.getHost 数据内容为 time:backupId
      */
     public void sendBackupHeartBeat(long backupId) {
@@ -49,9 +49,9 @@ public class BackupHeartBeatManager {
         try {
             if (this.client.checkExists().forPath(makePath) == null) {
                 this.client.create()
-                        .creatingParentsIfNeeded()
-                        .withMode(CreateMode.PERSISTENT)
-                        .forPath(makePath, data.getBytes());
+                           .creatingParentsIfNeeded()
+                           .withMode(CreateMode.PERSISTENT)
+                           .forPath(makePath, data.getBytes());
                 LOG.info("create backup heartbeat node success, path:{}, data:{}", makePath, data);
             } else {
                 this.client.setData().forPath(makePath, data.getBytes());
@@ -65,20 +65,24 @@ public class BackupHeartBeatManager {
 
     /**
      * @param
+     *
      * @return
+     *
      * @description: 遍历ZK上存储的备份心跳信息，取最小的backupId
      */
     public int getBackupIdByLatestBackupTiming() {
         List<String> hosts = new ArrayList<>();
 
-        List<Service> services = this.serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME));
+        List<Service> services = this.serviceManager
+            .getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME));
         for (Service service : services) {
             hosts.add(service.getHost());
         }
 
         try {
             if (this.client.checkExists().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_BACKUP_HEARTBEAT) != null) {
-                List<String> backupHosts = this.client.getChildren().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_BACKUP_HEARTBEAT);
+                List<String> backupHosts =
+                    this.client.getChildren().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_BACKUP_HEARTBEAT);
 
                 if (backupHosts != null && !backupHosts.isEmpty()) {
 
