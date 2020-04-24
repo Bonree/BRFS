@@ -11,12 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.email;
 
-import java.util.Calendar;
+package com.bonree.brfs.email;
 
 import com.bonree.brfs.common.utils.StringUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Calendar;
 
 public class EmailConfig {
     @JsonProperty("smtp")
@@ -48,7 +48,7 @@ public class EmailConfig {
 
     @JsonProperty("copyright")
     private String copyright = StringUtils.format("Copyright ©2007-%i All rights reserved.",
-            Calendar.getInstance().get(Calendar.YEAR));
+                                                  Calendar.getInstance().get(Calendar.YEAR));
 
     @JsonProperty("pool.size")
     private int poolSize = 3;
