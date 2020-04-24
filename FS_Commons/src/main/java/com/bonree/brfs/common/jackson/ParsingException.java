@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.common.jackson;
 
 import java.io.IOException;
@@ -20,7 +21,7 @@ import java.io.IOException;
  * ParsingExceptionMapper and returned with a 400 response status code.
  */
 public class ParsingException extends IOException {
-    
+
     public ParsingException(String message) {
         super(message);
     }

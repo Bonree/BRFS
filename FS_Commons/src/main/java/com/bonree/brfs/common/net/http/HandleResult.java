@@ -2,62 +2,61 @@ package com.bonree.brfs.common.net.http;
 
 /**
  * {@link MessageHandler}的处理结果对象
- * 
- * @author chen
  *
+ * @author chen
  */
 public class HandleResult {
-	private boolean success;
-	private Throwable cause;
-	private byte[] data;
-	private boolean CONTINUE;
-	private long nextSeqno;
+    private boolean success;
+    private Throwable cause;
+    private byte[] data;
+    private boolean CONTINUE;
+    private long nextSeqno;
 
-	public HandleResult() {
-		this(true);
-	}
-	
-	public HandleResult(boolean success) {
-		this.success = success;
-	}
+    public HandleResult() {
+        this(true);
+    }
 
-	public boolean isCONTINUE() {
-		return CONTINUE;
-	}
+    public HandleResult(boolean success) {
+        this.success = success;
+    }
 
-	public void setCONTINUE() {
-		this.CONTINUE = true;
-	}
+    public boolean isCONTINUE() {
+        return CONTINUE;
+    }
 
-	public boolean isSuccess() {
-		return success;
-	}
+    public void setCONTINUE() {
+        this.CONTINUE = true;
+    }
 
-	public void setSuccess(boolean success) {
-		this.success = success;
-	}
+    public boolean isSuccess() {
+        return success;
+    }
 
-	public Throwable getCause() {
-		return cause;
-	}
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
 
-	public void setCause(Throwable cause) {
-		this.cause = cause;
-	}
+    public Throwable getCause() {
+        return cause;
+    }
 
-	public byte[] getData() {
-		return data;
-	}
+    public void setCause(Throwable cause) {
+        this.cause = cause;
+    }
 
-	public void setData(byte[] data) {
-		this.data = data;
-	}
+    public byte[] getData() {
+        return data;
+    }
 
-	public void setNextSeqno(long seqno) {
-		nextSeqno = seqno + 1;
-	}
+    public void setData(byte[] data) {
+        this.data = data;
+    }
 
-	public long getNextSeqno() {
-		return nextSeqno;
-	}
+    public void setNextSeqno(long seqno) {
+        nextSeqno = seqno + 1;
+    }
+
+    public long getNextSeqno() {
+        return nextSeqno;
+    }
 }

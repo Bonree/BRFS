@@ -32,12 +32,11 @@ public class RocksDBDataUnit {
         return columnFamily;
     }
 
-
     @JsonCreator
     public RocksDBDataUnit(
-            @JsonProperty("columnFamily") String columnFamily,
-            @JsonProperty("key") byte[] key,
-            @JsonProperty("value") byte[] value) {
+        @JsonProperty("columnFamily") String columnFamily,
+        @JsonProperty("key") byte[] key,
+        @JsonProperty("value") byte[] value) {
         this.columnFamily = columnFamily;
         this.key = key;
         this.value = value;
@@ -46,9 +45,9 @@ public class RocksDBDataUnit {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
-                .add("columnFamily", columnFamily)
-                .add("key", new String(key))
-                .add("value", new String(value))
-                .toString();
+                          .add("columnFamily", columnFamily)
+                          .add("key", new String(key))
+                          .add("value", new String(value))
+                          .toString();
     }
 }

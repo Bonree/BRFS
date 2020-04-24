@@ -3,7 +3,6 @@ package com.bonree.brfs.common.net.tcp.file;
 import io.netty.channel.FileRegion;
 import io.netty.util.AbstractReferenceCounted;
 import io.netty.util.IllegalReferenceCountException;
-
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
@@ -17,9 +16,9 @@ public class WrapperedFileRegion extends AbstractReferenceCounted implements Fil
     /**
      * Create a new instance
      *
-     * @param file      the {@link FileChannel} which should be transfered
-     * @param position  the position from which the transfer should start
-     * @param count     the number of bytes to transfer
+     * @param file     the {@link FileChannel} which should be transfered
+     * @param position the position from which the transfer should start
+     * @param count    the number of bytes to transfer
      */
     public WrapperedFileRegion(FileChannel file, long position, long count) {
         if (file == null) {
@@ -62,7 +61,7 @@ public class WrapperedFileRegion extends AbstractReferenceCounted implements Fil
         long count = this.count - position;
         if (count < 0 || position < 0) {
             throw new IllegalArgumentException(
-                    "position out of range: " + position +
+                "position out of range: " + position +
                     " (expected: 0 - " + (this.count - 1) + ')');
         }
         if (count == 0) {

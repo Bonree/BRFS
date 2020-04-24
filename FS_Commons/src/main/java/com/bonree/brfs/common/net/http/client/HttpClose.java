@@ -1,7 +1,6 @@
 package com.bonree.brfs.common.net.http.client;
 
 import java.net.URI;
-
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 
 public class HttpClose extends HttpEntityEnclosingRequestBase {

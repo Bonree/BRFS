@@ -14,10 +14,12 @@ public class PartitionIdsConfigs {
     /**
      * 磁盘分区的组名称
      */
-    public static final ConfigUnit<String> CONFIG_PARTITION_GROUP_NAME = ConfigUnit.ofString("partition.group", "partition_group");
+    public static final ConfigUnit<String> CONFIG_PARTITION_GROUP_NAME =
+        ConfigUnit.ofString("partition.group", "partition_group");
     /**
      * 磁盘分区的检查周期
      */
-    public static final ConfigUnit<Integer> CONFIG_CHECK_INTERVAL_SECOND_TIME = ConfigUnit.ofInt("partition.check.interval.time",5);
+    public static final ConfigUnit<Integer> CONFIG_CHECK_INTERVAL_SECOND_TIME =
+        ConfigUnit.ofInt("partition.check.interval.time", 5);
 
 }

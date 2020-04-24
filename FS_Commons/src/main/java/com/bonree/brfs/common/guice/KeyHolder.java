@@ -22,20 +22,18 @@ package com.bonree.brfs.common.guice;
 import com.google.inject.Key;
 
 /**
+ *
  */
-public class KeyHolder<T>
-{
-  private final Key<? extends T> key;
+public class KeyHolder<T> {
+    private final Key<? extends T> key;
 
-  public KeyHolder(
-      Key<? extends T> key
-  )
-  {
-    this.key = key;
-  }
+    public KeyHolder(
+        Key<? extends T> key
+    ) {
+        this.key = key;
+    }
 
-  public Key<? extends T> getKey()
-  {
-    return key;
-  }
+    public Key<? extends T> getKey() {
+        return key;
+    }
 }

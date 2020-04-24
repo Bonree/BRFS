@@ -11,16 +11,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.common.utils;
 
 import java.util.Locale;
 
 public final class StringUtils {
-    
+
     public static String format(String format, Object... args) {
         return String.format(Locale.ENGLISH, format, args);
     }
-    
+
     public static boolean isNullorEmpty(String s) {
         return s == null || s.isEmpty();
     }

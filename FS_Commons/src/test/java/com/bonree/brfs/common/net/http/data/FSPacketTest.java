@@ -1,10 +1,9 @@
 package com.bonree.brfs.common.net.http.data;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Random;
+import org.junit.Test;
 
 /**
  * @author wangchao
@@ -36,11 +35,10 @@ public class FSPacketTest {
             assert storageName == deserialze.getStorageName();
             assert offset == deserialze.getOffsetInFile();
             assert buf.length == deserialze.getData().length;
-            assert Arrays.equals(buf,deserialze.getData());
+            assert Arrays.equals(buf, deserialze.getData());
         } catch (InvalidProtocolBufferException e) {
             System.out.println(e);
         }
-
 
     }
 }

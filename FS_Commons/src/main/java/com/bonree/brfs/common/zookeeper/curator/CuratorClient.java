@@ -1,9 +1,10 @@
 package com.bonree.brfs.common.zookeeper.curator;
 
+import com.bonree.brfs.common.zookeeper.StateListener;
+import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -15,13 +16,10 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.Watcher;
 
-import com.bonree.brfs.common.zookeeper.StateListener;
-import com.bonree.brfs.common.zookeeper.ZookeeperClient;
-
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年3月12日 下午1:53:06
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: client helper
@@ -56,7 +54,8 @@ public class CuratorClient implements ZookeeperClient {
         return new CuratorClient(zkHosts, retry, sessionTimeoutMs, CONNECTION_TIMEOUT_MS);
     }
 
-    public static CuratorClient getClientInstance(String zkHosts, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
+    public static CuratorClient getClientInstance(String zkHosts, RetryPolicy retry, int sessionTimeoutMs,
+                                                  int connectionTimeoutMs) {
         return new CuratorClient(zkHosts, retry, sessionTimeoutMs, connectionTimeoutMs);
     }
 
@@ -70,8 +69,10 @@ public class CuratorClient implements ZookeeperClient {
 
     public CuratorClient(String zkHosts, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
         try {
-            CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder().connectString(zkHosts).retryPolicy(retry).connectionTimeoutMs(connectionTimeoutMs).sessionTimeoutMs(sessionTimeoutMs);
-           
+            CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder().connectString(zkHosts).retryPolicy(retry)
+                                                                             .connectionTimeoutMs(connectionTimeoutMs)
+                                                                             .sessionTimeoutMs(sessionTimeoutMs);
+
             client = builder.build();
             client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
 
@@ -118,12 +119,13 @@ public class CuratorClient implements ZookeeperClient {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
+
     @Override
     public void checkAndDelte(String path, boolean isRecursion) {
-        if(checkExists(path)) {
-            delete(path,isRecursion);
+        if (checkExists(path)) {
+            delete(path, isRecursion);
         }
-        
+
     }
 
     @Override
@@ -237,7 +239,8 @@ public class CuratorClient implements ZookeeperClient {
     public String createEphemeralSequential(String path, boolean isRecursion, byte[] data) {
         try {
             if (isRecursion) {
-                return client.create().creatingParentContainersIfNeeded().withProtection().withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path, data);
+                return client.create().creatingParentContainersIfNeeded().withProtection()
+                             .withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path, data);
             } else {
                 return client.create().withProtection().withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path, data);
             }

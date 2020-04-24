@@ -14,7 +14,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +25,12 @@ public class FileUtils {
     // public final static String FILE_SEPARATOR = File.separator;
     public final static String FILE_SEPARATOR = "/";
 
-    /** 概述：创建目录
-     * @param pathName 需要创建的目录名
+    /**
+     * 概述：创建目录
+     *
+     * @param pathName    需要创建的目录名
      * @param isRecursion 是否递归创建
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public static void createDir(String pathName, boolean isRecursion) {
@@ -163,8 +165,11 @@ public class FileUtils {
 
     /**
      * 概述：删除文件
+     *
      * @param filePath
+     *
      * @return
+     *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public static boolean deleteFile(String filePath) {
@@ -179,9 +184,12 @@ public class FileUtils {
 
     /**
      * 概述：删除目录
+     *
      * @param dirpath
      * @param recursive
+     *
      * @return
+     *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public static boolean deleteDir(String dirpath, boolean recursive) {

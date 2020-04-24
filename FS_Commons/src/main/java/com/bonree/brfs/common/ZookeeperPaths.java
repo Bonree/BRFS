@@ -1,13 +1,11 @@
 package com.bonree.brfs.common;
 
+import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import java.util.Objects;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -47,13 +45,10 @@ public class ZookeeperPaths {
 
     public final static String ROCKSDB = "rocksdb";
 
-    public final static String DISCOVER="discovery";
+    public final static String DISCOVER = "discovery";
     // todo 为了兼容旧版本客户端，增加路径
-    public final static String BAS_SECOND_ID="secondIDSet";
-    public final static String BAS_NEW_ROUTE="routeSet";
-
-
-
+    public final static String BAS_SECOND_ID = "secondIDSet";
+    public final static String BAS_NEW_ROUTE = "routeSet";
 
     private final String clusterName;
 
@@ -244,9 +239,9 @@ public class ZookeeperPaths {
         setBaseTaskPath(baseClusterName + SEPARATOR + TASKS);
         setBaseResourcesPath(baseClusterName + SEPARATOR + RESOURCES);
         setBaseRocksDBPath(baseClusterName + SEPARATOR + ROCKSDB);
-        setBaseDiscoveryPath(baseClusterName+SEPARATOR+DISCOVER);
-        setBaseV2RoutePath(baseClusterName+SEPARATOR+BAS_NEW_ROUTE);
-        setBaseV2SecondIDPath(baseClusterName+SEPARATOR+BAS_SECOND_ID);
+        setBaseDiscoveryPath(baseClusterName + SEPARATOR + DISCOVER);
+        setBaseV2RoutePath(baseClusterName + SEPARATOR + BAS_NEW_ROUTE);
+        setBaseV2SecondIDPath(baseClusterName + SEPARATOR + BAS_SECOND_ID);
 
     }
 
@@ -259,12 +254,11 @@ public class ZookeeperPaths {
         return zkPaths;
     }
 
-    public static ZookeeperPaths getBasePath(final String clusterName,final CuratorFramework zkClient) {
+    public static ZookeeperPaths getBasePath(final String clusterName, final CuratorFramework zkClient) {
         BrStringUtils.checkNotEmpty(clusterName, clusterName + " is empty!!!");
         ZookeeperPaths zkPaths = new ZookeeperPaths(clusterName, zkClient);
         zkPaths.createPath();
         return zkPaths;
     }
-
 
 }

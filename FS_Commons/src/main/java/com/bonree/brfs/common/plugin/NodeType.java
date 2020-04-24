@@ -11,18 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.common.plugin;
 
 public enum NodeType {
     REGION_NODE("regionnode"),
     DATA_NODE("datanode");
-    
+
     private final String nodeName;
-    
+
     private NodeType(String name) {
         this.nodeName = name;
     }
-    
+
     public String nodeName() {
         return nodeName;
     }

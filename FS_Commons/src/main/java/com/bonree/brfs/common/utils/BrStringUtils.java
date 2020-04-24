@@ -4,16 +4,19 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.StringTokenizer;
-
 import org.apache.commons.lang3.StringUtils;
 
 public class BrStringUtils {
 
     private static final char SEPARATOR_DIR = '/';
 
-    /** 概述：对basePath进行修剪
+    /**
+     * 概述：对basePath进行修剪
+     *
      * @param basePath 如：/aaa/bbb/ or /aaa/bbb
+     *
      * @return 修剪后的路径 如：/aaa/bbb
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public static String trimBasePath(String basePath) {
@@ -29,9 +32,13 @@ public class BrStringUtils {
         return newBasePath;
     }
 
-    /** 概述：对basePath进行规范
+    /**
+     * 概述：对basePath进行规范
+     *
      * @param basePath 如：/aaa/bbb/ or /aaa/bbb
+     *
      * @return 规范后的路径 如：/aaa/bbb/
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public static String normalBasePath(String basePath) {
@@ -49,8 +56,9 @@ public class BrStringUtils {
 
     /**
      * 安静的把字符串转化为UTF-8格式的字节数组
-     * 
+     *
      * @param s
+     *
      * @return
      */
     public static byte[] toUtf8Bytes(String s) {
@@ -65,8 +73,9 @@ public class BrStringUtils {
 
     /**
      * 从UTF-8格式的字节数组构造字符串
-     * 
+     *
      * @param bytes
+     *
      * @return
      */
     public static String fromUtf8Bytes(byte[] bytes) {
@@ -85,7 +94,9 @@ public class BrStringUtils {
      * 判断字符串是否为空
      *
      * @param args 字符串
+     *
      * @return 空 true,不为空 false
+     *
      * @author 张念礼
      * @date 2012-4-13 上午10:05:55
      * @version V1.0.0
@@ -120,7 +131,9 @@ public class BrStringUtils {
      *
      * @param str   字段串
      * @param delim 分割符号
+     *
      * @return String[]
+     *
      * @Title: getSplit
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
@@ -140,8 +153,11 @@ public class BrStringUtils {
 
     /**
      * 概述：判断字符串为有效的数字
+     *
      * @param cs
+     *
      * @return
+     *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public static boolean isMathNumeric(final String cs) {
@@ -171,43 +187,49 @@ public class BrStringUtils {
         }
         return true;
     }
-    
-    /**
-	 * 概述：验证字符串是否为数字
-	 * 
-	 * @Title: isNumeric
-	 * @param cs
-	 * @return boolean
-	 * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
-	 */
-	public static final boolean isNumeric(final String cs) {
-		if (isEmpty(cs)) {
-			return false;
-		}
-		int n = 0;
-		final int sz = cs.length();
-		for (int i = 0; i < sz; i++) {
-			char chars = cs.charAt(i);
-			if(chars == '-' && i == 0){
-				continue;
-			}
-			if (chars == '.') {
-				n++;
-			}
-			if (n >= 2) {
-				return false;
-			}
-			if (Character.isDigit(chars) == false && chars != '.') {
-				return false;
-			}
-		}
-		return true;
-	}
 
-    /** 概述：字符串转数字
+    /**
+     * 概述：验证字符串是否为数字
+     *
+     * @param cs
+     *
+     * @return boolean
+     *
+     * @Title: isNumeric
+     * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
+     */
+    public static final boolean isNumeric(final String cs) {
+        if (isEmpty(cs)) {
+            return false;
+        }
+        int n = 0;
+        final int sz = cs.length();
+        for (int i = 0; i < sz; i++) {
+            char chars = cs.charAt(i);
+            if (chars == '-' && i == 0) {
+                continue;
+            }
+            if (chars == '.') {
+                n++;
+            }
+            if (n >= 2) {
+                return false;
+            }
+            if (Character.isDigit(chars) == false && chars != '.') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 概述：字符串转数字
+     *
      * @param numStr
      * @param cls
+     *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public static <T extends Number> T parseNumber(String numStr, Class<T> cls) {
@@ -232,20 +254,26 @@ public class BrStringUtils {
         }
         return instance;
     }
-    
 
-    /** 概述：解析字符为布尔类型
+    /**
+     * 概述：解析字符为布尔类型
+     *
      * @param str
+     *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public static boolean parseBoolean(String str) {
         return Boolean.parseBoolean(str);
     }
 
-    /** 概述：检查字符不为空
+    /**
+     * 概述：检查字符不为空
+     *
      * @param str
      * @param desc
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public static void checkNotEmpty(String str, String desc) {

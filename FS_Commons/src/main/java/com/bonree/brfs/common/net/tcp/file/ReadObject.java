@@ -4,117 +4,117 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ReadObject {
-	@JsonIgnore
-	public static final int RAW_PATH = 1;
-	@JsonIgnore
-	public static final int RAW_OFFSET = 2;
-	@JsonIgnore
-	public static final int RAW_LENGTH = 4;
-	
-	@JsonProperty("token")
-	private int token;
-	@JsonProperty("path")
-	private String filePath;
-	@JsonProperty("offset")
-	private long offset;
-	@JsonProperty("length")
-	private int length;
-	@JsonProperty("raw")
-	private int raw;
-	
-	private int index;
-	private String sn;
-	private long time;
-	private long duration;
-	private String fileName;
-	
-	public int getIndex() {
-		return index;
-	}
+    @JsonIgnore
+    public static final int RAW_PATH = 1;
+    @JsonIgnore
+    public static final int RAW_OFFSET = 2;
+    @JsonIgnore
+    public static final int RAW_LENGTH = 4;
 
-	public void setIndex(int index) {
-		this.index = index;
-	}
+    @JsonProperty("token")
+    private int token;
+    @JsonProperty("path")
+    private String filePath;
+    @JsonProperty("offset")
+    private long offset;
+    @JsonProperty("length")
+    private int length;
+    @JsonProperty("raw")
+    private int raw;
 
-	public String getSn() {
-		return sn;
-	}
+    private int index;
+    private String sn;
+    private long time;
+    private long duration;
+    private String fileName;
 
-	public void setSn(String sn) {
-		this.sn = sn;
-	}
+    public int getIndex() {
+        return index;
+    }
 
-	public long getTime() {
-		return time;
-	}
+    public void setIndex(int index) {
+        this.index = index;
+    }
 
-	public void setTime(long time) {
-		this.time = time;
-	}
+    public String getSn() {
+        return sn;
+    }
 
-	public long getDuration() {
-		return duration;
-	}
+    public void setSn(String sn) {
+        this.sn = sn;
+    }
 
-	public void setDuration(long duration) {
-		this.duration = duration;
-	}
+    public long getTime() {
+        return time;
+    }
 
-	public String getFileName() {
-		return fileName;
-	}
+    public void setTime(long time) {
+        this.time = time;
+    }
 
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
-	}
+    public long getDuration() {
+        return duration;
+    }
 
-	public int getToken() {
-		return token;
-	}
+    public void setDuration(long duration) {
+        this.duration = duration;
+    }
 
-	public void setToken(int token) {
-		this.token = token;
-	}
+    public String getFileName() {
+        return fileName;
+    }
 
-	public String getFilePath() {
-		return filePath;
-	}
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
 
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
-	}
+    public int getToken() {
+        return token;
+    }
 
-	public long getOffset() {
-		return offset;
-	}
+    public void setToken(int token) {
+        this.token = token;
+    }
 
-	public void setOffset(long offset) {
-		this.offset = offset;
-	}
+    public String getFilePath() {
+        return filePath;
+    }
 
-	public int getLength() {
-		return length;
-	}
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
 
-	public void setLength(int length) {
-		this.length = length;
-	}
+    public long getOffset() {
+        return offset;
+    }
 
-	public int getRaw() {
-		return raw;
-	}
+    public void setOffset(long offset) {
+        this.offset = offset;
+    }
 
-	public void setRaw(int raw) {
-		this.raw = raw;
-	}
-	
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("{filepath=").append(filePath).append(",")
-		       .append("offset=").append(offset).append(",")
-		       .append("length=").append(length).append("}");
-		
-		return builder.toString();
-	}
+    public int getLength() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    public int getRaw() {
+        return raw;
+    }
+
+    public void setRaw(int raw) {
+        this.raw = raw;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{filepath=").append(filePath).append(",")
+               .append("offset=").append(offset).append(",")
+               .append("length=").append(length).append("}");
+
+        return builder.toString();
+    }
 }

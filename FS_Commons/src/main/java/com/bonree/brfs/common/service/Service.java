@@ -2,125 +2,124 @@ package com.bonree.brfs.common.service;
 
 /**
  * 服务信息
- * 
- * @author chen
  *
+ * @author chen
  */
 public class Service {
-	//服务ID
-	private String serviceId;
-	//服务所在的服务组
-	private String serviceGroup;
-	//服务主机的IP地址
-	private String host;
-	//服务进程的开放端口
-	private int port;
-	//服务进程的附属端口
-	private int extraPort;
-	//注册时间
-	private long registerTime;
-	
-	private String payload;
-	
-	public Service() {
-	}
-	
-	public Service(String serviceId, String serviceGroup, String host, int port) {
-		this(serviceId, serviceGroup, host, port, System.currentTimeMillis());
-	}
-	
-	public Service(String serviceId, String serviceGroup, String host, int port, long registerTime) {
-		this.serviceId = serviceId;
-		this.serviceGroup = serviceGroup;
-		this.host = host;
-		this.port = port;
-		this.registerTime = System.currentTimeMillis();
-	}
+    //服务ID
+    private String serviceId;
+    //服务所在的服务组
+    private String serviceGroup;
+    //服务主机的IP地址
+    private String host;
+    //服务进程的开放端口
+    private int port;
+    //服务进程的附属端口
+    private int extraPort;
+    //注册时间
+    private long registerTime;
 
-	public String getServiceId() {
-		return serviceId;
-	}
+    private String payload;
 
-	public void setServiceId(String serviceId) {
-		this.serviceId = serviceId;
-	}
+    public Service() {
+    }
 
-	public String getServiceGroup() {
-		return serviceGroup;
-	}
+    public Service(String serviceId, String serviceGroup, String host, int port) {
+        this(serviceId, serviceGroup, host, port, System.currentTimeMillis());
+    }
 
-	public void setServiceGroup(String serviceGroup) {
-		this.serviceGroup = serviceGroup;
-	}
+    public Service(String serviceId, String serviceGroup, String host, int port, long registerTime) {
+        this.serviceId = serviceId;
+        this.serviceGroup = serviceGroup;
+        this.host = host;
+        this.port = port;
+        this.registerTime = System.currentTimeMillis();
+    }
 
-	public String getHost() {
-		return host;
-	}
+    public String getServiceId() {
+        return serviceId;
+    }
 
-	public void setHost(String host) {
-		this.host = host;
-	}
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
+    }
 
-	public int getPort() {
-		return port;
-	}
+    public String getServiceGroup() {
+        return serviceGroup;
+    }
 
-	public void setPort(int port) {
-		this.port = port;
-	}
-	
-	public int getExtraPort() {
-		return extraPort;
-	}
+    public void setServiceGroup(String serviceGroup) {
+        this.serviceGroup = serviceGroup;
+    }
 
-	public void setExtraPort(int extraPort) {
-		this.extraPort = extraPort;
-	}
-	
-	public long getRegisterTime() {
-		return registerTime;
-	}
+    public String getHost() {
+        return host;
+    }
 
-	public void setRegisterTime(long registerTime) {
-		this.registerTime = registerTime;
-	}
-	
-	public String getPayload() {
-		return payload;
-	}
+    public void setHost(String host) {
+        this.host = host;
+    }
 
-	public void setPayload(String payload) {
-		this.payload = payload;
-	}
+    public int getPort() {
+        return port;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(this == obj) {
-			return true;
-		}
-		
-		if(obj instanceof Service) {
-			Service cmp = (Service) obj;
-			if(this.serviceId.equals(cmp.serviceId)
-					&& this.serviceGroup.equals(cmp.serviceGroup)) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
+    public void setPort(int port) {
+        this.port = port;
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Service[")
-		.append("id=").append(serviceId)
-		.append(",group=").append(serviceGroup)
-		.append(",host=").append(host)
-		.append(",port=").append(port)
-		.append(",extraport=").append(extraPort)
-		.append("]");
-		
-		return builder.toString();
-	}
+    public int getExtraPort() {
+        return extraPort;
+    }
+
+    public void setExtraPort(int extraPort) {
+        this.extraPort = extraPort;
+    }
+
+    public long getRegisterTime() {
+        return registerTime;
+    }
+
+    public void setRegisterTime(long registerTime) {
+        this.registerTime = registerTime;
+    }
+
+    public String getPayload() {
+        return payload;
+    }
+
+    public void setPayload(String payload) {
+        this.payload = payload;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof Service) {
+            Service cmp = (Service) obj;
+            if (this.serviceId.equals(cmp.serviceId)
+                && this.serviceGroup.equals(cmp.serviceGroup)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Service[")
+               .append("id=").append(serviceId)
+               .append(",group=").append(serviceGroup)
+               .append(",host=").append(host)
+               .append(",port=").append(port)
+               .append(",extraport=").append(extraPort)
+               .append("]");
+
+        return builder.toString();
+    }
 }

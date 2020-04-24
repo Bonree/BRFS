@@ -19,10 +19,10 @@ public class ServiceDiscoveryBuilder<T> {
      *
      * @param payloadClass the class of the payload of your service instance (you can use {@link Void}
      *                     if your instances don't need a payload)
+     *
      * @return new builder
      */
-    public static <T> ServiceDiscoveryBuilder<T> builder(Class<T> payloadClass)
-    {
+    public static <T> ServiceDiscoveryBuilder<T> builder(Class<T> payloadClass) {
         return new ServiceDiscoveryBuilder<T>(payloadClass);
     }
 
@@ -32,10 +32,8 @@ public class ServiceDiscoveryBuilder<T> {
      *
      * @return new service discovery
      */
-    public ServiceDiscovery<T> build()
-    {
-        if ( serializer == null )
-        {
+    public ServiceDiscovery<T> build() {
+        if (serializer == null) {
             serializer(new JsonInstanceSerializer<T>(payloadClass));
         }
         return new ServiceDiscoveryImpl<T>(client, basePath, serializer, thisInstance, watchInstances);
@@ -45,10 +43,10 @@ public class ServiceDiscoveryBuilder<T> {
      * Required - set the client to use
      *
      * @param client client
+     *
      * @return this
      */
-    public ServiceDiscoveryBuilder<T> client(CuratorFramework client)
-    {
+    public ServiceDiscoveryBuilder<T> client(CuratorFramework client) {
         this.client = client;
         return this;
     }
@@ -57,10 +55,10 @@ public class ServiceDiscoveryBuilder<T> {
      * Required - set the base path to store in ZK
      *
      * @param basePath base path
+     *
      * @return this
      */
-    public ServiceDiscoveryBuilder<T> basePath(String basePath)
-    {
+    public ServiceDiscoveryBuilder<T> basePath(String basePath) {
         this.basePath = basePath;
         return this;
     }
@@ -69,10 +67,10 @@ public class ServiceDiscoveryBuilder<T> {
      * optional - change the serializer used (the default is {@link JsonInstanceSerializer}
      *
      * @param serializer the serializer
+     *
      * @return this
      */
-    public ServiceDiscoveryBuilder<T> serializer(InstanceSerializer<T> serializer)
-    {
+    public ServiceDiscoveryBuilder<T> serializer(InstanceSerializer<T> serializer) {
         this.serializer = serializer;
         return this;
     }
@@ -81,10 +79,10 @@ public class ServiceDiscoveryBuilder<T> {
      * Optional - instance that represents the service that is running. The instance will get auto-registered
      *
      * @param thisInstance initial instance
+     *
      * @return this
      */
-    public ServiceDiscoveryBuilder<T> thisInstance(ServiceInstance<T> thisInstance)
-    {
+    public ServiceDiscoveryBuilder<T> thisInstance(ServiceInstance<T> thisInstance) {
         this.thisInstance = thisInstance;
         return this;
     }
@@ -95,16 +93,15 @@ public class ServiceDiscoveryBuilder<T> {
      * If the data for instances changes, they are reloaded.
      *
      * @param watchInstances true to watch instances
+     *
      * @return this
      */
-    public ServiceDiscoveryBuilder<T> watchInstances(boolean watchInstances)
-    {
+    public ServiceDiscoveryBuilder<T> watchInstances(boolean watchInstances) {
         this.watchInstances = watchInstances;
         return this;
     }
 
-    ServiceDiscoveryBuilder(Class<T> payloadClass)
-    {
+    ServiceDiscoveryBuilder(Class<T> payloadClass) {
         this.payloadClass = payloadClass;
     }
 }

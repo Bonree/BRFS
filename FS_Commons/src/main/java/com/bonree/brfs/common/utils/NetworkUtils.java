@@ -1,18 +1,17 @@
 package com.bonree.brfs.common.utils;
 
+import com.google.common.collect.ImmutableList;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
-
 public final class NetworkUtils {
 
     /**
      * 获取所有的本机IP地址
-     * 
+     *
      * @return 字符串形式的ip地址列表
      */
     public static List<InetAddress> getAllLocalIps() {
@@ -21,9 +20,9 @@ public final class NetworkUtils {
             Enumeration<NetworkInterface> allInterfaces = NetworkInterface.getNetworkInterfaces();
             while (allInterfaces.hasMoreElements()) {
                 NetworkInterface networkInterface = allInterfaces.nextElement();
-                if(networkInterface.isLoopback()
-                        || networkInterface.isVirtual()
-                        || !networkInterface.isUp()) {
+                if (networkInterface.isLoopback()
+                    || networkInterface.isVirtual()
+                    || !networkInterface.isUp()) {
                     continue;
                 }
 
@@ -31,8 +30,8 @@ public final class NetworkUtils {
                 while (adddresses.hasMoreElements()) {
                     InetAddress address = adddresses.nextElement();
                     if ((address != null)
-                            && !address.isLoopbackAddress()
-                            && (networkInterface.isPointToPoint() || !address.isLinkLocalAddress())) {
+                        && !address.isLoopbackAddress()
+                        && (networkInterface.isPointToPoint() || !address.isLinkLocalAddress())) {
                         addresses.add(address);
                     }
                 }

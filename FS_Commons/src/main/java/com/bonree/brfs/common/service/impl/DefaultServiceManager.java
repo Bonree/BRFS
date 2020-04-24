@@ -1,14 +1,21 @@
 package com.bonree.brfs.common.service.impl;
 
+import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.service.ServiceStateListener;
+import com.bonree.brfs.common.service.impl.curator.ServiceDiscoveryBuilder;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.inject.Inject;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.utils.CloseableUtils;
@@ -19,22 +26,11 @@ import org.apache.curator.x.discovery.details.ServiceCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.ZookeeperPaths;
-import com.bonree.brfs.common.lifecycle.LifecycleStart;
-import com.bonree.brfs.common.lifecycle.LifecycleStop;
-import com.bonree.brfs.common.lifecycle.ManageLifecycle;
-import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.service.ServiceStateListener;
-import com.bonree.brfs.common.service.impl.curator.ServiceDiscoveryBuilder;
-import com.bonree.brfs.common.utils.PooledThreadFactory;
-
 /**
  * 服务管理接口的默认实现，借助Zookeeper的功能实现服务的管理流程
  * 和服务事件通知机制。
- * 
- * @author yupeng
  *
+ * @author yupeng
  */
 @ManageLifecycle
 public class DefaultServiceManager implements ServiceManager {
@@ -55,12 +51,12 @@ public class DefaultServiceManager implements ServiceManager {
     @Inject
     public DefaultServiceManager(CuratorFramework client, ZookeeperPaths paths) {
         this.threadPools = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE,
-                new PooledThreadFactory(DEFAULT_SERVICE_MANAGER_THREADPOOL_NAME));
+                                                        new PooledThreadFactory(DEFAULT_SERVICE_MANAGER_THREADPOOL_NAME));
         this.serviceDiscovery = ServiceDiscoveryBuilder.builder(String.class)
-                .client(client.usingNamespace(paths.getBaseClusterName().substring(1)))
-                .basePath(SERVICE_BASE_PATH)
-                .watchInstances(true)
-                .build();
+                                                       .client(client.usingNamespace(paths.getBaseClusterName().substring(1)))
+                                                       .basePath(SERVICE_BASE_PATH)
+                                                       .watchInstances(true)
+                                                       .build();
     }
 
     @LifecycleStart
@@ -80,8 +76,10 @@ public class DefaultServiceManager implements ServiceManager {
 
     private static ServiceInstance<String> buildFrom(Service service) throws Exception {
         return ServiceInstance.<String>builder().address(service.getHost()).id(service.getServiceId())
-                .name(service.getServiceGroup()).port(service.getPort()).sslPort(service.getExtraPort())
-                .registrationTimeUTC(service.getRegisterTime()).payload(service.getPayload()).build();
+                                                .name(service.getServiceGroup()).port(service.getPort())
+                                                .sslPort(service.getExtraPort())
+                                                .registrationTimeUTC(service.getRegisterTime()).payload(service.getPayload())
+                                                .build();
     }
 
     private static Service buildFrom(ServiceInstance<String> instance) {
@@ -128,7 +126,7 @@ public class DefaultServiceManager implements ServiceManager {
                 serviceCache = serviceCaches.get(serviceGroup);
                 if (serviceCache == null) {
                     serviceCache = serviceDiscovery.serviceCacheBuilder().name(serviceGroup)
-                            .executorService(threadPools).build();
+                                                   .executorService(threadPools).build();
 
                     try {
                         serviceCache.start();
@@ -220,9 +218,8 @@ public class DefaultServiceManager implements ServiceManager {
 
     /**
      * Curator服务状态变更事件的监听类
-     * 
-     * @author chen
      *
+     * @author chen
      */
     private class ServiceStateWatcher implements ServiceCacheListener {
         private final String group;

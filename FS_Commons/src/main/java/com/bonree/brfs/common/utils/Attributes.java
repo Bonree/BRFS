@@ -2,8 +2,8 @@ package com.bonree.brfs.common.utils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public final class Attributes {
     private Map<String, Object> attributes = new HashMap<String, Object>();

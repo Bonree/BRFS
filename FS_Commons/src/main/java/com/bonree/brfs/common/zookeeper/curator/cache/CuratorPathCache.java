@@ -1,14 +1,12 @@
 package com.bonree.brfs.common.zookeeper.curator.cache;
 
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 public class CuratorPathCache {
 
@@ -22,7 +20,6 @@ public class CuratorPathCache {
         this.client = client;
         cacheMap = new ConcurrentHashMap<String, PathChildrenCache>();
     }
-
 
     public void addListener(String path, AbstractPathChildrenCacheListener listener) {
         LOG.info("add listener for path:" + path);
