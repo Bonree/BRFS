@@ -16,18 +16,6 @@
 
 package com.bonree.brfs.netty;
 
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.glassfish.jersey.server.ContainerException;
-import org.glassfish.jersey.server.ContainerResponse;
-import org.glassfish.jersey.server.spi.ContainerResponseWriter;
-
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -41,6 +29,16 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.glassfish.jersey.server.ContainerException;
+import org.glassfish.jersey.server.ContainerResponse;
+import org.glassfish.jersey.server.spi.ContainerResponseWriter;
 
 /**
  * Netty implementation of {@link ContainerResponseWriter}.
@@ -75,7 +73,7 @@ class NettyResponseWriter implements ContainerResponseWriter {
 
     @Override
     public synchronized OutputStream writeResponseStatusAndHeaders(long contentLength, ContainerResponse responseContext)
-            throws ContainerException {
+        throws ContainerException {
 
         if (responseWritten) {
             LOGGER.log(Level.FINE, "Response already written.");
@@ -88,8 +86,8 @@ class NettyResponseWriter implements ContainerResponseWriter {
         int statusCode = responseContext.getStatus();
 
         HttpResponseStatus status = reasonPhrase == null
-                ? HttpResponseStatus.valueOf(statusCode)
-                : new HttpResponseStatus(statusCode, reasonPhrase);
+            ? HttpResponseStatus.valueOf(statusCode)
+            : new HttpResponseStatus(statusCode, reasonPhrase);
 
         DefaultHttpResponse response;
         if (contentLength == 0) {
@@ -133,7 +131,7 @@ class NettyResponseWriter implements ContainerResponseWriter {
 
     @Override
     public boolean suspend(long timeOut, TimeUnit timeUnit, final ContainerResponseWriter.TimeoutHandler
-            timeoutHandler) {
+        timeoutHandler) {
 
         suspendTimeoutHandler = new Runnable() {
             @Override
@@ -147,7 +145,7 @@ class NettyResponseWriter implements ContainerResponseWriter {
         }
 
         suspendTimeoutFuture =
-                container.getScheduledExecutorService().schedule(suspendTimeoutHandler, timeOut, timeUnit);
+            container.getScheduledExecutorService().schedule(suspendTimeoutHandler, timeOut, timeUnit);
 
         return true;
     }
@@ -165,7 +163,7 @@ class NettyResponseWriter implements ContainerResponseWriter {
         }
 
         suspendTimeoutFuture =
-                container.getScheduledExecutorService().schedule(suspendTimeoutHandler, timeOut, timeUnit);
+            container.getScheduledExecutorService().schedule(suspendTimeoutHandler, timeOut, timeUnit);
     }
 
     @Override

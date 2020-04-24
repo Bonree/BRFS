@@ -11,16 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.netty;
 
 import static java.util.Objects.requireNonNull;
-
-import java.net.URI;
-
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-
-import org.glassfish.jersey.server.ResourceConfig;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -29,23 +23,27 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import java.net.URI;
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+import org.glassfish.jersey.server.ResourceConfig;
 
 public class NettyHttpServerInitializer extends ChannelInitializer<SocketChannel> {
-    
+
     private final SslContext sslCtx;
     private final int maxContentLength;
-    
+
     private final URI baseUri;
     private final NettyHttpContainer container;
     private final ResourceConfig resourceConfig;
-    
+
     @Inject
     public NettyHttpServerInitializer(
-            @Nullable SslContext sslCtx,
-            NettyHttpServerConfig httpConfig,
-            @RootUri URI uri,
-            NettyHttpContainer container,
-            ResourceConfig resourceConfig) {
+        @Nullable SslContext sslCtx,
+        NettyHttpServerConfig httpConfig,
+        @RootUri URI uri,
+        NettyHttpContainer container,
+        ResourceConfig resourceConfig) {
         this.sslCtx = sslCtx;
         this.maxContentLength = httpConfig.getMaxHttpContentLength();
         this.baseUri = requireNonNull(uri, "uri is null");

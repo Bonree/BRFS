@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.netty;
 
 import com.bonree.brfs.common.http.HttpServerConfig;
@@ -19,28 +20,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class NettyHttpServerConfig implements HttpServerConfig {
     @JsonProperty
     private String host;
-    
+
     @JsonProperty
     private int port = 8100;
-    
+
     @JsonProperty
     private int sslPort;
-    
+
     @JsonProperty
     private int acceptWorkerNum = 2;
     @JsonProperty
     private int requestHandleWorkerNum = 6;
-    
+
     @JsonProperty
     private int connectTimeoutMillies = 30000;
     @JsonProperty
     private int backlog = 128;
     @JsonProperty
     private boolean keepAlive;
-    
+
     @JsonProperty
     private boolean tcpNoDelay;
-    
+
     @JsonProperty
     private int maxHttpContentLength = 65 * 1024 * 1024;
 
@@ -73,7 +74,7 @@ public class NettyHttpServerConfig implements HttpServerConfig {
     public int getAcceptWorkerNum() {
         return acceptWorkerNum;
     }
-    
+
     public void setAcceptWorkerNum(int num) {
         this.acceptWorkerNum = num;
     }
@@ -125,6 +126,5 @@ public class NettyHttpServerConfig implements HttpServerConfig {
     public void setMaxHttpContentLength(int maxHttpContentLength) {
         this.maxHttpContentLength = maxHttpContentLength;
     }
-    
-    
+
 }

@@ -11,13 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.netty;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
-
 import javax.ws.rs.core.Application;
-
 import org.glassfish.jersey.server.ApplicationHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spi.Container;
@@ -79,6 +78,6 @@ class NettyHttpContainer implements Container {
      */
     ScheduledExecutorService getScheduledExecutorService() {
         return appHandler.getInjectionManager().getInstance(ScheduledExecutorServiceProvider.class)
-                .getExecutorService();
+                         .getExecutorService();
     }
 }
