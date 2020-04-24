@@ -7,7 +7,7 @@ public class BlockingQueueDataPoolFactory implements DataPoolFactory {
 	private final int poolCapacity;
 	
 	public BlockingQueueDataPoolFactory() {
-	    this(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_DATA_POOL_CAPACITY));
+	    this(Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_DATA_POOL_CAPACITY));
 	}
 	
 	public BlockingQueueDataPoolFactory(int capacity) {

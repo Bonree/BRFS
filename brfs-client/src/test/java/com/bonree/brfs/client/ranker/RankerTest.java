@@ -11,19 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.ranker;
 
-import java.util.List;
-
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 
 public class RankerTest {
 
     public static void main(String[] args) {
         List<Integer> l = new ShiftRanker<Integer>().rank(ImmutableList.<Integer>of(1, 2, 3, 4, 5));
-        
+
         System.out.println(l);
         System.out.println(l);
     }
-    
+
 }

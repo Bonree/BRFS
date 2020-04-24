@@ -26,8 +26,8 @@ public class SeqBlockManagerV2 implements BlockManager {
     private StorageRegionWriter writer;
     private final BrfsCatalog brfsCatalog;
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManagerV2.class);
-    private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
-    private static int blockPoolSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
+    private static long blockSize = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
+    private static int blockPoolSize = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
     private LinkedBlockingQueue<WriteFileRequest> fileWaiting = new LinkedBlockingQueue();
     private AtomicInteger fileWritingCount = new AtomicInteger(0);
     private ExecutorService fileWorker;
@@ -129,7 +129,7 @@ public class SeqBlockManagerV2 implements BlockManager {
             HandleResult handleResult = new HandleResult();
             LOG.debug("packet[{}] append to block and still not flushed。",packet);
             handleResult.setNextSeqno(packet.getSeqno());
-            handleResult.setCONTINUE();
+            handleResult.setToContinue();
             callback.completed(handleResult);
 
         } catch (Exception e) {
@@ -188,7 +188,7 @@ public class SeqBlockManagerV2 implements BlockManager {
         private String writeID;
         private volatile long accessTime;
         private volatile long createTime;
-        private volatile int clearTimeOut = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CLEAR_TIME_THRESHOLD);
+        private volatile int clearTimeOut = Configs.getConfiguration().getConfig(RegionNodeConfigs.CLEAR_TIME_THRESHOLD);
         ClearTimerTask fooTimerTask = new ClearTimerTask(clearTimeOut);
         private Timer timer = new Timer();
         public BlockValue(Block block, int storage, String file, String writeID) {
@@ -330,7 +330,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                             " storageName:" + storageName +
                             " done flush";
                     // DONE flush a block
-                    result.setCONTINUE();
+                    result.setToContinue();
                     result.setNextSeqno(seqno);
                     callback.completed(result);
                     LOG.info(response);
@@ -421,7 +421,7 @@ public class SeqBlockManagerV2 implements BlockManager {
     class WriteFileRequest{
         private long cTime ;
         private FSPacket fsPacket;
-        private int waitTimeOut = Configs.getConfiguration().GetConfig(RegionNodeConfigs.FILE_WAIT_FOR_WRITE_TIME);
+        private int waitTimeOut = Configs.getConfiguration().getConfig(RegionNodeConfigs.FILE_WAIT_FOR_WRITE_TIME);
         private HandleResultCallback handleResultCallback;
 
         public WriteFileRequest(FSPacket fsPacket, HandleResultCallback handleResultCallback) {

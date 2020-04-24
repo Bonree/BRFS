@@ -11,35 +11,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.write;
 
-import java.net.URI;
+package com.bonree.brfs.client.write;
 
 import com.bonree.brfs.client.BRFS;
 import com.bonree.brfs.client.BRFSClientBuilder;
 import com.bonree.brfs.client.ClientConfigurationBuilder;
 import com.bonree.brfs.client.PutObjectResult;
+import java.net.URI;
 
 public class WriteTest {
 
     /**
      * @param args
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     public static void main(String[] args) {
         BRFS client = new BRFSClientBuilder()
-                .config(new ClientConfigurationBuilder()
+            .config(new ClientConfigurationBuilder()
                         .setDataPackageSize(300)
                         .build())
-                .build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
-        
+            .build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
+
         try {
             PutObjectResult r = client.putObject("guice_test", "1234567890abcd".getBytes());
             System.out.println(r.getFID());
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         client.shutdown();
     }
 

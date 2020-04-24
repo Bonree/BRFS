@@ -11,31 +11,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client;
 
 import java.time.Duration;
 
 public interface ClientConfiguration {
-    
+
     Duration getDiscoveryExpiredDuration();
-    
+
     Duration getDiscoreryRefreshDuration();
-    
+
     Duration getStorageRegionCacheExpireDuration();
-    
+
     Duration getStorageRegionCacheRefreshDuration();
-    
+
     Duration getConnectTimeout();
-    
+
     Duration getReadTimeout();
-    
+
     Duration getWriteTimeout();
-    
+
     Duration getRequestTimeout();
-    
+
     int getDataPackageSize();
-    
+
     int getConnectionPoolSize();
-    
+
     int getThreadNum();
 }

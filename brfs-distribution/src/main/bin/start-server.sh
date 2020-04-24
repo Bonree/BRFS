@@ -36,6 +36,13 @@ case $1 in
     echo "init process completed!"
     exit
   ;;
+  restore)
+    java -Dbrfs.home=${BRFS_HOME} \
+            -Dconfiguration.file=${BRFS_HOME}/config/regionnode/server.properties \
+            -cp $LIB_DIR/*:${BRFS_HOME}/config/regionnode "com.bonree.brfs.server.Main" tools restore
+    echo "restore metadata completed!"
+    exit
+  ;;
   *)
     echo "usage: start-server.sh [region | node] [config_dir]"
     exit 1

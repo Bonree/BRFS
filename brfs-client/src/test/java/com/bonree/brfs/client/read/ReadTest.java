@@ -11,30 +11,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.read;
 
-import java.net.URI;
+package com.bonree.brfs.client.read;
 
 import com.bonree.brfs.client.BRFS;
 import com.bonree.brfs.client.BRFSClientBuilder;
 import com.bonree.brfs.client.BRFSObject;
 import com.bonree.brfs.client.ClientConfigurationBuilder;
 import com.bonree.brfs.client.GetObjectRequest;
+import java.net.URI;
 
 public class ReadTest {
-    
+
     public static void main(String[] args) {
         BRFS client = new BRFSClientBuilder()
-                .config(new ClientConfigurationBuilder()
+            .config(new ClientConfigurationBuilder()
                         .setDataPackageSize(100)
                         .build())
-                .build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
-//        CAAQABgCIiA5ZGUxNTk4MzhmZDc0Nzk2YmY1YTkzN2E4ODA3ZTc0NyiK/7a5mC4wgN3bAToCMjI6AjMwQP4ESDo=
+            .build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
+        //        CAAQABgCIiA5ZGUxNTk4MzhmZDc0Nzk2YmY1YTkzN2E4ODA3ZTc0NyiK/7a5mC4wgN3bAToCMjI6AjMwQP4ESDo=
         try {
             BRFSObject obj = client.getObject(GetObjectRequest.of(
-                    "guice_test",
-                    "CAAQABgCIiBiMzU4YzYxNTk5OWI0OGJhYjJjZGVhNWEwZTAxNDc0OCjK4YTVmS4wgN3bAToCMjI6AjMwQABIOg=="));
-            
+                "guice_test",
+                "CAAQABgCIiBiMzU4YzYxNTk5OWI0OGJhYjJjZGVhNWEwZTAxNDc0OCjK4YTVmS4wgN3bAToCMjI6AjMwQABIOg=="));
+
             System.out.println("[" + obj.string() + "]");
         } catch (Exception e) {
             e.printStackTrace();

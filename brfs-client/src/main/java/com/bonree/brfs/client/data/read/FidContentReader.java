@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.data.read;
 
+import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import java.io.InputStream;
 import java.net.URI;
 
-import com.bonree.brfs.common.proto.FileDataProtos.Fid;
-
 public interface FidContentReader {
-    
+
     InputStream read(URI service, String srName, Fid fidObj, long offset, long size, int uriIndex) throws Exception;
 }

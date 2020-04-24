@@ -40,7 +40,7 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
     @Inject
     public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory) {
         this(storageRegionManager, factory,
-                Duration.parse(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_DATA_ENGINE_IDLE_TIME)));
+                Duration.parse(Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_DATA_ENGINE_IDLE_TIME)));
     }
 
     public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory,

@@ -11,15 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.data.compress;
 
 import java.io.InputStream;
 
 public interface Compressor {
     InputStream compress(InputStream input);
-    
+
     static Compressor NONE = new Compressor() {
-        
+
         @Override
         public InputStream compress(InputStream bytes) {
             return bytes;

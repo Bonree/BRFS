@@ -1,19 +1,17 @@
 package com.bonree.brfs.client.route;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.RebalanceUtils;
+import java.util.ArrayList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RouteParser {
 
-    private final static Logger LOG = LoggerFactory.getLogger(RouteParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RouteParser.class);
 
     private RouteRoleCache routeCache;
 
@@ -58,10 +56,10 @@ public class RouteParser {
         List<String> fileServerIds = new ArrayList<>();
 
         for (String serverId : serverIds) {
-        	if(serverId == null) {
-        		continue;
-        	}
-        	
+            if (serverId == null) {
+                continue;
+            }
+
             // virtual server ID 分为已经解析或者还未解析的
             if (Constants.VIRTUAL_ID == serverId.charAt(0)) {
                 if (serverId.equals(searchServerID)) { // 前面解析过
@@ -101,7 +99,9 @@ public class RouteParser {
                         LOG.debug("2260 deadServer: {},is no finished the recover!!!", deadServer);
                         int deadIndex = fileServerIds.indexOf(deadServer);
                         if (deadIndex == serverIDPot) {
-                            LOG.debug("2260 a deadServer no finished the recover,but try to read data from the second's server: {}", deadServer);
+                            LOG.debug(
+                                "2260 a deadServer no finished the recover,but try to read data from the second's server: {}",
+                                deadServer);
                             return null;
                         } else {
                             continue;

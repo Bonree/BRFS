@@ -1,218 +1,213 @@
 package com.bonree.brfs.resourceschedule.model;
 
+import com.bonree.brfs.resourceschedule.utils.CalcUtils;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.bonree.brfs.resourceschedule.utils.CalcUtils;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-@JsonIgnoreProperties(ignoreUnknown = true) 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class StateMetaServerModel {
-	/**
-	 * 统计计数器
-	 */
-	private int calcCount = 1;
-	/**
-	 * cpu内核数
-	 */
-	private int cpuCoreCount = 1;
-	/**
-	 * cpu使用率
-	 */
-	private double cpuRate = 0.0;
-	
-	/**
-	 * 内存大小
-	 */
-	private long memorySize = 0;
-	
-	/**
-	 * 内存使用率
-	 */
-	private double memoryRate = 0.0;
-	
-	/**
-	 * 分区大小kb
-	 */
-	private Map<String,Long> partitionTotalSizeMap = new ConcurrentHashMap<String,Long>();
-		
-	/**
-	 * 分区剩余kb
-	 */
-	private Map<String,Long> partitionRemainSizeMap = new ConcurrentHashMap<String,Long>();
-	
-	/**
-	 * 分区写入kb
-	 */
-	private Map<String,Long> partitionWriteByteMap = new ConcurrentHashMap<String,Long>();
-	
-	/**
-	 * 分区读取kb
-	 */
-	private Map<String,Long> partitionReadByteMap = new ConcurrentHashMap<String,Long>();
-	
-	/**
-	 * 网卡发送字节数
-	 */
-	private Map<String,Long> netTByteMap = new ConcurrentHashMap<String,Long>();
-	
-	/**
-	 * 网卡接收字节数
-	 */
-	private Map<String,Long> netRByteMap = new ConcurrentHashMap<String,Long>();
-	/**
-	 * 网卡发送字节数
-	 */
-	private long netTByte;
-	
-	/**
-	 * 网卡接收字节数
-	 */
-	private long netRByte;
-	
-	public StatServerModel converObject(StateMetaServerModel t1) {
-		StatServerModel obj = new StatServerModel();
-		int count = this.calcCount + t1.getCalcCount();
-		// 1.不变的参数
-		// cpu核心数
-		obj.setCpuCoreCount(this.cpuCoreCount);
-		// 内存大小
-		obj.setMemorySize(this.memorySize);
-		// 分区大小
-		obj.setPartitionTotalSizeMap(this.partitionTotalSizeMap);
-		
-		// 2.分区剩余数据
-		obj.setPartitionRemainSizeMap(this.partitionRemainSizeMap);
-		
-		// 3.汇总数据
-		// 内存使用率
-		double mRate = (this.memoryRate + t1.getMemoryRate())/count;
-		obj.setMemoryRate(mRate);
-		// cpu使用率
-		double cRate =(this.cpuRate + t1.cpuRate)/count;
-		obj.setCpuRate(cRate);
-		
-		// 4.转换数据
-		// 分区读取速度
-		Map<String,Long> diskReadSpeedMap = CalcUtils.diffDataMap(this.partitionReadByteMap, t1.getPartitionReadByteMap());
-		obj.setPartitionReadSpeedMap(diskReadSpeedMap);
-		// 分区写入速度
-		Map<String,Long> diskWriteSpeedMap = CalcUtils.diffDataMap(this.partitionWriteByteMap, t1.getPartitionWriteByteMap());
-		obj.setPartitionWriteSpeedMap(diskWriteSpeedMap);
+    /**
+     * 统计计数器
+     */
+    private int calcCount = 1;
+    /**
+     * cpu内核数
+     */
+    private int cpuCoreCount = 1;
+    /**
+     * cpu使用率
+     */
+    private double cpuRate = 0.0;
 
-		// 网卡发送速度
-//		Map<String,Long> netTxSpeedMap = CalcUtils.diffDataMap(this.netTByteMap, t1.getNetTByteMap());
-//		obj.setNetTSpeedMap(netTxSpeedMap);
-		obj.setNetTSpeed(this.netTByte - t1.getNetTByte());
-		// 网卡接收速度
-//		Map<String,Long> netRxSpeedMap = CalcUtils.diffDataMap(this.netRByteMap, t1.getNetRByteMap());
-//		obj.setNetRSpeedMap(netRxSpeedMap);
-		obj.setNetRSpeed(this.netRByte - t1.getNetRByte());
-		obj.setCalcCount(count);
-		return obj;
-	}
-	
-	public int getCpuCoreCount() {
-		return cpuCoreCount;
-	}
+    /**
+     * 内存大小
+     */
+    private long memorySize = 0;
 
-	public void setCpuCoreCount(int cpuCoreCount) {
-		this.cpuCoreCount = cpuCoreCount;
-	}
+    /**
+     * 内存使用率
+     */
+    private double memoryRate = 0.0;
 
-	public double getCpuRate() {
-		return cpuRate;
-	}
+    /**
+     * 分区大小kb
+     */
+    private Map<String, Long> partitionTotalSizeMap = new ConcurrentHashMap<String, Long>();
 
-	public void setCpuRate(double cpuRate) {
-		this.cpuRate = cpuRate;
-	}
+    /**
+     * 分区剩余kb
+     */
+    private Map<String, Long> partitionRemainSizeMap = new ConcurrentHashMap<String, Long>();
 
-	public long getMemorySize() {
-		return memorySize;
-	}
+    /**
+     * 分区写入kb
+     */
+    private Map<String, Long> partitionWriteByteMap = new ConcurrentHashMap<String, Long>();
 
-	public void setMemorySize(long memorySize) {
-		this.memorySize = memorySize;
-	}
+    /**
+     * 分区读取kb
+     */
+    private Map<String, Long> partitionReadByteMap = new ConcurrentHashMap<String, Long>();
 
-	public double getMemoryRate() {
-		return memoryRate;
-	}
+    /**
+     * 网卡发送字节数
+     */
+    private Map<String, Long> netTByteMap = new ConcurrentHashMap<String, Long>();
 
-	public void setMemoryRate(double memoryRate) {
-		this.memoryRate = memoryRate;
-	}
+    /**
+     * 网卡接收字节数
+     */
+    private Map<String, Long> netRByteMap = new ConcurrentHashMap<String, Long>();
+    /**
+     * 网卡发送字节数
+     */
+    private long netTByte;
 
-	public Map<String, Long> getPartitionTotalSizeMap() {
-		return partitionTotalSizeMap;
-	}
+    /**
+     * 网卡接收字节数
+     */
+    private long netRByte;
 
-	public void setPartitionTotalSizeMap(Map<String, Long> partitionTotalSizeMap) {
-		this.partitionTotalSizeMap = partitionTotalSizeMap;
-	}
+    public StatServerModel converObject(StateMetaServerModel t1) {
+        StatServerModel obj = new StatServerModel();
+        int count = this.calcCount + t1.getCalcCount();
+        // 1.不变的参数
+        // cpu核心数
+        obj.setCpuCoreCount(this.cpuCoreCount);
+        // 内存大小
+        obj.setMemorySize(this.memorySize);
+        // 分区大小
+        obj.setPartitionTotalSizeMap(this.partitionTotalSizeMap);
 
-	public Map<String, Long> getPartitionRemainSizeMap() {
-		return partitionRemainSizeMap;
-	}
+        // 2.分区剩余数据
+        obj.setPartitionRemainSizeMap(this.partitionRemainSizeMap);
 
-	public void setPartitionRemainSizeMap(Map<String, Long> partitionRemainSizeMap) {
-		this.partitionRemainSizeMap = partitionRemainSizeMap;
-	}
+        // 3.汇总数据
+        // 内存使用率
+        double mrate = (this.memoryRate + t1.getMemoryRate()) / count;
+        obj.setMemoryRate(mrate);
+        // cpu使用率
+        double crate = (this.cpuRate + t1.cpuRate) / count;
+        obj.setCpuRate(crate);
 
-	public Map<String, Long> getPartitionWriteByteMap() {
-		return partitionWriteByteMap;
-	}
+        // 4.转换数据
+        // 分区读取速度
+        Map<String, Long> diskReadSpeedMap = CalcUtils.diffDataMap(this.partitionReadByteMap, t1.getPartitionReadByteMap());
+        obj.setPartitionReadSpeedMap(diskReadSpeedMap);
+        // 分区写入速度
+        Map<String, Long> diskWriteSpeedMap = CalcUtils.diffDataMap(this.partitionWriteByteMap, t1.getPartitionWriteByteMap());
+        obj.setPartitionWriteSpeedMap(diskWriteSpeedMap);
 
-	public void setPartitionWriteByteMap(Map<String, Long> partitionWriteByteMap) {
-		this.partitionWriteByteMap = partitionWriteByteMap;
-	}
+        // 网卡发送速度
+        obj.setNetTSpeed(this.netTByte - t1.getNetTByte());
+        // 网卡接收速度
+        obj.setNetRSpeed(this.netRByte - t1.getNetRByte());
+        obj.setCalcCount(count);
+        return obj;
+    }
 
-	public Map<String, Long> getPartitionReadByteMap() {
-		return partitionReadByteMap;
-	}
+    public int getCpuCoreCount() {
+        return cpuCoreCount;
+    }
 
-	public void setPartitionReadByteMap(Map<String, Long> partitionReadByteMap) {
-		this.partitionReadByteMap = partitionReadByteMap;
-	}
+    public void setCpuCoreCount(int cpuCoreCount) {
+        this.cpuCoreCount = cpuCoreCount;
+    }
 
-	public Map<String, Long> getNetTByteMap() {
-		return netTByteMap;
-	}
+    public double getCpuRate() {
+        return cpuRate;
+    }
 
-	public void setNetTByteMap(Map<String, Long> netTByteMap) {
-		this.netTByteMap = netTByteMap;
-	}
+    public void setCpuRate(double cpuRate) {
+        this.cpuRate = cpuRate;
+    }
 
-	public Map<String, Long> getNetRByteMap() {
-		return netRByteMap;
-	}
+    public long getMemorySize() {
+        return memorySize;
+    }
 
-	public void setNetRByteMap(Map<String, Long> netRByteMap) {
-		this.netRByteMap = netRByteMap;
-	}
+    public void setMemorySize(long memorySize) {
+        this.memorySize = memorySize;
+    }
 
-	public int getCalcCount() {
-		return calcCount;
-	}
+    public double getMemoryRate() {
+        return memoryRate;
+    }
 
+    public void setMemoryRate(double memoryRate) {
+        this.memoryRate = memoryRate;
+    }
 
-	public void setCalcCount(int calcCount) {
-		this.calcCount = calcCount;
-	}
+    public Map<String, Long> getPartitionTotalSizeMap() {
+        return partitionTotalSizeMap;
+    }
 
-	public long getNetTByte() {
-		return netTByte;
-	}
+    public void setPartitionTotalSizeMap(Map<String, Long> partitionTotalSizeMap) {
+        this.partitionTotalSizeMap = partitionTotalSizeMap;
+    }
 
-	public void setNetTByte(long netTByte) {
-		this.netTByte = netTByte;
-	}
+    public Map<String, Long> getPartitionRemainSizeMap() {
+        return partitionRemainSizeMap;
+    }
 
-	public long getNetRByte() {
-		return netRByte;
-	}
+    public void setPartitionRemainSizeMap(Map<String, Long> partitionRemainSizeMap) {
+        this.partitionRemainSizeMap = partitionRemainSizeMap;
+    }
 
-	public void setNetRByte(long netRByte) {
-		this.netRByte = netRByte;
-	}
+    public Map<String, Long> getPartitionWriteByteMap() {
+        return partitionWriteByteMap;
+    }
+
+    public void setPartitionWriteByteMap(Map<String, Long> partitionWriteByteMap) {
+        this.partitionWriteByteMap = partitionWriteByteMap;
+    }
+
+    public Map<String, Long> getPartitionReadByteMap() {
+        return partitionReadByteMap;
+    }
+
+    public void setPartitionReadByteMap(Map<String, Long> partitionReadByteMap) {
+        this.partitionReadByteMap = partitionReadByteMap;
+    }
+
+    public Map<String, Long> getNetTByteMap() {
+        return netTByteMap;
+    }
+
+    public void setNetTByteMap(Map<String, Long> netTByteMap) {
+        this.netTByteMap = netTByteMap;
+    }
+
+    public Map<String, Long> getNetRByteMap() {
+        return netRByteMap;
+    }
+
+    public void setNetRByteMap(Map<String, Long> netRByteMap) {
+        this.netRByteMap = netRByteMap;
+    }
+
+    public int getCalcCount() {
+        return calcCount;
+    }
+
+    public void setCalcCount(int calcCount) {
+        this.calcCount = calcCount;
+    }
+
+    public long getNetTByte() {
+        return netTByte;
+    }
+
+    public void setNetTByte(long netTByte) {
+        this.netTByte = netTByte;
+    }
+
+    public long getNetRByte() {
+        return netRByte;
+    }
+
+    public void setNetRByte(long netRByte) {
+        this.netRByte = netRByte;
+    }
 }

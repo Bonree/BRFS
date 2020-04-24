@@ -11,13 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.common.zookeeper.curator;
 
+import com.bonree.brfs.common.guice.JsonConfigProvider;
+import com.bonree.brfs.common.lifecycle.Lifecycle;
+import com.bonree.brfs.common.utils.StringUtils;
+import com.google.inject.Binder;
+import com.google.inject.Module;
+import com.google.inject.Provides;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import javax.inject.Singleton;
-
 import org.apache.curator.ensemble.fixed.FixedEnsembleProvider;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -32,16 +37,9 @@ import org.apache.zookeeper.data.ACL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bonree.brfs.common.guice.JsonConfigProvider;
-import com.bonree.brfs.common.lifecycle.Lifecycle;
-import com.bonree.brfs.common.utils.StringUtils;
-import com.google.inject.Binder;
-import com.google.inject.Module;
-import com.google.inject.Provides;
-
 public class CuratorModule implements Module {
     private static final Logger log = LoggerFactory.getLogger(CuratorModule.class);
-    
+
     private static final int BASE_SLEEP_TIME_MS = 1000;
 
     private static final int MAX_SLEEP_TIME_MS = 45000;
@@ -62,44 +60,43 @@ public class CuratorModule implements Module {
                 config.getAuthScheme(),
                 StringUtils.format("%s:%s", config.getZkUser(), config.getZkPasswd()).getBytes(StandardCharsets.UTF_8)
             );
-          }
-        
-        if(config.isEnableCompression()) {
+        }
+
+        if (config.isEnableCompression()) {
             builder.compressionProvider(new GzipCompressionProvider());
         }
-        
+
         final CuratorFramework framework = builder
-                .ensembleProvider(new FixedEnsembleProvider(config.getAddresses()))
-                .sessionTimeoutMs(config.getZkSessionTimeoutMs())
-                .retryPolicy(new BoundedExponentialBackoffRetry(BASE_SLEEP_TIME_MS, MAX_SLEEP_TIME_MS, MAX_RETRIES))
-                .aclProvider(config.isEnableAcl() ? new SecuredACLProvider() : new DefaultACLProvider())
-                .build();
-        
+            .ensembleProvider(new FixedEnsembleProvider(config.getAddresses()))
+            .sessionTimeoutMs(config.getZkSessionTimeoutMs())
+            .retryPolicy(new BoundedExponentialBackoffRetry(BASE_SLEEP_TIME_MS, MAX_SLEEP_TIME_MS, MAX_RETRIES))
+            .aclProvider(config.isEnableAcl() ? new SecuredACLProvider() : new DefaultACLProvider())
+            .build();
+
         framework.getUnhandledErrorListenable().addListener((message, e) -> {
             log.error("Unhandled error in Curator Framework", e);
             try {
-              lifecycle.stop();
+                lifecycle.stop();
+            } catch (Throwable t) {
+                log.warn("Exception when stopping druid lifecycle", t);
             }
-            catch (Throwable t) {
-              log.warn("Exception when stopping druid lifecycle", t);
-            }
-          });
-        
+        });
+
         lifecycle.addAnnotatedInstance(new Lifecycle.LifeCycleObject() {
-            
+
             @Override
             public void start() throws Exception {
                 log.info("start curator framework");
                 //framework.start();
             }
-            
+
             @Override
             public void stop() {
                 log.info("stop curator framework");
                 framework.close();
             }
         }, Lifecycle.Stage.INIT);
-        
+
         try {
             // the design of first release requires that connection to
             // zookeeper should be established before building other instances
@@ -108,22 +105,19 @@ public class CuratorModule implements Module {
         } catch (InterruptedException e1) {
             throw new RuntimeException(e1);
         }
-        
+
         return framework;
     }
-    
-    static class SecuredACLProvider implements ACLProvider
-    {
-      @Override
-      public List<ACL> getDefaultAcl()
-      {
-        return ZooDefs.Ids.CREATOR_ALL_ACL;
-      }
 
-      @Override
-      public List<ACL> getAclForPath(String path)
-      {
-        return ZooDefs.Ids.CREATOR_ALL_ACL;
-      }
+    static class SecuredACLProvider implements ACLProvider {
+        @Override
+        public List<ACL> getDefaultAcl() {
+            return ZooDefs.Ids.CREATOR_ALL_ACL;
+        }
+
+        @Override
+        public List<ACL> getAclForPath(String path) {
+            return ZooDefs.Ids.CREATOR_ALL_ACL;
+        }
     }
 }

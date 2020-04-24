@@ -11,14 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.data.read;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.URI;
+package com.bonree.brfs.client.data.read;
 
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
@@ -26,6 +20,12 @@ import com.bonree.brfs.common.write.data.FileDecoder;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URI;
 
 public class TcpFidContentReader implements FidContentReader {
 
@@ -47,6 +47,7 @@ public class TcpFidContentReader implements FidContentReader {
             FileContent content = FileDecoder.contents(b);
             return new ByteArrayInputStream(content.getData().toByteArray());
         } finally {
+            // do nothing
         }
     }
 
@@ -60,9 +61,9 @@ public class TcpFidContentReader implements FidContentReader {
         }
 
         return Joiner
-                .on(';').useForNull("-").join(srName, index, fidObj.getTime(), fidObj.getDuration(),
-                        nameBuilder.toString(), null, fidObj.getOffset(), fidObj.getSize(), 0, 0, "\n")
-                .getBytes(Charsets.UTF_8);
+            .on(';').useForNull("-").join(srName, index, fidObj.getTime(), fidObj.getDuration(),
+                                          nameBuilder.toString(), null, fidObj.getOffset(), fidObj.getSize(), 0, 0, "\n")
+            .getBytes(Charsets.UTF_8);
     }
 
     private static void readBytes(InputStream input, byte[] des, int offset, int length) throws IOException {

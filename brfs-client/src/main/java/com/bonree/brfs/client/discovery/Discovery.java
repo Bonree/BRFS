@@ -11,17 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.discovery;
 
 import java.io.Closeable;
 import java.util.List;
 
 public interface Discovery extends Closeable {
-    
+
     enum ServiceType {
         REGION,
         DATA
     }
-    
+
     List<ServerNode> getServiceList(ServiceType type);
 }

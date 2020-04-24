@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -18,7 +19,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public class Range {
     private final long offset;
     private final long size;
-    
+
     public Range(long offset, long size) {
         this.offset = offset;
         this.size = size;
@@ -31,7 +32,7 @@ public class Range {
     public long getSize() {
         return size;
     }
-    
+
     public long getEndOffset() {
         return offset + size;
     }
@@ -39,8 +40,8 @@ public class Range {
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("offset", offset)
-                .add("size", size)
-                .toString();
+            .add("offset", offset)
+            .add("size", size)
+            .toString();
     }
 }

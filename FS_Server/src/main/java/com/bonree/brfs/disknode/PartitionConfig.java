@@ -17,11 +17,11 @@ public class PartitionConfig {
     /**
      * 磁盘分区组名称
      */
-    private String partitionGroupName = Configs.getConfiguration().GetConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME);
+    private String partitionGroupName = Configs.getConfiguration().getConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME);
     /**
      * 磁盘检查的周期 单位 s
      */
-    private int intervalTime = Configs.getConfiguration().GetConfig(PartitionIdsConfigs.CONFIG_CHECK_INTERVAL_SECOND_TIME);
+    private int intervalTime = Configs.getConfiguration().getConfig(PartitionIdsConfigs.CONFIG_CHECK_INTERVAL_SECOND_TIME);
 
     private String libPath = System.getProperty(SystemProperties.PROP_RESOURCE_LIB_PATH);
     public PartitionConfig() throws Exception{

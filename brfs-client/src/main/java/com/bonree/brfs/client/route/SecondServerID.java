@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.route;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -25,15 +26,15 @@ public class SecondServerID {
     private final int readPort;
     private final int storageRegionIndex;
     private final String secondServerId;
-    
+
     @JsonCreator
     public SecondServerID(
-            @JsonProperty("serviceId") String serviceId,
-            @JsonProperty("host") String host,
-            @JsonProperty("port") int port,
-            @JsonProperty("readPort") int readPort,
-            @JsonProperty("storageRegionIndex") int storageRegionIndex,
-            @JsonProperty("secondServerId") String secondServerId) {
+        @JsonProperty("serviceId") String serviceId,
+        @JsonProperty("host") String host,
+        @JsonProperty("port") int port,
+        @JsonProperty("readPort") int readPort,
+        @JsonProperty("storageRegionIndex") int storageRegionIndex,
+        @JsonProperty("secondServerId") String secondServerId) {
         this.serviceId = serviceId;
         this.host = host;
         this.port = port;
@@ -46,17 +47,17 @@ public class SecondServerID {
     public String getServiceId() {
         return serviceId;
     }
-    
+
     @JsonProperty("host")
     public String getHost() {
         return host;
     }
-    
+
     @JsonProperty("port")
     public int getPort() {
         return port;
     }
-    
+
     @JsonProperty("readPort")
     public int getReadPort() {
         return readPort;
@@ -71,16 +72,16 @@ public class SecondServerID {
     public String getSecondServerId() {
         return secondServerId;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("serviceId", serviceId)
-                .add("host", host)
-                .add("port", port)
-                .add("readPort", readPort)
-                .add("storageRegionIndex", storageRegionIndex)
-                .add("secondServerId", secondServerId)
-                .toString();
+            .add("serviceId", serviceId)
+            .add("host", host)
+            .add("port", port)
+            .add("readPort", readPort)
+            .add("storageRegionIndex", storageRegionIndex)
+            .add("secondServerId", secondServerId)
+            .toString();
     }
 }

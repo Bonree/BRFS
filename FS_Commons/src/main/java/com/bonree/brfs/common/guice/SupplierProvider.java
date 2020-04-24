@@ -26,29 +26,26 @@ import com.google.inject.Key;
 import com.google.inject.Provider;
 
 /**
+ *
  */
-public class SupplierProvider<T> implements Provider<T>
-{
-  private final Key<Supplier<T>> supplierKey;
+public class SupplierProvider<T> implements Provider<T> {
+    private final Key<Supplier<T>> supplierKey;
 
-  private Provider<Supplier<T>> supplierProvider;
+    private Provider<Supplier<T>> supplierProvider;
 
-  public SupplierProvider(
-      Key<Supplier<T>> supplierKey
-  )
-  {
-    this.supplierKey = supplierKey;
-  }
+    public SupplierProvider(
+        Key<Supplier<T>> supplierKey
+    ) {
+        this.supplierKey = supplierKey;
+    }
 
-  @Inject
-  public void configure(Injector injector)
-  {
-    this.supplierProvider = injector.getProvider(supplierKey);
-  }
+    @Inject
+    public void configure(Injector injector) {
+        this.supplierProvider = injector.getProvider(supplierKey);
+    }
 
-  @Override
-  public T get()
-  {
-    return supplierProvider.get().get();
-  }
+    @Override
+    public T get() {
+        return supplierProvider.get().get();
+    }
 }

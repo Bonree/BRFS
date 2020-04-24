@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.common.guice;
 
-import javax.inject.Singleton;
-import javax.validation.Validation;
-import javax.validation.Validator;
+package com.bonree.brfs.common.guice;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
+import javax.inject.Singleton;
+import javax.validation.Validation;
+import javax.validation.Validator;
 
 public class ConfigModule implements Module {
 

@@ -57,7 +57,7 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector{
 	
 	@Override
 	public DuplicateNode[] getDuplicationNodes(int storageId, int nums) {
-		String groupName = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
+		String groupName = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
 		List<Service> serviceList = serviceManager.getServiceListByGroup(groupName);
 		if(serviceList == null || serviceList.isEmpty()) {
 			LOG.error("[{}] select service list is empty !!!!", groupName);
@@ -88,9 +88,9 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector{
 		return dups;
 	}
 	private DuplicateNode[] getResource(int storageId, int nums,List<Pair<String,Integer>> servers) {
-		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 		if(serviceList.isEmpty()) {
-			LOG.error("[{}] resource select serviceList is empty !!!",Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+			LOG.error("[{}] resource select serviceList is empty !!!",Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 			return new DuplicateNode[0];
 		}
 		Map<String,Service> map = new HashMap<String,Service>();
@@ -135,7 +135,7 @@ public class ResourceDuplicateNodeSelector implements DuplicateNodeSelector{
 	 * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
 	 */
 	private DuplicateNode[] getRandom(int storageId, int nums) {
-		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 		if(serviceList.isEmpty()) {
 			LOG.info("[DUP] seviceList is empty");
 			return new DuplicateNode[0];

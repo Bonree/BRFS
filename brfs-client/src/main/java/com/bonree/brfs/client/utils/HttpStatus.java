@@ -11,13 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.utils;
 
 public class HttpStatus {
-    
+
     public static final int CODE_OK = 200;
     public static final int CODE_NEXT = 260;
-    
+
     public static final int CODE_FORBIDDEN = 403;
     public static final int CODE_NOT_FOUND = 404;
     public static final int CODE_CONFLICT = 409;

@@ -4,7 +4,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 
 public class RebalanceUtils {
@@ -23,10 +22,14 @@ public class RebalanceUtils {
         return sum;
     }
 
-    /** 概述：判断是否需要恢复
+    /**
+     * 概述：判断是否需要恢复
+     *
      * @param serverIds
      * @param replicaPot
+     *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public static boolean needRecover(List<String> serverIds, int replicaPot, List<String> aliveServers) {
@@ -42,10 +45,14 @@ public class RebalanceUtils {
         return flag;
     }
 
-    /** 概述：判断是否需要恢复
+    /**
+     * 概述：判断是否需要恢复
+     *
      * @param serverIds
      * @param replicaPot
+     *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public static boolean needRecoverForAll(List<String> serverIds, int replicaPot, List<String> aliveServers) {
@@ -70,11 +77,15 @@ public class RebalanceUtils {
         return selectedList;
     }
 
-    /** 概述：选择新的serverID
+    /**
+     * 概述：选择新的serverID
+     *
      * @param fileUUID
      * @param serverIDs
      * @param fileServerIDs
+     *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public static String newServerID(String fileUUID, List<String> serverIDs, List<String> fileServerIDs) {
@@ -83,9 +94,13 @@ public class RebalanceUtils {
         return selectableServerList.get(index);
     }
 
-    /** 概述：
+    /**
+     * 概述：
+     *
      * @param event
+     *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public static String convertEvent(TreeCacheEvent event) {

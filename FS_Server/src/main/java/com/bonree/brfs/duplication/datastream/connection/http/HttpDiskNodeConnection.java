@@ -12,7 +12,7 @@ public class HttpDiskNodeConnection implements DiskNodeConnection {
 	
 	private static final int DEFAULT_RESPONSE_TIMEOUT_MILLIS = 15 * 1000;
 	
-	private static final int MAX_CONNECTION_RER_ROUTE = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM);
+	private static final int MAX_CONNECTION_RER_ROUTE = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM);
 	
 	private String address;
 	private int port;

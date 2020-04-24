@@ -5,16 +5,18 @@ import java.io.IOException;
 
 public final class CloseUtils {
 
-	public static void closeQuietly(Closeable closeable) {
-		if(closeable == null) {
-			return;
-		}
-		
-		try {
-			closeable.close();
-		} catch (IOException e) {
-		}
-	}
-	
-	private CloseUtils() {}
+    public static void closeQuietly(Closeable closeable) {
+        if (closeable == null) {
+            return;
+        }
+
+        try {
+            closeable.close();
+        } catch (IOException e) {
+            // ignore
+        }
+    }
+
+    private CloseUtils() {
+    }
 }

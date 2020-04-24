@@ -11,15 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.storageregion;
 
 import java.util.Properties;
 
 public interface CreateStorageRegionRequest {
     String getStorageRegionName();
-    
+
     Properties getAttributes();
-    
+
     static CreateStorageRegionRequestBuilder newBuilder(String name) {
         return new CreateStorageRegionRequestBuilder(name);
     }

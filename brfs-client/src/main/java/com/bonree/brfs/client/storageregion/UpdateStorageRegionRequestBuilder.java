@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.storageregion;
 
 import java.time.Duration;
@@ -19,7 +20,8 @@ import java.util.Properties;
 public class UpdateStorageRegionRequestBuilder {
     private final Properties props = new Properties();
 
-    UpdateStorageRegionRequestBuilder() {}
+    UpdateStorageRegionRequestBuilder() {
+    }
 
     public UpdateStorageRegionRequestBuilder setEnabled(boolean enabled) {
         this.props.put(StorageRegionPropertyNames.PROP_ENABLED, String.valueOf(enabled));
@@ -50,7 +52,7 @@ public class UpdateStorageRegionRequestBuilder {
 
     public UpdateStorageRegionRequest build() {
         return new UpdateStorageRegionRequest() {
-            
+
             @Override
             public Properties getAttributes() {
                 return props;

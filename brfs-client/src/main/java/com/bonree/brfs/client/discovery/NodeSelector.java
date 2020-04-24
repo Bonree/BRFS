@@ -11,21 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.discovery;
 
+import com.bonree.brfs.client.discovery.Discovery.ServiceType;
+import com.bonree.brfs.client.ranker.Ranker;
+import com.google.common.collect.Iterables;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import com.bonree.brfs.client.discovery.Discovery.ServiceType;
-import com.bonree.brfs.client.ranker.Ranker;
-import com.google.common.collect.Iterables;
-
 public class NodeSelector implements Closeable {
     private final Discovery discovery;
     private final Ranker<ServerNode> nodeRanker;
-    
+
     public NodeSelector(Discovery discovery, Ranker<ServerNode> nodeRanker) {
         this.discovery = discovery;
         this.nodeRanker = nodeRanker;
@@ -34,18 +34,17 @@ public class NodeSelector implements Closeable {
     public Iterable<URI> getNodeHttpLocations(ServiceType type) {
         return getNodeLocations(type, "http");
     }
-    
+
     public Iterable<URI> getNodeLocations(ServiceType type, String scheme) {
         return Iterables.transform(
-                nodeRanker.rank(discovery.getServiceList(type)),
-                node -> buildUri(scheme, node.getHost(), node.getPort()));
+            nodeRanker.rank(discovery.getServiceList(type)),
+            node -> buildUri(scheme, node.getHost(), node.getPort()));
     }
-    
+
     private URI buildUri(String scheme, String host, int port) {
         try {
             return new URI(scheme, null, host, port, null, null, null);
-        }
-        catch (URISyntaxException e) {
+        } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
     }

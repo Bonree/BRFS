@@ -30,7 +30,7 @@ public class ServiceRegisterTimeManager {
      * @description: 获取注册时间最早的服务
      */
     public Service getEarliestRegisterService() {
-        List<Service> services = this.serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME));
+        List<Service> services = this.serviceManager.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME));
 
         if (services.size() != 0) {
             Service tmpService = services.remove(0);

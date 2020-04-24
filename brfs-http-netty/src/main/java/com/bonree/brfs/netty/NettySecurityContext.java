@@ -17,11 +17,9 @@
 
 package com.bonree.brfs.netty;
 
-import java.security.Principal;
-
-import javax.ws.rs.core.SecurityContext;
-
 import io.netty.channel.ChannelHandlerContext;
+import java.security.Principal;
+import javax.ws.rs.core.SecurityContext;
 
 public class NettySecurityContext implements SecurityContext {
     private ChannelHandlerContext ctx;

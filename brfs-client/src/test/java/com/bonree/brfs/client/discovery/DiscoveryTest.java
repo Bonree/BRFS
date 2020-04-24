@@ -11,39 +11,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.client.discovery;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
+package com.bonree.brfs.client.discovery;
 
 import com.bonree.brfs.client.BRFSClientBuilder.AuthorizationIterceptor;
 import com.bonree.brfs.client.discovery.Discovery.ServiceType;
 import com.bonree.brfs.client.json.JsonCodec;
 import com.bonree.brfs.client.utils.SocketChannelSocketFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
 import okhttp3.OkHttpClient;
 
 public class DiscoveryTest {
 
     /**
      * @param args
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public static void main(String[] args) throws IOException {
         OkHttpClient httpClient = new OkHttpClient.Builder()
-                .addNetworkInterceptor(new AuthorizationIterceptor("root", "12345"))
-                .socketFactory(new SocketChannelSocketFactory())
-                .build();
-        
+            .addNetworkInterceptor(new AuthorizationIterceptor("root", "12345"))
+            .socketFactory(new SocketChannelSocketFactory())
+            .build();
+
         JsonCodec codec = new JsonCodec(new ObjectMapper());
-        
+
         Discovery discovery = new HttpDiscovery(httpClient, new URI[] {URI.create("http://localhost:8100")}, codec);
-        
+
         List<ServerNode> nodes = discovery.getServiceList(ServiceType.REGION);
         System.out.println(nodes);
-        
+
         discovery.close();
     }
 

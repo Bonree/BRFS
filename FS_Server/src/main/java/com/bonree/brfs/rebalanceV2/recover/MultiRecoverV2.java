@@ -391,7 +391,7 @@ public class MultiRecoverV2 implements DataRecover {
                                         break;
                                     }
                                     Service service = serviceManager.getServiceById(Configs.getConfiguration()
-                                            .GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), fileRecover
+                                            .getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), fileRecover
                                             .getFirstServerID());
                                     if (service == null) {
                                         LOG.warn("first id is {},maybe down!", fileRecover.getFirstServerID());

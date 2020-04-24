@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client;
 
 import java.time.Duration;
@@ -27,47 +28,47 @@ public class ClientConfigurationBuilder {
     private int dataPackageSize = 16 * 1024;
     private int connectionPoolSize;
     private int threadNum;
-    
+
     public ClientConfigurationBuilder setDiscoveryExpiredDuration(Duration expire) {
         this.discoveryExpire = expire;
         return this;
     }
-    
+
     public ClientConfigurationBuilder setDiscoreryRefreshDuration(Duration refresh) {
         this.discoveryRefresh = refresh;
         return this;
     }
-    
+
     public ClientConfigurationBuilder setStorageRegionCacheExpiredDuration(Duration expire) {
         this.storageRegionCacheExpire = expire;
         return this;
     }
-    
+
     public ClientConfigurationBuilder setStorageRegionCacheRefreshDuration(Duration refresh) {
         this.storageRegionCacheRefresh = refresh;
         return this;
     }
-    
+
     public ClientConfigurationBuilder setConnectTimeout(Duration timeout) {
         this.connectTimeout = timeout;
         return this;
     }
-    
+
     public ClientConfigurationBuilder setReadTimeout(Duration timeout) {
         this.readTimeout = timeout;
         return this;
     }
-    
+
     public ClientConfigurationBuilder setWriteTimeout(Duration timeout) {
         this.writeTimeout = timeout;
         return this;
     }
-    
+
     public ClientConfigurationBuilder setRequestTimeout(Duration timeout) {
         this.requestTimeout = timeout;
         return this;
     }
-    
+
     public ClientConfigurationBuilder setDataPackageSize(int size) {
         this.dataPackageSize = size;
         return this;
@@ -85,12 +86,12 @@ public class ClientConfigurationBuilder {
 
     public ClientConfiguration build() {
         return new ClientConfiguration() {
-            
+
             @Override
             public int getThreadNum() {
                 return threadNum;
             }
-            
+
             @Override
             public int getConnectionPoolSize() {
                 return connectionPoolSize;
@@ -115,7 +116,7 @@ public class ClientConfigurationBuilder {
             public Duration getStorageRegionCacheRefreshDuration() {
                 return storageRegionCacheRefresh;
             }
-            
+
             @Override
             public int getDataPackageSize() {
                 return dataPackageSize;

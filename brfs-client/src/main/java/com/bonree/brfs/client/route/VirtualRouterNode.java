@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client.route;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -24,14 +25,14 @@ public class VirtualRouterNode implements RouterNode {
     private final String virtualId;
     private final String newSecondId;
     private final String version;
-    
+
     @JsonCreator
     public VirtualRouterNode(
-            @JsonProperty("changeId") String changeId,
-            @JsonProperty("storageRegionIndex") int storageRegionIndex,
-            @JsonProperty("virtualId") String virtualId,
-            @JsonProperty("newSecondId") String newSecondId,
-            @JsonProperty("version") String version) {
+        @JsonProperty("changeId") String changeId,
+        @JsonProperty("storageRegionIndex") int storageRegionIndex,
+        @JsonProperty("virtualId") String virtualId,
+        @JsonProperty("newSecondId") String newSecondId,
+        @JsonProperty("version") String version) {
         this.changeId = changeId;
         this.storageRegionIndex = storageRegionIndex;
         this.virtualId = virtualId;
@@ -63,16 +64,16 @@ public class VirtualRouterNode implements RouterNode {
     public String getVersion() {
         return version;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("type", RouterNode.VIRTUAL)
-                .add("changeId", changeId)
-                .add("storageRegionIndex", storageRegionIndex)
-                .add("virtualId", virtualId)
-                .add("newSecondId", newSecondId)
-                .add("version", version)
-                .toString();
+            .add("type", RouterNode.VIRTUAL)
+            .add("changeId", changeId)
+            .add("storageRegionIndex", storageRegionIndex)
+            .add("virtualId", virtualId)
+            .add("newSecondId", newSecondId)
+            .add("version", version)
+            .toString();
     }
 }

@@ -1,14 +1,12 @@
 package com.bonree.brfs.common.zookeeper.curator.cache;
 
+import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 
 public class CuratorTreeCache {
 

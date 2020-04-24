@@ -11,14 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.netty;
-
-import java.net.URI;
-
-import javax.inject.Singleton;
-
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 
 import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.http.HttpServer;
@@ -29,27 +23,30 @@ import com.bonree.brfs.common.plugin.NodeType;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
-
 import io.netty.handler.ssl.SslContext;
+import java.net.URI;
+import javax.inject.Singleton;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 
 public class NettyHttpServerModule extends BrfsModule {
 
     @Override
     public void configure(NodeType nodeType, Binder binder) {
         JsonConfigProvider.bind(binder, nodeType.nodeName() + ".httpserver", NettyHttpServerConfig.class);
-        
+
         binder.bind(HttpServer.class).to(NettyHttpServer.class);
         binder.bind(HttpServerConfig.class).to(NettyHttpServerConfig.class).in(Scopes.SINGLETON);
-        
+
         LifecycleModule.register(binder, HttpServer.class);
     }
-    
+
     @Provides
     @RootUri
     public URI getRootUri(NettyHttpServerConfig httpConfig) {
         return new JerseyUriBuilder().path("/").build();
     }
-    
+
     @Provides
     public SslContext getSslContext() {
         //TODO build SslContext according to http configurations
@@ -61,13 +58,13 @@ public class NettyHttpServerModule extends BrfsModule {
     public NettyHttpContainer getContainer(ResourceConfig configuration) {
         return NettyHttpContainer.create(configuration);
     }
-    
+
     @Provides
     @Singleton
     public JerseyServerHandler getServerHandler(
-            @RootUri URI uri,
-            NettyHttpContainer container,
-            ResourceConfig resourceConfig) {
+        @RootUri URI uri,
+        NettyHttpContainer container,
+        ResourceConfig resourceConfig) {
         return new JerseyServerHandler(uri, container, resourceConfig);
     }
 }

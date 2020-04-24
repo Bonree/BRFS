@@ -49,7 +49,7 @@ public class NonRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public void updateColumnFamilyHandles(Map<String, Integer> columnFamilyMap, boolean updateZk) throws Exception {
+    public void updateColumnFamilyHandles(Map<String, Integer> columnFamilyMap) throws Exception {
 
     }
 

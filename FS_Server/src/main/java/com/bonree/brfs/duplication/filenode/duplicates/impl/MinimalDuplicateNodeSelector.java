@@ -25,7 +25,7 @@ public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector{
 
 	@Override
 	public DuplicateNode[] getDuplicationNodes(int storageId, int nums) {
-		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+		List<Service> serviceList = serviceManager.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
 		if(serviceList.isEmpty()) {
 			return new DuplicateNode[0];
 		}
