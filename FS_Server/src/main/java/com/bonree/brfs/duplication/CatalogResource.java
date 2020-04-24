@@ -69,7 +69,7 @@ public class CatalogResource {
     @GET
     @Path("/isFile")
     public boolean isFile (
-        @PathParam("srName") String srName,
+        @QueryParam("srName") String srName,
         @QueryParam("nodePath") String nodePath) {
         return catalog.isFileNode(srName,nodePath);
     }

@@ -95,7 +95,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         if(path.equals("/")){
             prefixQueryKey = path.getBytes();
         }else {
-            prefixQueryKey = encoder.encode(path.getBytes());
+            prefixQueryKey = Bytes.byteMerge(encoder.encode(path.getBytes()),"/".getBytes());
         }
         Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName, prefixQueryKey);
         if(map == null){
@@ -132,6 +132,9 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
 
     @Override
     public boolean isFileNode(String srName, String path) {
+        if(!validPath(path)){
+            throw new NotFoundException();
+        }
         byte[] query = transferToKey(path);
         byte[] value = rocksDBManager.read(srName, query);
         if (value == null){
@@ -291,5 +294,10 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         System.out.println(new DefaultBrfsCatalog(null).validPath("/da"));
 
         System.out.println(new String(new DefaultBrfsCatalog(null).transferToKey("/")));
+
+        System.out.println(new String(encoder.encode("/chao".getBytes())));
+        System.out.println(new String(encoder.encode("/chao/1".getBytes())));
+        System.out.println(new String(Bytes.byteMerge(encoder.encode("/chao".getBytes()),"/".getBytes())));
+
     }
 }
