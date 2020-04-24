@@ -7,13 +7,16 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.ServerErrorException;
@@ -24,11 +27,10 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultBrfsCatalog implements BrfsCatalog {
     RocksDBManager rocksDBManager;
-    static final Base64.Decoder decoder = Base64.getDecoder();
     static final Base64.Encoder encoder = Base64.getEncoder();
     static final byte[] DIR_VALUE = "0".getBytes();
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBrfsCatalog.class);
-    private static final String pattern = "^\\/(\\.*[\\w,\\-]+\\.*\\/?)*$";
+    private static final String pattern = "^(/+(\\.*[\\w,\\-]+\\.*)+)+$";
     private LoadingCache<PathKey,Boolean> pathCache = CacheBuilder.newBuilder()
             .concurrencyLevel(Runtime.getRuntime().availableProcessors())
             .maximumSize(200)
@@ -36,10 +38,11 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
 			.expireAfterAccess(30,TimeUnit.SECONDS)
             .build(new CacheLoader<PathKey, Boolean>() {
                 @SuppressWarnings("resource")
+                @ParametersAreNonnullByDefault
                 @Override
                 public Boolean load(PathKey pathKey){
                     byte[] queryKey = transferToKey(pathKey.getPath());
-                    WriteStatus write = null;
+                    WriteStatus write;
                     try {
                         write = rocksDBManager.write(pathKey.getSrName(), queryKey, DIR_VALUE, false);
                     } catch (Exception e) {
@@ -82,8 +85,10 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
 
     @Override
     public List<Inode> list(String srName, String path, int pageNo, int pageSize) {
+        if(!validPath(path)){
+            throw new NotFoundException();
+        }
         int startPos = (pageNo-1) * pageSize;
-        //todo 分页,去掉父目录
         int count = 0;
         ArrayList<Inode> inodes = new ArrayList<>(pageSize);
         byte[] prefixQueryKey;
@@ -93,13 +98,27 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             prefixQueryKey = encoder.encode(path.getBytes());
         }
         Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName, prefixQueryKey);
+        if(map == null){
+            LOG.error("dir [{}] is not found.",path);
+            throw new NotFoundException();
+        }
         for (byte[] key : map.keySet()) {
-            String nodeName = getLastNodeName(new String(key));
+            //去掉自己
+            if(Arrays.equals(key,prefixQueryKey)){
+                continue;
+            }
+            if(count >= (startPos + pageSize)){
+                break;
+            }
+            String nodeName = getLastNodeNameWithOutSep(new String(key));
             byte[] value = map.get(key);
             if(null == value){
                 String resp = "the path["+path+"]'child["+nodeName+"] is not store correctly";
                 LOG.error(resp);
                 throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
+            }
+            if(count++ < startPos){
+                continue;
             }
             if(new String(value).equals("0")){
                 inodes.add(new Inode(nodeName, null, 0));
@@ -123,15 +142,18 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     }
     @Override
     public boolean validPath(String path){
+        if("/".equals(path)){
+            return true;
+        }
         return Pattern.matches(pattern,path);
     }
+
     /**
      * 写fid到rocksDB中，中间残缺目录将会被被创建
      * @param srName storagename
-     * @param path
-     * @param fid
+     * @param path 绝对路径
+     * @param fid 等待写入的fid
      * @return 成功返回true 失败返回false
-     * @throws Exception 如果写rocksDB失败将会抛出这个错误
      */
     @Override
     public boolean writeFid(String srName, String path, String fid) {
@@ -144,7 +166,6 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         byte[] key;
         try {
             createDirIfNeccessary(srName, path);
-            String lastNodeName = getLastNodeName(path);
             //写文件
             key = transferToKey(path);
             WriteStatus write = rocksDBManager.write(srName, key, fid.getBytes(),true);
@@ -157,7 +178,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             LOG.error("get path [{}] Cache error",path);
             return false;
         } catch (Exception e) {
-            LOG.error("Maybe its rocksDB can not write {}",e);
+            LOG.error("Maybe its rocksDB can not write");
             return false;
         }finally {
             stopWatch.stop();
@@ -180,24 +201,6 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         }
     }
 
-    /**
-     * 生成一个目录，并赋值（全局唯一递增）
-     * @param srName
-     * @param queryKey 父id + dir名
-     * @return
-     */
-    private String creatDir(String srName, byte[] queryKey) throws Exception {
-        String id = encoder.encodeToString(queryKey);
-        byte[] writeValue = new InodeValue()
-                .setID(id)
-                .build()
-                .toByteArray();
-        WriteStatus writeStatus = rocksDBManager.write(srName, queryKey, writeValue);
-        if(writeStatus != WriteStatus.SUCCESS){
-            return null;
-        }
-        return id;
-    }
     @Override
     public String getFid(String srName, String path) {
         byte[] query = transferToKey(path);
@@ -213,9 +216,16 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     private String getLastNodeName(String path) {
         return path.substring(path.lastIndexOf("/"));
     }
+    private String getLastNodeNameWithOutSep(String path) {
+        int pos;
+        if((pos = path.lastIndexOf("/")+1 )>=path.length()){
+            LOG.error("the path [{}] is invalid!" , path);
+            throw new BadRequestException("the path [{}] is invalid!");
+        }
+        return path.substring(pos);
+    }
 
     public String[] getAllAncesstors(String absPath){
-        //todo topAncesstors
         if(isTopAncesstor(absPath)){
             return new String[]{""};
         }
@@ -227,7 +237,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         return path.lastIndexOf("/") == 0;
     }
 
-    private class PathKey{
+    private static class PathKey{
         private String srName;
         private String path;
 
