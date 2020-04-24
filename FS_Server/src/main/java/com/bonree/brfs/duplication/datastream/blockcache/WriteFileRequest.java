@@ -8,7 +8,7 @@ import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 class WriteFileRequest implements WriteRequest{
     private long cTime ;
     private FSPacket fsPacket;
-    private int waitTimeOut = Configs.getConfiguration().GetConfig(RegionNodeConfigs.FILE_WAIT_FOR_WRITE_TIME);
+    private int waitTimeOut = Configs.getConfiguration().getConfig(RegionNodeConfigs.FILE_WAIT_FOR_WRITE_TIME);
     private HandleResultCallback handleResultCallback;
 
     public WriteFileRequest(FSPacket fsPacket, HandleResultCallback handleResultCallback) {
