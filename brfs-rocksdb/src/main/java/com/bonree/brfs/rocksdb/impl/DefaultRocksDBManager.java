@@ -20,16 +20,38 @@ import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.zk.ColumnFamilyInfoManager;
 import com.google.common.collect.Sets;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
-import org.rocksdb.*;
+import org.rocksdb.BackupEngine;
+import org.rocksdb.BlockBasedTableConfig;
+import org.rocksdb.BloomFilter;
+import org.rocksdb.ColumnFamilyDescriptor;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.ColumnFamilyOptions;
+import org.rocksdb.CompactionStyle;
+import org.rocksdb.CompressionType;
+import org.rocksdb.DBOptions;
+import org.rocksdb.LRUCache;
+import org.rocksdb.Options;
+import org.rocksdb.ReadOptions;
+import org.rocksdb.RocksDBException;
+import org.rocksdb.RocksIterator;
+import org.rocksdb.TtlDB;
+import org.rocksdb.WriteOptions;
 import org.rocksdb.util.SizeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -64,7 +86,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo;
 
     @Inject
-    public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager, StorageRegionManager srManager, RegionNodeConnectionPool regionNodeConnectionPool) {
+    public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
+                                 StorageRegionManager srManager, RegionNodeConnectionPool regionNodeConnectionPool) {
         this.client = client.usingNamespace(zkPaths.getBaseRocksDBPath().substring(1));
         this.service = service;
         this.serviceManager = serviceManager;
@@ -83,18 +106,26 @@ public class DefaultRocksDBManager implements RocksDBManager {
         compressionTypes = new ArrayList<>();
         cfHandles = new ConcurrentHashMap<>();
         config = RocksDBConfig.newBuilder()
-                .setMaxBackgroundFlush(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_BACKGROUND_FLUSH))
-                .setMaxBackgroundCompaction(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_BACKGROUND_COMPACTION))
-                .setMaxOpenFiles(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_OPEN_FILES))
-                .setMaxSubCompaction(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_SUBCOMPACTIONN))
-                .setBlockCache(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_BLOCK_CACHE))
-                .setWriteBufferSize(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_WRITE_BUFFER_SIZE))
-                .setMaxWriteBufferNumber(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_WRITE_BUFFER_NUMBER))
-                .setMinWriteBufferNumToMerge(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MIN_WRITE_BUFFER_NUM_TO_MERGE))
-                .setLevel0FileNumCompactionTrigger(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_LEVEL0_FILE_NUM_COMPACTION_TRIGGER))
-                .setTargetFileSizeBase(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_TARGET_FILE_SIZE_BASE))
-                .setMaxBytesLevelBase(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_BYTES_LEVEL_BASE))
-                .build();
+                              .setMaxBackgroundFlush(
+                                  Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_BACKGROUND_FLUSH))
+                              .setMaxBackgroundCompaction(
+                                  Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_BACKGROUND_COMPACTION))
+                              .setMaxOpenFiles(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_OPEN_FILES))
+                              .setMaxSubCompaction(
+                                  Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_SUBCOMPACTIONN))
+                              .setBlockCache(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_BLOCK_CACHE))
+                              .setWriteBufferSize(Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_WRITE_BUFFER_SIZE))
+                              .setMaxWriteBufferNumber(
+                                  Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_WRITE_BUFFER_NUMBER))
+                              .setMinWriteBufferNumToMerge(
+                                  Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MIN_WRITE_BUFFER_NUM_TO_MERGE))
+                              .setLevel0FileNumCompactionTrigger(
+                                  Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_LEVEL0_FILE_NUM_COMPACTION_TRIGGER))
+                              .setTargetFileSizeBase(
+                                  Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_TARGET_FILE_SIZE_BASE))
+                              .setMaxBytesLevelBase(
+                                  Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_MAX_BYTES_LEVEL_BASE))
+                              .build();
         LOG.info("RocksDB configs:{}", this.config);
     }
 
@@ -102,36 +133,36 @@ public class DefaultRocksDBManager implements RocksDBManager {
     @Override
     public void start() throws Exception {
         this.dbOptions.setCreateIfMissing(true)
-                .setCreateMissingColumnFamilies(true)
-                .setMaxBackgroundFlushes(this.config.getMaxBackgroundFlush())
-                .setMaxBackgroundCompactions(this.config.getMaxBackgroundCompaction())
-                .setMaxOpenFiles(this.config.getMaxOpenFiles())
-                .setRowCache(new LRUCache(this.config.getBlockCache() * SizeUnit.MB, 6, true, 5))
-                .setMaxSubcompactions(this.config.getMaxSubCompaction());
+                      .setCreateMissingColumnFamilies(true)
+                      .setMaxBackgroundFlushes(this.config.getMaxBackgroundFlush())
+                      .setMaxBackgroundCompactions(this.config.getMaxBackgroundCompaction())
+                      .setMaxOpenFiles(this.config.getMaxOpenFiles())
+                      .setRowCache(new LRUCache(this.config.getBlockCache() * SizeUnit.MB, 6, true, 5))
+                      .setMaxSubcompactions(this.config.getMaxSubCompaction());
         readOptions.setPrefixSameAsStart(true);
         writeOptionsSync.setSync(true);
         writeOptionsAsync.setSync(false);
         blockBasedTableConfig.setFilter(bloomFilter)
-                .setCacheIndexAndFilterBlocks(true)
-                .setPinL0FilterAndIndexBlocksInCache(true);
+                             .setCacheIndexAndFilterBlocks(true)
+                             .setPinL0FilterAndIndexBlocksInCache(true);
 
         compressionTypes.addAll(Arrays.asList(
-                CompressionType.NO_COMPRESSION, CompressionType.NO_COMPRESSION,
-                CompressionType.SNAPPY_COMPRESSION, CompressionType.SNAPPY_COMPRESSION,
-                CompressionType.SNAPPY_COMPRESSION, CompressionType.SNAPPY_COMPRESSION,
-                CompressionType.ZLIB_COMPRESSION
+            CompressionType.NO_COMPRESSION, CompressionType.NO_COMPRESSION,
+            CompressionType.SNAPPY_COMPRESSION, CompressionType.SNAPPY_COMPRESSION,
+            CompressionType.SNAPPY_COMPRESSION, CompressionType.SNAPPY_COMPRESSION,
+            CompressionType.ZLIB_COMPRESSION
         ));
 
         columnFamilyOptions.setTableFormatConfig(blockBasedTableConfig)
-                .setCompactionStyle(CompactionStyle.LEVEL)
-                .setWriteBufferSize(this.config.getWriteBufferSize() * SizeUnit.MB)
-                .setMaxWriteBufferNumber(this.config.getMaxWriteBufferNumber())
-                .setMinWriteBufferNumberToMerge(this.config.getMinWriteBufferNumToMerge())
-                .setLevel0FileNumCompactionTrigger(this.config.getLevel0FileNumCompactionTrigger())
-                .setCompressionPerLevel(compressionTypes)
-                .setTargetFileSizeBase(this.config.getTargetFileSizeBase() * SizeUnit.MB)
-                .setMaxBytesForLevelBase(this.config.getMaxBytesLevelBase() * SizeUnit.MB)
-                .setOptimizeFiltersForHits(true);
+                           .setCompactionStyle(CompactionStyle.LEVEL)
+                           .setWriteBufferSize(this.config.getWriteBufferSize() * SizeUnit.MB)
+                           .setMaxWriteBufferNumber(this.config.getMaxWriteBufferNumber())
+                           .setMinWriteBufferNumberToMerge(this.config.getMinWriteBufferNumToMerge())
+                           .setLevel0FileNumCompactionTrigger(this.config.getLevel0FileNumCompactionTrigger())
+                           .setCompressionPerLevel(compressionTypes)
+                           .setTargetFileSizeBase(this.config.getTargetFileSizeBase() * SizeUnit.MB)
+                           .setMaxBytesForLevelBase(this.config.getMaxBytesLevelBase() * SizeUnit.MB)
+                           .setOptimizeFiltersForHits(true);
 
         try {
             columnFamilyInfo = loadColumnFamilyInfo();
@@ -140,7 +171,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
             List<ColumnFamilyHandle> cfHandles = new ArrayList<>();
 
             TimeWatcher watcher = new TimeWatcher();
-            db = TtlDB.open(dbOptions, Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH), cfDescriptors, cfHandles, cfTtlList, false);
+            db = TtlDB.open(dbOptions, Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH), cfDescriptors,
+                            cfHandles, cfTtlList, false);
             int openTime = watcher.getElapsedTime();
             LOG.info("RocksDB init complete, open RocksDB cost time:{}", openTime);
             cacheCFHandles(cfHandles);
@@ -267,11 +299,13 @@ public class DefaultRocksDBManager implements RocksDBManager {
         return write(columnFamily, key, value);
     }
 
-    private WriteStatus write(final ColumnFamilyHandle cfh, final WriteOptions writeOptions, final byte[] key, final byte[] value) throws RocksDBException {
+    private WriteStatus write(final ColumnFamilyHandle cfh, final WriteOptions writeOptions, final byte[] key, final byte[] value)
+        throws RocksDBException {
         try {
             this.db.put(cfh, writeOptions, key, value);
         } catch (RocksDBException e) {
-            LOG.error("write occur error, cf:{}, key:{}, value:{}", new String(cfh.getName()), new String(key), new String(value), e);
+            LOG.error("write occur error, cf:{}, key:{}, value:{}", new String(cfh.getName()), new String(key), new String(value),
+                      e);
             return WriteStatus.FAILED;
         }
         return WriteStatus.SUCCESS;
@@ -313,7 +347,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 return;
             }
 
-            ColumnFamilyHandle handle = this.db.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), columnFamilyOptions), ttl);
+            ColumnFamilyHandle handle =
+                this.db.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), columnFamilyOptions), ttl);
             this.cfHandles.put(columnFamily, handle);
             LOG.info("create column family complete, name:{}, ttl:{}", columnFamily, ttl);
             // 更新ZK信息
@@ -366,7 +401,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
             cfDescriptors.add(new ColumnFamilyDescriptor("default".getBytes(), columnFamilyOptions));
             cfTtlList.add(-1);
 
-            List<byte[]> columnFamilies = TtlDB.listColumnFamilies(options, Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH));
+            List<byte[]> columnFamilies =
+                TtlDB.listColumnFamilies(options, Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH));
             Map<String, Integer> srNameAndDataTtl = getStorageRegionNameAndDataTtl();
 
             for (byte[] columnFamily : columnFamilies) {
@@ -414,7 +450,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     @Override
     public void mergeData(String srcPath) {
         List<ColumnFamilyHandle> cfHandles = new ArrayList<>();
-        try (TtlDB srcDB = TtlDB.open(dbOptions, srcPath, this.columnFamilyInfo.getFirst(), cfHandles, this.columnFamilyInfo.getSecond(), true)) {
+        try (TtlDB srcDB = TtlDB
+            .open(dbOptions, srcPath, this.columnFamilyInfo.getFirst(), cfHandles, this.columnFamilyInfo.getSecond(), true)) {
             for (ColumnFamilyHandle handle : cfHandles) {
                 RocksIterator iterator = srcDB.newIterator(handle, readOptions);
                 for (iterator.seekToFirst(); iterator.isValid(); iterator.next()) {
@@ -437,7 +474,9 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
             for (String diff : diffUpdatedCfs) {
                 if (!cfHandles.containsKey(diff)) {
-                    ColumnFamilyHandle handle = this.db.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(diff.getBytes(), columnFamilyOptions), columnFamilyMap.get(diff));
+                    ColumnFamilyHandle handle = this.db
+                        .createColumnFamilyWithTtl(new ColumnFamilyDescriptor(diff.getBytes(), columnFamilyOptions),
+                                                   columnFamilyMap.get(diff));
                     this.cfHandles.put(diff, handle);
                 }
             }

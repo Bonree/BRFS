@@ -9,16 +9,15 @@ import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -32,7 +31,8 @@ public class HttpRegionNodeConnectionPool implements RegionNodeConnectionPool {
     private static final Logger LOG = LoggerFactory.getLogger(HttpRegionNodeConnectionPool.class);
 
     private static final int DEFAULT_CONNECTION_STATE_CHECK_INTERVAL = 5;
-    private ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("region_node_connection_checker"));
+    private ScheduledExecutorService exec =
+        Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("region_node_connection_checker"));
     private final Table<String, String, HttpRegionNodeConnection> connectionCache = HashBasedTable.create();
 
     private ServiceManager serviceManager;

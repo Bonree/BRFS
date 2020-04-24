@@ -3,13 +3,12 @@ package com.bonree.brfs.rocksdb.zk;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rocksdb.impl.RocksDBZkPaths;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -37,9 +36,9 @@ public class ColumnFamilyInfoManager {
                 cfMap.put(columnFamily, ttl);
                 byte[] bytes = JsonUtils.toJsonBytes(cfMap);
                 this.client.create()
-                        .creatingParentContainersIfNeeded()
-                        .withMode(CreateMode.PERSISTENT)
-                        .forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, bytes);
+                           .creatingParentContainersIfNeeded()
+                           .withMode(CreateMode.PERSISTENT)
+                           .forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, bytes);
                 LOG.info("init column family info complete:{}", cfMap);
             } else {
 
@@ -47,7 +46,8 @@ public class ColumnFamilyInfoManager {
                 Map<String, Integer> cfMap = JsonUtils.toObject(bytes, new TypeReference<Map<String, Integer>>() {
                 });
                 cfMap.put(columnFamily, ttl);
-                this.client.setData().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, JsonUtils.toJsonBytes(cfMap));
+                this.client.setData()
+                           .forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, JsonUtils.toJsonBytes(cfMap));
                 LOG.info("update zk column family info complete:{}", cfMap);
             }
 
@@ -80,12 +80,13 @@ public class ColumnFamilyInfoManager {
             if (this.client.checkExists().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO) == null) {
                 byte[] bytes = JsonUtils.toJsonBytes(columnFamilyMap);
                 this.client.create()
-                        .creatingParentContainersIfNeeded()
-                        .withMode(CreateMode.PERSISTENT)
-                        .forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, bytes);
+                           .creatingParentContainersIfNeeded()
+                           .withMode(CreateMode.PERSISTENT)
+                           .forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, bytes);
                 LOG.info("first reset column family info complete:{}", columnFamilyMap);
             } else {
-                this.client.setData().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO, JsonUtils.toJsonBytes(columnFamilyMap));
+                this.client.setData().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO,
+                                              JsonUtils.toJsonBytes(columnFamilyMap));
                 LOG.info("reset column family info complete:{}", columnFamilyMap);
             }
 

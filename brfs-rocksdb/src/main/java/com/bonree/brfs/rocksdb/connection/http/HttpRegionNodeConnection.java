@@ -20,7 +20,8 @@ public class HttpRegionNodeConnection implements RegionNodeConnection {
 
     private static final int DEFAULT_RESPONSE_TIMEOUT_MILLIS = 15 * 1000;
 
-    private static final int MAX_CONNECTION_RER_ROUTE = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM);
+    private static final int MAX_CONNECTION_RER_ROUTE =
+        Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM);
 
     private String address;
     private int port;
@@ -33,14 +34,13 @@ public class HttpRegionNodeConnection implements RegionNodeConnection {
 
     public void connect() {
         ClientConfig clientConfig = ClientConfig.builder()
-                .setResponseTimeout(DEFAULT_RESPONSE_TIMEOUT_MILLIS)
-                .setMaxConnectionPerRoute(MAX_CONNECTION_RER_ROUTE)
-                .setMaxConnection(MAX_CONNECTION_RER_ROUTE * 3)
-                .build();
+                                                .setResponseTimeout(DEFAULT_RESPONSE_TIMEOUT_MILLIS)
+                                                .setMaxConnectionPerRoute(MAX_CONNECTION_RER_ROUTE)
+                                                .setMaxConnection(MAX_CONNECTION_RER_ROUTE * 3)
+                                                .build();
 
         client = new HttpRegionNodeClient(address, port, clientConfig);
     }
-
 
     @Override
     public String getRemoteAddress() {

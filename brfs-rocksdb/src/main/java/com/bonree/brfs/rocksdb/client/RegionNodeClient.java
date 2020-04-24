@@ -1,7 +1,6 @@
 package com.bonree.brfs.rocksdb.client;
 
 import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
-
 import java.io.Closeable;
 import java.util.List;
 
@@ -23,7 +22,9 @@ public interface RegionNodeClient extends Closeable {
     /**
      * @param fileName    一次传输使用的临时文件名称
      * @param restorePath 用于接收socket client端备份文件的本地数据恢复路径
+     *
      * @return 一次备份中的所有backupId
+     *
      * @description: 用于向合适的RegionNode请求建立临时Socket连接，进行RocksDB备份文件的传输，从而进行数据恢复
      */
     List<Integer> restoreData(String fileName, String restorePath, String host, int port);

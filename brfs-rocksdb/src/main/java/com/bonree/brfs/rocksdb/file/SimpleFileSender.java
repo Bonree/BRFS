@@ -1,12 +1,11 @@
 package com.bonree.brfs.rocksdb.file;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -53,6 +52,7 @@ public class SimpleFileSender {
      * @param port
      * @param relativePath
      * @param file
+     *
      * @throws Exception
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
@@ -67,10 +67,10 @@ public class SimpleFileSender {
             for (File subFile : files) {
                 if (subFile.isDirectory()) {
                     sendDir(recvrAddr, port, relativePath + FileTransUtil.FILE_SEPARATOR + subFile
-                            .getName(), subFile, remoteDir);
+                        .getName(), subFile, remoteDir);
                 } else {
                     sendFile(recvrAddr, port, relativePath + FileTransUtil.FILE_SEPARATOR + subFile
-                            .getName(), subFile, remoteDir);
+                        .getName(), subFile, remoteDir);
                 }
             }
         }
@@ -83,6 +83,7 @@ public class SimpleFileSender {
      * @param port
      * @param relativePath
      * @param file
+     *
      * @throws Exception
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
