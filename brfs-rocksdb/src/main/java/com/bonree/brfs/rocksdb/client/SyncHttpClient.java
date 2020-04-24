@@ -3,6 +3,12 @@ package com.bonree.brfs.rocksdb.client;
 import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.HttpResponseProxy;
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Consts;
 import org.apache.http.Header;
@@ -18,13 +24,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -45,9 +44,9 @@ public class SyncHttpClient implements Closeable {
     public SyncHttpClient(ClientConfig clientConfig) {
 
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
-                .setBufferSize(clientConfig.getBufferSize())
-                .setCharset(Consts.UTF_8)
-                .build();
+                                                            .setBufferSize(clientConfig.getBufferSize())
+                                                            .setCharset(Consts.UTF_8)
+                                                            .build();
 
         List<Header> defaultHeaders = new ArrayList<Header>();
         if (clientConfig.isKeepAlive()) {
@@ -55,27 +54,28 @@ public class SyncHttpClient implements Closeable {
         }
 
         client = HttpClientBuilder.create()
-                .setMaxConnPerRoute(clientConfig.getMaxConnectionPerRoute())
-                .setMaxConnTotal(clientConfig.getMaxConnection())
-                .setDefaultConnectionConfig(connectionConfig)
-                .setConnectionReuseStrategy(new ConnectionReuseStrategy() {
+                                  .setMaxConnPerRoute(clientConfig.getMaxConnectionPerRoute())
+                                  .setMaxConnTotal(clientConfig.getMaxConnection())
+                                  .setDefaultConnectionConfig(connectionConfig)
+                                  .setConnectionReuseStrategy(new ConnectionReuseStrategy() {
 
-                    @Override
-                    public boolean keepAlive(org.apache.http.HttpResponse response, HttpContext context) {
-                        return clientConfig.isKeepAlive();
-                    }
+                                      @Override
+                                      public boolean keepAlive(org.apache.http.HttpResponse response, HttpContext context) {
+                                          return clientConfig.isKeepAlive();
+                                      }
 
-                })
-                .setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
+                                  })
+                                  .setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
 
-                    @Override
-                    public long getKeepAliveDuration(org.apache.http.HttpResponse response, HttpContext context) {
-                        return clientConfig.getIdleTimeout();
-                    }
+                                      @Override
+                                      public long getKeepAliveDuration(org.apache.http.HttpResponse response,
+                                                                       HttpContext context) {
+                                          return clientConfig.getIdleTimeout();
+                                      }
 
-                })
-                .setDefaultHeaders(defaultHeaders)
-                .build();
+                                  })
+                                  .setDefaultHeaders(defaultHeaders)
+                                  .build();
     }
 
     public HttpResponse executeGet(URI uri) throws Exception {

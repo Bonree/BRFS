@@ -5,20 +5,19 @@ import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.rocksdb.impl.RocksDBZkPaths;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.util.Map;
-import java.util.concurrent.Executors;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -49,7 +48,8 @@ public class ColumnFamilyInfoListener implements LifeCycle {
         this.nodeCache = new NodeCache(client, RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO);
         this.nodeCache.start();
         this.listener = new ColumnFamilyNodeCacheListener();
-        this.nodeCache.getListenable().addListener(listener, Executors.newSingleThreadExecutor(new PooledThreadFactory("column_family_listener")));
+        this.nodeCache.getListenable().addListener(listener, Executors
+            .newSingleThreadExecutor(new PooledThreadFactory("column_family_listener")));
         LOG.info("add column family node cache listener");
     }
 

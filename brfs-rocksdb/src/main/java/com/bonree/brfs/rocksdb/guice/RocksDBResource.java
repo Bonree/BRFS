@@ -1,27 +1,31 @@
 package com.bonree.brfs.rocksdb.guice;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+
+import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
+import com.bonree.brfs.common.rocksdb.RocksDBManager;
+import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.StringUtils;
 import com.bonree.brfs.common.utils.ZipUtils;
-import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
-import com.bonree.brfs.common.rocksdb.RocksDBManager;
-import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.rocksdb.backup.RocksDBBackupEngine;
 import com.bonree.brfs.rocksdb.file.SimpleFileSender;
 import com.google.common.base.Throwables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -58,8 +62,8 @@ public class RocksDBResource {
     @Path("read/{srName}")
     @Produces(APPLICATION_JSON)
     public Response read(
-            @PathParam("srName") String srName,
-            @QueryParam("fileName") String fileName) {
+        @PathParam("srName") String srName,
+        @QueryParam("fileName") String fileName) {
 
         byte[] fid = this.rocksDBManager.read(srName, fileName.getBytes(StandardCharsets.UTF_8));
         if (fid == null) {
@@ -73,8 +77,8 @@ public class RocksDBResource {
     @Path("gui/{srName}")
     @Produces(APPLICATION_JSON)
     public Response gui(
-            @PathParam("srName") String srName,
-            @QueryParam("prefix") String prefix) {
+        @PathParam("srName") String srName,
+        @QueryParam("prefix") String prefix) {
         Map<byte[], byte[]> result = this.rocksDBManager.readByPrefix(srName, prefix.getBytes(StandardCharsets.UTF_8));
 
         if (result == null || result.isEmpty()) {
@@ -88,8 +92,8 @@ public class RocksDBResource {
     @Path("inner/read")
     @Produces(APPLICATION_JSON)
     public Response readInner(
-            @QueryParam("srName") String srName,
-            @QueryParam("fileName") String fileName) {
+        @QueryParam("srName") String srName,
+        @QueryParam("fileName") String fileName) {
         byte[] fid = this.rocksDBManager.read(srName, fileName.getBytes(StandardCharsets.UTF_8), false);
         if (fid == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -97,7 +101,6 @@ public class RocksDBResource {
 
         return Response.ok().entity(fid).build();
     }
-
 
     @POST
     @Path("inner/write")
@@ -112,15 +115,14 @@ public class RocksDBResource {
         }
     }
 
-
     @POST
     @Path("inner/restore")
     @Produces(APPLICATION_JSON)
     public Response restore(
-            @QueryParam("transferFileName") String transferFileName,
-            @QueryParam("restorePath") String restorePath,
-            @QueryParam("host") String host,
-            @QueryParam("port") int port) {
+        @QueryParam("transferFileName") String transferFileName,
+        @QueryParam("restorePath") String restorePath,
+        @QueryParam("host") String host,
+        @QueryParam("port") int port) {
 
         String backupPath = this.rocksDBConfig.getRocksDBBackupPath();
 

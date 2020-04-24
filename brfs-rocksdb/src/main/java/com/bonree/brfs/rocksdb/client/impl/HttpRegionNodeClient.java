@@ -4,17 +4,16 @@ import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rocksdb.client.RegionNodeClient;
 import com.bonree.brfs.rocksdb.client.SyncHttpClient;
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -52,11 +51,11 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     @Override
     public boolean ping() {
         URI uri = new URIBuilder()
-                .setScheme(DEFAULT_SCHEME)
-                .setHost(host)
-                .setPort(port)
-                .setPath("/rocksdb/ping/")
-                .build();
+            .setScheme(DEFAULT_SCHEME)
+            .setHost(host)
+            .setPort(port)
+            .setPath("/rocksdb/ping/")
+            .build();
 
         try {
             HttpResponse response = client.executeGet(uri);
@@ -71,13 +70,13 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     @Override
     public byte[] readData(String columnFamily, String key) {
         URI uri = new URIBuilder()
-                .setScheme(DEFAULT_SCHEME)
-                .setHost(host)
-                .setPort(port)
-                .setPath(URI_PATH_INNER_READ)
-                .setParamter("srName", columnFamily)
-                .setParamter("fileName", key)
-                .build();
+            .setScheme(DEFAULT_SCHEME)
+            .setHost(host)
+            .setPort(port)
+            .setPath(URI_PATH_INNER_READ)
+            .setParamter("srName", columnFamily)
+            .setParamter("fileName", key)
+            .build();
 
         try {
             LOG.info("read rocksdb data from {}, cf: {}, key:{}", host, columnFamily, key);
@@ -85,7 +84,8 @@ public class HttpRegionNodeClient implements RegionNodeClient {
             if (response.isReponseOK()) {
                 return response.getResponseBody();
             }
-            LOG.debug("read rocksdb response[{}], host:{}, port:{}, cf: {}, key:{}", response.getStatusCode(), host, port, columnFamily, key);
+            LOG.debug("read rocksdb response[{}], host:{}, port:{}, cf: {}, key:{}", response.getStatusCode(), host, port,
+                      columnFamily, key);
         } catch (Exception e) {
             LOG.error("read rocksdb data to {}:{} error, cf: {}, key:{}", host, port, columnFamily, key, e);
             return null;
@@ -97,16 +97,17 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     public void writeData(RocksDBDataUnit unit) {
 
         URI uri = new URIBuilder()
-                .setScheme(DEFAULT_SCHEME)
-                .setHost(host)
-                .setPort(port)
-                .setPath(URI_PATH_INNER_WRITE)
-                .build();
+            .setScheme(DEFAULT_SCHEME)
+            .setHost(host)
+            .setPort(port)
+            .setPath(URI_PATH_INNER_WRITE)
+            .build();
 
         try {
             LOG.info("write rocksdb data to {}:{}, cf: {}", host, port, unit.getColumnFamily());
             HttpResponse response = client.executePost(uri, JsonUtils.toJsonBytes(unit));
-            LOG.debug("write rocksdb response[{}], host:{}, port:{}, cf:{}", response.getStatusCode(), host, port, unit.getColumnFamily());
+            LOG.debug("write rocksdb response[{}], host:{}, port:{}, cf:{}", response.getStatusCode(), host, port,
+                      unit.getColumnFamily());
         } catch (Exception e) {
             LOG.error("write rocksdb data to {}:{} error, cf:{}", host, port, unit.getColumnFamily(), e);
         }
@@ -116,18 +117,19 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     public List<Integer> restoreData(String fileName, String restorePath, String host, int port) {
 
         URI uri = new URIBuilder()
-                .setScheme(DEFAULT_SCHEME)
-                .setHost(this.host)
-                .setPort(this.port)
-                .setParamter("transferFileName", fileName)
-                .setParamter("restorePath", restorePath)
-                .setParamter("host", host)
-                .setParamter("port", String.valueOf(port))
-                .setPath(URI_PATH_RESTORE)
-                .build();
+            .setScheme(DEFAULT_SCHEME)
+            .setHost(this.host)
+            .setPort(this.port)
+            .setParamter("transferFileName", fileName)
+            .setParamter("restorePath", restorePath)
+            .setParamter("host", host)
+            .setParamter("port", String.valueOf(port))
+            .setPath(URI_PATH_RESTORE)
+            .build();
 
         try {
-            LOG.info("send restore request to {}:{}, transferFileName:{}, restorePath:{}", this.host, this.port, fileName, restorePath);
+            LOG.info("send restore request to {}:{}, transferFileName:{}, restorePath:{}", this.host, this.port, fileName,
+                     restorePath);
             HttpResponse response = client.executePost(uri);
             LOG.debug("restore request {}:{} response[{}]", this.host, this.port, response.getStatusCode());
 

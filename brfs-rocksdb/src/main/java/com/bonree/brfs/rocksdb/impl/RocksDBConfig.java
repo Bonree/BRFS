@@ -1,5 +1,7 @@
 package com.bonree.brfs.rocksdb.impl;
 
+import com.google.common.base.MoreObjects;
+
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
@@ -148,18 +150,18 @@ public class RocksDBConfig {
 
     @Override
     public String toString() {
-        return "RocksDBConfig{" +
-                "maxBackgroundFlush=" + maxBackgroundFlush +
-                ", maxBackgroundCompaction=" + maxBackgroundCompaction +
-                ", maxOpenFiles=" + maxOpenFiles +
-                ", maxSubCompaction=" + maxSubCompaction +
-                ", blockCache=" + blockCache +
-                ", writeBufferSize=" + writeBufferSize +
-                ", maxWriteBufferNumber=" + maxWriteBufferNumber +
-                ", minWriteBufferNumToMerge=" + minWriteBufferNumToMerge +
-                ", level0FileNumCompactionTrigger=" + level0FileNumCompactionTrigger +
-                ", targetFileSizeBase=" + targetFileSizeBase +
-                ", maxBytesLevelBase=" + maxBytesLevelBase +
-                '}';
+        return MoreObjects.toStringHelper(this.getClass())
+                          .add("maxBackgroundFlush", maxBackgroundFlush)
+                          .add("maxBackgroundCompaction", maxBackgroundCompaction)
+                          .add("maxOpenFiles", maxOpenFiles)
+                          .add("maxSubCompaction", maxSubCompaction)
+                          .add("blockCache", blockCache)
+                          .add("writeBufferSize", writeBufferSize)
+                          .add("maxWriteBufferNumber", maxWriteBufferNumber)
+                          .add("minWriteBufferNumToMerge", minWriteBufferNumToMerge)
+                          .add("level0FileNumCompactionTrigger", level0FileNumCompactionTrigger)
+                          .add("targetFileSizeBase", targetFileSizeBase)
+                          .add("targetFileSizeBase", targetFileSizeBase)
+                          .toString();
     }
 }

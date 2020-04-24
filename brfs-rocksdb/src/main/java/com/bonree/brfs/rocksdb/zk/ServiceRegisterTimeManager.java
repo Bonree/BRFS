@@ -4,10 +4,9 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -30,7 +29,8 @@ public class ServiceRegisterTimeManager {
      * @description: 获取注册时间最早的服务
      */
     public Service getEarliestRegisterService() {
-        List<Service> services = this.serviceManager.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME));
+        List<Service> services = this.serviceManager
+            .getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME));
 
         if (services.size() != 0) {
             Service tmpService = services.remove(0);

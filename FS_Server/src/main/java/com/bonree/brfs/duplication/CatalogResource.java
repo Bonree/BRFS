@@ -14,11 +14,18 @@
 package com.bonree.brfs.duplication;
 
 import com.bonree.brfs.duplication.catalog.BrfsCatalog;
+import com.bonree.brfs.duplication.catalog.Inode;
+import java.util.List;
+import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.ServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
 
 @Path("/catalog")
 public class CatalogResource {
@@ -57,5 +64,23 @@ public class CatalogResource {
             throw new ServiceUnavailableException("get null when get fid from catalog!");
         }
         return fid;
+    }
+
+    @GET
+    @Path("/isFile")
+    public boolean isFile (
+        @QueryParam("srName") String srName,
+        @QueryParam("nodePath") String nodePath) {
+        return catalog.isFileNode(srName,nodePath);
+    }
+
+    @GET
+    @Path("/list")
+    public List<Inode> list(
+        @QueryParam("srName") String srName,
+        @QueryParam("nodePath") String nodePath,
+        @QueryParam("pageNumber") int pageNumber,
+        @QueryParam("pageSize") int pageSize){
+        return catalog.list(srName,nodePath,pageNumber,pageSize);
     }
 }
