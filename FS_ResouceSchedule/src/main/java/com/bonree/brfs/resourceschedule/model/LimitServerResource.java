@@ -8,60 +8,62 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LimitServerResource {
-	private double diskRemainRate =  Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE);
-	private double forceDiskRemainRate =  Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE);
-	private double diskWriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED);
-	private double forceWriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED);
-	private long remainWarnSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_REMAIN_SIZE);
-	private long remainForceSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE);;
+    private double diskRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE);
+    private double forceDiskRemainRate =
+        Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE);
+    private double diskWriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED);
+    private double forceWriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED);
+    private long remainWarnSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_REMAIN_SIZE);
+    private long remainForceSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE);
     private int centSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_CENT_SIZE);
     private long fileSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY) / 1024;
     private String diskGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
 
-    public double getForceWriteValue(){
+    public double getForceWriteValue() {
         return forceWriteValue;
     }
 
-    public void setForceWriteValue(double forceWriteValue){
+    public void setForceWriteValue(double forceWriteValue) {
         this.forceWriteValue = forceWriteValue;
     }
 
-    public double getDiskWriteValue(){
+    public double getDiskWriteValue() {
         return diskWriteValue;
     }
 
-    public void setDiskWriteValue(double diskWriteValue){
+    public void setDiskWriteValue(double diskWriteValue) {
         this.diskWriteValue = diskWriteValue;
     }
 
     public double getDiskRemainRate() {
-		return diskRemainRate;
-	}
-	public void setDiskRemainRate(double remainValue) {
-		this.diskRemainRate = remainValue;
-	}
+        return diskRemainRate;
+    }
 
-    public double getForceDiskRemainRate(){
+    public void setDiskRemainRate(double remainValue) {
+        this.diskRemainRate = remainValue;
+    }
+
+    public double getForceDiskRemainRate() {
         return forceDiskRemainRate;
     }
 
-    public void setForceDiskRemainRate(double forceDiskRemainRate){
+    public void setForceDiskRemainRate(double forceDiskRemainRate) {
         this.forceDiskRemainRate = forceDiskRemainRate;
     }
 
-    public long getRemainWarnSize(){
+    public long getRemainWarnSize() {
         return remainWarnSize;
     }
 
-    public void setRemainWarnSize(long remainWarnSize){
+    public void setRemainWarnSize(long remainWarnSize) {
         this.remainWarnSize = remainWarnSize;
     }
 
-    public long getRemainForceSize(){
+    public long getRemainForceSize() {
         return remainForceSize;
     }
 
-    public void setRemainForceSize(long remainForceSize){
+    public void setRemainForceSize(long remainForceSize) {
         this.remainForceSize = remainForceSize;
     }
 
