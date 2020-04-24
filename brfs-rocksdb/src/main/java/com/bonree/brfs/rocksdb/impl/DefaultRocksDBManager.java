@@ -9,7 +9,6 @@ import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
-import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
@@ -20,7 +19,6 @@ import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.zk.ColumnFamilyInfoManager;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Sets;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.*;
@@ -356,29 +354,25 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     /**
-     * @description: 从ZK中加载列族信息
+     * @description: 从RocksDB中加载列族信息
      */
     private Pair<List<ColumnFamilyDescriptor>, List<Integer>> loadColumnFamilyInfo() throws Exception {
         Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo = new Pair<>();
-        try {
 
+        try (Options options = new Options()) {
             List<ColumnFamilyDescriptor> cfDescriptors = new ArrayList<>();
             List<Integer> cfTtlList = new ArrayList<>();
             // 添加默认列族信息，这是必须的
             cfDescriptors.add(new ColumnFamilyDescriptor("default".getBytes(), columnFamilyOptions));
             cfTtlList.add(-1);
 
-            if (this.client.checkExists().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO) != null) {
-                byte[] bytes = this.client.getData().forPath(RocksDBZkPaths.DEFAULT_PATH_ROCKSDB_COLUMN_FAMILY_INFO);
-                Map<String, Integer> cfMap = JsonUtils.toObject(bytes, new TypeReference<Map<String, Integer>>() {
-                });
+            List<byte[]> columnFamilies = TtlDB.listColumnFamilies(options, Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_STORAGE_PATH));
+            Map<String, Integer> srNameAndDataTtl = getStorageRegionNameAndDataTtl();
 
-                for (Map.Entry<String, Integer> entry : cfMap.entrySet()) {
-                    cfDescriptors.add(new ColumnFamilyDescriptor(entry.getKey().getBytes(), columnFamilyOptions));
-                    cfTtlList.add(Integer.parseInt(entry.getValue().toString()));
-                }
+            for (byte[] columnFamily : columnFamilies) {
+                cfDescriptors.add(new ColumnFamilyDescriptor(columnFamily, columnFamilyOptions));
+                cfTtlList.add(srNameAndDataTtl.getOrDefault(new String(columnFamily), -1));
             }
-
             columnFamilyInfo.setFirst(cfDescriptors);
             columnFamilyInfo.setSecond(cfTtlList);
         } catch (Exception e) {
@@ -398,17 +392,22 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     private void syncColumnFamilyByStorageRegionInfo() {
+        Map<String, Integer> srNameAndDataTtl = getStorageRegionNameAndDataTtl();
+        updateColumnFamilyHandles(getStorageRegionNameAndDataTtl(), true);
+        LOG.info("sync column family by storage region info complete, sr list:{}", srNameAndDataTtl);
+    }
+
+    private Map<String, Integer> getStorageRegionNameAndDataTtl() {
         List<StorageRegion> srList = this.srManager.getStorageRegionList();
         if (srList == null || srList.isEmpty()) {
-            return;
+            return Collections.emptyMap();
         }
 
         Map<String, Integer> srNameAndDataTtl = new HashMap<>();
         for (StorageRegion sr : srList) {
             srNameAndDataTtl.put(sr.getName(), (int) Duration.parse(sr.getDataTtl()).getSeconds());
         }
-        updateColumnFamilyHandles(srNameAndDataTtl, true);
-        LOG.info("sync column family by storage region info complete, sr list:{}", srNameAndDataTtl);
+        return srNameAndDataTtl;
     }
 
     @Override
