@@ -30,7 +30,7 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
 			return;
 		}
 		
-		AtomicReferenceArray<String> fids = new AtomicReferenceArray<String>(items.length);
+		AtomicReferenceArray<String> fids = new AtomicReferenceArray<>(items.length);
 		AtomicInteger count = new AtomicInteger(items.length);
 		for(int i = 0; i < items.length; i++) {
 			if(items[i].getBytes() == null) {
