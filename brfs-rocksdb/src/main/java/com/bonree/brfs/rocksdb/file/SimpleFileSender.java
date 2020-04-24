@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  ******************************************************************************/
 public class SimpleFileSender {
 
-    private final static Logger LOG = LoggerFactory.getLogger(SimpleFileSender.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleFileSender.class);
 
     /**
      * 接收端ip，端口，待发送文件路径，接收端文件路径
