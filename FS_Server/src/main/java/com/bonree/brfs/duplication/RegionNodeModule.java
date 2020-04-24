@@ -13,6 +13,8 @@
  */
 package com.bonree.brfs.duplication;
 
+import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
+
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
@@ -50,7 +52,12 @@ import com.bonree.brfs.duplication.datastream.dataengine.impl.BlockingQueueDataP
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DataPoolFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineFactory;
 import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineManager;
-import com.bonree.brfs.duplication.datastream.file.*;
+import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectCloser;
+import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectFactory;
+import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectSupplierFactory;
+import com.bonree.brfs.duplication.datastream.file.FileObjectCloser;
+import com.bonree.brfs.duplication.datastream.file.FileObjectFactory;
+import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSynchronier;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncProcessor;
@@ -71,16 +78,13 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
-import org.apache.curator.framework.CuratorFramework;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Singleton;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.UUID;
-
-import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
+import javax.inject.Singleton;
+import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RegionNodeModule implements Module {
     private static final Logger log = LoggerFactory.getLogger(RegionNodeModule.class);
@@ -205,10 +209,8 @@ public class RegionNodeModule implements Module {
     @Singleton
     public BlockManager getBlockManager(
             StorageRegionWriter writer,
-            BlockPool blockpool,
-            StorageRegionWriter write,
-            BrfsCatalog brfsCatalog) {
-        return new SeqBlockManagerV2(blockpool, writer, brfsCatalog);
+            BlockPool blockpool) {
+        return new SeqBlockManagerV2(blockpool, writer);
     }
 
     @Provides
