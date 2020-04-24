@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -41,6 +42,8 @@ public class SeqBlockManagerV2 implements BlockManager {
     private AtomicInteger fileWritingCount = new AtomicInteger(0);
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
+
+    private ConcurrentHashMap<BlockKey, BlockValue> blockcache = new ConcurrentHashMap<>();
 
     @Inject
     public SeqBlockManagerV2(BlockPool blockPool, StorageRegionWriter writer) {
@@ -114,8 +117,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                 }
                 return null;
             }
-            if (needflush) {
-                //flush a block
+            if (needflush) { //flush a block
                 writer.write(storage, blockValue.getRealData(),
                              new WriteBlockCallback(callback, packet, packet.isLastPacketInFile()));
                 LOG.info("flush a block of file[{}] into data pool ", fileName);
@@ -207,8 +209,8 @@ public class SeqBlockManagerV2 implements BlockManager {
             return data.getDataOffsetInBlock();
         }
 
-        public boolean appendPacket(byte[] bytes) {
-            data.appendPacket(bytes);
+        public boolean appendPacket(byte[] pdata) {
+            data.appendPacket(pdata);
             accessTime = System.currentTimeMillis();
             return data.isBlockSpill();
         }
@@ -334,9 +336,12 @@ public class SeqBlockManagerV2 implements BlockManager {
                 blockValue.addFid(fid);
                 if (!isFileFinished) {
                     String response = "seqno:" + seqno
-                        + " filename:" + fileName
-                        + " storageName:" + storageName
-                        + " done flush";
+                        +
+                        " filename:" + fileName
+                        +
+                        " storageName:" + storageName
+                        +
+                        " done flush";
                     // DONE flush a block
                     result.setToContinue();
                     result.setNextSeqno(seqno);
@@ -364,8 +369,7 @@ public class SeqBlockManagerV2 implements BlockManager {
         @Override
         public void error() {
             LOG.error("file[{}]seqno:" + seqno
-                          +
-                          " blockOffsetInfile：" + blockOffsetInfile
+                          + " blockOffsetInfile：" + blockOffsetInfile
                           + " flush error！", fileName);
             BlockValue blockValue = blockcache.remove(new BlockKey(storageName, writeID));
             if (blockValue != null && fileWritingCount.get() > 0) {

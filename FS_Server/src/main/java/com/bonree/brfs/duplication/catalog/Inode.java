@@ -9,6 +9,7 @@ public class Inode {
     private String name;
     private String fid;
     private int nodeType;
+
     @JsonCreator
     public Inode(@JsonProperty("name")String name,
                  @JsonProperty("fid") String fid,
@@ -17,6 +18,7 @@ public class Inode {
         this.fid = fid;
         this.nodeType = nodeType;
     }
+    
     @JsonProperty("name")
     public String getName() {
         return name;
