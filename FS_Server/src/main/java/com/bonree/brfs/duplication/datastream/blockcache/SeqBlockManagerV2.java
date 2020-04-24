@@ -36,27 +36,26 @@ public class SeqBlockManagerV2 implements BlockManager {
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockManagerV2.class);
     private static long blockSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_SIZE);
     private static int blockPoolSize = Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
-    private LinkedBlockingQueue<WriteFileRequest> fileWaiting = new LinkedBlockingQueue();
+    private LinkedBlockingQueue<WriteRequest> fileWaiting;
     private static Lock LOCK = new ReentrantLock();
     private Condition allowWrite = LOCK.newCondition();
     private AtomicInteger fileWritingCount = new AtomicInteger(0);
-    private ExecutorService fileWorker;
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
 
     private ConcurrentHashMap<BlockKey,BlockValue> blockcache = new ConcurrentHashMap<>();
     @Inject
     public SeqBlockManagerV2(BlockPool blockPool, StorageRegionWriter writer) {
+        this.fileWaiting = new LinkedBlockingQueue();
         this.writer = writer;
-        this.fileWorker = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                                                 new LinkedBlockingQueue<>(),
-                new PooledThreadFactory("blockManager_"+ SeqBlockManagerV2.class.getSimpleName()));
-
-        this.fileWorker.execute(new FileProcessor());
-        ExecutorService blockManageWatcher = this.fileWorker = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                                                                                      new LinkedBlockingQueue<>(),
-                                                                                      new PooledThreadFactory("watcher:"));
-        blockManageWatcher.execute(new WatcherProcessor());
+        ExecutorService fileWorker = new ThreadPoolExecutor(2,
+                                                            2,
+                                                            0L,
+                                                            TimeUnit.MILLISECONDS,
+                                                            new LinkedBlockingQueue<>(),
+                                                            new PooledThreadFactory("write-request-worker"));
+        fileWorker.execute(new FileProcessor());
+        fileWorker.execute(new WatcherProcessor());
         this.blockPool = blockPool;
     }
 
@@ -415,31 +414,6 @@ public class SeqBlockManagerV2 implements BlockManager {
         }
     }
 
-    static class WriteFileRequest{
-        private long cTime ;
-        private FSPacket fsPacket;
-        private int waitTimeOut = Configs.getConfiguration().GetConfig(RegionNodeConfigs.FILE_WAIT_FOR_WRITE_TIME);
-        private HandleResultCallback handleResultCallback;
-
-        public WriteFileRequest(FSPacket fsPacket, HandleResultCallback handleResultCallback) {
-            this.fsPacket = fsPacket;
-            this.handleResultCallback = handleResultCallback;
-            cTime = System.currentTimeMillis();
-        }
-
-        public FSPacket getFsPacket() {
-            return fsPacket;
-        }
-
-        public HandleResultCallback getHandleResultCallback() {
-            return handleResultCallback;
-        }
-
-        public boolean ifRequestIsTimeOut(){
-            return System.currentTimeMillis() - cTime > waitTimeOut;
-        }
-    }
-
     private class FileProcessor implements Runnable {
         @Override
         public void run() {
@@ -448,7 +422,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                 return;
             }
             LOG.info("start process waiting request!");
-            WriteFileRequest unhandledRequest;
+            WriteRequest unhandledRequest;
 
             while(true) {
                 LOCK.lock();
@@ -465,13 +439,13 @@ public class SeqBlockManagerV2 implements BlockManager {
                             HandleResult result = new HandleResult();
                             result.setSuccess(false);
                             result.setCause(new Exception("abandon a file write request because of Time out"));
-                            unhandledRequest.handleResultCallback.completed(result);
+                            unhandledRequest.getHandleResultCallback().completed(result);
                             continue;
                         }
                         BlockKey blockKey = new BlockKey(unhandledRequest.getFsPacket().getStorageName(),unhandledRequest.getFsPacket().getWriteID());
                         Block block = blockPool.getBlock();
                         blockcache.put(blockKey,new BlockValue(block,unhandledRequest.getFsPacket().getStorageName(),unhandledRequest.getFsPacket().getFileName(),unhandledRequest.getFsPacket().getWriteID()));
-                        LOG.info("Processor : writing file [{}]",unhandledRequest.fsPacket.getFileName());
+                        LOG.info("Processor : writing file [{}]",unhandledRequest.getFsPacket().getFileName());
                         appendToBlock(unhandledRequest.getFsPacket(), unhandledRequest.getHandleResultCallback());
                         if(fileWritingCount.incrementAndGet() >= blockPoolSize){
                             allowWrite.await();
