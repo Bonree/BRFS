@@ -1,17 +1,14 @@
 package com.bonree.brfs.duplication.datastream.writer;
 
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReferenceArray;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngine;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineManager;
 import com.bonree.brfs.duplication.datastream.dataengine.DataStoreCallback;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReferenceArray;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultStorageRegionWriter implements StorageRegionWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageRegionWriter.class);
@@ -52,12 +49,12 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
 			return;
 		}
 		if(data == null){
-			LOG.error("写入数据为空！");
+			LOG.error("null data to write into the datapool！");
 			callback.error();
 			return;
 		}
 		dataEngine.store(data, new SingleDataCallback(callback));
-		LOG.debug("写入一条数据到datapool！" );
+		LOG.debug("a data entry is enqueue the datapool！" );
 	}
 	private static class SingleDataCallback implements DataStoreCallback {
 		private StorageRegionWriteCallback callback;
