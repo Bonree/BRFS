@@ -11,32 +11,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.plugin;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+package com.bonree.brfs.plugin;
 
 import com.bonree.brfs.common.utils.StringUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
-
 import io.airlift.resolver.ArtifactResolver;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
 public class PluginConfig {
-    
+
     @JsonProperty("dir")
     private String pluginDir = "plugins";
-    
+
     @JsonProperty("loadList")
     private List<String> loadList = ImmutableList.of();
-    
+
     @JsonProperty("bundles")
     private List<String> pluginBundles = ImmutableList.of();
-    
+
     @JsonProperty("maven.repo.local")
     private String mavenLocalRepository = ArtifactResolver.USER_LOCAL_REPO;
-    
+
     @JsonProperty("maven.repo.remote")
     private List<String> mavenRemoteRepository = ImmutableList.of(ArtifactResolver.MAVEN_CENTRAL_URI);
 
@@ -45,7 +44,7 @@ public class PluginConfig {
     }
 
     public void setPluginDir(String pluginDir) {
-        if(!StringUtils.isNullorEmpty(pluginDir)) {
+        if (!StringUtils.isNullorEmpty(pluginDir)) {
             this.pluginDir = pluginDir;
         }
     }
@@ -57,11 +56,11 @@ public class PluginConfig {
     public void setLoadList(List<String> loadList) {
         this.loadList = loadList;
     }
-    
+
     public void setPluginBundles(List<String> pluginBundles) {
         this.pluginBundles = pluginBundles;
     }
-    
+
     public List<String> getPluginBundles() {
         return pluginBundles;
     }

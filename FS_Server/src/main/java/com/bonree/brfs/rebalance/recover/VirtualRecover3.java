@@ -1,16 +1,5 @@
 package com.bonree.brfs.rebalance.recover;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -28,18 +17,27 @@ import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalance.transfer.SimpleFileClient;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年3月23日 下午2:16:13
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 恢复虚拟ServerID的
  ******************************************************************************/
 public class VirtualRecover3 implements DataRecover {
 
-    private final static Logger LOG = LoggerFactory.getLogger(VirtualRecover3.class);
+    private static final Logger LOG = LoggerFactory.getLogger(VirtualRecover3.class);
 
     private static final String NAME_SEPARATOR = "_";
 
@@ -107,7 +105,8 @@ public class VirtualRecover3 implements DataRecover {
 
     }
 
-    public VirtualRecover3(CuratorClient client, BalanceTaskSummary balanceSummary, String taskNode, String dataDir, String storageName, ServerIDManager idManager, ServiceManager serviceManager) {
+    public VirtualRecover3(CuratorClient client, BalanceTaskSummary balanceSummary, String taskNode, String dataDir,
+                           String storageName, ServerIDManager idManager, ServiceManager serviceManager) {
         this.balanceSummary = balanceSummary;
         this.taskNode = taskNode;
         this.client = client;
@@ -171,7 +170,6 @@ public class VirtualRecover3 implements DataRecover {
             LOG.error("task back time count interrupt!!", e);
         }
 
-
         detail.setStatus(ExecutionStatus.RECOVER);
         LOG.info("update:" + selfNode + "-------------" + detail);
         updateDetail(selfNode, detail);
@@ -200,10 +198,12 @@ public class VirtualRecover3 implements DataRecover {
         String remoteFirstID = idManager.getOtherFirstID(remoteSecondId, balanceSummary.getStorageIndex());
         String virtualID = balanceSummary.getServerId();
         LOG.info("balance virtual serverId:" + virtualID);
-        QUIT: for (String replicasName : replicasNames) { // 处理的副本编号
+        QUIT:
+        for (String replicasName : replicasNames) { // 处理的副本编号
             String replicaPath = snDataDir + FileUtils.FILE_SEPARATOR + replicasName;
             List<String> timeFileNames = FileUtils.listFileNames(replicaPath);
-            for (String timeFileName : timeFileNames) {// 时间文件
+            for (String timeFileName : timeFileNames) {
+                // 时间文件
                 String timeFilePath = replicaPath + FileUtils.FILE_SEPARATOR + timeFileName;
                 // String recordPath = timeFilePath + FileUtils.FILE_SEPARATOR + "xxoo.rd";
                 try {
@@ -224,7 +224,9 @@ public class VirtualRecover3 implements DataRecover {
                         if (fileServerIds.contains(virtualID)) {
                             // 此处位置需要加1，副本数从1开始
                             replicaPot = fileServerIds.indexOf(virtualID) + 1;
-                            FileRecoverMeta fileMeta = new FileRecoverMeta(null, fileName, storageName, timeFileName, Integer.parseInt(replicasName), replicaPot, remoteFirstID);
+                            FileRecoverMeta fileMeta =
+                                new FileRecoverMeta(null, fileName, storageName, timeFileName, Integer.parseInt(replicasName),
+                                                    replicaPot, remoteFirstID);
                             try {
                                 fileRecoverQueue.put(fileMeta);
                             } catch (InterruptedException e) {
@@ -232,7 +234,9 @@ public class VirtualRecover3 implements DataRecover {
                             }
                         }
                     }
-                } finally {}
+                } finally {
+                    // ignore
+                }
             }
         }
 
@@ -281,13 +285,19 @@ public class VirtualRecover3 implements DataRecover {
                         }
                         fileRecover = fileRecoverQueue.poll(100, TimeUnit.MILLISECONDS);
                         if (fileRecover != null) {
-                            String logicPath = storageName + FileUtils.FILE_SEPARATOR + fileRecover.getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
-                            String remoteDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover.getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
-                            String localFilePath = dataDir + FileUtils.FILE_SEPARATOR + logicPath + FileUtils.FILE_SEPARATOR + fileRecover.getFileName();
+                            String logicPath =
+                                storageName + FileUtils.FILE_SEPARATOR + fileRecover.getReplica() + FileUtils.FILE_SEPARATOR
+                                    + fileRecover.getTime();
+                            String remoteDir =
+                                storageName + FileUtils.FILE_SEPARATOR + fileRecover.getPot() + FileUtils.FILE_SEPARATOR
+                                    + fileRecover.getTime();
+                            String localFilePath = dataDir + FileUtils.FILE_SEPARATOR + logicPath + FileUtils.FILE_SEPARATOR
+                                + fileRecover.getFileName();
                             boolean success = false;
                             LOG.info("transfer :" + fileRecover);
                             String firstID = fileRecover.getFirstServerID();
-                            Service service = serviceManager.getServiceById(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
+                            Service service = serviceManager.getServiceById(
+                                Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
                             while (true) {
 
                                 // if (!diskClient.isExistFile(service.getHost(), service.getPort(), logicPath)) {
@@ -302,10 +312,6 @@ public class VirtualRecover3 implements DataRecover {
                             detail.setCurentCount(currentCount);
                             detail.setProcess(detail.getCurentCount() / (double) detail.getTotalDirectories());
                             updateDetail(selfNode, detail);
-                            if (success) {
-                                // BalanceRecord record = new BalanceRecord(fileRecover.getFileName(), idManager.getSecondServerID(balanceSummary.getStorageIndex()), fileRecover.getFirstServerID());
-                                // fileRecover.getSimpleWriter().writeRecord(record.toString());
-                            }
                             LOG.info("update:" + selfNode + "-------------" + detail);
                         }
                     }
@@ -329,9 +335,12 @@ public class VirtualRecover3 implements DataRecover {
         return success;
     }
 
-    /** 概述：更新任务信息
+    /**
+     * 概述：更新任务信息
+     *
      * @param node
      * @param status
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void updateDetail(String node, TaskDetail detail) {
@@ -344,24 +353,27 @@ public class VirtualRecover3 implements DataRecover {
         }
     }
 
-    /** 概述：注册节点
+    /**
+     * 概述：注册节点
+     *
      * @param node
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public TaskDetail registerNodeDetail(String node) {
         TaskDetail detail = null;
         try {
-        	if (!client.checkExists(node)) {
+            if (!client.checkExists(node)) {
                 detail = new TaskDetail(idManager.getFirstServerID(), ExecutionStatus.INIT, 0, 0, 0);
                 client.createPersistent(node, false, JsonUtils.toJsonBytes(detail));
             } else {
                 byte[] data = client.getData(node);
                 detail = JsonUtils.toObject(data, TaskDetail.class);
             }
-        } catch(Exception e) {
-        	e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        
+
         return detail;
 
     }

@@ -11,9 +11,12 @@ package com.bonree.brfs.rebalance.route;
 public interface BlockAnalyzer {
     /**
      * 根据文件块解析可用的服务
+     *
      * @param fileName
+     *
      * @return
      */
     String[] searchVaildIds(String fileName);
+
     void update();
 }

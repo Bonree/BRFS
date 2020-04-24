@@ -1,11 +1,10 @@
-package com.bonree.brfs.rebalanceV2.task;
+package com.bonree.brfs.rebalancev2.task;
 
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.rebalanceV2.BalanceTaskGeneratorV2;
-import org.apache.curator.shaded.com.google.common.collect.Lists;
-
+import com.bonree.brfs.rebalancev2.BalanceTaskGeneratorV2;
 import java.util.List;
+import org.apache.curator.shaded.com.google.common.collect.Lists;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -18,7 +17,8 @@ import java.util.List;
 public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
 
     @Override
-    public BalanceTaskSummaryV2 genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId, String selectID, String participator, long delayTime) {
+    public BalanceTaskSummaryV2 genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId,
+                                               String selectID, String participator, long delayTime) {
 
         BalanceTaskSummaryV2 taskSummary = new BalanceTaskSummaryV2();
         // changeID
@@ -45,7 +45,8 @@ public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
     }
 
     @Override
-    public BalanceTaskSummaryV2 genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID, List<String> selectIDs, List<String> participators, long delayTime) {
+    public BalanceTaskSummaryV2 genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID,
+                                               List<String> selectIDs, List<String> participators, long delayTime) {
         BalanceTaskSummaryV2 taskSummary = new BalanceTaskSummaryV2();
 
         taskSummary.setChangeID(changeID);

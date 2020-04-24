@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -21,11 +22,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class NetWorkInterfaceInfo {
     private final String name;
     private final String ip;
-    
+
     @JsonCreator
     public NetWorkInterfaceInfo(
-            @JsonProperty("name") String name,
-            @JsonProperty("ip") String ip) {
+        @JsonProperty("name") String name,
+        @JsonProperty("ip") String ip) {
         this.name = name;
         this.ip = ip;
     }
@@ -37,12 +38,12 @@ public class NetWorkInterfaceInfo {
     public String getIp() {
         return ip;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("name", name)
-                .add("ip", ip)
-                .toString();
+            .add("name", name)
+            .add("ip", ip)
+            .toString();
     }
 }

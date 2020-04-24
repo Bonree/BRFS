@@ -11,9 +11,11 @@ package com.bonree.brfs.identification;
 public interface PartitionInterface {
     /**
      * 根据二级serverid与storageRegionid 获取存储的目录
+     *
      * @param secondId
      * @param storageRegionId
+     *
      * @return
      */
-    String getDataDir(String secondId,int storageRegionId);
+    String getDataDir(String secondId, int storageRegionId);
 }

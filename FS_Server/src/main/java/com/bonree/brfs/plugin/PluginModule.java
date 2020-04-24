@@ -11,11 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.plugin;
-
-import java.util.Set;
-
-import javax.inject.Singleton;
 
 import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.plugin.BrfsModule;
@@ -23,6 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import java.util.Set;
+import javax.inject.Singleton;
 
 public class PluginModule implements Module {
 
@@ -35,10 +34,10 @@ public class PluginModule implements Module {
     @Singleton
     public Set<BrfsModule> getPlugins(PluginConfig config) {
         ImmutableSet.Builder<BrfsModule> pluginModules = ImmutableSet.builder();
-        for(BrfsModule pluginModule : PluginInitializer.loadPlugins(BrfsModule.class, config)){
+        for (BrfsModule pluginModule : PluginInitializer.loadPlugins(BrfsModule.class, config)) {
             pluginModules.add(pluginModule);
         }
-        
+
         return pluginModules.build();
     }
 }

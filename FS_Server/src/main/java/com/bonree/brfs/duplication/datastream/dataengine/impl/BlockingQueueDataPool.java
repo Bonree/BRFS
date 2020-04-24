@@ -3,44 +3,44 @@ package com.bonree.brfs.duplication.datastream.dataengine.impl;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class BlockingQueueDataPool implements DataPool {
-	private LinkedBlockingQueue<DataObject> datas;
-	
-	public BlockingQueueDataPool(int capacity) {
-		this.datas = new LinkedBlockingQueue<DataObject>(capacity);
-	}
+    private LinkedBlockingQueue<DataObject> datas;
 
-	@Override
-	public int size() {
-		return datas.size();
-	}
+    public BlockingQueueDataPool(int capacity) {
+        this.datas = new LinkedBlockingQueue<DataObject>(capacity);
+    }
 
-	@Override
-	public boolean isEmpty() {
-		return datas.isEmpty();
-	}
+    @Override
+    public int size() {
+        return datas.size();
+    }
 
-	@Override
-	public void put(DataObject data) throws InterruptedException {
-		datas.put(data);
-	}
+    @Override
+    public boolean isEmpty() {
+        return datas.isEmpty();
+    }
 
-	@Override
-	public DataObject take() throws InterruptedException {
-		return datas.take();
-	}
+    @Override
+    public void put(DataObject data) throws InterruptedException {
+        datas.put(data);
+    }
 
-	@Override
-	public DataObject peek() {
-		return datas.peek();
-	}
+    @Override
+    public DataObject take() throws InterruptedException {
+        return datas.take();
+    }
 
-	@Override
-	public void remove() {
-		datas.remove();
-	}
+    @Override
+    public DataObject peek() {
+        return datas.peek();
+    }
 
-	@Override
-	public void clear() {
-		datas.clear();
-	}
+    @Override
+    public void remove() {
+        datas.remove();
+    }
+
+    @Override
+    public void clear() {
+        datas.clear();
+    }
 }

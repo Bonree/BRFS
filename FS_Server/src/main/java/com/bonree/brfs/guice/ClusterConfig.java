@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.guice;
 
 import com.bonree.brfs.configuration.Configs;
@@ -20,14 +21,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ClusterConfig {
     @JsonProperty("name")
     private String name = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_CLUSTER_NAME);
-    
+
     @JsonProperty("datanode.group")
     private String dataNodeGroup = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
-    
+
     @JsonProperty("regionnode.group")
     private String regionNodeGroup = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
-
-
 
     public String getName() {
         return name;

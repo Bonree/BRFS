@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.plugin;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -19,6 +20,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.walkFileTree;
 
+import com.bonree.brfs.common.plugin.BrfsModule;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,13 +36,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Set;
-
 import org.objectweb.asm.ClassReader;
 import org.sonatype.aether.artifact.Artifact;
-
-import com.bonree.brfs.common.plugin.BrfsModule;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 // This is a hack for development and does not support nested classes.
 final class PluginDiscovery {
@@ -63,8 +62,8 @@ final class PluginDiscovery {
         }
 
         return listClasses(file.toPath()).stream()
-                .filter(name -> classInterfaces(name, classLoader).contains(BrfsModule.class.getName()))
-                .collect(toImmutableSet());
+            .filter(name -> classInterfaces(name, classLoader).contains(BrfsModule.class.getName()))
+            .collect(toImmutableSet());
     }
 
     public static void writePluginServices(Iterable<String> plugins, File root) throws IOException {

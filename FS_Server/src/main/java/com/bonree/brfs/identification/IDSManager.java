@@ -4,7 +4,6 @@ import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.google.inject.Inject;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -22,16 +21,19 @@ public class IDSManager implements LifeCycle {
     private SecondMaintainerInterface secondMaintainer;
     private VirtualServerID virtualServerID;
     private DiskDaemon diskDaemon;
+
     @Inject
-    public IDSManager(String firstSever, SecondMaintainerInterface secondMaintainer, VirtualServerID virtualServerID,DiskDaemon diskDaemon) {
+    public IDSManager(String firstSever, SecondMaintainerInterface secondMaintainer, VirtualServerID virtualServerID,
+                      DiskDaemon diskDaemon) {
         this.firstSever = firstSever;
         this.secondMaintainer = secondMaintainer;
         this.virtualServerID = virtualServerID;
         this.diskDaemon = diskDaemon;
     }
-    private Collection<String> convertToId(Collection<LocalPartitionInfo> partitions){
+
+    private Collection<String> convertToId(Collection<LocalPartitionInfo> partitions) {
         List<String> parts = new ArrayList<>();
-        for(LocalPartitionInfo part : partitions){
+        for (LocalPartitionInfo part : partitions) {
             parts.add(part.getPartitionId());
         }
         return parts;
@@ -39,43 +41,47 @@ public class IDSManager implements LifeCycle {
 
     /**
      * 注册二级serverid
+     *
      * @param firstServer
      * @param partitionId
      * @param storageId
+     *
      * @return
      */
     public String registerSecondId(String firstServer, String partitionId, int storageId) {
-        return this.secondMaintainer.registerSecondId(firstServer,partitionId,storageId);
+        return this.secondMaintainer.registerSecondId(firstServer, partitionId, storageId);
     }
 
     /**
      * 注册二级serverid
+     *
      * @param firstServer
      * @param storageId
+     *
      * @return
      */
     public Collection<String> registerSecondIds(String firstServer, int storageId) {
-        return this.secondMaintainer.registerSecondIds(firstServer,storageId);
+        return this.secondMaintainer.registerSecondIds(firstServer, storageId);
     }
 
     public boolean unregisterSecondId(String partitionId, int storageId) {
-        return this.secondMaintainer.unregisterSecondId(partitionId,storageId);
+        return this.secondMaintainer.unregisterSecondId(partitionId, storageId);
     }
 
     public boolean unregisterSecondIds(String firstServer, int storageid) {
-        return this.secondMaintainer.unregisterSecondId(firstServer,storageid);
+        return this.secondMaintainer.unregisterSecondId(firstServer, storageid);
     }
 
     public boolean isValidSecondId(String secondId, int storageId) {
-        return this.secondMaintainer.isValidSecondId(secondId,storageId);
+        return this.secondMaintainer.isValidSecondId(secondId, storageId);
     }
 
     public void addPartitionRelation(String firstServer, String partitionId) {
-        this.secondMaintainer.addPartitionRelation(firstServer,partitionId);
+        this.secondMaintainer.addPartitionRelation(firstServer, partitionId);
     }
 
     public void addAllPartitionRelation(Collection<String> parititionId, String firstServer) {
-        this.secondMaintainer.addAllPartitionRelation(parititionId,firstServer);
+        this.secondMaintainer.addAllPartitionRelation(parititionId, firstServer);
     }
 
     public boolean removePartitionRelation(String partitionid) {
@@ -83,11 +89,11 @@ public class IDSManager implements LifeCycle {
     }
 
     public boolean removeAllPartitionRelation(Collection<String> partitionIds) {
-        return  this.secondMaintainer.removeAllPartitionRelation(partitionIds);
+        return this.secondMaintainer.removeAllPartitionRelation(partitionIds);
     }
 
     public List<String> getVirtualID(int storageIndex, int count, List<String> diskFirstIDs) {
-       return this.virtualServerID.getVirtualID(storageIndex,count,diskFirstIDs);
+        return this.virtualServerID.getVirtualID(storageIndex, count, diskFirstIDs);
     }
 
     public List<String> listValidVirtualIds(int storageIndex) {
@@ -99,15 +105,15 @@ public class IDSManager implements LifeCycle {
     }
 
     public boolean invalidVirtualId(int storageIndex, String id) {
-        return this.virtualServerID.invalidVirtualId(storageIndex,id);
+        return this.virtualServerID.invalidVirtualId(storageIndex, id);
     }
 
     public boolean validVirtualId(int storageIndex, String id) {
-        return this.virtualServerID.validVirtualId(storageIndex,id);
+        return this.virtualServerID.validVirtualId(storageIndex, id);
     }
 
     public boolean deleteVirtualId(int storageIndex, String id) {
-        return this.virtualServerID.deleteVirtualId(storageIndex,id);
+        return this.virtualServerID.deleteVirtualId(storageIndex, id);
     }
 
     public String getVirtualIdContainerPath() {
@@ -115,35 +121,38 @@ public class IDSManager implements LifeCycle {
     }
 
     public void addFirstId(int storageIndex, String virtualID, String firstId) {
-        this.virtualServerID.addFirstId(storageIndex,virtualID,firstId);
+        this.virtualServerID.addFirstId(storageIndex, virtualID, firstId);
     }
+
     public String getFirstSever() {
         return firstSever;
     }
+
     @Override
     public void start() throws Exception {
         Collection<LocalPartitionInfo> partitions = this.diskDaemon.getPartitions();
         Collection<String> parts = convertToId(partitions);
-        this.secondMaintainer.addAllPartitionRelation(parts,firstSever);
+        this.secondMaintainer.addAllPartitionRelation(parts, firstSever);
     }
+
     @Override
     public void stop() {
 
     }
 
     public Collection<String> getSecondIds(String serverId, int storageRegionId) {
-        return this.secondMaintainer.getSecondIds(serverId,storageRegionId);
+        return this.secondMaintainer.getSecondIds(serverId, storageRegionId);
     }
 
     public String getSecondId(String partitionId, int storageRegionId) {
-        return this.secondMaintainer.getSecondId(partitionId,storageRegionId);
+        return this.secondMaintainer.getSecondId(partitionId, storageRegionId);
     }
 
     public String getFirstId(String secondId, int storageRegionId) {
-        return this.secondMaintainer.getFirstId(secondId,storageRegionId);
+        return this.secondMaintainer.getFirstId(secondId, storageRegionId);
     }
 
     public String getPartitionId(String secondId, int storageRegionId) {
-        return this.secondMaintainer.getPartitionId(secondId,storageRegionId);
+        return this.secondMaintainer.getPartitionId(secondId, storageRegionId);
     }
 }

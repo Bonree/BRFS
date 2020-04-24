@@ -1,23 +1,23 @@
 package com.bonree.brfs.disknode.server.tcp.handler.data;
 
 public class WriteFileMessage {
-	private String filePath;
-	private WriteFileData[] datas;
-	
-	public String getFilePath() {
-		return filePath;
-	}
+    private String filePath;
+    private WriteFileData[] datas;
 
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
-	}
+    public String getFilePath() {
+        return filePath;
+    }
 
-	public WriteFileData[] getDatas() {
-		return datas;
-	}
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
 
-	public void setDatas(WriteFileData[] datas) {
-		this.datas = datas;
-	}
-	
+    public WriteFileData[] getDatas() {
+        return datas;
+    }
+
+    public void setDatas(WriteFileData[] datas) {
+        this.datas = datas;
+    }
+
 }

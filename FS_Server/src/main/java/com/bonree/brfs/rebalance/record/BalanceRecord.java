@@ -1,13 +1,12 @@
 package com.bonree.brfs.rebalance.record;
 
 import java.util.Date;
-
 import org.apache.commons.lang3.time.FastDateFormat;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年3月28日 上午10:41:26
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 平衡文件时，所做的记录

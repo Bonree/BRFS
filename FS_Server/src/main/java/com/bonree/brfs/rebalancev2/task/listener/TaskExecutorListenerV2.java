@@ -1,9 +1,9 @@
-package com.bonree.brfs.rebalanceV2.task.listener;
+package com.bonree.brfs.rebalancev2.task.listener;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.rebalanceV2.task.BalanceTaskSummaryV2;
-import com.bonree.brfs.rebalanceV2.task.TaskOperationV2;
+import com.bonree.brfs.rebalancev2.task.BalanceTaskSummaryV2;
+import com.bonree.brfs.rebalancev2.task.TaskOperationV2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 public class TaskExecutorListenerV2 implements TreeCacheListener {
 
-    private final static Logger LOG = LoggerFactory.getLogger(TaskExecutorListenerV2.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorListenerV2.class);
 
     private TaskOperationV2 opt;
 

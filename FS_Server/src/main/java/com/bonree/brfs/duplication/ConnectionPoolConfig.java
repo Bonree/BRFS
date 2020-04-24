@@ -11,10 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.duplication;
 
 public class ConnectionPoolConfig {
-    
+
     private int writeWorkerThreads;
 
     public int getWriteWorkerThreads() {
@@ -24,6 +25,5 @@ public class ConnectionPoolConfig {
     public void setWriteWorkerThreads(int writeWorkerThreads) {
         this.writeWorkerThreads = writeWorkerThreads;
     }
-    
-    
+
 }

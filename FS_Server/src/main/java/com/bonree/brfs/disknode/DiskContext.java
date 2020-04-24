@@ -3,15 +3,13 @@ package com.bonree.brfs.disknode;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Objects.requireNonNull;
 
-import java.io.File;
-import java.util.List;
-
-import javax.inject.Inject;
-
 import com.bonree.brfs.duplication.filenode.FilePathBuilder;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.PartitionInterface;
+import java.io.File;
+import java.util.List;
+import javax.inject.Inject;
 
 public class DiskContext {
     public static final String URI_PING_PONG_ROOT = "/ping";
@@ -29,28 +27,28 @@ public class DiskContext {
 
     @Inject
     public DiskContext(
-            StorageConfig config,
-            PartitionInterface partition,
-            StorageRegionManager storageRegionManager) {
+        StorageConfig config,
+        PartitionInterface partition,
+        StorageRegionManager storageRegionManager) {
         this(config.getStorageDirs(), partition, storageRegionManager);
     }
 
     public DiskContext(
-            List<String> storageDirs,
-            PartitionInterface partition,
-            StorageRegionManager storageRegionManager) {
+        List<String> storageDirs,
+        PartitionInterface partition,
+        StorageRegionManager storageRegionManager) {
         this.storageDirs = requireNonNull(storageDirs)
-                .stream()
-                .map(dir -> {
-                    File d = new File(dir);
-                    if (!d.exists()) {
-                        d.mkdirs();
-                    }
-                    
-                    return d;
-                })
-                .map(File::getAbsolutePath)
-                .collect(toImmutableList());
+            .stream()
+            .map(dir -> {
+                File d = new File(dir);
+                if (!d.exists()) {
+                    d.mkdirs();
+                }
+
+                return d;
+            })
+            .map(File::getAbsolutePath)
+            .collect(toImmutableList());
         this.partition = partition;
         this.storageRegionManager = storageRegionManager;
     }
@@ -58,21 +56,22 @@ public class DiskContext {
     public List<String> getStorageDirs() {
         return this.storageDirs;
     }
-    
+
     private String getStorageDir(String filePath) {
         String[] parts = FilePathBuilder.parsePath(filePath);
         StorageRegion sr = storageRegionManager.findStorageRegionByName(parts[0]);
-        if(sr == null) {
+        if (sr == null) {
             throw new IllegalStateException(String.format("no storage region[%s] is found.", parts[0]));
         }
-        
+
         return partition.getDataDir(parts[1], sr.getId());
     }
 
     /**
      * 从用户使用的逻辑路径转换为实际磁盘中的真实路径
-     * 
+     *
      * @param logicPath
+     *
      * @return
      */
     public String getConcreteFilePath(String logicPath) {
@@ -81,8 +80,9 @@ public class DiskContext {
 
     /**
      * 从磁盘上的真实路径转换为用户使用的逻辑路径
-     * 
+     *
      * @param path
+     *
      * @return
      */
     public String getLogicFilePath(String path) {

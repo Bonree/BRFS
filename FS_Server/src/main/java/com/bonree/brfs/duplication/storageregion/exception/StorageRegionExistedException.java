@@ -9,5 +9,5 @@ public class StorageRegionExistedException extends Exception {
     public StorageRegionExistedException(String srName) {
         super(Strings.format("storage region[%s] is already existed.", srName));
     }
-    
+
 }

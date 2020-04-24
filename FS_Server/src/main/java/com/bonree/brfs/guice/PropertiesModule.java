@@ -11,8 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.guice;
 
+import com.bonree.brfs.common.utils.StringUtils;
+import com.google.inject.Binder;
+import com.google.inject.Module;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,12 +27,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-import com.bonree.brfs.common.utils.StringUtils;
-import com.google.inject.Binder;
-import com.google.inject.Module;
-
 public class PropertiesModule implements Module {
-    
+
     private static final String SYS_PROPERTIES_FILE = "configuration.file";
 
     @Override
@@ -36,28 +36,28 @@ public class PropertiesModule implements Module {
         Properties fileProperties = new Properties();
         Properties totalProperties = new Properties(fileProperties);
         totalProperties.putAll(System.getProperties());
-        
+
         String configFilePath = System.getProperty(SYS_PROPERTIES_FILE);
-        if(configFilePath == null) {
+        if (configFilePath == null) {
             throw new RuntimeException(StringUtils.format(
-                    "No configuration file is specified by property[%s]",
-                    SYS_PROPERTIES_FILE));
+                "No configuration file is specified by property[%s]",
+                SYS_PROPERTIES_FILE));
         }
-        
+
         File configFile = new File(configFilePath);
         if (!configFile.exists()) {
             throw new RuntimeException(StringUtils.format(
-                    "config file[%s] is not existed",
-                    configFile));
+                "config file[%s] is not existed",
+                configFile));
         }
-        
-        if(!configFile.isFile()) {
+
+        if (!configFile.isFile()) {
             throw new RuntimeException(StringUtils.format(
-                    "config file[%s] is not a regular file",
-                    configFile));
+                "config file[%s] is not a regular file",
+                configFile));
         }
-        
-        try(InputStream stream = new BufferedInputStream(new FileInputStream(configFile))) {
+
+        try (InputStream stream = new BufferedInputStream(new FileInputStream(configFile))) {
             fileProperties.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
         } catch (FileNotFoundException e) {
             // It's impossible to come here!
@@ -65,7 +65,7 @@ public class PropertiesModule implements Module {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        
+
         binder.bind(Properties.class).toInstance(totalProperties);
     }
 

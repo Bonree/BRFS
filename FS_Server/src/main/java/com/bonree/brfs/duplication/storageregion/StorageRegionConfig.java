@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.duplication.storageregion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,13 +19,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class StorageRegionConfig {
     @JsonProperty("data.ttl")
     private String ttl = "P30D";
-    
+
     @JsonProperty("replicate.count")
     private int replicateNum = 2;
-    
+
     @JsonProperty("data.file.capacity")
     private long fileCapacity = 64 * 1024 * 1024;
-    
+
     @JsonProperty("data.file.patition.duration")
     private String partitionDuration = "PT1H";
 

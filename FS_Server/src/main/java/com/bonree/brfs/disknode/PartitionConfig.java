@@ -24,9 +24,11 @@ public class PartitionConfig {
     private int intervalTime = Configs.getConfiguration().getConfig(PartitionIdsConfigs.CONFIG_CHECK_INTERVAL_SECOND_TIME);
 
     private String libPath = System.getProperty(SystemProperties.PROP_RESOURCE_LIB_PATH);
-    public PartitionConfig() throws Exception{
+
+    public PartitionConfig() throws Exception {
         LibUtils.loadLibraryPath(libPath);
     }
+
     public String getPartitionGroupName() {
         return partitionGroupName;
     }

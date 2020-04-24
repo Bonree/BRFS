@@ -2,7 +2,6 @@ package com.bonree.brfs.rebalance.task;
 
 import java.util.Iterator;
 import java.util.List;
-
 import org.apache.curator.shaded.com.google.common.collect.Lists;
 
 public class IteratorTest {

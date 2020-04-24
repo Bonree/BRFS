@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalanceV2.recover;
+package com.bonree.brfs.rebalancev2.recover;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
@@ -19,11 +19,8 @@ import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.rebalanceV2.task.BalanceTaskSummaryV2;
-import com.bonree.brfs.rebalanceV2.transfer.SimpleFileClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.bonree.brfs.rebalancev2.task.BalanceTaskSummaryV2;
+import com.bonree.brfs.rebalancev2.transfer.SimpleFileClient;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +29,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -43,7 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
  ******************************************************************************/
 public class VirtualRecoverV2 implements DataRecover {
 
-    private final static Logger LOG = LoggerFactory.getLogger(VirtualRecoverV2.class);
+    private static final Logger LOG = LoggerFactory.getLogger(VirtualRecoverV2.class);
 
     private static final String NAME_SEPARATOR = "_";
 
@@ -67,7 +66,9 @@ public class VirtualRecoverV2 implements DataRecover {
 
     private final BlockingQueue<FileRecoverMetaV2> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
-    public VirtualRecoverV2(CuratorClient client, BalanceTaskSummaryV2 balanceSummary, String taskNode, String storageName, IDSManager idManager, ServiceManager serviceManager, LocalPartitionInterface localPartitionInterface) {
+    public VirtualRecoverV2(CuratorClient client, BalanceTaskSummaryV2 balanceSummary, String taskNode, String storageName,
+                            IDSManager idManager, ServiceManager serviceManager,
+                            LocalPartitionInterface localPartitionInterface) {
         this.balanceSummary = balanceSummary;
         this.taskNode = taskNode;
         this.client = client;
@@ -203,8 +204,8 @@ public class VirtualRecoverV2 implements DataRecover {
                 String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
                 if (!perFile.endsWith(".rd")) {
                     String timeFileName = brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
-                            .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
-                            .getHourMinSecond();
+                        .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
+                        .getHourMinSecond();
                     String fileName = brfsPath.getFileName();
                     int replicaPot = 0;
                     String[] metaArr = fileName.split(NAME_SEPARATOR);
@@ -216,7 +217,7 @@ public class VirtualRecoverV2 implements DataRecover {
                         // 此处位置需要加1，副本数从1开始
                         replicaPot = fileServerIds.indexOf(virtualID) + 1;
                         FileRecoverMetaV2 fileMeta = new FileRecoverMetaV2(perFile, fileName, storageName, timeFileName, Integer
-                                .parseInt(brfsPath.getIndex()), replicaPot, remoteFirstID, partitionPath);
+                            .parseInt(brfsPath.getIndex()), replicaPot, remoteFirstID, partitionPath);
                         try {
                             fileRecoverQueue.put(fileMeta);
                         } catch (InterruptedException e) {
@@ -273,25 +274,30 @@ public class VirtualRecoverV2 implements DataRecover {
                         fileRecover = fileRecoverQueue.poll(100, TimeUnit.MILLISECONDS);
                         if (fileRecover != null) {
                             String logicPath = storageName + FileUtils.FILE_SEPARATOR + fileRecover
-                                    .getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
+                                .getReplica() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
                             String remoteDir = storageName + FileUtils.FILE_SEPARATOR + fileRecover
-                                    .getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
-                            String localFilePath = fileRecover.getPartitionPath() + FileUtils.FILE_SEPARATOR + logicPath + FileUtils.FILE_SEPARATOR + fileRecover
-                                    .getFileName();
+                                .getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
+                            String localFilePath =
+                                fileRecover.getPartitionPath() + FileUtils.FILE_SEPARATOR + logicPath + FileUtils.FILE_SEPARATOR
+                                    + fileRecover.getFileName();
                             boolean success;
                             LOG.info("transfer: {}", fileRecover);
                             String firstID = fileRecover.getFirstServerID();
 
                             while (true) {
-                                Service service = serviceManager.getServiceById(Configs.getConfiguration()
-                                        .getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstID);
+                                Service service = serviceManager.getServiceById(
+                                    Configs.getConfiguration()
+                                        .getConfig(
+                                            CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
+                                    firstID);
                                 if (service == null) {
                                     LOG.warn("first id is {}, maybe down!", firstID);
                                     Thread.sleep(1000);
                                     continue;
                                 }
 
-                                String partitionIdRecoverFileName = balanceSummary.getPartitionId() + ":" + fileRecover.getFileName();
+                                String partitionIdRecoverFileName =
+                                    balanceSummary.getPartitionId() + ":" + fileRecover.getFileName();
                                 success = secureCopyTo(service, localFilePath, remoteDir, partitionIdRecoverFileName);
                                 if (success) {
                                     break;
@@ -330,6 +336,7 @@ public class VirtualRecoverV2 implements DataRecover {
      * 概述：更新任务信息
      *
      * @param node
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void updateDetail(String node, TaskDetail detail) {
@@ -346,6 +353,7 @@ public class VirtualRecoverV2 implements DataRecover {
      * 概述：注册节点
      *
      * @param node
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public TaskDetail registerNodeDetail(String node) {

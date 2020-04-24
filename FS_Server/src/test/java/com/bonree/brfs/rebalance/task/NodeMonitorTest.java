@@ -2,17 +2,10 @@ package com.bonree.brfs.rebalance.task;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.UUID;
-
-import com.bonree.brfs.common.utils.FileUtils;
-import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
-import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
-import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 
 public class NodeMonitorTest {
 
@@ -51,12 +44,14 @@ public class NodeMonitorTest {
                 try {
                     bw.close();
                 } catch (IOException e) {
+                    // ignore
                 }
             }
             if (writer != null) {
                 try {
                     writer.close();
                 } catch (IOException e) {
+                    // ignore
                 }
             }
         }

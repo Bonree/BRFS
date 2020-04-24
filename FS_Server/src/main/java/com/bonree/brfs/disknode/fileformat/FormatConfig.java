@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.disknode.fileformat;
 
 import com.bonree.brfs.configuration.Configs;
@@ -27,5 +28,5 @@ public class FormatConfig {
     public void setCapacity(long capacity) {
         this.capacity = capacity;
     }
-    
+
 }

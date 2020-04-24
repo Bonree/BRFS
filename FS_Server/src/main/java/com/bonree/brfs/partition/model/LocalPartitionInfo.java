@@ -77,13 +77,13 @@ public class LocalPartitionInfo {
 
     @Override
     public String toString() {
-        return "LocalPartitionInfo{" +
-                "partitionGroup='" + partitionGroup + '\'' +
-                ", partitionId='" + partitionId + '\'' +
-                ", devName='" + devName + '\'' +
-                ", mountPoint='" + mountPoint + '\'' +
-                ", dataDir='" + dataDir + '\'' +
-                ", totalSize=" + totalSize +
-                '}';
+        return "LocalPartitionInfo{"
+            + "partitionGroup='" + partitionGroup + '\''
+            + ", partitionId='" + partitionId + '\''
+            + ", devName='" + devName + '\''
+            + ", mountPoint='" + mountPoint + '\''
+            + ", dataDir='" + dataDir + '\''
+            + ", totalSize=" + totalSize
+            + '}';
     }
 }

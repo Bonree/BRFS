@@ -7,16 +7,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TaskDetail {
     @JsonProperty("selfServerId")
     private String selfServerId;
-    
+
     @JsonProperty("status")
     private DataRecover.ExecutionStatus status;
-    
+
     @JsonProperty("totalDirectories")
     private int totalDirectories;
-    
+
     @JsonProperty("curentCount")
     private int curentCount;
-    
+
     @JsonProperty("process")
     private double process;
 
@@ -74,9 +74,8 @@ public class TaskDetail {
 
     @Override
     public String toString() {
-        return "TaskDetail [selfServerId=" + selfServerId + ", status=" + status + ", totalDirectories=" + totalDirectories + ", curentCount=" + curentCount + ", process=" + process + "]";
+        return "TaskDetail [selfServerId=" + selfServerId + ", status=" + status + ", totalDirectories=" + totalDirectories
+            + ", curentCount=" + curentCount + ", process=" + process + "]";
     }
-    
-    
 
 }

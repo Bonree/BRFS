@@ -14,7 +14,6 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.apache.curator.framework.CuratorFramework;
 
-
 /**
  * 版权信息: 北京博睿宏远数据科技股份有限公司
  * Copyright: Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
@@ -28,13 +27,13 @@ public class TaskModule implements Module {
     public void configure(Binder binder) {
         binder.bind(RebalanceTaskMonitor.class).to(CycleRebalanceTaskMonitor.class).in(ManageLifecycle.class);
         binder.bind(FileBlockMaintainer.class).in(ManageLifecycle.class);
-        LifecycleModule.register(binder,RebalanceTaskMonitor.class);
-        LifecycleModule.register(binder,FileBlockMaintainer.class);
+        LifecycleModule.register(binder, RebalanceTaskMonitor.class);
+        LifecycleModule.register(binder, FileBlockMaintainer.class);
     }
 
     @Provides
     @Singleton
-    public RouteLoader getRouteLoader(CuratorFramework client, ZookeeperPaths zookeeperPaths){
-        return new SimpleRouteZKLoader(client,zookeeperPaths.getBaseRoutePath());
+    public RouteLoader getRouteLoader(CuratorFramework client, ZookeeperPaths zookeeperPaths) {
+        return new SimpleRouteZKLoader(client, zookeeperPaths.getBaseRoutePath());
     }
 }

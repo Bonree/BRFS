@@ -12,10 +12,16 @@ import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
 import com.bonree.mail.worker.MailWorker;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 /**
  * 服务写数据服务选择策略 按磁盘剩余量选择服务，选择服务只会选择不同ip的，可能出现选出的节点数与需求的长度不一致
@@ -34,7 +40,8 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     private FileNodeStorer storer;
     private long fileSize = 0;
 
-    public MachineResourceWriterSelector(DiskNodeConnectionPool connectionPool, FileNodeStorer storer, LimitServerResource limit) {
+    public MachineResourceWriterSelector(DiskNodeConnectionPool connectionPool, FileNodeStorer storer,
+                                         LimitServerResource limit) {
         this.connectionPool = connectionPool;
         this.storer = storer;
         this.groupName = limit.getDiskGroup();
@@ -44,7 +51,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     }
 
     @Override
-    public Collection<ResourceModel> filterService(Collection<ResourceModel> resourceModels,String sn) {
+    public Collection<ResourceModel> filterService(Collection<ResourceModel> resourceModels, String sn) {
         // 无资源
         if (resourceModels == null || resourceModels.isEmpty()) {
             LOG.warn("no resource to selector");
@@ -60,7 +67,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
             diskRemainSize = (long) (wash.getDiskSize() * wash.getDiskRemainRate());
             if (diskRemainSize < this.limit.getRemainForceSize()) {
                 LOG.warn("First: {}({}), remainsize: {}, force:{} !! will refused",
-                        wash.getServerId(), wash.getHost(), diskRemainSize, this.limit.getRemainForceSize());
+                         wash.getServerId(), wash.getHost(), diskRemainSize, this.limit.getRemainForceSize());
                 continue;
             }
             washroom.add(wash);
@@ -72,13 +79,15 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         // 预测值，假设现在所有正在写的文件大小为0，并且每个磁盘节点都写入。通过现有写入的文件的数×配置的文件大小即可得单个数据节点写入数据的大小
         long writeSize = numSize * fileSize / size;
         for (ResourceModel resourceModel : washroom) {
-            diskRemainSize = (long)(resourceModel.getDiskSize()*resourceModel.getDiskRemainRate())- writeSize;
+            diskRemainSize = (long) (resourceModel.getDiskSize() * resourceModel.getDiskRemainRate()) - writeSize;
             if (diskRemainSize < this.limit.getRemainForceSize()) {
-                LOG.warn("Second : {}({}),  remainsize: {}, force:{} !! will refused",  resourceModel.getServerId(), resourceModel.getHost(),  diskRemainSize, this.limit.getRemainForceSize());
+                LOG.warn("Second : {}({}),  remainsize: {}, force:{} !! will refused", resourceModel.getServerId(),
+                         resourceModel.getHost(), diskRemainSize, this.limit.getRemainForceSize());
                 continue;
             }
             if (diskRemainSize < this.limit.getRemainWarnSize()) {
-                LOG.warn("sn: {}({}), remainsize: {}, force:{} !! will full",  resourceModel.getServerId(), resourceModel.getHost(),  diskRemainSize, this.limit.getRemainForceSize());
+                LOG.warn("sn: {}({}), remainsize: {}, force:{} !! will full", resourceModel.getServerId(),
+                         resourceModel.getHost(), diskRemainSize, this.limit.getRemainForceSize());
             }
             wins.add(resourceModel);
         }
@@ -86,7 +95,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     }
 
     @Override
-    public Collection<ResourceModel> selector(Collection<ResourceModel> resources,String sn,  int num) {
+    public Collection<ResourceModel> selector(Collection<ResourceModel> resources, String sn, int num) {
         if (resources == null || resources.isEmpty()) {
             return null;
         }
@@ -114,11 +123,11 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         LOG.warn("will select service in same ip !!!");
         Set<String> sids = selectWins(wins);
         // 二次选择服务
-        int sSize = resourceSize > num ? num - winSize : resourceSize - winSize;
-        Collection<ResourceModel> sWins = selectRandom(this.connectionPool, map, sids, intValues, groupName, sSize);
-        wins.addAll(sWins);
+        int ssize = resourceSize > num ? num - winSize : resourceSize - winSize;
+        Collection<ResourceModel> resourceModels = selectRandom(this.connectionPool, map, sids, intValues, groupName, ssize);
+        wins.addAll(resourceModels);
         // 若依旧不满足则发送邮件
-        sendSelectEmail(wins,  num);
+        sendSelectEmail(wins, num);
         return wins;
 
     }
@@ -133,14 +142,14 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     public void sendSelectEmail(Collection<ResourceModel> resourceModels, int num) {
         StringBuilder messageBuilder = new StringBuilder();
         messageBuilder.append(" 写入可供选择的服务少于需要的!! 可用服务 ")
-                .append(resourceModels.size()).append(", 需要 ")
-                .append(num).append("(文件分布见上下文表格)");
+            .append(resourceModels.size()).append(", 需要 ")
+            .append(num).append("(文件分布见上下文表格)");
         Map<String, String> map = new HashMap<>();
         String part;
         String key;
         for (ResourceModel resource : resourceModels) {
             key = resource.getServerId() + "(" + resource.getHost() + ")";
-            part = resource.getDiskSize()*resource.getDiskRemainRate()+"B";
+            part = resource.getDiskSize() * resource.getDiskRemainRate() + "B";
             map.put(key, part);
         }
         EmailPool emailPool = EmailPool.getInstance();
@@ -163,21 +172,23 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      * @param groupName
      * @param sn
      * @param num
+     *
      * @return
      */
-    public Collection<ResourceModel> selectRandom(DiskNodeConnectionPool pool, Map<String, ResourceModel> map, Set<String> sids, List<Pair<String, Integer>> intValues, String groupName, int num) {
+    public Collection<ResourceModel> selectRandom(DiskNodeConnectionPool pool, Map<String, ResourceModel> map, Set<String> sids,
+                                                  List<Pair<String, Integer>> intValues, String groupName, int num) {
         List<ResourceModel> resourceModels = new ArrayList<>();
         String key;
         String ip;
         ResourceModel tmp;
         DiskNodeConnection conn;
         //ip选中优先选择
-        int tSize = map.size();
+        int size = map.size();
         // 按资源选择
         Random random = new Random();
         boolean sendFlag = System.currentTimeMillis() - repeatTime > INVERTTIME;
         repeatTime = sendFlag ? System.currentTimeMillis() : repeatTime;
-        while (resourceModels.size() != num && resourceModels.size() != tSize && sids.size() != tSize) {
+        while (resourceModels.size() != num && resourceModels.size() != size && sids.size() != size) {
             key = WeightRandomPattern.getWeightRandom(intValues, random, sids);
             tmp = map.get(key);
             ip = tmp.getHost();
@@ -193,8 +204,8 @@ public class MachineResourceWriterSelector implements ServiceSelector {
             if (sendFlag) {
                 EmailPool emailPool = EmailPool.getInstance();
                 MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo())
-                        .setModel(this.getClass().getSimpleName() + "服务选择")
-                        .setMessage("即将 在 " + key + "(" + ip + ") 服务 写入重复数据");
+                    .setModel(this.getClass().getSimpleName() + "服务选择")
+                    .setMessage("即将 在 " + key + "(" + ip + ") 服务 写入重复数据");
                 emailPool.sendEmail(builder);
             }
             resourceModels.add(tmp);
@@ -207,6 +218,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      * 获取已选择服务的services
      *
      * @param wins
+     *
      * @return
      */
     public Set<String> selectWins(List<ResourceModel> wins) {
@@ -232,18 +244,18 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         return converDoublesToIntegers(values, centSize);
     }
 
-    private double getWriteValue(ResourceModel resource){
+    private double getWriteValue(ResourceModel resource) {
         double remainValue = 0.0;
-        for(Double num : resource.getDiskRemainValue().values()){
-            remainValue +=num;
+        for (Double num : resource.getDiskRemainValue().values()) {
+            remainValue += num;
         }
         double maxWriteValue = 0.0;
-        for(double max : resource.getDiskWriteValue().values()){
-            if(maxWriteValue <max){
+        for (double max : resource.getDiskWriteValue().values()) {
+            if (maxWriteValue < max) {
                 maxWriteValue = max;
             }
         }
-        return remainValue +1-maxWriteValue;
+        return remainValue + 1 - maxWriteValue;
     }
 
     /**
@@ -251,9 +263,11 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      *
      * @param intValues
      * @param num
+     *
      * @return
      */
-    public List<ResourceModel> selectNode(DiskNodeConnectionPool pool, Map<String, ResourceModel> map, List<Pair<String, Integer>> intValues, String groupName, int num) {
+    public List<ResourceModel> selectNode(DiskNodeConnectionPool pool, Map<String, ResourceModel> map,
+                                          List<Pair<String, Integer>> intValues, String groupName, int num) {
 
         List<ResourceModel> resourceModels = new ArrayList<>();
         String key;
@@ -263,9 +277,9 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         //ip选中优先选择
         Set<String> ips = new HashSet<>();
         List<String> uneedServices = new ArrayList<>();
-        int tSize = map.size();
+        int size = map.size();
         // 按资源选择
-        while (resourceModels.size() != num && resourceModels.size() != tSize && uneedServices.size() != tSize) {
+        while (resourceModels.size() != num && resourceModels.size() != size && uneedServices.size() != size) {
             key = WeightRandomPattern.getWeightRandom(intValues, new Random(), uneedServices);
             tmp = map.get(key);
             ip = tmp.getHost();
@@ -292,6 +306,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      * 转换为map
      *
      * @param resources
+     *
      * @return
      */
     public Map<String, ResourceModel> convertResourceMap(Collection<ResourceModel> resources) {
@@ -306,7 +321,9 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      * 概述：计算资源比值
      *
      * @param servers
+     *
      * @return
+     *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     private List<Pair<String, Integer>> converDoublesToIntegers(final List<Pair<String, Double>> servers, int preCentSize) {
@@ -332,12 +349,14 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     }
 
     @Override
-    public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList, int centSize) throws Exception {
+    public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,
+                                                              int centSize) throws Exception {
         return null;
     }
 
     @Override
-    public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList, int centSize) throws Exception {
+    public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList, int centSize)
+        throws Exception {
         return null;
     }
 

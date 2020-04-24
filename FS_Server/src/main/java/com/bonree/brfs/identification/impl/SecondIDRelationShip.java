@@ -4,6 +4,13 @@ import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.identification.SecondIdsInterface;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -11,15 +18,6 @@ import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -66,7 +64,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
 
     private SecondIDCacheListerner listerner;
 
-    public SecondIDRelationShip(CuratorFramework client, String secondIdBasPath)throws Exception {
+    public SecondIDRelationShip(CuratorFramework client, String secondIdBasPath) throws Exception {
         this.secondIdBasPath = secondIdBasPath;
         this.client = client;
         load();
@@ -140,7 +138,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
             try {
                 String partitionId = this.partitionIDSMap.get(key);
                 if (StringUtils.isNotEmpty(partitionId) && StringUtils.isNotBlank(partitionId)) {
-                  return partitionId;
+                    return partitionId;
                 }
                 Thread.sleep(50);
             } catch (InterruptedException e) {
@@ -161,18 +159,18 @@ public class SecondIDRelationShip implements SecondIdsInterface {
             return;
         }
         for (String partition : partitions) {
-            String pPath = this.secondIdBasPath + Constants.SEPARATOR + partition;
-            byte[] data = client.getData().forPath(pPath);
+            String ppath = this.secondIdBasPath + Constants.SEPARATOR + partition;
+            byte[] data = client.getData().forPath(ppath);
             if (data == null || data.length == 0) {
                 continue;
             }
             String firstServer = new String(data, StandardCharsets.UTF_8);
             packageFirstServer(firstServer, partition);
-            List<String> storageRegionIds = client.getChildren().forPath(pPath);
+            List<String> storageRegionIds = client.getChildren().forPath(ppath);
             if (storageRegionIds != null && !storageRegionIds.isEmpty()) {
                 for (String sr : storageRegionIds) {
-                    String sPath = pPath + Constants.SEPARATOR + sr;
-                    byte[] secondData = client.getData().forPath(sPath);
+                    String spath = ppath + Constants.SEPARATOR + sr;
+                    byte[] secondData = client.getData().forPath(spath);
                     if (secondData == null || secondData.length == 0) {
                         continue;
                     }
@@ -213,24 +211,22 @@ public class SecondIDRelationShip implements SecondIdsInterface {
     private void packageSecondServer(String storageRegionId, String partition, String second) {
         String key = storageRegionId + SEPARATOR + partition;
         secondIDsMap.put(key, second);
-        String sKey = storageRegionId + SEPARATOR + second;
-        partitionIDSMap.put(sKey, partition);
+        String skey = storageRegionId + SEPARATOR + second;
+        partitionIDSMap.put(skey, partition);
     }
 
     private void removeSecondServer(String storageRegionId, String partition, String second) {
         String key = storageRegionId + SEPARATOR + partition;
         secondIDsMap.remove(key);
-        String sKey = storageRegionId + SEPARATOR + second;
-        partitionIDSMap.remove(sKey);
+        String skey = storageRegionId + SEPARATOR + second;
+        partitionIDSMap.remove(skey);
     }
-
-
 
     /**
      * 二级serverid监听器 用于实时更新缓存
      */
     private class SecondIDCacheListerner implements TreeCacheListener {
-        private  final Logger LOG = LoggerFactory.getLogger(SecondIDCacheListerner.class);
+        private final Logger log = LoggerFactory.getLogger(SecondIDCacheListerner.class);
         /**
          * 二级serverid的根目录，用来区分磁盘信息以及
          */
@@ -246,14 +242,14 @@ public class SecondIDRelationShip implements SecondIdsInterface {
             TreeCacheEvent.Type type = event.getType();
             // 1.child数据为空则为无效事件，不进行监听
             if (childData == null) {
-                LOG.info("Event[{}] data is empty",type);
+                log.info("Event[{}] data is empty", type);
                 return;
             }
             String path = childData.getPath();
             String[] nodes = getNodeName(path);
             // 2.节点个数超过指定值，则认为无效变更，不予理会
             if (nodes == null || nodes.length == 0 || nodes.length > 2) {
-                LOG.info("Event: [{}] seoncBasepath:[{}], path:[{}] is not secondIds",type,secondIdBasPath,path);
+                log.info("Event: [{}] seoncBasepath:[{}], path:[{}] is not secondIds", type, secondIdBasPath, path);
                 return;
             }
             // 3.增加磁盘节点的处理
@@ -278,16 +274,16 @@ public class SecondIDRelationShip implements SecondIdsInterface {
             }
             String firstServer = new String(childData.getData(), StandardCharsets.UTF_8);
             if (StringUtils.isEmpty(firstServer) || StringUtils.isBlank(firstServer)) {
-                LOG.info("Invalid first server Event:[{}], partitionId:[{}]",type,partitionId);
+                log.info("Invalid first server Event:[{}], partitionId:[{}]", type, partitionId);
                 return;
             }
-            LOG.info(" Event:[{}], partitionId:[{}] firstServer [{}]",type,partitionId,firstServer);
+            log.info(" Event:[{}], partitionId:[{}] firstServer [{}]", type, partitionId, firstServer);
             if (TreeCacheEvent.Type.NODE_ADDED.equals(type)) {
                 packageFirstServer(firstServer, partitionId);
             } else if (TreeCacheEvent.Type.NODE_REMOVED.equals(type)) {
                 removeFirstServer(firstServer, partitionId);
             } else {
-                LOG.info("Invalid Event [{}] partitionId:[{}]",type,partitionId);
+                log.info("Invalid Event [{}] partitionId:[{}]", type, partitionId);
             }
         }
 
@@ -320,7 +316,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
                     packageSecondServer(storageId, partitionId, secondId);
                 }
             } else {
-
+                // do nothing
             }
         }
 
@@ -328,6 +324,7 @@ public class SecondIDRelationShip implements SecondIdsInterface {
          * 获取变更的节点名称
          *
          * @param path
+         *
          * @return
          */
         private String[] getNodeName(String path) {

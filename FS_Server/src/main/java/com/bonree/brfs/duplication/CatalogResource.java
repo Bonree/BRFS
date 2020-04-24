@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.duplication;
 
 import com.bonree.brfs.duplication.catalog.BrfsCatalog;
@@ -31,35 +32,37 @@ import org.slf4j.LoggerFactory;
 public class CatalogResource {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogResource.class);
     private final BrfsCatalog catalog;
+
     @Inject
     public CatalogResource(BrfsCatalog catalog) {
         this.catalog = catalog;
     }
+
     @GET
     @Path("fid/{srName}")
-    public String getFid (
-            @PathParam("srName") String srName,
-            @QueryParam("absPath") String absPath) {
-        LOG.info("test for get fid,[{}],[{}]" ,srName,absPath);
-        LOG.info("get fid request srName[{}],absPath[{}]",srName,absPath);
+    public String getFid(
+        @PathParam("srName") String srName,
+        @QueryParam("absPath") String absPath) {
+        LOG.info("test for get fid,[{}],[{}]", srName, absPath);
+        LOG.info("get fid request srName[{}],absPath[{}]", srName, absPath);
         //todo 参数检查
-        if(!catalog.isUsable()){
+        if (!catalog.isUsable()) {
             LOG.error("get fid error caused by the catalog is not open");
             throw new ServiceUnavailableException("get fid error caused by the catalog is not open");
         }
-        if(!catalog.validPath(absPath)){
-            LOG.error("invalid file path [{}]",absPath);
-            throw new BadRequestException("invalid file path:"+absPath);
+        if (!catalog.validPath(absPath)) {
+            LOG.error("invalid file path [{}]", absPath);
+            throw new BadRequestException("invalid file path:" + absPath);
         }
         String fid = null;
         try {
             fid = catalog.getFid(srName, absPath);
-        }catch (Exception e){
+        } catch (Exception e) {
             LOG.error("error when get fid from rocksDb!");
             throw new ProcessingException("error when get fid from rocksDb");
         }
 
-        if(fid == null) {
+        if (fid == null) {
             LOG.error("get null from rocksDB");
             throw new ServiceUnavailableException("get null when get fid from catalog!");
         }
@@ -68,10 +71,10 @@ public class CatalogResource {
 
     @GET
     @Path("/isFile")
-    public boolean isFile (
+    public boolean isFile(
         @QueryParam("srName") String srName,
         @QueryParam("nodePath") String nodePath) {
-        return catalog.isFileNode(srName,nodePath);
+        return catalog.isFileNode(srName, nodePath);
     }
 
     @GET
@@ -80,7 +83,7 @@ public class CatalogResource {
         @QueryParam("srName") String srName,
         @QueryParam("nodePath") String nodePath,
         @QueryParam("pageNumber") int pageNumber,
-        @QueryParam("pageSize") int pageSize){
-        return catalog.list(srName,nodePath,pageNumber,pageSize);
+        @QueryParam("pageSize") int pageSize) {
+        return catalog.list(srName, nodePath, pageNumber, pageSize);
     }
 }

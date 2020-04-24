@@ -1,7 +1,6 @@
 package com.bonree.brfs.identification;
 
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
-
 import java.util.Collection;
 
 /*******************************************************************************
@@ -15,26 +14,32 @@ import java.util.Collection;
 public interface LocalPartitionInterface {
     /**
      * 根据磁盘id 获取磁盘分区的存储目录
+     *
      * @param partitionId
+     *
      * @return
      */
     String getDataPaths(String partitionId);
 
     /**
      * 根据文件的路径，获取磁盘id
+     *
      * @param dataPath
+     *
      * @return
      */
     String getPartitionId(String dataPath);
 
     /**
      * 列出本机所有的磁盘节点信息
+     *
      * @return
      */
     Collection<String> listPartitionId();
 
     /**
      * 获取本机存储目录信息
+     *
      * @return
      */
     Collection<LocalPartitionInfo> getPartitions();

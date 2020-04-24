@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
 public class HardWareInfo {
     private final int cpuCores;
@@ -27,15 +27,15 @@ public class HardWareInfo {
     private final String operatingSystemDesc;
     private final List<DiskPartition> diskPartitions;
     private final List<NetWorkInterfaceInfo> netInterfaces;
-    
+
     @JsonCreator
     public HardWareInfo(
-            @JsonProperty("cpuCores") int cpuCores,
-            @JsonProperty("cpuBrand") String cpuBrand,
-            @JsonProperty("memoryTotalBytes") long memoryTotalBytes,
-            @JsonProperty("osDesc") String operatingSystemDesc,
-            @JsonProperty("partitions") List<DiskPartition> diskPartitions,
-            @JsonProperty("ifaces") List<NetWorkInterfaceInfo> netInterfaces) {
+        @JsonProperty("cpuCores") int cpuCores,
+        @JsonProperty("cpuBrand") String cpuBrand,
+        @JsonProperty("memoryTotalBytes") long memoryTotalBytes,
+        @JsonProperty("osDesc") String operatingSystemDesc,
+        @JsonProperty("partitions") List<DiskPartition> diskPartitions,
+        @JsonProperty("ifaces") List<NetWorkInterfaceInfo> netInterfaces) {
         this.cpuCores = cpuCores;
         this.cpuBrand = cpuBrand;
         this.memoryTotalBytes = memoryTotalBytes;
@@ -63,26 +63,26 @@ public class HardWareInfo {
     public String getOperatingSystemDesc() {
         return operatingSystemDesc;
     }
-    
+
     @JsonProperty("partitions")
     public List<DiskPartition> getDiskPartitions() {
         return diskPartitions;
     }
-    
+
     @JsonProperty("ifaces")
     public List<NetWorkInterfaceInfo> getNetInterfaces() {
         return netInterfaces;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("cpuCores", cpuCores)
-                .add("cpuBrand", cpuBrand)
-                .add("memoryTotalBytes", memoryTotalBytes)
-                .add("operatingSystemDesc", operatingSystemDesc)
-                .add("diskPartitions", diskPartitions)
-                .add("netInterfaces", netInterfaces)
-                .toString();
+            .add("cpuCores", cpuCores)
+            .add("cpuBrand", cpuBrand)
+            .add("memoryTotalBytes", memoryTotalBytes)
+            .add("operatingSystemDesc", operatingSystemDesc)
+            .add("diskPartitions", diskPartitions)
+            .add("netInterfaces", netInterfaces)
+            .toString();
     }
 }

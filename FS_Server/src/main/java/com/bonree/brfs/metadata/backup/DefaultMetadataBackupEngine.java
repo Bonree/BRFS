@@ -1,14 +1,13 @@
 package com.bonree.brfs.metadata.backup;
 
 import com.bonree.brfs.metadata.ZNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -18,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description: 默认元数据备份引擎
  ******************************************************************************/
-public class DefaultMetadataBackupEngine implements MetadataBackupEngine{
+public class DefaultMetadataBackupEngine implements MetadataBackupEngine {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultMetadataBackupEngine.class);
 
@@ -50,7 +49,6 @@ public class DefaultMetadataBackupEngine implements MetadataBackupEngine{
         this.zkPath = zkPath;
         this.timeout = timeout;
     }
-
 
     /**
      * Read data from the source.

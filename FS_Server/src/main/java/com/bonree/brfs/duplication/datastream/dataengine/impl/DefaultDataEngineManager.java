@@ -1,16 +1,5 @@
 package com.bonree.brfs.duplication.datastream.dataengine.impl;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.time.Duration;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.configuration.Configs;
@@ -27,6 +16,14 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+import java.io.Closeable;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ManageLifecycle
 public class DefaultDataEngineManager implements DataEngineManager, Closeable {
@@ -40,16 +37,16 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
     @Inject
     public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory) {
         this(storageRegionManager, factory,
-                Duration.parse(Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_DATA_ENGINE_IDLE_TIME)));
+             Duration.parse(Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_DATA_ENGINE_IDLE_TIME)));
     }
 
     public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory,
-            Duration idleTime) {
+                                    Duration idleTime) {
         this.storageRegionManager = storageRegionManager;
         this.storageRegionFactory = factory;
         this.dataEngineContainer = CacheBuilder.newBuilder()
-                .expireAfterAccess(idleTime.toMillis(), TimeUnit.MILLISECONDS)
-                .removalListener(new StorageRegionRemovalListener()).build(new DataEngineLoader());
+            .expireAfterAccess(idleTime.toMillis(), TimeUnit.MILLISECONDS)
+            .removalListener(new StorageRegionRemovalListener()).build(new DataEngineLoader());
 
         this.storageRegionManager.addStorageRegionStateListener(new StorageRegionStateHandler());
     }
@@ -123,5 +120,5 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
 
         dataEngineContainer.invalidateAll();
     }
-    
+
 }

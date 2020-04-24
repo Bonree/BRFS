@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 public class LocalDirMaintainer implements PartitionInterface {
     private LocalPartitionInterface localPartitionInterface;
     private SecondIdsInterface secondIds;
+
     @Inject
     public LocalDirMaintainer(LocalPartitionInterface localPartitionInterface, SecondIdsInterface secondIds) {
         this.localPartitionInterface = localPartitionInterface;
@@ -25,8 +26,8 @@ public class LocalDirMaintainer implements PartitionInterface {
 
     @Override
     public String getDataDir(String secondId, int storageRegionId) {
-        String partitionId = secondIds.getPartitionId(secondId,storageRegionId);
-        if(StringUtils.isEmpty(partitionId)){
+        String partitionId = secondIds.getPartitionId(secondId, storageRegionId);
+        if (StringUtils.isEmpty(partitionId)) {
             return null;
         }
         return localPartitionInterface.getDataPaths(partitionId);

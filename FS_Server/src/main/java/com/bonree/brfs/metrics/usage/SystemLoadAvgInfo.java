@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics.usage;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -20,10 +21,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class SystemLoadAvgInfo {
     private final double load;
-    
+
     @JsonCreator
     public SystemLoadAvgInfo(
-            @JsonProperty("load") double load) {
+        @JsonProperty("load") double load) {
         this.load = load;
     }
 
@@ -31,11 +32,11 @@ public class SystemLoadAvgInfo {
     public double getLoad() {
         return load;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("load", load)
-                .toString();
+            .add("load", load)
+            .toString();
     }
 }

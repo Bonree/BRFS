@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalanceV2.recover;
+package com.bonree.brfs.rebalancev2.recover;
 
 import com.google.common.base.MoreObjects;
 
@@ -13,7 +13,8 @@ public class FileRecoverMetaV2 {
     private final String firstServerID;
     private final String partitionPath;
 
-    public FileRecoverMetaV2(String filePath, String fileName, String storageName, String time, int replica, int pot, String firstServerID, String partitionPath) {
+    public FileRecoverMetaV2(String filePath, String fileName, String storageName, String time, int replica, int pot,
+                             String firstServerID, String partitionPath) {
         super();
         this.filePath = filePath;
         this.fileName = fileName;
@@ -49,7 +50,6 @@ public class FileRecoverMetaV2 {
         return replica;
     }
 
-
     public String getFilePath() {
         return filePath;
     }
@@ -61,15 +61,15 @@ public class FileRecoverMetaV2 {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
-                .add("fileName", fileName)
-                .add("storageName", storageName)
-                .add("time", time)
-                .add("replica", replica)
-                .add("pot", pot)
-                .add("firstServerID", firstServerID)
-                .add("partitionPath", partitionPath)
-                .omitNullValues()
-                .toString();
+            .add("fileName", fileName)
+            .add("storageName", storageName)
+            .add("time", time)
+            .add("replica", replica)
+            .add("pot", pot)
+            .add("firstServerID", firstServerID)
+            .add("partitionPath", partitionPath)
+            .omitNullValues()
+            .toString();
     }
 
 }

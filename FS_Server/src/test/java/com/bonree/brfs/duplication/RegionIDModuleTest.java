@@ -22,18 +22,21 @@ import com.bonree.brfs.identification.VirtualServerID;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
-import com.google.inject.*;
+import com.google.inject.Binder;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provides;
+import com.google.inject.Scopes;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Singleton;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.inject.Singleton;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -45,14 +48,15 @@ import java.util.List;
 
 public class RegionIDModuleTest {
     private static final String rootPath = RegionIDModuleTest.class.getResource("/").getPath();
+
     @Before
-    public void initProperties(){
-        String config = rootPath+"/server_zcg.properties";
-        String idsDir = rootPath+"/ids";
+    public void initProperties() {
+        String config = rootPath + "/server_zcg.properties";
+        String idsDir = rootPath + "/ids";
         checkAndCreateDir(idsDir);
-        String partitionIdsDir = rootPath+"/partitionIds";
+        String partitionIdsDir = rootPath + "/partitionIds";
         checkAndCreateDir(partitionIdsDir);
-        String rootDir = rootPath+"/data";
+        String rootDir = rootPath + "/data";
         checkAndCreateDir(rootDir);
         String libPath = "D:\\work\\Business\\bonree\\BrfsSecond\\BRFS\\lib";
         try {
@@ -61,30 +65,32 @@ public class RegionIDModuleTest {
             Assert.fail("load lib happen error");
             e.printStackTrace();
         }
-        System.setProperty(SystemProperties.PROP_CONFIGURATION_FILE,config);
-        System.setProperty(SystemProperties.PROP_SERVER_ID_DIR,idsDir);
-        System.setProperty(SystemProperties.PROP_RESOURCE_LIB_PATH,libPath);
-        System.setProperty(SystemProperties.PROP_PARTITION_ID_IDR,partitionIdsDir);
+        System.setProperty(SystemProperties.PROP_CONFIGURATION_FILE, config);
+        System.setProperty(SystemProperties.PROP_SERVER_ID_DIR, idsDir);
+        System.setProperty(SystemProperties.PROP_RESOURCE_LIB_PATH, libPath);
+        System.setProperty(SystemProperties.PROP_PARTITION_ID_IDR, partitionIdsDir);
         System.out.println(rootPath);
 
     }
-    private void checkAndCreateDir(String path){
+
+    private void checkAndCreateDir(String path) {
         File dir = new File(path);
-        if(!dir.exists()){
+        if (!dir.exists()) {
             try {
                 FileUtils.forceMkdir(dir);
             } catch (IOException e) {
-                Assert.fail("create [ "+path+" ] fail !!!");
+                Assert.fail("create [ " + path + " ] fail !!!");
             }
         }
     }
 
     @Test
-    public void init(){
+    public void init() {
         List<Module> modules = new ArrayList<>();
         modules.add(new ZKPathModel());
         modules.add(new RegionIDModule());
-        Injector injector = Initialization.makeInjectorWithModules(NodeType.REGION_NODE, Initialization.makeSetupInjector(), modules);
+        Injector injector =
+            Initialization.makeInjectorWithModules(NodeType.REGION_NODE, Initialization.makeSetupInjector(), modules);
         CuratorFramework client = injector.getInstance(CuratorFramework.class);
         CuratorCacheFactory.init(client);
         VirtualServerID virtualServerID = injector.getInstance(VirtualServerID.class);
@@ -104,17 +110,18 @@ public class RegionIDModuleTest {
             e.printStackTrace();
         }
         DuplicateNodeSelector selector = injector.getInstance(DuplicateNodeSelector.class);
-        if(selector instanceof ResourceWriteSelector ){
+        if (selector instanceof ResourceWriteSelector) {
             System.out.println("resource");
-        }else if(selector instanceof RandomSelector){
+        } else if (selector instanceof RandomSelector) {
             System.out.println("random");
-        }else{
+        } else {
             System.out.println("what happen");
         }
         System.out.println(selector.getDuplicationNodes(0, 2).length);
 
     }
-    private class ZKPathModel implements Module{
+
+    private class ZKPathModel implements Module {
 
         @Override
         public void configure(Binder binder) {
@@ -122,6 +129,7 @@ public class RegionIDModuleTest {
             binder.bind(DiskNodeConnectionPool.class).to(TcpDiskNodeConnectionPool.class).in(Scopes.SINGLETON);
             binder.bind(FileNodeStorer.class).to(ZkFileNodeStorer.class).in(Scopes.SINGLETON);
         }
+
         @Provides
         @Singleton
         public ZookeeperPaths getPaths(ClusterConfig clusterConfig, CuratorFramework zkClient, Lifecycle lifecycle) {
@@ -129,12 +137,13 @@ public class RegionIDModuleTest {
             lifecycle.addAnnotatedInstance(paths);
             return paths;
         }
+
         @Provides
         @Singleton
         public TcpDiskNodeConnectionPool getTcpConnectionPool(
-                ServiceManager serviceManager,
-                ConnectionPoolConfig config,
-                Lifecycle lifecycle) {
+            ServiceManager serviceManager,
+            ConnectionPoolConfig config,
+            Lifecycle lifecycle) {
             AsyncTcpClientGroup tcpClientGroup = new AsyncTcpClientGroup(config.getWriteWorkerThreads());
             TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup);
 

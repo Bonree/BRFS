@@ -4,8 +4,11 @@ import java.util.List;
 
 public interface BrfsCatalog {
     boolean isUsable();
-    List<Inode> list(String srName, String path, int pageNo, int pageSize );
+
+    List<Inode> list(String srName, String path, int pageNo, int pageSize);
+
     boolean isFileNode(String srName, String path);
+
     boolean validPath(String path);
 
     default boolean writeFid(String srName, String path, String fid) {

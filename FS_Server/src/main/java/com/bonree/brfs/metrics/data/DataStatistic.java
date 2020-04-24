@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics.data;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -21,11 +22,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class DataStatistic {
     private final long time;
     private final long count;
-    
+
     @JsonCreator
     public DataStatistic(
-            @JsonProperty("time") long time,
-            @JsonProperty("count") long count) {
+        @JsonProperty("time") long time,
+        @JsonProperty("count") long count) {
         this.time = time;
         this.count = count;
     }
@@ -39,12 +40,12 @@ public class DataStatistic {
     public long getCount() {
         return count;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("time", time)
-                .add("count", count)
-                .toString();
+            .add("time", time)
+            .add("count", count)
+            .toString();
     }
 }

@@ -1,27 +1,5 @@
 package com.bonree.brfs.duplication.storageregion.impl;
 
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
-
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
-import org.apache.curator.utils.ZKPaths;
-import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
@@ -43,16 +21,34 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * StorageName信息管理类 提供对StorageName的增删改查操作
- * 
+ * <p>
  * *************************************************
  * 此类部分信息是通过zookeeper的通知机制实现的，实时性上 可能存在不足
  * *************************************************
- * 
- * @author chen
  *
+ * @author chen
  */
 @ManageLifecycle
 public class DefaultStorageRegionManager implements StorageRegionManager {
@@ -66,7 +62,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     private ConcurrentHashMap<Integer, StorageRegion> regionIds = new ConcurrentHashMap<Integer, StorageRegion>();
 
     private ExecutorService executor = Executors
-            .newSingleThreadExecutor(new PooledThreadFactory("storage_region_state"));
+        .newSingleThreadExecutor(new PooledThreadFactory("storage_region_state"));
 
     private CuratorFramework zkClient;
     private PathChildrenCache childrenCache;
@@ -77,20 +73,21 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
 
     @Inject
     public DefaultStorageRegionManager(CuratorFramework client, ZookeeperPaths paths,
-            StorageRegionIdBuilder idBuilder) {
+                                       StorageRegionIdBuilder idBuilder) {
         this.zkClient = client.usingNamespace(paths.getBaseClusterName().substring(1));
         this.idBuilder = idBuilder;
         this.storageRegionCache = CacheBuilder.newBuilder().maximumSize(DEFAULT_MAX_CACHE_SIZE)
-                .expireAfterWrite(10, TimeUnit.SECONDS).refreshAfterWrite(10, TimeUnit.SECONDS)
-                .removalListener(new StorageRegionRemoveListener()).build(new StorageRegionLoader());
+            .expireAfterWrite(10, TimeUnit.SECONDS).refreshAfterWrite(10, TimeUnit.SECONDS)
+            .removalListener(new StorageRegionRemoveListener()).build(new StorageRegionLoader());
         this.childrenCache = new PathChildrenCache(zkClient,
-                ZKPaths.makePath(DEFAULT_PATH_STORAGE_REGION_ROOT, DEFAULT_PATH_STORAGE_REGION_NODES), false);
+                                                   ZKPaths.makePath(DEFAULT_PATH_STORAGE_REGION_ROOT,
+                                                                    DEFAULT_PATH_STORAGE_REGION_NODES), false);
     }
 
     @LifecycleStart
     public void start() throws Exception {
         zkClient.createContainers(
-                ZKPaths.makePath(DEFAULT_PATH_STORAGE_REGION_ROOT, DEFAULT_PATH_STORAGE_REGION_NODES));
+            ZKPaths.makePath(DEFAULT_PATH_STORAGE_REGION_ROOT, DEFAULT_PATH_STORAGE_REGION_NODES));
         childrenCache.getListenable().addListener(new StorageRegionNodeStateListener());
         childrenCache.start();
     }
@@ -134,10 +131,10 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         String regionPath = buildRegionPath(regionName);
         try {
             StorageRegion region = new StorageRegion(
-                    regionName,
-                    idBuilder.createRegionId(),
-                    System.currentTimeMillis(),
-                    props);
+                regionName,
+                idBuilder.createRegionId(),
+                System.currentTimeMillis(),
+                props);
 
             zkClient.create().forPath(regionPath, JsonUtils.toJsonBytes(region));
 
@@ -159,13 +156,13 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
 
         try {
             zkClient.setData().forPath(
-                    buildRegionPath(regionName),
-                    JsonUtils.toJsonBytes(
-                            new StorageRegion(
-                                    region.getName(),
-                                    region.getId(),
-                                    region.getCreateTime(),
-                                    region.getProperties().override(props))));
+                buildRegionPath(regionName),
+                JsonUtils.toJsonBytes(
+                    new StorageRegion(
+                        region.getName(),
+                        region.getId(),
+                        region.getCreateTime(),
+                        region.getProperties().override(props))));
         } catch (Exception e) {
             LOG.warn("set storage name node[{}] data error", regionName, e);
             throw e;
@@ -211,8 +208,8 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         @Override
         public Optional<StorageRegion> load(String regionName) throws Exception {
             StorageRegion region = JsonUtils.toObject(
-                    zkClient.getData().forPath(buildRegionPath(regionName)),
-                    StorageRegion.class);
+                zkClient.getData().forPath(buildRegionPath(regionName)),
+                StorageRegion.class);
             regionIds.put(region.getId(), region);
 
             return Optional.of(region);
@@ -260,7 +257,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
                     }
                 });
             }
-                break;
+            break;
             case CHILD_UPDATED: {
                 storageRegionCache.invalidate(regionName);
                 Optional<StorageRegion> nodeOptional = storageRegionCache.get(regionName);
@@ -280,7 +277,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
                     }
                 });
             }
-                break;
+            break;
             case CHILD_REMOVED: {
                 Optional<StorageRegion> nodeOptional = storageRegionCache.get(regionName);
                 storageRegionCache.invalidate(regionName);
@@ -301,7 +298,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
                     }
                 });
             }
-                break;
+            break;
             default:
                 break;
             }
@@ -312,9 +309,9 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     @Override
     public List<StorageRegion> getStorageRegionList() {
         return childrenCache.getCurrentData()
-                .stream()
-                .map(c -> getCachedNode(ZKPaths.getNodeFromPath(c.getPath())))
-                .collect(ImmutableList.toImmutableList());
+            .stream()
+            .map(c -> getCachedNode(ZKPaths.getNodeFromPath(c.getPath())))
+            .collect(ImmutableList.toImmutableList());
     }
 
     @Override

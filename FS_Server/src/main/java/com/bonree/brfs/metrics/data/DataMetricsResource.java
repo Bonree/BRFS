@@ -11,10 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics.data;
 
+import com.bonree.brfs.metrics.TimedData;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -22,13 +23,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import com.bonree.brfs.metrics.TimedData;
-
 @Path("/stats")
 public class DataMetricsResource {
-    
+
     private final DataStatisticReporter reporter;
-    
+
     @Inject
     public DataMetricsResource(DataStatisticReporter reporter) {
         this.reporter = reporter;
@@ -37,16 +36,16 @@ public class DataMetricsResource {
     @GET
     @Path("/write/{srName}")
     public List<TimedData<Long>> getWriteStatistics(
-            @PathParam("srName") String srName,
-            @DefaultValue("1") @QueryParam("minutes") int minutes) {
+        @PathParam("srName") String srName,
+        @DefaultValue("1") @QueryParam("minutes") int minutes) {
         return reporter.getWriteStatistics(srName, minutes);
     }
-    
+
     @GET
     @Path("/read/{srName}")
     public List<TimedData<Long>> getReadStatistics(
-            @PathParam("srName") String srName,
-            @DefaultValue("1") @QueryParam("minutes") int minutes) {
+        @PathParam("srName") String srName,
+        @DefaultValue("1") @QueryParam("minutes") int minutes) {
         return reporter.getReadStatistics(srName, minutes);
     }
 }

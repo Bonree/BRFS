@@ -1,29 +1,28 @@
 package com.bonree.brfs.rebalance.task.listener;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
-import org.apache.curator.framework.recipes.cache.TreeCacheListener;
-import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.RebalanceUtils;
 import com.bonree.brfs.rebalance.task.ChangeSummary;
 import com.bonree.brfs.rebalance.task.TaskDispatcher;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年4月19日 下午3:31:55
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 监听Server变更，以便生成任务
  ******************************************************************************/
 public class ServerChangeListener implements TreeCacheListener {
 
-    private final static Logger LOG = LoggerFactory.getLogger(ServerChangeListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServerChangeListener.class);
 
     private TaskDispatcher dispatcher;
 
@@ -48,9 +47,11 @@ public class ServerChangeListener implements TreeCacheListener {
                     if (event.getData().getData() != null) {
                         LOG.info("parse and add change:" + RebalanceUtils.convertEvent(event));
                         String absolutePath = event.getData().getPath();
-                        String chanName = StringUtils.substring(absolutePath, absolutePath.lastIndexOf('/') + 1, absolutePath.length());
+                        String chanName =
+                            StringUtils.substring(absolutePath, absolutePath.lastIndexOf('/') + 1, absolutePath.length());
                         if (chanName.length() > 16) {
-                            ChangeSummary changeSummary = JsonUtils.toObjectQuietly(event.getData().getData(), ChangeSummary.class);
+                            ChangeSummary changeSummary =
+                                JsonUtils.toObjectQuietly(event.getData().getData(), ChangeSummary.class);
                             // 将变更细节添加到队列即可
                             dispatcher.getDetailQueue().put(changeSummary);
                         } else {

@@ -1,12 +1,14 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl.refactor;
 
-import com.bonree.brfs.duplication.filenode.duplicates.*;
-import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
+import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
+import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.identification.SecondIdsInterface;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 版权信息: 北京博睿宏远数据科技股份有限公司
@@ -17,28 +19,30 @@ import java.util.List;
  * @description:
  **/
 public class ResourceSelector extends ResourceWriteSelector {
-    private PartitionNodeSelector pSelector;
+    private PartitionNodeSelector nodeSelector;
     private SecondIdsInterface secondIds;
 
-    public ResourceSelector(ClusterResource daemon, ServiceSelector resourceSelector, DuplicateNodeSelector bakSelector, String groupName, PartitionNodeSelector pSelector, SecondIdsInterface secondIds) {
+    public ResourceSelector(ClusterResource daemon, ServiceSelector resourceSelector, DuplicateNodeSelector bakSelector,
+                            String groupName, PartitionNodeSelector nodeSelector, SecondIdsInterface secondIds) {
         super(daemon, resourceSelector, bakSelector, groupName);
-        this.pSelector = pSelector;
+        this.nodeSelector = nodeSelector;
         this.secondIds = secondIds;
     }
+
     @Override
-    public DuplicateNode[] getDuplicationNodes(int storageId, int nums){
-        DuplicateNode[] nodes = super.getDuplicationNodes(storageId,nums);
-        if(nodes == null || nodes.length == 0){
+    public DuplicateNode[] getDuplicationNodes(int storageId, int nums) {
+        DuplicateNode[] nodes = super.getDuplicationNodes(storageId, nums);
+        if (nodes == null || nodes.length == 0) {
             return nodes;
         }
         List<DuplicateNode> duplicateNodes = new ArrayList<>();
-        for(DuplicateNode node :nodes){
-            String pid =this.pSelector.getPartitionId(node.getId());
-            if(StringUtils.isEmpty(pid)){
+        for (DuplicateNode node : nodes) {
+            String pid = this.nodeSelector.getPartitionId(node.getId());
+            if (StringUtils.isEmpty(pid)) {
                 continue;
             }
-            String secondId = secondIds.getSecondId(pid,storageId);
-            if(StringUtils.isEmpty(secondId)){
+            String secondId = secondIds.getSecondId(pid, storageId);
+            if (StringUtils.isEmpty(secondId)) {
                 continue;
             }
             node.setSecondId(secondId);

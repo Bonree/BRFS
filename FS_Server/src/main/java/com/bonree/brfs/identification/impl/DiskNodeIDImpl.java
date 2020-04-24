@@ -17,17 +17,18 @@ import org.slf4j.LoggerFactory;
  * @description:
  ******************************************************************************/
 public class DiskNodeIDImpl implements LevelServerIDGen {
-	private static final Logger LOG = LoggerFactory.getLogger(DiskNodeIDImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DiskNodeIDImpl.class);
 
-    private final static String PARTITION_ID = "partitionIds";
-    public final static int PARTITION_ID_PREFIX = 4;
+    private static final String PARTITION_ID = "partitionIds";
+    public static final int PARTITION_ID_PREFIX = 4;
 
     private SequenceNumberBuilder firstServerIDCreator;
     private CuratorFramework client = null;
     private String secondIdSetPath = null;
-	@Inject
-    public DiskNodeIDImpl(CuratorFramework client, String basePath,String secondIdSetPath) {
-		this.client = client;
+
+    @Inject
+    public DiskNodeIDImpl(CuratorFramework client, String basePath, String secondIdSetPath) {
+        this.client = client;
         this.firstServerIDCreator = new ZkSequenceNumberBuilder(this.client, ZKPaths.makePath(basePath, PARTITION_ID));
         this.secondIdSetPath = secondIdSetPath;
 
@@ -35,24 +36,24 @@ public class DiskNodeIDImpl implements LevelServerIDGen {
 
     @Override
     public String genLevelID() {
-		String partitionId = null;
-		try {
-			do {
-				if(partitionId !=null){
-					LOG.info("apple repeat partitionId {}",partitionId);
-				}
-				int uniqueId = firstServerIDCreator.nextSequenceNumber();
+        String partitionId = null;
+        try {
+            do {
+                if (partitionId != null) {
+                    LOG.info("apple repeat partitionId {}", partitionId);
+                }
+                int uniqueId = firstServerIDCreator.nextSequenceNumber();
 
-				StringBuilder idBuilder = new StringBuilder();
-				idBuilder.append(PARTITION_ID_PREFIX).append(uniqueId);
+                StringBuilder idBuilder = new StringBuilder();
+                idBuilder.append(PARTITION_ID_PREFIX).append(uniqueId);
 
-				partitionId = idBuilder.toString();
-			}while (this.client.checkExists().forPath(this.secondIdSetPath+"/"+partitionId) != null);
-		} catch (Exception e) {
-			LOG.info("create disk id error", e);
-		}
+                partitionId = idBuilder.toString();
+            } while (this.client.checkExists().forPath(this.secondIdSetPath + "/" + partitionId) != null);
+        } catch (Exception e) {
+            LOG.info("create disk id error", e);
+        }
 
-		return partitionId;
+        return partitionId;
     }
 
 }

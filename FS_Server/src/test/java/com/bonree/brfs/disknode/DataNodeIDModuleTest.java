@@ -10,19 +10,20 @@ import com.bonree.brfs.guice.Initialization;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.PartitionInterface;
 import com.bonree.brfs.identification.impl.DiskDaemon;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
-import com.google.inject.*;
+import com.google.inject.Binder;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provides;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Singleton;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.inject.Singleton;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -34,40 +35,44 @@ import java.util.List;
 
 public class DataNodeIDModuleTest {
     private static final String rootPath = DataNodeIDModuleTest.class.getResource("/").getPath();
+
     @Before
-    public void initProperties(){
-        String config = rootPath+"/server_zcg.properties";
-        String idsDir = rootPath+"/ids";
+    public void initProperties() {
+        String config = rootPath + "/server_zcg.properties";
+        String idsDir = rootPath + "/ids";
         checkAndCreateDir(idsDir);
-        String partitionIdsDir = rootPath+"/partitionIds";
+        String partitionIdsDir = rootPath + "/partitionIds";
         checkAndCreateDir(partitionIdsDir);
-        String rootDir = rootPath+"/data";
+        String rootDir = rootPath + "/data";
         checkAndCreateDir(rootDir);
         String libPath = "/root/projects/BRFS/lib";
-       System.setProperty(SystemProperties.PROP_RESOURCE_LIB_PATH,libPath);
-        System.setProperty(SystemProperties.PROP_CONFIGURATION_FILE,config);
-        System.setProperty(SystemProperties.PROP_SERVER_ID_DIR,idsDir);
-        System.setProperty(SystemProperties.PROP_RESOURCE_LIB_PATH,libPath);
-        System.setProperty(SystemProperties.PROP_PARTITION_ID_IDR,partitionIdsDir);
+        System.setProperty(SystemProperties.PROP_RESOURCE_LIB_PATH, libPath);
+        System.setProperty(SystemProperties.PROP_CONFIGURATION_FILE, config);
+        System.setProperty(SystemProperties.PROP_SERVER_ID_DIR, idsDir);
+        System.setProperty(SystemProperties.PROP_RESOURCE_LIB_PATH, libPath);
+        System.setProperty(SystemProperties.PROP_PARTITION_ID_IDR, partitionIdsDir);
         System.out.println(rootPath);
 
     }
-    private void checkAndCreateDir(String path){
+
+    private void checkAndCreateDir(String path) {
         File dir = new File(path);
-        if(!dir.exists()){
+        if (!dir.exists()) {
             try {
                 FileUtils.forceMkdir(dir);
             } catch (IOException e) {
-                Assert.fail("create [ "+path+" ] fail !!!");
+                Assert.fail("create [ " + path + " ] fail !!!");
             }
         }
     }
+
     @Test
-    public void init(){
+    public void init() {
         List<Module> modules = new ArrayList<>();
         modules.add(new ZKPathModel());
         modules.add(new DataNodeIDModule());
-        Injector injector = Initialization.makeInjectorWithModules(NodeType.REGION_NODE, Initialization.makeSetupInjector(), modules);
+        Injector injector =
+            Initialization.makeInjectorWithModules(NodeType.REGION_NODE, Initialization.makeSetupInjector(), modules);
         CuratorFramework client = injector.getInstance(CuratorFramework.class);
         CuratorCacheFactory.init(client);
         DiskDaemon diskDaemon = injector.getInstance(DiskDaemon.class);
@@ -78,15 +83,17 @@ public class DataNodeIDModuleTest {
         String firstServer = idsManager.getFirstSever();
         System.out.println(firstServer);
         PartitionInterface partitionInterface = injector.getInstance(PartitionInterface.class);
-        String path = partitionInterface.getDataDir("20",0);
+        String path = partitionInterface.getDataDir("20", 0);
         System.out.println(path);
     }
-    class ZKPathModel implements Module{
+
+    class ZKPathModel implements Module {
 
         @Override
         public void configure(Binder binder) {
 
         }
+
         @Provides
         @Singleton
         public ZookeeperPaths getPaths(ClusterConfig clusterConfig, CuratorFramework zkClient, Lifecycle lifecycle) {

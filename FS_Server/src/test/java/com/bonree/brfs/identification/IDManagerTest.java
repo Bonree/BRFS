@@ -19,18 +19,20 @@ import org.junit.Test;
 public class IDManagerTest {
     private static String ZKADDRES = RouteParserTest.ZK_ADDRESS;
     private static CuratorFramework client = null;
+
     @Before
-    public void init(){
-        client = CuratorFrameworkFactory.newClient(ZKADDRES,new RetryNTimes(5,300));
+    public void init() {
+        client = CuratorFrameworkFactory.newClient(ZKADDRES, new RetryNTimes(5, 300));
         client.start();
         try {
             client.blockUntilConnected();
         } catch (InterruptedException e) {
-            Assert.fail("zookeeper client is invaild !! address: "+ZKADDRES);
+            Assert.fail("zookeeper client is invaild !! address: " + ZKADDRES);
         }
     }
+
     @Test
-    public void constructorTest(){
+    public void constructorTest() {
 
     }
 }

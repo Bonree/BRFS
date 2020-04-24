@@ -1,6 +1,5 @@
 package com.bonree.brfs.identification;
 
-
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
@@ -9,10 +8,13 @@ package com.bonree.brfs.identification;
  * @description:
  ******************************************************************************/
 public interface LevelServerIDGen {
-    /** 概述：生成级别ServerID
+    /**
+     * 概述：生成级别ServerID
+     *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public String genLevelID();
-    
+
 }

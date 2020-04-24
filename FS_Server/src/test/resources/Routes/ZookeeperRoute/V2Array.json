@@ -1,26 +1,34 @@
-[{
-  "changeID": "1",
-  "storageIndex": 0,
-  "secondID": "20",
-  "newSecondIDs": {
-    "21":1,
-    "22":4,
-    "23":5
+[
+  {
+    "changeID": "1",
+    "storageIndex": 0,
+    "secondID": "20",
+    "newSecondIDs": {
+      "21": 1,
+      "22": 4,
+      "23": 5
+    },
+    "version": "V2"
   },
-  "version": "V2"
-},
   {
     "changeID": "2",
     "storageIndex": 0,
     "secondID": "23",
-    "newSecondIDs": {"21": 1,"22": 2,"24": 7},
+    "newSecondIDs": {
+      "21": 1,
+      "22": 2,
+      "24": 7
+    },
     "version": "V2"
   },
   {
     "changeID": "3",
     "storageIndex": 0,
     "secondID": "21",
-    "newSecondIDs": {"22": 4,"24": 6},
+    "newSecondIDs": {
+      "22": 4,
+      "24": 6
+    },
     "version": "V2"
   }
 ]
