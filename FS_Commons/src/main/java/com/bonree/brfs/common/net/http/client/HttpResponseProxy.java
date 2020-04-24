@@ -45,6 +45,7 @@ public class HttpResponseProxy implements HttpResponse {
             entity.writeTo(byteArray);
             return byteArray.toByteArray();
         } catch (IOException e) {
+            // ignore
         }
 
         return new byte[0];

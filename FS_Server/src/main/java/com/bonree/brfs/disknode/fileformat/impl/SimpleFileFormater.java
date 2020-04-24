@@ -56,7 +56,7 @@ public class SimpleFileFormater implements FileFormater {
 	@Override
 	public byte[] formatData(byte[] data) throws Exception {
 		FileContent content = FileContent.newBuilder()
-				.setCompress(Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_COMPRESS) ? 1 : 0)
+				.setCompress(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_DATA_COMPRESS) ? 1 : 0)
 				.setDescription("")
 				.setData(ByteString.copyFrom(data))
 				.setCrcFlag(false)

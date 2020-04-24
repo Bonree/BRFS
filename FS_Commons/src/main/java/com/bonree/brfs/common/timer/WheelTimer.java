@@ -126,6 +126,7 @@ public class WheelTimer<T> {
                         threadPool.submit(new TimeoutExec(target));
                     }
                 } catch (Exception e) {
+                    // ignore
                 }
             }
         }

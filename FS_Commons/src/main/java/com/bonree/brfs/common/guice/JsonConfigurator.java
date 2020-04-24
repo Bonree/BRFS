@@ -242,8 +242,8 @@ public class JsonConfigurator {
         }
 
         final List<BeanPropertyDefinition> beanDefs = mapper.getSerializationConfig()
-                                                            .introspect(mapper.constructType(clazz))
-                                                            .findProperties();
+            .introspect(mapper.constructType(clazz))
+            .findProperties();
         for (BeanPropertyDefinition beanDef : beanDefs) {
             final AnnotatedField field = beanDef.getField();
             if (field == null || !field.hasAnnotation(JsonProperty.class)) {

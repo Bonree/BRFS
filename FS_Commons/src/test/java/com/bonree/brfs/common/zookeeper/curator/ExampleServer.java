@@ -53,11 +53,11 @@ public class ExampleServer implements Closeable {
         JsonInstanceSerializer<InstanceDetails> serializer = new JsonInstanceSerializer<InstanceDetails>(InstanceDetails.class);
 
         serviceDiscovery = ServiceDiscoveryBuilder.builder(InstanceDetails.class)
-                                                  .client(client)
-                                                  .basePath(path)
-                                                  .serializer(serializer)
-                                                  .thisInstance(thisInstance)
-                                                  .build();
+            .client(client)
+            .basePath(path)
+            .serializer(serializer)
+            .thisInstance(thisInstance)
+            .build();
     }
 
     public ServiceInstance<InstanceDetails> getThisInstance() {

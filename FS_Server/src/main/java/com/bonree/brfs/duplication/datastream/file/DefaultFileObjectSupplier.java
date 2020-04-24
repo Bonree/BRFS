@@ -64,9 +64,9 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 			FileNodeSinkManager fileNodeSinkManager,
 			TimeExchangeEventEmitter timeEventEmitter) {
 		this(storageRegion, factory, closer, fileSynchronizer, fileNodeSinkManager, timeEventEmitter,
-				Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_FILE_CLEAN_COUNT),
-				Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_MAX_FILE_COUNT),
-				Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_FILE_CLEAN_USAGE_RATE));
+				Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_FILE_CLEAN_COUNT),
+				Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_MAX_FILE_COUNT),
+				Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_FILE_CLEAN_USAGE_RATE));
 	}
 	
 	public DefaultFileObjectSupplier(StorageRegion storageRegion,

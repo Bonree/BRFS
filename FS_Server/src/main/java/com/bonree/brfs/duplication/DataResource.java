@@ -152,7 +152,7 @@ public class DataResource {
             HandleResultCallback callback = new HandleResultCallback() {
                 @Override
                 public void completed(HandleResult result) {
-                    if (result.isCONTINUE()) {
+                    if (result.isToContinue()) {
                         LOG.debug("response seqno：{}", result.getNextSeqno());
                         response.resume(Response
                                 .status(HttpStatus.CODE_NEXT)

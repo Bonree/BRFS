@@ -46,10 +46,10 @@ public final class ResourceConfigs {
         ConfigUnit.ofLong("system.copy.check.create.inveratal.time", 60);
 
     public static final ConfigUnit<Long> CONFIG_TASK_EXECUTE_INTERVAL =
-        ConfigUnit.ofLong("execute.task.inverval.time", 60l);
+        ConfigUnit.ofLong("execute.task.inverval.time", 60L);
 
     public static final ConfigUnit<Long> CONFIG_RESOURCE_GATHER_INTERVAL =
-        ConfigUnit.ofLong("gather.resource.inveral.time", 10l);
+        ConfigUnit.ofLong("gather.resource.inveral.time", 10L);
 
     public static final ConfigUnit<Integer> CONFIG_RESOURCE_CALCULATE_COUNT =
         ConfigUnit.ofInt("calc.resource.value.count", 5);
@@ -61,7 +61,7 @@ public final class ResourceConfigs {
         ConfigUnit.ofBoolean("resource.framework.switch", true);
 
     public static final ConfigUnit<Long> CONFIG_TASK_EXPIRED_TIME =
-        ConfigUnit.ofLong("task.expired.time", 680400l);
+        ConfigUnit.ofLong("task.expired.time", 680400L);
 
     public static final ConfigUnit<Double> CONFIG_LIMIT_CPU_RATE =
         ConfigUnit.ofDouble("limit.resource.value.cpurate", 0.9);

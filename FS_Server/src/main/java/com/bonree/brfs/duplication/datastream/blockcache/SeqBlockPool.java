@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class SeqBlockPool implements BlockPool {
     private static final Logger LOG = LoggerFactory.getLogger(SeqBlockPool.class);
-    private static long waitForBlock = Configs.getConfiguration().GetConfig(RegionNodeConfigs.WAIT_FOR_BLOCK_TIME);
+    private static long waitForBlock = Configs.getConfiguration().getConfig(RegionNodeConfigs.WAIT_FOR_BLOCK_TIME);
     private final long blockSize;
     private int maxCount;
     private final BlockingQueue<Block> reclaimedBlocks;

@@ -145,8 +145,7 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
         Entry<T> oldEntry = services.putIfAbsent(service.getId(), newEntry);
         Entry<T> useEntry = (oldEntry != null) ? oldEntry : newEntry;
         synchronized (useEntry) {
-            if (useEntry == newEntry) // i.e. is new
-            {
+            if (useEntry == newEntry) {
                 useEntry.cache = makeNodeCache(service);
             }
             internalRegisterService(service);
@@ -374,13 +373,13 @@ public class ServiceDiscoveryImpl<T> implements ServiceDiscovery<T> {
                 ServiceInstance<T> oldService = entry.service;
                 ServiceInstanceBuilder<T> builder = ServiceInstance.<T>builder();
                 builder.name(oldService.getName())
-                       .id(oldService.getId())
-                       .address(oldService.getAddress())
-                       .payload(oldService.getPayload())
-                       .registrationTimeUTC(System.currentTimeMillis())
-                       .serviceType(oldService.getServiceType())
-                       .uriSpec(oldService.getUriSpec())
-                       .enabled(oldService.isEnabled());
+                    .id(oldService.getId())
+                    .address(oldService.getAddress())
+                    .payload(oldService.getPayload())
+                    .registrationTimeUTC(System.currentTimeMillis())
+                    .serviceType(oldService.getServiceType())
+                    .uriSpec(oldService.getUriSpec())
+                    .enabled(oldService.isEnabled());
 
                 if (oldService.getPort() != null) {
                     builder.port(oldService.getPort());

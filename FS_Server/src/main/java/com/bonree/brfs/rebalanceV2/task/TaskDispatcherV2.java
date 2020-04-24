@@ -566,7 +566,7 @@ public class TaskDispatcherV2 implements Closeable {
     }
 
     private List<String> getAliveServices() {
-        return serviceManager.getServiceListByGroup(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME)).stream().map(Service::getServiceId).collect(Collectors.toList());
+        return serviceManager.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME)).stream().map(Service::getServiceId).collect(Collectors.toList());
     }
 
     private boolean isCanRecover(DiskPartitionChangeSummary cs, List<String> joinerSecondIDs, List<String> aliveSecondIDs) {

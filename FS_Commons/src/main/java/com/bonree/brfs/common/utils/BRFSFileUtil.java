@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class BRFSFileUtil {
-    private final static Logger LOG = LoggerFactory.getLogger(BRFSFileUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BRFSFileUtil.class);
 
     public static List<BRFSPath> scanDirs(String rootPath) {
         return scanFiles(rootPath, BRFSPath.PATHLIST.size() - 1);
@@ -198,14 +198,14 @@ public class BRFSFileUtil {
             }
             List<BRFSPath> tmpList = null;
             Map<String, String> tmp = null;
-            BRFSPath nPath = null;
+            BRFSPath npath = null;
             for (String dir : dirs) {
                 tmp = new HashMap<>();
                 tmp.putAll(map);
                 tmp.put(key, dir);
                 if (isNeed(key, dir, startTime, endTime)) {
-                    nPath = BRFSPath.getInstance(tmp);
-                    files.add(nPath);
+                    npath = BRFSPath.getInstance(tmp);
+                    files.add(npath);
                     continue;
                 }
                 tmpList = listFiles(root, tmp, pathlevel, index + 1);

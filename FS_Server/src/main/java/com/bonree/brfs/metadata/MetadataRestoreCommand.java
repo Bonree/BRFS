@@ -35,13 +35,13 @@ public class MetadataRestoreCommand implements Runnable {
 
     @Override
     public void run() {
-        String zkHost = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+        String zkHost = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         CuratorClient client = CuratorClient.getClientInstance(zkHost);
-        ZookeeperPaths zkPaths = ZookeeperPaths.create(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME), client.getInnerClient());
+        ZookeeperPaths zkPaths = ZookeeperPaths.create(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_CLUSTER_NAME), client.getInnerClient());
         CuratorCacheFactory.init(client.getInnerClient());
 
         String zkPath = zkPaths.getBaseClusterName();
-        String metadataPath = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_METADATA_BACKUP_PATH) + "/brfs.metadata";
+        String metadataPath = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_METADATA_BACKUP_PATH) + "/brfs.metadata";
 
         ZooKeeper zookeeper = null;
 

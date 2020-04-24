@@ -51,8 +51,8 @@ public class ConfigUnit<T> {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("{configName=").append(configName)
-               .append(", defaultValue=").append(defaultValue)
-               .append("}");
+            .append(", defaultValue=").append(defaultValue)
+            .append("}");
 
         return builder.toString();
     }

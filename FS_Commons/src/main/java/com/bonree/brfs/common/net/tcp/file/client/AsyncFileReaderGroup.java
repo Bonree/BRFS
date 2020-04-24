@@ -63,47 +63,47 @@ public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileCont
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 ch.pipeline().addLast(new ReadObjectEncoder())
-                  .addLast(new ByteToMessageDecoder() {
-                      private int token;
-                      private int readingLength = 0;
+                    .addLast(new ByteToMessageDecoder() {
+                        private int token;
+                        private int readingLength = 0;
 
-                      @Override
-                      protected void decode(ChannelHandlerContext ctx,
-                                            ByteBuf in, List<Object> out)
-                          throws Exception {
-                          if (readingLength == 0) {
-                              if (in.readableBytes() < Integer.BYTES * 2) {
-                                  return;
-                              }
+                        @Override
+                        protected void decode(ChannelHandlerContext ctx,
+                                              ByteBuf in, List<Object> out)
+                            throws Exception {
+                            if (readingLength == 0) {
+                                if (in.readableBytes() < Integer.BYTES * 2) {
+                                    return;
+                                }
 
-                              token = in.readInt();
-                              readingLength = in.readInt();
+                                token = in.readInt();
+                                readingLength = in.readInt();
 
-                              if (readingLength < 0) {
-                                  reader.handle(token, new FileContentPart(null, true));
+                                if (readingLength < 0) {
+                                    reader.handle(token, new FileContentPart(null, true));
 
-                                  readingLength = 0;
-                                  return;
-                              }
+                                    readingLength = 0;
+                                    return;
+                                }
 
-                              if (readingLength == 0) {
-                                  reader.handle(token, new FileContentPart(new byte[0], true));
-                                  return;
-                              }
-                          }
+                                if (readingLength == 0) {
+                                    reader.handle(token, new FileContentPart(new byte[0], true));
+                                    return;
+                                }
+                            }
 
-                          int readableLength = Math.min(readingLength, in.readableBytes());
-                          if (readableLength == 0) {
-                              return;
-                          }
+                            int readableLength = Math.min(readingLength, in.readableBytes());
+                            if (readableLength == 0) {
+                                return;
+                            }
 
-                          byte[] bytes = new byte[readableLength];
-                          in.readBytes(bytes);
-                          readingLength -= readableLength;
+                            byte[] bytes = new byte[readableLength];
+                            in.readBytes(bytes);
+                            readingLength -= readableLength;
 
-                          reader.handle(token, new FileContentPart(bytes, readingLength == 0));
-                      }
-                  });
+                            reader.handle(token, new FileContentPart(bytes, readingLength == 0));
+                        }
+                    });
             }
 
         });

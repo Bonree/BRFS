@@ -19,13 +19,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ClusterConfig {
     @JsonProperty("name")
-    private String name = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_CLUSTER_NAME);
+    private String name = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_CLUSTER_NAME);
     
     @JsonProperty("datanode.group")
-    private String dataNodeGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
+    private String dataNodeGroup = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
     
     @JsonProperty("regionnode.group")
-    private String regionNodeGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
+    private String regionNodeGroup = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
 
 
 

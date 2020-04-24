@@ -57,7 +57,7 @@ public class DiscoveryExample {
                 new JsonInstanceSerializer<InstanceDetails>(InstanceDetails.class);
             serviceDiscovery =
                 ServiceDiscoveryBuilder.builder(InstanceDetails.class).client(client).basePath(PATH).serializer(serializer)
-                                       .build();
+                    .build();
             serviceDiscovery.start();
 
             processCommands(serviceDiscovery, providers, client);
@@ -96,7 +96,7 @@ public class DiscoveryExample {
                     continue;
                 }
                 String operation = parts[0];
-                String args[] = Arrays.copyOfRange(parts, 1, parts.length);
+                String[] args = Arrays.copyOfRange(parts, 1, parts.length);
 
                 if (operation.equalsIgnoreCase("help") || operation.equalsIgnoreCase("?")) {
                     printHelp();
@@ -134,7 +134,7 @@ public class DiscoveryExample {
         ServiceProvider<InstanceDetails> provider = providers.get(serviceName);
         if (provider == null) {
             provider = serviceDiscovery.serviceProviderBuilder().serviceName(serviceName)
-                                       .providerStrategy(new RandomStrategy<InstanceDetails>()).build();
+                .providerStrategy(new RandomStrategy<InstanceDetails>()).build();
             providers.put(serviceName, provider);
             provider.start();
 
@@ -181,17 +181,16 @@ public class DiscoveryExample {
         }
 
         final String serviceName = args[0];
-        ExampleServer server = Iterables.find
-            (
-                servers,
-                new Predicate<ExampleServer>() {
-                    @Override
-                    public boolean apply(ExampleServer server) {
-                        return server.getThisInstance().getName().endsWith(serviceName);
-                    }
-                },
-                null
-            );
+        ExampleServer server = Iterables.find(
+            servers,
+            new Predicate<ExampleServer>() {
+                @Override
+                public boolean apply(ExampleServer server) {
+                    return server.getThisInstance().getName().endsWith(serviceName);
+                }
+            },
+            null
+        );
         if (server == null) {
             System.err.println("No servers found named: " + serviceName);
             return;

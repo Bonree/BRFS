@@ -112,8 +112,8 @@ public class ReadObject {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("{filepath=").append(filePath).append(",")
-               .append("offset=").append(offset).append(",")
-               .append("length=").append(length).append("}");
+            .append("offset=").append(offset).append(",")
+            .append("length=").append(length).append("}");
 
         return builder.toString();
     }

@@ -19,7 +19,7 @@ public class AppTest {
         String line = null;
         int lineNum = 1;
         int errorCount = 0;
-        while((line = reader.readLine()) != null) {
+        while ((line = reader.readLine()) != null) {
             String fid = line.split(",")[0];
 
             try {
@@ -28,8 +28,8 @@ public class AppTest {
             } catch (Exception e) {
                 System.out.println(lineNum + " : " + fid);
                 errorCount++;
-//                e.printStackTrace();
-//                break;
+                //                e.printStackTrace();
+                //                break;
             } finally {
                 lineNum++;
             }

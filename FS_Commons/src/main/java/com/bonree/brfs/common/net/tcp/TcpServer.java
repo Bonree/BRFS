@@ -37,15 +37,15 @@ public class TcpServer implements LifeCycle {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.group(bossGroup, workerGroup);
         serverBootstrap.channel(NioServerSocketChannel.class);
-        serverBootstrap.option(ChannelOption.SO_BACKLOG, config.getBacklog());//积压数量
-        serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);//保持连接
+        serverBootstrap.option(ChannelOption.SO_BACKLOG, config.getBacklog()); //积压数量
+        serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, true); //保持连接
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, true);
         serverBootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator());
         serverBootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         serverBootstrap.childHandler(channelInitializer);
 
-        InetSocketAddress address = (config.getHost() == null ?
-            new InetSocketAddress(config.getPort()) : new InetSocketAddress(config.getHost(), config.getPort()));
+        InetSocketAddress address = (config.getHost() == null
+            ? new InetSocketAddress(config.getPort()) : new InetSocketAddress(config.getHost(), config.getPort()));
         serverBootstrap.bind(address).sync();
     }
 

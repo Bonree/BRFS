@@ -37,15 +37,15 @@ public class NettyHttpServer implements LifeCycle {
         serverBootstrap.group(bossGroup, workerGroup);
         serverBootstrap.channel(NioServerSocketChannel.class);
         serverBootstrap.childHandler(handlerInitializer);
-        serverBootstrap.option(ChannelOption.SO_BACKLOG, httpConfig.getBacklog());//积压数量
-        serverBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, httpConfig.getConnectTimeoutMillies());//连接超时时间(毫秒)
-        serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, httpConfig.isKeepAlive());//保持连接
+        serverBootstrap.option(ChannelOption.SO_BACKLOG, httpConfig.getBacklog()); //积压数量
+        serverBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, httpConfig.getConnectTimeoutMillies()); //连接超时时间(毫秒)
+        serverBootstrap.childOption(ChannelOption.SO_KEEPALIVE, httpConfig.isKeepAlive()); //保持连接
         serverBootstrap.childOption(ChannelOption.TCP_NODELAY, httpConfig.isTcpNoDelay());
         serverBootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator());
         serverBootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
-        InetSocketAddress address = (httpConfig.getHost() == null ?
-            new InetSocketAddress(httpConfig.getPort()) : new InetSocketAddress(httpConfig.getHost(), httpConfig.getPort()));
+        InetSocketAddress address = (httpConfig.getHost() == null
+            ? new InetSocketAddress(httpConfig.getPort()) : new InetSocketAddress(httpConfig.getHost(), httpConfig.getPort()));
         serverBootstrap.bind(address).sync();
     }
 

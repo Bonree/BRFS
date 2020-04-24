@@ -11,24 +11,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.client;
 
+import com.bonree.brfs.client.utils.ByteBufferInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 
-import com.bonree.brfs.client.utils.ByteBufferInputStream;
-
 public class ByteBufferInputStreamTest {
 
     /**
      * @param args
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public static void main(String[] args) throws IOException {
         ByteBufferInputStream input = new ByteBufferInputStream(ByteBuffer.wrap("123456".getBytes()));
-        
+
         System.out.println(new BufferedReader(new InputStreamReader(input)).readLine());
     }
 

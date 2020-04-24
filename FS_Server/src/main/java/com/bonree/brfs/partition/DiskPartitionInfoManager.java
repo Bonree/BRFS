@@ -1,16 +1,12 @@
 package com.bonree.brfs.partition;
 
 import com.bonree.brfs.common.ZookeeperPaths;
-import com.bonree.brfs.common.lifecycle.LifecycleStart;
-import com.bonree.brfs.common.lifecycle.LifecycleStop;
-import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractPathChildrenCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.PartitionIdsConfigs;
 import com.bonree.brfs.partition.model.PartitionInfo;
 import com.google.inject.Inject;
@@ -50,12 +46,12 @@ public class DiskPartitionInfoManager implements LifeCycle {
     public void start() throws Exception {
         this.childCache = CuratorCacheFactory.getPathCache();
         this.listener = new DiskPartitionInfoListener("disk_partition_cache");
-        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().GetConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().getConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 
     @Override
     public void stop() throws Exception {
-        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().GetConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().getConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
     public PartitionInfo getPartitionInfoByPartitionId(String partitionId) {
         return diskPartitionInfoCache.get(partitionId);

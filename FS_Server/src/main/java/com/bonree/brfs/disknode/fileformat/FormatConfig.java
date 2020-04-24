@@ -18,7 +18,7 @@ import com.bonree.brfs.configuration.units.DataNodeConfigs;
 
 public class FormatConfig {
 
-    private long capacity = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY);
+    private long capacity = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY);
 
     public long getCapacity() {
         return capacity;

@@ -47,11 +47,11 @@ public class MetadataBackupServer implements LifeCycle {
     @LifecycleStart
     @Override
     public void start() throws IOException {
-        String zkHost = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+        String zkHost = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         String zkPath = zkPaths.getBaseClusterName();
-        String metadataPath = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_METADATA_BACKUP_PATH) + "/brfs.metadata";
+        String metadataPath = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_METADATA_BACKUP_PATH) + "/brfs.metadata";
         FileUtils.createFile(metadataPath, true);
-        long backupCycle = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_METADATA_BACKUP_CYCLE) * 60 * 1000;
+        long backupCycle = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_METADATA_BACKUP_CYCLE) * 60 * 1000;
 
         metadataExecutor.scheduleWithFixedDelay(new Runnable() {
             @Override

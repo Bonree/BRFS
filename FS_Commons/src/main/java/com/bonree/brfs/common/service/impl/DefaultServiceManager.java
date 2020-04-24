@@ -53,10 +53,10 @@ public class DefaultServiceManager implements ServiceManager {
         this.threadPools = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE,
                                                         new PooledThreadFactory(DEFAULT_SERVICE_MANAGER_THREADPOOL_NAME));
         this.serviceDiscovery = ServiceDiscoveryBuilder.builder(String.class)
-                                                       .client(client.usingNamespace(paths.getBaseClusterName().substring(1)))
-                                                       .basePath(SERVICE_BASE_PATH)
-                                                       .watchInstances(true)
-                                                       .build();
+            .client(client.usingNamespace(paths.getBaseClusterName().substring(1)))
+            .basePath(SERVICE_BASE_PATH)
+            .watchInstances(true)
+            .build();
     }
 
     @LifecycleStart
@@ -76,10 +76,10 @@ public class DefaultServiceManager implements ServiceManager {
 
     private static ServiceInstance<String> buildFrom(Service service) throws Exception {
         return ServiceInstance.<String>builder().address(service.getHost()).id(service.getServiceId())
-                                                .name(service.getServiceGroup()).port(service.getPort())
-                                                .sslPort(service.getExtraPort())
-                                                .registrationTimeUTC(service.getRegisterTime()).payload(service.getPayload())
-                                                .build();
+            .name(service.getServiceGroup()).port(service.getPort())
+            .sslPort(service.getExtraPort())
+            .registrationTimeUTC(service.getRegisterTime()).payload(service.getPayload())
+            .build();
     }
 
     private static Service buildFrom(ServiceInstance<String> instance) {
@@ -126,7 +126,7 @@ public class DefaultServiceManager implements ServiceManager {
                 serviceCache = serviceCaches.get(serviceGroup);
                 if (serviceCache == null) {
                     serviceCache = serviceDiscovery.serviceCacheBuilder().name(serviceGroup)
-                                                   .executorService(threadPools).build();
+                        .executorService(threadPools).build();
 
                     try {
                         serviceCache.start();

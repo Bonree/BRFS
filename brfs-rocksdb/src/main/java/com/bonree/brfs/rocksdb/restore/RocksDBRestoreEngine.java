@@ -66,9 +66,9 @@ public class RocksDBRestoreEngine implements LifeCycle {
         this.rocksDBManager = rocksDBManager;
         this.regionNodeConnectionPool = regionNodeConnectionPool;
         this.registerTimeManager = new ServiceRegisterTimeManager(serviceManager);
-        restorePath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_RESTORE_PATH);
-        tmpRestorePath = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_RESTORE_TEMPORARY_PATH);
-        transferPort = Configs.getConfiguration().GetConfig(RocksDBConfigs.ROCKSDB_BACKUP_FILE_TRANSFER_PORT);
+        restorePath = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_RESTORE_PATH);
+        tmpRestorePath = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_RESTORE_TEMPORARY_PATH);
+        transferPort = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_BACKUP_FILE_TRANSFER_PORT);
         executor = Executors.newSingleThreadExecutor(new PooledThreadFactory("rocksdb_restore"));
         simpleFileServer = Executors.newSingleThreadExecutor(new PooledThreadFactory("restore_file_server"));
     }
@@ -121,7 +121,7 @@ public class RocksDBRestoreEngine implements LifeCycle {
         @Override
         public void run() {
 
-            RegionNodeConnection connection = this.regionNodeConnectionPool.getConnection(Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME), serviceId);
+            RegionNodeConnection connection = this.regionNodeConnectionPool.getConnection(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME), serviceId);
             if (connection == null || connection.getClient() == null) {
                 LOG.warn("region node connection/client is null! serviceId:{}", this.service.getServiceId());
                 return;

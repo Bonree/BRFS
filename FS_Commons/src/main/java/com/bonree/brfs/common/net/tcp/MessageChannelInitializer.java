@@ -21,7 +21,6 @@ public class MessageChannelInitializer extends ChannelInitializer<SocketChannel>
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        //		pipeline.addLast(new IdleStateHandler(DEFAULT_READ_IDLE_TIMEOUT_SECONDS, 0, 0));
         pipeline.addLast(new MessageResponseEncoder());
         pipeline.addLast(new MessageProtocolDecoder());
         pipeline.addLast(messageDispatcher);

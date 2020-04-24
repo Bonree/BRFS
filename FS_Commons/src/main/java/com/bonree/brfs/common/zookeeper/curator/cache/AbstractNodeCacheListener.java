@@ -4,7 +4,7 @@ import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 
 public abstract class AbstractNodeCacheListener implements NodeCacheListener {
 
-    private final static String DEFAULT_NAME = "default";
+    private static final String DEFAULT_NAME = "default";
 
     private String listenName;
 

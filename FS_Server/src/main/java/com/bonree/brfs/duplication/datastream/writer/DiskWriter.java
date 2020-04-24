@@ -38,7 +38,7 @@ public class DiskWriter implements Closeable {
 	
 	@Inject
 	public DiskWriter(DiskNodeConnectionPool connectionPool, FilePathMaker pathMaker, Deliver deliver) {
-	    this(Configs.getConfiguration().GetConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM),
+	    this(Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM),
 	            connectionPool,
 	            pathMaker,
 	            deliver);

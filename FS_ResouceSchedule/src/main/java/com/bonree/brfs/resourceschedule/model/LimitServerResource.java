@@ -8,16 +8,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LimitServerResource {
-    private double diskRemainRate = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE);
+    private double diskRemainRate = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE);
     private double forceDiskRemainRate =
-        Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE);
-    private double diskWriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED);
-    private double forceWriteValue = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED);
-    private long remainWarnSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_DISK_REMAIN_SIZE);
-    private long remainForceSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE);
-    private int centSize = Configs.getConfiguration().GetConfig(ResourceConfigs.CONFIG_RESOURCE_CENT_SIZE);
-    private long fileSize = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY) / 1024;
-    private String diskGroup = Configs.getConfiguration().GetConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
+        Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_AVAILABLE_RATE);
+    private double diskWriteValue = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_WRITE_SPEED);
+    private double forceWriteValue = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED);
+    private long remainWarnSize = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_LIMIT_DISK_REMAIN_SIZE);
+    private long remainForceSize = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_LIMIT_FORCE_DISK_REMAIN_SIZE);
+    private int centSize = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_RESOURCE_CENT_SIZE);
+    private long fileSize = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_FILE_MAX_CAPACITY) / 1024;
+    private String diskGroup = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME);
 
     public double getForceWriteValue() {
         return forceWriteValue;

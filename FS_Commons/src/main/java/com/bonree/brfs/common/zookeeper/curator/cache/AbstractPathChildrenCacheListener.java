@@ -11,7 +11,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
  * @Description: 主要为了对listen进行命名
  ******************************************************************************/
 public abstract class AbstractPathChildrenCacheListener implements PathChildrenCacheListener {
-    private final static String DEFAULT_NAME = "default";
+    private static final String DEFAULT_NAME = "default";
 
     private String listenName;
 

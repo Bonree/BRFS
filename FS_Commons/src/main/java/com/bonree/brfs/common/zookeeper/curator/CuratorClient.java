@@ -30,13 +30,13 @@ public class CuratorClient implements ZookeeperClient {
 
     private volatile StateListener stateListeners = StateListener.DISCONNECTED;
 
-    private final static RetryPolicy RETRY_POLICY = new RetryNTimes(1, 1000);
+    private static final RetryPolicy RETRY_POLICY = new RetryNTimes(1, 1000);
 
-    private final static int SESSION_TIMEOUT_MS = 300 * 1000;
+    private static final int SESSION_TIMEOUT_MS = 300 * 1000;
 
-    private final static int CONNECTION_TIMEOUT_MS = 300 * 1000;
+    private static final int CONNECTION_TIMEOUT_MS = 300 * 1000;
 
-    private final static String DEFAULT_VALUE = "";
+    private static final String DEFAULT_VALUE = "";
 
     public static CuratorClient wrapClient(CuratorFramework client) {
         return new CuratorClient(client);
@@ -70,8 +70,8 @@ public class CuratorClient implements ZookeeperClient {
     public CuratorClient(String zkHosts, RetryPolicy retry, int sessionTimeoutMs, int connectionTimeoutMs) {
         try {
             CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder().connectString(zkHosts).retryPolicy(retry)
-                                                                             .connectionTimeoutMs(connectionTimeoutMs)
-                                                                             .sessionTimeoutMs(sessionTimeoutMs);
+                .connectionTimeoutMs(connectionTimeoutMs)
+                .sessionTimeoutMs(sessionTimeoutMs);
 
             client = builder.build();
             client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
@@ -178,7 +178,7 @@ public class CuratorClient implements ZookeeperClient {
                 return true;
             }
         } catch (Exception e) {
-
+            // ignore
         }
         return false;
     }
@@ -240,7 +240,7 @@ public class CuratorClient implements ZookeeperClient {
         try {
             if (isRecursion) {
                 return client.create().creatingParentContainersIfNeeded().withProtection()
-                             .withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path, data);
+                    .withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path, data);
             } else {
                 return client.create().withProtection().withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(path, data);
             }

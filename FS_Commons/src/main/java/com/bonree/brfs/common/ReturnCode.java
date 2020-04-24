@@ -7,7 +7,7 @@ public enum ReturnCode {
 
     SUCCESS(2000), // 成功
     STORAGE_EXIST_ERROR(4001), // storage region已经存在
-    STORAGE_NAME_ERROR(40010),// storage region名称非法
+    STORAGE_NAME_ERROR(40010), // storage region名称非法
     STORAGE_REPLICATION_ERROR(40011), // 设置storage region副本错误
     STORAGE_TTL_ERROR(40012), // storage region TTL错误
     STORAGE_NONEXIST_ERROR(4002),   // storage region不存在
@@ -78,19 +78,6 @@ public enum ReturnCode {
         } else if (code.equals(ReturnCode.INVALID_CODE)) {
             throw new BRFSException("invalid code!!!");
         }
-        //		} else if (code.equals(ReturnCode.TIME_FORMATE_ERROR)) {
-        //			throw new BRFSException(storageName +" time formate is error");
-        //		} else if (code.equals(ReturnCode.TIME_EARLIER_THAN_CREATE_ERROR)) {
-        //			throw new BRFSException(storageName + " delete data time earlier than create time error");
-        //		} else if (code.equals(ReturnCode.FORBID_DELETE_CURRENT_ERROR)) {
-        //			throw new BRFSException(storageName + " forbit delete current time data error");
-        //		} else if (code.equals(ReturnCode.PARAMETER_ERROR)) {
-        //			throw new BRFSException(storageName + " parameter error");
-        //		} else if (code.equals(ReturnCode.DELETE_DATA_ERROR)) {
-        //			throw new BRFSException(storageName + " delete data error");
-        //		} else if (code.equals(ReturnCode.FORBID_DELETE_DATA_ERROR)) {
-        //			throw new BRFSException(storageName + "forbid delete data error");
-        //		}
         return code;
     }
 }

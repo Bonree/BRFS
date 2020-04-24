@@ -16,9 +16,9 @@ import org.apache.curator.retry.RetryNTimes;
  ******************************************************************************/
 public class CuratorZookeeperClientTest extends TestCase {
 
-    private final static String zkUrl = "192.168.4.114:2181";
+    private static final String zkUrl = "192.168.4.114:2181";
 
-    private final static RetryPolicy retry = new RetryNTimes(1, 1000);
+    private static final RetryPolicy retry = new RetryNTimes(1, 1000);
 
     private final int sessionTimeoutMs = 5000;
 
@@ -26,116 +26,6 @@ public class CuratorZookeeperClientTest extends TestCase {
 
     private boolean isWaitConnection = true;
 
-    //    public void testGetClientInstance() throws Exception {
-    //        CuratorZookeeperClient client = CuratorZookeeperClient.getClientInstance(zkUrl, retry, sessionTimeoutMs, connectionTimeoutMs, isWaitConnection);
-    //        assertNotNull(client);
-    //        client.close();
-    //    }
-    //
-    //    public void testCurd() throws Exception {
-    //        boolean flag = false;
-    //        CuratorZookeeperClient client = CuratorZookeeperClient.getClientInstance(zkUrl);
-    //
-    //        client.createEphemeral("/brfs/wz/test/createEphemeral", true);
-    //        flag = client.checkExists("/brfs/wz/test/createEphemeral");
-    //        assertEquals(flag, true);
-    //
-    //        client.createPersistent("/brfs/wz/test/createPersistent", true);
-    //        flag = client.checkExists("/brfs/wz/test/createPersistent");
-    //        assertEquals(flag, true);
-    //
-    //        client.guaranteedDelete("/brfs/wz/test/createPersistent", false);
-    //        flag = client.checkExists("/brfs/wz/test/createPersistent");
-    //        assertEquals(flag, false);
-    //
-    //        client.setData("/brfs/wz/test/createEphemeral", "createEphemeral".getBytes());
-    //
-    //        assertEquals("createEphemeral", new String(client.getData("/brfs/wz/test/createEphemeral")));
-    //
-    //        client.close();
-    //    }
-    //
-    //    public void testWatcher() throws Exception {
-    //
-    //        ExecutorService serverThreads = Executors.newFixedThreadPool(10);
-    //        final CuratorZookeeperClient client = CuratorZookeeperClient.getClientInstance(zkUrl);
-    //        if (!client.checkExists("/brfs/wz/servers")) {
-    //            client.createPersistent("/brfs/wz/servers", true);
-    //        }
-    //        MyWatcher watcher = new MyWatcher(client);
-    //        System.out.println(client.watchedGetChildren("/brfs/wz/servers", watcher));
-    //
-    //        for (int i = 0; i < 10; i++) {
-    //            final int count = i;
-    //            serverThreads.execute(new Runnable() {
-    //                //
-    //                @Override
-    //                public void run() {
-    //                    synchronized (client) {
-    //                        client.createEphemeral("/brfs/wz/servers/server" + count, true);
-    //                    }
-    //                }
-    //            });
-    //        }
-    //        serverThreads.shutdown();
-    //        serverThreads.awaitTermination(1, TimeUnit.DAYS);
-    //        client.close();
-    //    }
-    //
-    //    public class MyWatcher implements Watcher {
-    //
-    //        private final CuratorZookeeperClient client;
-    //
-    //        public MyWatcher(CuratorZookeeperClient client) {
-    //
-    //            this.client = client;
-    //        }
-    //
-    //        @Override
-    //        public void process(WatchedEvent event) {
-    //            if (event.getType() == EventType.NodeChildrenChanged) {
-    //                List<String> tmps = client.watchedGetChildren(event.getPath(), this);
-    //                System.out.println(1111);
-    //                System.out.println(tmps);
-    //            }
-    //        }
-    //
-    //    }
-
-    //    public void testCuratorListener() throws Exception {
-    //        final CuratorClient client = CuratorClient.getClientInstance(zkUrl);
-    //        CuratorFramework curatorClient = client.getInnerClient();
-    ////        curatorClient.getChildren().inBackground(new BackgroundCallback() {
-    ////
-    ////            @Override
-    ////            public void processResult(CuratorFramework client, CuratorEvent event) throws Exception {
-    ////                System.out.println("aaaaa" + event.getChildren());
-    ////            }
-    ////        }).forPath("/brfs/wz");
-    //
-    //        curatorClient.getCuratorListenable().addListener(new CuratorListener() {
-    //
-    //            @Override
-    //            public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
-    //                System.out.println("CuratorListener1--" + event.getPath()+"--" + event.getWatchedEvent());
-    //
-    //            }
-    //        });
-    //
-    //        curatorClient.getCuratorListenable().addListener(new CuratorListener() {
-    //
-    //            @Override
-    //            public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
-    //                System.out.println("CuratorListener2--" + event.getPath()+"--" + event.getWatchedEvent());
-    //            }
-    //        });
-    //
-    //        curatorClient.setData().inBackground().forPath("/yupeng/yupeng/yupeng","aaa".getBytes());
-    //
-    //        Thread.sleep(2000);
-    //        client.close();
-    //
-    //    }
     public static void main(String[] args) throws Exception {
 
         //        CuratorClient client = CuratorClient.getClientInstance(zkUrl);
@@ -157,7 +47,7 @@ public class CuratorZookeeperClientTest extends TestCase {
             client.create().creatingParentsIfNeeded().forPath("/aaa");
             client.close();
         } catch (Exception e) {
-
+            // ignore
         }
 
     }

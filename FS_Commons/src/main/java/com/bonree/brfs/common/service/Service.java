@@ -113,12 +113,12 @@ public class Service {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Service[")
-               .append("id=").append(serviceId)
-               .append(",group=").append(serviceGroup)
-               .append(",host=").append(host)
-               .append(",port=").append(port)
-               .append(",extraport=").append(extraPort)
-               .append("]");
+            .append("id=").append(serviceId)
+            .append(",group=").append(serviceGroup)
+            .append(",host=").append(host)
+            .append(",port=").append(port)
+            .append(",extraport=").append(extraPort)
+            .append("]");
 
         return builder.toString();
     }

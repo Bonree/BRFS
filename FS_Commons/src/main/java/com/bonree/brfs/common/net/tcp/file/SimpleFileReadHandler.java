@@ -23,8 +23,8 @@ public class SimpleFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ReadObject readObject) throws Exception {
-        String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0 ?
-            translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
+        String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0
+            ? translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
 
         try {
             File file = new File(filePath);
@@ -37,7 +37,7 @@ public class SimpleFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             if (readOffset < 0 || readOffset > fileLength) {
                 LOG.error("unexcepted file offset : {}", readOffset);
                 ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
-                   .addListener(ChannelFutureListener.CLOSE);
+                    .addListener(ChannelFutureListener.CLOSE);
                 return;
             }
 
@@ -46,11 +46,11 @@ public class SimpleFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
             ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()),
                                                      Ints.toByteArray(readableLength),
                                                      Files.asByteSource(file).slice(readOffset, readableLength).read()))
-               .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+                .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
         } catch (Exception e) {
             LOG.error("read file error", e);
             ctx.writeAndFlush(Unpooled.wrappedBuffer(Ints.toByteArray(readObject.getToken()), Ints.toByteArray(-1)))
-               .addListener(ChannelFutureListener.CLOSE);
+                .addListener(ChannelFutureListener.CLOSE);
             return;
         }
     }

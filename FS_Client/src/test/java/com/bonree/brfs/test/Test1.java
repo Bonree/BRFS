@@ -12,20 +12,20 @@ import com.google.common.cache.LoadingCache;
 public class Test1 {
 
     private static LoadingCache<TimePair, String> timeCache = CacheBuilder.newBuilder()
-                                                                          .maximumSize(1024)
-                                                                          .build(new CacheLoader<TimePair, String>() {
+        .maximumSize(1024)
+        .build(new CacheLoader<TimePair, String>() {
 
-                                                                              @Override
-                                                                              public String load(TimePair pair) throws Exception {
-                                                                                  StringBuilder builder = new StringBuilder();
-                                                                                  builder.append(
-                                                                                      TimeUtils.formatTimeStamp(pair.time()))
-                                                                                         .append('_')
-                                                                                         .append(TimeUtils.formatTimeStamp(
-                                                                                             pair.time() + pair.duration()));
-                                                                                  return builder.toString();
-                                                                              }
-                                                                          });
+            @Override
+            public String load(TimePair pair) throws Exception {
+                StringBuilder builder = new StringBuilder();
+                builder.append(
+                    TimeUtils.formatTimeStamp(pair.time()))
+                    .append('_')
+                    .append(TimeUtils.formatTimeStamp(
+                        pair.time() + pair.duration()));
+                return builder.toString();
+            }
+        });
 
     public static void main(String[] args) throws Exception {
         String fid = "CAAQABgAIiBiM2RkMGYxMmJmMWQ0ZjU1YWVmYWUyYWNkNjMwNzJiNyim57334SwwwM8kOgIyMDoCMjFAAEgd";
@@ -41,11 +41,6 @@ public class Test1 {
                                                        TimeUtils.prevTimeStamp(fidObj.getTime(), fidObj.getDuration()),
                                                        fidObj.getDuration())),
                                                    "sn_br", 1);
-            //        	readObject.setFilePath(FilePathBuilder.buildPath(fidObj,
-            //        			timeCache.get(new TimePair(TimeUtils.prevTimeStamp(fidObj.getTime(), fidObj.getDuration()), fidObj.getDuration())),
-            //        			"sn_br", 1));
-            //        	readObject.setOffset(fidObj.getOffset());
-            //        	readObject.setLength((int) fidObj.getSize());
         }
         System.out.println("take : " + (System.currentTimeMillis() - start));
     }

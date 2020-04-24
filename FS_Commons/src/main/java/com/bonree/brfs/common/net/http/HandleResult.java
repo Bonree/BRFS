@@ -9,7 +9,7 @@ public class HandleResult {
     private boolean success;
     private Throwable cause;
     private byte[] data;
-    private boolean CONTINUE;
+    private boolean toContinue;
     private long nextSeqno;
 
     public HandleResult() {
@@ -20,12 +20,12 @@ public class HandleResult {
         this.success = success;
     }
 
-    public boolean isCONTINUE() {
-        return CONTINUE;
+    public boolean isToContinue() {
+        return toContinue;
     }
 
-    public void setCONTINUE() {
-        this.CONTINUE = true;
+    public void setToContinue() {
+        this.toContinue = true;
     }
 
     public boolean isSuccess() {
