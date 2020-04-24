@@ -1,20 +1,18 @@
 package com.bonree.brfs.delivery;
 
+import com.bonree.bigdata.zeus.delivery.handler.Callback;
+import com.bonree.bigdata.zeus.delivery.handler.Delivery;
+import com.bonree.brfs.common.net.Deliver;
+import com.bonree.brfs.configuration.Configs;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.bonree.bigdata.zeus.delivery.handler.Callback;
-import com.bonree.bigdata.zeus.delivery.handler.Delivery;
-import com.bonree.brfs.common.net.Deliver;
-import com.bonree.brfs.configuration.Configs;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -54,10 +52,10 @@ public class ProducerClient implements Deliver {
     private ProducerClient() {
 
         this.queueSize = //100000;
-                Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_QUEUE_SIZE);
+            Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_QUEUE_SIZE);
         msgQueue = new ArrayBlockingQueue(queueSize);
         this.deliverSwitch = //true;
-                Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_DELIVER_SWITCH);
+            Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_DELIVER_SWITCH);
 
         this.dataSource = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_DATA_SOURCE);
         this.topic = Configs.getConfiguration().GetConfig(KafkaConfig.CONFIG_TOPIC);
@@ -81,7 +79,6 @@ public class ProducerClient implements Deliver {
         }
     }
 
-
     public static Deliver getInstance() {
         return Holder.client;
     }
@@ -93,7 +90,7 @@ public class ProducerClient implements Deliver {
     }
 
     private static class Holder {
-        private final static ProducerClient client = new ProducerClient();
+        private static final ProducerClient client = new ProducerClient();
 
     }
 
@@ -139,9 +136,9 @@ public class ProducerClient implements Deliver {
             try {
                 while (true) {
                     DataTuple dt = msgQueue.poll(1, TimeUnit.SECONDS);
-                    if (null != dt && null != dt._2()) {
+                    if (null != dt && null != dt.getData()) {
                         LOG.debug("fetch data from deliver'queue. data:{}", dt);
-                        delivery.add(dt._1(), dt._2(), new Callback() {
+                        delivery.add(dt.getType(), dt.getData(), new Callback() {
                             @Override
                             public void onSuccess(int i) {
                                 LOG.debug("send deliver success:{}", i);
@@ -180,31 +177,43 @@ public class ProducerClient implements Deliver {
         LOG.info("deliver's kafka param is:{}", props);
 
         delivery =
-                new Delivery.Builder().setMetadataURL(metaUrl)
-                        .setUsername(USER_NAME)
-                        .setToken(TOKEN)
-                        .setDataSource(dataSource)
-                        .setProducerParams(props)
-                        .setTopic(topic)
-                        .setVersion(Delivery.KafkaVersion.VERSION_10).build();
+            new Delivery.Builder().setMetadataURL(metaUrl)
+                                  .setUsername(USER_NAME)
+                                  .setToken(TOKEN)
+                                  .setDataSource(dataSource)
+                                  .setProducerParams(props)
+                                  .setTopic(topic)
+                                  .setVersion(Delivery.KafkaVersion.VERSION_10).build();
         LOG.info("success to build deliver client:{}", toString());
     }
 
     @Override
     public String toString() {
-        return "ProducerClient{" +
-                "tableWriter='" + tableWriter + '\'' +
-                ", tableReader='" + tableReader + '\'' +
-                ", queueSize=" + queueSize +
-                ", deliverSwitch=" + deliverSwitch +
-                ", msgQueue=" + msgQueue +
-                ", sendThread=" + sendThread +
-                ", delivery=" + delivery +
-                ", dataSource='" + dataSource + '\'' +
-                ", topic='" + topic + '\'' +
-                ", metaUrl='" + metaUrl + '\'' +
-                ", brokers='" + brokers + '\'' +
-                '}';
+        return "ProducerClient{"
+            +
+            "tableWriter='" + tableWriter + '\''
+            +
+            ", tableReader='" + tableReader + '\''
+            +
+            ", queueSize=" + queueSize
+            +
+            ", deliverSwitch=" + deliverSwitch
+            +
+            ", msgQueue=" + msgQueue
+            +
+            ", sendThread=" + sendThread
+            +
+            ", delivery=" + delivery
+            +
+            ", dataSource='" + dataSource + '\''
+            +
+            ", topic='" + topic + '\''
+            +
+            ", metaUrl='" + metaUrl + '\''
+            +
+            ", brokers='" + brokers + '\''
+            +
+            '}';
     }
 
     private static class DataTuple {
@@ -217,22 +226,24 @@ public class ProducerClient implements Deliver {
             this.data = data;
         }
 
-        public String _1() {
+        public String getType() {
             return type;
         }
 
-        public Map<String, Object> _2() {
+        public Map<String, Object> getData() {
             return data;
         }
 
         @Override
         public String toString() {
-            return "DataTuple{" +
-                    "type=" + type +
-                    ", data=" + data +
-                    '}';
+            return "DataTuple{"
+                +
+                "type=" + type
+                +
+                ", data=" + data
+                +
+                '}';
         }
     }
-
 
 }
