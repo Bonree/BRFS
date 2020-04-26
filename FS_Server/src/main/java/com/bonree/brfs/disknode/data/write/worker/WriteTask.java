@@ -1,7 +1,8 @@
 package com.bonree.brfs.disknode.data.write.worker;
 
 public abstract class WriteTask<T> implements Runnable {
-    protected void onPreExecute() {}
+    protected void onPreExecute() {
+    }
 
     protected abstract T execute() throws Exception;
 

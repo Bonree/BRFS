@@ -15,10 +15,10 @@ public class SimpleFileClient {
 
     public void sendFile(String ip, int port, String localFilePath, String remoteDir, String fileName) throws Exception {
         String remotePath = remoteDir + FileUtils.FILE_SEPARATOR + fileName;
+        LOG.info("prepare send file, localFilePath:{}, remoteDir:{}, fileName:{}", localFilePath, remoteDir, fileName);
         Socket sock = null;
         FileInputStream fis = null;
         try {
-            LOG.info("send file:" + remotePath);
             File file = new File(localFilePath);
             if (file.isFile()) {
                 sock = new Socket(ip, port); // 指定服务端地址和端口
@@ -27,8 +27,7 @@ public class SimpleFileClient {
                 LOG.info("待发送文件:" + remotePath);
                 sockOut.write(remotePath.getBytes(StandardCharsets.UTF_8));
                 String serverInfo = servInfoBack(sock); // 反馈的信息:服务端是否获取文件名并创建文件成功
-                if (serverInfo.equals("FileSendNow")) {
-                    // 服务端说已经准备接收文件,发吧
+                if (serverInfo.equals("FileSendNow")) {  // 服务端说已经准备接收文件,发吧
                     byte[] bufFile = new byte[1024];
                     int len = 0;
                     while (true) {
@@ -57,8 +56,7 @@ public class SimpleFileClient {
         }
     }
 
-    public String servInfoBack(Socket sock) throws Exception {
-        // 读取服务端的反馈信息
+    public String servInfoBack(Socket sock) throws Exception {  // 读取服务端的反馈信息
         InputStream sockIn = sock.getInputStream(); // 定义socket输入流
         byte[] bufIn = new byte[1024];
         int lenIn = sockIn.read(bufIn);            // 将服务端返回的信息写入bufIn字节缓冲区
@@ -67,20 +65,5 @@ public class SimpleFileClient {
             info = new String(bufIn, 0, lenIn, StandardCharsets.UTF_8);
         }
         return info;
-    }
-
-    public static void main(String[] args) throws Exception {
-        //        for (int i = 0; i < 1000; i++) {
-        //            FileUtils.writeFileFromList("E:/111/"+i, Lists.newArrayList("aaaa"));
-        //        }
-        //        SimpleFileClient client = new SimpleFileClient();
-        //        File dir = new File("E:/111");
-        //        File[] files = dir.listFiles();
-        //        for (int i = 0; i < files.length; i++) {
-        //            client.sendFile("192.168.4.111", 10007, files[i].getAbsolutePath(), "111", files[i].getName());
-        //        }
-
-        // client.sendFile("192.168.4.111", 10007, "d:/apache-maven-3.2.5.rar", "111", "apache-maven-3.2.5.rar");
-
     }
 }

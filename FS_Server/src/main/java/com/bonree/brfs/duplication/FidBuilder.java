@@ -15,13 +15,13 @@ public class FidBuilder {
 
     public static String getFid(FileNode node, long offset, int size) {
         Fid.Builder builder = Fid.newBuilder()
-            .setVersion(0)
-            .setCompress(0)
-            .setStorageNameCode(node.getStorageId())
-            .setTime(node.getCreateTime())
-            .setDuration(node.getTimeDurationMillis())
-            .setOffset(offset)
-            .setSize(size);
+                                 .setVersion(0)
+                                 .setCompress(0)
+                                 .setStorageNameCode(node.getStorageId())
+                                 .setTime(node.getCreateTime())
+                                 .setDuration(node.getTimeDurationMillis())
+                                 .setOffset(offset)
+                                 .setSize(size);
 
         List<String> nameParts = Splitter.on("_").splitToList(node.getName());
         builder.setUuid(nameParts.get(0));
@@ -48,14 +48,14 @@ public class FidBuilder {
             throw new BRFSException("error when build a big file fid!");
         }
         Fid.Builder builder = Fid.newBuilder()
-            .setVersion(oldFidProto.getVersion())
-            .setCompress(oldFidProto.getCompress())
-            .setStorageNameCode(oldFidProto.getStorageNameCode())
-            .setTime(oldFidProto.getTime())
-            .setDuration(oldFidProto.getDuration())
-            .setOffset(oldFidProto.getOffset())
-            .setSize(oldFidProto.getSize())
-            .setIsBigFile(true);
+                                 .setVersion(oldFidProto.getVersion())
+                                 .setCompress(oldFidProto.getCompress())
+                                 .setStorageNameCode(oldFidProto.getStorageNameCode())
+                                 .setTime(oldFidProto.getTime())
+                                 .setDuration(oldFidProto.getDuration())
+                                 .setOffset(oldFidProto.getOffset())
+                                 .setSize(oldFidProto.getSize())
+                                 .setIsBigFile(true);
 
         builder.setUuid(oldFidProto.getUuid());
         for (int i = 0; i < oldFidProto.getServerIdList().size(); i++) {

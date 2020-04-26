@@ -54,6 +54,7 @@ public class DefaultDataEngine implements DataEngine {
     public void store(byte[] data, DataStoreCallback callback) {
         try {
             dataPool.put(new DataObject() {
+                long ctime = System.currentTimeMillis();
 
                 @Override
                 public int length() {
@@ -67,6 +68,7 @@ public class DefaultDataEngine implements DataEngine {
 
                 @Override
                 public void processComplete(String result) {
+                    LOG.info("store the [{}] length data cost [{}]ms", data.length, System.currentTimeMillis() - ctime);
                     callback.dataStored(result);
                 }
             });

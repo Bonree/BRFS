@@ -49,13 +49,14 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
         }
 
         FileNode.Builder fileNodeBuilder = FileNode.newBuilder()
-            .setStorageName(storageRegion.getName())
-            .setStorageId(storageRegion.getId())
-            .setServiceId(service.getServiceId())
-            .setServiceGroup(service.getServiceGroup())
-            .setName(FileNameBuilder.createFile(idManager, storageRegion, nodes))
-            .setDuplicateNodes(nodes)
-            .setTimeDuration(Duration.parse(storageRegion.getFilePartitionDuration()).toMillis());
+                                                   .setStorageName(storageRegion.getName())
+                                                   .setStorageId(storageRegion.getId())
+                                                   .setServiceId(service.getServiceId())
+                                                   .setServiceGroup(service.getServiceGroup())
+                                                   .setName(FileNameBuilder.createFile(idManager, storageRegion, nodes))
+                                                   .setDuplicateNodes(nodes)
+                                                   .setTimeDuration(
+                                                       Duration.parse(storageRegion.getFilePartitionDuration()).toMillis());
 
         long capacity = -1;
         for (DuplicateNode node : nodes) {

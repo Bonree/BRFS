@@ -190,9 +190,9 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
         LOG.info("transfer fileNode[{}] to service[{}]", fileNode.getName(), target.getServiceId());
 
         FileNode newFileNode = FileNode.newBuilder(fileNode)
-            .setServiceId(target.getServiceId())
-            .setServiceTime(target.getRegisterTime())
-            .build();
+                                       .setServiceId(target.getServiceId())
+                                       .setServiceTime(target.getRegisterTime())
+                                       .build();
 
         try {
             fileStorer.update(newFileNode);
@@ -204,7 +204,8 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
         try {
             // 在Sink中放入分配的文件名
             String path = client.create()
-                .forPath(ZkFileCoordinatorPaths.buildSinkFileNodePath(newFileNode), JsonUtils.toJsonBytes(newFileNode));
+                                .forPath(ZkFileCoordinatorPaths.buildSinkFileNodePath(newFileNode),
+                                         JsonUtils.toJsonBytes(newFileNode));
             LOG.info("filenode[{}] add to sink[{}]", newFileNode.getName(), path);
 
             return true;
@@ -272,9 +273,9 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
         //删除服务对应的文件槽
         try {
             client.delete()
-                .quietly()
-                .deletingChildrenIfNeeded()
-                .forPath(ZkFileCoordinatorPaths.buildServiceSinkPath(service));
+                  .quietly()
+                  .deletingChildrenIfNeeded()
+                  .forPath(ZkFileCoordinatorPaths.buildServiceSinkPath(service));
         } catch (Exception e) {
             LOG.warn("Can not delete the sink of crushed service[{}]", service.getServiceId(), e);
         }

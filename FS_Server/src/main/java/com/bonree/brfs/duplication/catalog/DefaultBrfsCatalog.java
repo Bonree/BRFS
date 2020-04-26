@@ -32,30 +32,35 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBrfsCatalog.class);
     private static final String pattern = "^(/+(\\.*[\\w,\\-]+\\.*)+)+$";
     private LoadingCache<PathKey, Boolean> pathCache = CacheBuilder.newBuilder()
-        .concurrencyLevel(Runtime.getRuntime().availableProcessors())
-        .maximumSize(200)
-        .initialCapacity(50)
-        .expireAfterAccess(30, TimeUnit.SECONDS)
-        .build(new CacheLoader<PathKey, Boolean>() {
-            @SuppressWarnings("resource")
-            @ParametersAreNonnullByDefault
-            @Override
-            public Boolean load(PathKey pathKey) {
-                byte[] queryKey = transferToKey(pathKey.getPath());
-                WriteStatus write;
-                try {
-                    write = rocksDBManager.write(pathKey.getSrName(), queryKey, DIR_VALUE, false);
-                } catch (Exception e) {
-                    LOG.error("error when add path[{}] to rocksdb!", pathKey.getPath());
-                    throw new ProcessingException("error when add path");
-                }
-                if (write == WriteStatus.FAILED) {
-                    LOG.error("error when write path[{}] to rocksdb!", pathKey.getPath());
-                    return false;
-                }
-                return true;
-            }
-        });
+                                                                   .concurrencyLevel(Runtime.getRuntime().availableProcessors())
+                                                                   .maximumSize(200)
+                                                                   .initialCapacity(50)
+                                                                   .expireAfterAccess(30, TimeUnit.SECONDS)
+                                                                   .build(new CacheLoader<PathKey, Boolean>() {
+                                                                       @SuppressWarnings("resource")
+                                                                       @ParametersAreNonnullByDefault
+                                                                       @Override
+                                                                       public Boolean load(PathKey pathKey) {
+                                                                           byte[] queryKey = transferToKey(pathKey.getPath());
+                                                                           WriteStatus write;
+                                                                           try {
+                                                                               write = rocksDBManager
+                                                                                   .write(pathKey.getSrName(), queryKey,
+                                                                                          DIR_VALUE, false);
+                                                                           } catch (Exception e) {
+                                                                               LOG.error("error when add path[{}] to rocksdb!",
+                                                                                         pathKey.getPath());
+                                                                               throw new ProcessingException(
+                                                                                   "error when add path");
+                                                                           }
+                                                                           if (write == WriteStatus.FAILED) {
+                                                                               LOG.error("error when write path[{}] to rocksdb!",
+                                                                                         pathKey.getPath());
+                                                                               return false;
+                                                                           }
+                                                                           return true;
+                                                                       }
+                                                                   });
 
     /**
      * 把path转换为可以写入rocksdb的byte数组
@@ -210,7 +215,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         StringBuilder grownPath = new StringBuilder();
         for (String ancesstor : ancesstors) {
             grownPath.append("/")
-                .append(ancesstor);
+                     .append(ancesstor);
             pathCache.get(new PathKey(srName, grownPath.toString()));
         }
     }

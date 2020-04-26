@@ -62,8 +62,8 @@ final class PluginDiscovery {
         }
 
         return listClasses(file.toPath()).stream()
-            .filter(name -> classInterfaces(name, classLoader).contains(BrfsModule.class.getName()))
-            .collect(toImmutableSet());
+                                         .filter(name -> classInterfaces(name, classLoader).contains(BrfsModule.class.getName()))
+                                         .collect(toImmutableSet());
     }
 
     public static void writePluginServices(Iterable<String> plugins, File root) throws IOException {

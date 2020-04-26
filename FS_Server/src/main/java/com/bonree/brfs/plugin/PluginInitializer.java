@@ -54,35 +54,35 @@ public class PluginInitializer {
     private static List<ClassLoader> buildPluginClassLoaderFromDirectory(PluginConfig config) {
         Path pluginRoot = config.getPluginDir();
         return config.getLoadList()
-            .stream()
-            .map(pluginRoot::resolve)
-            .map(Path::toFile)
-            .map(dir -> {
-                log.info("loading plugin from [{}]", dir);
+                     .stream()
+                     .map(pluginRoot::resolve)
+                     .map(Path::toFile)
+                     .map(dir -> {
+                         log.info("loading plugin from [{}]", dir);
 
-                try {
-                    return buildClassLoaderFromDirectory(dir);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            })
-            .collect(toImmutableList());
+                         try {
+                             return buildClassLoaderFromDirectory(dir);
+                         } catch (Exception e) {
+                             throw new RuntimeException(e);
+                         }
+                     })
+                     .collect(toImmutableList());
     }
 
     private static List<ClassLoader> buildPluginClassLoaderFromBundle(PluginConfig config) {
         ArtifactResolver resolver = new ArtifactResolver(config.getMavenLocalRepository(), config.getMavenRemoteRepository());
         return config.getPluginBundles()
-            .stream()
-            .map(plugin -> {
-                log.info("loading plugin from [{}]", plugin);
+                     .stream()
+                     .map(plugin -> {
+                         log.info("loading plugin from [{}]", plugin);
 
-                try {
-                    return buildClassLoader(plugin, resolver);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            })
-            .collect(toImmutableList());
+                         try {
+                             return buildClassLoader(plugin, resolver);
+                         } catch (Exception e) {
+                             throw new RuntimeException(e);
+                         }
+                     })
+                     .collect(toImmutableList());
     }
 
     private static <T> Set<T> loadPluginsFromClassLoader(ClassLoader classLoader, Class<T> serviceCls) {

@@ -142,8 +142,8 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     public void sendSelectEmail(Collection<ResourceModel> resourceModels, int num) {
         StringBuilder messageBuilder = new StringBuilder();
         messageBuilder.append(" 写入可供选择的服务少于需要的!! 可用服务 ")
-            .append(resourceModels.size()).append(", 需要 ")
-            .append(num).append("(文件分布见上下文表格)");
+                      .append(resourceModels.size()).append(", 需要 ")
+                      .append(num).append("(文件分布见上下文表格)");
         Map<String, String> map = new HashMap<>();
         String part;
         String key;
@@ -204,8 +204,8 @@ public class MachineResourceWriterSelector implements ServiceSelector {
             if (sendFlag) {
                 EmailPool emailPool = EmailPool.getInstance();
                 MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo())
-                    .setModel(this.getClass().getSimpleName() + "服务选择")
-                    .setMessage("即将 在 " + key + "(" + ip + ") 服务 写入重复数据");
+                                                       .setModel(this.getClass().getSimpleName() + "服务选择")
+                                                       .setMessage("即将 在 " + key + "(" + ip + ") 服务 写入重复数据");
                 emailPool.sendEmail(builder);
             }
             resourceModels.add(tmp);

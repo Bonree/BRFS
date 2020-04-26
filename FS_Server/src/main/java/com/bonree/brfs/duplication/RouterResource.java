@@ -81,10 +81,10 @@ public class RouterResource {
         }
 
         return serviceManager.getServiceListByGroup(clusterConfig.getDataNodeGroup())
-            .stream()
-            .map(node -> getSecondServerID(node, storageRegion.getId()))
-            .flatMap(List::stream)
-            .collect(toImmutableList());
+                             .stream()
+                             .map(node -> getSecondServerID(node, storageRegion.getId()))
+                             .flatMap(List::stream)
+                             .collect(toImmutableList());
     }
 
     @GET

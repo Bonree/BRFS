@@ -37,6 +37,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -564,9 +565,6 @@ public class TaskDispatcherV2 implements Closeable {
         // 检测是否能进行数据恢复。
         for (DiskPartitionChangeSummary cs : changeSummaries) {
             if (cs.getChangeType().equals(ChangeType.REMOVE)) {
-                //                List<String> aliveFirstIDs = getAliveServices();
-                //                List<String> joinerFirstIDs = cs.getCurrentServers();
-
                 List<String> alivePartitionIds = this.partitionInfoManager.getCurrentPartitionIds();
                 List<String> joinerPartitionIds = cs.getCurrentPartitionIds();
                 LOG.info("alivePartitionIds: {}", alivePartitionIds);
@@ -574,10 +572,10 @@ public class TaskDispatcherV2 implements Closeable {
                 LOG.info("further to filter dead server...");
                 List<String> aliveSecondIDs =
                     alivePartitionIds.stream().map((x) -> idManager.getSecondId(x, cs.getStorageIndex()))
-                        .collect(Collectors.toList());
+                                     .collect(Collectors.toList());
                 List<String> joinerSecondIDs =
                     joinerPartitionIds.stream().map((x) -> idManager.getSecondId(x, cs.getStorageIndex()))
-                        .collect(Collectors.toList());
+                                      .collect(Collectors.toList());
 
                 // 挂掉的机器不能做生存者和参与者，此处进行再次过滤，防止其他情况
                 if (aliveSecondIDs.contains(cs.getChangeServer())) {
@@ -671,24 +669,21 @@ public class TaskDispatcherV2 implements Closeable {
 
                         if (selectIds != null && !selectIds.isEmpty()) {
                             // 需要寻找一个可以恢复的虚拟serverID，此处选择新来的或者没参与过的
-                            String selectID =
-                                selectIds.get(0); // TODO 选择一个可用的server来进行迁移，如果新来的在可迁移里，则选择新来的，若新来的不在可迁移里，可能为挂掉重启。此时选择？
                             // 构建任务需要使用2级serverid
                             String selectSecondID = idManager.getSecondId(changeSummary.getChangePartitionId(), storageIndex);
 
-                            String secondParticipator = null;
+                            Collection<String> secondParticipators = null;
                             List<String> aliveServices = getAliveServices();
 
                             // 选择一个活着的可用的参与者
                             for (String participator : participators) {
                                 if (aliveServices.contains(participator)) {
-                                    secondParticipator =
-                                        idManager.getSecondId(changeSummary.getChangePartitionId(), storageIndex);
+                                    secondParticipators = idManager.getSecondIds(participator, storageIndex);
                                     break;
                                 }
                             }
 
-                            if (secondParticipator == null) {
+                            if (secondParticipators == null || secondParticipators.isEmpty()) {
                                 LOG.error("select participator for virtual recover error!!");
                                 return addFlag;
                             }
@@ -696,7 +691,8 @@ public class TaskDispatcherV2 implements Closeable {
                             // 构造任务
                             BalanceTaskSummaryV2 taskSummary = taskGenerator
                                 .genVirtualTask(changeID, storageIndex, changeSummary.getChangePartitionId(), virtualID,
-                                                selectSecondID, secondParticipator, virtualDelay);
+                                                Lists.newArrayList(selectSecondID), (List<String>) secondParticipators,
+                                                virtualDelay);
                             // 只在任务节点上创建任务，taskOperator会监听，去执行任务
 
                             dispatchTask(taskSummary);
@@ -777,7 +773,7 @@ public class TaskDispatcherV2 implements Closeable {
             if (!runChangeOpt.isPresent()) {
                 LOG.error("rebalance metadata is error: {}", currentTask);
                 MailWorker.newBuilder(EmailPool.getInstance().getProgramInfo())
-                    .setMessage("rebalance metadata is error:" + currentTask);
+                          .setMessage("rebalance metadata is error:" + currentTask);
                 // 尝试修复下
                 LOG.info("fix the metadata!!!");
                 fixTaskMeta(currentTask);
@@ -856,8 +852,7 @@ public class TaskDispatcherV2 implements Closeable {
                                                     break;
                                                 }
                                             }
-                                            if (secondParticipator != null) {
-                                                // 选择成功
+                                            if (secondParticipator != null) { // 选择成功
                                                 // 删除以前的task
                                                 delBalanceTask(currentTask);
                                                 currentTask.setOutputServers(Lists.newArrayList(secondParticipator));
@@ -901,11 +896,10 @@ public class TaskDispatcherV2 implements Closeable {
                             } else { // 不为同一个serverID
                                 // 如果任务暂停，查看回来的是否为曾经的参与者
                                 if (currentTask.getTaskStatus().equals(TaskStatus.PAUSE)) {
-                                    //                                    List<String> aliveFirstIDs = getAliveServices();
                                     List<String> alivePartitionIds = this.partitionInfoManager.getCurrentPartitionIds();
                                     List<String> aliveSecondIDs =
                                         alivePartitionIds.stream().map((x) -> idManager.getSecondId(x, cs.getStorageIndex()))
-                                            .collect(Collectors.toList());
+                                                         .collect(Collectors.toList());
                                     // 参与者和接收者都存活
                                     if (aliveSecondIDs.containsAll(currentTask.getOutputServers())
                                         && aliveSecondIDs.containsAll(currentTask.getInputServers())) {
@@ -925,8 +919,7 @@ public class TaskDispatcherV2 implements Closeable {
                                     updateTaskStatus(currentTask, TaskStatus.PAUSE);
                                 }
                                 break;
-                            } else if (receivers.contains(secondID)) {
-                                // 纯接收者，需要重选
+                            } else if (receivers.contains(secondID)) { // 纯接收者，需要重选
                                 if (!TaskStatus.PAUSE.equals(currentTask.getTaskStatus())) {
                                     updateTaskStatus(currentTask, TaskStatus.PAUSE);
                                 }

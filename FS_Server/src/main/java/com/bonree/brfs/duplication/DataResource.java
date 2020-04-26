@@ -47,6 +47,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
@@ -104,12 +105,12 @@ public class DataResource {
             if (brfsCatalog.isUsable()) {
                 if (!brfsCatalog.validPath(file)) {
                     LOG.warn("file path [{}]is invalid.", file);
-                    throw new BadRequestException("file path [{}]is invalid");
+                    throw new WebApplicationException("file path " + file + "is invalid", HttpStatus.CODE_NOT_AVAILABLE_FILENAME);
                 }
             } else if (!file.equals("")) {
                 String resp = "the rocksDB is not open, can not write with file name";
                 LOG.warn(resp);
-                throw new BadRequestException(resp);
+                throw new WebApplicationException(resp, HttpStatus.CODE_NOT_ALLOW_CUSTOM_FILENAME);
             }
             if (packet.getSeqno() == 1) {
                 LOG.info("file [{}] is allow to write!", packet.getFileName());
@@ -123,6 +124,7 @@ public class DataResource {
                     packet.getData(),
                     new StorageRegionWriteCallback() {
                         long ctime = System.currentTimeMillis();
+
                         @Override
                         public void error() {
                             response.resume(new Exception());
@@ -138,11 +140,11 @@ public class DataResource {
                                     response.resume(new Exception("write fid to rocksDB failed."));
                                     return;
                                 }
-                                LOG.info("response fid:[{}]", fid);
-                                response.resume(Response
-                                                    .ok()
-                                                    .entity(ImmutableList.of(fid)).build());
                             }
+                            LOG.info("response fid:[{}]", fid);
+                            response.resume(Response
+                                                .ok()
+                                                .entity(ImmutableList.of(fid)).build());
 
                         }
 
@@ -209,8 +211,8 @@ public class DataResource {
         StorageRegion storageRegion = storageRegionManager.findStorageRegionByName(srName);
         if (storageRegion == null) {
             return Response.status(Status.BAD_REQUEST)
-                .entity(Strings.format("storage region[%s] is not existed", srName))
-                .build();
+                           .entity(Strings.format("storage region[%s] is not existed", srName))
+                           .build();
         }
 
         long startTimestamp;

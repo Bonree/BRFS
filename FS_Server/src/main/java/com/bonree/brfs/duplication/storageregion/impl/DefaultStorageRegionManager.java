@@ -78,11 +78,11 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         this.zkClient = client.usingNamespace(paths.getBaseClusterName().substring(1));
         this.idBuilder = idBuilder;
         this.storageRegionCache = CacheBuilder.newBuilder()
-            .maximumSize(DEFAULT_MAX_CACHE_SIZE)
-            .expireAfterWrite(10, TimeUnit.SECONDS)
-            .refreshAfterWrite(10, TimeUnit.SECONDS)
-            .removalListener(new StorageRegionRemoveListener())
-            .build(new StorageRegionLoader());
+                                              .maximumSize(DEFAULT_MAX_CACHE_SIZE)
+                                              .expireAfterWrite(10, TimeUnit.SECONDS)
+                                              .refreshAfterWrite(10, TimeUnit.SECONDS)
+                                              .removalListener(new StorageRegionRemoveListener())
+                                              .build(new StorageRegionLoader());
         this.childrenCache = new PathChildrenCache(zkClient,
                                                    ZKPaths.makePath(DEFAULT_PATH_STORAGE_REGION_ROOT,
                                                                     DEFAULT_PATH_STORAGE_REGION_NODES),
@@ -316,9 +316,9 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     @Override
     public List<StorageRegion> getStorageRegionList() {
         return childrenCache.getCurrentData()
-            .stream()
-            .map(c -> getCachedNode(ZKPaths.getNodeFromPath(c.getPath())))
-            .collect(ImmutableList.toImmutableList());
+                            .stream()
+                            .map(c -> getCachedNode(ZKPaths.getNodeFromPath(c.getPath())))
+                            .collect(ImmutableList.toImmutableList());
     }
 
     @Override

@@ -213,9 +213,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
     public boolean deleteFile(String path, boolean force) {
         URIBuilder builder = new URIBuilder();
         builder.setScheme(DEFAULT_SCHEME)
-            .setHost(host)
-            .setPort(port)
-            .setPath(DiskContext.URI_DISK_NODE_ROOT + path);
+               .setHost(host)
+               .setPort(port)
+               .setPath(DiskContext.URI_DISK_NODE_ROOT + path);
 
         if (force) {
             builder.addParameter("force");
@@ -237,9 +237,9 @@ public class HttpDiskNodeClient implements DiskNodeClient {
     public boolean deleteDir(String path, boolean force, boolean recursive) {
         URIBuilder builder = new URIBuilder();
         builder.setScheme(DEFAULT_SCHEME)
-            .setHost(host)
-            .setPort(port)
-            .setPath(DiskContext.URI_DISK_NODE_ROOT + path);
+               .setHost(host)
+               .setPort(port)
+               .setPath(DiskContext.URI_DISK_NODE_ROOT + path);
 
         if (force) {
             builder.addParameter("force");

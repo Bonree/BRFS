@@ -1,6 +1,8 @@
 package com.bonree.brfs.partition;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractPathChildrenCacheListener;
@@ -46,18 +48,24 @@ public class DiskPartitionInfoManager implements LifeCycle {
         this.zkPath = zkPath;
     }
 
+    @LifecycleStart
     @Override
     public void start() throws Exception {
         this.childCache = CuratorCacheFactory.getPathCache();
         this.listener = new DiskPartitionInfoListener("disk_partition_cache");
-        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration()
-            .getConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().getConfig(
+            PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        LOG.info("disk partition info manager start.");
     }
 
+    @LifecycleStop
     @Override
     public void stop() throws Exception {
-        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration()
-            .getConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.removeListener(
+            ZKPaths.makePath(zkPath.getBaseDiscoveryPath(),
+                             Configs.getConfiguration().getConfig(
+                                 PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)),
+            this.listener);
     }
 
     public PartitionInfo getPartitionInfoByPartitionId(String partitionId) {
@@ -117,6 +125,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
                     if (info != null) {
                         diskPartitionInfoCache.put(info.getPartitionId(), info);
                         LOG.info("disk partition info cache added, path:{}, info: {}", event.getData().getPath(), info);
+                        LOG.info("current disk partition ids: {}", diskPartitionInfoCache.keySet());
                     }
                 }
             } else if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_REMOVED)) {
@@ -125,6 +134,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
                     if (diskPartitionInfoCache.containsKey(partitionId)) {
                         diskPartitionInfoCache.remove(partitionId);
                         LOG.info("disk partition info cache removed, path:{}", event.getData().getPath());
+                        LOG.info("current disk partition ids: {}", diskPartitionInfoCache.keySet());
                     }
                 }
             }

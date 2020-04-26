@@ -11,14 +11,14 @@ public class Inode {
     private int nodeType;
 
     @JsonCreator
-    public Inode(@JsonProperty("name")String name,
+    public Inode(@JsonProperty("name") String name,
                  @JsonProperty("fid") String fid,
                  @JsonProperty("nodeType") int nodeType) {
         this.name = name;
         this.fid = fid;
         this.nodeType = nodeType;
     }
-    
+
     @JsonProperty("name")
     public String getName() {
         return name;

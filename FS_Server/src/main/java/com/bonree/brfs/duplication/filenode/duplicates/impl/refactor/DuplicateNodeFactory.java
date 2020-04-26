@@ -52,12 +52,12 @@ public class DuplicateNodeFactory {
         LimitServerResource limitServerResource = new LimitServerResource();
         String rpath = zookeeperPaths.getBaseResourcesPath() + "/" + limitServerResource.getDiskGroup() + "/resource";
         ClusterResource clusterResource = ClusterResource.newBuilder()
-            .setCache(true)
-            .setClient(client)
-            .setListenPath(rpath)
-            .setPool(Executors.newSingleThreadExecutor())
-            .build()
-            .start();
+                                                         .setCache(true)
+                                                         .setClient(client)
+                                                         .setListenPath(rpath)
+                                                         .setPool(Executors.newSingleThreadExecutor())
+                                                         .build()
+                                                         .start();
         MachineResourceWriterSelector serviceSelector =
             new MachineResourceWriterSelector(connectionPool, storer, limitServerResource);
         // 生成备用选择器

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,7 @@ public class VirtualRecoverV2 implements DataRecover {
     private int currentCount = 0;
     private LocalPartitionInterface localPartitionInterface;
     private AtomicReference<TaskStatus> status;
+    private AtomicInteger snDirNonExistNum = new AtomicInteger();
 
     private final BlockingQueue<FileRecoverMetaV2> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
@@ -75,6 +77,7 @@ public class VirtualRecoverV2 implements DataRecover {
         this.idManager = idManager;
         this.serviceManager = serviceManager;
         this.storageName = storageName;
+        this.localPartitionInterface = localPartitionInterface;
         this.fileClient = new SimpleFileClient();
         // 恢复需要对节点进行监听
         nodeCache = CuratorCacheFactory.getNodeCache();
@@ -173,10 +176,11 @@ public class VirtualRecoverV2 implements DataRecover {
         for (LocalPartitionInfo partitionInfo : localPartitionInfos) {
             String partitionPath = partitionInfo.getDataDir();
             String snDataDir = partitionPath + FileUtils.FILE_SEPARATOR + storageName;
+            LOG.info("storage data dir: {}", snDataDir);
 
             if (!FileUtils.isExist(snDataDir)) {
-                finishTask();
-                return;
+                snDirNonExistNum.incrementAndGet();
+                continue;
             }
 
             List<String> replicasNames = FileUtils.listFileNames(snDataDir);
@@ -213,11 +217,13 @@ public class VirtualRecoverV2 implements DataRecover {
                     for (int j = 1; j < metaArr.length; j++) {
                         fileServerIds.add(metaArr[j]);
                     }
+
                     if (fileServerIds.contains(virtualID)) {
                         // 此处位置需要加1，副本数从1开始
                         replicaPot = fileServerIds.indexOf(virtualID) + 1;
-                        FileRecoverMetaV2 fileMeta = new FileRecoverMetaV2(perFile, fileName, storageName, timeFileName, Integer
-                            .parseInt(brfsPath.getIndex()), replicaPot, remoteFirstID, partitionPath);
+                        FileRecoverMetaV2 fileMeta =
+                            new FileRecoverMetaV2(perFile, fileName, remoteSecondId, timeFileName, Integer
+                                .parseInt(brfsPath.getIndex()), replicaPot, remoteFirstID, partitionPath);
                         try {
                             fileRecoverQueue.put(fileMeta);
                         } catch (InterruptedException e) {
@@ -235,6 +241,11 @@ public class VirtualRecoverV2 implements DataRecover {
                 LOG.error("cosumerThread error!", e);
             }
 
+            finishTask();
+        }
+
+        if (snDirNonExistNum.get() == localPartitionInfos.size()) {
+            LOG.info("virtual finish task because of snDirNonExistNum equal localPartitionInfos size");
             finishTask();
         }
     }
@@ -287,8 +298,8 @@ public class VirtualRecoverV2 implements DataRecover {
                             while (true) {
                                 Service service = serviceManager.getServiceById(
                                     Configs.getConfiguration()
-                                        .getConfig(
-                                            CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
+                                           .getConfig(
+                                               CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
                                     firstID);
                                 if (service == null) {
                                     LOG.warn("first id is {}, maybe down!", firstID);
@@ -296,8 +307,11 @@ public class VirtualRecoverV2 implements DataRecover {
                                     continue;
                                 }
 
-                                String partitionIdRecoverFileName =
-                                    balanceSummary.getPartitionId() + ":" + fileRecover.getFileName();
+                                String selectedPartitionId =
+                                    idManager.getPartitionId(fileRecover.getSelectedSecondId(), balanceSummary.getStorageIndex());
+                                String partitionIdRecoverFileName = selectedPartitionId + ":" + fileRecover.getFileName();
+                                LOG.info("localFilePath:{}, remoteDir:{}, partitionIdRecoverFileName:{}", localFilePath,
+                                         remoteDir, partitionIdRecoverFileName);
                                 success = secureCopyTo(service, localFilePath, remoteDir, partitionIdRecoverFileName);
                                 if (success) {
                                     break;

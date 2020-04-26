@@ -22,4 +22,7 @@ public class HttpStatus {
     public static final int CODE_FORBIDDEN = 403;
     public static final int CODE_NOT_FOUND = 404;
     public static final int CODE_CONFLICT = 409;
+
+    public static final int CODE_NOT_ALLOW_CUSTOM_FILENAME = 512;
+    public static final int CODE_NOT_AVAILABLE_FILENAME = 513;
 }
