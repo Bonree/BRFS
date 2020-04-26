@@ -139,11 +139,11 @@ public class DataResource {
                                     response.resume(new Exception("write fid to rocksDB failed."));
                                     return;
                                 }
-                                LOG.info("response fid:[{}]", fid);
-                                response.resume(Response
-                                                    .ok()
-                                                    .entity(ImmutableList.of(fid)).build());
                             }
+                            LOG.info("response fid:[{}]", fid);
+                            response.resume(Response
+                                                .ok()
+                                                .entity(ImmutableList.of(fid)).build());
 
                         }
 
