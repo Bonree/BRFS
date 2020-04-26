@@ -8,6 +8,7 @@ import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.configuration.Configs;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.BackupEngine;
@@ -85,6 +87,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private ColumnFamilyInfoManager columnFamilyInfoManager;
     private Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo;
 
+    private List<Service> serviceCache = new CopyOnWriteArrayList<>();
+
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
                                  StorageRegionManager srManager, RegionNodeConnectionPool regionNodeConnectionPool) {
@@ -132,6 +136,21 @@ public class DefaultRocksDBManager implements RocksDBManager {
     @LifecycleStart
     @Override
     public void start() throws Exception {
+        this.serviceManager.addServiceStateListener(regionGroupName, new ServiceStateListener() {
+            @Override
+            public void serviceAdded(Service service) {
+                if (!serviceCache.contains(service)
+                    && !service.getServiceId().equals(DefaultRocksDBManager.this.service.getServiceId())) {
+                    serviceCache.add(service);
+                }
+            }
+
+            @Override
+            public void serviceRemoved(Service service) {
+                serviceCache.remove(service);
+            }
+        });
+
         this.dbOptions.setCreateIfMissing(true)
                       .setCreateMissingColumnFamilies(true)
                       .setMaxBackgroundFlushes(this.config.getMaxBackgroundFlush())
@@ -202,24 +221,21 @@ public class DefaultRocksDBManager implements RocksDBManager {
         try {
             byte[] result = db.get(this.cfHandles.get(columnFamily), readOptions, key);
             if (result == null) {
-                List<Service> services = serviceManager.getServiceListByGroup(regionGroupName);
                 RegionNodeConnection connection;
                 String queryKey = new String(key);
-                for (Service service : services) {
+                for (Service service : serviceCache) {
                     connection = this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());
                     if (connection == null || connection.getClient() == null) {
                         LOG.warn("region node connection/client is null! serviceId:{}", service.getServiceId());
                         continue;
                     }
 
-                    if (!this.service.getServiceId().equals(service.getServiceId())) {
-                        result = connection.getClient().readData(columnFamily, queryKey);
-                        if (result == null) {
-                            continue;
-                        }
-                        LOG.info("read data from [{}] success, cf:{}, key:{}", service.getServiceId(), columnFamily, queryKey);
-                        return result;
+                    result = connection.getClient().readData(columnFamily, queryKey);
+                    if (result == null) {
+                        continue;
                     }
+                    LOG.info("read data from [{}] success, cf:{}, key:{}", service.getServiceId(), columnFamily, queryKey);
+                    return result;
                 }
             }
             return result;
@@ -312,21 +328,20 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     private void writeToAnotherService(String columnFamily, byte[] key, byte[] value) throws Exception {
-        List<Service> services = serviceManager.getServiceListByGroup(regionGroupName);
-        RegionNodeConnection connection;
+        if (serviceCache.isEmpty()) {
+            return;
+        }
 
+        RegionNodeConnection connection;
         RocksDBDataUnit dataUnit = new RocksDBDataUnit(columnFamily, key, value);
 
-        for (Service service : services) {
+        for (Service service : serviceCache) {
             connection = this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());
             if (connection == null || connection.getClient() == null) {
                 LOG.warn("region node connection/client is null! serviceId:{}", service.getServiceId());
                 continue;
             }
-
-            if (!this.service.getServiceId().equals(service.getServiceId())) {
-                connection.getClient().writeData(dataUnit);
-            }
+            connection.getClient().writeData(dataUnit);
         }
     }
 
