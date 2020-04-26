@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.server;
 
 import com.bonree.brfs.authentication.SimpleAuthenticationModule;
@@ -22,14 +23,13 @@ import com.bonree.brfs.email.EmailModule;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Module;
 import io.airlift.airline.Command;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
 @Command(
-        name = "region",
-        description = "Runs a region node"
+    name = "region",
+    description = "Runs a region node"
 )
 public class RegionNodeCommand extends BaseCommand {
     private static final Logger log = LoggerFactory.getLogger(RegionNodeCommand.class);
@@ -41,11 +41,11 @@ public class RegionNodeCommand extends BaseCommand {
     @Override
     protected List<Module> getModules() {
         return ImmutableList.of(
-                new EmailModule().withNodeType(getNodeType()),
-                new SimpleAuthenticationModule(),
-                new StorageRegionModule(),
-                new RegionNodeModule(),
-                new RegionIDModule());
+            new EmailModule().withNodeType(getNodeType()),
+            new SimpleAuthenticationModule(),
+            new StorageRegionModule(),
+            new RegionNodeModule(),
+            new RegionIDModule());
     }
 
     @Override

@@ -6,20 +6,24 @@ import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
+import com.bonree.brfs.identification.LevelServerIDGen;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.rebalance.route.factory.SingleRouteFactory;
-import com.bonree.brfs.identification.LevelServerIDGen;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.*;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -38,29 +42,32 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     private SecondIdsInterface secondIds;
     private BlockingQueue<RegisterInfo> queue = new LinkedBlockingQueue<>();
     private ExecutorService pool = null;
+
     public SimpleSecondMaintainer(CuratorFramework client, String secondBasePath, String routeBasePath, String secondIdSeqPath) {
         this.client = client;
         this.secondBasePath = secondBasePath;
         this.routeBasePath = routeBasePath;
-        this.secondIdWorker = new SecondServerIDGenImpl(this.client,secondIdSeqPath);
-        this.secondIds = new RetryNTimesSecondIDShip(client,secondBasePath,3,100);
+        this.secondIdWorker = new SecondServerIDGenImpl(this.client, secondIdSeqPath);
+        this.secondIds = new RetryNTimesSecondIDShip(client, secondBasePath, 3, 100);
     }
 
     /**
      * 注册二级serverid，
+     *
      * @param firstServer
      * @param partitionId
      * @param storageId
+     *
      * @return
      */
     @Override
     public String registerSecondId(String firstServer, String partitionId, int storageId) {
-        if(StringUtils.isEmpty(firstServer)){
+        if (StringUtils.isEmpty(firstServer)) {
             return null;
         }
-        String secondId = this.secondIds.getSecondId(partitionId,storageId);
-        if(StringUtils.isEmpty(secondId)){
-            secondId = createSecondId(partitionId,firstServer,storageId);
+        String secondId = this.secondIds.getSecondId(partitionId, storageId);
+        if (StringUtils.isEmpty(secondId)) {
+            secondId = createSecondId(partitionId, firstServer, storageId);
         }
         return secondId;
     }
@@ -71,60 +78,65 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
         try {
             partitionIds = getValidPartitions(firstServer);
         } catch (Exception e) {
-            LOG.error("storage[{}] load firstServer[{}] partitionIds happen error ",storageId,firstServer,e);
+            LOG.error("storage[{}] load firstServer[{}] partitionIds happen error ", storageId, firstServer, e);
         }
-        if(partitionIds == null || partitionIds.isEmpty()){
+        if (partitionIds == null || partitionIds.isEmpty()) {
             return null;
         }
-        return registerSecondIdBatch(partitionIds,firstServer,storageId);
+        return registerSecondIdBatch(partitionIds, firstServer, storageId);
     }
 
-    public Collection<String> registerSecondIdBatch(Collection<String> partitionIds,String firstServer, int storageId){
-        if(partitionIds == null || partitionIds.isEmpty()){
+    public Collection<String> registerSecondIdBatch(Collection<String> partitionIds, String firstServer, int storageId) {
+        if (partitionIds == null || partitionIds.isEmpty()) {
             return null;
         }
         List<String> secondIds = new ArrayList<>();
-        for(String partitionId : partitionIds){
-            String secondId = registerSecondId(firstServer,partitionId,storageId);
+        for (String partitionId : partitionIds) {
+            String secondId = registerSecondId(firstServer, partitionId, storageId);
             secondIds.add(secondId);
         }
         return secondIds;
     }
-    private String createSecondId(String partitionId,String content,int storageId){
+
+    private String createSecondId(String partitionId, String content, int storageId) {
         String secondId = secondIdWorker.genLevelID();
-        addPartitionRelation(content,partitionId);
-        String sPath = ZKPaths.makePath(secondBasePath,partitionId,storageId+"");
+        addPartitionRelation(content, partitionId);
+        String path = ZKPaths.makePath(secondBasePath, partitionId, storageId + "");
         try {
-            if(client.checkExists().forPath(sPath) ==null){
-                client.create().creatingParentsIfNeeded().forPath(sPath,secondId.getBytes(StandardCharsets.UTF_8));
-            }else{
-                client.setData().forPath(sPath,secondId.getBytes(StandardCharsets.UTF_8));
+            if (client.checkExists().forPath(path) == null) {
+                client.create().creatingParentsIfNeeded().forPath(path, secondId.getBytes(StandardCharsets.UTF_8));
+            } else {
+                client.setData().forPath(path, secondId.getBytes(StandardCharsets.UTF_8));
             }
         } catch (Exception ignore) {
+            // ignore
         }
         try {
-            byte[] sdata = client.getData().forPath(sPath);
-            if(sdata == null || sdata.length == 0){
+            byte[] sdata = client.getData().forPath(path);
+            if (sdata == null || sdata.length == 0) {
                 throw new RuntimeException("register secondid fail ! second id is empty !!");
             }
-            String zSecond = new String(sdata,StandardCharsets.UTF_8);
-            if(!secondId.equals(zSecond)){
-                throw new RuntimeException("register secondid fail ! apply secondid:["+secondId+"], zkSecondId:["+zSecond+"]content not same  !!");
+            String zsecond = new String(sdata, StandardCharsets.UTF_8);
+            if (!secondId.equals(zsecond)) {
+                throw new RuntimeException("register secondid fail ! apply secondid:[" + secondId + "], zkSecondId:[" + zsecond
+                                               + "]content not same  !!");
             }
         } catch (Exception e) {
-            throw new RuntimeException("partitionId:["+partitionId+"],storageId:["+storageId+"] register secondid happen error !",e);
+            throw new RuntimeException(
+                "partitionId:[" + partitionId + "],storageId:[" + storageId + "] register secondid happen error !", e);
         }
         return secondId;
     }
+
     @Override
     public boolean unregisterSecondId(String partitionId, int storageId) {
-        String serverId = this.secondIds.getSecondId(partitionId,storageId);
-        if(serverId == null) {
+        String serverId = this.secondIds.getSecondId(partitionId, storageId);
+        if (serverId == null) {
             return true;
         }
         try {
-            String sPath = ZKPaths.makePath(secondBasePath,partitionId,String.valueOf(storageId));
-            client.delete().quietly().forPath(sPath);
+            String path = ZKPaths.makePath(secondBasePath, partitionId, String.valueOf(storageId));
+            client.delete().quietly().forPath(path);
             return true;
         } catch (Exception e) {
             LOG.error("can not delete second server id node", e);
@@ -138,32 +150,31 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
         try {
             partitionIds = getValidPartitions(firstServer);
         } catch (Exception e) {
-            LOG.error("storage[{}] load firstServer[{}] partitionIds happen error ",storageId,firstServer,e);
+            LOG.error("storage[{}] load firstServer[{}] partitionIds happen error ", storageId, firstServer, e);
         }
-        if(partitionIds == null || partitionIds.isEmpty()){
+        if (partitionIds == null || partitionIds.isEmpty()) {
             return true;
         }
-        return unRegisterSecondIdBatch(partitionIds,storageId);
+        return unRegisterSecondIdBatch(partitionIds, storageId);
     }
 
-    public boolean unRegisterSecondIdBatch(Collection<String> localPartitionIds,int storageId){
-        if(localPartitionIds == null || localPartitionIds.isEmpty()){
+    public boolean unRegisterSecondIdBatch(Collection<String> localPartitionIds, int storageId) {
+        if (localPartitionIds == null || localPartitionIds.isEmpty()) {
             return true;
         }
         boolean status = true;
-        for(String partitionId : localPartitionIds){
-            status &=unregisterSecondIds(partitionId,storageId);
+        for (String partitionId : localPartitionIds) {
+            status &= unregisterSecondIds(partitionId, storageId);
         }
         return status;
     }
-
 
     @Override
     public boolean isValidSecondId(String secondId, int storageId) {
         try {
             String normalPath = ZKPaths.makePath(routeBasePath, Constants.NORMAL_ROUTE);
             String siPath = ZKPaths.makePath(normalPath, secondId);
-            if (client.checkExists().forPath(normalPath)!=null && client.checkExists().forPath(siPath)!=null) {
+            if (client.checkExists().forPath(normalPath) != null && client.checkExists().forPath(siPath) != null) {
                 List<String> routeNodes = client.getChildren().forPath(siPath);
                 for (String routeNode : routeNodes) {
                     String routePath = ZKPaths.makePath(siPath, routeNode);
@@ -175,54 +186,57 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                 }
             }
         } catch (Exception e) {
-            LOG.error("check secondId[{}:{}] happen error {}",secondId,storageId,e);
+            LOG.error("check secondId[{}:{}] happen error {}", secondId, storageId, e);
         }
         return false;
     }
 
     @Override
     public void addPartitionRelation(String firstServer, String partitionId) {
-        String pPath = ZKPaths.makePath(secondBasePath,partitionId);
+        String path = ZKPaths.makePath(secondBasePath, partitionId);
         try {
-            if(client.checkExists().forPath(pPath) == null){
-                client.create().creatingParentsIfNeeded().forPath(pPath,firstServer.getBytes(StandardCharsets.UTF_8));
-            }else {
-                LOG.info("partition ship is exists partition id {}({})",partitionId,firstServer);
+            if (client.checkExists().forPath(path) == null) {
+                client.create().creatingParentsIfNeeded().forPath(path, firstServer.getBytes(StandardCharsets.UTF_8));
+            } else {
+                LOG.info("partition ship is exists partition id {}({})", partitionId, firstServer);
             }
         } catch (Exception ignore) {
             LOG.info("add partition relation happen error !ignore it ! message :{} ", ignore.getMessage());
 
         }
         try {
-            byte[] fdata = client.getData().forPath(pPath);
-            if(fdata == null ||fdata.length == 0){
+            byte[] fdata = client.getData().forPath(path);
+            if (fdata == null || fdata.length == 0) {
                 throw new RuntimeException("add partition relationShip fail! first server id is empty !!");
             }
-            String zFirst = new String(fdata,StandardCharsets.UTF_8);
-            if(!firstServer.equals(zFirst)){
-                throw new RuntimeException("add partition relationShip fail ! firstServerId:["+firstServer+"], zk first:["+zFirst+"]content not same  !!");
+            String zfirst = new String(fdata, StandardCharsets.UTF_8);
+            if (!firstServer.equals(zfirst)) {
+                throw new RuntimeException(
+                    "add partition relationShip fail ! firstServerId:[" + firstServer + "], zk first:[" + zfirst
+                        + "]content not same  !!");
             }
         } catch (Exception e) {
-            throw new RuntimeException("add partition relationShip fail !! ["+partitionId+"],firstserver:["+firstServer+"] ",e);
+            throw new RuntimeException(
+                "add partition relationShip fail !! [" + partitionId + "],firstserver:[" + firstServer + "] ", e);
 
         }
     }
 
     @Override
     public void addAllPartitionRelation(Collection<String> partitionIds, String firstServer) {
-        if(partitionIds == null || partitionIds.isEmpty() ||StringUtils.isEmpty(firstServer)){
+        if (partitionIds == null || partitionIds.isEmpty() || StringUtils.isEmpty(firstServer)) {
             return;
         }
-        for(String partitionId : partitionIds){
-            addPartitionRelation(firstServer,partitionId);
+        for (String partitionId : partitionIds) {
+            addPartitionRelation(firstServer, partitionId);
         }
     }
 
     @Override
     public boolean removePartitionRelation(String partitionid) {
         try {
-            String pPath = ZKPaths.makePath(this.secondBasePath,partitionid);
-            client.delete().quietly().forPath(pPath);
+            String path = ZKPaths.makePath(this.secondBasePath, partitionid);
+            client.delete().quietly().forPath(path);
             return true;
         } catch (Exception e) {
             LOG.error("can not delete second server id node", e);
@@ -232,11 +246,11 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
 
     @Override
     public boolean removeAllPartitionRelation(Collection<String> partitionIds) {
-        if(partitionIds == null || partitionIds.isEmpty()){
+        if (partitionIds == null || partitionIds.isEmpty()) {
             return true;
         }
         boolean status = true;
-        for(String partitionId : partitionIds){
+        for (String partitionId : partitionIds) {
             status &= removePartitionRelation(partitionId);
         }
         return status;
@@ -245,42 +259,42 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     private List<String> getValidPartitions(String firstServer) throws Exception {
         List<String> partitions = client.getChildren().forPath(secondBasePath);
         List<String> validPartitions = new ArrayList<>();
-        for(String partition : partitions){
-            String pPath = ZKPaths.makePath(secondBasePath,partition);
-            byte[] data = client.getData().forPath(pPath);
+        for (String partition : partitions) {
+            String path = ZKPaths.makePath(secondBasePath, partition);
+            byte[] data = client.getData().forPath(path);
             // 无效的节点跳过
-            if(data == null || data.length ==0){
-                LOG.warn("secondId find invalid node [{}]",pPath);
+            if (data == null || data.length == 0) {
+                LOG.warn("secondId find invalid node [{}]", path);
                 continue;
             }
             String tmpF = new String(data, StandardCharsets.UTF_8);
-            if(firstServer.equals(tmpF)){
+            if (firstServer.equals(tmpF)) {
                 validPartitions.add(partition);
             }
         }
         return validPartitions;
     }
 
-
     @Override
     public Collection<String> getSecondIds(String serverId, int storageRegionId) {
-        return this.secondIds.getSecondIds(serverId,storageRegionId);
+        return this.secondIds.getSecondIds(serverId, storageRegionId);
     }
 
     @Override
     public String getSecondId(String partitionId, int storageRegionId) {
-        return this.secondIds.getSecondId(partitionId,storageRegionId);
+        return this.secondIds.getSecondId(partitionId, storageRegionId);
     }
 
     @Override
     public String getFirstId(String secondId, int storageRegionId) {
-        return this.secondIds.getFirstId(secondId,storageRegionId);
+        return this.secondIds.getFirstId(secondId, storageRegionId);
     }
 
     @Override
     public String getPartitionId(String secondId, int storageRegionId) {
-        return this.secondIds.getPartitionId(secondId,storageRegionId);
+        return this.secondIds.getPartitionId(secondId, storageRegionId);
     }
+
     @LifecycleStart
     @Override
     public void start() throws Exception {
@@ -293,32 +307,35 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                 do {
                     try {
                         info = queue.take();
-                        Collection<String> secondIds = SimpleSecondMaintainer.this.registerSecondIds(info.getFirstId(), info.getStorageId());
+                        Collection<String> secondIds =
+                            SimpleSecondMaintainer.this.registerSecondIds(info.getFirstId(), info.getStorageId());
                         if (secondIds == null || secondIds.isEmpty()) {
-                            LOG.info("register {} {} fail next 100ms ..",info.firstId,info.storageId);
+                            LOG.info("register {} {} fail next 100ms ..", info.firstId, info.storageId);
                             queue.add(info);
                         }
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
                         LOG.error("repeat register secondId happen error ", e);
                     }
-                } while (info.storageId<0);
+                } while (info.storageId < 0);
                 LOG.info("second id maintain thread shutdown !!");
             }
         });
     }
+
     @LifecycleStop
     @Override
     public void stop() throws Exception {
-        if(pool != null){
-            queue.put(new RegisterInfo("",-1));
+        if (pool != null) {
+            queue.put(new RegisterInfo("", -1));
             pool.shutdownNow();
         }
     }
 
-    private class RegisterInfo{
+    private class RegisterInfo {
         private String firstId;
         private int storageId;
+
         public RegisterInfo(String firstId, int storageId) {
             this.firstId = firstId;
             this.storageId = storageId;

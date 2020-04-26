@@ -1,7 +1,6 @@
-package com.bonree.brfs.rebalanceV2.task.listener;
+package com.bonree.brfs.rebalancev2.task.listener;
 
-
-import com.bonree.brfs.rebalanceV2.task.TaskDispatcherV2;
+import com.bonree.brfs.rebalancev2.task.TaskDispatcherV2;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;

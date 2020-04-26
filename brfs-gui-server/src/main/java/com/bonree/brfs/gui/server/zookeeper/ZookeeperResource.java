@@ -11,12 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.zookeeper;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import java.util.List;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -24,27 +24,27 @@ import javax.ws.rs.Produces;
 
 @Path("/zookeeper")
 public class ZookeeperResource {
-    
+
     private final ZookeeperInfoTaker taker;
-    
+
     public ZookeeperResource(ZookeeperInfoTaker taker) {
         this.taker = taker;
     }
-    
+
     @GET
     @Path("/root")
     @Produces(APPLICATION_JSON)
     public ZookeeperNode rootNode() {
         return taker.rootNode();
     }
-    
+
     @GET
     @Path("/list/{nodePath}")
     @Produces(APPLICATION_JSON)
     public List<ZookeeperNode> list(@PathParam("nodePath") String nodePath) {
         return taker.list(nodePath);
     }
-    
+
     @GET
     @Path("/data/{nodePath}")
     @Produces(APPLICATION_JSON)

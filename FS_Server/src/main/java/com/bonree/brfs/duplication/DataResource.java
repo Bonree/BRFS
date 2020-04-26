@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.duplication;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -66,16 +67,15 @@ public class DataResource {
     private final BlockManager blockManager;
     private final BrfsCatalog brfsCatalog;
 
-
     @Inject
     public DataResource(
-            ClusterConfig clusterConfig,
-            ServiceManager serviceManager,
-            StorageRegionManager storageRegionManager,
-            ZookeeperPaths zkPaths,
-            StorageRegionWriter storageRegionWriter,
-            BlockManager blockManager,
-            BrfsCatalog brfsCatalog) {
+        ClusterConfig clusterConfig,
+        ServiceManager serviceManager,
+        StorageRegionManager storageRegionManager,
+        ZookeeperPaths zkPaths,
+        StorageRegionWriter storageRegionWriter,
+        BlockManager blockManager,
+        BrfsCatalog brfsCatalog) {
         this.clusterConfig = clusterConfig;
         this.serviceManager = serviceManager;
         this.storageRegionManager = storageRegionManager;
@@ -91,9 +91,9 @@ public class DataResource {
     @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
     public void write(
-            @PathParam("srName") String srName,
-            FSPacketProto data,
-            @Suspended AsyncResponse response) {
+        @PathParam("srName") String srName,
+        FSPacketProto data,
+        @Suspended AsyncResponse response) {
         LOG.debug("DONE decode");
 
         try {
@@ -106,10 +106,10 @@ public class DataResource {
                     LOG.warn("file path [{}]is invalid.", file);
                     throw new BadRequestException("file path [{}]is invalid");
                 }
-            }else if (!file.equals("")) {
-                    String resp = "the rocksDB is not open, can not write with file name";
-                    LOG.warn(resp);
-                    throw new BadRequestException(resp);
+            } else if (!file.equals("")) {
+                String resp = "the rocksDB is not open, can not write with file name";
+                LOG.warn(resp);
+                throw new BadRequestException(resp);
             }
             if (packet.getSeqno() == 1) {
                 LOG.info("file [{}] is allow to write!", packet.getFileName());
@@ -119,44 +119,47 @@ public class DataResource {
             if (packet.isATinyFile()) {
                 LOG.debug("writing a tiny file [{}]", packet.getFileName());
                 storageRegionWriter.write(
-                        packet.getStorageName(),
-                        packet.getData(),
-                        new StorageRegionWriteCallback() {
+                    packet.getStorageName(),
+                    packet.getData(),
+                    new StorageRegionWriteCallback() {
+                        long ctime = System.currentTimeMillis();
+                        @Override
+                        public void error() {
+                            response.resume(new Exception());
+                        }
 
-                            @Override
-                            public void error() {
-                                response.resume(new Exception());
-                            }
-
-                            @Override
-                            public void complete(String fid) {
-                                LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
-                                if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
-                                    if (brfsCatalog.writeFid(srName, file, fid)) {
-                                        LOG.error("failed when write fid to rocksDB.");
-                                        response.resume(new Exception("write fid to rocksDB failed."));
-                                        return;
-                                    }
-                                    LOG.info("sync catalog into rocksDB.");
+                        @Override
+                        public void complete(String fid) {
+                            LOG.info("write the tiny data to dn cost [{}]ms", System.currentTimeMillis() - ctime);
+                            LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
+                            if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
+                                if (brfsCatalog.writeFid(srName, file, fid)) {
+                                    LOG.error("failed when write fid to rocksDB.");
+                                    response.resume(new Exception("write fid to rocksDB failed."));
+                                    return;
                                 }
-                                response.resume(ImmutableList.of(fid));
-                                LOG.info("response file :[{}]:fid[{}]", packet.getFileName(), fid);
+                                LOG.info("response fid:[{}]", fid);
+                                response.resume(Response
+                                                    .ok()
+                                                    .entity(ImmutableList.of(fid)).build());
                             }
 
-                            @Override
-                            public void complete(String[] fids) {
-                                response.resume(ImmutableList.of(fids));
-                                LOG.info("response file[{}]:fid[{}]", packet.getFileName(), fids[0]);
-                            }
-                        });
+                        }
+
+                        @Override
+                        public void complete(String[] fids) {
+                            response.resume(ImmutableList.of(fids));
+                            LOG.info("response file[{}]:fid[{}]", packet.getFileName(), fids[0]);
+                        }
+                    });
                 return;
             }
             HandleResultCallback callback = result -> {
                 if (result.isToContinue()) {
                     LOG.debug("response seqno：{}", result.getNextSeqno());
                     response.resume(Response
-                            .status(HttpStatus.CODE_NEXT)
-                            .entity(new NextData(result.getNextSeqno())).build());
+                                        .status(HttpStatus.CODE_NEXT)
+                                        .entity(new NextData(result.getNextSeqno())).build());
                 } else if (result.isSuccess()) {
                     String fid = new String(result.getData());
                     LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
@@ -172,8 +175,8 @@ public class DataResource {
                     }
                     LOG.info("response fid:[{}]", fid);
                     response.resume(Response
-                            .ok()
-                            .entity(ImmutableList.of(new String(result.getData()))).build());
+                                        .ok()
+                                        .entity(ImmutableList.of(new String(result.getData()))).build());
                 } else {
                     LOG.error("response error ");
                     response.resume(result.getCause());
@@ -188,7 +191,7 @@ public class DataResource {
             LOG.debug("append packet[{}] into block", packet);
             //===== 追加数据的到blockManager
             blockManager.appendToBlock(packet, callback);
-        }catch (BadRequestException e){
+        } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
             LOG.error("handle write data message error", e);
@@ -196,17 +199,18 @@ public class DataResource {
         }
 
     }
+
     @DELETE
     @Path("{srName}")
     public Response deleteData(
-            @PathParam("srName") String srName,
-            @QueryParam("startTime") String startTime,
-            @QueryParam("endTime") String endTime) {
+        @PathParam("srName") String srName,
+        @QueryParam("startTime") String startTime,
+        @QueryParam("endTime") String endTime) {
         StorageRegion storageRegion = storageRegionManager.findStorageRegionByName(srName);
-        if(storageRegion == null) {
+        if (storageRegion == null) {
             return Response.status(Status.BAD_REQUEST)
-                    .entity(Strings.format("storage region[%s] is not existed", srName))
-                    .build();
+                .entity(Strings.format("storage region[%s] is not existed", srName))
+                .build();
         }
 
         long startTimestamp;
@@ -214,46 +218,49 @@ public class DataResource {
         try {
             startTimestamp = DateTime.parse(startTime).getMillis();
             endTimeStamp = DateTime.parse(endTime).getMillis();
-            checkTime(startTimestamp, endTimeStamp, storageRegion.getCreateTime(), Duration.parse(storageRegion.getFilePartitionDuration()).toMillis());
+            checkTime(startTimestamp, endTimeStamp,
+                      storageRegion.getCreateTime(),
+                      Duration.parse(storageRegion.getFilePartitionDuration()).toMillis());
         } catch (Exception e) {
             LOG.error("check time error", e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
 
         List<Service> serviceList = serviceManager.getServiceListByGroup(clusterConfig.getDataNodeGroup());
-        ReturnCode code = TasksUtils.createUserDeleteTask(serviceList, zkPaths, storageRegion, startTimestamp, endTimeStamp, false);
-        if(ReturnCode.SUCCESS.equals(code)) {
+        ReturnCode code =
+            TasksUtils.createUserDeleteTask(serviceList, zkPaths, storageRegion, startTimestamp, endTimeStamp, false);
+        if (ReturnCode.SUCCESS.equals(code)) {
             return Response.ok().build();
         }
 
         return Response.status(Status.BAD_REQUEST).entity(code.name()).build();
     }
 
-    private void checkTime(long start, long end, long cTime, long granule){
+    private void checkTime(long start, long end, long ctime, long granule) {
         if (start != (start - start % granule) || end != (end - end % granule)) {
             throw new IllegalArgumentException(Strings.format(
-                    "starttime and endTime granule is not match !!! startTime: [{}], endTime:[{}], granue:[{}]",
-                    start, end, granule));
+                "starttime and endTime granule is not match !!! startTime: [{}], endTime:[{}], granue:[{}]",
+                start, end, granule));
         }
 
         long currentTime = System.currentTimeMillis();
         long cuGra = currentTime - currentTime % granule;
-        long sGra;
-        long eGra;
-        sGra = start;
-        eGra = end;
+        long sgra;
+        long egra;
+        sgra = start;
+        egra = end;
         // 2.开始时间等于结束世界
-        if (sGra >= eGra) {
+        if (sgra >= egra) {
             throw new IllegalArgumentException("param error: start time is equal to end time");
         }
 
         // 3.结束时间小于创建时间
-        if (cTime > eGra) {
+        if (ctime > egra) {
             throw new IllegalArgumentException("time earlier than create error");
         }
 
         // 4.当前时间
-        if (cuGra <= sGra || cuGra < eGra) {
+        if (cuGra <= sgra || cuGra < egra) {
             throw new IllegalArgumentException("forbid delete current error");
         }
     }

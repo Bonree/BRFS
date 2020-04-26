@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalanceV2.task;
+package com.bonree.brfs.rebalancev2.task;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.ServiceManager;
@@ -14,18 +14,17 @@ import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.rebalanceV2.recover.MultiRecoverV2;
-import com.bonree.brfs.rebalanceV2.recover.VirtualRecoverV2;
-import com.bonree.brfs.rebalanceV2.task.listener.TaskExecutorListenerV2;
-import org.apache.curator.utils.ZKPaths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.bonree.brfs.rebalancev2.recover.MultiRecoverV2;
+import com.bonree.brfs.rebalancev2.recover.VirtualRecoverV2;
+import com.bonree.brfs.rebalancev2.task.listener.TaskExecutorListenerV2;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.apache.curator.utils.ZKPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -37,7 +36,7 @@ import java.util.concurrent.Executors;
  ******************************************************************************/
 public class TaskOperationV2 implements Closeable {
 
-    private final static Logger LOG = LoggerFactory.getLogger(TaskOperationV2.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskOperationV2.class);
 
     private CuratorClient client;
     private IDSManager idManager;
@@ -49,7 +48,9 @@ public class TaskOperationV2 implements Closeable {
     private LocalPartitionInterface partitionInterface;
     private ExecutorService es = Executors.newFixedThreadPool(10, new PooledThreadFactory("task_executor"));
 
-    public TaskOperationV2(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, IDSManager idManager, StorageRegionManager snManager, ServiceManager serviceManager, LocalPartitionInterface partitionInterface) {
+    public TaskOperationV2(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, IDSManager idManager,
+                           StorageRegionManager snManager, ServiceManager serviceManager,
+                           LocalPartitionInterface partitionInterface) {
         this.client = client;
         this.idManager = idManager;
         this.tasksPath = ZKPaths.makePath(baseBalancePath, Constants.TASKS_NODE);
@@ -78,7 +79,9 @@ public class TaskOperationV2 implements Closeable {
                     return;
                 }
                 String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
-                recover = new MultiRecoverV2(partitionInterface, taskSummary, idManager, serviceManager, taskPath, client, storageName, baseRoutesPath);
+                recover =
+                    new MultiRecoverV2(partitionInterface, taskSummary, idManager, serviceManager, taskPath, client, storageName,
+                                       baseRoutesPath);
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
                 StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
                 if (node == null) {
@@ -86,7 +89,8 @@ public class TaskOperationV2 implements Closeable {
                     return;
                 }
                 String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
-                recover = new VirtualRecoverV2(client, taskSummary, taskPath, storageName, idManager, serviceManager, partitionInterface);
+                recover = new VirtualRecoverV2(client, taskSummary, taskPath, storageName, idManager, serviceManager,
+                                               partitionInterface);
             }
 
             updateTaskStatus(taskSummary, TaskStatus.RUNNING);
@@ -104,6 +108,7 @@ public class TaskOperationV2 implements Closeable {
      * 概述：生成一个具有延时的任务
      *
      * @param recover
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     private void launchTask(final DataRecover recover) {

@@ -11,8 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.plugin;
 
+import com.google.common.collect.Iterators;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -20,25 +22,22 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-import com.google.common.collect.Iterators;
-
 public class PluginClassLoader extends URLClassLoader {
-    
+
     private final ClassLoader brfsLoader;
 
     public PluginClassLoader(List<URL> urls, ClassLoader brfsLoader) {
         this(urls.toArray(new URL[urls.size()]), brfsLoader);
     }
-    
+
     public PluginClassLoader(URL[] urls, ClassLoader brfsLoader) {
         super(urls, null);
         this.brfsLoader = brfsLoader;
     }
-    
+
     @Override
-    public Class<?> loadClass(final String name) throws ClassNotFoundException
-    {
-      return loadClass(name, false);
+    public Class<?> loadClass(final String name) throws ClassNotFoundException {
+        return loadClass(name, false);
     }
 
     @Override
@@ -46,8 +45,8 @@ public class PluginClassLoader extends URLClassLoader {
         synchronized (getClassLoadingLock(name)) {
             // First, check if the class has already been loaded
             Class<?> c = findLoadedClass(name);
-            
-            if(c == null) {
+
+            if (c == null) {
                 try {
                     // first find class from plugin class loader
                     c = findClass(name);
@@ -57,34 +56,32 @@ public class PluginClassLoader extends URLClassLoader {
                     return brfsLoader.loadClass(name);
                 }
             }
-            
-            if(resolve) {
+
+            if (resolve) {
                 resolveClass(c);
             }
-            
+
             return c;
         }
     }
-    
-    @Override
-    public URL getResource(final String name)
-    {
-      final URL resourceFromExtension = super.getResource(name);
 
-      if (resourceFromExtension != null) {
-        return resourceFromExtension;
-      } else {
-        return brfsLoader.getResource(name);
-      }
+    @Override
+    public URL getResource(final String name) {
+        final URL resourceFromExtension = super.getResource(name);
+
+        if (resourceFromExtension != null) {
+            return resourceFromExtension;
+        } else {
+            return brfsLoader.getResource(name);
+        }
     }
 
     @Override
-    public Enumeration<URL> getResources(final String name) throws IOException
-    {
-      final List<URL> urls = new ArrayList<>();
-      Iterators.addAll(urls, Iterators.forEnumeration(super.getResources(name)));
-      Iterators.addAll(urls, Iterators.forEnumeration(brfsLoader.getResources(name)));
-      return Iterators.asEnumeration(urls.iterator());
+    public Enumeration<URL> getResources(final String name) throws IOException {
+        final List<URL> urls = new ArrayList<>();
+        Iterators.addAll(urls, Iterators.forEnumeration(super.getResources(name)));
+        Iterators.addAll(urls, Iterators.forEnumeration(brfsLoader.getResources(name)));
+        return Iterators.asEnumeration(urls.iterator());
     }
-    
+
 }

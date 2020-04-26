@@ -11,7 +11,9 @@ package com.bonree.brfs.duplication.filenode.duplicates;
 public interface PartitionNodeSelector {
     /**
      * 根据一级serverid获取磁盘id
+     *
      * @param firstId
+     *
      * @return
      */
     String getPartitionId(String firstId);

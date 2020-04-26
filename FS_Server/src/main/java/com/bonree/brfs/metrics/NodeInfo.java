@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -21,11 +22,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class NodeInfo {
     private final String hostName;
     private final HardWareInfo hardWare;
-    
+
     @JsonCreator
     public NodeInfo(
-            @JsonProperty("hostName") String hostName,
-            @JsonProperty("hardWare") HardWareInfo hardWare) {
+        @JsonProperty("hostName") String hostName,
+        @JsonProperty("hardWare") HardWareInfo hardWare) {
         this.hostName = hostName;
         this.hardWare = hardWare;
     }
@@ -39,12 +40,12 @@ public class NodeInfo {
     public HardWareInfo getHardWare() {
         return hardWare;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("hostName", hostName)
-                .add("hardWare", hardWare)
-                .toString();
+            .add("hostName", hostName)
+            .add("hardWare", hardWare)
+            .toString();
     }
 }

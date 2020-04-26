@@ -1,34 +1,32 @@
 package com.bonree.brfs.authentication.impl;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.utils.ZKPaths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.authentication.UserOperation;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.JsonUtils.JsonException;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年3月19日 上午11:25:10
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 操作User，如添加，删除，更改
  ******************************************************************************/
 public class ZookeeperUserOperation implements UserOperation {
 
-    private final static Logger LOG = LoggerFactory.getLogger(ZookeeperUserOperation.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperUserOperation.class);
 
-    private final static String ROOT_USER = "root";
+    private static final String ROOT_USER = "root";
 
     private CuratorClient curatorClient;
 
@@ -41,17 +39,17 @@ public class ZookeeperUserOperation implements UserOperation {
 
     @Override
     public void createUser(UserModel user) {
-    	try {
-    		 	String userNode = ZKPaths.makePath(basePath, user.getUserName());
-    	        String jsonStr = JsonUtils.toJsonString(user);
-    	        if (!curatorClient.checkExists(userNode)) {
-    	            curatorClient.createPersistent(userNode, false, jsonStr.getBytes(StandardCharsets.UTF_8));
-    	        } else {
-    	            LOG.warn("the user:" + user.getUserName() + " is exist!");
-    	        }
-		} catch (Exception e) {
-			LOG.error("createUser", e);
-		}
+        try {
+            String userNode = ZKPaths.makePath(basePath, user.getUserName());
+            String jsonStr = JsonUtils.toJsonString(user);
+            if (!curatorClient.checkExists(userNode)) {
+                curatorClient.createPersistent(userNode, false, jsonStr.getBytes(StandardCharsets.UTF_8));
+            } else {
+                LOG.warn("the user:" + user.getUserName() + " is exist!");
+            }
+        } catch (Exception e) {
+            LOG.error("createUser", e);
+        }
     }
 
     @Override
@@ -60,19 +58,19 @@ public class ZookeeperUserOperation implements UserOperation {
             LOG.warn("can not delete: " + ROOT_USER);
             return;
         }
-        String userNode =ZKPaths.makePath(basePath, userName);
+        String userNode = ZKPaths.makePath(basePath, userName);
         curatorClient.delete(userNode, false);
     }
 
     @Override
     public void updateUser(UserModel user) {
-    	try {
-    		String userNode = ZKPaths.makePath(basePath, user.getUserName());
+        try {
+            String userNode = ZKPaths.makePath(basePath, user.getUserName());
             String jsonStr = JsonUtils.toJsonString(user);
             curatorClient.setData(userNode, jsonStr.getBytes(StandardCharsets.UTF_8));
-		} catch (Exception e) {
-			LOG.error("updateUser", e);
-		}
+        } catch (Exception e) {
+            LOG.error("updateUser", e);
+        }
     }
 
     @Override
@@ -82,11 +80,11 @@ public class ZookeeperUserOperation implements UserOperation {
             return null;
         }
         String jsonStr = new String(curatorClient.getData(userNode), StandardCharsets.UTF_8);
-		try {
-			return JsonUtils.toObject(jsonStr, UserModel.class);
-		} catch (JsonException e) {
-			e.printStackTrace();
-		}
+        try {
+            return JsonUtils.toObject(jsonStr, UserModel.class);
+        } catch (JsonException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

@@ -1,9 +1,5 @@
 package com.bonree.brfs.server;
 
-import java.util.Scanner;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ZookeeperPaths;
@@ -11,6 +7,8 @@ import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
+import java.util.Scanner;
+import org.apache.commons.lang3.StringUtils;
 
 public class InitServer {
 
@@ -18,7 +16,8 @@ public class InitServer {
         try {
             String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
             CuratorClient client = CuratorClient.getClientInstance(zkAddresses);
-            ZookeeperPaths zookeeperPaths = ZookeeperPaths.create(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_CLUSTER_NAME), client.getInnerClient());
+            ZookeeperPaths zookeeperPaths = ZookeeperPaths
+                .create(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_CLUSTER_NAME), client.getInnerClient());
             CuratorCacheFactory.init(client.getInnerClient());
             String passwd = null;
             Scanner sc = new Scanner(System.in);
@@ -28,17 +27,18 @@ public class InitServer {
                 passwd = sc.nextLine();
                 if (StringUtils.isEmpty(passwd)) {
                     System.out.println("password is empty!!");
-                }else if(passwd.length()<5) {
+                } else if (passwd.length() < 5) {
                     System.out.println("password less 5 size!!");
-                }else {
+                } else {
                     System.out.println("password setup successfully!!");
                     break;
                 }
             }
-            
-            SimpleAuthentication authentication = SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseLocksPath(), client.getInnerClient());
+
+            SimpleAuthentication authentication =
+                SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseLocksPath(), client.getInnerClient());
             authentication.init(zookeeperPaths.getBaseUserPath());
-            UserModel user = new UserModel("root", passwd, (byte)0);
+            UserModel user = new UserModel("root", passwd, (byte) 0);
             authentication.createUser(user);
             System.out.println("init server successfully!!");
             sc.close();

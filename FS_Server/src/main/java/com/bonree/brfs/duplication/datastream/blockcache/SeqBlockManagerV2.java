@@ -43,7 +43,8 @@ public class SeqBlockManagerV2 implements BlockManager {
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
 
-    private ConcurrentHashMap<BlockKey,BlockValue> blockcache = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<BlockKey, BlockValue> blockcache = new ConcurrentHashMap<>();
+
     @Inject
     public SeqBlockManagerV2(BlockPool blockPool, StorageRegionWriter writer) {
         this.fileWaiting = new LinkedBlockingQueue();
@@ -66,8 +67,8 @@ public class SeqBlockManagerV2 implements BlockManager {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        LOG.info("waiting pool size is [{}]",fileWaiting.size());
-        LOG.info("storage [{}] : file[{}] waiting for write.",packet.getStorageName(),packet.getFileName());
+        LOG.info("waiting pool size is [{}]", fileWaiting.size());
+        LOG.info("storage [{}] : file[{}] waiting for write.", packet.getStorageName(), packet.getFileName());
     }
 
     @Override
@@ -76,61 +77,61 @@ public class SeqBlockManagerV2 implements BlockManager {
         String fileName = packet.getFileName();
         String writeID = packet.getWriteID();
         // file waiting for write
-        if(packet.isTheFirstPacketInFile()){
-            LOG.info("After processor : storage [{}] : file[{}] waiting for write.",storage,fileName);
+        if (packet.isTheFirstPacketInFile()) {
+            LOG.info("After processor : storage [{}] : file[{}] waiting for write.", storage, fileName);
         }
-        LOG.debug("writing the file [{}]",fileName);
+        LOG.debug("writing the file [{}]", fileName);
         try {
             BlockValue blockValue = blockcache.get(new BlockKey(packet.getStorageName(), packet.getWriteID()));
-            if(blockValue == null){
+            if (blockValue == null) {
                 HandleResult result = new HandleResult();
                 result.setSuccess(false);
                 result.setCause(new Exception("error when append block into block,cause by long time no write"));
-                LOG.error("can not get block value of file[{}] in blockcache",fileName);
+                LOG.error("can not get block value of file[{}] in blockcache", fileName);
                 callback.completed(result);
                 return null;
             }
-            if(packet.getData().length + blockValue.getBlockPos()>blockSize){
+            if (packet.getData().length + blockValue.getBlockPos() > blockSize) {
                 HandleResult result = new HandleResult();
                 result.setSuccess(false);
                 result.setCause(new Exception("error when append block into block,cause error packet size"));
-                LOG.error("error when append block into block,cause error packet size[{}]",packet.getData().length);
+                LOG.error("error when append block into block,cause error packet size[{}]", packet.getData().length);
                 callback.completed(result);
                 return null;
             }
             boolean needflush = blockValue.appendPacket(packet.getData());
             //flush a file
-            if(packet.isLastPacketInFile()){
-                if(packet.getBlockOffsetInFile(blockSize)==0){
-                    writer.write(storage,blockValue.getRealData(),
-                            new WriteFileCallback(callback, fileName, false));
-                    LOG.info("flushing a small file[{}] into the data pool",fileName);
+            if (packet.isLastPacketInFile()) {
+                if (packet.getBlockOffsetInFile(blockSize) == 0) {
+                    writer.write(storage, blockValue.getRealData(),
+                                 new WriteFileCallback(callback, fileName, false));
+                    LOG.info("flushing a small file[{}] into the data pool", fileName);
                     blockValue.releaseData();
-                    blockcache.remove(new BlockKey(storage,writeID));
-                }else {
+                    blockcache.remove(new BlockKey(storage, writeID));
+                } else {
                     // we should flush the last block to get its fid
-                    writer.write(storage,blockValue.getRealData(),
-                            new WriteBlockCallback(callback,packet,true));
-                    LOG.info("flushing the last block of file [{}] into the data pool ",fileName);
+                    writer.write(storage, blockValue.getRealData(),
+                                 new WriteBlockCallback(callback, packet, true));
+                    LOG.info("flushing the last block of file [{}] into the data pool ", fileName);
                     blockValue.releaseData();
                 }
                 return null;
             }
-            if(needflush){//flush a block
+            if (needflush) { //flush a block
                 writer.write(storage, blockValue.getRealData(),
-                        new WriteBlockCallback(callback, packet, packet.isLastPacketInFile()));
-                LOG.info("flush a block of file[{}] into data pool ",fileName);
+                             new WriteBlockCallback(callback, packet, packet.isLastPacketInFile()));
+                LOG.info("flush a block of file[{}] into data pool ", fileName);
                 blockValue.reset();
                 return null;
             }
-            if(packet.isTheFirstPacketInFile()){
-                LOG.info("response for the next packet of this file :seqno [{}]",packet.getSeqno());
+            if (packet.isTheFirstPacketInFile()) {
+                LOG.info("response for the next packet of this file :seqno [{}]", packet.getSeqno());
             }
-            if(packet.isLastPacketInFile()){
-                LOG.info("the last packet of file [{}] has arrived",fileName);
+            if (packet.isLastPacketInFile()) {
+                LOG.info("the last packet of file [{}] has arrived", fileName);
             }
             HandleResult handleResult = new HandleResult();
-            LOG.debug("packet[{}] append to block and still not flushed。",packet);
+            LOG.debug("packet[{}] append to block and still not flushed。", packet);
             handleResult.setNextSeqno(packet.getSeqno());
             handleResult.setToContinue();
             callback.completed(handleResult);
@@ -147,12 +148,12 @@ public class SeqBlockManagerV2 implements BlockManager {
         return null;
     }
 
-
     @Override
     public long getBlockSize() {
         return 0;
     }
-    static class BlockKey{
+
+    static class BlockKey {
         private int storageID;
         private String writeID;
 
@@ -163,11 +164,15 @@ public class SeqBlockManagerV2 implements BlockManager {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             BlockKey blockKey = (BlockKey) o;
-            return storageID == blockKey.storageID &&
-                    writeID.equals(blockKey.writeID);
+            return storageID == blockKey.storageID
+                && writeID.equals(blockKey.writeID);
         }
 
         @Override
@@ -175,7 +180,8 @@ public class SeqBlockManagerV2 implements BlockManager {
             return Objects.hash(storageID, writeID);
         }
     }
-    class BlockValue{
+
+    class BlockValue {
         private Block data;
         private List<String> fids = new ArrayList<>();
         private int storage;
@@ -195,33 +201,39 @@ public class SeqBlockManagerV2 implements BlockManager {
             timer.schedule(fooTimerTask, clearTimeOut, clearTimeOut);
         }
 
-        public byte[] getRealData(){
+        public byte[] getRealData() {
             return data.getRealData();
         }
-        public int getBlockPos(){
+
+        public int getBlockPos() {
             return data.getDataOffsetInBlock();
         }
-        public boolean appendPacket(byte[] pData){
-            data.appendPacket(pData);
+
+        public boolean appendPacket(byte[] pdata) {
+            data.appendPacket(pdata);
             accessTime = System.currentTimeMillis();
             return data.isBlockSpill();
         }
-        boolean isPutBack(){
-            return data ==null;
+
+        boolean isPutBack() {
+            return data == null;
         }
+
         public byte[] writeFile(String fileName) {
             StringBuilder sb = new StringBuilder();
             for (String fid : fids) {
                 sb.append(fid).append("\n");
             }
             accessTime = System.currentTimeMillis();
-            LOG.info("file[{}] : fids :\n[{}]",fileName,sb);
+            LOG.info("file[{}] : fids :\n[{}]", fileName, sb);
             return sb.toString().getBytes();
         }
-        public void reset(){
+
+        public void reset() {
             data.reset();
         }
-        public void releaseData(){
+
+        public void releaseData() {
             LOCK.lock();
             data.reset();
             blockPool.putbackBlocks(data);
@@ -229,8 +241,9 @@ public class SeqBlockManagerV2 implements BlockManager {
             allowWrite.signal();
             data = null;
             LOCK.unlock();
-            LOG.info("decrement fileWritingCount , now its size is [{}]",fileWritingCount.get());
+            LOG.info("decrement fileWritingCount , now its size is [{}]", fileWritingCount.get());
         }
+
         public void addFid(String fid) {
             fids.add(fid);
             accessTime = System.currentTimeMillis();
@@ -238,17 +251,21 @@ public class SeqBlockManagerV2 implements BlockManager {
 
         class ClearTimerTask extends TimerTask {
             long timeout;
+
             public ClearTimerTask(long timeout) {
                 this.timeout = timeout;
             }
+
             @Override
             public void run() {
-                if(System.currentTimeMillis()-accessTime> timeout){
-                    LOG.info("clear a file [{}] out of blockcache.",file);
+                if (System.currentTimeMillis() - accessTime > timeout) {
+                    LOG.info("clear a file [{}] out of blockcache.", file);
                     // 3. clear file on heap
-                    if(!isPutBack())releaseData();
+                    if (!isPutBack()) {
+                        releaseData();
+                    }
                     BlockValue remove = blockcache.remove(new BlockKey(storage, writeID));
-                    if(remove == null ){
+                    if (remove == null) {
                         cancel();
                     }
 
@@ -256,6 +273,7 @@ public class SeqBlockManagerV2 implements BlockManager {
             }
         }
     }
+
     private class WriteBlockCallback implements StorageRegionWriteCallback {
         private HandleResultCallback callback;
         private int storageName;
@@ -271,9 +289,8 @@ public class SeqBlockManagerV2 implements BlockManager {
          * 2. 是最后一个block
          * 上面两种情况都触发一个对blockcache的写fid操作
          * 并将阶段性结果返回给客户端
-         *
          */
-        public WriteBlockCallback(HandleResultCallback callback, FSPacket packet,boolean isFileFinished) {
+        public WriteBlockCallback(HandleResultCallback callback, FSPacket packet, boolean isFileFinished) {
             this.callback = callback;
             this.storageName = packet.getStorageName();
             this.fileName = packet.getFileName();
@@ -295,13 +312,13 @@ public class SeqBlockManagerV2 implements BlockManager {
         @Override
         public void complete(String fid) {
             HandleResult result = new HandleResult();
-            if("".equals(fid)|| fid == null){
-                BlockValue blockValue = blockcache.remove(new BlockKey(storageName,writeID));
-                if(blockValue != null && fileWritingCount.get()>0){
+            if ("".equals(fid) || fid == null) {
+                BlockValue blockValue = blockcache.remove(new BlockKey(storageName, writeID));
+                if (blockValue != null && fileWritingCount.get() > 0) {
                     blockValue.releaseData();
                 }
                 result.setSuccess(false);
-                LOG.error("dataengine return a null fid of "+isFileFinished+" file :[{}] on flush a block stage",fileName);
+                LOG.error("dataengine return a null fid of " + isFileFinished + " file :[{}] on flush a block stage", fileName);
                 result.setCause(new BRFSException("flush file or block error"));
                 callback.completed(result);
                 return;
@@ -309,30 +326,28 @@ public class SeqBlockManagerV2 implements BlockManager {
             // 1. blockcache中填写fid
             try {
                 BlockValue blockValue = blockcache.get(new BlockKey(storageName, writeID));
-                if(blockValue == null){
+                if (blockValue == null) {
                     result.setSuccess(false);
-                    LOG.error("flush file or block error,cause there is no [{}] in blockcache",fileName);
+                    LOG.error("flush file or block error,cause there is no [{}] in blockcache", fileName);
                     result.setCause(new BRFSException("flush file or block error,cause there is no element in blockcache"));
                     callback.completed(result);
                     return;
                 }
                 blockValue.addFid(fid);
-                if(!isFileFinished){
-                    String response = "seqno:" + seqno +
-                            " filename:" + fileName +
-                            " storageName:" + storageName +
-                            " done flush";
+                if (!isFileFinished) {
+                    String response = "seqno:" + seqno
+                        + " filename:" + fileName
+                        + " storageName:" + storageName
+                        + " done flush";
                     // DONE flush a block
                     result.setToContinue();
                     result.setNextSeqno(seqno);
                     callback.completed(result);
                     LOG.info(response);
-                }else{
+                } else {
                     byte[] data = blockValue.writeFile(fileName);
-                    writer.write(storageName,data,
+                    writer.write(storageName, data,
                             new WriteFileCallback(callback, fileName, true));
-//                    blockValue.releaseData();
-
                     LOG.info("flushing a big file in [{}],the filename is [{}]", storageName, fileName);
                 }
 
@@ -348,21 +363,23 @@ public class SeqBlockManagerV2 implements BlockManager {
 
         @Override
         public void error() {
-            LOG.error("file[{}]seqno:" + seqno +
-                    " blockOffsetInfile：" + blockOffsetInfile +
-                    " flush error！", fileName);
-            BlockValue blockValue = blockcache.remove(new BlockKey(storageName,writeID));
-            if(blockValue != null && fileWritingCount.get()>0){
+            LOG.error("file[{}]seqno:" + seqno
+                          + " blockOffsetInfile：" + blockOffsetInfile
+                          + " flush error！", fileName);
+            BlockValue blockValue = blockcache.remove(new BlockKey(storageName, writeID));
+            if (blockValue != null && fileWritingCount.get() > 0) {
                 blockValue.releaseData();
             }
             callback.completed(new HandleResult(false));
         }
     }
+
     private static class WriteFileCallback implements StorageRegionWriteCallback {
 
         private HandleResultCallback callback;
         private String fileName;
         private boolean isBigFile;
+
         public WriteFileCallback(HandleResultCallback callback, String file, boolean b) {
             this.callback = callback;
             this.fileName = file;
@@ -380,19 +397,19 @@ public class SeqBlockManagerV2 implements BlockManager {
 
         @Override
         public void complete(String fid) {
-            LOG.info("prepare response a fid [{}]!",fid);
+            LOG.info("prepare response a fid [{}]!", fid);
             HandleResult result = new HandleResult();
-            if("".equals(fid)|| fid == null){
+            if ("".equals(fid) || fid == null) {
                 result.setSuccess(false);
-                LOG.error("dataengine return a null fid of  :[{}] on flush a file stage",fileName);
+                LOG.error("dataengine return a null fid of  :[{}] on flush a file stage", fileName);
                 result.setCause(new BRFSException("flush file or block error"));
                 callback.completed(result);
                 return;
             }
             try {
                 Preconditions.checkNotNull(fid);
-                if(isBigFile){
-                   fid =  FidBuilder.setFileType(fid);
+                if (isBigFile) {
+                    fid = FidBuilder.setFileType(fid);
                 }
                 LOG.debug("flushed a file,fid[{}]", fid);
                 Preconditions.checkNotNull(fid);
@@ -417,24 +434,25 @@ public class SeqBlockManagerV2 implements BlockManager {
     private class FileProcessor implements Runnable {
         @Override
         public void run() {
-            if(!runningState.compareAndSet(false, true)) {
-                LOG.error("can not execute write file worker again, because it's started!", new IllegalStateException("Write file worker has been started!"));
+            if (!runningState.compareAndSet(false, true)) {
+                LOG.error("can not execute write file worker again, because it's started!",
+                          new IllegalStateException("Write file worker has been started!"));
                 return;
             }
             LOG.info("start process waiting request!");
             WriteRequest unhandledRequest;
 
-            while(true) {
+            while (true) {
                 LOCK.lock();
-                if(quit && fileWaiting.isEmpty()) {
+                if (quit && fileWaiting.isEmpty()) {
                     break;
                 }
 
-                if(fileWritingCount.get() < blockPoolSize && fileWaiting.peek() != null){
+                if (fileWritingCount.get() < blockPoolSize && fileWaiting.peek() != null) {
                     try {
                         unhandledRequest = fileWaiting.take();
-                        LOG.info("Processor : the waiting request size is [{}]",fileWritingCount.get());
-                        if(unhandledRequest.ifRequestIsTimeOut()){
+                        LOG.info("Processor : the waiting request size is [{}]", fileWritingCount.get());
+                        if (unhandledRequest.ifRequestIsTimeOut()) {
                             LOG.info("abandon a file write request because of Time out");
                             HandleResult result = new HandleResult();
                             result.setSuccess(false);
@@ -442,12 +460,15 @@ public class SeqBlockManagerV2 implements BlockManager {
                             unhandledRequest.getHandleResultCallback().completed(result);
                             continue;
                         }
-                        BlockKey blockKey = new BlockKey(unhandledRequest.getFsPacket().getStorageName(),unhandledRequest.getFsPacket().getWriteID());
+                        BlockKey blockKey = new BlockKey(unhandledRequest.getFsPacket().getStorageName(),
+                                                         unhandledRequest.getFsPacket().getWriteID());
                         Block block = blockPool.getBlock();
-                        blockcache.put(blockKey,new BlockValue(block,unhandledRequest.getFsPacket().getStorageName(),unhandledRequest.getFsPacket().getFileName(),unhandledRequest.getFsPacket().getWriteID()));
-                        LOG.info("Processor : writing file [{}]",unhandledRequest.getFsPacket().getFileName());
+                        blockcache.put(blockKey, new BlockValue(block, unhandledRequest.getFsPacket().getStorageName(),
+                                                                unhandledRequest.getFsPacket().getFileName(),
+                                                                unhandledRequest.getFsPacket().getWriteID()));
+                        LOG.info("Processor : writing file [{}]", unhandledRequest.getFsPacket().getFileName());
                         appendToBlock(unhandledRequest.getFsPacket(), unhandledRequest.getHandleResultCallback());
-                        if(fileWritingCount.incrementAndGet() >= blockPoolSize){
+                        if (fileWritingCount.incrementAndGet() >= blockPoolSize) {
                             allowWrite.await();
                         }
                     } catch (InterruptedException e) {
@@ -463,14 +484,15 @@ public class SeqBlockManagerV2 implements BlockManager {
         }
 
     }
+
     private class WatcherProcessor implements Runnable {
         @Override
         public void run() {
 
             while (!quit || !fileWaiting.isEmpty()) {
-                LOG.info("Watcher : enqueue file count is [{}]" +
-                             "file writing count is [{}]" +
-                             "file in blockcache is [{}]",
+                LOG.info("Watcher : enqueue file count is [{}]"
+                             + "file writing count is [{}]"
+                             + "file in blockcache is [{}]",
                          fileWaiting.size(),
                          fileWritingCount.get(),
                          blockcache.size());

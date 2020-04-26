@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.duplication.storageregion;
 
 import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
@@ -30,12 +31,12 @@ public class StorageRegionModule implements Module {
     @Override
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "storage", StorageRegionConfig.class);
-        
+
         binder.bind(StorageRegionManager.class).to(DefaultStorageRegionManager.class);
         binder.bind(StorageRegionIdBuilder.class).to(ZkStorageRegionIdBuilder.class).in(Scopes.SINGLETON);
-        
+
         binder.requestStaticInjection(StorageRegionProperties.class);
-        
+
         jaxrs(binder).resource(StorageRegionResource.class);
         jaxrs(binder).resource(StorageRegionExistedExceptionMapper.class);
         jaxrs(binder).resource(StorageRegionNonexistentExceptionMapper.class);

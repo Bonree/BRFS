@@ -2,7 +2,6 @@ package com.bonree.brfs.partition;
 
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,29 +15,29 @@ import java.util.concurrent.ConcurrentHashMap;
  ******************************************************************************/
 
 public class LocalPartitionCache implements LocalPartitionListener, LocalPartitionInterface {
-    Map<String,LocalPartitionInfo> idToLocal = new ConcurrentHashMap<>();
-    Map<String,String> pathToId = new ConcurrentHashMap<>();
+    Map<String, LocalPartitionInfo> idToLocal = new ConcurrentHashMap<>();
+    Map<String, String> pathToId = new ConcurrentHashMap<>();
 
     public LocalPartitionCache(Collection<LocalPartitionInfo> idToLocal) {
-        for(LocalPartitionInfo part : idToLocal){
+        for (LocalPartitionInfo part : idToLocal) {
             add(part);
         }
     }
 
     @Override
     public void remove(LocalPartitionInfo partitionInfo) {
-        if(idToLocal.containsKey(partitionInfo.getPartitionId())){
+        if (idToLocal.containsKey(partitionInfo.getPartitionId())) {
             idToLocal.remove(partitionInfo.getPartitionId());
         }
-        if(pathToId.containsKey(partitionInfo.getDataDir())){
+        if (pathToId.containsKey(partitionInfo.getDataDir())) {
             pathToId.remove(partitionInfo.getDataDir());
         }
     }
 
     @Override
     public void add(LocalPartitionInfo partitionInfo) {
-        idToLocal.put(partitionInfo.getPartitionId(),partitionInfo);
-        pathToId.put(partitionInfo.getDataDir(),partitionInfo.getPartitionId());
+        idToLocal.put(partitionInfo.getPartitionId(), partitionInfo);
+        pathToId.put(partitionInfo.getDataDir(), partitionInfo.getPartitionId());
     }
 
     @Override

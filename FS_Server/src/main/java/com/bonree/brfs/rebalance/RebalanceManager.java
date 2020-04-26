@@ -1,15 +1,5 @@
 package com.bonree.brfs.rebalance;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
@@ -24,9 +14,16 @@ import com.bonree.brfs.rebalance.task.TaskDispatcher;
 import com.bonree.brfs.rebalance.task.TaskOperation;
 import com.bonree.brfs.rebalance.transfer.SimpleFileServer;
 import com.bonree.brfs.server.identification.ServerIDManager;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RebalanceManager implements Closeable {
-    private final static Logger LOG = LoggerFactory.getLogger(RebalanceManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RebalanceManager.class);
 
     private TaskDispatcher dispatch = null;
     private TaskOperation opt = null;
@@ -35,20 +32,21 @@ public class RebalanceManager implements Closeable {
     private CuratorClient curatorClient = null;
 
     @Inject
-    public RebalanceManager(ZookeeperPaths zkPaths, ServerIDManager idManager, StorageRegionManager snManager, ServiceManager serviceManager) {
-    	String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
+    public RebalanceManager(ZookeeperPaths zkPaths, ServerIDManager idManager, StorageRegionManager snManager,
+                            ServiceManager serviceManager) {
+        String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         curatorClient = CuratorClient.getClientInstance(zkAddresses, 500, 500);
         dispatch = new TaskDispatcher(curatorClient, zkPaths.getBaseRebalancePath(),
-        		zkPaths.getBaseRoutePath(), idManager,
-        		serviceManager, snManager,
-        		Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
-        		Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY));
-        
+                                      zkPaths.getBaseRoutePath(), idManager,
+                                      serviceManager, snManager,
+                                      Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
+                                      Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY));
+
         String dataPath = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_DATA_ROOT);
         opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager,
-        		dataPath, snManager, serviceManager);
-        
-		int port = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT);
+                                dataPath, snManager, serviceManager);
+
+        int port = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT);
         try {
             fileServer = new SimpleFileServer(port + 20, dataPath, 10);
         } catch (IOException e) {
@@ -75,14 +73,14 @@ public class RebalanceManager implements Closeable {
     @LifecycleStop
     @Override
     public void close() throws IOException {
-    	simpleFileServer.shutdown();
+        simpleFileServer.shutdown();
 
         if (dispatch != null) {
-        	dispatch.close();
+            dispatch.close();
         }
 
         if (opt != null) {
-        	opt.close();
+            opt.close();
         }
 
         if (fileServer != null) {

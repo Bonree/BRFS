@@ -1,9 +1,8 @@
-package com.bonree.brfs.rebalanceV2.task;
+package com.bonree.brfs.rebalancev2.task;
 
 import com.bonree.brfs.rebalance.task.ChangeType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
-
 import java.util.List;
 
 /*******************************************************************************
@@ -65,7 +64,8 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         return currentPartitionIds;
     }
 
-    public DiskPartitionChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer, String changePartitionId, List<String> currentServers, List<String> currentPartitionIds) {
+    public DiskPartitionChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer,
+                                      String changePartitionId, List<String> currentServers, List<String> currentPartitionIds) {
         this.storageIndex = storageIndex;
         this.changeID = createTime;
         this.changeType = changeType;
@@ -104,13 +104,13 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
-                .add("changeID", changeID)
-                .add("storageIndex", storageIndex)
-                .add("changeType", changeType)
-                .add("changeServer", changeServer)
-                .add("changePartitionId", changePartitionId)
-                .add("currentServers", currentServers)
-                .add("currentPartitionIds", currentPartitionIds)
-                .toString();
+            .add("changeID", changeID)
+            .add("storageIndex", storageIndex)
+            .add("changeType", changeType)
+            .add("changeServer", changeServer)
+            .add("changePartitionId", changePartitionId)
+            .add("currentServers", currentServers)
+            .add("currentPartitionIds", currentPartitionIds)
+            .toString();
     }
 }

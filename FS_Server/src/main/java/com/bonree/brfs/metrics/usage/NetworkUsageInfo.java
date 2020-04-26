@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics.usage;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -21,11 +22,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class NetworkUsageInfo {
     private final long sendBytesPerSecond;
     private final long receiveBytesPerSecond;
-    
+
     @JsonCreator
     public NetworkUsageInfo(
-            @JsonProperty("TXBytesPS") long sendBytesPerSecond,
-            @JsonProperty("RXBytesPS") long receiveBytesPerSecond) {
+        @JsonProperty("TXBytesPS") long sendBytesPerSecond,
+        @JsonProperty("RXBytesPS") long receiveBytesPerSecond) {
         this.sendBytesPerSecond = sendBytesPerSecond;
         this.receiveBytesPerSecond = receiveBytesPerSecond;
     }
@@ -39,12 +40,12 @@ public class NetworkUsageInfo {
     public long getReceiveBytesPerSecond() {
         return receiveBytesPerSecond;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("sendBytesPerSecond", sendBytesPerSecond)
-                .add("receiveBytesPerSecond", receiveBytesPerSecond)
-                .toString();
+            .add("sendBytesPerSecond", sendBytesPerSecond)
+            .add("receiveBytesPerSecond", receiveBytesPerSecond)
+            .toString();
     }
 }

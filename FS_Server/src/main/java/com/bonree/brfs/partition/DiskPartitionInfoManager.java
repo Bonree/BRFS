@@ -10,15 +10,19 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.PartitionIdsConfigs;
 import com.bonree.brfs.partition.model.PartitionInfo;
 import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -46,13 +50,16 @@ public class DiskPartitionInfoManager implements LifeCycle {
     public void start() throws Exception {
         this.childCache = CuratorCacheFactory.getPathCache();
         this.listener = new DiskPartitionInfoListener("disk_partition_cache");
-        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().getConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration()
+            .getConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 
     @Override
     public void stop() throws Exception {
-        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().getConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration()
+            .getConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
+
     public PartitionInfo getPartitionInfoByPartitionId(String partitionId) {
         return diskPartitionInfoCache.get(partitionId);
     }

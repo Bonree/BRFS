@@ -2,6 +2,10 @@
   "changeID": "1",
   "storageIndex": 0,
   "secondID": 10,
-  "newSecondIDs": [11,12,13],
+  "newSecondIDs": [
+    11,
+    12,
+    13
+  ],
   "version": "V1"
 }

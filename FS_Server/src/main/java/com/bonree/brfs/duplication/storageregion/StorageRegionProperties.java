@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.duplication.storageregion;
 
 import static com.bonree.brfs.client.storageregion.StorageRegionPropertyNames.PROP_DATATTL;
@@ -20,13 +21,11 @@ import static com.bonree.brfs.client.storageregion.StorageRegionPropertyNames.PR
 import static com.bonree.brfs.client.storageregion.StorageRegionPropertyNames.PROP_REPLICATE_NUM;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-import java.util.Optional;
-import java.util.Properties;
-
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
+import java.util.Properties;
+import javax.inject.Inject;
 
 public class StorageRegionProperties {
     private final boolean enable;
@@ -34,30 +33,30 @@ public class StorageRegionProperties {
     private final String dataTtl;
     private final long fileCapacity;
     private final String filePartitionDuration;
-    
+
     private static StorageRegionConfig defaultConfig;
-    
+
     @Inject
     public static void setDefaultConfig(StorageRegionConfig config) {
         defaultConfig = config;
     }
-    
+
     public static StorageRegionProperties withDefault() {
         return new StorageRegionProperties(
-                true,
-                defaultConfig.getReplicateNum(),
-                defaultConfig.getTtl(),
-                defaultConfig.getFileCapacity(),
-                defaultConfig.getPartitionDuration());
+            true,
+            defaultConfig.getReplicateNum(),
+            defaultConfig.getTtl(),
+            defaultConfig.getFileCapacity(),
+            defaultConfig.getPartitionDuration());
     }
 
     @JsonCreator
     public StorageRegionProperties(
-            @JsonProperty("enable") boolean enable,
-            @JsonProperty("replicate_num") int replicateNum,
-            @JsonProperty("data_ttl") String dataTtl,
-            @JsonProperty("file_capacity") long fileCapacity,
-            @JsonProperty("patition_duration") String filePartitionDuration) {
+        @JsonProperty("enable") boolean enable,
+        @JsonProperty("replicate_num") int replicateNum,
+        @JsonProperty("data_ttl") String dataTtl,
+        @JsonProperty("file_capacity") long fileCapacity,
+        @JsonProperty("patition_duration") String filePartitionDuration) {
         this.enable = enable;
         this.replicateNum = replicateNum;
         this.dataTtl = dataTtl;
@@ -89,24 +88,24 @@ public class StorageRegionProperties {
     public String getFilePartitionDuration() {
         return filePartitionDuration;
     }
-    
+
     public StorageRegionProperties override(Properties props) {
         return new StorageRegionProperties(
-                Optional.ofNullable(props.getProperty(PROP_ENABLED)).map(Boolean::parseBoolean).orElse(enable),
-                Optional.ofNullable(props.getProperty(PROP_REPLICATE_NUM)).map(Integer::parseInt).orElse(replicateNum),
-                props.getProperty(PROP_DATATTL, dataTtl),
-                Optional.ofNullable(props.getProperty(PROP_FILE_CAPACITY)).map(Long::parseLong).orElse(fileCapacity),
-                props.getProperty(PROP_FILE_PARTITION, filePartitionDuration));
+            Optional.ofNullable(props.getProperty(PROP_ENABLED)).map(Boolean::parseBoolean).orElse(enable),
+            Optional.ofNullable(props.getProperty(PROP_REPLICATE_NUM)).map(Integer::parseInt).orElse(replicateNum),
+            props.getProperty(PROP_DATATTL, dataTtl),
+            Optional.ofNullable(props.getProperty(PROP_FILE_CAPACITY)).map(Long::parseLong).orElse(fileCapacity),
+            props.getProperty(PROP_FILE_PARTITION, filePartitionDuration));
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("enable", enable)
-                .add("replicateNum", replicateNum)
-                .add("dataTtl", dataTtl)
-                .add("fileCapacity", fileCapacity)
-                .add("filePartitionDuration", filePartitionDuration)
-                .toString();
+            .add("enable", enable)
+            .add("replicateNum", replicateNum)
+            .add("dataTtl", dataTtl)
+            .add("fileCapacity", fileCapacity)
+            .add("filePartitionDuration", filePartitionDuration)
+            .toString();
     }
 }

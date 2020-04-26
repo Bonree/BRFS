@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics.usage;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -21,11 +22,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MemUsageInfo {
     private final long totalUsedBytes;
     private final long swapUsedBytes;
-    
+
     @JsonCreator
     public MemUsageInfo(
-            @JsonProperty("totalUsedBytes") long totalUsedBytes,
-            @JsonProperty("swapUsedBytes") long swapUsedBytes) {
+        @JsonProperty("totalUsedBytes") long totalUsedBytes,
+        @JsonProperty("swapUsedBytes") long swapUsedBytes) {
         this.totalUsedBytes = totalUsedBytes;
         this.swapUsedBytes = swapUsedBytes;
     }
@@ -39,12 +40,12 @@ public class MemUsageInfo {
     public long getSwapUsedBytes() {
         return swapUsedBytes;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("totalUsedBytes", totalUsedBytes)
-                .add("swapUsedBytes", swapUsedBytes)
-                .toString();
+            .add("totalUsedBytes", totalUsedBytes)
+            .add("swapUsedBytes", swapUsedBytes)
+            .toString();
     }
 }

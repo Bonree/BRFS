@@ -174,7 +174,7 @@ class NettyResponseWriter implements ContainerResponseWriter {
     @Override
     public void failure(Throwable error) {
         ctx.writeAndFlush(new DefaultFullHttpResponse(req.protocolVersion(), HttpResponseStatus.INTERNAL_SERVER_ERROR))
-           .addListener(ChannelFutureListener.CLOSE);
+            .addListener(ChannelFutureListener.CLOSE);
     }
 
     @Override

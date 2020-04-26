@@ -11,23 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.server;
-
-import java.util.List;
-
-import com.bonree.brfs.disknode.TaskModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.bonree.brfs.authentication.SimpleAuthenticationModule;
 import com.bonree.brfs.common.plugin.NodeType;
 import com.bonree.brfs.disknode.DataNodeIDModule;
 import com.bonree.brfs.disknode.DataNodeModule;
+import com.bonree.brfs.disknode.TaskModule;
 import com.bonree.brfs.email.EmailModule;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Module;
-
 import io.airlift.airline.Command;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Command(
     name = "data",
@@ -35,7 +33,7 @@ import io.airlift.airline.Command;
 )
 public class DataNodeCommand extends BaseCommand {
     private static final Logger log = LoggerFactory.getLogger(DataNodeCommand.class);
-    
+
     public DataNodeCommand() {
         super(log);
     }
@@ -43,11 +41,11 @@ public class DataNodeCommand extends BaseCommand {
     @Override
     protected List<Module> getModules() {
         return ImmutableList.of(
-                new EmailModule().withNodeType(getNodeType()),
-                new SimpleAuthenticationModule(),
-                new DataNodeModule(),
-                new DataNodeIDModule(),
-                new TaskModule());
+            new EmailModule().withNodeType(getNodeType()),
+            new SimpleAuthenticationModule(),
+            new DataNodeModule(),
+            new DataNodeIDModule(),
+            new TaskModule());
     }
 
     @Override

@@ -9,12 +9,11 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.metadata.restore.DefaultMetadataRestoreEngine;
 import com.bonree.brfs.metadata.restore.MetadataRestoreEngine;
 import io.airlift.airline.Command;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -26,8 +25,8 @@ import java.io.ObjectInputStream;
  ******************************************************************************/
 
 @Command(
-        name = "restore",
-        description = "restore brfs zk metadata"
+    name = "restore",
+    description = "restore brfs zk metadata"
 )
 public class MetadataRestoreCommand implements Runnable {
 
@@ -37,7 +36,8 @@ public class MetadataRestoreCommand implements Runnable {
     public void run() {
         String zkHost = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         CuratorClient client = CuratorClient.getClientInstance(zkHost);
-        ZookeeperPaths zkPaths = ZookeeperPaths.create(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_CLUSTER_NAME), client.getInnerClient());
+        ZookeeperPaths zkPaths = ZookeeperPaths
+            .create(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_CLUSTER_NAME), client.getInnerClient());
         CuratorCacheFactory.init(client.getInnerClient());
 
         String zkPath = zkPaths.getBaseClusterName();
@@ -53,7 +53,8 @@ public class MetadataRestoreCommand implements Runnable {
             ZNode root = (ZNode) ois.readObject();
             if (root != null) {
                 zookeeper = new ZooKeeper(zkHost, 40000, new LoggingWatcher());
-                MetadataRestoreEngine restoreEngine = new DefaultMetadataRestoreEngine(zookeeper, zkPath, root, true, true, -1, 1000);
+                MetadataRestoreEngine restoreEngine =
+                    new DefaultMetadataRestoreEngine(zookeeper, zkPath, root, true, false, -1, 1000);
                 restoreEngine.restore();
                 LOG.info("restore brfs zk metadata complete.");
             }

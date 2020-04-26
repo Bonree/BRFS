@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalanceV2.task;
+package com.bonree.brfs.rebalancev2.task;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
@@ -23,6 +23,13 @@ import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.partition.model.PartitionInfo;
 import com.bonree.brfs.rebalance.task.ChangeType;
 import com.bonree.mail.worker.MailWorker;
+import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
@@ -31,14 +38,6 @@ import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -68,7 +67,10 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
     private DiskPartitionChangeListener listener;
 
     @Inject
-    public DiskPartitionChangeTaskGenerator(final CuratorFramework client, final ServiceManager serverManager, IDSManager idManager, final String baseRebalancePath, final int delayDeal, StorageRegionManager snManager, ZookeeperPaths zkPath, DiskPartitionInfoManager partitionInfoManager) {
+    public DiskPartitionChangeTaskGenerator(final CuratorFramework client, final ServiceManager serverManager,
+                                            IDSManager idManager, final String baseRebalancePath, final int delayDeal,
+                                            StorageRegionManager snManager, ZookeeperPaths zkPath,
+                                            DiskPartitionInfoManager partitionInfoManager) {
         this.serverManager = serverManager;
         this.snManager = snManager;
         this.delayDeal = delayDeal;
@@ -88,13 +90,15 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         this.leaderLath.start();
         this.childCache = CuratorCacheFactory.getPathCache();
         this.listener = new DiskPartitionChangeListener("disk_partition_change");
-        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.addListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration()
+            .getConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 
     @LifecycleStop
     @Override
     public void stop() throws Exception {
-        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
+        this.childCache.removeListener(ZKPaths.makePath(zkPath.getBaseClusterName(), Configs.getConfiguration()
+            .getConfig(CommonConfigs.CONFIG_PARTITION_GROUP_NAME)), this.listener);
     }
 
     private class DiskPartitionChangeListener extends AbstractPathChildrenCacheListener {
@@ -152,9 +156,12 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
 
                 if (StringUtils.isNotEmpty(secondID)) {
                     try {
-                        DiskPartitionChangeSummary summaryObj = new DiskPartitionChangeSummary(snModel.getId(), genChangeID(), type, secondID, partitionInfo.getPartitionId(), currentServers, currentPartitionIds);
+                        DiskPartitionChangeSummary summaryObj =
+                            new DiskPartitionChangeSummary(snModel.getId(), genChangeID(), type, secondID,
+                                                           partitionInfo.getPartitionId(), currentServers, currentPartitionIds);
                         String summary = JsonUtils.toJsonString(summaryObj);
-                        String diskPartitionTaskNode = ZKPaths.makePath(changesPath, String.valueOf(snModel.getId()), summaryObj.getChangeID());
+                        String diskPartitionTaskNode =
+                            ZKPaths.makePath(changesPath, String.valueOf(snModel.getId()), summaryObj.getChangeID());
                         client.createPersistent(diskPartitionTaskNode, true, summary.getBytes(StandardCharsets.UTF_8));
                         LOG.info("generator a disk partition change record [{}] for storageRegion [{}]", summary, snModel);
 
@@ -176,6 +183,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
      * 概述：changeID 使用时间戳和UUID进行标识
      *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     private String genChangeID() {
@@ -186,11 +194,14 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
      * 概述：获取当时存活的机器
      *
      * @param serviceManager
+     *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     private List<String> getCurrentServers(ServiceManager serviceManager) {
-        List<Service> servers = serviceManager.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+        List<Service> servers = serviceManager
+            .getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
         return servers.stream().map(Service::getServiceId).collect(Collectors.toList());
     }
 

@@ -9,9 +9,10 @@ import org.slf4j.LoggerFactory;
 /**
  * 转换成一期的数据格式
  * 用来把数组写入dn
+ *
  * @author wangchao
  */
-public class PureStorageRegionWriter  extends DefaultStorageRegionWriter{
+public class PureStorageRegionWriter extends DefaultStorageRegionWriter {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageRegionWriter.class);
 
     public PureStorageRegionWriter(DataEngineManager dataEngineManager) {
@@ -19,10 +20,10 @@ public class PureStorageRegionWriter  extends DefaultStorageRegionWriter{
     }
 
     public void write(int storageRegionId, byte[] data, StorageRegionWriteCallback callback) {
-        Preconditions.checkNotNull(data,"写入的数据不应该是空！");
+        Preconditions.checkNotNull(data, "写入的数据不应该是空！");
         DataItem dataItem = new DataItem();
         dataItem.setBytes(data);
-        write(storageRegionId,new DataItem[]{dataItem},callback);
+        write(storageRegionId, new DataItem[] {dataItem}, callback);
     }
 
 }

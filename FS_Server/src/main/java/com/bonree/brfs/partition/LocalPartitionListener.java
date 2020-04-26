@@ -12,5 +12,6 @@ import com.bonree.brfs.partition.model.LocalPartitionInfo;
 
 public interface LocalPartitionListener {
     void remove(LocalPartitionInfo partitionInfo);
+
     void add(LocalPartitionInfo partitionInfo);
 }

@@ -10,18 +10,20 @@ public class CycleRebalanceTaskMonitorTest {
     private String zkAddress = "localhost:2181";
     private CuratorFramework client = null;
     private String testZkPath = "/brfs/test/rebalance";
+
     @Before
-    public void init()throws Exception{
-        client = CuratorFrameworkFactory.newClient(zkAddress,new RetryNTimes(5,1000));
+    public void init() throws Exception {
+        client = CuratorFrameworkFactory.newClient(zkAddress, new RetryNTimes(5, 1000));
         client.start();
         client.blockUntilConnected();
     }
+
     @Test
-    public void constructTest(){
-        CycleRebalanceTaskMonitor monitor = new CycleRebalanceTaskMonitor(client,testZkPath,1);
+    public void constructTest() {
+        CycleRebalanceTaskMonitor monitor = new CycleRebalanceTaskMonitor(client, testZkPath, 1);
         monitor.start();
-        for (int i = 0 ;i<100000;i++){
-            System.out.println(i+"--"+monitor.isExecute());
+        for (int i = 0; i < 100000; i++) {
+            System.out.println(i + "--" + monitor.isExecute());
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {

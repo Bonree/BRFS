@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.metrics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -22,12 +23,12 @@ public class NetMetric {
     private final long time;
     private final long txBytesPs;
     private final long rxBytesPs;
-    
+
     @JsonCreator
     public NetMetric(
-            @JsonProperty("time") long time,
-            @JsonProperty("txBytesPs") long txBytesPs,
-            @JsonProperty("rxBytesPs") long rxBytesPs) {
+        @JsonProperty("time") long time,
+        @JsonProperty("txBytesPs") long txBytesPs,
+        @JsonProperty("rxBytesPs") long rxBytesPs) {
         this.time = time;
         this.txBytesPs = txBytesPs;
         this.rxBytesPs = rxBytesPs;
@@ -42,18 +43,18 @@ public class NetMetric {
     public long getTxBytesPs() {
         return txBytesPs;
     }
-    
+
     @JsonProperty("rxBytesPs")
     public long getRxBytesPs() {
         return rxBytesPs;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("time", time)
-                .add("txBytesPs", txBytesPs)
-                .add("rxBytesPs", rxBytesPs)
-                .toString();
+            .add("time", time)
+            .add("txBytesPs", txBytesPs)
+            .add("rxBytesPs", rxBytesPs)
+            .toString();
     }
 }

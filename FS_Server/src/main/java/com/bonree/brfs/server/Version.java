@@ -26,12 +26,10 @@ import io.netty.util.SuppressForbidden;
     name = "version",
     description = "Returns BRFS version information"
 )
-public class Version implements Runnable
-{
-  @Override
-  @SuppressForbidden(reason = "System#out")
-  public void run()
-  {
-    System.out.println(Version.class.getPackage().getImplementationVersion());
-  }
+public class Version implements Runnable {
+    @Override
+    @SuppressForbidden(reason = "System#out")
+    public void run() {
+        System.out.println(Version.class.getPackage().getImplementationVersion());
+    }
 }

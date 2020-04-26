@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.metrics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -22,12 +23,12 @@ public class MemMetric {
     private final long time;
     private final long totalUsed;
     private final long swapUsed;
-    
+
     @JsonCreator
     public MemMetric(
-            @JsonProperty("time") long time,
-            @JsonProperty("totalUsed") long totalUsed,
-            @JsonProperty("swapUsed") long swapUsed) {
+        @JsonProperty("time") long time,
+        @JsonProperty("totalUsed") long totalUsed,
+        @JsonProperty("swapUsed") long swapUsed) {
         this.time = time;
         this.totalUsed = totalUsed;
         this.swapUsed = swapUsed;
@@ -42,20 +43,19 @@ public class MemMetric {
     public long getTotalUsed() {
         return totalUsed;
     }
-    
+
     @JsonProperty("swapUsed")
     public long getSwapUsed() {
         return swapUsed;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("time", time)
-                .add("totalUsed", totalUsed)
-                .add("swapUsed", swapUsed)
-                .toString();
+            .add("time", time)
+            .add("totalUsed", totalUsed)
+            .add("swapUsed", swapUsed)
+            .toString();
     }
-
 
 }

@@ -1,19 +1,18 @@
 package com.bonree.brfs.rebalance.route;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.RebalanceUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- *  二级serverId解析类 废弃.(2020-03-20)
+ * 二级serverId解析类 废弃.(2020-03-20)
  */
 @Deprecated
 public class SecondIDParser {
@@ -62,7 +61,7 @@ public class SecondIDParser {
         }
     }
 
-    public String[] getAliveSecondID(String partfid){
+    public String[] getAliveSecondID(String partfid) {
         try {
             String[] splitStr = partfid.split("_");
             String fileUUID = splitStr[0];
@@ -70,7 +69,7 @@ public class SecondIDParser {
             for (int i = 1; i < splitStr.length; i++) {
                 fileServerIDs.add(splitStr[i]);
             }
-            
+
             for (int i = 1; i < splitStr.length; i++) { // 处理所有的副本
                 String serverID = splitStr[i];
                 if (serverID.charAt(0) == Constants.VIRTUAL_ID) {
@@ -78,7 +77,7 @@ public class SecondIDParser {
                     if (virtualRoute != null) { // 副本发生了迁移
                         serverID = virtualRoute.getNewSecondID(); // 找到迁移后的serverID
                         fileServerIDs.set(i - 1, serverID);
-                        NormalRoute normalRoute = normalRouteDetail.get(serverID);// 查看该serverID是否迁移
+                        NormalRoute normalRoute = normalRouteDetail.get(serverID); // 查看该serverID是否迁移
                         List<String> newServerIDS = null;
                         while (normalRoute != null) { // 只要发生了迁移，则继续计算迁移位置
                             newServerIDS = normalRoute.getNewSecondIDs();
@@ -88,7 +87,7 @@ public class SecondIDParser {
                         }
                     }
                 } else if (serverID.charAt(0) == Constants.MULTI_ID) {
-                    NormalRoute normalRoute = normalRouteDetail.get(serverID);// 查看该serverID是否迁移
+                    NormalRoute normalRoute = normalRouteDetail.get(serverID); // 查看该serverID是否迁移
                     List<String> newServerIDS = null;
                     while (normalRoute != null) { // 只要发生了迁移，则继续计算迁移位置
                         newServerIDS = normalRoute.getNewSecondIDs();
@@ -99,8 +98,8 @@ public class SecondIDParser {
                 }
             }
             return fileServerIDs.toArray(new String[0]);
-        }catch (Exception e) {
-            throw new IllegalStateException("parse partFid error!!",e);
+        } catch (Exception e) {
+            throw new IllegalStateException("parse partFid error!!", e);
         }
     }
 

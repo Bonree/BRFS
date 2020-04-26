@@ -11,11 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.guice;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-
-import java.util.Set;
 
 import com.bonree.brfs.common.guice.ConfigModule;
 import com.bonree.brfs.common.http.rest.JaxrsModule;
@@ -32,34 +31,36 @@ import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
 import com.google.inject.util.Modules;
+import java.util.Set;
 
 public class Initialization {
-    
+
     public static Injector makeSetupInjector() {
         return Guice.createInjector(ImmutableList.of(
-                new ConfigModule(),
-                new JsonModule(),
-                new PropertiesModule(),
-                new PluginModule()));
+            new ConfigModule(),
+            new JsonModule(),
+            new PropertiesModule(),
+            new PluginModule()));
     }
 
     public static Injector makeInjectorWithModules(
-            NodeType nodeType,
-            final Injector baseInjector,
-            Iterable<? extends Module> modules) {
+        NodeType nodeType,
+        final Injector baseInjector,
+        Iterable<? extends Module> modules) {
         ImmutableList.Builder<Module> defaultModules = ImmutableList.<Module>builder()
-        .add(new LifecycleModule())
-        .add(new CuratorModule())
-        .add(new JaxrsModule())
-        .add(baseInjector.getInstance(InitModule.class));
-        
+            .add(new LifecycleModule())
+            .add(new CuratorModule())
+            .add(new JaxrsModule())
+            .add(baseInjector.getInstance(InitModule.class));
+
         Module nodeModule = Modules.override(defaultModules.build()).with(modules);
-        
+
         return Guice.createInjector(Modules
-                .override(nodeModule)
-                .with(baseInjector.getInstance(Key.get(new TypeLiteral<Set<BrfsModule>>() {}))
-                        .stream()
-                        .map(plugin -> plugin.withNodeType(nodeType))
-                        .collect(toImmutableList())));
+                                        .override(nodeModule)
+                                        .with(baseInjector.getInstance(Key.get(new TypeLiteral<Set<BrfsModule>>() {
+                                        }))
+                                                  .stream()
+                                                  .map(plugin -> plugin.withNodeType(nodeType))
+                                                  .collect(toImmutableList())));
     }
 }

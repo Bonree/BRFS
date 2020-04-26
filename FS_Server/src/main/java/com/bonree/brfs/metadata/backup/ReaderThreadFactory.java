@@ -1,14 +1,13 @@
 package com.bonree.brfs.metadata.backup;
 
 import com.bonree.brfs.metadata.LoggingWatcher;
-import org.apache.zookeeper.ZooKeeper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadFactory;
+import org.apache.zookeeper.ZooKeeper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ReaderThreadFactory implements ThreadFactory {
 

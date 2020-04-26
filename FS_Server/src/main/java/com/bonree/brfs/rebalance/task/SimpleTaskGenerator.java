@@ -1,16 +1,14 @@
 package com.bonree.brfs.rebalance.task;
 
-import java.util.List;
-
-import org.apache.curator.shaded.com.google.common.collect.Lists;
-
 import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
+import java.util.List;
+import org.apache.curator.shaded.com.google.common.collect.Lists;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年4月18日 下午4:43:40
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 通过change 生成 task
@@ -18,7 +16,8 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 public class SimpleTaskGenerator implements BalanceTaskGenerator {
 
     @Override
-    public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String virtualId, String selectID, String participator, long delayTime) {
+    public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String virtualId, String selectID,
+                                             String participator, long delayTime) {
 
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
         // changeID
@@ -43,7 +42,8 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
     }
 
     @Override
-    public BalanceTaskSummary genBalanceTask(String changeID, int storageIndex, String secondServerID, List<String> selectIDs, List<String> participators, long delayTime) {
+    public BalanceTaskSummary genBalanceTask(String changeID, int storageIndex, String secondServerID, List<String> selectIDs,
+                                             List<String> participators, long delayTime) {
         BalanceTaskSummary taskSummary = new BalanceTaskSummary();
 
         taskSummary.setChangeID(changeID);
@@ -63,7 +63,7 @@ public class SimpleTaskGenerator implements BalanceTaskGenerator {
         taskSummary.setTaskStatus(TaskStatus.INIT);
 
         taskSummary.setDelayTime(delayTime);
-        
+
         return taskSummary;
     }
 

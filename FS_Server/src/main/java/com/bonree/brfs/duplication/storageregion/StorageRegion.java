@@ -10,12 +10,12 @@ public class StorageRegion {
     private final int id;
     private final long createTime;
     private final StorageRegionProperties properties;
-    
+
     public StorageRegion(
-            String name, 
-            int id,
-            long createTime,
-            StorageRegionProperties props) {
+        String name,
+        int id,
+        long createTime,
+        StorageRegionProperties props) {
         this.name = name;
         this.id = id;
         this.createTime = createTime;
@@ -23,8 +23,8 @@ public class StorageRegion {
     }
 
     /**
-     * for compatibility of BRFS v1.0 
-     * 
+     * for compatibility of BRFS v1.0
+     *
      * @param name
      * @param id
      * @param createTime
@@ -36,23 +36,23 @@ public class StorageRegion {
      */
     @JsonCreator
     public StorageRegion(
-            @JsonProperty("name") String name, 
-            @JsonProperty("id") int id,
-            @JsonProperty("create_time") long createTime,
-            @JsonProperty("enable") boolean enable,
-            @JsonProperty("replicate_num") int replicateNum,
-            @JsonProperty("data_ttl") String dataTtl,
-            @JsonProperty("file_capacity") long fileCapacity,
-            @JsonProperty("patition_duration") String filePartitionDuration) {
+        @JsonProperty("name") String name,
+        @JsonProperty("id") int id,
+        @JsonProperty("create_time") long createTime,
+        @JsonProperty("enable") boolean enable,
+        @JsonProperty("replicate_num") int replicateNum,
+        @JsonProperty("data_ttl") String dataTtl,
+        @JsonProperty("file_capacity") long fileCapacity,
+        @JsonProperty("patition_duration") String filePartitionDuration) {
         this.name = name;
         this.id = id;
         this.createTime = createTime;
         this.properties = new StorageRegionProperties(
-                enable,
-                replicateNum,
-                dataTtl,
-                fileCapacity,
-                filePartitionDuration);
+            enable,
+            replicateNum,
+            dataTtl,
+            fileCapacity,
+            filePartitionDuration);
     }
 
     @JsonProperty("name")
@@ -69,7 +69,7 @@ public class StorageRegion {
     public long getCreateTime() {
         return createTime;
     }
-    
+
     @JsonProperty("enable")
     public boolean isEnable() {
         return properties.isEnable();
@@ -102,10 +102,10 @@ public class StorageRegion {
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("name", name)
-                .add("id", id)
-                .add("createTime", createTime)
-                .add("props", properties)
-                .toString();
+            .add("name", name)
+            .add("id", id)
+            .add("createTime", createTime)
+            .add("props", properties)
+            .toString();
     }
 }

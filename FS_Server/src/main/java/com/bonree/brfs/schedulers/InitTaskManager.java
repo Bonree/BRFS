@@ -1,25 +1,7 @@
-
 package com.bonree.brfs.schedulers;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.inject.Inject;
-
-import com.bonree.brfs.common.service.Service;
-import com.bonree.brfs.identification.IDSManager;
-import com.bonree.brfs.identification.impl.DiskDaemon;
-import com.bonree.brfs.rebalance.route.RouteLoader;
-import com.bonree.brfs.resourceschedule.model.LimitServerResource;
-import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.leader.LeaderLatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
@@ -29,6 +11,10 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.identification.IDSManager;
+import com.bonree.brfs.identification.impl.DiskDaemon;
+import com.bonree.brfs.rebalance.route.RouteLoader;
+import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.resourceschedule.utils.LibUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
@@ -46,6 +32,16 @@ import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
+import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import javax.inject.Inject;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.leader.LeaderLatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InitTaskManager {
     private static final Logger LOG = LoggerFactory.getLogger("InitTaskManager");
@@ -62,12 +58,13 @@ public class InitTaskManager {
      */
     @Inject
     public static void initManager(
-            ResourceTaskConfig managerConfig,
-            ZookeeperPaths zkPath,
-            ServiceManager sm,
-            StorageRegionManager snm,
-            IDSManager sim,
-            CuratorFramework client, Service localServer, DiskDaemon diskDaemon, RebalanceTaskMonitor taskMonitor, RouteLoader routeLoader) throws Exception {
+        ResourceTaskConfig managerConfig,
+        ZookeeperPaths zkPath,
+        ServiceManager sm,
+        StorageRegionManager snm,
+        IDSManager sim,
+        CuratorFramework client, Service localServer, DiskDaemon diskDaemon, RebalanceTaskMonitor taskMonitor,
+        RouteLoader routeLoader) throws Exception {
         managerConfig.printDetail();
 
         LimitServerResource lmit = new LimitServerResource();
@@ -76,7 +73,8 @@ public class InitTaskManager {
 
         // 工厂类添加发布接口
         String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-        MetaTaskManagerInterface release = new DefaultReleaseTask(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
+        MetaTaskManagerInterface release =
+            new DefaultReleaseTask(zkAddresses, zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
 
         if (client == null) {
             LOG.error("zk client is empty");
@@ -121,8 +119,9 @@ public class InitTaskManager {
             createAndStartThreadPool(manager, managerConfig);
             if (tasks.contains(TaskType.SYSTEM_COPY_CHECK)) {
                 SumbitTaskInterface copyJob = createCopySimpleTask(managerConfig.getExecuteTaskIntervalTime(),
-                        TaskType.SYSTEM_COPY_CHECK.name(), localServer.getServiceId(), CopyRecoveryJob.class.getCanonicalName(),
-                        zkAddresses, zkPath.getBaseRoutePath());
+                                                                   TaskType.SYSTEM_COPY_CHECK.name(), localServer.getServiceId(),
+                                                                   CopyRecoveryJob.class.getCanonicalName(),
+                                                                   zkAddresses, zkPath.getBaseRoutePath());
                 manager.addTask(TaskType.SYSTEM_COPY_CHECK.name(), copyJob);
             }
             mcf.setTaskOn(tasks);
@@ -142,10 +141,12 @@ public class InitTaskManager {
      * @param manager
      * @param zkPaths
      * @param config
+     *
      * @throws Exception
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths, ResourceTaskConfig config, String serverId, CuratorFramework client) throws Exception {
+    public static void createMetaTaskManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths, ResourceTaskConfig config,
+                                             String serverId, CuratorFramework client) throws Exception {
         MetaTaskLeaderManager leader = new MetaTaskLeaderManager(manager, config);
         leaderLatch = new LeaderLatch(client, zkPaths.getBaseLocksPath() + "/TaskManager/MetaTaskLeaderLock", serverId);
         leaderLatch.addListener(leader);
@@ -158,10 +159,12 @@ public class InitTaskManager {
      * @param confg
      * @param switchList
      * @param isReboot
+     *
      * @throws Exception
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    private static void createOperationPool(ResourceTaskConfig confg, List<TaskType> switchList, boolean isReboot) throws Exception {
+    private static void createOperationPool(ResourceTaskConfig confg, List<TaskType> switchList, boolean isReboot)
+        throws Exception {
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
         SchedulerManagerInterface manager = mcf.getStm();
         MetaTaskManagerInterface release = mcf.getTm();
@@ -173,8 +176,8 @@ public class InitTaskManager {
             LOG.error("create task operation error !!!");
             throw new NullPointerException("create task operation error !!!");
         }
-        boolean sFlag = manager.startTaskPool(TASK_OPERATION_MANAGER);
-        if (!sFlag) {
+        boolean startTaskPool = manager.startTaskPool(TASK_OPERATION_MANAGER);
+        if (!startTaskPool) {
             LOG.error("create task operation error !!!");
             throw new NullPointerException("start task operation error !!!");
         }
@@ -186,7 +189,9 @@ public class InitTaskManager {
             switchMap = recoveryTask(switchList, release, serverId);
             LOG.info("========================================================================================");
         }
-        SumbitTaskInterface task = QuartzSimpleInfo.createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, switchMap, OperationTaskJob.class);
+        SumbitTaskInterface task = QuartzSimpleInfo
+            .createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, switchMap,
+                                 OperationTaskJob.class);
         boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
         if (sumbitFlag) {
             LOG.info("operation task sumbit complete !!!");
@@ -200,10 +205,13 @@ public class InitTaskManager {
      * @param swtichList
      * @param release
      * @param serverId
+     *
      * @return
+     *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    private static Map<String, String> recoveryTask(List<TaskType> swtichList, MetaTaskManagerInterface release, String serverId) {
+    private static Map<String, String> recoveryTask(List<TaskType> swtichList, MetaTaskManagerInterface release,
+                                                    String serverId) {
         Map<String, String> swtichMap = new HashMap<>();
         if (swtichList == null || swtichList.isEmpty()) {
             return swtichMap;
@@ -240,6 +248,7 @@ public class InitTaskManager {
      * @param taskType
      * @param currentTask
      * @param serverId
+     *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     private static void recoveryTask(MetaTaskManagerInterface release, String taskType, String currentTask, String serverId) {
@@ -253,7 +262,7 @@ public class InitTaskManager {
         }
         int size = tasks.size();
         String taskName;
-        List<String> cList;
+        List<String> strings;
         TaskServerNodeModel serverNode = TaskServerNodeModel.getInitInstance();
         TaskServerNodeModel change;
         for (int i = index; i < size; i++) {
@@ -261,8 +270,8 @@ public class InitTaskManager {
             if (BrStringUtils.isEmpty(taskName)) {
                 continue;
             }
-            cList = release.getTaskServerList(taskType, taskName);
-            if (cList == null || cList.isEmpty() || !cList.contains(serverId)) {
+            strings = release.getTaskServerList(taskType, taskName);
+            if (strings == null || strings.isEmpty() || !strings.contains(serverId)) {
                 release.updateServerTaskContentNode(serverId, taskName, taskType, serverNode);
                 int stat = release.queryTaskState(taskName, taskType);
                 if (TaskState.FINISH.code() == stat) {
@@ -288,10 +297,12 @@ public class InitTaskManager {
      * @param manager
      * @param zkPaths
      * @param config
+     *
      * @throws Exception
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    private static void createResourceManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths, ResourceTaskConfig config) throws Exception {
+    private static void createResourceManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,
+                                              ResourceTaskConfig config) throws Exception {
         // 1.引入第三方lib库，资源采集时需要用到
         LibUtils.loadLibraryPath(config.getLibPath());
         // 2.采集基本信息上传到 zk
@@ -300,13 +311,16 @@ public class InitTaskManager {
         // 3.创建资源采集线程池
         Properties prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);
         manager.createTaskPool(RESOURCE_MANAGER, prop);
-        boolean cFlag = manager.startTaskPool(RESOURCE_MANAGER);
-        if (!cFlag) {
+        boolean startTaskPool = manager.startTaskPool(RESOURCE_MANAGER);
+        if (!startTaskPool) {
             LOG.error("{} start fail !!!", RESOURCE_MANAGER);
         }
         // 4.创建采集任务信息
-        Map<String, String> gatherMap = JobDataMapConstract.createGatherResourceDataMap(config, serverId, zkPaths.getBaseResourcesPath(), zkAddress);
-        SumbitTaskInterface gatherInterface = QuartzSimpleInfo.createCycleTaskInfo(GatherResourceJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, gatherMap, GatherResourceJob.class);
+        Map<String, String> gatherMap =
+            JobDataMapConstract.createGatherResourceDataMap(config, serverId, zkPaths.getBaseResourcesPath(), zkAddress);
+        SumbitTaskInterface gatherInterface = QuartzSimpleInfo
+            .createCycleTaskInfo(GatherResourceJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, gatherMap,
+                                 GatherResourceJob.class);
         boolean taskFlag = manager.addTask(RESOURCE_MANAGER, gatherInterface);
         if (!taskFlag) {
             LOG.error("sumbit gather job fail !!!");
@@ -314,15 +328,16 @@ public class InitTaskManager {
         LOG.info("GATHER successful !!!");
     }
 
-
     /**
      * 概述：根据switchMap 创建线程池
      *
      * @param manager
+     *
      * @throws ParamsErrorException
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    private static void createAndStartThreadPool(SchedulerManagerInterface manager, ResourceTaskConfig config) throws ParamsErrorException {
+    private static void createAndStartThreadPool(SchedulerManagerInterface manager, ResourceTaskConfig config)
+        throws ParamsErrorException {
         Map<String, Boolean> switchMap = config.getTaskPoolSwitchMap();
         Map<String, Integer> sizeMap = config.getTaskPoolSizeMap();
         Properties prop;
@@ -342,7 +357,7 @@ public class InitTaskManager {
                 LOG.warn("pool :{} config pool size is 0 ,will change to 1", poolName);
                 size = 1;
             }
-            prop = DefaultBaseSchedulers.createSimplePrope(size, 1000l);
+            prop = DefaultBaseSchedulers.createSimplePrope(size, 1000L);
             boolean createState = manager.createTaskPool(poolName, prop);
             if (createState) {
                 manager.startTaskPool(poolName);
@@ -359,10 +374,13 @@ public class InitTaskManager {
      * @param taskName
      * @param serverId
      * @param clazzName
+     *
      * @return
+     *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    private static SumbitTaskInterface createCopySimpleTask(long invertalTime, String taskName, String serverId, String clazzName, String zkHost, String path) {
+    private static SumbitTaskInterface createCopySimpleTask(long invertalTime, String taskName, String serverId, String clazzName,
+                                                            String zkHost, String path) {
         QuartzSimpleInfo task = new QuartzSimpleInfo();
         task.setRunNowFlag(true);
         task.setCycleFlag(true);

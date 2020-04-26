@@ -4,10 +4,9 @@ import java.util.List;
 
 /**
  * WriteWorker
- * 
- * @author chen
  *
+ * @author chen
  */
 public interface WriteWorkerSelector {
-	WriteWorker select(List<WriteWorker> workers);
+    WriteWorker select(List<WriteWorker> workers);
 }

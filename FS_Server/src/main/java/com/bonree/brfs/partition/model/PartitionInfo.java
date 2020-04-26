@@ -24,13 +24,14 @@ public class PartitionInfo {
     // 磁盘节点分区的注册时间
     private long registerTime;
     // 版本信息
-    private int version=1;
+    private int version = 1;
 
     public PartitionInfo() {
 
     }
 
-    public PartitionInfo(String serviceGroup, String serviceId, String partitionGroup, String partitionId, double totalSize, double freeSize, long registerTime) {
+    public PartitionInfo(String serviceGroup, String serviceId, String partitionGroup, String partitionId, double totalSize,
+                         double freeSize, long registerTime) {
         this.serviceGroup = serviceGroup;
         this.serviceId = serviceId;
         this.partitionGroup = partitionGroup;
@@ -107,13 +108,13 @@ public class PartitionInfo {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        return  builder.append("{serviceGroup='" ).append(serviceGroup )
-                .append("', serviceId='" ).append(serviceId )
-                .append("', partitionGroup='" ).append(partitionGroup )
-                .append("', nodeId='" ).append(partitionId)
-                .append("', totalSize=" ).append(totalSize)
-                .append(", freeSize=" ).append(freeSize)
-                .append(", registerTime=" ).append(registerTime)
-                .append(",version=").append(version).append("}").toString();
+        return builder.append("{serviceGroup='").append(serviceGroup)
+            .append("', serviceId='").append(serviceId)
+            .append("', partitionGroup='").append(partitionGroup)
+            .append("', nodeId='").append(partitionId)
+            .append("', totalSize=").append(totalSize)
+            .append(", freeSize=").append(freeSize)
+            .append(", registerTime=").append(registerTime)
+            .append(",version=").append(version).append("}").toString();
     }
 }

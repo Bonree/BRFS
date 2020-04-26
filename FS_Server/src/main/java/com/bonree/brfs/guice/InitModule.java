@@ -11,12 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.guice;
-
-import java.util.Properties;
-
-import javax.inject.Inject;
-import javax.validation.Validator;
 
 import com.bonree.brfs.common.guice.JsonConfigurator;
 import com.bonree.brfs.common.jackson.Json;
@@ -25,17 +21,20 @@ import com.google.inject.Binder;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import java.util.Properties;
+import javax.inject.Inject;
+import javax.validation.Validator;
 
 public class InitModule implements Module {
     private final Properties properties;
     private final Validator validator;
     private final ObjectMapper jsonMapper;
-    
+
     @Inject
     public InitModule(
-            Properties properties,
-            Validator validator,
-            @Json ObjectMapper jsonMapper) {
+        Properties properties,
+        Validator validator,
+        @Json ObjectMapper jsonMapper) {
         this.properties = properties;
         this.validator = validator;
         this.jsonMapper = jsonMapper;
@@ -48,7 +47,7 @@ public class InitModule implements Module {
         binder.bind(ObjectMapper.class).to(Key.get(ObjectMapper.class, Json.class));
         binder.bind(JsonConfigurator.class);
     }
-    
+
     @Provides
     @Json
     public ObjectMapper jsonMapper() {

@@ -1,9 +1,9 @@
-package com.bonree.brfs.rebalanceV2.task.listener;
+package com.bonree.brfs.rebalancev2.task.listener;
 
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.RebalanceUtils;
-import com.bonree.brfs.rebalanceV2.task.DiskPartitionChangeSummary;
-import com.bonree.brfs.rebalanceV2.task.TaskDispatcherV2;
+import com.bonree.brfs.rebalancev2.task.DiskPartitionChangeSummary;
+import com.bonree.brfs.rebalancev2.task.TaskDispatcherV2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  ******************************************************************************/
 public class ServerChangeListenerV2 implements TreeCacheListener {
 
-    private final static Logger LOG = LoggerFactory.getLogger(ServerChangeListenerV2.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServerChangeListenerV2.class);
 
     private TaskDispatcherV2 dispatcher;
 
@@ -49,9 +49,11 @@ public class ServerChangeListenerV2 implements TreeCacheListener {
                     if (event.getData().getData() != null) {
                         LOG.info("parse and add change: {}", RebalanceUtils.convertEvent(event));
                         String absolutePath = event.getData().getPath();
-                        String chanName = StringUtils.substring(absolutePath, absolutePath.lastIndexOf('/') + 1, absolutePath.length());   // changeId
+                        String chanName = StringUtils
+                            .substring(absolutePath, absolutePath.lastIndexOf('/') + 1, absolutePath.length());   // changeId
                         if (chanName.length() > 16) {
-                            DiskPartitionChangeSummary summary = JsonUtils.toObjectQuietly(event.getData().getData(), DiskPartitionChangeSummary.class);
+                            DiskPartitionChangeSummary summary =
+                                JsonUtils.toObjectQuietly(event.getData().getData(), DiskPartitionChangeSummary.class);
                             if (summary != null) {
                                 // 将变更细节添加到队列即可
                                 dispatcher.getDetailQueue().put(summary);

@@ -11,11 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.authentication;
-
-import javax.inject.Singleton;
-
-import org.apache.curator.framework.CuratorFramework;
 
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ZookeeperPaths;
@@ -23,21 +20,24 @@ import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import javax.inject.Singleton;
+import org.apache.curator.framework.CuratorFramework;
 
 public class SimpleAuthenticationModule implements Module {
 
     @Override
-    public void configure(Binder binder) {}
+    public void configure(Binder binder) {
+    }
 
     @Provides
     @Singleton
     public SimpleAuthentication getSimpleAuthentication(CuratorFramework zkClient, ZookeeperPaths paths, Lifecycle lifecycle) {
         SimpleAuthentication simpleAuthentication = SimpleAuthentication.getAuthInstance(
-                paths.getBaseLocksPath(),
-                zkClient);
-        
+            paths.getBaseLocksPath(),
+            zkClient);
+
         lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
-            
+
             @Override
             public void start() throws Exception {
                 simpleAuthentication.init(paths.getBaseUserPath());
@@ -46,13 +46,13 @@ public class SimpleAuthenticationModule implements Module {
                     throw new RuntimeException("server is not initialized");
                 }
             }
-            
+
             @Override
             public void stop() {
             }
-            
+
         }, Lifecycle.Stage.INIT);
-        
+
         return simpleAuthentication;
     }
 }

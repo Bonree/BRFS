@@ -1,10 +1,9 @@
-package com.bonree.brfs.rebalanceV2.task;
+package com.bonree.brfs.rebalancev2.task;
 
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
-
 import java.util.List;
 
 /*******************************************************************************
@@ -80,7 +79,6 @@ public class BalanceTaskSummaryV2 {
      */
     @JsonProperty("delayTime")
     private long delayTime;
-
 
     /**
      * 用于初始化倒计时间隔
@@ -187,18 +185,18 @@ public class BalanceTaskSummaryV2 {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
-                .add("id", id)
-                .add("changeID", changeID)
-                .add("serverId", serverId)
-                .add("storageIndex", storageIndex)
-                .add("partitionId", partitionId)
-                .add("taskType", taskType)
-                .add("taskStatus", taskStatus)
-                .add("outputServers", outputServers)
-                .add("inputServers", inputServers)
-                .add("aliveServer", aliveServer)
-                .add("delayTime", delayTime)
-                .add("interval", interval)
-                .toString();
+            .add("id", id)
+            .add("changeID", changeID)
+            .add("serverId", serverId)
+            .add("storageIndex", storageIndex)
+            .add("partitionId", partitionId)
+            .add("taskType", taskType)
+            .add("taskStatus", taskStatus)
+            .add("outputServers", outputServers)
+            .add("inputServers", inputServers)
+            .add("aliveServer", aliveServer)
+            .add("delayTime", delayTime)
+            .add("interval", interval)
+            .toString();
     }
 }

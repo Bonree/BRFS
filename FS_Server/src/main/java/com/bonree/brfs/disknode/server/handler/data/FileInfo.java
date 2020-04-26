@@ -1,34 +1,34 @@
 package com.bonree.brfs.disknode.server.handler.data;
 
 public class FileInfo {
-	public static final int TYPE_DIR = 0;
-	public static final int TYPE_FILE = 1;
-	
-	private int level;
-	private int type;
-	private String path;
+    public static final int TYPE_DIR = 0;
+    public static final int TYPE_FILE = 1;
 
-	public int getLevel() {
-		return level;
-	}
+    private int level;
+    private int type;
+    private String path;
 
-	public void setLevel(int level) {
-		this.level = level;
-	}
+    public int getLevel() {
+        return level;
+    }
 
-	public int getType() {
-		return type;
-	}
+    public void setLevel(int level) {
+        this.level = level;
+    }
 
-	public void setType(int type) {
-		this.type = type;
-	}
+    public int getType() {
+        return type;
+    }
 
-	public String getPath() {
-		return path;
-	}
+    public void setType(int type) {
+        this.type = type;
+    }
 
-	public void setPath(String path) {
-		this.path = path;
-	}
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 }

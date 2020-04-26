@@ -11,16 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics.data;
 
+import com.bonree.brfs.metrics.TimedData;
 import java.util.List;
 
-import com.bonree.brfs.metrics.TimedData;
-
 public interface DataStatisticReporter {
-    
+
     List<TimedData<Long>> getWriteStatistics(String srName, int minutes);
-    
+
     List<TimedData<Long>> getReadStatistics(String srName, int minutes);
-    
+
 }

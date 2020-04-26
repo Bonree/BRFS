@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -21,11 +22,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TotalDiskUsage {
     private final long usedBytes;
     private final long freeBytes;
-    
+
     @JsonCreator
     public TotalDiskUsage(
-            @JsonProperty("used") long usedBytes,
-            @JsonProperty("free") long freeBytes) {
+        @JsonProperty("used") long usedBytes,
+        @JsonProperty("free") long freeBytes) {
         this.usedBytes = usedBytes;
         this.freeBytes = freeBytes;
     }
@@ -39,12 +40,12 @@ public class TotalDiskUsage {
     public long getFreeBytes() {
         return freeBytes;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("usedBytes", usedBytes)
-                .add("freeBytes", freeBytes)
-                .toString();
+            .add("usedBytes", usedBytes)
+            .add("freeBytes", freeBytes)
+            .toString();
     }
 }

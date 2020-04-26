@@ -12,16 +12,15 @@ import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.metadata.backup.DefaultMetadataBackupEngine;
 import com.bonree.brfs.metadata.backup.MetadataBackupEngine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -58,13 +57,15 @@ public class MetadataBackupServer implements LifeCycle {
             public void run() {
                 TimeWatcher watcher = new TimeWatcher();
 
-                MetadataBackupEngine backupEngine = new DefaultMetadataBackupEngine(zkHost, zkPath, Math.max(2, Runtime.getRuntime().availableProcessors() / 4));
+                MetadataBackupEngine backupEngine =
+                    new DefaultMetadataBackupEngine(zkHost, zkPath, Math.max(2, Runtime.getRuntime().availableProcessors() / 4));
                 ZNode root = backupEngine.backup();
 
                 try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(metadataPath))) {
                     if (root != null) {
                         oos.writeObject(root);
-                        LOG.info("metadata backup success, backup file: {}, cost time: {} ms", metadataPath, watcher.getElapsedTime());
+                        LOG.info("metadata backup success, backup file: {}, cost time: {} ms", metadataPath,
+                                 watcher.getElapsedTime());
                     }
                 } catch (IOException e) {
                     LOG.error("metadata executor error", e);

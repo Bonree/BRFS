@@ -14,33 +14,41 @@ public interface SecondIdsInterface {
 
     /**
      * 根据storageRegionId与一级server 获取磁盘二级serverid
+     *
      * @param serverId
      * @param storageRegionId
+     *
      * @return
      */
-    Collection<String> getSecondIds( String serverId, int storageRegionId);
+    Collection<String> getSecondIds(String serverId, int storageRegionId);
 
     /**
      * 获取二级serverid
+     *
      * @param partitionId
      * @param storageRegionId
+     *
      * @return
      */
-    String getSecondId(String partitionId,int storageRegionId);
+    String getSecondId(String partitionId, int storageRegionId);
 
     /**
      * 根据 storageId+secondid 获取一级serverId
+     *
      * @param secondId
      * @param storageRegionId
+     *
      * @return
      */
     String getFirstId(String secondId, int storageRegionId);
 
     /**
      * 获取磁盘id
+     *
      * @param secondId
      * @param storageRegionId
+     *
      * @return
      */
-    String getPartitionId(String secondId,int storageRegionId);
+    String getPartitionId(String secondId, int storageRegionId);
 }

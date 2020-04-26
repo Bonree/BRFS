@@ -4,9 +4,6 @@ import com.bonree.brfs.common.files.impl.BRFSTimeFilter;
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.common.write.data.FSCode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -14,43 +11,46 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Map;
 import java.util.zip.CRC32;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class BRFSCheckFilter extends BRFSTimeFilter{
+public class BRFSCheckFilter extends BRFSTimeFilter {
     private static final Logger LOG = LoggerFactory.getLogger(BRFSCheckFilter.class);
-    public BRFSCheckFilter(long startTime, long endTime){
-        super(startTime,endTime);
+
+    public BRFSCheckFilter(long startTime, long endTime) {
+        super(startTime, endTime);
 
     }
 
     @Override
-    public boolean isAdd(String root, Map<String, String> values, boolean isFile){
-        if(values.size() != keyMap.size()){
+    public boolean isAdd(String root, Map<String, String> values, boolean isFile) {
+        if (values.size() != keyMap.size()) {
             return false;
         }
-        if(!isFile){
+        if (!isFile) {
             return false;
         }
         long time = BRFSPath.convertTime(values);
-        if(startTime > 0 && time < startTime){
+        if (startTime > 0 && time < startTime) {
             return false;
         }
-        if(endTime >0 && time >= endTime){
+        if (endTime > 0 && time >= endTime) {
             return false;
         }
         String fileName = values.get(BRFSPath.FILE);
-        if(fileName.contains(".")|| !fileName.contains("_")){
+        if (fileName.contains(".") || !fileName.contains("_")) {
             return false;
         }
-        if(fileName.contains(".rd")){
+        if (fileName.contains(".rd")) {
             return false;
         }
-        String path = BRFSFileUtil.createPath(root,values);
-        File rd = new File(path+".rd");
-        if(rd.exists()){
+        String path = BRFSFileUtil.createPath(root, values);
+        File rd = new File(path + ".rd");
+        if (rd.exists()) {
             return false;
         }
         File file = new File(path);
-        if(!file.exists()){
+        if (!file.exists()) {
             return false;
         }
         return !check(file);
@@ -58,8 +58,11 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
 
     /**
      * 概述：校验文件crc
+     *
      * @param file
+     *
      * @return
+     *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public boolean check(File file) {
@@ -72,8 +75,8 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
                 return false;
             }
             raf = new RandomAccessFile(file, "r");
-            if(raf.length() <=0) {
-                LOG.warn("{} : is empty",fileName);
+            if (raf.length() <= 0) {
+                LOG.warn("{} : is empty", fileName);
                 return false;
             }
             if (raf.readUnsignedByte() != 172) {
@@ -97,7 +100,7 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
             raf.seek(raf.length() - 9L);
             byte[] crcBytes = new byte[8];
             int crcLen = raf.read(crcBytes);
-            if(crcLen <=0){
+            if (crcLen <= 0) {
                 LOG.warn("{}: Tailer crc is empty!", fileName);
                 return false;
             }
@@ -111,16 +114,14 @@ public class BRFSCheckFilter extends BRFSTimeFilter{
                 return false;
             }
             return true;
-        }
-        catch (Exception e) {
-            LOG.error("check error {}:{}",fileName,e);
-        }finally {
+        } catch (Exception e) {
+            LOG.error("check error {}:{}", fileName, e);
+        } finally {
             if (raf != null) {
                 try {
                     raf.close();
-                }
-                catch (IOException e) {
-                    LOG.error("close {}:{}",fileName,e);
+                } catch (IOException e) {
+                    LOG.error("close {}:{}", fileName, e);
                 }
             }
         }

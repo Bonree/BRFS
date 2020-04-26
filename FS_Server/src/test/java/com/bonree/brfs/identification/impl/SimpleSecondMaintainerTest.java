@@ -23,77 +23,85 @@ public class SimpleSecondMaintainerTest {
     private static String S_SEQ_PATH = "/brfsDevTest/second_seq";
     private static String ROUTE_PATH = "/brfsDevTest/route/V2";
     private CuratorFramework client;
+
     @Before
-    public void init(){
-        client = CuratorFrameworkFactory.newClient(ZKADDRES,new RetryNTimes(5,300));
+    public void init() {
+        client = CuratorFrameworkFactory.newClient(ZKADDRES, new RetryNTimes(5, 300));
         client.start();
         try {
             client.blockUntilConnected();
         } catch (InterruptedException e) {
-            Assert.fail("zookeeper client is invaild !! address: "+ZKADDRES);
+            Assert.fail("zookeeper client is invaild !! address: " + ZKADDRES);
         }
     }
+
     @Test
-    public void constructorTest(){
+    public void constructorTest() {
         String firstServer = "10";
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client,S_B_PATH,ROUTE_PATH,S_SEQ_PATH);
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
     }
+
     @Test
-    public void registerSecondIdTest(){
+    public void registerSecondIdTest() {
         String firstServer = "10";
         String partitionId = "40";
         int storageId = 0;
         String expectSecond = "20";
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client,S_B_PATH,ROUTE_PATH,S_SEQ_PATH);
-        String secondId = maintainer.registerSecondId(firstServer,partitionId,storageId);
-        Assert.assertEquals(expectSecond,secondId);
-    }
-    @Test
-    public void unregisterSecondIdTest(){
-        String firstServer = "10";
-        String partitionId = "41";
-        int storageId = 0;
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client,S_B_PATH,ROUTE_PATH,S_SEQ_PATH);
-        String expectSecond = maintainer.registerSecondId(firstServer,partitionId,storageId);
-        System.out.println(expectSecond);
-        boolean status = maintainer.unregisterSecondId(partitionId,storageId);
-        Assert.assertEquals(true,status);
-    }
-    @Test
-    public void registerSecondIdBatch(){
-        String firstServer = "10";
-        int storageId = 1;
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client,S_B_PATH,ROUTE_PATH,S_SEQ_PATH);
-        maintainer.registerSecondIds(firstServer,storageId);
-    }
-    @Test
-    public void unregisterSecondIdBatch(){
-        String firstServer = "10";
-        int storageId = 1;
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client,S_B_PATH,ROUTE_PATH,S_SEQ_PATH);
-        maintainer.registerSecondIds(firstServer,storageId);
-        maintainer.unregisterSecondIds(firstServer,storageId);
-    }
-    @Test
-    public void addPartitionRelationshipTest(){
-        String firstServer = "10";
-        int storageId = 1;
-        String partitionid = "45";
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client,S_B_PATH,ROUTE_PATH,S_SEQ_PATH);
-        maintainer.addPartitionRelation(firstServer,partitionid);
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        String secondId = maintainer.registerSecondId(firstServer, partitionId, storageId);
+        Assert.assertEquals(expectSecond, secondId);
     }
 
     @Test
-    public void removePartitionRelationshipTest(){
+    public void unregisterSecondIdTest() {
+        String firstServer = "10";
+        String partitionId = "41";
+        int storageId = 0;
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        String expectSecond = maintainer.registerSecondId(firstServer, partitionId, storageId);
+        System.out.println(expectSecond);
+        boolean status = maintainer.unregisterSecondId(partitionId, storageId);
+        Assert.assertEquals(true, status);
+    }
+
+    @Test
+    public void registerSecondIdBatch() {
+        String firstServer = "10";
+        int storageId = 1;
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        maintainer.registerSecondIds(firstServer, storageId);
+    }
+
+    @Test
+    public void unregisterSecondIdBatch() {
+        String firstServer = "10";
+        int storageId = 1;
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        maintainer.registerSecondIds(firstServer, storageId);
+        maintainer.unregisterSecondIds(firstServer, storageId);
+    }
+
+    @Test
+    public void addPartitionRelationshipTest() {
         String firstServer = "10";
         int storageId = 1;
         String partitionid = "45";
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client,S_B_PATH,ROUTE_PATH,S_SEQ_PATH);
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        maintainer.addPartitionRelation(firstServer, partitionid);
+    }
+
+    @Test
+    public void removePartitionRelationshipTest() {
+        String firstServer = "10";
+        int storageId = 1;
+        String partitionid = "45";
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
         maintainer.removePartitionRelation(partitionid);
     }
+
     @After
-    public void closeAll(){
-        if(client != null){
+    public void closeAll() {
+        if (client != null) {
             client.close();
         }
     }

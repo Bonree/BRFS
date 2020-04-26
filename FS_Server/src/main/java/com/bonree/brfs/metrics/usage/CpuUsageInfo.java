@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics.usage;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -24,14 +25,14 @@ public class CpuUsageInfo {
     private final int user;
     private final int steal;
     private final int iowait;
-    
+
     @JsonCreator
     public CpuUsageInfo(
-            @JsonProperty("total") int total,
-            @JsonProperty("system") int system,
-            @JsonProperty("user") int user,
-            @JsonProperty("steal") int steal,
-            @JsonProperty("iowait") int iowait) {
+        @JsonProperty("total") int total,
+        @JsonProperty("system") int system,
+        @JsonProperty("user") int user,
+        @JsonProperty("steal") int steal,
+        @JsonProperty("iowait") int iowait) {
         this.total = total;
         this.system = system;
         this.user = user;
@@ -63,15 +64,15 @@ public class CpuUsageInfo {
     public int getIowait() {
         return iowait;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("total", total)
-                .add("system", system)
-                .add("user", user)
-                .add("steal", steal)
-                .add("iowait", iowait)
-                .toString();
+            .add("total", total)
+            .add("system", system)
+            .add("user", user)
+            .add("steal", steal)
+            .add("iowait", iowait)
+            .toString();
     }
 }

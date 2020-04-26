@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.zookeeper;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -21,11 +22,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ZookeeperNode {
     private final String name;
     private final boolean hasValue;
-    
+
     @JsonCreator
     public ZookeeperNode(
-            @JsonProperty("name") String name,
-            @JsonProperty("hasValue") boolean hasValue) {
+        @JsonProperty("name") String name,
+        @JsonProperty("hasValue") boolean hasValue) {
         this.name = name;
         this.hasValue = hasValue;
     }
@@ -39,12 +40,12 @@ public class ZookeeperNode {
     public boolean isHasValue() {
         return hasValue;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("name", name)
-                .add("hasValue", hasValue)
-                .toString();
+            .add("name", name)
+            .add("hasValue", hasValue)
+            .toString();
     }
 }

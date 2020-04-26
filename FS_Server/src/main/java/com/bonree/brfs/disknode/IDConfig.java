@@ -24,7 +24,6 @@ public class IDConfig {
     @JsonProperty("partition.dir")
     private String partitionIds = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PARTITION_IDS_DIR);
 
-
     public String getServerIds() {
         return serverIds;
     }

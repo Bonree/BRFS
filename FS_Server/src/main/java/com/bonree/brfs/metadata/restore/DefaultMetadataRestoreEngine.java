@@ -1,12 +1,15 @@
 package com.bonree.brfs.metadata.restore;
 
 import com.bonree.brfs.metadata.ZNode;
-import org.apache.zookeeper.*;
+import java.util.List;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Transaction;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -16,7 +19,7 @@ import java.util.List;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description: 默认元数据恢复引擎
  ******************************************************************************/
-public class DefaultMetadataRestoreEngine implements MetadataRestoreEngine{
+public class DefaultMetadataRestoreEngine implements MetadataRestoreEngine {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultMetadataRestoreEngine.class);
 
@@ -45,7 +48,8 @@ public class DefaultMetadataRestoreEngine implements MetadataRestoreEngine{
      * @param ignoreEphemeralNodes  {@code true} if ephemeral nodes should not be copied
      * @param mtime                 znodes modified before this timestamp will not be copied.
      */
-    public DefaultMetadataRestoreEngine(ZooKeeper zk, String destPath, ZNode znode, boolean removeDeprecatedNodes, boolean ignoreEphemeralNodes, long mtime, int batchSize) {
+    public DefaultMetadataRestoreEngine(ZooKeeper zk, String destPath, ZNode znode, boolean removeDeprecatedNodes,
+                                        boolean ignoreEphemeralNodes, long mtime, int batchSize) {
         this.zk = zk;
         this.destPath = destPath;
         this.sourceRoot = znode;
@@ -131,6 +135,7 @@ public class DefaultMetadataRestoreEngine implements MetadataRestoreEngine{
      * Updates or creates the given node.
      *
      * @param node The node to copy
+     *
      * @throws KeeperException      If the server signals an error
      * @throws InterruptedException If the server transaction is interrupted
      */

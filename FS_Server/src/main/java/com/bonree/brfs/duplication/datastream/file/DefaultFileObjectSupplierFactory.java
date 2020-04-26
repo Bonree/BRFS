@@ -1,35 +1,35 @@
 package com.bonree.brfs.duplication.datastream.file;
 
-import javax.inject.Inject;
-
 import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSynchronizer;
 import com.bonree.brfs.duplication.filenode.FileNodeSinkManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import javax.inject.Inject;
 
 public class DefaultFileObjectSupplierFactory implements FileObjectSupplierFactory {
-	private FileObjectFactory fileFactory;
-	private FileObjectCloser fileCloser;
-	private FileObjectSynchronizer fileSynchronizer;
-	private FileNodeSinkManager fileNodeSinkManager;
-	private TimeExchangeEventEmitter timeEventEmitter;
-	
-	@Inject
-	public DefaultFileObjectSupplierFactory(FileObjectFactory fileFactory,
-			FileObjectCloser fileCloser,
-			FileObjectSynchronizer fileSynchronizer,
-			FileNodeSinkManager fileNodeSinkManager,
-			TimeExchangeEventEmitter timeEventEmitter) {
-		this.fileFactory = fileFactory;
-		this.fileCloser = fileCloser;
-		this.fileSynchronizer = fileSynchronizer;
-		this.fileNodeSinkManager = fileNodeSinkManager;
-		this.timeEventEmitter = timeEventEmitter;
-	}
+    private FileObjectFactory fileFactory;
+    private FileObjectCloser fileCloser;
+    private FileObjectSynchronizer fileSynchronizer;
+    private FileNodeSinkManager fileNodeSinkManager;
+    private TimeExchangeEventEmitter timeEventEmitter;
 
-	@Override
-	public FileObjectSupplier create(StorageRegion storageRegion) {
-		return new DefaultFileObjectSupplier(storageRegion, fileFactory, fileCloser, fileSynchronizer, fileNodeSinkManager, timeEventEmitter);
-	}
+    @Inject
+    public DefaultFileObjectSupplierFactory(FileObjectFactory fileFactory,
+                                            FileObjectCloser fileCloser,
+                                            FileObjectSynchronizer fileSynchronizer,
+                                            FileNodeSinkManager fileNodeSinkManager,
+                                            TimeExchangeEventEmitter timeEventEmitter) {
+        this.fileFactory = fileFactory;
+        this.fileCloser = fileCloser;
+        this.fileSynchronizer = fileSynchronizer;
+        this.fileNodeSinkManager = fileNodeSinkManager;
+        this.timeEventEmitter = timeEventEmitter;
+    }
+
+    @Override
+    public FileObjectSupplier create(StorageRegion storageRegion) {
+        return new DefaultFileObjectSupplier(storageRegion, fileFactory, fileCloser, fileSynchronizer, fileNodeSinkManager,
+                                             timeEventEmitter);
+    }
 
 }

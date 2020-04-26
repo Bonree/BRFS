@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.metrics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -21,11 +22,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class DiskIOMetric {
     private final long time;
     private final double io;
-    
+
     @JsonCreator
     public DiskIOMetric(
-            @JsonProperty("time") long time,
-            @JsonProperty("io") double io) {
+        @JsonProperty("time") long time,
+        @JsonProperty("io") double io) {
         this.time = time;
         this.io = io;
     }
@@ -39,12 +40,12 @@ public class DiskIOMetric {
     public double getIo() {
         return io;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("time", time)
-                .add("io", io)
-                .toString();
+            .add("time", time)
+            .add("io", io)
+            .toString();
     }
 }

@@ -19,37 +19,41 @@ import org.junit.Test;
  ******************************************************************************/
 
 public class PartitionInfoRegisterTest {
-    private static String ID_BAS_PATH="/brfsDevTest/discovery";
+    private static String ID_BAS_PATH = "/brfsDevTest/discovery";
     private static String ZKADDRES = RouteParserTest.ZK_ADDRESS;
     private CuratorFramework framework = null;
+
     @Before
-    public void checkZK(){
-        framework = CuratorFrameworkFactory.newClient(ZKADDRES,new RetryNTimes(5,300));
+    public void checkZK() {
+        framework = CuratorFrameworkFactory.newClient(ZKADDRES, new RetryNTimes(5, 300));
         framework.start();
         try {
             framework.blockUntilConnected();
         } catch (InterruptedException e) {
-            Assert.fail("zookeeper client is invaild !! address: "+ZKADDRES);
+            Assert.fail("zookeeper client is invaild !! address: " + ZKADDRES);
         }
     }
+
     @Test
-    public void registerPartitonInfoTest()throws Exception{
-        PartitionInfoRegister manager = new PartitionInfoRegister(framework,ID_BAS_PATH);
-        PartitionInfo obj = new PartitionInfo("dataGroup","10","diskGroup","40",100.0D,50.0D,System.currentTimeMillis());
+    public void registerPartitonInfoTest() throws Exception {
+        PartitionInfoRegister manager = new PartitionInfoRegister(framework, ID_BAS_PATH);
+        PartitionInfo obj = new PartitionInfo("dataGroup", "10", "diskGroup", "40", 100.0D, 50.0D, System.currentTimeMillis());
         manager.registerPartitionInfo(obj);
     }
+
     @Test
-    public void unregisterPartitionInfoTest()throws Exception{
-        PartitionInfoRegister manager = new PartitionInfoRegister(framework,ID_BAS_PATH);
-        PartitionInfo obj = new PartitionInfo("dataGroup","10","diskGroup","40",100.0D,50.0D,System.currentTimeMillis());
+    public void unregisterPartitionInfoTest() throws Exception {
+        PartitionInfoRegister manager = new PartitionInfoRegister(framework, ID_BAS_PATH);
+        PartitionInfo obj = new PartitionInfo("dataGroup", "10", "diskGroup", "40", 100.0D, 50.0D, System.currentTimeMillis());
         manager.registerPartitionInfo(obj);
         Thread.sleep(1000);
         manager.unregisterPartitionInfo(obj);
         Thread.sleep(1000);
     }
+
     @After
-    public void closeAll(){
-        if(framework != null){
+    public void closeAll() {
+        if (framework != null) {
             framework.close();
         }
     }

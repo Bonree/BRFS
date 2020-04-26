@@ -1,22 +1,22 @@
 package com.bonree.brfs.disknode.server.handler.data;
 
 public class DeleteData {
-	private boolean forceClose;
-	private boolean recursive;
-	
-	public boolean isForceClose() {
-		return forceClose;
-	}
+    private boolean forceClose;
+    private boolean recursive;
 
-	public void setForceClose(boolean forceClose) {
-		this.forceClose = forceClose;
-	}
+    public boolean isForceClose() {
+        return forceClose;
+    }
 
-	public boolean isRecursive() {
-		return recursive;
-	}
+    public void setForceClose(boolean forceClose) {
+        this.forceClose = forceClose;
+    }
 
-	public void setRecursive(boolean recursive) {
-		this.recursive = recursive;
-	}
+    public boolean isRecursive() {
+        return recursive;
+    }
+
+    public void setRecursive(boolean recursive) {
+        this.recursive = recursive;
+    }
 }

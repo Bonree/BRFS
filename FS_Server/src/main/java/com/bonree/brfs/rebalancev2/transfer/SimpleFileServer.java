@@ -1,16 +1,15 @@
-package com.bonree.brfs.rebalanceV2.transfer;
+package com.bonree.brfs.rebalancev2.transfer;
 
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.identification.LocalPartitionInterface;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SimpleFileServer implements Closeable {
 
@@ -32,7 +31,7 @@ public class SimpleFileServer implements Closeable {
             Socket sock = null;
             try {
                 sock = serverSocket.accept();
-                es.execute(new FileServThread(sock, partitionInterface, LOG));// 当成功连接客户端后开启新线程接收文件
+                es.execute(new FileServThread(sock, partitionInterface, LOG)); // 当成功连接客户端后开启新线程接收文件
             } catch (IOException e) {
                 e.printStackTrace();
             }

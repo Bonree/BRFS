@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.metrics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -25,15 +26,15 @@ public class CpuMetric {
     private final double user;
     private final double steal;
     private final double iowait;
-    
+
     @JsonCreator
     public CpuMetric(
-            @JsonProperty("time") long time,
-            @JsonProperty("total") double total,
-            @JsonProperty("system") double system,
-            @JsonProperty("user") double user,
-            @JsonProperty("steal") double steal,
-            @JsonProperty("iowait") double iowait) {
+        @JsonProperty("time") long time,
+        @JsonProperty("total") double total,
+        @JsonProperty("system") double system,
+        @JsonProperty("user") double user,
+        @JsonProperty("steal") double steal,
+        @JsonProperty("iowait") double iowait) {
         this.time = time;
         this.total = total;
         this.system = system;
@@ -46,7 +47,7 @@ public class CpuMetric {
     public long getTime() {
         return time;
     }
-    
+
     @JsonProperty("total")
     public double getTotal() {
         return total;
@@ -71,16 +72,16 @@ public class CpuMetric {
     public double getIowait() {
         return iowait;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("time", time)
-                .add("total", total)
-                .add("system", system)
-                .add("user", user)
-                .add("steal", steal)
-                .add("iowait", iowait)
-                .toString();
+            .add("time", time)
+            .add("total", total)
+            .add("system", system)
+            .add("user", user)
+            .add("steal", steal)
+            .add("iowait", iowait)
+            .toString();
     }
 }

@@ -11,14 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.zookeeper;
 
 import java.util.List;
 
 public interface ZookeeperInfoTaker {
     ZookeeperNode rootNode();
-    
+
     List<ZookeeperNode> list(String nodePath);
-    
+
     ZookeeperNodeData getData(String nodePath);
 }

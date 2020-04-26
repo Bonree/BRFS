@@ -6,20 +6,19 @@ import com.bonree.brfs.duplication.filenode.FileNodeFilter;
 
 /**
  * 过滤只属于指定Service的FileNode
- * 
- * @author yupeng
  *
+ * @author yupeng
  */
 public class ServiceFileNodeFilter implements FileNodeFilter {
-	private Service service;
-	
-	public ServiceFileNodeFilter(Service service) {
-		this.service = service;
-	}
+    private Service service;
 
-	@Override
-	public boolean filter(FileNode fileNode) {
-		return fileNode.getServiceId().equals(service.getServiceId());
-	}
+    public ServiceFileNodeFilter(Service service) {
+        this.service = service;
+    }
+
+    @Override
+    public boolean filter(FileNode fileNode) {
+        return fileNode.getServiceId().equals(service.getServiceId());
+    }
 
 }

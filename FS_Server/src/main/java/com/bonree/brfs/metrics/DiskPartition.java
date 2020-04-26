@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -23,13 +24,13 @@ public class DiskPartition {
     private final String device;
     private final long capacity;
     private final boolean brfsUsed;
-    
+
     @JsonCreator
     public DiskPartition(
-            @JsonProperty("mountPoint") String mountPoint,
-            @JsonProperty("device") String device,
-            @JsonProperty("capacity") long capacity,
-            @JsonProperty("brfsUsed") boolean brfsUsed) {
+        @JsonProperty("mountPoint") String mountPoint,
+        @JsonProperty("device") String device,
+        @JsonProperty("capacity") long capacity,
+        @JsonProperty("brfsUsed") boolean brfsUsed) {
         this.mountPoint = mountPoint;
         this.device = device;
         this.capacity = capacity;
@@ -50,19 +51,19 @@ public class DiskPartition {
     public long getCapacity() {
         return capacity;
     }
-    
+
     @JsonProperty("brfsUsed")
     public boolean isBrfsUsed() {
         return brfsUsed;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("mountPoint", mountPoint)
-                .add("device", device)
-                .add("capacity", capacity)
-                .add("brfsUsed", brfsUsed)
-                .toString();
+            .add("mountPoint", mountPoint)
+            .add("device", device)
+            .add("capacity", capacity)
+            .add("brfsUsed", brfsUsed)
+            .toString();
     }
 }

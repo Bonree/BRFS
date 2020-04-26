@@ -6,62 +6,62 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 public class ByteArrayFileBuffer implements FileBuffer {
-	private byte[] byteArray;
-	private volatile int position;
-	private final boolean forceWhenFlush;
-	
-	public ByteArrayFileBuffer(int capacity) {
-		this(capacity, false);
-	}
-	
-	public ByteArrayFileBuffer(int capacity, boolean forceWhenFlush) {
-		this.byteArray = new byte[capacity];
-		this.position = 0;
-		this.forceWhenFlush = forceWhenFlush;
-	}
+    private byte[] byteArray;
+    private volatile int position;
+    private final boolean forceWhenFlush;
 
-	@Override
-	public int readableSize() {
-		return position;
-	}
+    public ByteArrayFileBuffer(int capacity) {
+        this(capacity, false);
+    }
 
-	@Override
-	public int capacity() {
-		return byteArray.length;
-	}
+    public ByteArrayFileBuffer(int capacity, boolean forceWhenFlush) {
+        this.byteArray = new byte[capacity];
+        this.position = 0;
+        this.forceWhenFlush = forceWhenFlush;
+    }
 
-	@Override
-	public int writableSize() {
-		return byteArray.length - position;
-	}
+    @Override
+    public int readableSize() {
+        return position;
+    }
 
-	@Override
-	public void write(byte[] datas) {
-		write(datas, 0, datas.length);
-	}
+    @Override
+    public int capacity() {
+        return byteArray.length;
+    }
 
-	@Override
-	public void write(byte[] datas, int offset, int size) {
-		if(size > writableSize()) {
-			throw new BufferOverflowException();
-		}
-		
-		System.arraycopy(datas, offset, byteArray, position, size);
-		position += size;
-	}
+    @Override
+    public int writableSize() {
+        return byteArray.length - position;
+    }
 
-	@Override
-	public void clear() {
-		position = 0;
-	}
+    @Override
+    public void write(byte[] datas) {
+        write(datas, 0, datas.length);
+    }
 
-	@Override
-	public void flush(FileChannel channel) throws IOException {
-		channel.write(ByteBuffer.wrap(byteArray, 0, position));
-		
-		if(forceWhenFlush) {
-			channel.force(false);
-		}
-	}
+    @Override
+    public void write(byte[] datas, int offset, int size) {
+        if (size > writableSize()) {
+            throw new BufferOverflowException();
+        }
+
+        System.arraycopy(datas, offset, byteArray, position, size);
+        position += size;
+    }
+
+    @Override
+    public void clear() {
+        position = 0;
+    }
+
+    @Override
+    public void flush(FileChannel channel) throws IOException {
+        channel.write(ByteBuffer.wrap(byteArray, 0, position));
+
+        if (forceWhenFlush) {
+            channel.force(false);
+        }
+    }
 
 }

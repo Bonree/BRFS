@@ -11,12 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bonree.brfs.disknode;
 
-import java.util.List;
+package com.bonree.brfs.disknode;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 
 public class StorageConfig {
     @JsonProperty("storage.dirs")

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.duplication;
 
 import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
@@ -117,7 +118,6 @@ public class RegionNodeModule implements Module {
         binder.bind(DataEngineFactory.class).to(DefaultDataEngineFactory.class).in(Scopes.SINGLETON);
         binder.bind(DataEngineManager.class).to(DefaultDataEngineManager.class);
 
-
         binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
         binder.bind(RocksDBManager.class).to(NonRocksDBManager.class).in(Scopes.SINGLETON);
         binder.bind(BrfsCatalog.class).to(DefaultBrfsCatalog.class).in(Scopes.SINGLETON);
@@ -150,10 +150,10 @@ public class RegionNodeModule implements Module {
     @Provides
     @Singleton
     public Service getService(
-            ClusterConfig clusterConfig,
-            HttpServerConfig serverConfig,
-            ServiceManager serviceManager,
-            Lifecycle lifecycle) {
+        ClusterConfig clusterConfig,
+        HttpServerConfig serverConfig,
+        ServiceManager serviceManager,
+        Lifecycle lifecycle) {
         String host = serverConfig.getHost();
         if (host == null) {
             List<InetAddress> addresses = NetworkUtils.getAllLocalIps();
@@ -165,10 +165,10 @@ public class RegionNodeModule implements Module {
         }
 
         Service service = new Service(
-                UUID.randomUUID().toString(),
-                clusterConfig.getRegionNodeGroup(),
-                host,
-                serverConfig.getPort());
+            UUID.randomUUID().toString(),
+            clusterConfig.getRegionNodeGroup(),
+            host,
+            serverConfig.getPort());
 
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
 
@@ -194,9 +194,9 @@ public class RegionNodeModule implements Module {
     @Provides
     @Singleton
     public TcpDiskNodeConnectionPool getTcpConnectionPool(
-            ServiceManager serviceManager,
-            ConnectionPoolConfig config,
-            Lifecycle lifecycle) {
+        ServiceManager serviceManager,
+        ConnectionPoolConfig config,
+        Lifecycle lifecycle) {
         AsyncTcpClientGroup tcpClientGroup = new AsyncTcpClientGroup(config.getWriteWorkerThreads());
         TcpDiskNodeConnectionPool connectionPool = new TcpDiskNodeConnectionPool(serviceManager, tcpClientGroup);
 

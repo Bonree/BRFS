@@ -1,16 +1,15 @@
 package com.bonree.brfs.metadata.backup;
 
 import com.bonree.brfs.metadata.ZNode;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -30,7 +29,8 @@ public class ZNodeReader implements Runnable {
 
     private final AtomicBoolean failed;
 
-    ZNodeReader(ExecutorService pool, ZNode znode, AtomicInteger totalCounter, AtomicInteger processedCounter, AtomicBoolean failed) {
+    ZNodeReader(ExecutorService pool, ZNode znode, AtomicInteger totalCounter, AtomicInteger processedCounter,
+                AtomicBoolean failed) {
         this.znode = znode;
         this.pool = pool;
         this.totalCounter = totalCounter;
@@ -65,9 +65,9 @@ public class ZNodeReader implements Runnable {
                     // reserved
                     continue;
                 }
-                ZNode zChild = new ZNode(znode, child);
-                znode.appendChild(zChild);
-                pool.execute(new ZNodeReader(pool, zChild, totalCounter, processedCounter, failed));
+                ZNode node = new ZNode(znode, child);
+                znode.appendChild(node);
+                pool.execute(new ZNodeReader(pool, node, totalCounter, processedCounter, failed));
             }
         } catch (KeeperException | InterruptedException e) {
             LOG.error("Could not read from remote server", e);

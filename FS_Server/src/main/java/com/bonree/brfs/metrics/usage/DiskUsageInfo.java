@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics.usage;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -22,12 +23,12 @@ public class DiskUsageInfo {
     private final long usedBytes;
     private final long freeBytes;
     private final int ioUsagePercent;
-    
+
     @JsonCreator
     public DiskUsageInfo(
-            @JsonProperty("usedBytes") long usedBytes,
-            @JsonProperty("freeBytes") long freeBytes,
-            @JsonProperty("ioUsage") int ioUsagePercent) {
+        @JsonProperty("usedBytes") long usedBytes,
+        @JsonProperty("freeBytes") long freeBytes,
+        @JsonProperty("ioUsage") int ioUsagePercent) {
         this.usedBytes = usedBytes;
         this.freeBytes = freeBytes;
         this.ioUsagePercent = ioUsagePercent;
@@ -47,13 +48,13 @@ public class DiskUsageInfo {
     public int getIoUsagePercent() {
         return ioUsagePercent;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("usedBytes", usedBytes)
-                .add("freeBytes", freeBytes)
-                .add("ioUsagePercent", ioUsagePercent)
-                .toString();
+            .add("usedBytes", usedBytes)
+            .add("freeBytes", freeBytes)
+            .add("ioUsagePercent", ioUsagePercent)
+            .toString();
     }
 }

@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.metrics;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -21,11 +22,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class LoadAvgMetric {
     private final long time;
     private final double load;
-    
+
     @JsonCreator
     public LoadAvgMetric(
-            @JsonProperty("time") long time,
-            @JsonProperty("load") double load) {
+        @JsonProperty("time") long time,
+        @JsonProperty("load") double load) {
         this.time = time;
         this.load = load;
     }
@@ -39,12 +40,12 @@ public class LoadAvgMetric {
     public double getLoad() {
         return load;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("time", time)
-                .add("load", load)
-                .toString();
+            .add("time", time)
+            .add("load", load)
+            .toString();
     }
 }

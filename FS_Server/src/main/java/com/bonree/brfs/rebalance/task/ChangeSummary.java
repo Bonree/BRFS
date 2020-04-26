@@ -1,13 +1,12 @@
 package com.bonree.brfs.rebalance.task;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年3月23日 下午2:54:23
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 节点发生改变，包括节点丢失或者节点加入
@@ -16,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ChangeSummary implements Comparable<ChangeSummary> {
     @JsonProperty("changeID")
     private String changeID;
-    
+
     @JsonProperty("storageIndex")
     private int storageIndex;
 
@@ -34,7 +33,8 @@ public class ChangeSummary implements Comparable<ChangeSummary> {
 
     }
 
-    public ChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer, List<String> currentServers) {
+    public ChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer,
+                         List<String> currentServers) {
         this.storageIndex = storageIndex;
         this.changeID = createTime;
         this.changeType = changeType;
@@ -110,7 +110,8 @@ public class ChangeSummary implements Comparable<ChangeSummary> {
 
     @Override
     public String toString() {
-        return "ChangeSummary [changeID=" + changeID + ", storageIndex=" + storageIndex + ", changeType=" + changeType + ", changeServer=" + changeServer + ", currentServers=" + currentServers + "]";
+        return "ChangeSummary [changeID=" + changeID + ", storageIndex=" + storageIndex + ", changeType=" + changeType
+            + ", changeServer=" + changeServer + ", currentServers=" + currentServers + "]";
     }
 
 }

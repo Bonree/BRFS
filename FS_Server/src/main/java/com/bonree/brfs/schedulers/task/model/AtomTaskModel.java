@@ -2,7 +2,6 @@ package com.bonree.brfs.schedulers.task.model;
 
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -16,7 +15,8 @@ import java.util.List;
  * @Description: 任务原子任务
  *****************************************************************************
  */
-@JsonIgnoreProperties(ignoreUnknown = true) public class AtomTaskModel {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class AtomTaskModel {
     private String storageName;
     private String dataStartTime;
     private String dataStopTime;
@@ -33,16 +33,20 @@ import java.util.List;
      * @param taskOperation
      * @param startTime
      * @param endTime
+     *
      * @return
+     *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static AtomTaskModel getInstance(Collection<String> atomFiles, String snName, String taskOperation, int patitionNum, long startTime, long endTime, long granule) {
+    public static AtomTaskModel getInstance(Collection<String> atomFiles, String snName, String taskOperation, int patitionNum,
+                                            long startTime, long endTime, long granule) {
         String start = TimeUtils.formatTimeStamp(startTime, TimeUtils.TIME_MILES_FORMATE);
         String end = TimeUtils.formatTimeStamp(endTime, TimeUtils.TIME_MILES_FORMATE);
         return getInstance(atomFiles, snName, taskOperation, patitionNum, start, end, granule);
     }
 
-    public static AtomTaskModel getInstance(Collection<String> atomFiles, String snName, String taskOperation, int patitionNum, String startTime, String endTime, long granule) {
+    public static AtomTaskModel getInstance(Collection<String> atomFiles, String snName, String taskOperation, int patitionNum,
+                                            String startTime, String endTime, long granule) {
         AtomTaskModel atom = new AtomTaskModel();
         if (atomFiles != null) {
             atom.addAllFiles(atomFiles);

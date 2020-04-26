@@ -3,7 +3,6 @@ package com.bonree.brfs.duplication.filenode.duplicates.impl;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.partition.model.PartitionInfo;
-
 import java.util.Map;
 
 /**
@@ -23,19 +22,19 @@ public class SimplePartitionNodeSelecotr implements PartitionNodeSelector {
 
     @Override
     public String getPartitionId(String firstId) {
-        Map<String, PartitionInfo> map =  this.diskPartitionInfoManager.getPartitionInfosByServiceId(firstId);
+        Map<String, PartitionInfo> map = this.diskPartitionInfoManager.getPartitionInfosByServiceId(firstId);
         // 1.若磁盘个数为空，则返回null，
-        if(map == null || map.isEmpty()){
+        if (map == null || map.isEmpty()) {
             return null;
         }
         PartitionInfo max = null;
-        for(PartitionInfo partitionInfo : map.values()){
-            if(max == null){
+        for (PartitionInfo partitionInfo : map.values()) {
+            if (max == null) {
                 max = partitionInfo;
                 continue;
             }
-            if(max.getFreeSize() <partitionInfo.getFreeSize()){
-                max= partitionInfo;
+            if (max.getFreeSize() < partitionInfo.getFreeSize()) {
+                max = partitionInfo;
             }
         }
         return max == null ? null : max.getPartitionId();

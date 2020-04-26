@@ -6,8 +6,8 @@ import com.bonree.brfs.common.write.data.FSCode;
 import com.google.protobuf.ByteString;
 
 public class BlockListParser {
-	
-	public FileContent parse(byte[] bytes) throws Exception {
+
+    public FileContent parse(byte[] bytes) throws Exception {
         FileContent.Builder file = FileContent.newBuilder();
 
         // 获取一条消息
@@ -18,8 +18,8 @@ public class BlockListParser {
         // 1.获取压缩标识
         int compressFlag = (dataBytes[0] & 0xFF) >> 6;
 
-        int describeLength = (int) FSCode.moreFlagDecoder(dataBytes, 4);// 描述信息的长度
-        int describeMoreFlagLength = FSCode.moreFlagLength(describeLength, 4) + 1;// 扩展次数加上moreFlag所在的一个字节.
+        int describeLength = (int) FSCode.moreFlagDecoder(dataBytes, 4); // 描述信息的长度
+        int describeMoreFlagLength = FSCode.moreFlagLength(describeLength, 4) + 1; // 扩展次数加上moreFlag所在的一个字节.
         byte[] destResult = FSCode.subBytes(dataBytes, describeMoreFlagLength, describeLength);
 
         int contestStart = describeLength + describeMoreFlagLength; // 内容的开始位置(包含moreflag)

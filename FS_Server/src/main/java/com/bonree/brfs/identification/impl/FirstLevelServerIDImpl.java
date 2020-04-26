@@ -3,16 +3,15 @@ package com.bonree.brfs.identification.impl;
 import com.bonree.brfs.identification.LevelServerIDGen;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -23,7 +22,7 @@ import java.io.IOException;
  * @Description: 1级serverID实例
  ******************************************************************************/
 public class FirstLevelServerIDImpl {
-	private static final Logger LOG = LoggerFactory.getLogger(FirstLevelServerIDImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FirstLevelServerIDImpl.class);
 
     private LevelServerIDGen firstServerIDGen;
 
@@ -34,7 +33,8 @@ public class FirstLevelServerIDImpl {
     private String firstZKPath;
 
     private String firstServer = null;
-	@Inject
+
+    @Inject
     public FirstLevelServerIDImpl(CuratorFramework client, String firstZKPath, String firstServerIDFile, String seqPath) {
         this.client = client;
         this.firstZKPath = firstZKPath;
@@ -43,57 +43,60 @@ public class FirstLevelServerIDImpl {
         initOrLoadServerID();
     }
 
-    /** 概述：加载一级ServerID
+    /**
+     * 概述：加载一级ServerID
      * 一级ServerID是用于标识每个服务的，不同的服务的一级ServerID一定是不同的，
      * 所以不会出现线程安全的问题
+     *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public synchronized String initOrLoadServerID() {
-    	if(StringUtils.isEmpty(this.firstServer)){
-    		this.firstServer = loadFirstServerId();
-		}
-		return this.firstServer;
-	}
+        if (StringUtils.isEmpty(this.firstServer)) {
+            this.firstServer = loadFirstServerId();
+        }
+        return this.firstServer;
+    }
 
-	private String loadFirstServerId() {
-		String firstServerID = null;
+    private String loadFirstServerId() {
+        String firstServerID = null;
 
-		File idFile = new File(firstServerIDFile);
-		if(idFile.exists()) {
-			try {
-				firstServerID = Files.asCharSource(idFile, Charsets.UTF_8).readFirstLine();
-			} catch (IOException e) {
-				LOG.error("read server id file[{}] error", idFile.getAbsolutePath(), e);
-			}
+        File idFile = new File(firstServerIDFile);
+        if (idFile.exists()) {
+            try {
+                firstServerID = Files.asCharSource(idFile, Charsets.UTF_8).readFirstLine();
+            } catch (IOException e) {
+                LOG.error("read server id file[{}] error", idFile.getAbsolutePath(), e);
+            }
 
-			if(firstServerID == null) {
-				throw new RuntimeException("can not load server id from local file[" + idFile.getAbsolutePath() + "]");
-			}
+            if (firstServerID == null) {
+                throw new RuntimeException("can not load server id from local file[" + idFile.getAbsolutePath() + "]");
+            }
 
-			LOG.info("load server id from local file : {}", firstServerID);
-			return firstServerID;
-		}
+            LOG.info("load server id from local file : {}", firstServerID);
+            return firstServerID;
+        }
 
-		firstServerID = firstServerIDGen.genLevelID();
-		if(firstServerID == null) {
-			throw new RuntimeException("can not get server id[" + idFile.getAbsolutePath() + "]");
-		}
+        firstServerID = firstServerIDGen.genLevelID();
+        if (firstServerID == null) {
+            throw new RuntimeException("can not get server id[" + idFile.getAbsolutePath() + "]");
+        }
 
-		try {
-			client.create()
-			.creatingParentContainersIfNeeded()
-			.withMode(CreateMode.PERSISTENT)
-			.forPath(ZKPaths.makePath(firstZKPath, firstServerID));
+        try {
+            client.create()
+                .creatingParentContainersIfNeeded()
+                .withMode(CreateMode.PERSISTENT)
+                .forPath(ZKPaths.makePath(firstZKPath, firstServerID));
 
-			Files.createParentDirs(idFile);
-			Files.asCharSink(idFile, Charsets.UTF_8).write(firstServerID);
-		} catch (Exception e) {
-			LOG.error("can not persist server id[{}]", idFile.getAbsolutePath(), e);
+            Files.createParentDirs(idFile);
+            Files.asCharSink(idFile, Charsets.UTF_8).write(firstServerID);
+        } catch (Exception e) {
+            LOG.error("can not persist server id[{}]", idFile.getAbsolutePath(), e);
 
-			throw new RuntimeException("can not persist server id", e);
-		}
+            throw new RuntimeException("can not persist server id", e);
+        }
 
-		return firstServerID;
-	}
+        return firstServerID;
+    }
 }

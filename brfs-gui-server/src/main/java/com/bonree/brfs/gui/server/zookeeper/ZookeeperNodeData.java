@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.gui.server.zookeeper;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -23,18 +24,18 @@ public class ZookeeperNodeData {
 
     @JsonCreator
     public ZookeeperNodeData(
-            @JsonProperty("data") String data) {
+        @JsonProperty("data") String data) {
         this.data = data;
     }
 
     public String getData() {
         return data;
     }
-    
+
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("data", data)
-                .toString();
+            .add("data", data)
+            .toString();
     }
 }

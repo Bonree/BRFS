@@ -11,22 +11,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.bonree.brfs.metrics;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 
 import com.bonree.brfs.metrics.usage.CpuUsageInfo;
 import com.bonree.brfs.metrics.usage.DiskUsageInfo;
 import com.bonree.brfs.metrics.usage.MemUsageInfo;
 import com.bonree.brfs.metrics.usage.NetworkUsageInfo;
 import com.bonree.brfs.metrics.usage.SystemLoadAvgInfo;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 
 @Path("/node")
 public class NodeResource {
@@ -36,46 +36,46 @@ public class NodeResource {
     public NodeInfo getNodeInfo() {
         return null;
     }
-    
+
     @GET
     @Path("cpu")
     @Produces(APPLICATION_JSON)
     public CpuUsageInfo getCpuUsage(
-            @DefaultValue("1") @QueryParam("minutes") int minutes) {
+        @DefaultValue("1") @QueryParam("minutes") int minutes) {
         return null;
     }
-    
+
     @GET
     @Path("mem")
     @Produces(APPLICATION_JSON)
     public MemUsageInfo getMemUsage(
-            @DefaultValue("1") @QueryParam("minutes") int minutes) {
+        @DefaultValue("1") @QueryParam("minutes") int minutes) {
         return null;
     }
-    
+
     @GET
     @Path("disk/{device}")
     @Produces(APPLICATION_JSON)
     public DiskUsageInfo getDiskUsageInfo(
-            @PathParam("device") String device,
-            @DefaultValue("1") @QueryParam("minutes") int minutes) {
+        @PathParam("device") String device,
+        @DefaultValue("1") @QueryParam("minutes") int minutes) {
         return null;
     }
-    
+
     @GET
     @Path("network/{iface}")
     @Produces(APPLICATION_JSON)
     public NetworkUsageInfo getNetworkUsageInfo(
-            @PathParam("iface") String iface,
-            @DefaultValue("1") @QueryParam("minutes") int minutes) {
+        @PathParam("iface") String iface,
+        @DefaultValue("1") @QueryParam("minutes") int minutes) {
         return null;
     }
-    
+
     @GET
     @Path("load")
     @Produces(APPLICATION_JSON)
     public SystemLoadAvgInfo getSystemLoadAvgInfo(
-            @DefaultValue("1") @QueryParam("minutes") int minutes) {
+        @DefaultValue("1") @QueryParam("minutes") int minutes) {
         return null;
     }
 }

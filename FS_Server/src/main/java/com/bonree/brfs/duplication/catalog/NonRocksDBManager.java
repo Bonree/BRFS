@@ -3,7 +3,6 @@ package com.bonree.brfs.duplication.catalog;
 import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
-
 import java.util.Map;
 
 public class NonRocksDBManager implements RocksDBManager {

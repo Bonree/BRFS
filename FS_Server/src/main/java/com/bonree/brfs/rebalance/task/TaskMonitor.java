@@ -1,26 +1,28 @@
 package com.bonree.brfs.rebalance.task;
 
-import java.util.List;
-
-import org.apache.curator.utils.ZKPaths;
-
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import java.util.List;
+import org.apache.curator.utils.ZKPaths;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
  * Copyright: Copyright (c) 2007博睿宏远科技发展有限公司,Inc.All Rights Reserved.
- * 
+ *
  * @date 2018年3月30日 下午4:33:34
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 此类为监视副本恢复时的任务进度和状态
  ******************************************************************************/
 public class TaskMonitor {
 
-    /** 概述：获取某个任务的进度
+    /**
+     * 概述：获取某个任务的进度
+     *
      * @param client
      * @param taskPath
+     *
      * @return
+     *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public double getTaskProgress(CuratorClient client, String taskPath) {
@@ -39,7 +41,7 @@ public class TaskMonitor {
                 curent += detail.getCurentCount();
                 total += detail.getTotalDirectories();
             }
-            if(total == 0) {
+            if (total == 0) {
                 return process;
             }
             process = curent / (double) total;
