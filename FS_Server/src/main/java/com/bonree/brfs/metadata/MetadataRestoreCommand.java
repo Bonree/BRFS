@@ -54,7 +54,7 @@ public class MetadataRestoreCommand implements Runnable {
             if (root != null) {
                 zookeeper = new ZooKeeper(zkHost, 40000, new LoggingWatcher());
                 MetadataRestoreEngine restoreEngine =
-                    new DefaultMetadataRestoreEngine(zookeeper, zkPath, root, true, true, -1, 1000);
+                    new DefaultMetadataRestoreEngine(zookeeper, zkPath, root, true, false, -1, 1000);
                 restoreEngine.restore();
                 LOG.info("restore brfs zk metadata complete.");
             }
