@@ -741,6 +741,20 @@ public class BRFSClient implements BRFS {
                 return;
             }
 
+            if (response.code() == HttpStatus.CODE_NOT_ALLOW_CUSTOM_FILENAME) {
+                resultFuture.setException(new IllegalArgumentException(
+                    Strings.format("the catalog is not opened, cannot use the custom file name!"))
+                );
+                return;
+            }
+
+            if (response.code() == HttpStatus.CODE_NOT_AVAILABLE_FILENAME) {
+                resultFuture.setException(new IllegalArgumentException(
+                    Strings.format("the custom file name is not pattern the regex [^(/+(\\.*[\\w,\\-]+\\.*)+)+$]!"))
+                );
+                return;
+            }
+
             resultFuture.setException(new IllegalStateException(
                 Strings.format("Unexpected response code is returned[%d]", response.code())));
         }

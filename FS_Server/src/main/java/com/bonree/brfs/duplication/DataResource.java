@@ -47,6 +47,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
@@ -104,12 +105,12 @@ public class DataResource {
             if (brfsCatalog.isUsable()) {
                 if (!brfsCatalog.validPath(file)) {
                     LOG.warn("file path [{}]is invalid.", file);
-                    throw new BadRequestException("file path [{}]is invalid");
+                    throw new WebApplicationException("file path " + file + "is invalid", HttpStatus.CODE_NOT_AVAILABLE_FILENAME);
                 }
             } else if (!file.equals("")) {
                 String resp = "the rocksDB is not open, can not write with file name";
                 LOG.warn(resp);
-                throw new BadRequestException(resp);
+                throw new WebApplicationException(resp, HttpStatus.CODE_NOT_ALLOW_CUSTOM_FILENAME);
             }
             if (packet.getSeqno() == 1) {
                 LOG.info("file [{}] is allow to write!", packet.getFileName());
