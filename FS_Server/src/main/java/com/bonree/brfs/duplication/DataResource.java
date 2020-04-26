@@ -122,7 +122,7 @@ public class DataResource {
                     packet.getStorageName(),
                     packet.getData(),
                     new StorageRegionWriteCallback() {
-
+                        long ctime = System.currentTimeMillis();
                         @Override
                         public void error() {
                             response.resume(new Exception());
@@ -130,6 +130,7 @@ public class DataResource {
 
                         @Override
                         public void complete(String fid) {
+                            LOG.info("write the tiny data to dn cost [{}]ms", System.currentTimeMillis() - ctime);
                             LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
                             if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
                                 if (brfsCatalog.writeFid(srName, file, fid)) {
@@ -137,9 +138,12 @@ public class DataResource {
                                     response.resume(new Exception("write fid to rocksDB failed."));
                                     return;
                                 }
-                                LOG.info("sync catalog into rocksDB.");
+                                LOG.info("response fid:[{}]", fid);
+                                response.resume(Response
+                                                    .ok()
+                                                    .entity(ImmutableList.of(fid)).build());
                             }
-                            LOG.info("sync catalog into rocksDB.");
+
                         }
 
                         @Override
@@ -214,7 +218,8 @@ public class DataResource {
         try {
             startTimestamp = DateTime.parse(startTime).getMillis();
             endTimeStamp = DateTime.parse(endTime).getMillis();
-            checkTime(startTimestamp, endTimeStamp, storageRegion.getCreateTime(),
+            checkTime(startTimestamp, endTimeStamp,
+                      storageRegion.getCreateTime(),
                       Duration.parse(storageRegion.getFilePartitionDuration()).toMillis());
         } catch (Exception e) {
             LOG.error("check time error", e);

@@ -336,12 +336,9 @@ public class SeqBlockManagerV2 implements BlockManager {
                 blockValue.addFid(fid);
                 if (!isFileFinished) {
                     String response = "seqno:" + seqno
-                        +
-                        " filename:" + fileName
-                        +
-                        " storageName:" + storageName
-                        +
-                        " done flush";
+                        + " filename:" + fileName
+                        + " storageName:" + storageName
+                        + " done flush";
                     // DONE flush a block
                     result.setToContinue();
                     result.setNextSeqno(seqno);
@@ -350,9 +347,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                 } else {
                     byte[] data = blockValue.writeFile(fileName);
                     writer.write(storageName, data,
-                                 new WriteFileCallback(callback, fileName, true));
-                    //                    blockValue.releaseData();
-
+                            new WriteFileCallback(callback, fileName, true));
                     LOG.info("flushing a big file in [{}],the filename is [{}]", storageName, fileName);
                 }
 
@@ -496,10 +491,8 @@ public class SeqBlockManagerV2 implements BlockManager {
 
             while (!quit || !fileWaiting.isEmpty()) {
                 LOG.info("Watcher : enqueue file count is [{}]"
-                             +
-                             "file writing count is [{}]"
-                             +
-                             "file in blockcache is [{}]",
+                             + "file writing count is [{}]"
+                             + "file in blockcache is [{}]",
                          fileWaiting.size(),
                          fileWritingCount.get(),
                          blockcache.size());

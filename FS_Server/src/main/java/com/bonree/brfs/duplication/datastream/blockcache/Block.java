@@ -13,7 +13,7 @@ public interface Block {
 
     int getDataOffsetInBlock();
 
-    int appendPacket(byte[] pdata);
+    int appendPacket(byte[] packetData);
 
     boolean isBlockSpill();
 }
