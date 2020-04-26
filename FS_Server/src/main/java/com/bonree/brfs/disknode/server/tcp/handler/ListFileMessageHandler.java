@@ -43,6 +43,7 @@ public class ListFileMessageHandler implements MessageHandler<BaseResponse> {
             Path d = Paths.get(dirPath);
             if (d.getFileName().toString().startsWith("0_")) {
                 d = d.getParent();
+                dirPath = d.toString();
             }
 
             File dir = d.toFile();
