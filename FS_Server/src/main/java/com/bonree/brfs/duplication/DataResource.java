@@ -124,6 +124,7 @@ public class DataResource {
                     packet.getData(),
                     new StorageRegionWriteCallback() {
                         long ctime = System.currentTimeMillis();
+
                         @Override
                         public void error() {
                             response.resume(new Exception());
@@ -210,8 +211,8 @@ public class DataResource {
         StorageRegion storageRegion = storageRegionManager.findStorageRegionByName(srName);
         if (storageRegion == null) {
             return Response.status(Status.BAD_REQUEST)
-                .entity(Strings.format("storage region[%s] is not existed", srName))
-                .build();
+                           .entity(Strings.format("storage region[%s] is not existed", srName))
+                           .build();
         }
 
         long startTimestamp;

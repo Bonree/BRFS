@@ -7,6 +7,8 @@ import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 版权信息: 北京博睿宏远数据科技股份有限公司
@@ -17,6 +19,7 @@ import java.util.List;
  * @description: id综合查询管理类，负责二级serverid，虚拟serverid 的查询，以及datanode一级server查询
  **/
 public class IDSManager implements LifeCycle {
+    private static final Logger LOG = LoggerFactory.getLogger(IDSManager.class);
     private String firstSever = null;
     private SecondMaintainerInterface secondMaintainer;
     private VirtualServerID virtualServerID;
@@ -133,6 +136,7 @@ public class IDSManager implements LifeCycle {
         Collection<LocalPartitionInfo> partitions = this.diskDaemon.getPartitions();
         Collection<String> parts = convertToId(partitions);
         this.secondMaintainer.addAllPartitionRelation(parts, firstSever);
+        LOG.info("IDSManager start.");
     }
 
     @Override

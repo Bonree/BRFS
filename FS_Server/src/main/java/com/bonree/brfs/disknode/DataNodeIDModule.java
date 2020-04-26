@@ -47,7 +47,8 @@ public class DataNodeIDModule implements Module {
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class);
         binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class);
         binder.bind(SecondIdsInterface.class).to(SecondMaintainerInterface.class).in(ManageLifecycle.class);
-        //        LifecycleModule.register(binder, DiskDaemon.class);
+        binder.bind(DiskPartitionInfoManager.class).in(ManageLifecycle.class);
+
         LifecycleModule.register(binder, IDSManager.class);
         LifecycleModule.register(binder, DiskPartitionChangeTaskGenerator.class);
     }
@@ -135,15 +136,36 @@ public class DataNodeIDModule implements Module {
 
     @Provides
     @Singleton
-    public DiskPartitionChangeTaskGenerator getDiskPartitionChangeTaskGenerator(
+    public DiskPartitionChangeTaskGenerator diskPartitionChangeTaskGenerator(
         CuratorFramework client,
         ServiceManager serviceManager,
-        IDSManager idManager,
-        ZookeeperPaths paths,
+        IDSManager idsManager,
         StorageRegionManager storageRegionManager,
-        DiskPartitionInfoManager diskPartitionInfoManager) {
-        return new DiskPartitionChangeTaskGenerator(
-            client, serviceManager, idManager, paths.getBaseRebalancePath(), 3000, storageRegionManager, paths,
-            diskPartitionInfoManager);
+        ZookeeperPaths zkPaths,
+        DiskPartitionInfoManager diskPartitionInfoManager,
+        Lifecycle lifecycle) {
+        DiskPartitionChangeTaskGenerator generator = new DiskPartitionChangeTaskGenerator(client,
+                                                                                          serviceManager,
+                                                                                          idsManager,
+                                                                                          storageRegionManager,
+                                                                                          zkPaths,
+                                                                                          diskPartitionInfoManager);
+        lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
+            @Override
+            public void start() throws Exception {
+                generator.start();
+            }
+
+            @Override
+            public void stop() {
+                try {
+                    generator.stop();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        return generator;
     }
+
 }

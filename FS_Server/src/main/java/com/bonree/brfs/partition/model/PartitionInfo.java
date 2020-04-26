@@ -109,12 +109,12 @@ public class PartitionInfo {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         return builder.append("{serviceGroup='").append(serviceGroup)
-            .append("', serviceId='").append(serviceId)
-            .append("', partitionGroup='").append(partitionGroup)
-            .append("', nodeId='").append(partitionId)
-            .append("', totalSize=").append(totalSize)
-            .append(", freeSize=").append(freeSize)
-            .append(", registerTime=").append(registerTime)
-            .append(",version=").append(version).append("}").toString();
+                      .append("', serviceId='").append(serviceId)
+                      .append("', partitionGroup='").append(partitionGroup)
+                      .append("', nodeId='").append(partitionId)
+                      .append("', totalSize=").append(totalSize)
+                      .append(", freeSize=").append(freeSize)
+                      .append(", registerTime=").append(registerTime)
+                      .append(",version=").append(version).append("}").toString();
     }
 }

@@ -45,8 +45,8 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
         this.storageRegionManager = storageRegionManager;
         this.storageRegionFactory = factory;
         this.dataEngineContainer = CacheBuilder.newBuilder()
-            .expireAfterAccess(idleTime.toMillis(), TimeUnit.MILLISECONDS)
-            .removalListener(new StorageRegionRemovalListener()).build(new DataEngineLoader());
+                                               .expireAfterAccess(idleTime.toMillis(), TimeUnit.MILLISECONDS)
+                                               .removalListener(new StorageRegionRemovalListener()).build(new DataEngineLoader());
 
         this.storageRegionManager.addStorageRegionStateListener(new StorageRegionStateHandler());
     }

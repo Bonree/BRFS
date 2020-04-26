@@ -3,7 +3,6 @@ package com.bonree.brfs.rebalancev2;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
-import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
@@ -25,7 +24,6 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@ManageLifecycle
 public class RebalanceManagerV2 implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(RebalanceManagerV2.class);
 
@@ -48,7 +46,6 @@ public class RebalanceManagerV2 implements Closeable {
                                         Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY),
                                         partitionInfoManager);
 
-        //        String dataPath = Configs.getConfiguration().GetConfig(DataNodeConfigs.CONFIG_DATA_ROOT);
         opt = new TaskOperationV2(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager,
                                   snManager, serviceManager, partitionInterface);
 

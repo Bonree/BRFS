@@ -55,9 +55,9 @@ public class RecordElement {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("[").append(offset)
-            .append(", ").append(size)
-            .append(", ").append(crc)
-            .append("]");
+               .append(", ").append(size)
+               .append(", ").append(crc)
+               .append("]");
 
         return builder.toString();
     }

@@ -347,7 +347,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                 } else {
                     byte[] data = blockValue.writeFile(fileName);
                     writer.write(storageName, data,
-                            new WriteFileCallback(callback, fileName, true));
+                                 new WriteFileCallback(callback, fileName, true));
                     LOG.info("flushing a big file in [{}],the filename is [{}]", storageName, fileName);
                 }
 

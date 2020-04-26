@@ -406,8 +406,8 @@ public class MultiRecover implements DataRecover {
                                     }
                                     Service service = serviceManager.getServiceById(
                                         Configs.getConfiguration()
-                                            .getConfig(
-                                                CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
+                                               .getConfig(
+                                                   CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
                                         fileRecover
                                             .getFirstServerID());
                                     if (service == null) {

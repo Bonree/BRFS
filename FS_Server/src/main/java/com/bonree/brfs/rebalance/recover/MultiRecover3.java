@@ -423,7 +423,7 @@ public class MultiRecover3 implements DataRecover {
                                     .getPot() + FileUtils.FILE_SEPARATOR + fileRecover.getTime();
                                 Service service = serviceManager.getServiceById(
                                     Configs.getConfiguration()
-                                        .getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
+                                           .getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
                                     fileRecover
                                         .getFirstServerID());
                                 boolean success = false;

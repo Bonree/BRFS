@@ -444,7 +444,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     private void syncColumnFamilyByStorageRegionInfo() {
         Map<String, Integer> srNameAndDataTtl = getStorageRegionNameAndDataTtl();
-        updateColumnFamilyHandles(getStorageRegionNameAndDataTtl());   // 先更新本地缓存
+        updateColumnFamilyHandles(srNameAndDataTtl);   // 先更新本地缓存
         this.columnFamilyInfoManager.resetColumnFamilyInfo(srNameAndDataTtl);  // 再重置zk上保存的列族信息
         LOG.info("sync column family by storage region info complete, sr list:{}", srNameAndDataTtl);
     }
