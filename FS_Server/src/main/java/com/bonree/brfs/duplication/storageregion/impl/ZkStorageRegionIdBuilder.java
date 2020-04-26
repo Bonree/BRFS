@@ -16,7 +16,7 @@ import org.apache.curator.utils.ZKPaths;
 public class ZkStorageRegionIdBuilder implements StorageRegionIdBuilder {
     private static final String DEFAULT_PATH_STORAGE_NAME_IDS = "ids";
 
-    private SequenceNumberBuilder idBuilder;
+    private final SequenceNumberBuilder idBuilder;
 
     @Inject
     public ZkStorageRegionIdBuilder(CuratorFramework client, ZookeeperPaths paths) {

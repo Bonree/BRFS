@@ -14,7 +14,6 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
 import com.bonree.brfs.duplication.storageregion.exception.StorageRegionExistedException;
 import com.bonree.brfs.duplication.storageregion.exception.StorageRegionNonexistentException;
 import com.bonree.brfs.duplication.storageregion.exception.StorageRegionStateException;
-import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -29,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -58,30 +58,35 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
     private static final String DEFAULT_PATH_STORAGE_REGION_NODES = "nodes";
 
     private static final int DEFAULT_MAX_CACHE_SIZE = 128;
-    private LoadingCache<String, Optional<StorageRegion>> storageRegionCache;
-    private ConcurrentHashMap<Integer, StorageRegion> regionIds = new ConcurrentHashMap<Integer, StorageRegion>();
+    private final LoadingCache<String, StorageRegion> storageRegionCache;
+    private final ConcurrentHashMap<Integer, StorageRegion> regionIds = new ConcurrentHashMap<>();
 
-    private ExecutorService executor = Executors
+    private final ExecutorService executor = Executors
         .newSingleThreadExecutor(new PooledThreadFactory("storage_region_state"));
 
-    private CuratorFramework zkClient;
-    private PathChildrenCache childrenCache;
+    private final CuratorFramework zkClient;
+    private final PathChildrenCache childrenCache;
 
-    private CopyOnWriteArrayList<StorageRegionStateListener> listeners = new CopyOnWriteArrayList<StorageRegionStateListener>();
+    private final CopyOnWriteArrayList<StorageRegionStateListener> listeners = new CopyOnWriteArrayList<>();
 
-    private StorageRegionIdBuilder idBuilder;
+    private final StorageRegionIdBuilder idBuilder;
 
     @Inject
-    public DefaultStorageRegionManager(CuratorFramework client, ZookeeperPaths paths,
+    public DefaultStorageRegionManager(CuratorFramework client,
+                                       ZookeeperPaths paths,
                                        StorageRegionIdBuilder idBuilder) {
         this.zkClient = client.usingNamespace(paths.getBaseClusterName().substring(1));
         this.idBuilder = idBuilder;
-        this.storageRegionCache = CacheBuilder.newBuilder().maximumSize(DEFAULT_MAX_CACHE_SIZE)
-            .expireAfterWrite(10, TimeUnit.SECONDS).refreshAfterWrite(10, TimeUnit.SECONDS)
-            .removalListener(new StorageRegionRemoveListener()).build(new StorageRegionLoader());
+        this.storageRegionCache = CacheBuilder.newBuilder()
+            .maximumSize(DEFAULT_MAX_CACHE_SIZE)
+            .expireAfterWrite(10, TimeUnit.SECONDS)
+            .refreshAfterWrite(10, TimeUnit.SECONDS)
+            .removalListener(new StorageRegionRemoveListener())
+            .build(new StorageRegionLoader());
         this.childrenCache = new PathChildrenCache(zkClient,
                                                    ZKPaths.makePath(DEFAULT_PATH_STORAGE_REGION_ROOT,
-                                                                    DEFAULT_PATH_STORAGE_REGION_NODES), false);
+                                                                    DEFAULT_PATH_STORAGE_REGION_NODES),
+                                                   true);
     }
 
     @LifecycleStart
@@ -100,7 +105,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
 
     private StorageRegion getCachedNode(String regionName) {
         try {
-            return storageRegionCache.get(regionName).get();
+            return storageRegionCache.get(regionName);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof NoNodeException) {
                 LOG.warn("No storage region[{}] exists.", regionName);
@@ -203,25 +208,26 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         return regionIds.get(id);
     }
 
-    private class StorageRegionLoader extends CacheLoader<String, Optional<StorageRegion>> {
+    private class StorageRegionLoader extends CacheLoader<String, StorageRegion> {
 
         @Override
-        public Optional<StorageRegion> load(String regionName) throws Exception {
+        @ParametersAreNonnullByDefault
+        public StorageRegion load(String regionName) throws Exception {
             StorageRegion region = JsonUtils.toObject(
                 zkClient.getData().forPath(buildRegionPath(regionName)),
                 StorageRegion.class);
             regionIds.put(region.getId(), region);
 
-            return Optional.of(region);
+            return region;
         }
 
     }
 
-    private class StorageRegionRemoveListener implements RemovalListener<String, Optional<StorageRegion>> {
+    private class StorageRegionRemoveListener implements RemovalListener<String, StorageRegion> {
 
         @Override
-        public void onRemoval(RemovalNotification<String, Optional<StorageRegion>> notification) {
-            StorageRegion region = notification.getValue().get();
+        public void onRemoval(RemovalNotification<String, StorageRegion> notification) {
+            StorageRegion region = notification.getValue();
             regionIds.remove(region.getId());
         }
 
@@ -240,65 +246,66 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
             LOG.info("event[{}] for storage region[{}]", event.getType(), regionName);
             switch (event.getType()) {
             case CHILD_ADDED: {
-                Optional<StorageRegion> nodeOptional = storageRegionCache.get(regionName);
-                executor.submit(new Runnable() {
+                StorageRegion storageRegion = getCachedNode(regionName);
+                if (storageRegion == null) {
+                    LOG.error("No storage region[{}] is found", regionName);
+                    return;
+                }
 
-                    @Override
-                    public void run() {
-                        if (!listeners.isEmpty() && nodeOptional.isPresent()) {
-                            for (StorageRegionStateListener listener : listeners) {
-                                try {
-                                    listener.storageRegionAdded(nodeOptional.get());
-                                } catch (Exception e) {
-                                    LOG.error("notify region add error", e);
-                                }
+                executor.submit(() -> {
+                    if (!listeners.isEmpty()) {
+                        for (StorageRegionStateListener listener : listeners) {
+                            try {
+                                listener.storageRegionAdded(storageRegion);
+                            } catch (Exception e) {
+                                LOG.error("notify region add error", e);
                             }
                         }
                     }
                 });
+
+                break;
             }
-            break;
             case CHILD_UPDATED: {
                 storageRegionCache.invalidate(regionName);
-                Optional<StorageRegion> nodeOptional = storageRegionCache.get(regionName);
-                executor.submit(new Runnable() {
+                StorageRegion storageRegion = getCachedNode(regionName);
+                if (storageRegion == null) {
+                    LOG.error("No storage region[{}] is found", regionName);
+                    return;
+                }
 
-                    @Override
-                    public void run() {
-                        if (!listeners.isEmpty() && nodeOptional.isPresent()) {
-                            for (StorageRegionStateListener listener : listeners) {
-                                try {
-                                    listener.storageRegionUpdated(nodeOptional.get());
-                                } catch (Exception e) {
-                                    LOG.error("notify region update error", e);
-                                }
+                executor.submit(() -> {
+                    if (!listeners.isEmpty()) {
+                        for (StorageRegionStateListener listener : listeners) {
+                            try {
+                                listener.storageRegionUpdated(storageRegion);
+                            } catch (Exception e) {
+                                LOG.error("notify region update error", e);
                             }
                         }
                     }
                 });
+
+                break;
             }
-            break;
             case CHILD_REMOVED: {
-                Optional<StorageRegion> nodeOptional = storageRegionCache.get(regionName);
                 storageRegionCache.invalidate(regionName);
+                StorageRegion storageRegion = JsonUtils.toObject(data.getData(), StorageRegion.class);
 
-                executor.submit(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        if (!listeners.isEmpty() && nodeOptional.isPresent()) {
-                            for (StorageRegionStateListener listener : listeners) {
-                                try {
-                                    listener.storageRegionUpdated(nodeOptional.get());
-                                } catch (Exception e) {
-                                    LOG.error("notify region remove error", e);
-                                }
+                executor.submit(() -> {
+                    if (!listeners.isEmpty()) {
+                        for (StorageRegionStateListener listener : listeners) {
+                            try {
+                                listener.storageRegionRemoved(storageRegion);
+                            } catch (Exception e) {
+                                LOG.error("notify region remove error", e);
                             }
                         }
                     }
                 });
+
+                break;
             }
-            break;
             default:
                 break;
             }
