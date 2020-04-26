@@ -1,7 +1,6 @@
 package com.bonree.brfs.duplication;
 
 import com.bonree.brfs.common.ZookeeperPaths;
-import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
@@ -59,28 +58,6 @@ public class RegionIDModule implements Module {
         } catch (Exception e) {
             throw new RuntimeException("create secondIds happen error !", e);
         }
-    }
-
-    @Provides
-    @Singleton
-    public DiskPartitionInfoManager getDiskPartitionInfoManager(ZookeeperPaths zookeeperPaths, Lifecycle lifecycle) {
-        DiskPartitionInfoManager manager = new DiskPartitionInfoManager(zookeeperPaths);
-        lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
-            @Override
-            public void start() throws Exception {
-                manager.start();
-            }
-
-            @Override
-            public void stop() {
-                try {
-                    manager.stop();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        return manager;
     }
 
     @Provides
