@@ -23,6 +23,7 @@ import java.net.URI;
 import java.util.function.Function;
 import org.apache.commons.pool2.KeyedObjectPool;
 import org.apache.commons.pool2.KeyedPooledObjectFactory;
+import org.apache.commons.pool2.PoolUtils;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.EvictionConfig;
@@ -33,7 +34,7 @@ public class DataConnectionPool implements Closeable {
     private final KeyedObjectPool<URI, DataConnection> connections;
 
     public DataConnectionPool() {
-        this.connections = buildPool();
+        this.connections = PoolUtils.synchronizedPool(buildPool());
 
     }
 
