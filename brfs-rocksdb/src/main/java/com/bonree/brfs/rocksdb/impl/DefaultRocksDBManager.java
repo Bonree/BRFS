@@ -221,24 +221,21 @@ public class DefaultRocksDBManager implements RocksDBManager {
         try {
             byte[] result = db.get(this.cfHandles.get(columnFamily), readOptions, key);
             if (result == null) {
-                List<Service> services = serviceManager.getServiceListByGroup(regionGroupName);
                 RegionNodeConnection connection;
                 String queryKey = new String(key);
-                for (Service service : services) {
+                for (Service service : serviceCache) {
                     connection = this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());
                     if (connection == null || connection.getClient() == null) {
                         LOG.warn("region node connection/client is null! serviceId:{}", service.getServiceId());
                         continue;
                     }
 
-                    if (!this.service.getServiceId().equals(service.getServiceId())) {
-                        result = connection.getClient().readData(columnFamily, queryKey);
-                        if (result == null) {
-                            continue;
-                        }
-                        LOG.info("read data from [{}] success, cf:{}, key:{}", service.getServiceId(), columnFamily, queryKey);
-                        return result;
+                    result = connection.getClient().readData(columnFamily, queryKey);
+                    if (result == null) {
+                        continue;
                     }
+                    LOG.info("read data from [{}] success, cf:{}, key:{}", service.getServiceId(), columnFamily, queryKey);
+                    return result;
                 }
             }
             return result;
