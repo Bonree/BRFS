@@ -63,7 +63,9 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     @Override
     public String registerSecondId(String firstServer, String partitionId, int storageId) {
         if (StringUtils.isEmpty(firstServer)) {
-            return null;
+            throw new RuntimeException(
+                "first server id is empty !! firserverId:"
+                    + firstServer + ",partitionId:" + partitionId + ",storageId:" + storageId);
         }
         String secondId = this.secondIds.getSecondId(partitionId, storageId);
         if (StringUtils.isEmpty(secondId)) {
@@ -81,6 +83,8 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
             LOG.error("storage[{}] load firstServer[{}] partitionIds happen error ", storageId, firstServer, e);
         }
         if (partitionIds == null || partitionIds.isEmpty()) {
+            LOG.info("partitionId is empty for storageRegion : {}[{}]", storageId, firstServer);
+            queue.add(new RegisterInfo(firstServer, storageId));
             return null;
         }
         return registerSecondIdBatch(partitionIds, firstServer, storageId);
@@ -307,12 +311,7 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                 do {
                     try {
                         info = queue.take();
-                        Collection<String> secondIds =
-                            SimpleSecondMaintainer.this.registerSecondIds(info.getFirstId(), info.getStorageId());
-                        if (secondIds == null || secondIds.isEmpty()) {
-                            LOG.info("register {} {} fail next 100ms ..", info.firstId, info.storageId);
-                            queue.add(info);
-                        }
+                        registerSecondIds(info.getFirstId(), info.getStorageId());
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
                         LOG.error("repeat register secondId happen error ", e);
@@ -327,9 +326,13 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     @Override
     public void stop() throws Exception {
         if (pool != null) {
-            queue.put(new RegisterInfo("", -1));
-            pool.shutdownNow();
+            queue.clear();
+            pool.shutdown();
         }
+    }
+
+    private enum RegisterType {
+        PARTITION_TYPE, SERVER_TYPE
     }
 
     private class RegisterInfo {
