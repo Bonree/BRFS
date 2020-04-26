@@ -100,7 +100,7 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
             try {
                 sinkWatcher.close();
                 client.delete().quietly().deletingChildrenIfNeeded()
-                    .forPath(ZkFileCoordinatorPaths.buildSinkPath(service, sink.getStorageRegion().getName()));
+                      .forPath(ZkFileCoordinatorPaths.buildSinkPath(service, sink.getStorageRegion().getName()));
             } catch (Exception e) {
                 LOG.error("unregister file node sink for region[{}] error!", sink.getStorageRegion().getName(), e);
             }

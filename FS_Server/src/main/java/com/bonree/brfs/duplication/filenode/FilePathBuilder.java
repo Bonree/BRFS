@@ -26,13 +26,13 @@ public class FilePathBuilder {
 
         StringBuilder builder = new StringBuilder();
         builder.append(PATH_SEPARATOR)
-            .append(fileNode.getStorageName())
-            .append(PATH_SEPARATOR)
-            .append(index)
-            .append(PATH_SEPARATOR)
-            .append(TimeUtils.timeInterval(fileNode.getCreateTime(), fileNode.getTimeDurationMillis()))
-            .append(PATH_SEPARATOR)
-            .append(fileNode.getName());
+               .append(fileNode.getStorageName())
+               .append(PATH_SEPARATOR)
+               .append(index)
+               .append(PATH_SEPARATOR)
+               .append(TimeUtils.timeInterval(fileNode.getCreateTime(), fileNode.getTimeDurationMillis()))
+               .append(PATH_SEPARATOR)
+               .append(fileNode.getName());
 
         return builder.toString();
     }

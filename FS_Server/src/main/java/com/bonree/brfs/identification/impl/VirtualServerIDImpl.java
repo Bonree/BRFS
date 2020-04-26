@@ -58,10 +58,10 @@ public class VirtualServerIDImpl implements VirtualServerID {
 
             String virtualId = idBuilder.toString();
             String nodePath = client.create()
-                .creatingParentsIfNeeded()
-                .withMode(CreateMode.PERSISTENT)
-                .forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), virtualId),
-                         Ints.toByteArray(STATE_VALID));
+                                    .creatingParentsIfNeeded()
+                                    .withMode(CreateMode.PERSISTENT)
+                                    .forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), virtualId),
+                                             Ints.toByteArray(STATE_VALID));
 
             if (nodePath != null) {
                 return virtualId;
@@ -94,9 +94,9 @@ public class VirtualServerIDImpl implements VirtualServerID {
                     String registerNode = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), vid, diskFirstID);
                     if (client.checkExists().forPath(registerNode) == null) {
                         client.create()
-                            .creatingParentsIfNeeded()
-                            .withMode(CreateMode.PERSISTENT)
-                            .forPath(registerNode);
+                              .creatingParentsIfNeeded()
+                              .withMode(CreateMode.PERSISTENT)
+                              .forPath(registerNode);
                     }
                 }
             }
@@ -134,7 +134,7 @@ public class VirtualServerIDImpl implements VirtualServerID {
     public boolean deleteVirtualId(int storageIndex, String virtualId) {
         try {
             client.delete().guaranteed().deletingChildrenIfNeeded()
-                .forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId));
+                  .forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId));
             return true;
         } catch (Exception e) {
             LOG.error("delete virtual id node[{}:{}] error", storageIndex, virtualId, e);

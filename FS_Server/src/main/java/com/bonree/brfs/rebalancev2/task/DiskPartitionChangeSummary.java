@@ -64,6 +64,11 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         return currentPartitionIds;
     }
 
+    @SuppressWarnings("unused")
+    private DiskPartitionChangeSummary() {
+
+    }
+
     public DiskPartitionChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer,
                                       String changePartitionId, List<String> currentServers, List<String> currentPartitionIds) {
         this.storageIndex = storageIndex;
@@ -104,13 +109,13 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
-            .add("changeID", changeID)
-            .add("storageIndex", storageIndex)
-            .add("changeType", changeType)
-            .add("changeServer", changeServer)
-            .add("changePartitionId", changePartitionId)
-            .add("currentServers", currentServers)
-            .add("currentPartitionIds", currentPartitionIds)
-            .toString();
+                          .add("changeID", changeID)
+                          .add("storageIndex", storageIndex)
+                          .add("changeType", changeType)
+                          .add("changeServer", changeServer)
+                          .add("changePartitionId", changePartitionId)
+                          .add("currentServers", currentServers)
+                          .add("currentPartitionIds", currentPartitionIds)
+                          .toString();
     }
 }

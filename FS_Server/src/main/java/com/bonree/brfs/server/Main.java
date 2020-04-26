@@ -36,8 +36,8 @@ public class Main {
         final Cli.CliBuilder<Runnable> builder = Cli.builder("brfs");
 
         builder.withDescription("BRFS command-line runner.")
-            .withDefaultCommand(Help.class)
-            .withCommands(Help.class, Version.class);
+               .withDefaultCommand(Help.class)
+               .withCommands(Help.class, Version.class);
 
         List<Class<? extends Runnable>> serverCommands = Arrays.asList(
             RegionNodeCommand.class,
@@ -45,9 +45,9 @@ public class Main {
         );
 
         builder.withGroup("node")
-            .withDescription("Run one of the BRFS server nodes.")
-            .withDefaultCommand(Help.class)
-            .withCommands(serverCommands);
+               .withDescription("Run one of the BRFS server nodes.")
+               .withDefaultCommand(Help.class)
+               .withCommands(serverCommands);
 
         List<Class<? extends Runnable>> toolCommands = Arrays.asList(
             UserInitCommand.class,
@@ -55,9 +55,9 @@ public class Main {
         );
 
         builder.withGroup("tools")
-            .withDescription("Various tools for working with Druid")
-            .withDefaultCommand(Help.class)
-            .withCommands(toolCommands);
+               .withDescription("Various tools for working with Druid")
+               .withDefaultCommand(Help.class)
+               .withCommands(toolCommands);
 
         Injector baseInjector = Initialization.makeSetupInjector();
         for (BrfsModule pluginModule : baseInjector.getInstance(Key.get(new TypeLiteral<Set<BrfsModule>>() {

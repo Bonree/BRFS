@@ -4,7 +4,6 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalancev2.BalanceTaskGeneratorV2;
 import java.util.List;
-import org.apache.curator.shaded.com.google.common.collect.Lists;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -18,17 +17,17 @@ public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
 
     @Override
     public BalanceTaskSummaryV2 genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId,
-                                               String selectID, String participator, long delayTime) {
+                                               List<String> selectIDs, List<String> participators, long delayTime) {
 
         BalanceTaskSummaryV2 taskSummary = new BalanceTaskSummaryV2();
         // changeID
         taskSummary.setChangeID(changeID);
         // 参与者Server，提供数据
-        taskSummary.setOutputServers(Lists.newArrayList(participator));
+        taskSummary.setOutputServers(participators);
         // 源ServerId
         taskSummary.setServerId(virtualId);
         // 因为是构建虚拟SID恢复，则inputServer只需要有一个Server
-        taskSummary.setInputServers(Lists.newArrayList(selectID));
+        taskSummary.setInputServers(selectIDs);
         // 设置任务状态
         taskSummary.setTaskStatus(TaskStatus.INIT);
         // 设置任务类型

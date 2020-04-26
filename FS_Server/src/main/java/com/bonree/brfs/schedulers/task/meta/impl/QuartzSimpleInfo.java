@@ -50,10 +50,10 @@ public class QuartzSimpleInfo implements SumbitTaskInterface {
         // TODO Auto-generated method stub
         StringBuilder str = new StringBuilder();
         str.append(this.interval)
-            .append(",").append(this.repeateCount)
-            .append(",").append(this.delayTime)
-            .append(",").append(this.runNowFlag)
-            .append(",").append(this.cycleFlag);
+           .append(",").append(this.repeateCount)
+           .append(",").append(this.delayTime)
+           .append(",").append(this.runNowFlag)
+           .append(",").append(this.cycleFlag);
         return str.toString();
     }
 

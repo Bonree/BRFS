@@ -185,18 +185,18 @@ public class BalanceTaskSummaryV2 {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this.getClass())
-            .add("id", id)
-            .add("changeID", changeID)
-            .add("serverId", serverId)
-            .add("storageIndex", storageIndex)
-            .add("partitionId", partitionId)
-            .add("taskType", taskType)
-            .add("taskStatus", taskStatus)
-            .add("outputServers", outputServers)
-            .add("inputServers", inputServers)
-            .add("aliveServer", aliveServer)
-            .add("delayTime", delayTime)
-            .add("interval", interval)
-            .toString();
+                          .add("id", id)
+                          .add("changeID", changeID)
+                          .add("serverId", serverId)
+                          .add("storageIndex", storageIndex)
+                          .add("partitionId", partitionId)
+                          .add("taskType", taskType)
+                          .add("taskStatus", taskStatus)
+                          .add("outputServers", outputServers)
+                          .add("inputServers", inputServers)
+                          .add("aliveServer", aliveServer)
+                          .add("delayTime", delayTime)
+                          .add("interval", interval)
+                          .toString();
     }
 }

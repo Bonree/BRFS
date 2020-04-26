@@ -635,10 +635,10 @@ public class TaskDispatcher implements Closeable {
                 LOG.info("further to filter dead server...");
                 List<String> aliveSecondIDs =
                     aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex()))
-                        .collect(Collectors.toList());
+                                 .collect(Collectors.toList());
                 List<String> joinerSecondIDs =
                     joinerFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex()))
-                        .collect(Collectors.toList());
+                                  .collect(Collectors.toList());
 
                 // 挂掉的机器不能做生存者和参与者，此处进行再次过滤，防止其他情况
                 if (aliveSecondIDs.contains(cs.getChangeServer())) {
@@ -841,7 +841,7 @@ public class TaskDispatcher implements Closeable {
             if (!runChangeOpt.isPresent()) {
                 LOG.error("rebalance metadata is error:" + currentTask);
                 MailWorker.newBuilder(EmailPool.getInstance().getProgramInfo())
-                    .setMessage("rebalance metadata is error:" + currentTask);
+                          .setMessage("rebalance metadata is error:" + currentTask);
                 // 尝试修复下
                 LOG.info("fix the metadata!!!");
                 fixTaskMeta(currentTask);
@@ -967,7 +967,7 @@ public class TaskDispatcher implements Closeable {
                                     List<String> aliveFirstIDs = getAliveServices();
                                     List<String> aliveSecondIDs =
                                         aliveFirstIDs.stream().map((x) -> idManager.getOtherSecondID(x, cs.getStorageIndex()))
-                                            .collect(Collectors.toList());
+                                                     .collect(Collectors.toList());
                                     // 参与者和接收者都存活
                                     if (aliveSecondIDs.containsAll(currentTask.getOutputServers())
                                         && aliveSecondIDs.containsAll(currentTask.getInputServers())) {

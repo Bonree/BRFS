@@ -59,8 +59,8 @@ public class Initialization {
                                         .override(nodeModule)
                                         .with(baseInjector.getInstance(Key.get(new TypeLiteral<Set<BrfsModule>>() {
                                         }))
-                                                  .stream()
-                                                  .map(plugin -> plugin.withNodeType(nodeType))
-                                                  .collect(toImmutableList())));
+                                                          .stream()
+                                                          .map(plugin -> plugin.withNodeType(nodeType))
+                                                          .collect(toImmutableList())));
     }
 }

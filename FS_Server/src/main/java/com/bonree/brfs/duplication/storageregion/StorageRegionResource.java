@@ -84,8 +84,8 @@ public class StorageRegionResource {
         Properties attributes) {
         if (storageRegionManager.exists(name)) {
             return Response.status(Status.CONFLICT)
-                .entity(StringUtils.format("Storage Region[%s] has been existed", name))
-                .build();
+                           .entity(StringUtils.format("Storage Region[%s] has been existed", name))
+                           .build();
         }
 
         try {
@@ -206,8 +206,8 @@ public class StorageRegionResource {
 
         if (!ReturnCode.SUCCESS.equals(code)) {
             return Response.serverError()
-                .entity(BrStringUtils.toUtf8Bytes(code.name()))
-                .build();
+                           .entity(BrStringUtils.toUtf8Bytes(code.name()))
+                           .build();
         }
 
         try {
@@ -220,7 +220,7 @@ public class StorageRegionResource {
         }
 
         return Response.serverError()
-            .entity(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()))
-            .build();
+                       .entity(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()))
+                       .build();
     }
 }

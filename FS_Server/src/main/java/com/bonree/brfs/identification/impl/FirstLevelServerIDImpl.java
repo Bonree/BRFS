@@ -85,9 +85,9 @@ public class FirstLevelServerIDImpl {
 
         try {
             client.create()
-                .creatingParentContainersIfNeeded()
-                .withMode(CreateMode.PERSISTENT)
-                .forPath(ZKPaths.makePath(firstZKPath, firstServerID));
+                  .creatingParentContainersIfNeeded()
+                  .withMode(CreateMode.PERSISTENT)
+                  .forPath(ZKPaths.makePath(firstZKPath, firstServerID));
 
             Files.createParentDirs(idFile);
             Files.asCharSink(idFile, Charsets.UTF_8).write(firstServerID);

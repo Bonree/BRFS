@@ -58,8 +58,8 @@ public class DiscoveryResource {
         return Streams.concat(
             serviceManager.getServiceListByGroup(clusterConfig.getRegionNodeGroup()).stream(),
             serviceManager.getServiceListByGroup(clusterConfig.getDataNodeGroup()).stream())
-            .map(DiscoveryResource::toServerNode)
-            .collect(toImmutableList());
+                      .map(DiscoveryResource::toServerNode)
+                      .collect(toImmutableList());
     }
 
     @GET

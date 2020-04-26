@@ -19,7 +19,6 @@ import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.Lifecycle.LifeCycleObject;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
-import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.tcp.MessageChannelInitializer;
 import com.bonree.brfs.common.net.tcp.ServerConfig;
@@ -54,12 +53,13 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
 import com.bonree.brfs.duplication.storageregion.impl.DefaultStorageRegionManager;
 import com.bonree.brfs.guice.ClusterConfig;
+import com.bonree.brfs.identification.IDSManager;
+import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
-import com.bonree.brfs.rebalance.RebalanceManager;
-import com.bonree.brfs.rebalance.task.ServerChangeTaskGenetor;
+import com.bonree.brfs.partition.DiskPartitionInfoManager;
+import com.bonree.brfs.rebalancev2.RebalanceManagerV2;
 import com.bonree.brfs.schedulers.InitTaskManager;
-import com.bonree.brfs.server.identification.ServerIDManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -84,11 +84,7 @@ public class DataNodeModule implements Module {
         binder.bind(DiskContext.class).in(Scopes.SINGLETON);
         binder.bind(FileFormater.class).to(SimpleFileFormater.class).in(Scopes.SINGLETON);
 
-        binder.bind(ServerIDManager.class).in(Scopes.SINGLETON);
-        binder.bind(ServiceManager.class).to(DefaultServiceManager.class);
-
-        binder.bind(RebalanceManager.class).in(ManageLifecycle.class);
-        LifecycleModule.register(binder, RebalanceManager.class);
+        binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
 
         binder.requestStaticInjection(CuratorCacheFactory.class);
         binder.requestStaticInjection(InitTaskManager.class);
@@ -96,7 +92,7 @@ public class DataNodeModule implements Module {
         binder.bind(Deliver.class).toInstance(Deliver.NOOP);
 
         LifecycleModule.register(binder, Service.class);
-        LifecycleModule.register(binder, ServerChangeTaskGenetor.class);
+        LifecycleModule.register(binder, RebalanceManagerV2.class);
         LifecycleModule.register(binder, TcpServer.class, DataWrite.class);
         LifecycleModule.register(binder, TcpServer.class, DataRead.class);
     }
@@ -193,36 +189,38 @@ public class DataNodeModule implements Module {
 
     @Provides
     @Singleton
-    public ServerChangeTaskGenetor get(
-        ClusterConfig clusterConfig,
-        CuratorFramework client,
-        ServiceManager serviceManager,
-        ServerIDManager idManager,
-        ZookeeperPaths paths,
+    public RebalanceManagerV2 rebalanceManagerV2(
+        ZookeeperPaths zkPaths,
+        IDSManager idsManager,
         StorageRegionManager storageRegionManager,
-        Lifecycle lifecycle) throws Exception {
-        ServerChangeTaskGenetor generator = new ServerChangeTaskGenetor(
-            client,
-            serviceManager,
-            idManager,
-            paths.getBaseRebalancePath(),
-            3000,
-            storageRegionManager);
-
+        ServiceManager serviceManager,
+        LocalPartitionInterface localPartitionInterface,
+        DiskPartitionInfoManager diskPartitionInfoManager,
+        Lifecycle lifecycle) {
+        RebalanceManagerV2 rebalanceManagerV2 = new RebalanceManagerV2(zkPaths,
+                                                                       idsManager,
+                                                                       storageRegionManager,
+                                                                       serviceManager,
+                                                                       localPartitionInterface,
+                                                                       diskPartitionInfoManager);
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
-
             @Override
             public void start() throws Exception {
-                serviceManager.addServiceStateListener(clusterConfig.getDataNodeGroup(), generator);
+                rebalanceManagerV2.start();
             }
 
             @Override
             public void stop() {
-            }
+                try {
 
+                    rebalanceManagerV2.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         });
 
-        return generator;
+        return rebalanceManagerV2;
     }
 
     @Provides
