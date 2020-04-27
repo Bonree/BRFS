@@ -20,6 +20,7 @@ import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.zk.ColumnFamilyInfoManager;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -452,7 +453,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private Map<String, Integer> getStorageRegionNameAndDataTtl() {
         List<StorageRegion> srList = this.srManager.getStorageRegionList();
         if (srList == null || srList.isEmpty()) {
-            return Collections.emptyMap();
+            return Maps.newHashMap();
         }
 
         Map<String, Integer> srNameAndDataTtl = new HashMap<>();
