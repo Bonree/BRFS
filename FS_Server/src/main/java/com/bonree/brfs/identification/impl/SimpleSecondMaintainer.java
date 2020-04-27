@@ -331,10 +331,6 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
         }
     }
 
-    private enum RegisterType {
-        PARTITION_TYPE, SERVER_TYPE
-    }
-
     private class RegisterInfo {
         private String firstId;
         private int storageId;
