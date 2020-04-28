@@ -1,24 +1,33 @@
-package com.bonree.brfs.duplication.filenode.duplicates.impl.refactor;
+package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
-import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
+import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
+import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
-import com.bonree.brfs.duplication.filenode.duplicates.impl.MinimalDuplicateNodeSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class RandomSelector extends MinimalDuplicateNodeSelector {
+/**
+ * 版权信息: 北京博睿宏远数据科技股份有限公司
+ * Copyright: Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司,Inc.All Rights Reserved.
+ *
+ * @date: 2020年04月07日 00:00
+ * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
+ * @description:
+ **/
+public class ResourceSelector extends ResourceWriteSelector {
+    public static final Logger LOG = LoggerFactory.getLogger(ResourceSelector.class);
     private PartitionNodeSelector nodeSelector;
     private SecondIdsInterface secondIds;
 
-    public RandomSelector(ServiceManager serviceManager,
-                          DiskNodeConnectionPool connectionPool,
-                          PartitionNodeSelector nodeSelector,
-                          SecondIdsInterface secondIds) {
-        super(serviceManager, connectionPool);
+    public ResourceSelector(ClusterResource daemon, ServiceSelector resourceSelector, DuplicateNodeSelector bakSelector,
+                            String groupName, PartitionNodeSelector nodeSelector, SecondIdsInterface secondIds) {
+        super(daemon, resourceSelector, bakSelector, groupName, LOG);
         this.nodeSelector = nodeSelector;
         this.secondIds = secondIds;
     }

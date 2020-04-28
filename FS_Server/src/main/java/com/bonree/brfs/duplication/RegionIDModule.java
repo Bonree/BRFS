@@ -7,8 +7,9 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.impl.DuplicateNodeFactory;
 import com.bonree.brfs.duplication.filenode.duplicates.impl.SimplePartitionNodeSelecotr;
-import com.bonree.brfs.duplication.filenode.duplicates.impl.refactor.DuplicateNodeFactory;
+import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.identification.VirtualServerID;
 import com.bonree.brfs.identification.impl.SecondIDRelationShip;
@@ -69,10 +70,11 @@ public class RegionIDModule implements Module {
     public DuplicateNodeSelector getDuplicateNodeSelector(ServiceManager serviceManager, DiskNodeConnectionPool connectionPool,
                                                           FileNodeStorer storer, PartitionNodeSelector partitionNodeSelector,
                                                           SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths,
-                                                          CuratorFramework client) {
+                                                          CuratorFramework client, ClusterConfig config) {
         try {
             return DuplicateNodeFactory
-                .create(serviceManager, connectionPool, storer, partitionNodeSelector, secondIds, zookeeperPaths, client);
+                .create(serviceManager, connectionPool, storer, partitionNodeSelector, secondIds, zookeeperPaths, client,
+                        config.getDataNodeGroup());
         } catch (Exception e) {
             throw new RuntimeException("create duplicateNodeSelector happen error ", e);
         }
