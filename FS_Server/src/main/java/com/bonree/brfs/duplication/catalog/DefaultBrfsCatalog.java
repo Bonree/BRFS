@@ -6,6 +6,7 @@ import com.bonree.brfs.common.utils.Bytes;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -100,7 +101,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         ArrayList<Inode> inodes = new ArrayList<>(pageSize);
         byte[] prefixQueryKey;
         if (path.equals("/")) {
-            prefixQueryKey = path.getBytes();
+            prefixQueryKey = path.getBytes(StandardCharsets.UTF_8);
         } else {
             prefixQueryKey = Bytes.byteMerge(encoder.encode(path.getBytes()), "/".getBytes());
         }
@@ -315,6 +316,11 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         System.out.println(new String(encoder.encode("/chao".getBytes())));
         System.out.println(new String(encoder.encode("/chao/1".getBytes())));
         System.out.println(new String(Bytes.byteMerge(encoder.encode("/chao".getBytes()), "/".getBytes())));
-
+        System.out.println(new String(encoder.encode("/data".getBytes())));
+        System.out.println(new String(Base64.getDecoder()
+                                            .decode("TDJSaGRHRT0vMDAwNWE0YjItNGIzMi00Y2RkLThhNjktNTExMjk4NGE1ZTlk".getBytes())));
+        System.out.println(new String(Base64.getDecoder().decode("L2RhdGE=".getBytes())));
+        System.out.println(new String(Base64.getDecoder().decode("L3Rlc3Qy".getBytes())));
+        System.out.println(new String(encoder.encode("/test2/1/2/3/4/5/".getBytes())));
     }
 }
