@@ -4,25 +4,29 @@ import org.junit.Test;
 
 public class SigarGatherTest {
     @Test
-    public void testLibPath(){
+    public void testLibPath() {
         System.out.println(new SigarGather().libPath());
     }
+
     @Test
-    public void testconstruct(){
+    public void testconstruct() {
         SigarGather gather = new SigarGather();
     }
+
     @Test
-    public void testStart()throws Exception{
+    public void testStart() throws Exception {
         SigarGather gather = new SigarGather();
         gather.start();
     }
+
     @Test(expected = IllegalStateException.class)
-    public void testExpectException()throws Exception{
+    public void testExpectException() throws Exception {
         SigarGather gather = new SigarGather();
         System.out.println(gather.collectOSInfo());
     }
+
     @Test
-    public void testGathers()throws Exception{
+    public void testGathers() throws Exception {
         SigarGather gather = new SigarGather();
         gather.start();
         System.out.println(gather.collectOSInfo());
@@ -37,8 +41,9 @@ public class SigarGatherTest {
         System.out.println(gather.collectPartitionInfos());
         System.out.println(gather.collectPartitionStats());
     }
+
     @Test
-    public void testGatherSpecial()throws Exception{
+    public void testGatherSpecial() throws Exception {
         SigarGather gather = new SigarGather();
         gather.start();
         System.out.println(gather.collectSingleNetInfo("192.168.150.236"));

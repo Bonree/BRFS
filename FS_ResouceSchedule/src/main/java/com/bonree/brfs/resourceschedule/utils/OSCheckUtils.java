@@ -10,10 +10,6 @@ package com.bonree.brfs.resourceschedule.utils;
  *****************************************************************************
  */
 public final class OSCheckUtils {
-    public enum OSType {
-        Windows, MacOS, Linux, Other
-    }
-
     protected static OSType detectedOS;
 
     public static OSType getOperatingSystemType() {
@@ -30,6 +26,10 @@ public final class OSCheckUtils {
             }
         }
         return detectedOS;
+    }
+
+    public enum OSType {
+        Windows, MacOS, Linux, Other
     }
 }
 

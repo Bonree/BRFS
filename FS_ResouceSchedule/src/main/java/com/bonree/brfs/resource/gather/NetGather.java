@@ -5,7 +5,7 @@ import com.bonree.brfs.common.resource.vo.NetInfo;
 import com.bonree.brfs.common.resource.vo.NetStat;
 import java.util.Collection;
 
-public interface NetGather  extends LifeCycle {
+public interface NetGather extends LifeCycle {
     NetInfo gatherNetInfo(String ip) throws Exception;
 
     Collection<NetInfo> gatherNetInfos() throws Exception;
