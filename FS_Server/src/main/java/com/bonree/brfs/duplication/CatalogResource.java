@@ -19,6 +19,7 @@ import com.bonree.brfs.duplication.catalog.Inode;
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -82,8 +83,8 @@ public class CatalogResource {
     public List<Inode> list(
         @QueryParam("srName") String srName,
         @QueryParam("nodePath") String nodePath,
-        @QueryParam("pageNumber") int pageNumber,
-        @QueryParam("pageSize") int pageSize) {
+        @QueryParam("pageNumber") @DefaultValue("1") int pageNumber,
+        @QueryParam("pageSize") @DefaultValue("100") int pageSize) {
         return catalog.list(srName, nodePath, pageNumber, pageSize);
     }
 }
