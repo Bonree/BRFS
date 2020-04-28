@@ -1,10 +1,10 @@
-package com.bonree.brfs.resourceschedule.service.impl;
+package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
 import com.bonree.brfs.resourceschedule.model.ResourceModel;
-import com.bonree.brfs.resourceschedule.service.ResourceSelector;
+import com.bonree.brfs.duplication.filenode.duplicates.ResourceSelector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

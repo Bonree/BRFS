@@ -6,7 +6,7 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
-import com.bonree.brfs.resourceschedule.service.impl.RandomAvailable;
+import com.bonree.brfs.duplication.filenode.duplicates.impl.RandomAvailable;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;

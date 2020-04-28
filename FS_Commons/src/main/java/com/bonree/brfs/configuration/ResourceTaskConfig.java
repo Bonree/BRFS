@@ -41,7 +41,7 @@ public class ResourceTaskConfig {
     private int calcResourceValueCount = 2;
     private boolean taskFrameWorkSwitch = true;
     private boolean resourceFrameWorkSwitch = true;
-    private String libPath;
+    //    private String libPath;
     private double limitCpuRate = 0.9;
     private double limitMemoryRate = 0.9;
     private double limitDiskRemaintRate = 0.01;
@@ -114,7 +114,6 @@ public class ResourceTaskConfig {
         if (BrStringUtils.isEmpty(libPath)) {
             throw new NullPointerException(SystemProperties.PROP_RESOURCE_LIB_PATH + " is empty");
         }
-        conf.setLibPath(libPath);
         conf.setTaskExpiredTime(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_TASK_EXPIRED_TIME)));
 
         conf.setLimitCpuRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_CPU_RATE));
@@ -190,7 +189,6 @@ public class ResourceTaskConfig {
         LOG.info("{}:{} ms", ResourceConfigs.CONFIG_TASK_CREATE_INTERVAL.name(), this.createTaskIntervalTime);
         LOG.info("{}:{} ms", ResourceConfigs.CONFIG_RESOURCE_GATHER_INTERVAL.name(), this.gatherResourceInveralTime);
         LOG.info("{}:{} d", ResourceConfigs.CONFIG_TASK_EXPIRED_TIME.name(), this.taskExpiredTime / 1000 / 60 / 60 / 24);
-        LOG.info("{}:{}", SystemProperties.PROP_RESOURCE_LIB_PATH, this.libPath);
         LOG.info("{}:{}", ResourceConfigs.CONFIG_LIMIT_NET_RECEIVE.name(), this.limitNetRxRate);
         LOG.info("{}:{}", ResourceConfigs.CONFIG_LIMIT_NET_SEND.name(), this.limitNetTxRate);
         LOG.info("{}:{}", ResourceConfigs.CONFIG_LIMIT_CPU_RATE.name(), this.limitCpuRate);
@@ -286,14 +284,6 @@ public class ResourceTaskConfig {
 
     public void setResourceFrameWorkSwitch(boolean resourceFrameWorkSwitch) {
         this.resourceFrameWorkSwitch = resourceFrameWorkSwitch;
-    }
-
-    public String getLibPath() {
-        return libPath;
-    }
-
-    public void setLibPath(String libPath) {
-        this.libPath = libPath;
     }
 
     public long getTaskExpiredTime() {

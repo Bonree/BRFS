@@ -1,7 +1,11 @@
 package com.bonree.brfs.partition;
 
+import com.bonree.brfs.common.resource.ResourceCollectionInterface;
+import com.bonree.brfs.common.resource.vo.DiskPartitionInfo;
+import com.bonree.brfs.common.resource.vo.DiskPartitionStat;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.identification.LevelServerIDGen;
+import com.bonree.brfs.metrics.DiskPartition;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.google.inject.Inject;
 import java.io.File;
@@ -35,6 +39,7 @@ import org.slf4j.LoggerFactory;
 public class PartitionCheckingRoutine {
     private static final Logger LOG = LoggerFactory.getLogger(PartitionCheckingRoutine.class);
     private LevelServerIDGen idGen;
+    private ResourceCollectionInterface gather;
     // todo 磁盘变更主动发布接口
     //private xxx
     private List<String> dataConfig;
@@ -42,11 +47,12 @@ public class PartitionCheckingRoutine {
     private String partitionGroup;
 
     @Inject
-    public PartitionCheckingRoutine(LevelServerIDGen idGen, List<String> dataConfig, String innerDir, String partitionGroup) {
+    public PartitionCheckingRoutine(LevelServerIDGen idGen,ResourceCollectionInterface gather, List<String> dataConfig, String innerDir, String partitionGroup) {
         this.idGen = idGen;
         this.dataConfig = dataConfig;
         this.innerDir = innerDir;
         this.partitionGroup = partitionGroup;
+        this.gather = gather;
     }
 
     public Collection<LocalPartitionInfo> checkVaildPartition() {
@@ -54,7 +60,7 @@ public class PartitionCheckingRoutine {
         // 获取已注册过的磁盘分区节点信息
         Map<String, LocalPartitionInfo> innerMap = readIds(innerDir);
         // 获取有效的磁盘分区，判断是否存在多个目录位于一个磁盘分区的情况，若存在则抛异常。
-        Map<String, FileSystem> fsMap = collectVaildFileSystem(dirs);
+        Map<String, LocalPartitionInfo> fsMap = collectVaildFileSystem(dirs);
 
         // 剔除未配置的磁盘分区，并发布磁盘变更
         checkLoss(innerMap, fsMap);
@@ -72,74 +78,58 @@ public class PartitionCheckingRoutine {
      * @param innerMap
      * @param validMap
      */
-    public void checkAdd(Map<String, LocalPartitionInfo> innerMap, Map<String, FileSystem> validMap) {
+    public void checkAdd(Map<String, LocalPartitionInfo> innerMap, Map<String, LocalPartitionInfo> validMap) {
         if (innerMap == null) {
             innerMap = new HashMap<>();
         }
-        Collection<String> addPartions = findAdd(innerMap, validMap);
+        Collection<LocalPartitionInfo> addPartions = findAdd(innerMap, validMap);
         if (addPartions == null || addPartions.isEmpty()) {
             return;
         }
-        Sigar sigar = new Sigar();
-        try {
-            for (String add : addPartions) {
-                LocalPartitionInfo local = packageLocal(validMap.get(add), sigar, add);
-                innerMap.put(local.getDataDir(), local);
-                File idFile = new File(this.innerDir + File.separator + local.getPartitionId());
-                try {
-                    byte[] data = JsonUtils.toJsonBytesQuietly(local);
-                    FileUtils.writeByteArrayToFile(idFile, data);
-                } catch (IOException e) {
-                    throw new RuntimeException(
-                        "An error occurred while creating the internal file! path:" + idFile.getAbsolutePath(), e);
-                }
+        for (LocalPartitionInfo add : addPartions) {
+            LocalPartitionInfo local = createPartitionId(validMap.get(add));
+            innerMap.put(local.getDataDir(), local);
+            File idFile = new File(this.innerDir + File.separator + local.getPartitionId());
+            try {
+                byte[] data = JsonUtils.toJsonBytesQuietly(local);
+                FileUtils.writeByteArrayToFile(idFile, data);
+            } catch (IOException e) {
+                throw new RuntimeException(
+                    "An error occurred while creating the internal file! path:" + idFile.getAbsolutePath(), e);
             }
-        } finally {
-            sigar.close();
         }
     }
 
     /**
      * 封装本地磁盘信息
      *
-     * @param fs
-     * @param sigar
-     * @param add
-     *
      * @return
      */
-    public LocalPartitionInfo packageLocal(FileSystem fs, Sigar sigar, String add) {
+    public LocalPartitionInfo createPartitionId( LocalPartitionInfo local) {
         try {
-            LocalPartitionInfo local = new LocalPartitionInfo();
-            local.setPartitionGroup(this.partitionGroup);
-            local.setDataDir(add);
-            local.setMountPoint(fs.getDirName());
-            local.setDevName(fs.getDevName());
-            FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-            local.setTotalSize(usage.getTotal());
             // 无效的磁盘分区无法申请磁盘id
-            if (!PartitionGather.isValid(local, fs, sigar)) {
+            if (!PartitionGather.isValid(local,gather)) {
                 throw new RuntimeException(
                     "Add invalid disk partition ! path:[" + local.getDataDir() + "] devName:[" + local.getDevName() + "]");
             }
             local.setPartitionId(idGen.genLevelID());
             return local;
-        } catch (SigarException e) {
-            throw new RuntimeException("Acquisition error while creating model !! path:[" + add + "]", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Acquisition error while creating model !! path:[" + local + "]", e);
         }
     }
 
-    private Collection<String> findAdd(Map<String, LocalPartitionInfo> innerMap, Map<String, FileSystem> validMap) {
-        Set<String> adds = new HashSet<>();
+    private Collection<LocalPartitionInfo> findAdd(Map<String, LocalPartitionInfo> innerMap, Map<String, LocalPartitionInfo> validMap) {
+        Set<LocalPartitionInfo> adds = new HashSet<>();
         // 若无内部文件，则为所有的磁盘分区申请id
         if (innerMap == null || innerMap.isEmpty()) {
-            adds.addAll(validMap.keySet());
+            adds.addAll(validMap.values());
         } else {
             for (String add : validMap.keySet()) {
                 if (innerMap.containsKey(add)) {
                     continue;
                 }
-                adds.add(add);
+                adds.add(validMap.get(add));
             }
         }
         return adds;
@@ -152,7 +142,7 @@ public class PartitionCheckingRoutine {
      * @param innerMap
      * @param validMap
      */
-    public void checkLoss(Map<String, LocalPartitionInfo> innerMap, Map<String, FileSystem> validMap) {
+    public void checkLoss(Map<String, LocalPartitionInfo> innerMap, Map<String, LocalPartitionInfo> validMap) {
         if (innerMap == null || innerMap.isEmpty()) {
             return;
         }
@@ -231,48 +221,51 @@ public class PartitionCheckingRoutine {
         }
     }
 
-    /**
-     * 获取配置文件中datadir对应的磁盘分区信息，若存在多个目录在同一个磁盘分区时，将抛异常，若不存在分区目录，则抛异常
-     * 当目录不存在时，将抛出异常，因为涉及到多个磁盘分区，所以程序无法自动创建目录
-     *
-     * @param dataDir
-     *
-     * @return
-     *
-     * @throws SigarException
-     */
-    public Map<String, FileSystem> collectVaildFileSystem(String[] dataDir) {
-        Map<String, FileSystem> fsMap = new ConcurrentHashMap<>();
-        Sigar sigar = new Sigar();
+    public Map<String, LocalPartitionInfo> collectVaildFileSystem(String[] dataDir) {
+        Map<String, LocalPartitionInfo> fsMap = new ConcurrentHashMap<>();
         try {
-            FileSystemMap fileSystemMap = sigar.getFileSystemMap();
-            FileSystem fs = null;
             Set<String> keepOnlyOne = new HashSet<>();
+            DiskPartitionInfo fs;
             for (String dir : dataDir) {
                 File file = new File(dir);
                 if (!file.exists()) {
                     FileUtils.forceMkdir(file);
                 }
-                fs = fileSystemMap.getMountPoint(file.getAbsolutePath());
+                fs = gather.collectSinglePartitionInfo(file.getAbsolutePath());
                 if (fs == null) {
                     throw new RuntimeException("dir [" + dir + "] can't find vaild partition !!");
                 }
-                FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
+                DiskPartitionStat usage = gather.collectSinglePartitionStats(file.getAbsolutePath());
                 String key = StringUtils.join(fs.getDevName(), fs.getDirName(), usage.getTotal());
-                //                fsMap.put(dir, fs);
                 if (keepOnlyOne.add(key)) {
-                    fsMap.put(dir, fs);
+                    LocalPartitionInfo local = packageLocalPartitionInfo(fs,usage,file.getAbsolutePath());
+                    fsMap.put(dir, local);
                 } else {
                     throw new RuntimeException(
                         "The configured directories are on the same disk partition!! dir:[" + dir + "],partition:["
                             + fs.getDirName() + "]");
                 }
             }
-        } catch (SigarException | IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error checking internal files", e);
-        } finally {
-            sigar.close();
         }
         return fsMap;
+    }
+
+    /**
+     * 封装localpartitioninfo信息
+     * @param info
+     * @param stat
+     * @param dataPath
+     * @return
+     */
+    private LocalPartitionInfo packageLocalPartitionInfo(DiskPartitionInfo info,DiskPartitionStat stat,String dataPath){
+        LocalPartitionInfo local = new LocalPartitionInfo();
+        local.setPartitionGroup(this.partitionGroup);
+        local.setDataDir(dataPath);
+        local.setMountPoint(info.getDirName());
+        local.setDevName(info.getDevName());
+        local.setTotalSize(stat.getTotal());
+        return local;
     }
 }

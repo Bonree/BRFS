@@ -15,7 +15,7 @@ import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import com.bonree.brfs.resource.utils.LibUtils;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
 import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
@@ -303,8 +303,6 @@ public class InitTaskManager {
      */
     private static void createResourceManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,
                                               ResourceTaskConfig config) throws Exception {
-        // 1.引入第三方lib库，资源采集时需要用到
-        LibUtils.loadLibraryPath(config.getLibPath());
         // 2.采集基本信息上传到 zk
         String serverId = ManagerContralFactory.getInstance().getServerId();
         String zkAddress = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);

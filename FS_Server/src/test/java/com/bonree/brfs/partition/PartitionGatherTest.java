@@ -1,10 +1,11 @@
 package com.bonree.brfs.partition;
 
+import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.identification.impl.DiskNodeIDImpl;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import com.bonree.brfs.resource.impl.SigarGather;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.util.Collection;
@@ -40,9 +41,10 @@ public class PartitionGatherTest {
     private PartitionCheckingRoutine routine;
     private List<String> dataDir = ImmutableList.of("/data/brfs/data");
     private String partitionGroup = "diskNodeIDS";
+    private ResourceCollectionInterface rGather;
 
     @Before
-    public void checkZK() {
+    public void checkZK() throws Exception {
         framework = CuratorFrameworkFactory.newClient(ZKADDRES, new RetryNTimes(5, 300));
         framework.start();
         try {
@@ -52,17 +54,9 @@ public class PartitionGatherTest {
         }
         idImpl = new DiskNodeIDImpl(framework, BASE_ID_PATH, SECOND_ID_PATH);
         firstServer = new Service("10", "dataGroup", "127.0.0.1", 13000, System.currentTimeMillis());
-        String libPath = "/data/brfs/lib";
-        File file = new File(libPath);
-        if (!file.exists()) {
-            Assert.fail("sigar lib add happen error path : " + libPath);
-        }
-        try {
-            LibUtils.loadLibraryPath(libPath);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        routine = new PartitionCheckingRoutine(idImpl, dataDir, ONE_DIR, partitionGroup);
+        rGather = new SigarGather();
+        rGather.start();
+        routine = new PartitionCheckingRoutine(idImpl, rGather, dataDir, ONE_DIR, partitionGroup);
         this.register = new PartitionInfoRegister(framework, ID_BAS_PATH);
     }
 
@@ -73,14 +67,14 @@ public class PartitionGatherTest {
     public void constructorTest() {
         Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();
         System.out.println(parts);
-        PartitionGather gather = new PartitionGather(this.register, firstServer, parts, 10);
+        PartitionGather gather = new PartitionGather(rGather,this.register, firstServer, parts, 10);
     }
 
     @Test
     public void startTest() throws Exception {
         Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();
         System.out.println(parts);
-        PartitionGather gather = new PartitionGather(this.register, firstServer, parts, 5);
+        PartitionGather gather = new PartitionGather(rGather,this.register, firstServer, parts, 5);
         gather.start();
         Thread.sleep(Long.MAX_VALUE);
     }
@@ -89,7 +83,7 @@ public class PartitionGatherTest {
     public void gatherThreadTest() {
         Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();
         System.out.println(parts);
-        PartitionGather.GatherThread gatherThread = new PartitionGather.GatherThread(this.register, parts, firstServer);
+        PartitionGather.GatherThread gatherThread = new PartitionGather.GatherThread(rGather,this.register, parts, firstServer);
         gatherThread.run();
     }
 

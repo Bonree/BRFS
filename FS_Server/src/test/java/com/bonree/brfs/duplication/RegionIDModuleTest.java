@@ -21,7 +21,7 @@ import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.identification.VirtualServerID;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalance.route.RouteLoader;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import com.bonree.brfs.resource.utils.LibUtils;
 import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -59,12 +59,6 @@ public class RegionIDModuleTest {
         String rootDir = rootPath + "/data";
         checkAndCreateDir(rootDir);
         String libPath = "D:\\work\\Business\\bonree\\BrfsSecond\\BRFS\\lib";
-        try {
-            LibUtils.loadLibraryPath(libPath);
-        } catch (Exception e) {
-            Assert.fail("load lib happen error");
-            e.printStackTrace();
-        }
         System.setProperty(SystemProperties.PROP_CONFIGURATION_FILE, config);
         System.setProperty(SystemProperties.PROP_SERVER_ID_DIR, idsDir);
         System.setProperty(SystemProperties.PROP_RESOURCE_LIB_PATH, libPath);

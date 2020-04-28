@@ -1,9 +1,7 @@
 package com.bonree.brfs.disknode;
 
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.configuration.units.PartitionIdsConfigs;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
 
 /**
  * 版权信息: 北京博睿宏远数据科技股份有限公司
@@ -23,10 +21,10 @@ public class PartitionConfig {
      */
     private int intervalTime = Configs.getConfiguration().getConfig(PartitionIdsConfigs.CONFIG_CHECK_INTERVAL_SECOND_TIME);
 
-    private String libPath = System.getProperty(SystemProperties.PROP_RESOURCE_LIB_PATH);
+//    private String libPath = System.getProperty(SystemProperties.PROP_RESOURCE_LIB_PATH);
 
     public PartitionConfig() throws Exception {
-        LibUtils.loadLibraryPath(libPath);
+//        LibUtils.loadLibraryPath(libPath);
     }
 
     public String getPartitionGroupName() {
@@ -43,14 +41,5 @@ public class PartitionConfig {
 
     public void setIntervalTime(int intervalTime) {
         this.intervalTime = intervalTime;
-    }
-
-    public String getLibPath() {
-        return libPath;
-    }
-
-    public PartitionConfig setLibPath(String libPath) {
-        this.libPath = libPath;
-        return this;
     }
 }

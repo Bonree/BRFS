@@ -1,5 +1,8 @@
 package com.bonree.brfs.resource.impl;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.resource.vo.CPUInfo;
 import com.bonree.brfs.common.resource.vo.CpuStat;
@@ -26,10 +29,12 @@ import com.bonree.brfs.resource.gather.impl.SigarNetGather;
 import com.bonree.brfs.resource.gather.impl.SigarPartitionGather;
 import com.bonree.brfs.resource.gather.impl.SigarSwapGather;
 import com.bonree.brfs.resource.gather.impl.SigarSysInfoGather;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import com.bonree.brfs.resource.utils.LibUtils;
+import com.google.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 
+@ManageLifecycle
 public class SigarGather implements ResourceCollectionInterface {
     private CPUGather cpuGather;
     private MemoryGather memoryGather;
@@ -39,6 +44,10 @@ public class SigarGather implements ResourceCollectionInterface {
     private SysInfoGather sysInfoGather;
     private LoadGather loadGather;
     private boolean start;
+
+    @Inject
+    public SigarGather() {
+    }
 
     @Override
     public OSInfo collectOSInfo() throws Exception {
@@ -133,6 +142,7 @@ public class SigarGather implements ResourceCollectionInterface {
         return loadGather.gather();
     }
 
+    @LifecycleStart
     @Override
     public void start() throws Exception {
         LibUtils.loadLibraryPath(libPath());
@@ -159,6 +169,7 @@ public class SigarGather implements ResourceCollectionInterface {
         return jarFile.getParentFile().getAbsolutePath() + "/lib";
     }
 
+    @LifecycleStop
     @Override
     public void stop() throws Exception {
         cpuGather.stop();

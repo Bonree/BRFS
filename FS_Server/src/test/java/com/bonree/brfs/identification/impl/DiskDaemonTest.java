@@ -1,12 +1,13 @@
 package com.bonree.brfs.identification.impl;
 
+import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.partition.PartitionCheckingRoutine;
 import com.bonree.brfs.partition.PartitionGather;
 import com.bonree.brfs.partition.PartitionInfoRegister;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import com.bonree.brfs.resource.impl.SigarGather;
 import com.google.common.collect.ImmutableList;
 import java.util.Collection;
 import java.util.List;
@@ -33,23 +34,20 @@ public class DiskDaemonTest {
     private static String ZKADDRES = RouteParserTest.ZK_ADDRESS;
     private static String DISK_NODE_NAME = "DiskNodeIDs";
     private CuratorFramework client = null;
+    private ResourceCollectionInterface rGather = null;
 
     @Before
-    public void checkZK() {
+    public void checkZK()throws Exception {
         client = CuratorFrameworkFactory.newClient(ZKADDRES, new RetryNTimes(5, 300));
         client.start();
+        rGather = new SigarGather();
+        rGather.start();
         try {
             client.blockUntilConnected();
         } catch (InterruptedException e) {
             Assert.fail("zookeeper client is invaild !! address: " + ZKADDRES);
         }
-        String libPath = "D:\\work\\Business\\bonree\\BrfsSecond\\BRFS\\lib";
-        //        String libPath = "E:\\worker\\Bonree\\BrfsSecond\\BRFS\\lib";
-        try {
-            LibUtils.loadLibraryPath(libPath);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 
     @Test
@@ -64,12 +62,12 @@ public class DiskDaemonTest {
         // 1.生成注册id实例
         DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client, partitionSeqPath, ID_BAS_PATH);
         // 2.生成磁盘分区id检查类
-        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(diskNodeID, rootPath, innerPath, partitionGroup);
+        PartitionCheckingRoutine routine = new PartitionCheckingRoutine(diskNodeID, rGather, rootPath, innerPath, partitionGroup);
         Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();
         // 3.生成注册管理实例
         PartitionInfoRegister register = new PartitionInfoRegister(client, partitionGroupBasepath);
         // 4.生成采集线程池
-        PartitionGather gather = new PartitionGather(register, firstServer, routine.checkVaildPartition(), 5);
+        PartitionGather gather = new PartitionGather(rGather,register, firstServer, routine.checkVaildPartition(), 5);
         DiskDaemon diskDaemon = new DiskDaemon(gather, parts);
         System.out.println("-------------------------------------------------------");
     }

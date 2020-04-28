@@ -1,4 +1,4 @@
-package com.bonree.brfs.resourceschedule.utils;
+package com.bonree.brfs.resource.utils;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import java.io.File;
@@ -15,8 +15,6 @@ import java.io.File;
 public class LibUtils {
     /**
      * 概述：sigar配置path，在使用sigar前必须引用第三方依赖包，否则程序报错
-     *
-     * @param installDir
      *
      * @throws Exception
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
