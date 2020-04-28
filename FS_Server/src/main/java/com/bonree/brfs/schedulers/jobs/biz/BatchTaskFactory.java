@@ -72,9 +72,13 @@ public class BatchTaskFactory {
 
     public static void main(String[] args) {
         String content =
-            "{\"taskType\":1,\"taskState\":1,\"createTime\":\"2020-04-27 22:00:28.574\",\"atomList\":[{\"storageName\":\"lq\",\"dataStartTime\":\"2020-04-27 20:50:00.000\",\"dataStopTime\":\"2020-04-27 21:00:00.000\",\"files\":[],\"taskOperation\":\"\",\"granule\":600000,\"patitionNum\":2}]}";
+            "{\"taskType\":1,\"taskState\":1,\"createTime\""
+                + ":\"2020-04-27 22:00:28.574\",\"atomList\":[{\"storageName\":\"lq\","
+                + "\"dataStartTime\":\"2020-04-27 20:50:00.000\","
+                + "\"dataStopTime\":\"2020-04-27 21:00:00.000\",\"files\":[],"
+                + "\"taskOperation\":\"\",\"granule\":600000,\"patitionNum\":2}]}";
         TaskModel task = JsonUtils.toObjectQuietly(content, TaskModel.class);
-        Map<String,String> map = createBatch(task,3);
+        Map<String, String> map = createBatch(task, 3);
         System.out.println(map);
 
     }
