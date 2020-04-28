@@ -143,7 +143,7 @@ public class DefaultDataEngine implements DataEngine {
                     if (quit) {
                         LOG.info("data consumer close by itself");
                     } else {
-                    LOG.error("data consumer interrupted!", e);
+                        LOG.error("data consumer interrupted!", e);
                     }
                 } catch (Exception e) {
                     LOG.error("process data error", e);
