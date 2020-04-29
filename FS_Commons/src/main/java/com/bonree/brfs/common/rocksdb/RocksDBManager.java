@@ -68,13 +68,15 @@ public interface RocksDBManager extends LifeCycle {
     WriteStatus write(String columnFamily, byte[] key, byte[] value, boolean force) throws Exception;
 
     /**
-     * @param dataUnit 数据单元
+     * @param columnFamily 列族名称
+     * @param key          K
+     * @param value        V
      *
      * @return 写入状态
      *
-     * @description: 该接口主要供其他RocksDB节点同步数据时使用，正常写入不可用该接口
+     * @description: 同步RocksDB节点数据
      */
-    WriteStatus write(RocksDBDataUnit dataUnit) throws Exception;
+    WriteStatus syncData(String columnFamily, byte[] key, byte[] value) throws Exception;
 
     /**
      * @param columnFamily 列族名称
