@@ -91,7 +91,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo;
 
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
-    private ExecutorService executor = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors() / 4),
+    private ExecutorService executor = Executors.newFixedThreadPool(Math.max(4, Runtime.getRuntime().availableProcessors() / 2),
                                                                     new PooledThreadFactory("sync_rocksdb_data"));
 
     @Inject
