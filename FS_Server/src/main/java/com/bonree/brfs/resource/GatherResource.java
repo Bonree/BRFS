@@ -1,15 +1,13 @@
-package com.bonree.brfs.resourceschedule.commons;
+package com.bonree.brfs.resource;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.resource.vo.ResourceModel;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
 import com.bonree.brfs.resourceschedule.model.StateMetaServerModel;
 import com.bonree.brfs.resourceschedule.utils.CalcUtils;
-import com.bonree.brfs.resourceschedule.utils.DiskUtils;
 import com.bonree.brfs.resourceschedule.utils.SigarUtils;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,7 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
 import org.hyperic.sigar.SigarException;
 
 /*****************************************************************************
@@ -224,92 +221,23 @@ public class GatherResource {
         obj.setHost(ip);
         obj.setCpuRate(stat.getCpuRate());
         obj.setMemoryRate(stat.getMemoryRate());
-        obj.setDiskSize(stat.getTotalDiskSize());
-        obj.setCpuValue(cpuValue);
-        obj.setMemoryValue(memoryValue);
-        obj.setDiskRemainRate(diskRemainRate);
+
         // 磁盘剩余
         cacheNum = cluster.getDiskTotalSize();
         cacheMap = CalcUtils.divDataDoubleMap(stat.getPartitionRemainSizeMap(), cacheNum);
-        obj.setDiskRemainValue(cacheMap);
-        // 设置磁盘剩余sizemap
-        obj.setLocalDiskRemainRate(calcRemainRate(stat.getPartitionRemainSizeMap(), stat.getPartitionTotalSizeMap()));
-        obj.setLocalRemainSizeValue(stat.getPartitionRemainSizeMap());
-        obj.setLocalSizeValue(stat.getPartitionTotalSizeMap());
+
         // 磁盘读
         cacheNum = cluster.getDiskReadMaxSpeed();
         cacheMap = CalcUtils.divDiffDataDoubleMap(stat.getPartitionReadSpeedMap(), cacheNum);
-        obj.setDiskReadValue(cacheMap);
         // 磁盘写
         cacheNum = cluster.getDiskWriteMaxSpeed();
         cacheMap = CalcUtils.divDiffDataDoubleMap(stat.getPartitionWriteSpeedMap(), cacheNum);
-        obj.setDiskWriteValue(cacheMap);
         // 网卡接收
         cacheNum = cluster.getNetRxMaxSpeed();
         double netRS = (double) stat.getNetRSpeed() / cacheNum;
-        obj.setNetRxValue(netRS);
         // 网卡发送
         cacheNum = cluster.getNetTxMaxSpeed();
         double netTS = stat.getNetTSpeed() / cacheNum;
-        obj.setNetTxValue(netTS);
-        obj.setStorageNameOnPartitionMap(stat.getStorageNameOnPartitionMap());
         return obj;
     }
-
-    public static Map<String, Double> calcRemainRate(Map<String, Long> remain, Map<String, Long> total) {
-        Map<String, Double> doubleMap = new HashMap<>();
-        if (remain == null || remain.isEmpty() || total == null || total.isEmpty()) {
-            return doubleMap;
-        }
-        String mount = null;
-        long totalSize = 0L;
-        long remainSize = 0L;
-        double rate = 0.0;
-        for (Map.Entry<String, Long> entry : total.entrySet()) {
-            mount = entry.getKey();
-            totalSize = entry.getValue();
-            if (totalSize == 0) {
-                continue;
-            }
-            remainSize = remain.get(mount);
-            rate = (double) remainSize / totalSize;
-            doubleMap.put(mount, rate);
-        }
-        return doubleMap;
-    }
-
-    /**
-     * 概述：匹配sn与分区
-     *
-     * @param snList      sn目录信息
-     * @param mountPoints 挂载点目录信息
-     *
-     * @return
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    @Deprecated
-    public static Map<String, String> matchSnToPatition(Collection<String> snList, Collection<String> mountPoints,
-                                                        String dataDir) {
-        Map<String, String> objMap = new ConcurrentHashMap<String, String>();
-        if (snList == null || mountPoints == null) {
-            return objMap;
-        }
-        // 获取每个sn对应的空间大小
-        String mountPoint = null;
-        String path = null;
-        // 匹配sn与挂载点
-        for (String sn : snList) {
-            path = dataDir + File.separator + sn;
-            mountPoint = DiskUtils.selectPartOfDisk(path, mountPoints);
-            if (BrStringUtils.isEmpty(mountPoint)) {
-                continue;
-            }
-            if (!objMap.containsKey(sn)) {
-                objMap.put(sn, mountPoint);
-            }
-        }
-        return objMap;
-    }
-
 }

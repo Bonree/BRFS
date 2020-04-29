@@ -2,7 +2,7 @@ package com.bonree.brfs.duplication.filenode.duplicates;
 
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
+import com.bonree.brfs.resource.vo.ResourceModel;
 import java.util.List;
 
 /*****************************************************************************

@@ -1,20 +1,38 @@
 package com.bonree.brfs.common.resource.vo;
 
 public class NetStat {
-    long rxBytes = 0L;
-    long rxPackets = 0L;
-    long rxErrors = 0L;
-    long rxDropped = 0L;
-    long rxOverruns = 0L;
-    long rxFrame = 0L;
-    long txBytes = 0L;
-    long txPackets = 0L;
-    long txErrors = 0L;
-    long txDropped = 0L;
-    long txOverruns = 0L;
-    long txCollisions = 0L;
-    long txCarrier = 0L;
-    long speed = 0L;
+    private String devName;
+    private String ipAddress;
+    private long rxBytes = 0L;
+    private long rxPackets = 0L;
+    private long rxErrors = 0L;
+    private long rxDropped = 0L;
+    private long rxOverruns = 0L;
+    private long rxFrame = 0L;
+    private long txBytes = 0L;
+    private long txPackets = 0L;
+    private long txErrors = 0L;
+    private long txDropped = 0L;
+    private long txOverruns = 0L;
+    private long txCollisions = 0L;
+    private long txCarrier = 0L;
+    private long speed = 0L;
+
+    public String getDevName() {
+        return devName;
+    }
+
+    public void setDevName(String devName) {
+        this.devName = devName;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
 
     public long getRxBytes() {
         return rxBytes;
@@ -130,22 +148,23 @@ public class NetStat {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("{");
-        sb.append("rxBytes=").append(rxBytes);
-        sb.append(", rxPackets=").append(rxPackets);
-        sb.append(", rxErrors=").append(rxErrors);
-        sb.append(", rxDropped=").append(rxDropped);
-        sb.append(", rxOverruns=").append(rxOverruns);
-        sb.append(", rxFrame=").append(rxFrame);
-        sb.append(", txBytes=").append(txBytes);
-        sb.append(", txPackets=").append(txPackets);
-        sb.append(", txErrors=").append(txErrors);
-        sb.append(", txDropped=").append(txDropped);
-        sb.append(", txOverruns=").append(txOverruns);
-        sb.append(", txCollisions=").append(txCollisions);
-        sb.append(", txCarrier=").append(txCarrier);
-        sb.append(", speed=").append(speed);
-        sb.append('}');
-        return sb.toString();
+        return "NetStat{" +
+            "devName='" + devName + '\'' +
+            ", ipAddress='" + ipAddress + '\'' +
+            ", rxBytes=" + rxBytes +
+            ", rxPackets=" + rxPackets +
+            ", rxErrors=" + rxErrors +
+            ", rxDropped=" + rxDropped +
+            ", rxOverruns=" + rxOverruns +
+            ", rxFrame=" + rxFrame +
+            ", txBytes=" + txBytes +
+            ", txPackets=" + txPackets +
+            ", txErrors=" + txErrors +
+            ", txDropped=" + txDropped +
+            ", txOverruns=" + txOverruns +
+            ", txCollisions=" + txCollisions +
+            ", txCarrier=" + txCarrier +
+            ", speed=" + speed +
+            '}';
     }
 }

@@ -1,6 +1,6 @@
 package com.bonree.brfs.duplication.filenode.duplicates;
 
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
+import com.bonree.brfs.resource.vo.ResourceModel;
 import java.util.Collection;
 
 public interface ServiceSelector extends ResourceSelector {

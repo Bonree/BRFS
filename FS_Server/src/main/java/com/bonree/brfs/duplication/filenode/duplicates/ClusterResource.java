@@ -1,7 +1,7 @@
 package com.bonree.brfs.duplication.filenode.duplicates;
 
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
+import com.bonree.brfs.resource.vo.ResourceModel;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;

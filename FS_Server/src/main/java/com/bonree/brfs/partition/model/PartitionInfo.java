@@ -18,9 +18,9 @@ public class PartitionInfo {
     // 磁盘分区的id
     private String partitionId;
     // 磁盘分区的总大小
-    private double totalSize;
+    private long totalSize;
     // 磁盘分区的剩余大小
-    private double freeSize;
+    private long freeSize;
     // 磁盘节点分区的注册时间
     private long registerTime;
     // 版本信息
@@ -30,8 +30,8 @@ public class PartitionInfo {
 
     }
 
-    public PartitionInfo(String serviceGroup, String serviceId, String partitionGroup, String partitionId, double totalSize,
-                         double freeSize, long registerTime) {
+    public PartitionInfo(String serviceGroup, String serviceId, String partitionGroup, String partitionId, long totalSize,
+                         long freeSize, long registerTime) {
         this.serviceGroup = serviceGroup;
         this.serviceId = serviceId;
         this.partitionGroup = partitionGroup;
@@ -73,19 +73,19 @@ public class PartitionInfo {
         this.partitionId = partitionId;
     }
 
-    public double getTotalSize() {
+    public long getTotalSize() {
         return totalSize;
     }
 
-    public void setTotalSize(double totalSize) {
+    public void setTotalSize(long totalSize) {
         this.totalSize = totalSize;
     }
 
-    public double getFreeSize() {
+    public long getFreeSize() {
         return freeSize;
     }
 
-    public void setFreeSize(double freeSize) {
+    public void setFreeSize(long freeSize) {
         this.freeSize = freeSize;
     }
 

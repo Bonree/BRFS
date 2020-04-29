@@ -8,6 +8,8 @@ import org.hyperic.sigar.NetInterfaceStat;
 public class NetConvertor {
     public NetStat convertNetStat(NetInterfaceStat net, NetInterfaceConfig config) {
         NetStat stat = new NetStat();
+        stat.setDevName(config.getName());
+        stat.setIpAddress(config.getAddress());
         stat.setRxBytes(net.getRxBytes());
         stat.setRxPackets(net.getRxPackets());
         stat.setRxErrors(net.getRxErrors());

@@ -6,7 +6,6 @@ import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
-import com.bonree.brfs.duplication.filenode.duplicates.impl.RandomAvailable;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -41,10 +40,7 @@ public class JobDataMapConstract {
      * 当样本数为几个是计算
      */
     public static final String CALC_RESOURCE_COUNT = "CALC_RESOURCE_COUNT";
-    /**
-     * 可用server的实现类
-     */
-    public static final String AVAIABLE_SERVER_CLASS = "AVAIABLE_SERVER_CLASS";
+
     /**
      * 任务重复次数
      */
@@ -87,23 +83,6 @@ public class JobDataMapConstract {
         dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");
         dataMap.put(BASE_SERVER_ID_PATH, zkServerPath);
         dataMap.put(ZOOKEEPER_ADDRESS, zkaddress);
-        return dataMap;
-    }
-
-    /**
-     * 概述：
-     *
-     * @param resource
-     *
-     * @return
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public static Map<String, String> createAsynResourceDataMap(ResourceTaskConfig resource) {
-        Map<String, String> dataMap = new HashMap<>();
-        dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
-        dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");
-        dataMap.put(AVAIABLE_SERVER_CLASS, RandomAvailable.class.getCanonicalName());
         return dataMap;
     }
 

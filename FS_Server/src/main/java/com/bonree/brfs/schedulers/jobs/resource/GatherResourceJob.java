@@ -12,10 +12,10 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
-import com.bonree.brfs.resourceschedule.commons.GatherResource;
+import com.bonree.brfs.resource.GatherResource;
 import com.bonree.brfs.resourceschedule.model.BaseMetaServerModel;
 import com.bonree.brfs.resourceschedule.model.LimitServerResource;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
+import com.bonree.brfs.resource.vo.ResourceModel;
 import com.bonree.brfs.resourceschedule.model.StatServerModel;
 import com.bonree.brfs.resourceschedule.model.StateMetaServerModel;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
@@ -108,8 +108,6 @@ public class GatherResourceJob extends QuartzOperationStateTask {
         }
         sendWarnEmail(resource, mcf.getLimitServerResource());
         resource.setServerId(serverId);
-        Map<Integer, String> snIds = getStorageNameIdWithName();
-        resource.setSnIds(snIds);
         byte[] rdata = JsonUtils.toJsonBytesQuietly(resource);
         String rpath = basePath + "/resource/" + serverId;
         if (!saveDataToZK(client, rpath, rdata)) {
