@@ -548,7 +548,13 @@ public class BRFSClient implements BRFS {
             throw new ClientException("range is not supported now.");
         }
 
-        Fid fidObj = FidDecoder.build(fid);
+        Fid fidObj;
+        try {
+            fidObj = FidDecoder.build(fid);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(Strings.format("Invalid FID: %s", fid));
+        }
+
         if (fidObj.getStorageNameCode() != getStorageRegionID(srName)) {
             throw new IllegalStateException(
                 Strings.format("fid[%s] is not belong to sr[%s]",

@@ -53,21 +53,29 @@ public class TcpFidContentReader implements FidContentReader {
 
     private static byte[] toReadString(String srName, Fid fidObj, int index) {
         StringBuilder nameBuilder = new StringBuilder(fidObj.getUuid());
-        String[] serverList = new String[fidObj.getServerIdCount()];
         for (int i = 0; i < fidObj.getServerIdCount(); i++) {
             String id = fidObj.getServerId(i);
             nameBuilder.append('_').append(id);
-            serverList[i] = id;
         }
 
-        return Joiner
-            .on(';').useForNull("-").join(srName, index, fidObj.getTime(), fidObj.getDuration(),
-                                          nameBuilder.toString(), null, fidObj.getOffset(), fidObj.getSize(), 0, 0, "\n")
+        return Joiner.on(';')
+            .useForNull("-")
+            .join(srName,
+                  index,
+                  fidObj.getTime(),
+                  fidObj.getDuration(),
+                  nameBuilder.toString(),
+                  null,
+                  fidObj.getOffset(),
+                  fidObj.getSize(),
+                  0,
+                  0,
+                  "\n")
             .getBytes(Charsets.UTF_8);
     }
 
     private static void readBytes(InputStream input, byte[] des, int offset, int length) throws IOException {
-        int read = 0;
+        int read;
 
         while (length > 0 && (read = input.read(des, offset, length)) >= 0) {
             offset += read;

@@ -19,7 +19,9 @@ import static java.util.Objects.requireNonNull;
 
 import com.bonree.brfs.client.ClientException;
 import com.bonree.brfs.client.utils.Retryable.Result;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +60,8 @@ public final class Retrys {
         private final String description;
         private final Iterator<E> iter;
 
+        private final List<String> triedItems = new ArrayList<>();
+
         private Throwable cause;
 
         protected MultiObjectRetryable(String description, Iterator<E> iter) {
@@ -90,6 +94,7 @@ public final class Retrys {
 
             E element = iter.next();
             try {
+                triedItems.add(element.toString());
                 T result = execute(element);
                 return Retryable.success(result);
             } catch (Exception e) {
@@ -97,12 +102,19 @@ public final class Retrys {
                 cause = e;
 
                 if (!continueRetry()) {
-                    return Retryable.fail(e);
+                    return Retryable.fail(new RetryException(triedItems, e));
                 }
             }
 
             return Retryable.retry(this, cause);
         }
 
+    }
+
+    public static class RetryException extends Exception {
+
+        public RetryException(List<String> retriedElements, Throwable cause) {
+            super(Strings.format("Failed after tried with %s", retriedElements), cause);
+        }
     }
 }
