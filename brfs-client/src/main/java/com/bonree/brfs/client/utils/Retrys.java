@@ -43,10 +43,6 @@ public final class Retrys {
             }
         }
 
-        if (result == null) {
-            throw new ClientException("No result is found when try execute [%s]", retryable.getDescription());
-        }
-
         if (result.getCause() != null) {
             throw new ClientException(result.getCause(), "Error when execute [%s]", retryable.getDescription());
         }
