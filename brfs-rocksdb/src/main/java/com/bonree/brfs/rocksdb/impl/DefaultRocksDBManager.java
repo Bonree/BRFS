@@ -147,12 +147,14 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 if (!serviceCache.contains(service)
                     && !service.getServiceId().equals(DefaultRocksDBManager.this.service.getServiceId())) {
                     serviceCache.add(service);
+                    LOG.info("service added:{}, current services:{}", service.getServiceId(), serviceCache);
                 }
             }
 
             @Override
             public void serviceRemoved(Service service) {
                 serviceCache.remove(service);
+                LOG.info("service removed:{}, current services:{}", service.getServiceId(), serviceCache);
             }
         });
 
