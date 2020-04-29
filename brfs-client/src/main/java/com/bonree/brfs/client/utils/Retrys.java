@@ -85,7 +85,7 @@ public final class Retrys {
         @Override
         public Result<T> tryExecute() {
             if (!iter.hasNext()) {
-                return Retryable.fail(cause != null ? cause : noMoreObjectError());
+                return Retryable.fail(cause != null ? new RetryException(triedItems, cause) : noMoreObjectError());
             }
 
             E element = iter.next();
