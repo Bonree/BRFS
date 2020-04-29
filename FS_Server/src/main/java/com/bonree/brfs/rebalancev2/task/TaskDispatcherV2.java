@@ -222,7 +222,7 @@ public class TaskDispatcherV2 implements Closeable {
                     e.printStackTrace();
                 }
             }
-        }, 3000, 3000, TimeUnit.MILLISECONDS);
+        }, 3000, 3000 * 20, TimeUnit.MILLISECONDS);
     }
 
     /**

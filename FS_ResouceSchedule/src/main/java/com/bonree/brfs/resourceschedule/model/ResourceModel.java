@@ -41,6 +41,17 @@ public class ResourceModel {
     private double netRxValue = 0.0;
     private double netTxValue = 0.0;
     private String host = null;
+    private Map<String, Double> diskWriteValue = new ConcurrentHashMap<String, Double>();
+    private Map<String, Double> diskReadValue = new ConcurrentHashMap<String, Double>();
+    private Map<String, Double> diskRemainValue = new ConcurrentHashMap<String, Double>();
+    private Map<String, Long> localSizeValue = new ConcurrentHashMap<>();
+    private Map<String, Long> localRemainSizeValue = new ConcurrentHashMap<>();
+    private Map<String, Double> localDiskRemainRate = new ConcurrentHashMap<>();
+    /**
+     * storagename与分区的映射关系
+     */
+    private Map<String, String> storageNameOnPartitionMap = new ConcurrentHashMap<String, String>();
+    private Map<Integer, String> snIds = new ConcurrentHashMap<Integer, String>();
 
     public String getHost() {
         return host;
@@ -49,22 +60,6 @@ public class ResourceModel {
     public void setHost(String host) {
         this.host = host;
     }
-
-    private Map<String, Double> diskWriteValue = new ConcurrentHashMap<String, Double>();
-    private Map<String, Double> diskReadValue = new ConcurrentHashMap<String, Double>();
-    private Map<String, Double> diskRemainValue = new ConcurrentHashMap<String, Double>();
-    private Map<String, Long> localSizeValue = new ConcurrentHashMap<>();
-
-    private Map<String, Long> localRemainSizeValue = new ConcurrentHashMap<>();
-
-    private Map<String, Double> localDiskRemainRate = new ConcurrentHashMap<>();
-
-    /**
-     * storagename与分区的映射关系
-     */
-    private Map<String, String> storageNameOnPartitionMap = new ConcurrentHashMap<String, String>();
-
-    private Map<Integer, String> snIds = new ConcurrentHashMap<Integer, String>();
 
     public String getServerId() {
         return serverId;
@@ -181,6 +176,10 @@ public class ResourceModel {
         return localRemainSizeValue;
     }
 
+    public void setLocalRemainSizeValue(Map<String, Long> localRemainSizeValue) {
+        this.localRemainSizeValue = localRemainSizeValue;
+    }
+
     public long getLocalRemainSizeValue(String sn) {
         if (BrStringUtils.isEmpty(sn)) {
             return diskSize;
@@ -193,10 +192,6 @@ public class ResourceModel {
             return diskSize;
         }
         return this.getLocalRemainSizeValue().get(mount);
-    }
-
-    public void setLocalRemainSizeValue(Map<String, Long> localRemainSizeValue) {
-        this.localRemainSizeValue = localRemainSizeValue;
     }
 
     public double getDiskReadValue(String storage) {
