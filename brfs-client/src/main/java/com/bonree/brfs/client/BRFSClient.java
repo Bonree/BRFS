@@ -156,7 +156,7 @@ public class BRFSClient implements BRFS {
     public StorageRegionID createStorageRegion(CreateStorageRegionRequest request) throws Exception {
         RequestBody body = RequestBody.create(JSON, codec.toJson(request.getAttributes()));
 
-        return Retrys.execute(new URIRetryable<StorageRegionID>(
+        return Retrys.execute(new URIRetryable<>(
             format("create storage region[%s]", request.getStorageRegionName()),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -201,7 +201,7 @@ public class BRFSClient implements BRFS {
     }
 
     private StorageRegionID getStorageRegionIDFromRemote(String srName) {
-        return Retrys.execute(new URIRetryable<StorageRegionID>(
+        return Retrys.execute(new URIRetryable<>(
             format("get the id of storage region[%s]", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -238,7 +238,7 @@ public class BRFSClient implements BRFS {
 
     @Override
     public boolean doesStorageRegionExists(String srName) {
-        return Retrys.execute(new URIRetryable<Boolean>(
+        return Retrys.execute(new URIRetryable<>(
             format("check the existance of storage region[%s]", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -275,7 +275,7 @@ public class BRFSClient implements BRFS {
 
     @Override
     public List<String> listStorageRegions(ListStorageRegionRequest request) {
-        return Retrys.execute(new URIRetryable<List<String>>(
+        return Retrys.execute(new URIRetryable<>(
             "list storage region names",
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -314,7 +314,7 @@ public class BRFSClient implements BRFS {
     public boolean updateStorageRegion(String srName, UpdateStorageRegionRequest request) throws Exception {
         RequestBody body = RequestBody.create(JSON, codec.toJson(request.getAttributes()));
 
-        return Retrys.execute(new URIRetryable<Boolean>(
+        return Retrys.execute(new URIRetryable<>(
             format("update storage region[%s]", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -347,7 +347,7 @@ public class BRFSClient implements BRFS {
 
     @Override
     public StorageRegionInfo getStorageRegionInfo(String srName) {
-        return Retrys.execute(new URIRetryable<StorageRegionInfo>(
+        return Retrys.execute(new URIRetryable<>(
             format("get storage region[%s] info", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -477,7 +477,7 @@ public class BRFSClient implements BRFS {
         Function<URI, Call> firstCall = callProvider.next();
         SettableFuture<PutObjectResult> resultFuture = SettableFuture.create();
 
-        return Retrys.execute(new URIRetryable<PutObjectCallback>(
+        return Retrys.execute(new URIRetryable<>(
             format("put object to storage region[%s]", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -548,7 +548,13 @@ public class BRFSClient implements BRFS {
             throw new ClientException("range is not supported now.");
         }
 
-        Fid fidObj = FidDecoder.build(fid);
+        Fid fidObj;
+        try {
+            fidObj = FidDecoder.build(fid);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(Strings.format("Invalid FID: %s", fid));
+        }
+
         if (fidObj.getStorageNameCode() != getStorageRegionID(srName)) {
             throw new IllegalStateException(
                 Strings.format("fid[%s] is not belong to sr[%s]",
@@ -596,7 +602,7 @@ public class BRFSClient implements BRFS {
         long size = range == null ? fidObj.getSize() : Math.min(fidObj.getSize(), range.getSize());
 
         Map<URI, Integer> idIndex = new HashMap<>();
-        return Retrys.execute(new URIRetryable<InputStream>(
+        return Retrys.execute(new URIRetryable<>(
             format("read content of fid[%s]", fidObj),
             router.getServerLocation(srName, fidObj.getUuid(), fidObj.getServerIdList(), idIndex),
             uri -> {

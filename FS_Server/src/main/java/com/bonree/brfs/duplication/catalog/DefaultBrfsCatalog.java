@@ -223,13 +223,20 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
 
     @Override
     public String getFid(String srName, String path) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         byte[] query = transferToKey(path);
+        stopWatch.split();
+        LOG.info("transfer the path of [{}]:[{}] cost [{}]ms ", srName, path, stopWatch.getSplitTime());
         byte[] value = rocksDBManager.read(srName, query);
         if (null == value) {
             String resp = "the path[" + path + "] is not store correctly";
             LOG.error(resp);
             throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
         }
+        stopWatch.split();
+        LOG.info("get fid of[{}]:[{}] from rocksDB cost [{}]ms", srName, path, stopWatch.getSplitTime());
+        stopWatch.stop();
         return new String(value);
     }
 
