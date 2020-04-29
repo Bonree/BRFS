@@ -11,6 +11,7 @@ import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.ServiceStateListener;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.RocksDBConfigs;
@@ -26,7 +27,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.BackupEngine;
@@ -89,6 +91,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo;
 
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
+    private ExecutorService executor = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors() / 4),
+                                                                    new PooledThreadFactory("sync_rocksdb_data"));
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
@@ -301,7 +305,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         }
 
         WriteStatus writeStatus = this.write(this.cfHandles.get(columnFamily), writeOptionsAsync, key, value);
-        writeToAnotherService(columnFamily, key, value);
+        executor.execute(new RocksDBDataWriter(columnFamily, key, value));
         return writeStatus;
     }
 
@@ -328,21 +332,39 @@ public class DefaultRocksDBManager implements RocksDBManager {
         return WriteStatus.SUCCESS;
     }
 
-    private void writeToAnotherService(String columnFamily, byte[] key, byte[] value) throws Exception {
-        if (serviceCache.isEmpty()) {
-            return;
+    private class RocksDBDataWriter implements Runnable {
+        private String columnFamily;
+        private byte[] key;
+        private byte[] value;
+
+        public RocksDBDataWriter(String columnFamily, byte[] key, byte[] value) {
+            this.columnFamily = columnFamily;
+            this.key = key;
+            this.value = value;
         }
 
-        RegionNodeConnection connection;
-        RocksDBDataUnit dataUnit = new RocksDBDataUnit(columnFamily, key, value);
-
-        for (Service service : serviceCache) {
-            connection = this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());
-            if (connection == null || connection.getClient() == null) {
-                LOG.warn("region node connection/client is null! serviceId:{}", service.getServiceId());
-                continue;
+        @Override
+        public void run() {
+            if (serviceCache.isEmpty()) {
+                return;
             }
-            connection.getClient().writeData(dataUnit);
+
+            RegionNodeConnection connection;
+            RocksDBDataUnit dataUnit = new RocksDBDataUnit(columnFamily, key, value);
+
+            for (Service service : serviceCache) {
+                connection =
+                    DefaultRocksDBManager.this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());
+                if (connection == null || connection.getClient() == null) {
+                    LOG.warn("region node connection/client is null! serviceId:{}", service.getServiceId());
+                    continue;
+                }
+                try {
+                    connection.getClient().writeData(dataUnit);
+                } catch (Exception e) {
+                    LOG.error("rocksdb data writer occur error", e);
+                }
+            }
         }
     }
 
@@ -525,6 +547,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         if (db != null) {
             db.close();
         }
+        this.executor.shutdown();
         LOG.info("rocksdb manager stop");
     }
 }
