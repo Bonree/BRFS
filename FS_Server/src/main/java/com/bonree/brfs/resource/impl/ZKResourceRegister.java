@@ -19,6 +19,7 @@ public class ZKResourceRegister implements ResourceRegisterInterface {
     private CuratorFramework client = null;
     private Service localService;
     private String registerPath;
+
     @Inject
     public ZKResourceRegister(CuratorFramework client, Service localService, ZookeeperPaths paths) {
         this.client = client;

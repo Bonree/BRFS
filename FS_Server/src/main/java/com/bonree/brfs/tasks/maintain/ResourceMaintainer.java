@@ -50,7 +50,7 @@ public class ResourceMaintainer implements LifeCycle {
 
     @LifecycleStop
     @Override
-    public void stop(){
+    public void stop() {
         if (tasks == null || tasks.isEmpty()) {
             LOG.warn("no resource task !! no need stop!!");
             return;

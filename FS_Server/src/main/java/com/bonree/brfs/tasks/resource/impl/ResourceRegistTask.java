@@ -29,7 +29,8 @@ public class ResourceRegistTask extends SuperResourceTask {
                 return;
             }
             register.registerResource(model);
-            LOG.info("gather resource [{}] successfull !!", TimeUtils.formatTimeStamp(System.currentTimeMillis(),"yyyy-MM-dd HH:mm:ss"));
+            LOG.info("gather resource [{}] successfull !!",
+                     TimeUtils.formatTimeStamp(System.currentTimeMillis(), "yyyy-MM-dd HH:mm:ss"));
         } catch (Exception e) {
             LOG.error("gather resource happen error !!", e);
         }

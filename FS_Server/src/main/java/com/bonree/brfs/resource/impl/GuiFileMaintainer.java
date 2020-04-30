@@ -48,7 +48,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     private ScheduledExecutorService pool = null;
     private int intervalTime;
     private int ttlTime;
-    private boolean run =false;
+    private boolean run = false;
     private boolean start;
 
     @Inject
@@ -394,10 +394,10 @@ public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     @LifecycleStart
     @Override
     public void start() throws Exception {
-        if(!run){
+        if (!run) {
             LOG.info("gui switch is close !!");
             return;
-        }else{
+        } else {
             LOG.info("gui starting !!");
         }
         scanPaths = Arrays.asList(
@@ -432,10 +432,10 @@ public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     @LifecycleStop
     @Override
     public void stop() throws Exception {
-        if(!run){
+        if (!run) {
             LOG.info("gui switch is close !!");
             return;
-        }else{
+        } else {
             LOG.info("gui stoping !!");
         }
         start = false;

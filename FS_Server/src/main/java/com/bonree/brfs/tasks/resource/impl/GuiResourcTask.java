@@ -61,7 +61,7 @@ public class GuiResourcTask extends SuperResourceTask {
             guiMaintainer.setNetInfos(netInfos);
             guiMaintainer.setDiskIOs(diskIOInfos);
             guiMaintainer.setDiskUsages(diskUsageInfos);
-            LOG.info("gui task gather [{}] successfull", TimeUtils.formatTimeStamp(time,"yyyy-MM-dd HH:mm:ss"));
+            LOG.info("gui task gather [{}] successfull", TimeUtils.formatTimeStamp(time, "yyyy-MM-dd HH:mm:ss"));
         } catch (Exception e) {
             LOG.error("gui task happen error ", e);
         }
