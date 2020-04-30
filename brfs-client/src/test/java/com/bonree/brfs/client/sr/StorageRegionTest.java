@@ -29,9 +29,9 @@ public class StorageRegionTest {
      * @param args
      */
     public static void main(String[] args) {
-        BRFS client = new BRFSClientBuilder().build("root", "12345", new URI[] {URI.create("http://localhost:8100")});
+        BRFS client = new BRFSClientBuilder().build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
 
-        String rn = "new_region1";
+        String rn = "new_region3";
         try {
             StorageRegionID sr = client.createStorageRegion(CreateStorageRegionRequest.newBuilder(rn)
                                                                 .build());
@@ -58,7 +58,7 @@ public class StorageRegionTest {
             StorageRegionInfo info1 = client.getStorageRegionInfo(rn);
             System.out.println("updated info : " + info1);
 
-            //          client.deleteStorageRegion("new_test");
+            client.deleteStorageRegion(rn);
             System.out.println(sr);
         } catch (Exception e) {
             e.printStackTrace();

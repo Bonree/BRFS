@@ -20,8 +20,19 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 public interface BRFSObject {
+
+    /**
+     * the stream of data from file.
+     *
+     * @return the input stream should be closed after consumed.
+     */
     InputStream getObjectContent();
 
+    /**
+     * consume the bytes of stream and transfer them to String.
+     *
+     * @return String of stream
+     */
     default String string() {
         byte[] bytes = byteArray();
         if (bytes == null) {
@@ -31,6 +42,11 @@ public interface BRFSObject {
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
+    /**
+     * consume the bytes of stream.
+     *
+     * @return bytes of stream
+     */
     default byte[] byteArray() {
         try (InputStream input = getObjectContent()) {
             if (input == null) {
