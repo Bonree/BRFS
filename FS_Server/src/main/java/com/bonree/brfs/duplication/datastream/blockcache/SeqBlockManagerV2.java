@@ -39,6 +39,8 @@ public class SeqBlockManagerV2 implements BlockManager {
     private LinkedBlockingQueue<WriteRequest> fileWaiting;
     private static Lock LOCK = new ReentrantLock();
     private Condition allowWrite = LOCK.newCondition();
+    private static Lock requestWriteLock = new ReentrantLock();
+    private Condition requestWrite = requestWriteLock.newCondition();
     private AtomicInteger fileWritingCount = new AtomicInteger(0);
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
@@ -62,10 +64,14 @@ public class SeqBlockManagerV2 implements BlockManager {
 
     @Override
     public void addToWaitingPool(FSPacket packet, HandleResultCallback callback) {
+        requestWriteLock.lock();
         try {
             fileWaiting.put(new WriteFileRequest(packet, callback));
+            requestWrite.signal();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.error("enqueue the write request is interrupted!");
+        } finally {
+            requestWriteLock.unlock();
         }
         LOG.info("waiting pool size is [{}]", fileWaiting.size());
         LOG.info("storage [{}] : file[{}] waiting for write.", packet.getStorageName(), packet.getFileName());
@@ -443,12 +449,21 @@ public class SeqBlockManagerV2 implements BlockManager {
             WriteRequest unhandledRequest;
 
             while (true) {
-                LOCK.lock();
-                if (quit && fileWaiting.isEmpty()) {
-                    break;
+                requestWriteLock.lock();
+                try {
+                    if (quit && fileWaiting.isEmpty()) {
+                        break;
+                    }
+                    if (fileWaiting.peek() == null) {
+                        requestWrite.await();
+                    }
+                } catch (InterruptedException e) {
+                    LOG.error("await which is waiting element to write is interrupted");
+                } finally {
+                    requestWriteLock.unlock();
                 }
-
-                if (fileWritingCount.get() < blockPoolSize && fileWaiting.peek() != null) {
+                LOCK.lock();
+                if (fileWritingCount.get() < blockPoolSize) {
                     try {
                         unhandledRequest = fileWaiting.take();
                         LOG.info("Processor : the waiting request size is [{}]", fileWritingCount.get());
