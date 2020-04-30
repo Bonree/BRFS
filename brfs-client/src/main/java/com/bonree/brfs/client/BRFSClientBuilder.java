@@ -16,8 +16,8 @@ package com.bonree.brfs.client;
 
 import com.bonree.brfs.client.data.read.FidContentReader;
 import com.bonree.brfs.client.data.read.FilePathMapper;
+import com.bonree.brfs.client.data.read.HttpFidContentReader;
 import com.bonree.brfs.client.data.read.HttpFilePathMapper;
-import com.bonree.brfs.client.data.read.PooledTcpFidContentReader;
 import com.bonree.brfs.client.data.read.StringSubFidParser;
 import com.bonree.brfs.client.data.read.SubFidParser;
 import com.bonree.brfs.client.data.read.connection.DataConnectionPool;
@@ -96,7 +96,8 @@ public class BRFSClientBuilder {
         DataConnectionPool pool = new DataConnectionPool();
         closer.register(pool);
 
-        FidContentReader contentReader = new PooledTcpFidContentReader(pool);
+        FidContentReader contentReader = new HttpFidContentReader(httpClient);
+        //new PooledTcpFidContentReader(pool);
 
         FilePathMapper pathMapper = new HttpFilePathMapper(httpClient, nodeSelector);
         SubFidParser subFidParser = new StringSubFidParser();

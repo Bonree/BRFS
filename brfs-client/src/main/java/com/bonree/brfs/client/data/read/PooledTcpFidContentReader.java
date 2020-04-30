@@ -39,23 +39,19 @@ public class PooledTcpFidContentReader implements FidContentReader {
     @Override
     public InputStream read(URI uri, String srName, Fid fidObj, long offset, long size, int uriIndex) throws Exception {
         return pool.newRequest(uri, connection -> {
-            try {
-                Socket socket = connection.getSocket();
-                socket.getOutputStream().write(toReadString(srName, fidObj, uriIndex));
+            Socket socket = connection.getSocket();
+            socket.getOutputStream().write(toReadString(srName, fidObj, uriIndex));
 
-                byte[] length = new byte[Integer.BYTES * 2];
-                readBytes(socket.getInputStream(), length, 0, length.length);
+            byte[] length = new byte[Integer.BYTES * 2];
+            readBytes(socket.getInputStream(), length, 0, length.length);
 
-                int l = Ints.fromBytes(length[4], length[5], length[6], length[7]);
+            int l = Ints.fromBytes(length[4], length[5], length[6], length[7]);
 
-                byte[] b = new byte[l];
-                readBytes(socket.getInputStream(), b, 0, b.length);
+            byte[] b = new byte[l];
+            readBytes(socket.getInputStream(), b, 0, b.length);
 
-                FileContent content = FileDecoder.contents(b);
-                return new ByteArrayInputStream(content.getData().toByteArray());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            FileContent content = FileDecoder.contents(b);
+            return new ByteArrayInputStream(content.getData().toByteArray());
         }).call();
     }
 

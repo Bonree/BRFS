@@ -79,7 +79,7 @@ public class Router {
                         }
 
                         try {
-                            URI uri = new URI("http", null, secondId.getHost(), secondId.getReadPort(), null, null, null);
+                            URI uri = new URI("http", null, secondId.getHost(), secondId.getPort(), null, null, null);
                             uriIndex.put(uri, secondServerIdList.indexOf(serverId) + 1);
 
                             return uri;

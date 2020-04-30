@@ -51,6 +51,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.io.Closeables;
 import com.google.common.io.Closer;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -156,7 +157,7 @@ public class BRFSClient implements BRFS {
     public StorageRegionID createStorageRegion(CreateStorageRegionRequest request) throws Exception {
         RequestBody body = RequestBody.create(JSON, codec.toJson(request.getAttributes()));
 
-        return Retrys.execute(new URIRetryable<StorageRegionID>(
+        return Retrys.execute(new URIRetryable<>(
             format("create storage region[%s]", request.getStorageRegionName()),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -169,8 +170,7 @@ public class BRFSClient implements BRFS {
                     .put(body)
                     .build();
 
-                try {
-                    Response response = httpClient.newCall(httpRequest).execute();
+                try (Response response = httpClient.newCall(httpRequest).execute()) {
                     if (response.code() == HttpStatus.CODE_CONFLICT) {
                         return TaskResult.fail(new BRFSException("Storage Region[%s] is existed",
                                                                  request.getStorageRegionName()));
@@ -201,7 +201,7 @@ public class BRFSClient implements BRFS {
     }
 
     private StorageRegionID getStorageRegionIDFromRemote(String srName) {
-        return Retrys.execute(new URIRetryable<StorageRegionID>(
+        return Retrys.execute(new URIRetryable<>(
             format("get the id of storage region[%s]", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -214,8 +214,7 @@ public class BRFSClient implements BRFS {
                     .get()
                     .build();
 
-                try {
-                    Response response = httpClient.newCall(httpRequest).execute();
+                try (Response response = httpClient.newCall(httpRequest).execute()) {
                     if (response.code() == HttpStatus.CODE_NOT_FOUND) {
                         return TaskResult.fail(new BRFSException("Storage Region[%s] is not existed", srName));
                     }
@@ -238,7 +237,7 @@ public class BRFSClient implements BRFS {
 
     @Override
     public boolean doesStorageRegionExists(String srName) {
-        return Retrys.execute(new URIRetryable<Boolean>(
+        return Retrys.execute(new URIRetryable<>(
             format("check the existance of storage region[%s]", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -275,7 +274,7 @@ public class BRFSClient implements BRFS {
 
     @Override
     public List<String> listStorageRegions(ListStorageRegionRequest request) {
-        return Retrys.execute(new URIRetryable<List<String>>(
+        return Retrys.execute(new URIRetryable<>(
             "list storage region names",
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -291,8 +290,7 @@ public class BRFSClient implements BRFS {
                     .get()
                     .build();
 
-                try {
-                    Response response = httpClient.newCall(httpRequest).execute();
+                try (Response response = httpClient.newCall(httpRequest).execute()) {
                     if (response.code() == HttpStatus.CODE_OK) {
                         ResponseBody responseBody = response.body();
                         if (responseBody == null) {
@@ -314,7 +312,7 @@ public class BRFSClient implements BRFS {
     public boolean updateStorageRegion(String srName, UpdateStorageRegionRequest request) throws Exception {
         RequestBody body = RequestBody.create(JSON, codec.toJson(request.getAttributes()));
 
-        return Retrys.execute(new URIRetryable<Boolean>(
+        return Retrys.execute(new URIRetryable<>(
             format("update storage region[%s]", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -347,7 +345,7 @@ public class BRFSClient implements BRFS {
 
     @Override
     public StorageRegionInfo getStorageRegionInfo(String srName) {
-        return Retrys.execute(new URIRetryable<StorageRegionInfo>(
+        return Retrys.execute(new URIRetryable<>(
             format("get storage region[%s] info", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -360,8 +358,7 @@ public class BRFSClient implements BRFS {
                     .get()
                     .build();
 
-                try {
-                    Response response = httpClient.newCall(httpRequest).execute();
+                try (Response response = httpClient.newCall(httpRequest).execute()) {
                     if (response.code() == HttpStatus.CODE_NOT_FOUND) {
                         return TaskResult.fail(new BRFSException("Storage Region[%s] is not existed", srName));
                     }
@@ -477,7 +474,7 @@ public class BRFSClient implements BRFS {
         Function<URI, Call> firstCall = callProvider.next();
         SettableFuture<PutObjectResult> resultFuture = SettableFuture.create();
 
-        return Retrys.execute(new URIRetryable<PutObjectCallback>(
+        return Retrys.execute(new URIRetryable<>(
             format("put object to storage region[%s]", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
             uri -> {
@@ -548,7 +545,13 @@ public class BRFSClient implements BRFS {
             throw new ClientException("range is not supported now.");
         }
 
-        Fid fidObj = FidDecoder.build(fid);
+        Fid fidObj;
+        try {
+            fidObj = FidDecoder.build(fid);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(Strings.format("Invalid FID: %s", fid));
+        }
+
         if (fidObj.getStorageNameCode() != getStorageRegionID(srName)) {
             throw new IllegalStateException(
                 Strings.format("fid[%s] is not belong to sr[%s]",
@@ -596,7 +599,7 @@ public class BRFSClient implements BRFS {
         long size = range == null ? fidObj.getSize() : Math.min(fidObj.getSize(), range.getSize());
 
         Map<URI, Integer> idIndex = new HashMap<>();
-        return Retrys.execute(new URIRetryable<InputStream>(
+        return Retrys.execute(new URIRetryable<>(
             format("read content of fid[%s]", fidObj),
             router.getServerLocation(srName, fidObj.getUuid(), fidObj.getServerIdList(), idIndex),
             uri -> {
@@ -694,69 +697,73 @@ public class BRFSClient implements BRFS {
 
         @Override
         public void onResponse(Call call, Response response) throws IOException {
-            if (response.code() == HttpStatus.CODE_NEXT) {
-                ResponseBody body = response.body();
-                if (body == null) {
-                    resultFuture.setException(
-                        new IllegalStateException("No response content is found in writting"));
+            try {
+                if (response.code() == HttpStatus.CODE_NEXT) {
+                    ResponseBody body = response.body();
+                    if (body == null) {
+                        resultFuture.setException(
+                            new IllegalStateException("No response content is found in writting"));
+                        return;
+                    }
+
+                    NextData nextData = codec.fromJsonBytes(body.bytes(), NextData.class);
+                    if (nextData.getNextSequence() != seqences.getAsLong()) {
+                        resultFuture.setException(
+                            new IllegalStateException(
+                                Strings.format("Expected next seq[%d] but get [%d]",
+                                               seqences.getAsLong(),
+                                               nextData.getNextSequence())));
+                        return;
+                    }
+
+                    if (!callIterator.hasNext()) {
+                        resultFuture.setException(
+                            new IllegalStateException(
+                                Strings.format("Expected fid is returned, but get NEXT code, current seq[%d]",
+                                               seqences.getAsLong() - 1)));
+                    }
+
+                    log.info("writer block[%d] to url[%s] successfully", seqences.getAsLong() - 1, call.request().url());
+                    callIterator.next().apply(uri).enqueue(this);
                     return;
                 }
 
-                NextData nextData = codec.fromJsonBytes(body.bytes(), NextData.class);
-                if (nextData.getNextSequence() != seqences.getAsLong()) {
-                    resultFuture.setException(
-                        new IllegalStateException(
-                            Strings.format("Expected next seq[%d] but get [%d]",
-                                           seqences.getAsLong(),
-                                           nextData.getNextSequence())));
+                if (response.code() == HttpStatus.CODE_OK) {
+                    ResponseBody body = response.body();
+                    if (body == null) {
+                        resultFuture.setException(new IllegalStateException("No response content is found"));
+                        return;
+                    }
+
+                    resultFuture.set(PutObjectResult.of(
+                        Iterables.getOnlyElement(
+                            codec.fromJsonBytes(
+                                body.bytes(),
+                                new TypeReference<List<String>>() {
+                                }))));
+
                     return;
                 }
 
-                if (!callIterator.hasNext()) {
-                    resultFuture.setException(
-                        new IllegalStateException(
-                            Strings.format("Expected fid is returned, but get NEXT code, current seq[%d]",
-                                           seqences.getAsLong() - 1)));
-                }
-
-                log.info("writer block[%d] to url[%s] successfully", seqences.getAsLong() - 1, call.request().url());
-                callIterator.next().apply(uri).enqueue(this);
-                return;
-            }
-
-            if (response.code() == HttpStatus.CODE_OK) {
-                ResponseBody body = response.body();
-                if (body == null) {
-                    resultFuture.setException(new IllegalStateException("No response content is found"));
+                if (response.code() == HttpStatus.CODE_NOT_ALLOW_CUSTOM_FILENAME) {
+                    resultFuture.setException(new IllegalArgumentException(
+                        Strings.format("the catalog is not opened, cannot use the custom file name!"))
+                    );
                     return;
                 }
 
-                resultFuture.set(PutObjectResult.of(
-                    Iterables.getOnlyElement(
-                        codec.fromJsonBytes(
-                            body.bytes(),
-                            new TypeReference<List<String>>() {
-                            }))));
+                if (response.code() == HttpStatus.CODE_NOT_AVAILABLE_FILENAME) {
+                    resultFuture.setException(new IllegalArgumentException(
+                        Strings.format("the custom file name is not pattern the regex [^(/+(\\.*[\\w,\\-]+\\.*)+)+$]!"))
+                    );
+                    return;
+                }
 
-                return;
+                resultFuture.setException(new IllegalStateException(
+                    Strings.format("Unexpected response code is returned[%d]", response.code())));
+            } finally {
+                Closeables.close(response, true);
             }
-
-            if (response.code() == HttpStatus.CODE_NOT_ALLOW_CUSTOM_FILENAME) {
-                resultFuture.setException(new IllegalArgumentException(
-                    Strings.format("the catalog is not opened, cannot use the custom file name!"))
-                );
-                return;
-            }
-
-            if (response.code() == HttpStatus.CODE_NOT_AVAILABLE_FILENAME) {
-                resultFuture.setException(new IllegalArgumentException(
-                    Strings.format("the custom file name is not pattern the regex [^(/+(\\.*[\\w,\\-]+\\.*)+)+$]!"))
-                );
-                return;
-            }
-
-            resultFuture.setException(new IllegalStateException(
-                Strings.format("Unexpected response code is returned[%d]", response.code())));
         }
 
         @Override

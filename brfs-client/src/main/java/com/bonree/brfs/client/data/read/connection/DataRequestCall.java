@@ -15,5 +15,5 @@
 package com.bonree.brfs.client.data.read.connection;
 
 public interface DataRequestCall<T> {
-    T call();
+    T call() throws Exception;
 }

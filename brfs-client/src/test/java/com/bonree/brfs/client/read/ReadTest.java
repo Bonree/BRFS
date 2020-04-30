@@ -29,11 +29,11 @@ public class ReadTest {
                         .setDataPackageSize(100)
                         .build())
             .build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
-        //        CAAQABgCIiA5ZGUxNTk4MzhmZDc0Nzk2YmY1YTkzN2E4ODA3ZTc0NyiK/7a5mC4wgN3bAToCMjI6AjMwQP4ESDo=
+
         try {
             BRFSObject obj = client.getObject(GetObjectRequest.of(
                 "guice_test",
-                "CAAQABgCIiBiMzU4YzYxNTk5OWI0OGJhYjJjZGVhNWEwZTAxNDc0OCjK4YTVmS4wgN3bAToCMjI6AjMwQABIOg=="));
+                "CAAQABgCIiA3YWM1YTllNGRjMmE0ZmY1OGU4NTA5NmM4ZjU4MDlkNSjq34/KnC4wgN3bAToCMjI6AjMwQDpIOg=="));
 
             System.out.println("[" + obj.string() + "]");
         } catch (Exception e) {

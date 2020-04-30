@@ -1,6 +1,5 @@
 package com.bonree.brfs.duplication.catalog;
 
-import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import java.util.Map;
@@ -33,7 +32,7 @@ public class NonRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public WriteStatus write(RocksDBDataUnit dataUnit) throws Exception {
+    public WriteStatus syncData(String columnFamily, byte[] key, byte[] value) throws Exception {
         return null;
     }
 

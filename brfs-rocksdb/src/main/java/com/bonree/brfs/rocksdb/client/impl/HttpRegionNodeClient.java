@@ -4,7 +4,6 @@ import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
-import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rocksdb.client.RegionNodeClient;
 import com.bonree.brfs.rocksdb.client.SyncHttpClient;
@@ -94,22 +93,25 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     }
 
     @Override
-    public void writeData(RocksDBDataUnit unit) {
+    public void writeData(String columnFamily, String key, String value) {
 
         URI uri = new URIBuilder()
             .setScheme(DEFAULT_SCHEME)
             .setHost(host)
             .setPort(port)
             .setPath(URI_PATH_INNER_WRITE)
+            .setParamter("cf", columnFamily)
+            .setParamter("key", key)
+            .setParamter("value", value)
             .build();
 
         try {
-            LOG.info("write rocksdb data to {}:{}, cf: {}", host, port, unit.getColumnFamily());
-            HttpResponse response = client.executePost(uri, JsonUtils.toJsonBytes(unit));
-            LOG.debug("write rocksdb response[{}], host:{}, port:{}, cf:{}", response.getStatusCode(), host, port,
-                      unit.getColumnFamily());
+            LOG.info("write rocksdb data to {}:{}, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value);
+            HttpResponse response = client.executePost(uri);
+            LOG.debug("write rocksdb response[{}], host:{}, port:{}, cf: {}, key:{}, value:{}", response.getStatusCode(), host,
+                      port, columnFamily, key, value);
         } catch (Exception e) {
-            LOG.error("write rocksdb data to {}:{} error, cf:{}", host, port, unit.getColumnFamily(), e);
+            LOG.error("write rocksdb data to {}:{} error, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value, e);
         }
     }
 
