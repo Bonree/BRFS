@@ -102,21 +102,6 @@ public class PartitionGather implements LifeCycle {
             if (partitions == null || partitions.isEmpty()) {
                 return;
             }
-            // 获取磁盘信息发生错 则注销所有的磁盘节点信息
-            try {
-                gather.collectPartitionInfos();
-                gather.collectPartitionStats();
-            } catch (Exception e) {
-                LOG.error("gather filesystem happen error ", e);
-                for (LocalPartitionInfo tmp : partitions) {
-                    try {
-                        register.unregisterPartitionInfo(tmp.getPartitionGroup(), tmp.getPartitionId());
-                    } catch (Exception ex) {
-                        LOG.error("unregister id happen error !!{}", tmp.getDataDir());
-                    }
-                }
-                return;
-            }
             // 正常检查分区是否可用
             PartitionInfo partition;
             DiskPartitionStat fs;
@@ -126,6 +111,9 @@ public class PartitionGather implements LifeCycle {
                 }
                 try {
                     fs = gather.collectSinglePartitionStats(elePart.getDataDir());
+                    if (elePart == null) {
+                        LOG.warn("find invalid partition info");
+                    }
                     if (PartitionGather.isValid(elePart, gather)) {
                         partition = packagePartition(elePart, fs);
                         register.registerPartitionInfo(partition);
@@ -142,7 +130,7 @@ public class PartitionGather implements LifeCycle {
                     LOG.error("check partition happen error !!{}", elePart.getDataDir(), e);
                 }
             }
-            LOG.debug("partition gather work end !!");
+            LOG.info("partition gather work end !!");
         }
 
         private PartitionInfo packagePartition(LocalPartitionInfo local, DiskPartitionStat fs) throws Exception {

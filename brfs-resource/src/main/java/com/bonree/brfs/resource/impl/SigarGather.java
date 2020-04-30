@@ -1,8 +1,5 @@
 package com.bonree.brfs.resource.impl;
 
-import com.bonree.brfs.common.lifecycle.LifecycleStart;
-import com.bonree.brfs.common.lifecycle.LifecycleStop;
-import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.resource.vo.CPUInfo;
 import com.bonree.brfs.common.resource.vo.CpuStat;
@@ -32,10 +29,13 @@ import com.bonree.brfs.resource.gather.impl.SigarSysInfoGather;
 import com.bonree.brfs.resource.utils.LibUtils;
 import com.google.inject.Inject;
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collection;
+import org.apache.commons.lang3.StringUtils;
 
-@ManageLifecycle
 public class SigarGather implements ResourceCollectionInterface {
+    private String libPath = libPath();
     private CPUGather cpuGather;
     private MemoryGather memoryGather;
     private NetGather netGather;
@@ -43,10 +43,12 @@ public class SigarGather implements ResourceCollectionInterface {
     private SwapGather swapGather;
     private SysInfoGather sysInfoGather;
     private LoadGather loadGather;
-    private boolean start;
+    private boolean start = false;
 
     @Inject
-    public SigarGather() {
+    public SigarGather() throws Exception {
+        this.libPath = libPath();
+        start();
     }
 
     @Override
@@ -142,10 +144,12 @@ public class SigarGather implements ResourceCollectionInterface {
         return loadGather.gather();
     }
 
-    @LifecycleStart
     @Override
     public void start() throws Exception {
-        LibUtils.loadLibraryPath(libPath());
+        if (start) {
+            return;
+        }
+        LibUtils.loadLibraryPath(libPath);
         cpuGather = new SigarCpuGather();
         memoryGather = new SigarMemoryGather();
         netGather = new SigarNetGather();
@@ -164,12 +168,17 @@ public class SigarGather implements ResourceCollectionInterface {
     }
 
     public String libPath() {
-        String jarPath = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-        File jarFile = new File(jarPath);
-        return jarFile.getParentFile().getAbsolutePath() + "/lib";
+        URL url = this.getClass().getProtectionDomain().getCodeSource().getLocation();
+        if (StringUtils.isEmpty(url.getPath()) || !url.getFile().endsWith(".jar")) {
+            return this.getClass().getResource("/lib").getPath();
+        }
+        try {
+            return new File(url.toURI()).getParentFile().getAbsolutePath() + "/lib";
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(" lib error[" + url.getPath() + "] get lib path happen error !!");
+        }
     }
 
-    @LifecycleStop
     @Override
     public void stop() throws Exception {
         cpuGather.stop();
@@ -184,7 +193,7 @@ public class SigarGather implements ResourceCollectionInterface {
 
     private void checkStatus() throws Exception {
         if (!this.start) {
-            throw new IllegalStateException("Need to execute start() before executing this method !!");
+            throw new RuntimeException("[gather error ]Need to execute start() before executing this method !!");
         }
     }
 

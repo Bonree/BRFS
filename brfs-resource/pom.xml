@@ -12,7 +12,20 @@
         <dependency>
             <groupId>com.bonree.fs</groupId>
             <artifactId>FS_Commons</artifactId>
+            <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
         <dependency>
             <groupId>org.fusesource</groupId>
             <artifactId>sigar</artifactId>
@@ -21,10 +34,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
         </dependency>
     </dependencies>
     <build>

@@ -21,11 +21,11 @@ public class LibUtils {
      */
     public static void loadLibraryPath(String libPath) throws Exception {
         if (BrStringUtils.isEmpty(libPath)) {
-            throw new NullPointerException("[config error] sigar lib path is empty !!!");
+            throw new RuntimeException("[config error] sigar lib path is empty !!!");
         }
         File file = new File(libPath);
         if (!file.exists()) {
-            throw new NullPointerException("[config error] sigar lib path is not exists !!! path : " + libPath);
+            throw new RuntimeException("[config error] sigar lib path is not exists !!! path : " + libPath);
         }
         String path = System.getProperty("java.library.path");
         if (OSCheckUtils.getOperatingSystemType() == OSCheckUtils.OSType.Windows) {

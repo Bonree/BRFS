@@ -82,7 +82,7 @@ public class PartitionCheckingRoutine {
             return;
         }
         for (LocalPartitionInfo add : addPartions) {
-            LocalPartitionInfo local = createPartitionId(validMap.get(add));
+            LocalPartitionInfo local = createPartitionId(validMap.get(add.getDataDir()));
             innerMap.put(local.getDataDir(), local);
             File idFile = new File(this.innerDir + File.separator + local.getPartitionId());
             try {
@@ -102,6 +102,9 @@ public class PartitionCheckingRoutine {
      */
     public LocalPartitionInfo createPartitionId(LocalPartitionInfo local) {
         try {
+            if (local == null) {
+                throw new RuntimeException("get invalid partition info ");
+            }
             // 无效的磁盘分区无法申请磁盘id
             if (!PartitionGather.isValid(local, gather)) {
                 throw new RuntimeException(

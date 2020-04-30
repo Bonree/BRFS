@@ -22,7 +22,7 @@ public class SigarPartitionGather implements PartitionGather {
     @Override
     public DiskPartitionInfo gatherDiskPartition(String dir) throws Exception {
         FileSystemMap fsMap = sigar.getFileSystemMap();
-        FileSystem fs = fsMap.getFileSystem(dir);
+        FileSystem fs = fsMap.getMountPoint(dir);
         return this.convertor.convertToPartitionInfo(fs);
     }
 
@@ -39,7 +39,7 @@ public class SigarPartitionGather implements PartitionGather {
     @Override
     public DiskPartitionStat gatherDiskPartitonStat(String dir) throws Exception {
         FileSystemMap fsMap = sigar.getFileSystemMap();
-        FileSystem fs = fsMap.getFileSystem(dir);
+        FileSystem fs = fsMap.getMountPoint(dir);
         FileSystemUsage fsusage = sigar.getFileSystemUsage(fs.getDirName());
         return this.convertor.convertToPartitionStat(fs, fsusage);
     }

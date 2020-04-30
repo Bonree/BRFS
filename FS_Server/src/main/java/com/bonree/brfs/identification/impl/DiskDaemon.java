@@ -1,5 +1,8 @@
 package com.bonree.brfs.identification.impl;
 
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.LocalPartitionCache;
@@ -17,6 +20,7 @@ import org.slf4j.LoggerFactory;
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description:
  ******************************************************************************/
+@ManageLifecycle
 public class DiskDaemon implements LocalPartitionInterface, LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(DiskDaemon.class);
 
@@ -50,12 +54,14 @@ public class DiskDaemon implements LocalPartitionInterface, LifeCycle {
         return this.partitions;
     }
 
+    @LifecycleStart
     @Override
     public void start() {
         this.gather.start();
         LOG.info("DiskDaemon started!!!");
     }
 
+    @LifecycleStop
     @Override
     public void stop() {
         this.gather.stop();
