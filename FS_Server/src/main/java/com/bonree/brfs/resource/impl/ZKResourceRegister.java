@@ -1,9 +1,11 @@
 package com.bonree.brfs.resource.impl;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.resource.ResourceRegisterInterface;
 import com.bonree.brfs.resource.vo.ResourceModel;
+import com.google.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
@@ -17,11 +19,11 @@ public class ZKResourceRegister implements ResourceRegisterInterface {
     private CuratorFramework client = null;
     private Service localService;
     private String registerPath;
-
-    public ZKResourceRegister(CuratorFramework client, Service localService, String basePath) {
+    @Inject
+    public ZKResourceRegister(CuratorFramework client, Service localService, ZookeeperPaths paths) {
         this.client = client;
         this.localService = localService;
-        this.registerPath = basePath + "/" + localService.getServiceId();
+        this.registerPath = paths.getBaseResourcesPath() + "/stat/" + localService.getServiceId();
     }
 
     @Override
@@ -31,7 +33,7 @@ public class ZKResourceRegister implements ResourceRegisterInterface {
             throw new NullPointerException(localService.getServiceId() + " gather resource is empty !!");
         }
         if (client.checkExists().forPath(registerPath) == null) {
-            client.create().withMode(CreateMode.EPHEMERAL).forPath(registerPath, data);
+            client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(registerPath, data);
         } else {
             client.setData().forPath(registerPath, data);
         }

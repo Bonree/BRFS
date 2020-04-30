@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
+import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,7 @@ public class ResourceMaintainer implements LifeCycle {
     private Collection<ResourceTask> tasks = null;
 
     @Inject
-    public ResourceMaintainer(Collection<ResourceTask> tasks) {
+    public ResourceMaintainer(@Named("resourceTasks") Collection<ResourceTask> tasks) {
         this.tasks = tasks;
     }
 
@@ -49,7 +50,11 @@ public class ResourceMaintainer implements LifeCycle {
 
     @LifecycleStop
     @Override
-    public void stop() throws Exception {
+    public void stop(){
+        if (tasks == null || tasks.isEmpty()) {
+            LOG.warn("no resource task !! no need stop!!");
+            return;
+        }
         if (tasks != null && !tasks.isEmpty()) {
             tasks.stream().forEach(x -> {
                 x.setStatus(TaskState.PAUSE);

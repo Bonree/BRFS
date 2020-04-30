@@ -1,5 +1,7 @@
 package com.bonree.brfs.tasks.resource.impl;
 
+import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.disknode.GuiResourceConfig;
 import com.bonree.brfs.resource.GuiResourceMaintainer;
 import com.bonree.brfs.resource.ResourceGatherInterface;
 import com.bonree.brfs.resource.vo.GuiCpuInfo;
@@ -20,16 +22,11 @@ public class GuiResourcTask extends SuperResourceTask {
     private static final Logger LOG = LoggerFactory.getLogger(GuiResourcTask.class);
     private ResourceGatherInterface gather;
     private GuiResourceMaintainer guiMaintainer;
-    private String storagePath;
-    private int ttl;
 
-    public GuiResourcTask(ResourceGatherInterface gather, GuiResourceMaintainer guiMaintainer, String storagePath,
-                          int intervalTime, int ttl) {
-        super(LOG, intervalTime);
+    public GuiResourcTask(ResourceGatherInterface gather, GuiResourceMaintainer guiMaintainer, GuiResourceConfig config) {
+        super(LOG, config.getIntervalTime());
         this.gather = gather;
         this.guiMaintainer = guiMaintainer;
-        this.storagePath = storagePath;
-        this.ttl = ttl;
     }
 
     @Override
@@ -64,6 +61,7 @@ public class GuiResourcTask extends SuperResourceTask {
             guiMaintainer.setNetInfos(netInfos);
             guiMaintainer.setDiskIOs(diskIOInfos);
             guiMaintainer.setDiskUsages(diskUsageInfos);
+            LOG.info("gui task gather [{}] successfull", TimeUtils.formatTimeStamp(time,"yyyy-MM-dd HH:mm:ss"));
         } catch (Exception e) {
             LOG.error("gui task happen error ", e);
         }

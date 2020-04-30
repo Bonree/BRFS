@@ -141,6 +141,7 @@ public class PartitionGather implements LifeCycle {
             obj.setServiceId(firstServer.getServiceId());
             obj.setRegisterTime(System.currentTimeMillis());
             obj.setFreeSize(fs.getAvail());
+            obj.setTotalSize(fs.getTotal());
             return obj;
         }
 

@@ -1,5 +1,6 @@
 package com.bonree.brfs.resource.impl;
 
+import com.bonree.brfs.disknode.GuiResourceConfig;
 import com.bonree.brfs.resource.vo.GuiCpuInfo;
 import com.bonree.brfs.resource.vo.GuiNetInfo;
 import java.util.ArrayList;
@@ -7,12 +8,12 @@ import java.util.Collection;
 import java.util.Map;
 import org.junit.Test;
 
-public class LazyGuiFileMaintainerTest {
+public class GuiFileMaintainerTest {
     private String path = "/home/wellgeek/test/factory/brfs/guifactory";
 
     @Test
     public void testSaveCpuInfo() {
-        LazyGuiFileMaintainer maintainer = new LazyGuiFileMaintainer(path, 1, 1);
+        GuiFileMaintainer maintainer = new GuiFileMaintainer(new GuiResourceConfig());
         GuiCpuInfo cpuInfo = new GuiCpuInfo();
         cpuInfo.setTime(System.currentTimeMillis());
         maintainer.setCpuInfo(cpuInfo);
@@ -38,7 +39,7 @@ public class LazyGuiFileMaintainerTest {
         Collection<GuiNetInfo> nets = new ArrayList<>();
         nets.add(net1);
         nets.add(net2);
-        LazyGuiFileMaintainer maintainer = new LazyGuiFileMaintainer(path, 1, 1);
+        GuiFileMaintainer maintainer = new GuiFileMaintainer(new GuiResourceConfig());
         maintainer.setNetInfos(nets);
         long time = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000;
         Map<String, Collection<GuiNetInfo>> map = maintainer.getNetInfos(time);

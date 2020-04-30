@@ -1,5 +1,7 @@
 package com.bonree.brfs.tasks.resource.impl;
 
+import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.disknode.ResourceConfig;
 import com.bonree.brfs.resource.ResourceGatherInterface;
 import com.bonree.brfs.resource.ResourceRegisterInterface;
 import com.bonree.brfs.resource.vo.ResourceModel;
@@ -12,8 +14,8 @@ public class ResourceRegistTask extends SuperResourceTask {
     private ResourceRegisterInterface register;
 
     public ResourceRegistTask(ResourceGatherInterface gather,
-                              ResourceRegisterInterface register, int intervalTime) {
-        super(LOG, intervalTime);
+                              ResourceRegisterInterface register, ResourceConfig config) {
+        super(LOG, config.getIntervalTime());
         this.gather = gather;
         this.register = register;
     }
@@ -27,7 +29,7 @@ public class ResourceRegistTask extends SuperResourceTask {
                 return;
             }
             register.registerResource(model);
-            LOG.info("gather resource successfull !!");
+            LOG.info("gather resource [{}] successfull !!", TimeUtils.formatTimeStamp(System.currentTimeMillis(),"yyyy-MM-dd HH:mm:ss"));
         } catch (Exception e) {
             LOG.error("gather resource happen error !!", e);
         }

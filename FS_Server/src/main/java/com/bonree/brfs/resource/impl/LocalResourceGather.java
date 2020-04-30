@@ -29,8 +29,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LocalResourceGather implements ResourceGatherInterface {
+    private static final Logger LOG = LoggerFactory.getLogger(LocalResourceGather.class);
     private DiskPartitionInfoManager manager;
     private ResourceCollectionInterface gather;
     private DiskDaemon diskDaemon;
@@ -50,6 +53,7 @@ public class LocalResourceGather implements ResourceGatherInterface {
     public ResourceModel gatherClusterResource() throws Exception {
         ClusterStorageInfo cluster = manager.getClusterStoragInfo();
         if (cluster.getClustorStorageRemainSize() <= 0 || cluster.getClustorStorageSize() <= 0) {
+            LOG.info("clustor storage info is invalid !!");
             return null;
         }
         CpuStat cpuStat = gather.collectCpuStat();

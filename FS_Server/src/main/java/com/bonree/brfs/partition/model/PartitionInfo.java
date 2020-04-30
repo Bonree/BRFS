@@ -1,5 +1,7 @@
 package com.bonree.brfs.partition.model;
 
+import com.google.common.base.MoreObjects;
+
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
@@ -23,6 +25,8 @@ public class PartitionInfo {
     private long freeSize;
     // 磁盘节点分区的注册时间
     private long registerTime;
+    // 磁盘服务时间
+    private double serviceTime;
     // 版本信息
     private int version = 1;
 
@@ -97,6 +101,14 @@ public class PartitionInfo {
         this.registerTime = registerTime;
     }
 
+    public double getServiceTime() {
+        return serviceTime;
+    }
+
+    public void setServiceTime(double serviceTime) {
+        this.serviceTime = serviceTime;
+    }
+
     public int getVersion() {
         return version;
     }
@@ -107,14 +119,16 @@ public class PartitionInfo {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        return builder.append("{serviceGroup='").append(serviceGroup)
-                      .append("', serviceId='").append(serviceId)
-                      .append("', partitionGroup='").append(partitionGroup)
-                      .append("', nodeId='").append(partitionId)
-                      .append("', totalSize=").append(totalSize)
-                      .append(", freeSize=").append(freeSize)
-                      .append(", registerTime=").append(registerTime)
-                      .append(",version=").append(version).append("}").toString();
+        return MoreObjects.toStringHelper(this)
+                          .add("serviceGroup", serviceGroup)
+                          .add("serviceId", serviceId)
+                          .add("partitionGroup", partitionGroup)
+                          .add("partitionId", partitionId)
+                          .add("totalSize", totalSize)
+                          .add("freeSize", freeSize)
+                          .add("registerTime", registerTime)
+                          .add("serviceTime", serviceTime)
+                          .add("version", version)
+                          .toString();
     }
 }

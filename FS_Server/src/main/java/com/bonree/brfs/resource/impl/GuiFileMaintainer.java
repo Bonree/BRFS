@@ -6,6 +6,7 @@ import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.disknode.GuiResourceConfig;
 import com.bonree.brfs.resource.GuiResourceMaintainer;
 import com.bonree.brfs.resource.vo.GuiCpuInfo;
 import com.bonree.brfs.resource.vo.GuiDiskIOInfo;
@@ -33,8 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ManageLifecycle
-public class LazyGuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
-    private static final Logger LOG = LoggerFactory.getLogger(LazyGuiFileMaintainer.class);
+public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
+    private static final Logger LOG = LoggerFactory.getLogger(GuiFileMaintainer.class);
     private String basePath;
     private String nodeFilePath;
     private String cpuDirPath;
@@ -47,11 +48,13 @@ public class LazyGuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     private ScheduledExecutorService pool = null;
     private int intervalTime;
     private int ttlTime;
+    private boolean run =false;
     private boolean start;
 
     @Inject
-    public LazyGuiFileMaintainer(String basePath, int intervalTime, int ttlTime) {
-        this.basePath = basePath;
+    public GuiFileMaintainer(GuiResourceConfig config) {
+        this.basePath = config.getGuiDir();
+        this.run = config.isRunFlag();
         nodeFilePath = this.basePath + File.separator + "sys/node";
         cpuDirPath = this.basePath + File.separator + "cpu";
         memDirPath = this.basePath + File.separator + "mem";
@@ -59,8 +62,8 @@ public class LazyGuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
         diskIODirPath = this.basePath + File.separator + "disk/io";
         diskUsageDirPath = this.basePath + File.separator + "disk/usage";
         netInfoDirPath = this.basePath + File.separator + "net/stat";
-        this.intervalTime = intervalTime;
-        this.ttlTime = ttlTime;
+        this.intervalTime = config.getScanIntervalTime();
+        this.ttlTime = config.getTtlTime();
 
     }
 
@@ -391,6 +394,12 @@ public class LazyGuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     @LifecycleStart
     @Override
     public void start() throws Exception {
+        if(!run){
+            LOG.info("gui switch is close !!");
+            return;
+        }else{
+            LOG.info("gui starting !!");
+        }
         scanPaths = Arrays.asList(
             cpuDirPath,
             memDirPath,
@@ -410,8 +419,8 @@ public class LazyGuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
                     }
                     File file = new File(y);
                     long time = System.currentTimeMillis() - ttlTime;
-                    String timeStr = LazyGuiFileMaintainer.this.formateTime(time);
-                    Collection<File> loss = LazyGuiFileMaintainer.this.collectTTLFile(file, timeStr);
+                    String timeStr = GuiFileMaintainer.this.formateTime(time);
+                    Collection<File> loss = GuiFileMaintainer.this.collectTTLFile(file, timeStr);
                     if (loss != null && !loss.isEmpty() && start) {
                         loss.stream().forEach(FileUtils::deleteQuietly);
                     }
@@ -423,6 +432,12 @@ public class LazyGuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     @LifecycleStop
     @Override
     public void stop() throws Exception {
+        if(!run){
+            LOG.info("gui switch is close !!");
+            return;
+        }else{
+            LOG.info("gui stoping !!");
+        }
         start = false;
         if (pool != null) {
             pool.shutdown();
