@@ -1,10 +1,8 @@
 package com.bonree.brfs.schedulers.task.manager;
 
-import com.bonree.brfs.resourceschedule.model.StatServerModel;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
-import java.util.Map;
 
 /*****************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -39,24 +37,6 @@ public interface RunnableTaskInterface {
     TaskRunPattern taskRunnPattern(TaskModel task) throws Exception;
 
     /**
-     * 概述：更新资源数据
-     *
-     * @param
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    void update(StatServerModel resources);
-
-    /**
-     * 概述：获取上次更新时间
-     *
-     * @return
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    long getLastUpdateTime();
-
-    /**
      * 概述：设置异常过滤指标
      *
      * @param limits
@@ -65,12 +45,4 @@ public interface RunnableTaskInterface {
      */
     void setLimitParameter(TaskExecutablePattern limits);
 
-    /**
-     * 概述：设置任务级别
-     *
-     * @param taskLevel
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    void setTaskLevel(Map<Integer, Integer> taskLevel);
 }

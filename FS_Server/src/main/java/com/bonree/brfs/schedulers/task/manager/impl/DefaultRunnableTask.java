@@ -1,19 +1,15 @@
 package com.bonree.brfs.schedulers.task.manager.impl;
 
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.resourceschedule.model.StatServerModel;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DefaultRunnableTask implements RunnableTaskInterface {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRunnableTask.class);
-    private long updateTime = 0;
-    private StatServerModel stat = null;
     private TaskExecutablePattern limit = null;
 
     private static final int batchCount = 5;
@@ -34,23 +30,8 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
     }
 
     @Override
-    public void update(StatServerModel resources) {
-        this.stat = resources;
-    }
-
-    @Override
-    public long getLastUpdateTime() {
-        // TODO Auto-generated method stub
-        return this.updateTime;
-    }
-
-    @Override
     public void setLimitParameter(TaskExecutablePattern limits) {
         this.limit = limits;
-    }
-
-    @Override
-    public void setTaskLevel(Map<Integer, Integer> taskLevel) {
     }
 
     @Override
@@ -82,20 +63,6 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
         }
         if (TaskType.SYSTEM_DELETE.code() == taskType || TaskType.USER_DELETE.code() == taskType) {
             return true;
-        }
-        if (stat == null) {
-            LOG.warn("Runnable's state is empty");
-            return true;
-        }
-        if (limit == null) {
-            LOG.warn("Runnable's limit state is empty");
-            return true;
-        }
-        if (TaskType.SYSTEM_CHECK.code() == taskType) {
-            return stat.getMemoryRate() < limit.getMemoryRate();
-        }
-        if (TaskType.SYSTEM_MERGER.code() == taskType) {
-            return stat.getMemoryRate() < limit.getMemoryRate();
         }
         return true;
     }

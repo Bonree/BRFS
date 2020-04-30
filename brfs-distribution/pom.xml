@@ -1,33 +1,33 @@
 <?xml version="1.0"?>
 <project
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-	xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<modelVersion>4.0.0</modelVersion>
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>com.bonree.fs</groupId>
-		<artifactId>BRFS</artifactId>
-		<version>2.0.0-SNAPSHOT</version>
-	</parent>
+    <parent>
+        <groupId>com.bonree.fs</groupId>
+        <artifactId>BRFS</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+    </parent>
 
-	<artifactId>brfs-distribution</artifactId>
+    <artifactId>brfs-distribution</artifactId>
 
-	<name>brfs-distribution</name>
-	<url>http://maven.apache.org</url>
+    <name>brfs-distribution</name>
+    <url>http://maven.apache.org</url>
 
-	<properties>
-		<brfs.check.skip-all>true</brfs.check.skip-all>
-	</properties>
+    <properties>
+        <brfs.check.skip-all>true</brfs.check.skip-all>
+    </properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.bonree.fs</groupId>
-			<artifactId>FS_Server</artifactId>
-		</dependency>
-		
-		<!-- plugins -->
-		<dependency>
+    <dependencies>
+        <dependency>
+            <groupId>com.bonree.fs</groupId>
+            <artifactId>FS_Server</artifactId>
+        </dependency>
+
+        <!-- plugins -->
+        <dependency>
             <groupId>com.bonree.fs</groupId>
             <artifactId>brfs-http-netty</artifactId>
             <version>${project.version}</version>
@@ -35,57 +35,65 @@
             <scope>provided</scope>
         </dependency>
 
-		<!-- rocksdb plugin-->
-		<dependency>
-			<groupId>com.bonree.fs</groupId>
-			<artifactId>brfs-rocksdb</artifactId>
-			<version>${project.version}</version>
-			<type>zip</type>
-			<scope>provided</scope>
-		</dependency>
-        
-	</dependencies>
+        <!-- rocksdb plugin-->
+        <dependency>
+            <groupId>com.bonree.fs</groupId>
+            <artifactId>brfs-rocksdb</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>provided</scope>
+        </dependency>
+        <!-- resource plugin-->
+        <dependency>
+            <groupId>com.bonree.fs</groupId>
+            <artifactId>brfs-resource</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>provided</scope>
+        </dependency>
 
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>unpack-plugins</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>unpack-dependencies</goal>
-						</goals>
-						<configuration>
-							<skip>false</skip>
-							<!-- take care of all the plugin types -->
-							<includeTypes>zip</includeTypes>
-							<includeScope>provided</includeScope>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+    </dependencies>
 
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>bin</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<descriptorRefs>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-plugins</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <skip>false</skip>
+                            <!-- take care of all the plugin types -->
+                            <includeTypes>zip</includeTypes>
+                            <includeScope>provided</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>bin</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptorRefs>
                                 <descriptorRef>brfs-server</descriptorRef>
                             </descriptorRefs>
-							<finalName>brfs-${project.version}</finalName>
-							<appendAssemblyId>false</appendAssemblyId>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+                            <finalName>brfs-${project.version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

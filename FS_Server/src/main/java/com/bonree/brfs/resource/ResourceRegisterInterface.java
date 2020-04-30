@@ -8,7 +8,8 @@ import com.bonree.brfs.resource.vo.ResourceModel;
 public interface ResourceRegisterInterface {
     /**
      * 将资源信息注册到介质
+     *
      * @param model
      */
-    void registerResource(ResourceModel model)throws Exception;
+    void registerResource(ResourceModel model) throws Exception;
 }

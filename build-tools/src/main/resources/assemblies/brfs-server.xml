@@ -80,5 +80,10 @@
 			<directory>${project.build.directory}/dependency/brfs-rocksdb-${project.version}</directory>
 			<outputDirectory>plugins/brfs-rocksdb</outputDirectory>
 		</fileSet>
+		<!-- resource plugin -->
+		<fileSet>
+			<directory>${project.build.directory}/dependency/brfs-resource-${project.version}</directory>
+			<outputDirectory>plugins/brfs-resource</outputDirectory>
+		</fileSet>
 	</fileSets>
 </assembly>

@@ -1,5 +1,7 @@
 package com.bonree.brfs.common.resource.vo;
 
+import com.google.common.base.MoreObjects;
+
 public class NetStat {
     private String devName;
     private String ipAddress;
@@ -148,23 +150,23 @@ public class NetStat {
 
     @Override
     public String toString() {
-        return "NetStat{" +
-            "devName='" + devName + '\'' +
-            ", ipAddress='" + ipAddress + '\'' +
-            ", rxBytes=" + rxBytes +
-            ", rxPackets=" + rxPackets +
-            ", rxErrors=" + rxErrors +
-            ", rxDropped=" + rxDropped +
-            ", rxOverruns=" + rxOverruns +
-            ", rxFrame=" + rxFrame +
-            ", txBytes=" + txBytes +
-            ", txPackets=" + txPackets +
-            ", txErrors=" + txErrors +
-            ", txDropped=" + txDropped +
-            ", txOverruns=" + txOverruns +
-            ", txCollisions=" + txCollisions +
-            ", txCarrier=" + txCarrier +
-            ", speed=" + speed +
-            '}';
+        return MoreObjects.toStringHelper(this)
+                          .add("devName", devName)
+                          .add("ipAddress", ipAddress)
+                          .add("rxBytes", rxBytes)
+                          .add("rxPackets", rxPackets)
+                          .add("rxErrors", rxErrors)
+                          .add("rxDropped", rxDropped)
+                          .add("rxOverruns", rxOverruns)
+                          .add("rxFrame", rxFrame)
+                          .add("txBytes", txBytes)
+                          .add("txPackets", txPackets)
+                          .add("txErrors", txErrors)
+                          .add("txDropped", txDropped)
+                          .add("txOverruns", txOverruns)
+                          .add("txCollisions", txCollisions)
+                          .add("txCarrier", txCarrier)
+                          .add("speed", speed)
+                          .toString();
     }
 }

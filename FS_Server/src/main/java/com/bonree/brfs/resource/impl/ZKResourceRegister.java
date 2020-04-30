@@ -21,19 +21,19 @@ public class ZKResourceRegister implements ResourceRegisterInterface {
     public ZKResourceRegister(CuratorFramework client, Service localService, String basePath) {
         this.client = client;
         this.localService = localService;
-        this.registerPath = basePath+"/"+localService.getServiceId();
+        this.registerPath = basePath + "/" + localService.getServiceId();
     }
 
     @Override
-    public void registerResource(ResourceModel model)throws Exception {
+    public void registerResource(ResourceModel model) throws Exception {
         byte[] data = JsonUtils.toJsonBytesQuietly(model);
-        if(data == null ||data.length ==0){
-            throw new NullPointerException(localService.getServiceId() +" gather resource is empty !!");
+        if (data == null || data.length == 0) {
+            throw new NullPointerException(localService.getServiceId() + " gather resource is empty !!");
         }
-        if(client.checkExists().forPath(registerPath) == null){
-            client.create().withMode(CreateMode.EPHEMERAL).forPath(registerPath,data);
-        }else{
-            client.setData().forPath(registerPath,data);
+        if (client.checkExists().forPath(registerPath) == null) {
+            client.create().withMode(CreateMode.EPHEMERAL).forPath(registerPath, data);
+        } else {
+            client.setData().forPath(registerPath, data);
         }
     }
 }

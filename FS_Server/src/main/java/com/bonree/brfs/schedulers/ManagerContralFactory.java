@@ -8,7 +8,7 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.rebalance.route.RouteLoader;
-import com.bonree.brfs.resourceschedule.model.LimitServerResource;
+import com.bonree.brfs.resource.vo.LimitServerResource;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;

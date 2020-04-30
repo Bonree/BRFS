@@ -110,7 +110,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
         }
         long size = diskPartitionInfoCache.values().stream().mapToLong(PartitionInfo::getTotalSize).sum();
         long remainSize = diskPartitionInfoCache.values().stream().mapToLong(PartitionInfo::getFreeSize).sum();
-        return new ClusterStorageInfo(size,remainSize);
+        return new ClusterStorageInfo(size, remainSize);
     }
 
     public List<String> getCurrentPartitionIds() {

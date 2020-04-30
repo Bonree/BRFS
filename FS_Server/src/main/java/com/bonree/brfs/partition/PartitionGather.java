@@ -18,11 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
-import org.hyperic.sigar.FileSystem;
-import org.hyperic.sigar.FileSystemMap;
-import org.hyperic.sigar.FileSystemUsage;
-import org.hyperic.sigar.Sigar;
-import org.hyperic.sigar.SigarException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,12 +44,12 @@ public class PartitionGather implements LifeCycle {
 
     private LocalPartitionListener listener = null;
 
-
-    public PartitionGather(ResourceCollectionInterface gather,PartitionInfoRegister register, Service localInfo, Collection<LocalPartitionInfo> validPartions,
+    public PartitionGather(ResourceCollectionInterface gather, PartitionInfoRegister register, Service localInfo,
+                           Collection<LocalPartitionInfo> validPartions,
                            int intervalTimes) {
         this.intervalTimes = intervalTimes;
         this.pool = Executors.newScheduledThreadPool(1);
-        this.worker = new GatherThread(gather,register, validPartions, localInfo);
+        this.worker = new GatherThread(gather, register, validPartions, localInfo);
     }
 
     @LifecycleStart
@@ -93,7 +88,8 @@ public class PartitionGather implements LifeCycle {
         private boolean isAlive = true;
         private LocalPartitionListener listener = null;
 
-        public GatherThread(ResourceCollectionInterface gather,PartitionInfoRegister register, Collection<LocalPartitionInfo> partitions, Service firstServer) {
+        public GatherThread(ResourceCollectionInterface gather, PartitionInfoRegister register,
+                            Collection<LocalPartitionInfo> partitions, Service firstServer) {
             this.register = register;
             this.partitions = partitions;
             this.gather = gather;
@@ -156,7 +152,6 @@ public class PartitionGather implements LifeCycle {
             obj.setServiceGroup(firstServer.getServiceGroup());
             obj.setServiceId(firstServer.getServiceId());
             obj.setRegisterTime(System.currentTimeMillis());
-            obj.setTotalSize(local.getTotalSize());
             obj.setFreeSize(fs.getAvail());
             return obj;
         }

@@ -23,7 +23,7 @@ public class ResourceModel {
     /**
      * 本机硬盘剩余大小 告警
      */
-    private long storageRemainSize =0;
+    private long storageRemainSize = 0;
 
     /**
      * 本集群磁盘剩余值
@@ -55,7 +55,6 @@ public class ResourceModel {
     public void setServerId(String serverId) {
         this.serverId = serverId;
     }
-
 
     public double getCpuRate() {
         return cpuRate;

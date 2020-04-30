@@ -3,7 +3,7 @@ package com.bonree.brfs.duplication.filenode.duplicates;
 import com.bonree.brfs.resource.vo.ResourceModel;
 import java.util.Collection;
 
-public interface ServiceSelector extends ResourceSelector {
+public interface ServiceSelector {
     /**
      * 过滤限制的服务的serviceids
      */

@@ -30,15 +30,15 @@ public interface GuiResourceMaintainer {
 
     void setLoadInfo(GuiLoadInfo loadInfo);
 
-    Map<String,Collection<GuiDiskIOInfo>> getDiskIOInfos(long time);
+    Map<String, Collection<GuiDiskIOInfo>> getDiskIOInfos(long time);
 
-    void setDiskIOs(Collection<GuiDiskIOInfo> iOs);
+    void setDiskIOs(Collection<GuiDiskIOInfo> diskIOs);
 
-    Map<String,Collection<GuiDiskUsageInfo>> getDiskUsages(long time);
+    Map<String, Collection<GuiDiskUsageInfo>> getDiskUsages(long time);
 
     void setDiskUsages(Collection<GuiDiskUsageInfo> usages);
 
-    Map<String,Collection<GuiNetInfo>> getNetInfos(long time);
+    Map<String, Collection<GuiNetInfo>> getNetInfos(long time);
 
     void setNetInfos(Collection<GuiNetInfo> netInfos);
 }

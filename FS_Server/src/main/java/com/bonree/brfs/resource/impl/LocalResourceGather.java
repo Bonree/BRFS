@@ -3,7 +3,6 @@ package com.bonree.brfs.resource.impl;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.resource.vo.CPUInfo;
 import com.bonree.brfs.common.resource.vo.CpuStat;
-import com.bonree.brfs.common.resource.vo.DiskPartitionInfo;
 import com.bonree.brfs.common.resource.vo.DiskPartitionStat;
 import com.bonree.brfs.common.resource.vo.Load;
 import com.bonree.brfs.common.resource.vo.MemStat;
@@ -13,7 +12,6 @@ import com.bonree.brfs.common.resource.vo.OSInfo;
 import com.bonree.brfs.common.resource.vo.SwapStat;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.identification.impl.DiskDaemon;
-import com.bonree.brfs.metrics.DiskPartition;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.resource.ResourceGatherInterface;
@@ -38,6 +36,7 @@ public class LocalResourceGather implements ResourceGatherInterface {
     private DiskDaemon diskDaemon;
     private Service local;
     private Map<String, GuiNetInfo> guiNetInfoMap = new HashMap<>();
+
     @Inject
     public LocalResourceGather(DiskPartitionInfoManager manager, ResourceCollectionInterface gather,
                                DiskDaemon diskDaemon, Service local) {
@@ -74,7 +73,7 @@ public class LocalResourceGather implements ResourceGatherInterface {
         model.setStorageRemainSize(totalSize);
         model.setStorageSize(availSize);
         model.setDiskServiceTime(serviceTime);
-        model.setClustorStorageRemainValue(totalSize/cluster.getClustorStorageSize());
+        model.setClustorStorageRemainValue(totalSize / cluster.getClustorStorageSize());
         return model;
     }
 

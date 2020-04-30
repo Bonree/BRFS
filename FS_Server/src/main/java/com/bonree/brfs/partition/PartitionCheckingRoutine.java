@@ -5,7 +5,6 @@ import com.bonree.brfs.common.resource.vo.DiskPartitionInfo;
 import com.bonree.brfs.common.resource.vo.DiskPartitionStat;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.identification.LevelServerIDGen;
-import com.bonree.brfs.metrics.DiskPartition;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.google.inject.Inject;
 import java.io.File;
@@ -20,11 +19,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hyperic.sigar.FileSystem;
-import org.hyperic.sigar.FileSystemMap;
-import org.hyperic.sigar.FileSystemUsage;
-import org.hyperic.sigar.Sigar;
-import org.hyperic.sigar.SigarException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +41,8 @@ public class PartitionCheckingRoutine {
     private String partitionGroup;
 
     @Inject
-    public PartitionCheckingRoutine(LevelServerIDGen idGen,ResourceCollectionInterface gather, List<String> dataConfig, String innerDir, String partitionGroup) {
+    public PartitionCheckingRoutine(LevelServerIDGen idGen, ResourceCollectionInterface gather, List<String> dataConfig,
+                                    String innerDir, String partitionGroup) {
         this.idGen = idGen;
         this.dataConfig = dataConfig;
         this.innerDir = innerDir;
@@ -105,10 +100,10 @@ public class PartitionCheckingRoutine {
      *
      * @return
      */
-    public LocalPartitionInfo createPartitionId( LocalPartitionInfo local) {
+    public LocalPartitionInfo createPartitionId(LocalPartitionInfo local) {
         try {
             // 无效的磁盘分区无法申请磁盘id
-            if (!PartitionGather.isValid(local,gather)) {
+            if (!PartitionGather.isValid(local, gather)) {
                 throw new RuntimeException(
                     "Add invalid disk partition ! path:[" + local.getDataDir() + "] devName:[" + local.getDevName() + "]");
             }
@@ -119,7 +114,8 @@ public class PartitionCheckingRoutine {
         }
     }
 
-    private Collection<LocalPartitionInfo> findAdd(Map<String, LocalPartitionInfo> innerMap, Map<String, LocalPartitionInfo> validMap) {
+    private Collection<LocalPartitionInfo> findAdd(Map<String, LocalPartitionInfo> innerMap,
+                                                   Map<String, LocalPartitionInfo> validMap) {
         Set<LocalPartitionInfo> adds = new HashSet<>();
         // 若无内部文件，则为所有的磁盘分区申请id
         if (innerMap == null || innerMap.isEmpty()) {
@@ -238,7 +234,7 @@ public class PartitionCheckingRoutine {
                 DiskPartitionStat usage = gather.collectSinglePartitionStats(file.getAbsolutePath());
                 String key = StringUtils.join(fs.getDevName(), fs.getDirName(), usage.getTotal());
                 if (keepOnlyOne.add(key)) {
-                    LocalPartitionInfo local = packageLocalPartitionInfo(fs,usage,file.getAbsolutePath());
+                    LocalPartitionInfo local = packageLocalPartitionInfo(fs, usage, file.getAbsolutePath());
                     fsMap.put(dir, local);
                 } else {
                     throw new RuntimeException(
@@ -254,12 +250,14 @@ public class PartitionCheckingRoutine {
 
     /**
      * 封装localpartitioninfo信息
+     *
      * @param info
      * @param stat
      * @param dataPath
+     *
      * @return
      */
-    private LocalPartitionInfo packageLocalPartitionInfo(DiskPartitionInfo info,DiskPartitionStat stat,String dataPath){
+    private LocalPartitionInfo packageLocalPartitionInfo(DiskPartitionInfo info, DiskPartitionStat stat, String dataPath) {
         LocalPartitionInfo local = new LocalPartitionInfo();
         local.setPartitionGroup(this.partitionGroup);
         local.setDataDir(dataPath);

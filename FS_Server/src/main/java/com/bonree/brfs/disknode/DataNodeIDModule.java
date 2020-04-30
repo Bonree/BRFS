@@ -26,7 +26,6 @@ import com.bonree.brfs.partition.PartitionGather;
 import com.bonree.brfs.partition.PartitionInfoRegister;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalancev2.task.DiskPartitionChangeTaskGenerator;
-import com.bonree.brfs.resource.impl.SigarGather;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -50,8 +49,6 @@ public class DataNodeIDModule implements Module {
         binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class);
         binder.bind(SecondIdsInterface.class).to(SecondMaintainerInterface.class).in(ManageLifecycle.class);
         binder.bind(DiskPartitionInfoManager.class).in(ManageLifecycle.class);
-        binder.bind(ResourceCollectionInterface.class).to(SigarGather.class).in(ManageLifecycle.class);
-
         LifecycleModule.register(binder, IDSManager.class);
         LifecycleModule.register(binder, DiskPartitionChangeTaskGenerator.class);
     }

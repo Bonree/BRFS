@@ -12,8 +12,8 @@ public class ResourceRegistTask extends SuperResourceTask {
     private ResourceRegisterInterface register;
 
     public ResourceRegistTask(ResourceGatherInterface gather,
-                              ResourceRegisterInterface register,int intervalTime) {
-        super(LOG,intervalTime);
+                              ResourceRegisterInterface register, int intervalTime) {
+        super(LOG, intervalTime);
         this.gather = gather;
         this.register = register;
     }
@@ -22,14 +22,14 @@ public class ResourceRegistTask extends SuperResourceTask {
     protected void atomRun() {
         try {
             ResourceModel model = gather.gatherClusterResource();
-            if(model == null){
+            if (model == null) {
                 LOG.warn("gather resource is empty !! will upload next time !!");
                 return;
             }
             register.registerResource(model);
             LOG.info("gather resource successfull !!");
         } catch (Exception e) {
-            LOG.error("gather resource happen error !!",e);
+            LOG.error("gather resource happen error !!", e);
         }
     }
 }

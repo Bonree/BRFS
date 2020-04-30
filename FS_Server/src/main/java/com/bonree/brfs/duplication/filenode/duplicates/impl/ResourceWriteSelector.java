@@ -63,10 +63,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
                 next = iterator.next();
                 duplicateNodes[i] = new DuplicateNode(groupName, next.getServerId());
                 i++;
-                builder.append(i).append(":").append(next.getServerId()).append("(").append(next.getHost()).append(", remainSize")
-                       .append(next.getDiskRemainRate() * next.getDiskRemainRate()).append("b ), ");
             }
-            log.info("{}", builder.toString());
 
             return duplicateNodes;
         } finally {

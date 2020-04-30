@@ -21,8 +21,8 @@ import org.junit.Test;
  ******************************************************************************/
 
 public class SecondIDRelationShipTest {
-    private static String ZKADDRES = RouteParserTest.ZK_ADDRESS;
     private static final String SBAS_PATH = "/brfsDevTest/service_ids";
+    private static String ZKADDRES = RouteParserTest.ZK_ADDRESS;
     private CuratorFramework client = null;
     private SecondIDRelationShip ship = null;
 

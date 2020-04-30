@@ -34,11 +34,12 @@ public abstract class SuperResourceTask implements ResourceTask {
 
     @Override
     public void run() {
-        if(TaskState.PAUSE.equals(status)){
+        if (TaskState.PAUSE.equals(status)) {
             log.info("task is pause !");
-           return;
+            return;
         }
         atomRun();
     }
+
     protected abstract void atomRun();
 }

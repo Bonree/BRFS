@@ -48,7 +48,7 @@
 		<module>FS_Client</module>
 		<module>FS_Commons</module>
 		<module>FS_Server</module>
-		<module>FS_ResouceSchedule</module>
+		<module>brfs-resource</module>
 		<module>brfs-http-netty</module>
 		<module>brfs-email</module>
 		<module>brfs-client</module>

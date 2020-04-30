@@ -8,7 +8,7 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.email.EmailPool;
-import com.bonree.brfs.resourceschedule.model.LimitServerResource;
+import com.bonree.brfs.resource.vo.LimitServerResource;
 import com.bonree.brfs.resource.vo.ResourceModel;
 import com.bonree.mail.worker.MailWorker;
 import java.util.ArrayList;
@@ -147,7 +147,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         String key;
         for (ResourceModel resource : resourceModels) {
             key = resource.getServerId() + "(" + resource.getHost() + ")";
-            part = resource.getStorageRemainSize()+ "B";
+            part = resource.getStorageRemainSize() + "B";
             map.put(key, part);
         }
         EmailPool emailPool = EmailPool.getInstance();
@@ -335,35 +335,4 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         return dents;
     }
 
-    @Override
-    public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,
-                                                              int centSize) throws Exception {
-        return null;
-    }
-
-    @Override
-    public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList, int centSize)
-        throws Exception {
-        return null;
-    }
-
-    @Override
-    public void setLimitParameter(LimitServerResource limits) {
-        this.limit = limits;
-    }
-
-    @Override
-    public void update(ResourceModel resource) {
-
-    }
-
-    @Override
-    public void add(ResourceModel resources) {
-
-    }
-
-    @Override
-    public void remove(ResourceModel resource) {
-
-    }
 }
