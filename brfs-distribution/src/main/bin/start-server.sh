@@ -81,8 +81,6 @@ fi
 
 JVM_PARAMS=`sed -i 's/\r//' ${CONFIG_DIR}/jvm.config | grep -v "^#.*$" | cat`
 
-#资源管理lib路径
-RESOURCE_LIB_PATH=$BRFS_HOME/native-lib
 
 #网络参数设置
 DISK_NET_BACKLOG=2048
@@ -103,7 +101,6 @@ case ${NODE_TYPE} in
 			-Dlogback.configurationFile=$LOG_CONFIG \
 			-Dnet.backlog=$DUPLICATE_NET_BACKLOG \
 			-Dnet.io.threads=$DUPLICATE_IO_THREADS \
-			-Dresource_lib_path=$RESOURCE_LIB_PATH \
 			-cp $LIB_DIR/*:${CONFIG_DIR} "com.bonree.brfs.server.Main" node region \
 			> $BRFS_HOME/logs/regionnode.out 2>&1 &
 			echo 'start region server completely!'
@@ -119,7 +116,6 @@ case ${NODE_TYPE} in
 			-Dlogback.configurationFile=$LOG_CONFIG \
 			-Dnet.backlog=$DISK_NET_BACKLOG \
 			-Dnet.io.threads=$DISK_IO_THREADS \
-			-Dresource.lib.path=$RESOURCE_LIB_PATH \
 			-cp $LIB_DIR/*:${CONFIG_DIR} "com.bonree.brfs.server.Main" node data \
 			> $BRFS_HOME/logs/datanode.out 2>&1 &
 			echo 'start disk server completely!'

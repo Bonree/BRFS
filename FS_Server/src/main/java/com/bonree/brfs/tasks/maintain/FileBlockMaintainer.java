@@ -69,7 +69,7 @@ public class FileBlockMaintainer implements LifeCycle {
     public void start() throws Exception {
         pool =
             Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("FileBlockMaintainer").build());
-        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, loader), 0,
+        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, loader, LOG), 0,
                                  intervalTime, TimeUnit.HOURS);
         LOG.info(" block server start");
     }
@@ -84,7 +84,7 @@ public class FileBlockMaintainer implements LifeCycle {
     }
 
     private class FileBlockWorker implements Runnable {
-        private final Logger log = LoggerFactory.getLogger(FileBlockWorker.class);
+        private Logger log = null;
         private LocalPartitionInterface localPartitionInterface;
         private RebalanceTaskMonitor monitor;
         private StorageRegionManager manager;
@@ -92,12 +92,13 @@ public class FileBlockMaintainer implements LifeCycle {
         private RouteLoader loader;
 
         public FileBlockWorker(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteLoader loader) {
+                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteLoader loader, Logger log) {
             this.localPartitionInterface = localPartitionInterface;
             this.monitor = monitor;
             this.manager = manager;
             this.secondIds = secondIds;
             this.loader = loader;
+            this.log = log;
         }
 
         @Override
@@ -130,7 +131,8 @@ public class FileBlockMaintainer implements LifeCycle {
             // 3. 扫描文件块，并获取非法文件块路径
             Queue<String> invalidBlockQueue = scanInvalidBlocks(secondIds, monitor, sns, localPartitionInfos, loader, limitTime);
             // 4. 若见采集结果不为空则调用删除线程
-            deleteInvalidBlock(invalidBlockQueue, monitor);
+            int count = deleteInvalidBlock(invalidBlockQueue, monitor);
+            LOG.info("handler invalid file block num :{}", count);
 
         }
 
@@ -204,7 +206,7 @@ public class FileBlockMaintainer implements LifeCycle {
         private int deleteInvalidBlock(Queue<String> invalidBlocks, RebalanceTaskMonitor monitor) {
             // 为空跳出
             if (invalidBlocks == null || invalidBlocks.isEmpty()) {
-                log.debug("queue is empty skip !!!");
+                log.info("queue is empty skip !!!");
                 return 0;
             }
             int count = 0;

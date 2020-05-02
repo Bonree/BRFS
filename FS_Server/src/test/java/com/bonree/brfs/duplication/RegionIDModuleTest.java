@@ -57,10 +57,8 @@ public class RegionIDModuleTest {
         checkAndCreateDir(partitionIdsDir);
         String rootDir = rootPath + "/data";
         checkAndCreateDir(rootDir);
-        String libPath = "D:\\work\\Business\\bonree\\BrfsSecond\\BRFS\\lib";
         System.setProperty(SystemProperties.PROP_CONFIGURATION_FILE, config);
         System.setProperty(SystemProperties.PROP_SERVER_ID_DIR, idsDir);
-        System.setProperty(SystemProperties.PROP_RESOURCE_LIB_PATH, libPath);
         System.setProperty(SystemProperties.PROP_PARTITION_ID_IDR, partitionIdsDir);
         System.out.println(rootPath);
 

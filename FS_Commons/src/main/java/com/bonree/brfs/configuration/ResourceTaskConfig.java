@@ -110,10 +110,6 @@ public class ResourceTaskConfig {
 
         conf.setResourceFrameWorkSwitch(config.getConfig(ResourceConfigs.CONFIG_RESOURCE_ENABLE));
 
-        String libPath = System.getProperty(SystemProperties.PROP_RESOURCE_LIB_PATH);
-        if (BrStringUtils.isEmpty(libPath)) {
-            throw new NullPointerException(SystemProperties.PROP_RESOURCE_LIB_PATH + " is empty");
-        }
         conf.setTaskExpiredTime(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_TASK_EXPIRED_TIME)));
 
         conf.setLimitCpuRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_CPU_RATE));
