@@ -3,6 +3,7 @@ package com.bonree.brfs.resource.gather.impl;
 import com.bonree.brfs.common.resource.vo.MemStat;
 import com.bonree.brfs.resource.convertor.MemoryConvertor;
 import com.bonree.brfs.resource.gather.MemoryGather;
+import com.bonree.brfs.resource.utils.SigarUtil;
 import org.hyperic.sigar.Mem;
 import org.hyperic.sigar.Sigar;
 
@@ -21,7 +22,7 @@ public class SigarMemoryGather implements MemoryGather {
 
     @Override
     public void start() throws Exception {
-        this.sigar = new Sigar();
+        this.sigar = SigarUtil.getSigar();
         this.convertor = new MemoryConvertor();
     }
 

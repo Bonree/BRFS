@@ -4,6 +4,7 @@ import com.bonree.brfs.common.resource.vo.NetInfo;
 import com.bonree.brfs.common.resource.vo.NetStat;
 import com.bonree.brfs.resource.convertor.NetConvertor;
 import com.bonree.brfs.resource.gather.NetGather;
+import com.bonree.brfs.resource.utils.SigarUtil;
 import java.util.Collection;
 import java.util.HashSet;
 import org.hyperic.sigar.NetFlags;
@@ -80,7 +81,7 @@ public class SigarNetGather implements NetGather {
 
     @Override
     public void start() throws Exception {
-        this.sigar = new Sigar();
+        this.sigar = SigarUtil.getSigar();
         this.convertor = new NetConvertor();
     }
 

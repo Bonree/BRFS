@@ -27,15 +27,17 @@ import com.bonree.brfs.resource.gather.impl.SigarPartitionGather;
 import com.bonree.brfs.resource.gather.impl.SigarSwapGather;
 import com.bonree.brfs.resource.gather.impl.SigarSysInfoGather;
 import com.bonree.brfs.resource.utils.LibUtils;
+import com.bonree.brfs.resource.utils.SigarUtil;
 import com.google.inject.Inject;
-import java.io.File;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SigarGather implements ResourceCollectionInterface {
-    private String libPath = libPath();
+    private static final Logger LOG = LoggerFactory.getLogger(SigarGather.class);
+    private String libPath = null;
     private CPUGather cpuGather;
     private MemoryGather memoryGather;
     private NetGather netGather;
@@ -47,7 +49,12 @@ public class SigarGather implements ResourceCollectionInterface {
 
     @Inject
     public SigarGather() throws Exception {
-        this.libPath = libPath();
+        libPath = libPath();
+        if (StringUtils.isNotEmpty(libPath) && libPath.contains("/target/")) {
+            LibUtils.loadLibraryPath(libPath);
+        } else {
+            SigarUtil.getPath();
+        }
         start();
     }
 
@@ -144,12 +151,10 @@ public class SigarGather implements ResourceCollectionInterface {
         return loadGather.gather();
     }
 
-    @Override
     public void start() throws Exception {
         if (start) {
             return;
         }
-        LibUtils.loadLibraryPath(libPath);
         cpuGather = new SigarCpuGather();
         memoryGather = new SigarMemoryGather();
         netGather = new SigarNetGather();
@@ -167,19 +172,11 @@ public class SigarGather implements ResourceCollectionInterface {
         this.start = true;
     }
 
-    public String libPath() {
-        URL url = this.getClass().getProtectionDomain().getCodeSource().getLocation();
-        if (StringUtils.isEmpty(url.getPath()) || !url.getFile().endsWith(".jar")) {
-            return this.getClass().getResource("/lib").getPath();
-        }
-        try {
-            return new File(url.toURI()).getParentFile().getAbsolutePath() + "/lib";
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(" lib error[" + url.getPath() + "] get lib path happen error !!");
-        }
+    public String libPath() throws Exception {
+        URL url = this.getClass().getResource("/lib");
+        return url == null ? null : url.getPath();
     }
 
-    @Override
     public void stop() throws Exception {
         cpuGather.stop();
         memoryGather.stop();

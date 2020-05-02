@@ -4,6 +4,7 @@ import com.bonree.brfs.common.resource.vo.DiskPartitionInfo;
 import com.bonree.brfs.common.resource.vo.DiskPartitionStat;
 import com.bonree.brfs.resource.convertor.DiskConvertor;
 import com.bonree.brfs.resource.gather.PartitionGather;
+import com.bonree.brfs.resource.utils.SigarUtil;
 import java.util.Collection;
 import java.util.HashSet;
 import org.hyperic.sigar.FileSystem;
@@ -57,7 +58,7 @@ public class SigarPartitionGather implements PartitionGather {
 
     @Override
     public void start() throws Exception {
-        this.sigar = new Sigar();
+        this.sigar = SigarUtil.getSigar();
         this.convertor = new DiskConvertor();
     }
 

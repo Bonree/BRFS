@@ -1,6 +1,5 @@
 package com.bonree.brfs.common.resource;
 
-import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.resource.vo.CPUInfo;
 import com.bonree.brfs.common.resource.vo.CpuStat;
 import com.bonree.brfs.common.resource.vo.DiskPartitionInfo;
@@ -14,7 +13,7 @@ import com.bonree.brfs.common.resource.vo.OSInfo;
 import com.bonree.brfs.common.resource.vo.SwapStat;
 import java.util.Collection;
 
-public interface ResourceCollectionInterface extends LifeCycle {
+public interface ResourceCollectionInterface {
     /**
      * 采集系统基本信息
      *

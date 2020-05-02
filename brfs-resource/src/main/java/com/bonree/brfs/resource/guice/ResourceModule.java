@@ -1,7 +1,5 @@
 package com.bonree.brfs.resource.guice;
 
-import com.bonree.brfs.common.lifecycle.LifecycleModule;
-import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.plugin.BrfsModule;
 import com.bonree.brfs.common.plugin.NodeType;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;

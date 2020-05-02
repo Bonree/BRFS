@@ -89,14 +89,4 @@ public class NonResourceCollection implements ResourceCollectionInterface {
     public Load collectAverageLoad() throws Exception {
         return null;
     }
-
-    @Override
-    public void start() throws Exception {
-
-    }
-
-    @Override
-    public void stop() throws Exception {
-
-    }
 }

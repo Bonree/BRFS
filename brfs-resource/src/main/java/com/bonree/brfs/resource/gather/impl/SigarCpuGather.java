@@ -4,6 +4,7 @@ import com.bonree.brfs.common.resource.vo.CPUInfo;
 import com.bonree.brfs.common.resource.vo.CpuStat;
 import com.bonree.brfs.resource.convertor.CpuConvertor;
 import com.bonree.brfs.resource.gather.CPUGather;
+import com.bonree.brfs.resource.utils.SigarUtil;
 import org.hyperic.sigar.CpuInfo;
 import org.hyperic.sigar.CpuPerc;
 import org.hyperic.sigar.Sigar;
@@ -30,7 +31,7 @@ public class SigarCpuGather implements CPUGather {
 
     @Override
     public void start() throws Exception {
-        this.sigar = new Sigar();
+        this.sigar = SigarUtil.getSigar();
         this.cpuConvertor = new CpuConvertor();
     }
 
