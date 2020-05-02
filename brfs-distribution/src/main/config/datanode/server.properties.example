@@ -341,3 +341,20 @@ regionnode.block.size = 65536
 regionnode.block.pool.capacity = 10
 # blockpool的初始值
 regionnode.block.pool.init.count = 1
+
+###############################################
+##############Resource config##################
+###############################################
+# GUI 资源采集任务开关 默认关闭
+datanode.gui.switch=false
+# GUI资源采集任务的时间间隔 单位秒，默认60s
+datanode.gui.interval.seconds=10
+# GUI资源文件定时扫描的时间 单位秒，默认60s
+datanode.gui.maintain.interval.seconds=10
+# GUI资源文件的过期时间，单位秒，默认为7*24*60*60
+datanode.gui.maintain.interval.seconds=1000
+
+# 资源采集开关 默认开启
+datanode.resource.switch=true
+# 资源采集的时间间隔 单位 秒 默认10s
+datanode.resource.interval.seconds=10

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ResourceConfig {
     @JsonProperty("switch")
-    private boolean runFlag = false;
+    private boolean runFlag = true;
     @JsonProperty("interval.seconds")
-    private int intervalTime = 60;
+    private int intervalTime = 10;
 
     public boolean isRunFlag() {
         return runFlag;
