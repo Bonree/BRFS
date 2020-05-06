@@ -59,16 +59,6 @@
             </includes>
             <outputDirectory>config/datanode</outputDirectory>
         </fileSet>
-
-		<!-- native-lib -->
-		<fileSet>
-			<directory>${basedir}/src/main/native-lib</directory>
-			<includes>
-				<include>*</include>
-			</includes>
-			<outputDirectory>native-lib</outputDirectory>
-		</fileSet>
-
 		<!-- plugins -->
 		<fileSet>
 			<directory>${project.build.directory}/dependency/brfs-http-netty-${project.version}</directory>
