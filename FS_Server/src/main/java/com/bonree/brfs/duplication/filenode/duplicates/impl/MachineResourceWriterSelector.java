@@ -8,8 +8,8 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.email.EmailPool;
-import com.bonree.brfs.resourceschedule.model.LimitServerResource;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
+import com.bonree.brfs.resource.vo.LimitServerResource;
+import com.bonree.brfs.resource.vo.ResourceModel;
 import com.bonree.mail.worker.MailWorker;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,7 +63,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         List<ResourceModel> washroom = new ArrayList<>();
         // 将已经满足条件的服务过滤
         for (ResourceModel wash : resourceModels) {
-            diskRemainSize = (long) (wash.getDiskSize() * wash.getDiskRemainRate());
+            diskRemainSize = wash.getStorageRemainSize();
             if (diskRemainSize < this.limit.getRemainForceSize()) {
                 LOG.warn("First: {}({}), remainsize: {}, force:{} !! will refused",
                          wash.getServerId(), wash.getHost(), diskRemainSize, this.limit.getRemainForceSize());
@@ -78,7 +78,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         // 预测值，假设现在所有正在写的文件大小为0，并且每个磁盘节点都写入。通过现有写入的文件的数×配置的文件大小即可得单个数据节点写入数据的大小
         long writeSize = numSize * fileSize / size;
         for (ResourceModel resourceModel : washroom) {
-            diskRemainSize = (long) (resourceModel.getDiskSize() * resourceModel.getDiskRemainRate()) - writeSize;
+            diskRemainSize = resourceModel.getStorageRemainSize() - writeSize;
             if (diskRemainSize < this.limit.getRemainForceSize()) {
                 LOG.warn("Second : {}({}),  remainsize: {}, force:{} !! will refused", resourceModel.getServerId(),
                          resourceModel.getHost(), diskRemainSize, this.limit.getRemainForceSize());
@@ -135,7 +135,6 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      * 发送选择邮件
      *
      * @param resourceModels
-     * @param sn
      * @param num
      */
     public void sendSelectEmail(Collection<ResourceModel> resourceModels, int num) {
@@ -148,7 +147,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         String key;
         for (ResourceModel resource : resourceModels) {
             key = resource.getServerId() + "(" + resource.getHost() + ")";
-            part = resource.getDiskSize() * resource.getDiskRemainRate() + "B";
+            part = resource.getStorageRemainSize() + "B";
             map.put(key, part);
         }
         EmailPool emailPool = EmailPool.getInstance();
@@ -169,7 +168,6 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      * @param sids
      * @param intValues
      * @param groupName
-     * @param sn
      * @param num
      *
      * @return
@@ -244,17 +242,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     }
 
     private double getWriteValue(ResourceModel resource) {
-        double remainValue = 0.0;
-        for (Double num : resource.getDiskRemainValue().values()) {
-            remainValue += num;
-        }
-        double maxWriteValue = 0.0;
-        for (double max : resource.getDiskWriteValue().values()) {
-            if (maxWriteValue < max) {
-                maxWriteValue = max;
-            }
-        }
-        return remainValue + 1 - maxWriteValue;
+        return resource.getStorageRemainSize();
     }
 
     /**
@@ -347,35 +335,4 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         return dents;
     }
 
-    @Override
-    public List<Pair<String, Integer>> selectAvailableServers(int scene, String storageName, List<String> exceptionServerList,
-                                                              int centSize) throws Exception {
-        return null;
-    }
-
-    @Override
-    public List<Pair<String, Integer>> selectAvailableServers(int scene, int snId, List<String> exceptionServerList, int centSize)
-        throws Exception {
-        return null;
-    }
-
-    @Override
-    public void setLimitParameter(LimitServerResource limits) {
-        this.limit = limits;
-    }
-
-    @Override
-    public void update(ResourceModel resource) {
-
-    }
-
-    @Override
-    public void add(ResourceModel resources) {
-
-    }
-
-    @Override
-    public void remove(ResourceModel resource) {
-
-    }
 }

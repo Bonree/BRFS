@@ -9,8 +9,6 @@ public final class SystemProperties {
     public static final String PROP_PARTITION_ID_IDR = "partition.ids";
     public static final String PROP_CONFIGURATION_FILE = "configuration.file";
 
-    public static final String PROP_RESOURCE_LIB_PATH = "resource.lib.path";
-
     public static final String PROP_NET_BACKLOG = "net.backlog";
     public static final String PROP_NET_IO_WORKER_NUM = "net.io.threads";
 }

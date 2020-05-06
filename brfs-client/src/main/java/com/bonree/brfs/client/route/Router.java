@@ -17,6 +17,8 @@ package com.bonree.brfs.client.route;
 import static java.util.function.Function.identity;
 
 import com.bonree.brfs.client.ClientException;
+import com.bonree.brfs.client.ranker.Ranker;
+import com.bonree.brfs.client.ranker.ShiftRanker;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 
 public class Router {
     private final RouterClient routerClient;
+    private final Ranker<String> ranker;
 
     private final LoadingCache<String, Map<String, SecondServerID>> secondServerIds;
     private final LoadingCache<String, Map<String, NormalRouterNode>> normalUpdates;
@@ -54,6 +57,8 @@ public class Router {
                                           .expireAfterWrite(10, TimeUnit.SECONDS)
                                           .refreshAfterWrite(5, TimeUnit.SECONDS)
                                           .build(new VirtualUpdateLoader());
+
+        this.ranker = new ShiftRanker<>();
     }
 
     public Iterable<URI> getServerLocation(String srName, String uuid, List<String> secondServerIdList,
@@ -66,7 +71,7 @@ public class Router {
             int code = RouteAnalysis.indexCode(uuid);
             return Iterables.filter(
                 Iterables.transform(
-                    secondServerIdList,
+                    ranker.rank(secondServerIdList),
                     serverId -> {
                         String finalId = finalServerId(code, serverId, secondServerIdList, normalMapper, virtualMapper);
                         if (finalId == null) {

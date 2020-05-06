@@ -4,6 +4,9 @@ import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
+import com.bonree.brfs.common.resource.ResourceCollectionInterface;
+import com.bonree.brfs.common.resource.vo.DiskPartitionInfo;
+import com.bonree.brfs.common.resource.vo.DiskPartitionStat;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.partition.model.PartitionInfo;
@@ -15,11 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
-import org.hyperic.sigar.FileSystem;
-import org.hyperic.sigar.FileSystemMap;
-import org.hyperic.sigar.FileSystemUsage;
-import org.hyperic.sigar.Sigar;
-import org.hyperic.sigar.SigarException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,11 +44,12 @@ public class PartitionGather implements LifeCycle {
 
     private LocalPartitionListener listener = null;
 
-    public PartitionGather(PartitionInfoRegister register, Service localInfo, Collection<LocalPartitionInfo> validPartions,
+    public PartitionGather(ResourceCollectionInterface gather, PartitionInfoRegister register, Service localInfo,
+                           Collection<LocalPartitionInfo> validPartions,
                            int intervalTimes) {
         this.intervalTimes = intervalTimes;
         this.pool = Executors.newScheduledThreadPool(1);
-        this.worker = new GatherThread(register, validPartions, localInfo);
+        this.worker = new GatherThread(gather, register, validPartions, localInfo);
     }
 
     @LifecycleStart
@@ -84,15 +83,16 @@ public class PartitionGather implements LifeCycle {
         private static final Logger LOG = LoggerFactory.getLogger(GatherThread.class);
         private PartitionInfoRegister register = null;
         private Collection<LocalPartitionInfo> partitions;
-        private Sigar sigar = null;
+        private ResourceCollectionInterface gather = null;
         private Service firstServer;
         private boolean isAlive = true;
         private LocalPartitionListener listener = null;
 
-        public GatherThread(PartitionInfoRegister register, Collection<LocalPartitionInfo> partitions, Service firstServer) {
+        public GatherThread(ResourceCollectionInterface gather, PartitionInfoRegister register,
+                            Collection<LocalPartitionInfo> partitions, Service firstServer) {
             this.register = register;
             this.partitions = partitions;
-            this.sigar = new Sigar();
+            this.gather = gather;
             this.firstServer = firstServer;
             this.isAlive = true;
         }
@@ -102,32 +102,19 @@ public class PartitionGather implements LifeCycle {
             if (partitions == null || partitions.isEmpty()) {
                 return;
             }
-            LocalPartitionInfo local;
-            FileSystem fs;
-            FileSystemMap fsMap = null;
-            // 获取磁盘信息发生错 则注销所有的磁盘节点信息
-            try {
-                fsMap = sigar.getFileSystemMap();
-            } catch (SigarException e) {
-                LOG.error("gather filesystem happen error ", e);
-                for (LocalPartitionInfo tmp : partitions) {
-                    try {
-                        register.unregisterPartitionInfo(tmp.getPartitionGroup(), tmp.getPartitionId());
-                    } catch (Exception ex) {
-                        LOG.error("unregister id happen error !!{}", tmp.getDataDir());
-                    }
-                }
-                return;
-            }
             // 正常检查分区是否可用
             PartitionInfo partition;
+            DiskPartitionStat fs;
             for (LocalPartitionInfo elePart : partitions) {
                 if (!isAlive) {
                     break;
                 }
                 try {
-                    fs = fsMap.getMountPoint(elePart.getDataDir());
-                    if (PartitionGather.isValid(elePart, fs, sigar)) {
+                    fs = gather.collectSinglePartitionStats(elePart.getDataDir());
+                    if (elePart == null) {
+                        LOG.warn("find invalid partition info");
+                    }
+                    if (PartitionGather.isValid(elePart, gather)) {
                         partition = packagePartition(elePart, fs);
                         register.registerPartitionInfo(partition);
                         if (listener != null) {
@@ -143,21 +130,18 @@ public class PartitionGather implements LifeCycle {
                     LOG.error("check partition happen error !!{}", elePart.getDataDir(), e);
                 }
             }
-            LOG.debug("partition gather work end !!");
+            LOG.info("partition gather work end !!");
         }
 
-        private PartitionInfo packagePartition(LocalPartitionInfo local, FileSystem fs) throws Exception {
+        private PartitionInfo packagePartition(LocalPartitionInfo local, DiskPartitionStat fs) throws Exception {
             PartitionInfo obj = new PartitionInfo();
             obj.setPartitionGroup(local.getPartitionGroup());
             obj.setPartitionId(local.getPartitionId());
             obj.setServiceGroup(firstServer.getServiceGroup());
             obj.setServiceId(firstServer.getServiceId());
             obj.setRegisterTime(System.currentTimeMillis());
-            obj.setTotalSize(local.getTotalSize());
-            if (fs != null) {
-                FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-                obj.setFreeSize(usage.getAvail());
-            }
+            obj.setFreeSize(fs.getAvail());
+            obj.setTotalSize(fs.getTotal());
             return obj;
         }
 
@@ -185,13 +169,14 @@ public class PartitionGather implements LifeCycle {
      *
      * @return
      */
-    public static boolean isValid(LocalPartitionInfo local, FileSystem fs, Sigar sigar) {
+    public static boolean isValid(LocalPartitionInfo local, ResourceCollectionInterface gather) {
         try {
             // fs为空
-            if (fs == null) {
+            if (gather == null) {
                 return false;
             }
-
+            DiskPartitionInfo fs = gather.collectSinglePartitionInfo(local.getDataDir());
+            DiskPartitionStat usage = gather.collectSinglePartitionStats(local.getDataDir());
             // 设备名称不一致
             if (!local.getDevName().equals(fs.getDevName())) {
                 LOG.warn("devName is not same before[{}],after[{}]", local.getDevName(), fs.getDevName());
@@ -203,7 +188,6 @@ public class PartitionGather implements LifeCycle {
                 return false;
             }
             // 磁盘分区使用信息为空
-            FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
             if (usage == null) {
                 return false;
             }
@@ -213,7 +197,7 @@ public class PartitionGather implements LifeCycle {
                 LOG.warn("size is not same before[{}],after[{}]", local.getTotalSize(), value);
                 return false;
             }
-        } catch (SigarException e) {
+        } catch (Exception e) {
             LOG.error("gather{} FileSystemUsage happen ", local.getDevName(), e);
             return false;
         }

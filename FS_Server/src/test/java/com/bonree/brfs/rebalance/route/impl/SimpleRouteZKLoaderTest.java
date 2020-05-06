@@ -30,6 +30,7 @@ import org.junit.Test;
  ******************************************************************************/
 
 public class SimpleRouteZKLoaderTest {
+    public static String ZK_ADDRESS = "192.168.101.87:2181";
     private static String resourcePath = SimpleRouteZKLoaderTest.class.getResource("/Routes/ZookeeperRoute").getPath();
     private static CuratorClient zkClient = null;
     private static String V1_ARRAY = "V1Array.json";
@@ -39,7 +40,6 @@ public class SimpleRouteZKLoaderTest {
     private static String V1_ROUTE_BAS_PATH = "/brfsDevTest/route/V1";
     private static String V2_ROUTE_BAS_PATH = "/brfsDevTest/route/V2";
     private static String MUL_VERSION_ROUTE_BAS_PATH = "/brfsDevTest/route/Mul";
-    public static String ZK_ADDRESS = "192.168.101.87:2181";
     private static CuratorFramework client = null;
     private static int SR_ID = 0;
 

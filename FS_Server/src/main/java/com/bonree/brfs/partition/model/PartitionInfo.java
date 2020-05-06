@@ -1,5 +1,7 @@
 package com.bonree.brfs.partition.model;
 
+import com.google.common.base.MoreObjects;
+
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
@@ -18,11 +20,13 @@ public class PartitionInfo {
     // 磁盘分区的id
     private String partitionId;
     // 磁盘分区的总大小
-    private double totalSize;
+    private long totalSize;
     // 磁盘分区的剩余大小
-    private double freeSize;
+    private long freeSize;
     // 磁盘节点分区的注册时间
     private long registerTime;
+    // 磁盘服务时间
+    private double serviceTime;
     // 版本信息
     private int version = 1;
 
@@ -30,8 +34,8 @@ public class PartitionInfo {
 
     }
 
-    public PartitionInfo(String serviceGroup, String serviceId, String partitionGroup, String partitionId, double totalSize,
-                         double freeSize, long registerTime) {
+    public PartitionInfo(String serviceGroup, String serviceId, String partitionGroup, String partitionId, long totalSize,
+                         long freeSize, long registerTime) {
         this.serviceGroup = serviceGroup;
         this.serviceId = serviceId;
         this.partitionGroup = partitionGroup;
@@ -73,19 +77,19 @@ public class PartitionInfo {
         this.partitionId = partitionId;
     }
 
-    public double getTotalSize() {
+    public long getTotalSize() {
         return totalSize;
     }
 
-    public void setTotalSize(double totalSize) {
+    public void setTotalSize(long totalSize) {
         this.totalSize = totalSize;
     }
 
-    public double getFreeSize() {
+    public long getFreeSize() {
         return freeSize;
     }
 
-    public void setFreeSize(double freeSize) {
+    public void setFreeSize(long freeSize) {
         this.freeSize = freeSize;
     }
 
@@ -95,6 +99,14 @@ public class PartitionInfo {
 
     public void setRegisterTime(long registerTime) {
         this.registerTime = registerTime;
+    }
+
+    public double getServiceTime() {
+        return serviceTime;
+    }
+
+    public void setServiceTime(double serviceTime) {
+        this.serviceTime = serviceTime;
     }
 
     public int getVersion() {
@@ -107,14 +119,16 @@ public class PartitionInfo {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        return builder.append("{serviceGroup='").append(serviceGroup)
-                      .append("', serviceId='").append(serviceId)
-                      .append("', partitionGroup='").append(partitionGroup)
-                      .append("', nodeId='").append(partitionId)
-                      .append("', totalSize=").append(totalSize)
-                      .append(", freeSize=").append(freeSize)
-                      .append(", registerTime=").append(registerTime)
-                      .append(",version=").append(version).append("}").toString();
+        return MoreObjects.toStringHelper(this)
+                          .add("serviceGroup", serviceGroup)
+                          .add("serviceId", serviceId)
+                          .add("partitionGroup", partitionGroup)
+                          .add("partitionId", partitionId)
+                          .add("totalSize", totalSize)
+                          .add("freeSize", freeSize)
+                          .add("registerTime", registerTime)
+                          .add("serviceTime", serviceTime)
+                          .add("version", version)
+                          .toString();
     }
 }

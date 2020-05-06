@@ -4,7 +4,7 @@ import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
-import com.bonree.brfs.resourceschedule.model.ResourceModel;
+import com.bonree.brfs.resource.vo.ResourceModel;
 import java.util.Collection;
 import java.util.Iterator;
 import org.slf4j.Logger;
@@ -63,10 +63,7 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
                 next = iterator.next();
                 duplicateNodes[i] = new DuplicateNode(groupName, next.getServerId());
                 i++;
-                builder.append(i).append(":").append(next.getServerId()).append("(").append(next.getHost()).append(", remainSize")
-                       .append(next.getDiskRemainRate() * next.getDiskRemainRate()).append("b ), ");
             }
-            log.info("{}", builder.toString());
 
             return duplicateNodes;
         } finally {

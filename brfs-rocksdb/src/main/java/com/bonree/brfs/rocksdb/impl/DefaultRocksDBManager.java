@@ -3,7 +3,6 @@ package com.bonree.brfs.rocksdb.impl;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
-import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.service.Service;
@@ -91,7 +90,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo;
 
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
-    private ExecutorService executor = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors() / 4),
+    private ExecutorService executor = Executors.newFixedThreadPool(Math.max(4, Runtime.getRuntime().availableProcessors() / 2),
                                                                     new PooledThreadFactory("sync_rocksdb_data"));
 
     @Inject
@@ -147,12 +146,14 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 if (!serviceCache.contains(service)
                     && !service.getServiceId().equals(DefaultRocksDBManager.this.service.getServiceId())) {
                     serviceCache.add(service);
+                    LOG.info("service added:{}, current services:{}", service.getServiceId(), serviceCache);
                 }
             }
 
             @Override
             public void serviceRemoved(Service service) {
                 serviceCache.remove(service);
+                LOG.info("service removed:{}, current services:{}", service.getServiceId(), serviceCache);
             }
         });
 
@@ -293,8 +294,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     }
 
     @Override
-    public WriteStatus write(RocksDBDataUnit unit) throws RocksDBException {
-        return this.write(this.cfHandles.get(unit.getColumnFamily()), writeOptionsAsync, unit.getKey(), unit.getValue());
+    public WriteStatus syncData(String columnFamily, byte[] key, byte[] value) throws RocksDBException {
+        return this.write(this.cfHandles.get(columnFamily), writeOptionsAsync, key, value);
     }
 
     @Override
@@ -350,8 +351,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
             }
 
             RegionNodeConnection connection;
-            RocksDBDataUnit dataUnit = new RocksDBDataUnit(columnFamily, key, value);
-
             for (Service service : serviceCache) {
                 connection =
                     DefaultRocksDBManager.this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());
@@ -360,7 +359,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                     continue;
                 }
                 try {
-                    connection.getClient().writeData(dataUnit);
+                    connection.getClient().writeData(columnFamily, new String(key), new String(value));
                 } catch (Exception e) {
                     LOG.error("rocksdb data writer occur error", e);
                 }

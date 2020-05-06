@@ -11,6 +11,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.PartitionIdsConfigs;
 import com.bonree.brfs.partition.model.PartitionInfo;
+import com.bonree.brfs.resource.vo.ClusterStorageInfo;
 import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -98,6 +99,18 @@ public class DiskPartitionInfoManager implements LifeCycle {
 
         return treeMap.firstKey();
 
+    }
+
+    /**
+     * @return
+     */
+    public ClusterStorageInfo getClusterStoragInfo() {
+        if (diskPartitionInfoCache == null || diskPartitionInfoCache.isEmpty()) {
+            return new ClusterStorageInfo(0, 0);
+        }
+        long size = diskPartitionInfoCache.values().stream().mapToLong(PartitionInfo::getTotalSize).sum();
+        long remainSize = diskPartitionInfoCache.values().stream().mapToLong(PartitionInfo::getFreeSize).sum();
+        return new ClusterStorageInfo(size, remainSize);
     }
 
     public List<String> getCurrentPartitionIds() {

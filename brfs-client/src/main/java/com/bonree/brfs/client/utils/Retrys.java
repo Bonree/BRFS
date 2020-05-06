@@ -43,10 +43,6 @@ public final class Retrys {
             }
         }
 
-        if (result == null) {
-            throw new ClientException("No result is found when try execute [%s]", retryable.getDescription());
-        }
-
         if (result.getCause() != null) {
             throw new ClientException(result.getCause(), "Error when execute [%s]", retryable.getDescription());
         }
@@ -89,7 +85,7 @@ public final class Retrys {
         @Override
         public Result<T> tryExecute() {
             if (!iter.hasNext()) {
-                return Retryable.fail(cause != null ? cause : noMoreObjectError());
+                return Retryable.fail(cause != null ? new RetryException(triedItems, cause) : noMoreObjectError());
             }
 
             E element = iter.next();

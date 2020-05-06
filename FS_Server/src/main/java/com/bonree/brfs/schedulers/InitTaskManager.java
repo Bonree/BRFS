@@ -14,11 +14,9 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.rebalance.route.RouteLoader;
-import com.bonree.brfs.resourceschedule.model.LimitServerResource;
-import com.bonree.brfs.resourceschedule.utils.LibUtils;
+import com.bonree.brfs.resource.vo.LimitServerResource;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
-import com.bonree.brfs.schedulers.jobs.resource.GatherResourceJob;
 import com.bonree.brfs.schedulers.jobs.system.OperationTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
@@ -130,8 +128,7 @@ public class InitTaskManager {
         }
 
         if (managerConfig.isResourceFrameWorkSwitch()) {
-            // 创建资源调度服务
-            createResourceManager(manager, zkPath, managerConfig);
+            // todo 创建资源调度服务
         }
     }
 
@@ -291,42 +288,6 @@ public class InitTaskManager {
         }
     }
 
-    /**
-     * 概述：创建资源管理
-     *
-     * @param manager
-     * @param zkPaths
-     * @param config
-     *
-     * @throws Exception
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    private static void createResourceManager(SchedulerManagerInterface manager, ZookeeperPaths zkPaths,
-                                              ResourceTaskConfig config) throws Exception {
-        // 1.引入第三方lib库，资源采集时需要用到
-        LibUtils.loadLibraryPath(config.getLibPath());
-        // 2.采集基本信息上传到 zk
-        String serverId = ManagerContralFactory.getInstance().getServerId();
-        String zkAddress = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-        // 3.创建资源采集线程池
-        Properties prop = DefaultBaseSchedulers.createSimplePrope(2, 1000);
-        manager.createTaskPool(RESOURCE_MANAGER, prop);
-        boolean startTaskPool = manager.startTaskPool(RESOURCE_MANAGER);
-        if (!startTaskPool) {
-            LOG.error("{} start fail !!!", RESOURCE_MANAGER);
-        }
-        // 4.创建采集任务信息
-        Map<String, String> gatherMap =
-            JobDataMapConstract.createGatherResourceDataMap(config, serverId, zkPaths.getBaseResourcesPath(), zkAddress);
-        SumbitTaskInterface gatherInterface = QuartzSimpleInfo
-            .createCycleTaskInfo(GatherResourceJob.class.getSimpleName(), config.getGatherResourceInveralTime(), 2000, gatherMap,
-                                 GatherResourceJob.class);
-        boolean taskFlag = manager.addTask(RESOURCE_MANAGER, gatherInterface);
-        if (!taskFlag) {
-            LOG.error("sumbit gather job fail !!!");
-        }
-        LOG.info("GATHER successful !!!");
-    }
 
     /**
      * 概述：根据switchMap 创建线程池

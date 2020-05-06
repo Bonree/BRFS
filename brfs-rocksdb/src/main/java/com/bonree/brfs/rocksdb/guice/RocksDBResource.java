@@ -2,7 +2,6 @@ package com.bonree.brfs.rocksdb.guice;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.utils.BrStringUtils;
@@ -105,12 +104,16 @@ public class RocksDBResource {
     @POST
     @Path("inner/write")
     @Produces(APPLICATION_JSON)
-    public Response writeInner(RocksDBDataUnit data) {
+    public Response writeInner(
+        @QueryParam("cf") String columnFamily,
+        @QueryParam("key") String key,
+        @QueryParam("value") String value) {
+
         try {
-            WriteStatus status = this.rocksDBManager.write(data);
+            WriteStatus status = this.rocksDBManager.syncData(columnFamily, key.getBytes(), value.getBytes());
             return Response.ok().entity(BrStringUtils.toUtf8Bytes(status.name())).build();
         } catch (Exception e) {
-            LOG.error(StringUtils.format("write data failed, data:{}", data), e);
+            LOG.error(StringUtils.format("write data failed, cf:{}, key:{}, value:{}", columnFamily, key, value), e);
             return Response.serverError().entity(Throwables.getStackTraceAsString(e)).build();
         }
     }

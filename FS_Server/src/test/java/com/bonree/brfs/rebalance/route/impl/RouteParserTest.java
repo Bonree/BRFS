@@ -29,6 +29,7 @@ import org.junit.Test;
  ******************************************************************************/
 
 public class RouteParserTest {
+    public static String ZK_ADDRESS = "192.168.101.87:2181";
     private static String resourcePath = RouteParserTest.class.getResource("/Routes/ZookeeperRoute").getPath();
     private static String V1_ARRAY = "V1Array.json";
     private static String V2_ARRAY = "V2Array.json";
@@ -37,7 +38,6 @@ public class RouteParserTest {
     private static String V1_ROUTE_BAS_PATH = "/brfsDevTest/route/V1";
     private static String V2_ROUTE_BAS_PATH = "/brfsDevTest/route/V2";
     private static String MUL_VERSION_ROUTE_BAS_PATH = "/brfsDevTest/route/Mul";
-    public static String ZK_ADDRESS = "192.168.101.87:2181";
     private static CuratorFramework client = null;
     private static int SR_ID = 0;
 

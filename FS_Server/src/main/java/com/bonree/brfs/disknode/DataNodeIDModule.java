@@ -4,6 +4,7 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
+import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -48,7 +49,6 @@ public class DataNodeIDModule implements Module {
         binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class);
         binder.bind(SecondIdsInterface.class).to(SecondMaintainerInterface.class).in(ManageLifecycle.class);
         binder.bind(DiskPartitionInfoManager.class).in(ManageLifecycle.class);
-
         LifecycleModule.register(binder, IDSManager.class);
         LifecycleModule.register(binder, DiskPartitionChangeTaskGenerator.class);
     }
@@ -57,19 +57,20 @@ public class DataNodeIDModule implements Module {
     @Singleton
     public DiskDaemon getDiskDaemon(CuratorFramework client, ZookeeperPaths zkpath, Service firstLevelServerID,
                                     StorageConfig storageConfig, PartitionConfig partitionConfig, IDConfig idConfig,
-                                    Lifecycle lifecycle) {
+                                    ResourceCollectionInterface resourceGather, Lifecycle lifecycle) {
         // 1.生成注册id实例
         DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client, zkpath.getBaseServerIdSeqPath(), zkpath.getBaseV2SecondIDPath());
         // 2.生成磁盘分区id检查类
         PartitionCheckingRoutine routine =
-            new PartitionCheckingRoutine(diskNodeID, storageConfig.getStorageDirs(), idConfig.getPartitionIds(),
+            new PartitionCheckingRoutine(diskNodeID, resourceGather, storageConfig.getStorageDirs(), idConfig.getPartitionIds(),
                                          partitionConfig.getPartitionGroupName());
         Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();
         // 3.生成注册管理实例
         PartitionInfoRegister register = new PartitionInfoRegister(client, zkpath.getBaseDiscoveryPath());
         // 4.生成采集线程池
         PartitionGather gather =
-            new PartitionGather(register, firstLevelServerID, routine.checkVaildPartition(), partitionConfig.getIntervalTime());
+            new PartitionGather(resourceGather, register, firstLevelServerID, routine.checkVaildPartition(),
+                                partitionConfig.getIntervalTime());
         DiskDaemon daemon = new DiskDaemon(gather, parts);
         lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
             @Override

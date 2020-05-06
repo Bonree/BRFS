@@ -37,14 +37,14 @@ public class PartitionInfoRegisterTest {
     @Test
     public void registerPartitonInfoTest() throws Exception {
         PartitionInfoRegister manager = new PartitionInfoRegister(framework, ID_BAS_PATH);
-        PartitionInfo obj = new PartitionInfo("dataGroup", "10", "diskGroup", "40", 100.0D, 50.0D, System.currentTimeMillis());
+        PartitionInfo obj = new PartitionInfo("dataGroup", "10", "diskGroup", "40", 100, 100, System.currentTimeMillis());
         manager.registerPartitionInfo(obj);
     }
 
     @Test
     public void unregisterPartitionInfoTest() throws Exception {
         PartitionInfoRegister manager = new PartitionInfoRegister(framework, ID_BAS_PATH);
-        PartitionInfo obj = new PartitionInfo("dataGroup", "10", "diskGroup", "40", 100.0D, 50.0D, System.currentTimeMillis());
+        PartitionInfo obj = new PartitionInfo("dataGroup", "10", "diskGroup", "40", 100, 100, System.currentTimeMillis());
         manager.registerPartitionInfo(obj);
         Thread.sleep(1000);
         manager.unregisterPartitionInfo(obj);

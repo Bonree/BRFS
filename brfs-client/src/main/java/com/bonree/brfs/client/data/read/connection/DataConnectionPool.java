@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.util.function.Function;
 import org.apache.commons.pool2.KeyedObjectPool;
 import org.apache.commons.pool2.KeyedPooledObjectFactory;
 import org.apache.commons.pool2.PoolUtils;
@@ -54,13 +53,13 @@ public class DataConnectionPool implements Closeable {
         return pool;
     }
 
-    public <T> DataRequestCall<T> newRequest(URI uri, Function<DataConnection, T> call) throws Exception {
+    public <T> DataRequestCall<T> newRequest(URI uri, DataRequestHandler<T> call) throws Exception {
         DataConnection connection = null;
         try {
             connection = connections.borrowObject(uri);
 
             final DataConnection param = connection;
-            return () -> call.apply(param);
+            return () -> call.handle(param);
         } catch (Exception e) {
             if (connection != null) {
                 connections.invalidateObject(uri, connection);

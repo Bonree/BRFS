@@ -10,7 +10,7 @@ import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
 import com.bonree.brfs.identification.SecondIdsInterface;
-import com.bonree.brfs.resourceschedule.model.LimitServerResource;
+import com.bonree.brfs.resource.vo.LimitServerResource;
 import java.util.concurrent.Executors;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;

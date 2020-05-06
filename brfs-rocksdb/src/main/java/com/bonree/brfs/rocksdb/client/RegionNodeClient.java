@@ -1,6 +1,5 @@
 package com.bonree.brfs.rocksdb.client;
 
-import com.bonree.brfs.common.rocksdb.RocksDBDataUnit;
 import java.io.Closeable;
 import java.util.List;
 
@@ -17,7 +16,7 @@ public interface RegionNodeClient extends Closeable {
 
     byte[] readData(String columnFamily, String key);
 
-    void writeData(RocksDBDataUnit unit) throws Exception;
+    void writeData(String columnFamily, String key, String value) throws Exception;
 
     /**
      * @param fileName    一次传输使用的临时文件名称
