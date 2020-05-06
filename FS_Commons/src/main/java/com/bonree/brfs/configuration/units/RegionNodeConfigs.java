@@ -35,7 +35,7 @@ public final class RegionNodeConfigs {
         ConfigUnit.ofInt("regionnode.block.pool.init.count", 1);
 
     public static final ConfigUnit<Integer> CLEAR_TIME_THRESHOLD =
-        ConfigUnit.ofInt("regionnode.file.clear.time.threshold", 300000);
+        ConfigUnit.ofInt("regionnode.file.clear.time.threshold", 90000);
 
     public static final ConfigUnit<Integer> WAIT_FOR_BLOCK_TIME =
         ConfigUnit.ofInt("regionnode.waitfor.block.time", 10000);
