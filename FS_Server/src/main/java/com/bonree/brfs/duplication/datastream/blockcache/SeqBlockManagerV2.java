@@ -39,8 +39,6 @@ public class SeqBlockManagerV2 implements BlockManager {
     private LinkedBlockingQueue<WriteRequest> fileWaiting;
     private static Lock LOCK = new ReentrantLock();
     private Condition allowWrite = LOCK.newCondition();
-    private static Lock requestWriteLock = new ReentrantLock();
-    private Condition requestWrite = requestWriteLock.newCondition();
     private AtomicInteger fileWritingCount = new AtomicInteger(0);
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
@@ -64,14 +62,10 @@ public class SeqBlockManagerV2 implements BlockManager {
 
     @Override
     public void addToWaitingPool(FSPacket packet, HandleResultCallback callback) {
-        requestWriteLock.lock();
         try {
             fileWaiting.put(new WriteFileRequest(packet, callback));
-            requestWrite.signal();
         } catch (InterruptedException e) {
             LOG.error("enqueue the write request is interrupted!");
-        } finally {
-            requestWriteLock.unlock();
         }
         LOG.info("waiting pool size is [{}]", fileWaiting.size());
         LOG.info("storage [{}] : file[{}] waiting for write.", packet.getStorageName(), packet.getFileName());
@@ -240,14 +234,16 @@ public class SeqBlockManagerV2 implements BlockManager {
         }
 
         public void releaseData() {
+            LOG.debug("prepare decrement fileWritingCount , now its size is [{}]", fileWritingCount.get());
             LOCK.lock();
+            LOG.debug("decrementing: get the lock");
             data.reset();
             blockPool.putbackBlocks(data);
             fileWritingCount.decrementAndGet();
+            LOG.info("decrement fileWritingCount , now its size is [{}]", fileWritingCount.get());
             allowWrite.signal();
             data = null;
             LOCK.unlock();
-            LOG.info("decrement fileWritingCount , now its size is [{}]", fileWritingCount.get());
         }
 
         public void addFid(String fid) {
@@ -317,10 +313,13 @@ public class SeqBlockManagerV2 implements BlockManager {
 
         @Override
         public void complete(String fid) {
+            LOG.info("should put back the block of file [{}]", fileName);
             HandleResult result = new HandleResult();
+            // 写回的fid不正确的时候，删除这个正在写的文件
             if ("".equals(fid) || fid == null) {
                 BlockValue blockValue = blockcache.remove(new BlockKey(storageName, writeID));
                 if (blockValue != null && fileWritingCount.get() > 0) {
+                    LOG.info("release data of file [{}]", fileName);
                     blockValue.releaseData();
                 }
                 result.setSuccess(false);
@@ -445,53 +444,47 @@ public class SeqBlockManagerV2 implements BlockManager {
                           new IllegalStateException("Write file worker has been started!"));
                 return;
             }
-            LOG.info("start process waiting request!");
+            LOG.debug("start process waiting request!");
             WriteRequest unhandledRequest;
 
             while (true) {
-                requestWriteLock.lock();
+                LOG.debug("loop for writing: start");
+                if (quit && fileWaiting.isEmpty()) {
+                    break;
+                }
                 try {
-                    if (quit && fileWaiting.isEmpty()) {
-                        break;
+                    unhandledRequest = fileWaiting.take();
+                    LOG.debug("loop for writing: start take a element");
+                    LOCK.lock();
+                    LOG.debug("loop for writing: get a element");
+                    while (fileWritingCount.get() >= blockPoolSize) {
+                        LOG.info("loop for writing : wait until allow to write");
+                        allowWrite.await();
                     }
-                    if (fileWaiting.peek() == null) {
-                        requestWrite.await();
+                    fileWritingCount.incrementAndGet();
+                    LOG.info("Processor : the waiting request size is [{}]", fileWaiting.size());
+                    if (unhandledRequest.ifRequestIsTimeOut()) {
+                        LOG.info("abandon a file write request because of Time out");
+                        HandleResult result = new HandleResult();
+                        result.setSuccess(false);
+                        result.setCause(new Exception("abandon a file write request because of Time out"));
+                        unhandledRequest.getHandleResultCallback().completed(result);
+                        continue;
                     }
+                    BlockKey blockKey = new BlockKey(unhandledRequest.getFsPacket().getStorageName(),
+                                                     unhandledRequest.getFsPacket().getWriteID());
+                    Block block = blockPool.getBlock();
+                    blockcache.put(blockKey, new BlockValue(block, unhandledRequest.getFsPacket().getStorageName(),
+                                                            unhandledRequest.getFsPacket().getFileName(),
+                                                            unhandledRequest.getFsPacket().getWriteID()));
+                    LOG.info("Processor : writing file [{}]", unhandledRequest.getFsPacket().getFileName());
+                    appendToBlock(unhandledRequest.getFsPacket(), unhandledRequest.getHandleResultCallback());
                 } catch (InterruptedException e) {
-                    LOG.error("await which is waiting element to write is interrupted");
-                } finally {
-                    requestWriteLock.unlock();
+                    LOG.error("data consumer interrupted.");
+                } catch (Exception e) {
+                    LOG.error("process data error", e);
                 }
-                LOCK.lock();
-                if (fileWritingCount.get() < blockPoolSize) {
-                    try {
-                        unhandledRequest = fileWaiting.take();
-                        LOG.info("Processor : the waiting request size is [{}]", fileWritingCount.get());
-                        if (unhandledRequest.ifRequestIsTimeOut()) {
-                            LOG.info("abandon a file write request because of Time out");
-                            HandleResult result = new HandleResult();
-                            result.setSuccess(false);
-                            result.setCause(new Exception("abandon a file write request because of Time out"));
-                            unhandledRequest.getHandleResultCallback().completed(result);
-                            continue;
-                        }
-                        BlockKey blockKey = new BlockKey(unhandledRequest.getFsPacket().getStorageName(),
-                                                         unhandledRequest.getFsPacket().getWriteID());
-                        Block block = blockPool.getBlock();
-                        blockcache.put(blockKey, new BlockValue(block, unhandledRequest.getFsPacket().getStorageName(),
-                                                                unhandledRequest.getFsPacket().getFileName(),
-                                                                unhandledRequest.getFsPacket().getWriteID()));
-                        LOG.info("Processor : writing file [{}]", unhandledRequest.getFsPacket().getFileName());
-                        appendToBlock(unhandledRequest.getFsPacket(), unhandledRequest.getHandleResultCallback());
-                        if (fileWritingCount.incrementAndGet() >= blockPoolSize) {
-                            allowWrite.await();
-                        }
-                    } catch (InterruptedException e) {
-                        LOG.error("data consumer interrupted.");
-                    } catch (Exception e) {
-                        LOG.error("process data error", e);
-                    }
-                }
+
                 LOCK.unlock();
             }
 
@@ -512,7 +505,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                          fileWritingCount.get(),
                          blockcache.size());
                 try {
-                    Thread.sleep(300000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
