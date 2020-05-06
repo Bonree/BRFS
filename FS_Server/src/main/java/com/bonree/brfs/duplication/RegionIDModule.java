@@ -3,7 +3,6 @@ package com.bonree.brfs.duplication;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;

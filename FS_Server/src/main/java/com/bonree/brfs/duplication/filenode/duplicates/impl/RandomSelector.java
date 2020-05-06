@@ -1,14 +1,11 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
 import com.bonree.brfs.identification.SecondIdsInterface;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +16,8 @@ public class RandomSelector extends MinimalDuplicateNodeSelector {
     private SecondIdsInterface secondIds;
 
     public RandomSelector(
-            ServiceManager serviceManager, PartitionNodeSelector nodeSelector,
-            SecondIdsInterface secondIds, String dataGroup) {
+        ServiceManager serviceManager, PartitionNodeSelector nodeSelector,
+        SecondIdsInterface secondIds, String dataGroup) {
         super(serviceManager, log, dataGroup);
         this.nodeSelector = nodeSelector;
         this.secondIds = secondIds;

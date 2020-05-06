@@ -2,26 +2,21 @@ package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
+import com.bonree.brfs.common.utils.ListUtils;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
-
 import java.util.ArrayList;
-import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
-
 import org.slf4j.Logger;
 
 public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector {
     private ServiceManager serviceManager;
-    private Random rand = new Random();
     private Logger log = null;
     private String dataGroup = null;
 
     public MinimalDuplicateNodeSelector(
-            ServiceManager serviceManager, Logger log, String dataGroup) {
+        ServiceManager serviceManager, Logger log, String dataGroup) {
         this.serviceManager = serviceManager;
         this.log = log;
         this.dataGroup = dataGroup;
@@ -33,23 +28,26 @@ public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector {
         if (serviceList.isEmpty()) {
             return new DuplicateNode[0];
         }
+        int size = serviceList.size();
         long start = System.currentTimeMillis();
-        List<DuplicateNode> nodes = new ArrayList<DuplicateNode>();
-        BitSet bitSet = new BitSet(serviceList.size());
-        while (!serviceList.isEmpty() && nodes.size() < nums) {
-            int index = rand.nextInt(serviceList.size());
-            if (bitSet.get(index)) {
-                continue;
+        List<DuplicateNode> selects = new ArrayList<>();
+        if (size > nums) {
+            Iterator<Service> iterator = ListUtils.random(serviceList);
+            for (int i = 0; i < nums; i++) {
+                Service service = iterator.next();
+                DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
+                selects.add(node);
             }
-            bitSet.set(index);
-            Service service = serviceList.get(index);
-            DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
-            nodes.add(node);
+        } else {
+            for (Service service : serviceList) {
+                DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
+                selects.add(node);
+            }
         }
-        DuplicateNode[] result = new DuplicateNode[nodes.size()];
+        DuplicateNode[] result = new DuplicateNode[selects.size()];
         long end = System.currentTimeMillis();
-        log.info("select time {}ms,serverId {}", (end - start), nodes);
-        return nodes.toArray(result);
+        log.info("select time {}ms,serverId {}", (end - start), selects);
+        return selects.toArray(result);
     }
 
 }

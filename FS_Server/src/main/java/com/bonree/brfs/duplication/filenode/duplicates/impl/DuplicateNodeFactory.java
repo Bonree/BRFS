@@ -4,16 +4,13 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.RegionNodeConfigs;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.ClusterResource;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.resource.vo.LimitServerResource;
-
 import java.util.concurrent.Executors;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +27,9 @@ public class DuplicateNodeFactory {
     private static final Logger LOG = LoggerFactory.getLogger(DuplicateNodeFactory.class);
 
     public static DuplicateNodeSelector create(
-            ServiceManager serviceManager, FileNodeStorer storer, PartitionNodeSelector nodeSelector,
-            SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths,
-            CuratorFramework client, String dataGroup) throws Exception {
+        ServiceManager serviceManager, FileNodeStorer storer, PartitionNodeSelector nodeSelector,
+        SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths,
+        CuratorFramework client, String dataGroup) throws Exception {
         int type = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_DUPLICATION_SELECT_TYPE);
         // 1随机，2资源
         if (type == 1) {

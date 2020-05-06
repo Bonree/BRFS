@@ -1,17 +1,12 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.ResourceConfigs;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.resource.vo.LimitServerResource;
 import com.bonree.brfs.resource.vo.ResourceModel;
 import com.bonree.mail.worker.MailWorker;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +55,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
             diskRemainSize = wash.getStorageRemainSize();
             if (diskRemainSize < this.limit.getRemainForceSize()) {
                 LOG.warn("First: {}({}), remainsize: {}, force:{} !! will refused",
-                        wash.getServerId(), wash.getHost(), diskRemainSize, this.limit.getRemainForceSize());
+                         wash.getServerId(), wash.getHost(), diskRemainSize, this.limit.getRemainForceSize());
                 continue;
             }
             washroom.add(wash);
@@ -76,12 +70,12 @@ public class MachineResourceWriterSelector implements ServiceSelector {
             diskRemainSize = resourceModel.getStorageRemainSize() - writeSize;
             if (diskRemainSize < this.limit.getRemainForceSize()) {
                 LOG.warn("Second : {}({}),  remainsize: {}, force:{} !! will refused", resourceModel.getServerId(),
-                        resourceModel.getHost(), diskRemainSize, this.limit.getRemainForceSize());
+                         resourceModel.getHost(), diskRemainSize, this.limit.getRemainForceSize());
                 continue;
             }
             if (diskRemainSize < this.limit.getRemainWarnSize()) {
                 LOG.warn("sn: {}({}), remainsize: {}, force:{} !! will full", resourceModel.getServerId(),
-                        resourceModel.getHost(), diskRemainSize, this.limit.getRemainForceSize());
+                         resourceModel.getHost(), diskRemainSize, this.limit.getRemainForceSize());
             }
             wins.add(resourceModel);
         }
@@ -137,8 +131,8 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     public void sendSelectEmail(Collection<ResourceModel> resourceModels, int num) {
         StringBuilder messageBuilder = new StringBuilder();
         messageBuilder.append(" 写入可供选择的服务少于需要的!! 可用服务 ")
-                .append(resourceModels.size()).append(", 需要 ")
-                .append(num).append("(文件分布见上下文表格)");
+                      .append(resourceModels.size()).append(", 需要 ")
+                      .append(num).append("(文件分布见上下文表格)");
         Map<String, String> map = new HashMap<>();
         String part;
         String key;
@@ -164,6 +158,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      * @param sids
      * @param intValues
      * @param num
+     *
      * @return
      */
     public Collection<ResourceModel> selectRandom(Map<String, ResourceModel> map, Set<String> sids,
@@ -188,6 +183,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      * 获取已选择服务的services
      *
      * @param wins
+     *
      * @return
      */
     public Set<String> selectWins(List<ResourceModel> wins) {
@@ -222,6 +218,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      *
      * @param intValues
      * @param num
+     *
      * @return
      */
     public List<ResourceModel> selectNode(Map<String, ResourceModel> map,
@@ -245,6 +242,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      * 转换为map
      *
      * @param resources
+     *
      * @return
      */
     public Map<String, ResourceModel> convertResourceMap(Collection<ResourceModel> resources) {
@@ -259,7 +257,9 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      * 概述：计算资源比值
      *
      * @param servers
+     *
      * @return
+     *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     private List<Pair<String, Integer>> converDoublesToIntegers(final List<Pair<String, Double>> servers, int preCentSize) {
