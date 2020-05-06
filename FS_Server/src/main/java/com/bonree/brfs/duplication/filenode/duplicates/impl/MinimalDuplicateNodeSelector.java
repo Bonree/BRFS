@@ -6,22 +6,23 @@ import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
 import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
+
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
+
 import org.slf4j.Logger;
 
 public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector {
     private ServiceManager serviceManager;
-    private DiskNodeConnectionPool connectionPool;
     private Random rand = new Random();
     private Logger log = null;
     private String dataGroup = null;
 
-    public MinimalDuplicateNodeSelector(ServiceManager serviceManager, DiskNodeConnectionPool connectionPool, Logger log,
-                                        String dataGroup) {
+    public MinimalDuplicateNodeSelector(
+            ServiceManager serviceManager, Logger log, String dataGroup) {
         this.serviceManager = serviceManager;
-        this.connectionPool = connectionPool;
         this.log = log;
         this.dataGroup = dataGroup;
     }
@@ -34,15 +35,15 @@ public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector {
         }
         long start = System.currentTimeMillis();
         List<DuplicateNode> nodes = new ArrayList<DuplicateNode>();
+        BitSet bitSet = new BitSet(serviceList.size());
         while (!serviceList.isEmpty() && nodes.size() < nums) {
-            Service service = serviceList.remove(rand.nextInt(serviceList.size()));
-
-            DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
-            DiskNodeConnection conn = connectionPool.getConnection(node.getGroup(), node.getId());
-            if (conn == null || conn.getClient() == null || !conn.getClient().ping()) {
+            int index = rand.nextInt(serviceList.size());
+            if (bitSet.get(index)) {
                 continue;
             }
-
+            bitSet.set(index);
+            Service service = serviceList.get(index);
+            DuplicateNode node = new DuplicateNode(service.getServiceGroup(), service.getServiceId());
             nodes.add(node);
         }
         DuplicateNode[] result = new DuplicateNode[nodes.size()];

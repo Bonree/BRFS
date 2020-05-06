@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ResourceWriteSelector implements DuplicateNodeSelector {
-    private Logger log = LoggerFactory.getLogger(ResourceWriteSelector.class);
+    private Logger log ;
     private ClusterResource daemon;
     private ServiceSelector resourceSelector;
     private String groupName;

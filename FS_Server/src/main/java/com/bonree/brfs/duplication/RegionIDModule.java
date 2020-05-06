@@ -67,14 +67,15 @@ public class RegionIDModule implements Module {
     }
 
     @Provides
-    public DuplicateNodeSelector getDuplicateNodeSelector(ServiceManager serviceManager, DiskNodeConnectionPool connectionPool,
-                                                          FileNodeStorer storer, PartitionNodeSelector partitionNodeSelector,
-                                                          SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths,
-                                                          CuratorFramework client, ClusterConfig config) {
+    public DuplicateNodeSelector getDuplicateNodeSelector(
+            ServiceManager serviceManager, FileNodeStorer storer,
+            PartitionNodeSelector partitionNodeSelector,
+            SecondIdsInterface secondIds, ZookeeperPaths zookeeperPaths,
+            CuratorFramework client, ClusterConfig config) {
         try {
             return DuplicateNodeFactory
-                .create(serviceManager, connectionPool, storer, partitionNodeSelector, secondIds, zookeeperPaths, client,
-                        config.getDataNodeGroup());
+                    .create(serviceManager, storer, partitionNodeSelector, secondIds, zookeeperPaths, client,
+                            config.getDataNodeGroup());
         } catch (Exception e) {
             throw new RuntimeException("create duplicateNodeSelector happen error ", e);
         }
