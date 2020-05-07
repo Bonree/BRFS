@@ -14,6 +14,9 @@ zookeeper.addresses = localhost:2181
 # 副本节点服务群组名
 # regionnode.service.group = region_group
 
+# 插件配置
+brfs.plugins.loadList = ["brfs-http-netty"]
+
 ###############################################
 ###############磁盘分区配置####################
 ###############################################
