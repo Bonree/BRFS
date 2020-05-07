@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
  */
 @ManageLifecycle
 public class DefaultStorageRegionManager implements StorageRegionManager {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultStorageRegionManager.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultStorageRegionManager.class);
 
     public static final String DEFAULT_PATH_STORAGE_REGION_ROOT = "storageName";
     private static final String DEFAULT_PATH_STORAGE_REGION_NODES = "nodes";
@@ -95,12 +95,16 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
             ZKPaths.makePath(DEFAULT_PATH_STORAGE_REGION_ROOT, DEFAULT_PATH_STORAGE_REGION_NODES));
         childrenCache.getListenable().addListener(new StorageRegionNodeStateListener());
         childrenCache.start();
+
+        log.info("storage region started!");
     }
 
     @LifecycleStop
     public void stop() throws Exception {
         childrenCache.close();
         executor.shutdown();
+
+        log.info("storage region stopped!");
     }
 
     private StorageRegion getCachedNode(String regionName) {
@@ -108,11 +112,11 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
             return storageRegionCache.get(regionName);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof NoNodeException) {
-                LOG.warn("No storage region[{}] exists.", regionName);
+                log.warn("No storage region[{}] exists.", regionName);
                 return null;
             }
 
-            LOG.error("load storage region error", e);
+            log.error("load storage region error", e);
         }
 
         return null;
@@ -147,7 +151,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         } catch (NodeExistsException e) {
             throw new StorageRegionExistedException(regionName);
         } catch (Exception e) {
-            LOG.error("create storage name node error", e);
+            log.error("create storage name node error", e);
             throw e;
         }
     }
@@ -169,7 +173,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
                         region.getCreateTime(),
                         region.getProperties().override(props))));
         } catch (Exception e) {
-            LOG.warn("set storage name node[{}] data error", regionName, e);
+            log.warn("set storage name node[{}] data error", regionName, e);
             throw e;
         } finally {
             storageRegionCache.refresh(regionName);
@@ -191,7 +195,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
             zkClient.delete().forPath(buildRegionPath(regionName));
             storageRegionCache.invalidate(regionName);
         } catch (Exception e) {
-            LOG.warn("delete storage name node name[{}] error", regionName, e);
+            log.warn("delete storage name node name[{}] error", regionName, e);
             return false;
         }
 
@@ -243,12 +247,12 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
             }
 
             String regionName = ZKPaths.getNodeFromPath(data.getPath());
-            LOG.info("event[{}] for storage region[{}]", event.getType(), regionName);
+            log.info("event[{}] for storage region[{}]", event.getType(), regionName);
             switch (event.getType()) {
             case CHILD_ADDED: {
                 StorageRegion storageRegion = getCachedNode(regionName);
                 if (storageRegion == null) {
-                    LOG.error("No storage region[{}] is found", regionName);
+                    log.error("No storage region[{}] is found", regionName);
                     return;
                 }
 
@@ -258,7 +262,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
                             try {
                                 listener.storageRegionAdded(storageRegion);
                             } catch (Exception e) {
-                                LOG.error("notify region add error", e);
+                                log.error("notify region add error", e);
                             }
                         }
                     }
@@ -270,7 +274,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
                 storageRegionCache.invalidate(regionName);
                 StorageRegion storageRegion = getCachedNode(regionName);
                 if (storageRegion == null) {
-                    LOG.error("No storage region[{}] is found", regionName);
+                    log.error("No storage region[{}] is found", regionName);
                     return;
                 }
 
@@ -280,7 +284,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
                             try {
                                 listener.storageRegionUpdated(storageRegion);
                             } catch (Exception e) {
-                                LOG.error("notify region update error", e);
+                                log.error("notify region update error", e);
                             }
                         }
                     }
@@ -298,7 +302,7 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
                             try {
                                 listener.storageRegionRemoved(storageRegion);
                             } catch (Exception e) {
-                                LOG.error("notify region remove error", e);
+                                log.error("notify region remove error", e);
                             }
                         }
                     }

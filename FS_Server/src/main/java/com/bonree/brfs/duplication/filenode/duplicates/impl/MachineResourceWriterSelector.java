@@ -1,10 +1,6 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.ResourceConfigs;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnection;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.ServiceSelector;
 import com.bonree.brfs.email.EmailPool;
@@ -30,20 +26,13 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     //记录少于服务时
     private static long preTime = 0L;
     //记录重复数值的
-    private static long repeatTime = 0L;
-    private static long INVERTTIME = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_RESOURCE_EMAIL_INVERT) * 1000;
-    private DiskNodeConnectionPool connectionPool;
-    private String groupName;
     private int centSize;
     private LimitServerResource limit;
     private FileNodeStorer storer;
     private long fileSize = 0;
 
-    public MachineResourceWriterSelector(DiskNodeConnectionPool connectionPool, FileNodeStorer storer,
-                                         LimitServerResource limit) {
-        this.connectionPool = connectionPool;
+    public MachineResourceWriterSelector(FileNodeStorer storer, LimitServerResource limit) {
         this.storer = storer;
-        this.groupName = limit.getDiskGroup();
         this.centSize = limit.getCentSize();
         this.limit = limit;
         this.fileSize = limit.getFileSize();
@@ -101,10 +90,10 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         // 如果可选服务少于需要的，发送报警邮件
         int resourceSize = resources.size();
         boolean lessFlag = resourceSize < num;
+        long currentTime = System.currentTimeMillis();
         if (lessFlag) {
-            long currentTime = System.currentTimeMillis();
             // 控制邮件发送的间隔，减少不必要的
-            if (currentTime - preTime > INVERTTIME) {
+            if (currentTime - preTime > 360000) {
                 sendSelectEmail(resources, num);
             }
             return resources;
@@ -113,7 +102,7 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         Map<String, ResourceModel> map = convertResourceMap(resources);
         // 转换为权重值
         List<Pair<String, Integer>> intValues = covertValues(resources, centSize);
-        List<ResourceModel> wins = selectNode(this.connectionPool, map, intValues, this.groupName, num);
+        List<ResourceModel> wins = selectNode(map, intValues, num);
         int winSize = wins.size();
         // 若根据ip分配的个数满足要求，则返回该集合，不满足则看是否为
         if (winSize == num) {
@@ -123,10 +112,12 @@ public class MachineResourceWriterSelector implements ServiceSelector {
         Set<String> sids = selectWins(wins);
         // 二次选择服务
         int ssize = resourceSize > num ? num - winSize : resourceSize - winSize;
-        Collection<ResourceModel> resourceModels = selectRandom(this.connectionPool, map, sids, intValues, groupName, ssize);
+        Collection<ResourceModel> resourceModels = selectRandom(map, sids, intValues, ssize);
         wins.addAll(resourceModels);
         // 若依旧不满足则发送邮件
-        sendSelectEmail(wins, num);
+        if (currentTime - preTime > 360000) {
+            sendSelectEmail(wins, num);
+        }
         return wins;
 
     }
@@ -163,48 +154,25 @@ public class MachineResourceWriterSelector implements ServiceSelector {
     /**
      * 随机选择
      *
-     * @param pool
      * @param map
      * @param sids
      * @param intValues
-     * @param groupName
      * @param num
      *
      * @return
      */
-    public Collection<ResourceModel> selectRandom(DiskNodeConnectionPool pool, Map<String, ResourceModel> map, Set<String> sids,
-                                                  List<Pair<String, Integer>> intValues, String groupName, int num) {
+    public Collection<ResourceModel> selectRandom(Map<String, ResourceModel> map, Set<String> sids,
+                                                  List<Pair<String, Integer>> intValues, int num) {
         List<ResourceModel> resourceModels = new ArrayList<>();
         String key;
-        String ip;
         ResourceModel tmp;
-        DiskNodeConnection conn;
         //ip选中优先选择
         int size = map.size();
         // 按资源选择
         Random random = new Random();
-        boolean sendFlag = System.currentTimeMillis() - repeatTime > INVERTTIME;
-        repeatTime = sendFlag ? System.currentTimeMillis() : repeatTime;
         while (resourceModels.size() != num && resourceModels.size() != size && sids.size() != size) {
             key = WeightRandomPattern.getWeightRandom(intValues, random, sids);
             tmp = map.get(key);
-            ip = tmp.getHost();
-            if (pool != null) {
-                conn = pool.getConnection(groupName, key);
-                if (conn == null || !conn.isValid()) {
-                    LOG.warn("{} :[{}({})]is unused !!", groupName, key, ip);
-                    sids.add(key);
-                    continue;
-                }
-            }
-
-            if (sendFlag) {
-                EmailPool emailPool = EmailPool.getInstance();
-                MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo())
-                                                       .setModel(this.getClass().getSimpleName() + "服务选择")
-                                                       .setMessage("即将 在 " + key + "(" + ip + ") 服务 写入重复数据");
-                emailPool.sendEmail(builder);
-            }
             resourceModels.add(tmp);
             sids.add(tmp.getServerId());
         }
@@ -253,37 +221,18 @@ public class MachineResourceWriterSelector implements ServiceSelector {
      *
      * @return
      */
-    public List<ResourceModel> selectNode(DiskNodeConnectionPool pool, Map<String, ResourceModel> map,
-                                          List<Pair<String, Integer>> intValues, String groupName, int num) {
-
+    public List<ResourceModel> selectNode(Map<String, ResourceModel> map,
+                                          List<Pair<String, Integer>> intValues, int num) {
         List<ResourceModel> resourceModels = new ArrayList<>();
         String key;
-        String ip;
         ResourceModel tmp;
-        DiskNodeConnection conn;
         //ip选中优先选择
-        Set<String> ips = new HashSet<>();
         List<String> uneedServices = new ArrayList<>();
         int size = map.size();
         // 按资源选择
         while (resourceModels.size() != num && resourceModels.size() != size && uneedServices.size() != size) {
             key = WeightRandomPattern.getWeightRandom(intValues, new Random(), uneedServices);
             tmp = map.get(key);
-            ip = tmp.getHost();
-            if (pool != null) {
-                conn = pool.getConnection(groupName, key);
-                if (conn == null || !conn.isValid()) {
-                    LOG.warn("{} :[{}({})]is unused !! is null {}!!", groupName, key, ip, conn == null);
-                    uneedServices.add(key);
-                    continue;
-                }
-            }
-            // 不同ip的添加
-            if (ips.add(ip)) {
-                resourceModels.add(tmp);
-            } else {
-                LOG.info("{} is selectd !! get next", ip);
-            }
             uneedServices.add(tmp.getServerId());
         }
         return resourceModels;

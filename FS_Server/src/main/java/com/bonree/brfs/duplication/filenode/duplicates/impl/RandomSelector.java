@@ -1,7 +1,6 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.duplication.datastream.connection.DiskNodeConnectionPool;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNode;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
 import com.bonree.brfs.identification.SecondIdsInterface;
@@ -16,11 +15,10 @@ public class RandomSelector extends MinimalDuplicateNodeSelector {
     private PartitionNodeSelector nodeSelector;
     private SecondIdsInterface secondIds;
 
-    public RandomSelector(ServiceManager serviceManager,
-                          DiskNodeConnectionPool connectionPool,
-                          PartitionNodeSelector nodeSelector,
-                          SecondIdsInterface secondIds, String dataGroup) {
-        super(serviceManager, connectionPool, log, dataGroup);
+    public RandomSelector(
+        ServiceManager serviceManager, PartitionNodeSelector nodeSelector,
+        SecondIdsInterface secondIds, String dataGroup) {
+        super(serviceManager, log, dataGroup);
         this.nodeSelector = nodeSelector;
         this.secondIds = secondIds;
     }

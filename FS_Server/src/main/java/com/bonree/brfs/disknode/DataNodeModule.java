@@ -115,6 +115,7 @@ public class DataNodeModule implements Module {
         Service service,
         Lifecycle lifecycle) {
         StorageRegionManager snManager = new DefaultStorageRegionManager(client, paths, null);
+        log.info("register storage region listener for server id");
         snManager.addStorageRegionStateListener(new StorageRegionStateListener() {
             private final Logger log = LoggerFactory.getLogger(StorageRegionManager.class);
 

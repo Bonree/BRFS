@@ -86,11 +86,12 @@ public class DiskContext {
      * @return
      */
     public String getLogicFilePath(String path) {
-        String storageDir = getStorageDir(path);
-        if (!path.startsWith(storageDir)) {
-            throw new IllegalArgumentException("path[" + path + "] isn't illegal real path");
+        for (String dir : storageDirs) {
+            if (path.startsWith(dir)) {
+                return path.substring(dir.length());
+            }
         }
 
-        return path.substring(storageDir.length());
+        throw new IllegalArgumentException("path[" + path + "] isn't illegal real path");
     }
 }
