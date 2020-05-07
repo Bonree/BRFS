@@ -46,6 +46,7 @@ import com.bonree.brfs.client.utils.URIRetryable.TaskResult;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.write.data.FidDecoder;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -75,6 +76,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
@@ -514,6 +516,7 @@ public class BRFSClient implements BRFS {
 
     @Override
     public BRFSObject getObject(GetObjectRequest request) throws Exception {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         String fid = null;
         if (request.getPath() != null) {
             fid = pathMapper.getFidByPath(request.getStorageRegionName(), request.getPath());
@@ -521,7 +524,8 @@ public class BRFSClient implements BRFS {
                 throw new FileNotFoundException(request.getPath().toString());
             }
         }
-
+        log.info("get fid of [{}] cost [{}]ms", request.getPath(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
+        stopwatch.stop();
         if (request.getFID() != null) {
             if (fid != null && !fid.equals(request.getFID())) {
                 throw new IllegalArgumentException(
@@ -541,6 +545,7 @@ public class BRFSClient implements BRFS {
     }
 
     private BRFSObject getObject(String srName, String fid, Range range) throws Exception {
+        Stopwatch started = Stopwatch.createStarted();
         if (range != null) {
             throw new ClientException("range is not supported now.");
         }
@@ -561,6 +566,7 @@ public class BRFSClient implements BRFS {
 
         if (!fidObj.getIsBigFile()) {
             InputStream content = getActualContentofFile(srName, fidObj, range);
+            log.info("get content of a small file which fid is :[] cost [{}]", fid, started.elapsed(TimeUnit.MILLISECONDS));
             return BRFSObject.from(content);
         }
 
@@ -591,6 +597,8 @@ public class BRFSClient implements BRFS {
             }
         }
 
+        log.info("get content of a big file which fid is :[] cost [{}]", fid, started.elapsed(TimeUnit.MILLISECONDS));
+        started.stop();
         return BRFSObject.from(new LazeAggregateInputStream(streamBuilder.build().iterator()));
     }
 
@@ -622,6 +630,7 @@ public class BRFSClient implements BRFS {
     public ListenableFuture<?> getObject(GetObjectRequest request, File outputFile, Executor executor) {
         SettableFuture<?> future = SettableFuture.create();
         executor.execute(() -> {
+            Stopwatch started = Stopwatch.createStarted();
             try (InputStream stream = getObject(request).getObjectContent()) {
                 if (stream == null) {
                     future.setException(new ClientException("No content is responsed"));
@@ -633,6 +642,7 @@ public class BRFSClient implements BRFS {
             } catch (Exception e) {
                 future.setException(e);
             }
+            log.info("get the future of [{}] cost [{}]ms", request.getPath(), started.elapsed(TimeUnit.MILLISECONDS));
         });
 
         return future;
