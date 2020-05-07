@@ -54,7 +54,7 @@ public final class DataNodeConfigs {
         ConfigUnit.ofBoolean("datanode.data.compress", true);
 
     public static final ConfigUnit<Boolean> CONFIG_READ_BY_ZEROCOPY =
-        ConfigUnit.ofBoolean("datanode.read.by.zerocopy", true);
+        ConfigUnit.ofBoolean("datanode.read.by.zerocopy", false);
 
     private DataNodeConfigs() {
     }

@@ -3,16 +3,19 @@
 ###############################################
 
 # 机器集群名
-# cluster.name = cluster_name
+cluster.name = cluster_name
 
 # Zookeeper地址
-# zookeeper.addresses = ip1:2181,ip2:2181
+zookeeper.addresses = localhost:2181
 
 # 磁盘节点服务所在的服务组
 # datanode.service.group = data_group
 
 # 副本节点服务群组名
 # regionnode.service.group = region_group
+
+# 插件配置
+brfs.plugins.loadList = ["brfs-http-netty"]
 
 ###############################################
 ###############磁盘分区配置####################
@@ -29,13 +32,13 @@
 ###############################################
 
 # 副本节点服务地址
-# regionnode.service.host = localhost
+# regionnode.httpserver.host = localhost
 
 # 副本节点服务端口
-# regionnode.service.port = 8880
+regionnode.httpserver.port = 8200
 
 # 副本节点服务的IO线程数
-# regionnode.server.io.num = 8
+# regionnode.httpserver.requestHandleWorkerNum = 8
 
 # 需要进行文件清理的文件个数
 # 副本节点中维护的文件数量超过此值，文件清理程序
@@ -62,50 +65,6 @@
 # 达，则删除DataEngine
 # regionnode.dataengine.idle.time = PT1H
 
-###############################################
-##############Data Node Config###################
-###############################################
-# 磁盘节点的服务地址
-# datanode.service.host = localhost
-
-# 磁盘节点的服务端口
-# datanode.service.port = 8881
-
-# 磁盘节点中文件读取端口
-# datanode.file.server.port = 8900
-
-# 磁盘节点保存数据文件的目录路径
-# datanode.data.root = /data
-
-# 磁盘文件的最大容量（字节）
-#datanode.file.max.capacity = 6815744
-
-# 磁盘节点处理数据写入的线程数
-# 默认为机器CPU核数
-# datanode.writer.worker.num = 8
-
-# 数据文件的写入缓存
-# 单位（字节）
-# datanode.writer.data.cache = 524288
-
-# 数据写入记录的缓存大小
-# datanode.writer.record.cache = 65536
-
-# 文件的空闲时间
-# 如果文件空闲时间超过此值，则会把缓存中的内容刷入磁盘
-# datanode.file.idle.time = PT3S
-
-# 磁盘节点中用于处理Http请求的线程数
-# datanode.request.handler.num = 8
-
-# datanode中进行文件读取的线程数
-# datanode.file.reader.num = 8
-
-# datanode 一级serverid存储目录，内部配置
-# datanode.ids.server.dir = ./ids
-
-# datanode 磁盘id存储目录 内部配置
-# datanode.ids.partition.dir = ./ids/partitionids
 ###############################################
 ##############文件平衡模块 Config################
 ###############################################
