@@ -59,7 +59,6 @@ import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalancev2.RebalanceManagerV2;
-import com.bonree.brfs.schedulers.InitTaskManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -87,7 +86,6 @@ public class DataNodeModule implements Module {
         binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
 
         binder.requestStaticInjection(CuratorCacheFactory.class);
-        binder.requestStaticInjection(InitTaskManager.class);
 
         binder.bind(Deliver.class).toInstance(Deliver.NOOP);
 
@@ -175,16 +173,6 @@ public class DataNodeModule implements Module {
         }, Lifecycle.Stage.SERVER);
 
         return service;
-    }
-
-    @Provides
-    @Singleton
-    public ResourceTaskConfig getResourceTaskConfig() {
-        try {
-            return ResourceTaskConfig.parse();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Provides

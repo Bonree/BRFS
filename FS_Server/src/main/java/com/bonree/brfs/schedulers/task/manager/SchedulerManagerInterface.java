@@ -1,5 +1,6 @@
 package com.bonree.brfs.schedulers.task.manager;
 
+import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import java.util.Collection;
 import java.util.Properties;
@@ -13,7 +14,7 @@ import java.util.Properties;
  * @Description: 任务服务接口
  *****************************************************************************
  */
-public interface SchedulerManagerInterface<T1, T2, T3> {
+public interface SchedulerManagerInterface<T1, T2, T3> extends LifeCycle {
     /**
      * 概述：将任务添加到指定的线程池
      *

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,89 +58,86 @@ public class ResourceTaskConfig {
 
     private String watchDogCron = "0 30 2 */7 * ?";
 
-    public ResourceTaskConfig() {
+    @Inject
+    public ResourceTaskConfig() throws Exception {
+        parse();
     }
 
-    public static ResourceTaskConfig parse() throws NullPointerException, ConfigParseException {
-        ResourceTaskConfig conf = new ResourceTaskConfig();
+    private void parse() throws NullPointerException, ConfigParseException {
 
         ConfigObj config = Configs.getConfiguration();
         if (config == null) {
             throw new NullPointerException("configuration is empty !!");
         }
-        Map<String, Boolean> configMap = conf.getTaskPoolSwitchMap();
         boolean sysDelFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_DELETE);
         boolean sysMergeFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_MERGE);
         boolean sysCheckFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_CHECK);
-        boolean sysRecoveryFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_RECOVER);
         boolean userDelFlag = config.getConfig(ResourceConfigs.CONFIG_USER_DELETE);
         boolean sysCopyFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_COPY);
-        configMap.put(TaskType.SYSTEM_DELETE.name(), sysDelFlag);
-        configMap.put(TaskType.SYSTEM_MERGER.name(), sysMergeFlag);
-        configMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckFlag);
-        configMap.put(TaskType.USER_DELETE.name(), userDelFlag);
-        configMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyFlag);
+        taskPoolSwitchMap.put(TaskType.SYSTEM_DELETE.name(), sysDelFlag);
+        taskPoolSwitchMap.put(TaskType.SYSTEM_MERGER.name(), sysMergeFlag);
+        taskPoolSwitchMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckFlag);
+        taskPoolSwitchMap.put(TaskType.USER_DELETE.name(), userDelFlag);
+        taskPoolSwitchMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyFlag);
 
-        Map<String, Integer> poolMap = conf.getTaskPoolSizeMap();
+        Map<String, Integer> taskPoolSizeMap = getTaskPoolSizeMap();
 
         int sysDelPool = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_DELETE_SIZE);
         int sysMergePool = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_MERGE_SIZE);
         int sysCheckPool = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_CHECK_SIZE);
-        int sysRecoveryPool = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_RECOVER_SIZE);
         int userDelPool = config.getConfig(ResourceConfigs.CONFIG_USER_DELETE_SIZE);
         int sysCopyPool = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_COPY_SIZE);
 
-        poolMap.put(TaskType.SYSTEM_DELETE.name(), sysDelPool);
-        poolMap.put(TaskType.SYSTEM_MERGER.name(), sysMergePool);
-        poolMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckPool);
-        poolMap.put(TaskType.USER_DELETE.name(), userDelPool);
-        poolMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool);
+        taskPoolSizeMap.put(TaskType.SYSTEM_DELETE.name(), sysDelPool);
+        taskPoolSizeMap.put(TaskType.SYSTEM_MERGER.name(), sysMergePool);
+        taskPoolSizeMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckPool);
+        taskPoolSizeMap.put(TaskType.USER_DELETE.name(), userDelPool);
+        taskPoolSizeMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool);
 
-        conf.setCreateTaskIntervalTime(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_TASK_CREATE_INTERVAL)));
-        conf.setCreateCheckJobTaskervalTime(
+        setCreateTaskIntervalTime(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_TASK_CREATE_INTERVAL)));
+        setCreateCheckJobTaskervalTime(
             TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_COPY_CHECK_CREATE_INTERVAL)));
 
-        conf.setExecuteTaskIntervalTime(
+        setExecuteTaskIntervalTime(
             TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_TASK_EXECUTE_INTERVAL)));
 
-        conf.setGatherResourceInveralTime(
+        setGatherResourceInveralTime(
             TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_RESOURCE_GATHER_INTERVAL)));
 
-        conf.setCalcResourceValueCount(config.getConfig(ResourceConfigs.CONFIG_RESOURCE_CALCULATE_COUNT));
-        conf.setTaskFrameWorkSwitch(config.getConfig(ResourceConfigs.CONFIG_TASK_ENABLE));
+        setCalcResourceValueCount(config.getConfig(ResourceConfigs.CONFIG_RESOURCE_CALCULATE_COUNT));
 
-        conf.setResourceFrameWorkSwitch(config.getConfig(ResourceConfigs.CONFIG_RESOURCE_ENABLE));
+        setTaskFrameWorkSwitch(config.getConfig(ResourceConfigs.CONFIG_TASK_ENABLE));
 
-        conf.setTaskExpiredTime(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_TASK_EXPIRED_TIME)));
+        setResourceFrameWorkSwitch(config.getConfig(ResourceConfigs.CONFIG_RESOURCE_ENABLE));
 
-        conf.setLimitCpuRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_CPU_RATE));
-        conf.setLimitMemoryRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_MEM_RATE));
-        conf.setLimitDiskRemaintRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE));
-        conf.setLimitDiskWriteRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED));
-        conf.setLimitDiskReadRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_DISK_READ_SPEED));
-        conf.setLimitNetTxRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_NET_SEND));
-        conf.setLimitNetRxRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_NET_RECEIVE));
-        //TODO 测试阶段，改字段改为s
-        conf.setCheckTtl(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_DATA_CHECK_TTL)));
+        setTaskExpiredTime(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_TASK_EXPIRED_TIME)));
+
+        setLimitCpuRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_CPU_RATE));
+        setLimitMemoryRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_MEM_RATE));
+        setLimitDiskRemaintRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE));
+        setLimitDiskWriteRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED));
+        setLimitDiskReadRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_DISK_READ_SPEED));
+        setLimitNetTxRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_NET_SEND));
+        setLimitNetRxRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_NET_RECEIVE));
+        setCheckTtl(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_DATA_CHECK_TTL)));
 
         String cronStr = analyseCronStr(config.getConfig(ResourceConfigs.CONFIG_SCHED_COPY_CHECK_CLOCK), 0);
         String tmpCronStr = config.getConfig(ResourceConfigs.CONFIG_TEST_COUNT_CRON_STR);
         if (BrStringUtils.isEmpty(tmpCronStr)) {
-            conf.setCheckCronStr(cronStr);
+            setCheckCronStr(cronStr);
         } else {
-            conf.setCheckCronStr(tmpCronStr);
+            setCheckCronStr(tmpCronStr);
         }
 
         int day = config.getConfig(ResourceConfigs.CONFIG_SCHED_COPY_CHECK_RANGE);
         if (day <= 0) {
             throw new ConfigParseException("cycle.check.copy.count.time.range : " + day + " is error!! please check it");
         }
-        conf.setCheckTimeRange(day);
+        setCheckTimeRange(day);
         String watchTime = config.getConfig(ResourceConfigs.CONFIG_SCHED_WATCHDOG_TRIGGER_CLOCK);
         int watchInt = config.getConfig(ResourceConfigs.CONFIG_SCHED_WATCHDOG_TRIGGER_INTERVAL);
         String watchCron = analyseCronStr(watchTime, watchInt);
-        conf.setWatchDogCron(watchCron);
-        return conf;
+        setWatchDogCron(watchCron);
     }
 
     private static String analyseCronStr(String content, int interval) throws ConfigParseException {
