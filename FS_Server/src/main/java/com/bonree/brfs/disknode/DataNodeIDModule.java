@@ -1,6 +1,7 @@
 package com.bonree.brfs.disknode;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
@@ -45,6 +46,9 @@ import org.apache.curator.framework.CuratorFramework;
 public class DataNodeIDModule implements Module {
     @Override
     public void configure(Binder binder) {
+        // 加载配置
+        JsonConfigProvider.bind(binder, "partition", PartitionConfig.class);
+
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class);
         binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class);
         binder.bind(SecondIdsInterface.class).to(SecondMaintainerInterface.class).in(ManageLifecycle.class);

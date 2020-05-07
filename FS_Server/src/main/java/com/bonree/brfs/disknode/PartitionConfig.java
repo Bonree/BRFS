@@ -1,7 +1,6 @@
 package com.bonree.brfs.disknode;
 
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.PartitionIdsConfigs;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * 版权信息: 北京博睿宏远数据科技股份有限公司
@@ -11,15 +10,18 @@ import com.bonree.brfs.configuration.units.PartitionIdsConfigs;
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description: 磁盘信息配置
  **/
+
 public class PartitionConfig {
     /**
      * 磁盘分区组名称
      */
-    private String partitionGroupName = Configs.getConfiguration().getConfig(PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME);
+    @JsonProperty("group")
+    private String partitionGroupName = "partition_group";
     /**
      * 磁盘检查的周期 单位 s
      */
-    private int intervalTime = Configs.getConfiguration().getConfig(PartitionIdsConfigs.CONFIG_CHECK_INTERVAL_SECOND_TIME);
+    @JsonProperty("check.interval.time")
+    private int intervalTime = 5;
 
     public PartitionConfig() throws Exception {
     }

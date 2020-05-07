@@ -10,6 +10,7 @@ import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.PartitionIdsConfigs;
+import com.bonree.brfs.disknode.PartitionConfig;
 import com.bonree.brfs.partition.model.PartitionInfo;
 import com.bonree.brfs.resource.vo.ClusterStorageInfo;
 import com.google.inject.Inject;
@@ -46,18 +47,19 @@ public class DiskPartitionInfoManager implements LifeCycle {
     private DiskPartitionInfoListener listener;
     private Map<String, PartitionInfo> diskPartitionInfoCache = new ConcurrentHashMap<>();
     private CuratorFramework client;
+    private String path;
 
     @Inject
-    public DiskPartitionInfoManager(CuratorFramework client, ZookeeperPaths zkPath) {
+    public DiskPartitionInfoManager(CuratorFramework client, ZookeeperPaths zkPath, PartitionConfig partitionIdsConfigs) {
         this.client = client;
         this.zkPath = zkPath;
+        this.path = ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), partitionIdsConfigs.getPartitionGroupName());
     }
 
     @LifecycleStart
     @Override
     public void start() throws Exception {
-        String path = ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), Configs.getConfiguration().getConfig(
-            PartitionIdsConfigs.CONFIG_PARTITION_GROUP_NAME));
+
         this.cache = new PathChildrenCache(client, path, false);
         this.cache.start();
         this.listener = new DiskPartitionInfoListener();
