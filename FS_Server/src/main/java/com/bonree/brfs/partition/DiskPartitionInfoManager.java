@@ -60,7 +60,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
     @Override
     public void start() throws Exception {
 
-        this.cache = new PathChildrenCache(client, path, false);
+        this.cache = new PathChildrenCache(client, path, true);
         this.cache.start();
         this.listener = new DiskPartitionInfoListener();
         this.cache.getListenable().addListener(this.listener);
