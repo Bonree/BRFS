@@ -166,7 +166,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.bonree.fs</groupId>
-				<artifactId>FS_ResouceSchedule</artifactId>
+				<artifactId>brfs-resource</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

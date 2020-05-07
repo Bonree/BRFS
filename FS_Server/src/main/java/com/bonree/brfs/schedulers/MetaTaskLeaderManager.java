@@ -16,6 +16,7 @@ import com.bonree.brfs.schedulers.task.meta.impl.QuartzCronInfo;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
+import com.google.inject.Inject;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
@@ -38,6 +39,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
     private SchedulerManagerInterface manager;
     private ResourceTaskConfig config;
 
+    @Inject
     public MetaTaskLeaderManager(SchedulerManagerInterface manager, ResourceTaskConfig config) {
         this.manager = manager;
         this.config = config;
@@ -74,7 +76,7 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
             Thread.sleep(Long.MAX_VALUE);
             manager.destoryTaskPool(META_TASK_MANAGER, false);
             LOG.info("loss the leader !!!");
-        } catch (ParamsErrorException | InterruptedException e) {
+        } catch (Exception e) {
             LOG.error("{}", e);
         }
     }
@@ -89,10 +91,10 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
             }
             manager.destoryTaskPool(META_TASK_MANAGER, false);
             manager.destoryTaskPool(COPY_CYCLE_POOL, false);
-            LOG.info("loss the leader !!!");
         } catch (ParamsErrorException e) {
             LOG.error("{}", e);
         }
+        LOG.info("loss the leader !!!");
     }
 
     public void checkSwitchTask() {

@@ -1,5 +1,6 @@
 package com.bonree.brfs.schedulers.task.manager.impl;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
@@ -8,6 +9,7 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.common.zookeeper.ZookeeperClient;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.common.zookeeper.curator.CuratorConfig;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +34,11 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
     private String taskQueue = null;
     private String taskTransfer = null;
     private String taskHistory = null;
+
+    @Inject
+    public DefaultReleaseTask(CuratorConfig curatorConfig, ZookeeperPaths zkPath) {
+        this(curatorConfig.getAddresses(), zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
+    }
 
     public DefaultReleaseTask(String zkUrl, String taskRootPath, String lockPath) {
         this.zkUrl = zkUrl;

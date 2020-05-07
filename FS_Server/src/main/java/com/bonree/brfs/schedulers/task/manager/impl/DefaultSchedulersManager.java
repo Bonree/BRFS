@@ -1,12 +1,25 @@
 package com.bonree.brfs.schedulers.task.manager.impl;
 
+import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.lifecycle.LifecycleStart;
+import com.bonree.brfs.common.lifecycle.LifecycleStop;
+import com.bonree.brfs.common.lifecycle.ManageLifecycle;
+import com.bonree.brfs.common.process.LifeCycle;
+import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
+import com.bonree.brfs.common.zookeeper.curator.CuratorConfig;
+import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
+import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
 import com.bonree.brfs.schedulers.task.manager.BaseSchedulerInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
+import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
+import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.mail.worker.MailWorker;
+import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,19 +38,23 @@ import org.slf4j.LoggerFactory;
  * @Description: 单例模式的调度接口
  *****************************************************************************
  */
+@ManageLifecycle
 public class DefaultSchedulersManager implements SchedulerManagerInterface<String, BaseSchedulerInterface, SumbitTaskInterface> {
-    Map<String, BaseSchedulerInterface> taskPoolMap = new ConcurrentHashMap<String, BaseSchedulerInterface>();
     private static final Logger LOG = LoggerFactory.getLogger(DefaultSchedulersManager.class);
+    private Map<String, BaseSchedulerInterface> taskPoolMap = new ConcurrentHashMap<String, BaseSchedulerInterface>();
+    private ResourceTaskConfig config;
+    private Service service;
+    private ZookeeperPaths zookeeperPaths;
+    private CuratorConfig curatorConfig;
 
-    private static class SingletonInstance {
-        public static DefaultSchedulersManager instance = new DefaultSchedulersManager();
-    }
-
-    private DefaultSchedulersManager() {
-    }
-
-    public static DefaultSchedulersManager getInstance() {
-        return SingletonInstance.instance;
+    @Inject
+    public DefaultSchedulersManager(
+        CuratorConfig curatorConfig, ResourceTaskConfig config, Service service,
+        ZookeeperPaths zookeeperPaths) {
+        this.curatorConfig = curatorConfig;
+        this.config = config;
+        this.service = service;
+        this.zookeeperPaths = zookeeperPaths;
     }
 
     @Override
@@ -116,8 +133,8 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
         if (BrStringUtils.isEmpty(taskpoolKey)) {
             throw new ParamsErrorException("task pool key is empty !!!");
         }
-        if (taskPoolMap.containsKey(taskpoolKey)) {
-            throw new ParamsErrorException(taskpoolKey + " task pool key is exists !!!");
+        if (taskPoolMap.get(taskpoolKey) != null) {
+            return true;
         }
         BaseSchedulerInterface pool = new DefaultBaseSchedulers();
         String name = prop.getProperty("org.quartz.scheduler.instanceName");
@@ -449,6 +466,90 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
         } catch (Exception e) {
             LOG.error("get task pool size error {}", e);
             return 0;
+        }
+    }
+
+    @LifecycleStart
+    @Override
+    public void start() throws Exception {
+        Map<String, Boolean> switchMap = config.getTaskPoolSwitchMap();
+        Map<String, Integer> sizeMap = config.getTaskPoolSizeMap();
+        Properties prop;
+        String poolName;
+        int count = 0;
+        int size;
+        for (TaskType taskType : TaskType.values()) {
+            poolName = taskType.name();
+            if (!switchMap.containsKey(poolName)) {
+                continue;
+            }
+            if (!switchMap.get(poolName)) {
+                continue;
+            }
+            size = sizeMap.get(poolName);
+            if (size == 0) {
+                LOG.warn("pool :{} config pool size is 0 ,will change to 1", poolName);
+                size = 1;
+            }
+            prop = DefaultBaseSchedulers.createSimplePrope(size, 1000L);
+            boolean createState = createTaskPool(poolName, prop);
+            if (createState) {
+                startTaskPool(poolName);
+            }
+            count++;
+        }
+        LOG.info("pool :{} count: {} started !!!", getAllPoolKey(), count);
+        if (config.getSwitchOnTaskType().contains(TaskType.SYSTEM_COPY_CHECK)) {
+            SumbitTaskInterface copyJob = createCopySimpleTask(config.getExecuteTaskIntervalTime(),
+                                                               TaskType.SYSTEM_COPY_CHECK.name(), service.getServiceId(),
+                                                               CopyRecoveryJob.class.getCanonicalName(),
+                                                               curatorConfig.getAddresses(), zookeeperPaths.getBaseRoutePath());
+            addTask(TaskType.SYSTEM_COPY_CHECK.name(), copyJob);
+        }
+    }
+
+    /**
+     * 概述：生成任务信息
+     *
+     * @param taskName
+     * @param serverId
+     * @param clazzName
+     *
+     * @return
+     *
+     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
+     */
+    private SumbitTaskInterface createCopySimpleTask(long invertalTime, String taskName, String serverId, String clazzName,
+                                                     String zkHost, String path) {
+        QuartzSimpleInfo task = new QuartzSimpleInfo();
+        task.setRunNowFlag(true);
+        task.setCycleFlag(true);
+        task.setTaskName(taskName);
+        task.setTaskGroupName(TaskType.SYSTEM_COPY_CHECK.name());
+        task.setRepeateCount(-1);
+        task.setInterval(invertalTime);
+        Map<String, String> dataMap = JobDataMapConstract.createCOPYDataMap(taskName, serverId, invertalTime, zkHost, path);
+        if (dataMap != null && !dataMap.isEmpty()) {
+            task.setTaskContent(dataMap);
+        }
+
+        task.setClassInstanceName(clazzName);
+        return task;
+    }
+
+    @LifecycleStop
+    @Override
+    public void stop() throws Exception {
+        if (taskPoolMap == null || taskPoolMap.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, BaseSchedulerInterface> entry : taskPoolMap.entrySet()) {
+            String name = entry.getKey();
+            BaseSchedulerInterface scheduler = entry.getValue();
+            if (scheduler.isStart() && !scheduler.isDestory()) {
+                scheduler.close(false);
+                LOG.info("{} task pool close ", name);
+            }
         }
     }
 }

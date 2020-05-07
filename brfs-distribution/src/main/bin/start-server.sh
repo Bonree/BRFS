@@ -81,12 +81,22 @@ fi
 
 JVM_PARAMS=`sed -i 's/\r//' ${CONFIG_DIR}/jvm.config | grep -v "^#.*$" | cat`
 
-
 #网络参数设置
 DISK_NET_BACKLOG=2048
 DISK_IO_THREADS=16
 DUPLICATE_NET_BACKLOG=2048
 DUPLICATE_IO_THREADS=16
+
+PID_FILE=${CONFIG_DIR}/${NODE_TYPE}_PID
+if [ -f "${PID_FILE}" ]
+then
+  PID=`cat ${PID_FILE}`
+  if [ `jps | awk '{print $1}' | grep ${PID} | wc -l` -gt 0 ]
+  then
+    echo "process[${PID}] has been running as ${NODE_TYPE}"
+    exit 1
+  fi
+fi
 
 cd ${BRFS_HOME}
 case ${NODE_TYPE} in
@@ -103,6 +113,7 @@ case ${NODE_TYPE} in
 			-Dnet.io.threads=$DUPLICATE_IO_THREADS \
 			-cp $LIB_DIR/*:${CONFIG_DIR} "com.bonree.brfs.server.Main" node region \
 			> $BRFS_HOME/logs/regionnode.out 2>&1 &
+			echo $! > ${PID_FILE}
 			echo 'start region server completely!'
 		;;
 		###启动磁盘管理###
@@ -118,6 +129,7 @@ case ${NODE_TYPE} in
 			-Dnet.io.threads=$DISK_IO_THREADS \
 			-cp $LIB_DIR/*:${CONFIG_DIR} "com.bonree.brfs.server.Main" node data \
 			> $BRFS_HOME/logs/datanode.out 2>&1 &
+			echo $! > ${PID_FILE}
 			echo 'start disk server completely!'
 		;;
 		*)

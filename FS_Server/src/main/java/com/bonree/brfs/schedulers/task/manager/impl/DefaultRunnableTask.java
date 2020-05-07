@@ -1,10 +1,12 @@
 package com.bonree.brfs.schedulers.task.manager.impl;
 
 import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.model.TaskExecutablePattern;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,16 +19,9 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
     private static final int maxbatchTimes = 10;
     private static final long maxBatchSleepTime = 30000L;
 
-    private DefaultRunnableTask() {
-
-    }
-
-    private static class SimpleInstance {
-        public static DefaultRunnableTask instance = new DefaultRunnableTask();
-    }
-
-    public static DefaultRunnableTask getInstance() {
-        return SimpleInstance.instance;
+    @Inject
+    public DefaultRunnableTask(ResourceTaskConfig config) {
+        this.limit = TaskExecutablePattern.parse(config);
     }
 
     @Override

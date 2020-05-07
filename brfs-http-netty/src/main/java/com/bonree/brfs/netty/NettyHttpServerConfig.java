@@ -35,12 +35,12 @@ public class NettyHttpServerConfig implements HttpServerConfig {
     @JsonProperty
     private int connectTimeoutMillies = 30000;
     @JsonProperty
-    private int backlog = 128;
+    private int backlog = 2048;
     @JsonProperty
-    private boolean keepAlive;
+    private boolean keepAlive = true;
 
     @JsonProperty
-    private boolean tcpNoDelay;
+    private boolean tcpNoDelay = true;
 
     @JsonProperty
     private int maxHttpContentLength = 65 * 1024 * 1024;
