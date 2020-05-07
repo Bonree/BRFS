@@ -3,10 +3,10 @@
 ###############################################
 
 # 机器集群名
-# cluster.name = cluster_name
+cluster.name = cluster_name
 
 # Zookeeper地址
-# zookeeper.addresses = ip1:2181,ip2:2181
+zookeeper.addresses = localhost:2181
 
 # 磁盘节点服务所在的服务组
 # datanode.service.group = data_group
@@ -25,44 +25,6 @@
 # partition.check.interval.time = 5
 
 ###############################################
-##############Region Node Config###################
-###############################################
-
-# 副本节点服务地址
-# regionnode.service.host = localhost
-
-# 副本节点服务端口
-# regionnode.service.port = 8880
-
-# 副本节点服务的IO线程数
-# regionnode.server.io.num = 8
-
-# 需要进行文件清理的文件个数
-# 副本节点中维护的文件数量超过此值，文件清理程序
-# 才会进行文件清理
-#regionnode.file.clean.count = 10
-
-# 副本节点能打开的最大文件数量
-#regionnode.file.max.count = 15
-
-# 文件可以被清理的字节下限
-# 文件清理程序只会清理文件空间使用比率大于此值的文件
-# regionnode.file.clean.usage.rate = 0.99
-
-# 副本节点向磁盘节点写数据的线程数
-# regionnode.writer.worker.num = 24
-
-# 每个Storage Region可以缓存的数据数量
-# regionnode.data.pool.capacity = 512
-
-# 数据处理程序的空闲时间
-# 每个Storage Region都会对应有一个DataEngine
-# 当第一条数据到达时DataEngine才会创建，如果在最后
-# 一条数据写入后，在Idle设定时长的时间里都没有数据到
-# 达，则删除DataEngine
-# regionnode.dataengine.idle.time = PT1H
-
-###############################################
 ##############Data Node Config###################
 ###############################################
 # 磁盘节点的服务地址
@@ -75,7 +37,7 @@
 # datanode.file.server.port = 8900
 
 # 磁盘节点保存数据文件的目录路径
-# datanode.data.root = /data
+# datanode.storage.dirs = ["/data1", "/data2"]
 
 # 磁盘文件的最大容量（字节）
 #datanode.file.max.capacity = 6815744
@@ -116,24 +78,6 @@
 # 磁盘节点异常的迁移触发时间（秒）
 # -1为立即触发
 # rebalance.serverdown.recover.time = 3600
-
-###############################################
-##############Storage Config###################
-###############################################
-# Storage中文件的有效期
-# 负数为无穷期限，例如"P-1D"
-# storage.data.ttl = P30D
-
-# Storage中文件的副本数
-# storage.replicate.count = 2
-
-# Storage Region中每个文件的容量大小（字节）
-# storage.file.capacity = 67108864
-
-# 默认Storage Region中分隔文件的时间段大小;
-# 文件会被按照时间存储到不同的文件夹下，每个文件夹会包含此值
-# 所指定的时间间隔内的所有文件
-# storage.file.patition.duration = PT1H
 
 ###############################################
 ##############任务管理模块 Config################
