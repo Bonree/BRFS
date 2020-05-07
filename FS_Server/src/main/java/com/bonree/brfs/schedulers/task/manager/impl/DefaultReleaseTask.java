@@ -440,6 +440,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
         }
         return i;
     }
+
     private String mvHistory(TaskModel data, String taskType, String taskName) {
         String pathNode = null;
         try {
@@ -481,6 +482,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
         }
         return pathNode;
     }
+
     /**
      * 概述：维护任务的状态
      *

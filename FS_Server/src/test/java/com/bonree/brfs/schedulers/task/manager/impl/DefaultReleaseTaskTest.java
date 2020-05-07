@@ -16,16 +16,18 @@ public class DefaultReleaseTaskTest {
     @Test
     public void testStart() {
         DefaultReleaseTask releaseTask = new DefaultReleaseTask(zkAddress, taskRoot, taskLocl);
-        StorageRegion region = new StorageRegion("user",0,System.currentTimeMillis()-1000000,false,2,"PT10M",100,"PT10M");
-        TaskModel taskModel = TasksUtils.createUserDelete(region,TaskType.USER_DELETE,null,region.getCreateTime(),System.currentTimeMillis());
+        StorageRegion region =
+            new StorageRegion("user", 0, System.currentTimeMillis() - 1000000, false, 2, "PT10M", 100, "PT10M");
+        TaskModel taskModel =
+            TasksUtils.createUserDelete(region, TaskType.USER_DELETE, null, region.getCreateTime(), System.currentTimeMillis());
         taskModel.setTaskState(3);
         String name = releaseTask.updateTaskContentNode(taskModel, TaskType.USER_DELETE.name(), null);
         TaskServerNodeModel serverNodeModel = new TaskServerNodeModel();
         serverNodeModel.setTaskState(3);
         serverNodeModel.setRetryCount(2);
-        releaseTask.updateServerTaskContentNode("10",name, TaskType.USER_DELETE.name(),serverNodeModel);
+        releaseTask.updateServerTaskContentNode("10", name, TaskType.USER_DELETE.name(), serverNodeModel);
         System.out.println(name);
-        releaseTask.reviseTaskStat(TaskType.USER_DELETE.name(), 7*24*60*60*1000, Arrays.asList("10"));
+        releaseTask.reviseTaskStat(TaskType.USER_DELETE.name(), 7 * 24 * 60 * 60 * 1000, Arrays.asList("10"));
 
     }
 }
