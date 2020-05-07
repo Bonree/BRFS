@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultRunnableTask implements RunnableTaskInterface {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRunnableTask.class);
-    private TaskExecutablePattern limit = null;
 
     private static final int batchCount = 5;
     private static final long batchSleepTime = 5000L;
@@ -20,13 +19,8 @@ public class DefaultRunnableTask implements RunnableTaskInterface {
     private static final long maxBatchSleepTime = 30000L;
 
     @Inject
-    public DefaultRunnableTask(ResourceTaskConfig config) {
-        this.limit = TaskExecutablePattern.parse(config);
-    }
+    public DefaultRunnableTask() {
 
-    @Override
-    public void setLimitParameter(TaskExecutablePattern limits) {
-        this.limit = limits;
     }
 
     @Override

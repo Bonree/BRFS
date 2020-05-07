@@ -424,7 +424,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
                 i++;
                 continue;
             }
-            updateTaskContentNode(taskModel, taskType, taskName, historyQueue);
+            mvHistory(taskModel, taskType, taskName);
             List<String> taskServerList = getTaskServerList(taskType, taskName, taskQueue);
             if (taskServerList != null && !taskServerList.isEmpty()) {
                 for (String staskname : taskServerList) {
@@ -440,7 +440,47 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
         }
         return i;
     }
+    private String mvHistory(TaskModel data, String taskType, String taskName) {
+        String pathNode = null;
+        try {
+            if (data == null) {
+                LOG.warn("task content is empty");
+                return null;
+            }
+            byte[] datas = JsonUtils.toJsonBytes(data);
+            if (datas == null || datas.length == 0) {
+                LOG.warn("task content convert is empty");
+                return null;
+            }
+            if (BrStringUtils.isEmpty(taskType)) {
+                LOG.warn("task type is empty");
+                return null;
+            }
+            TaskType current = TaskType.valueOf(taskType);
+            int taskTypeIndex = current == null ? 0 : current.code();
 
+            StringBuilder pathBuilder = new StringBuilder();
+            pathBuilder.append(taskHistory).append("/").append(taskType).append("/");
+            if (BrStringUtils.isEmpty(taskName)) {
+                pathBuilder.append(taskTypeIndex);
+            } else {
+                pathBuilder.append(taskName);
+            }
+            String taskPath = pathBuilder.toString();
+            if (!BrStringUtils.isEmpty(taskName) && client.checkExists(taskPath)) {
+                client.setData(taskPath, datas);
+                return taskName;
+            }
+            pathNode = client.createPersistent(taskPath, true, datas);
+            String[] nodes = BrStringUtils.getSplit(pathNode, "/");
+            if (nodes != null && nodes.length != 0) {
+                return nodes[nodes.length - 1];
+            }
+        } catch (Exception e) {
+            LOG.error("update task error {}", e);
+        }
+        return pathNode;
+    }
     /**
      * 概述：维护任务的状态
      *
