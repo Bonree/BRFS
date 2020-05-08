@@ -3,7 +3,10 @@ package com.bonree.brfs.duplication.filenode.duplicates.impl;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.partition.model.PartitionInfo;
+import com.google.inject.Inject;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 版权信息: 北京博睿宏远数据科技股份有限公司
@@ -14,8 +17,10 @@ import java.util.Map;
  * @description: 根据磁盘剩余大小选择磁盘
  **/
 public class SimplePartitionNodeSelecotr implements PartitionNodeSelector {
+    private static final Logger LOG = LoggerFactory.getLogger(SimplePartitionNodeSelecotr.class);
     private DiskPartitionInfoManager diskPartitionInfoManager = null;
 
+    @Inject
     public SimplePartitionNodeSelecotr(DiskPartitionInfoManager diskPartitionInfoManager) {
         this.diskPartitionInfoManager = diskPartitionInfoManager;
     }
@@ -25,6 +30,7 @@ public class SimplePartitionNodeSelecotr implements PartitionNodeSelector {
         Map<String, PartitionInfo> map = this.diskPartitionInfoManager.getPartitionInfosByServiceId(firstId);
         // 1.若磁盘个数为空，则返回null，
         if (map == null || map.isEmpty()) {
+            LOG.warn("partition cache is empty !!");
             return null;
         }
         PartitionInfo max = null;

@@ -36,6 +36,7 @@ public class RegionIDModule implements Module {
     public void configure(Binder binder) {
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class).in(Scopes.SINGLETON);
         binder.bind(DiskPartitionInfoManager.class).in(ManageLifecycle.class);
+        binder.bind(PartitionNodeSelector.class).to(SimplePartitionNodeSelecotr.class).in(Scopes.SINGLETON);
     }
 
     @Provides
@@ -58,11 +59,6 @@ public class RegionIDModule implements Module {
         } catch (Exception e) {
             throw new RuntimeException("create secondIds happen error !", e);
         }
-    }
-
-    @Provides
-    public PartitionNodeSelector getPartitionNodeSelecotr(DiskPartitionInfoManager diskPartitionInfoManager) {
-        return new SimplePartitionNodeSelecotr(diskPartitionInfoManager);
     }
 
     @Provides
