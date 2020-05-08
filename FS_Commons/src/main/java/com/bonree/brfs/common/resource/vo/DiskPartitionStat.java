@@ -1,21 +1,30 @@
 package com.bonree.brfs.common.resource.vo;
 
 public class DiskPartitionStat {
+    private String partitionId;
     private String dirName = null;
     private String devName = null;
-    long total = 0L;
-    long free = 0L;
-    long used = 0L;
-    long avail = 0L;
-    long files = 0L;
-    long freeFiles = 0L;
-    long diskReads = 0L;
-    long diskWrites = 0L;
-    long diskReadBytes = 0L;
-    long diskWriteBytes = 0L;
-    double diskQueue = 0.0D;
-    double diskServiceTime = 0.0D;
-    double usePercent = 0.0D;
+    private long total = 0L;
+    private long free = 0L;
+    private long used = 0L;
+    private long avail = 0L;
+    private long files = 0L;
+    private long freeFiles = 0L;
+    private long diskReads = 0L;
+    private long diskWrites = 0L;
+    private long diskReadBytes = 0L;
+    private long diskWriteBytes = 0L;
+    private double diskQueue = 0.0D;
+    private double diskServiceTime = 0.0D;
+    private double usePercent = 0.0D;
+
+    public String getPartitionId() {
+        return partitionId;
+    }
+
+    public void setPartitionId(String partitionId) {
+        this.partitionId = partitionId;
+    }
 
     public String getDirName() {
         return dirName;

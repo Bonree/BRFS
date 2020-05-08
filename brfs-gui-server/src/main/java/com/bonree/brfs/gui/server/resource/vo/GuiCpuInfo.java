@@ -1,4 +1,4 @@
-package com.bonree.brfs.resource.vo;
+package com.bonree.brfs.gui.server.resource.vo;
 
 public class GuiCpuInfo {
     private long time;

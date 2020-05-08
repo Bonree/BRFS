@@ -1,20 +1,17 @@
-package com.bonree.brfs.resource.impl;
+package com.bonree.brfs.gui.server.resource.impl;
 
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
-import com.bonree.brfs.common.lifecycle.LifecycleStop;
-import com.bonree.brfs.common.lifecycle.ManageLifecycle;
-import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.disknode.GuiResourceConfig;
-import com.bonree.brfs.resource.GuiResourceMaintainer;
-import com.bonree.brfs.resource.vo.GuiCpuInfo;
-import com.bonree.brfs.resource.vo.GuiDiskIOInfo;
-import com.bonree.brfs.resource.vo.GuiDiskUsageInfo;
-import com.bonree.brfs.resource.vo.GuiLoadInfo;
-import com.bonree.brfs.resource.vo.GuiMemInfo;
-import com.bonree.brfs.resource.vo.GuiNetInfo;
-import com.bonree.brfs.resource.vo.GuiNodeInfo;
+import com.bonree.brfs.gui.server.resource.GuiResourceMaintainer;
+import com.bonree.brfs.gui.server.resource.vo.GuiCpuInfo;
+import com.bonree.brfs.gui.server.resource.vo.GuiDiskIOInfo;
+import com.bonree.brfs.gui.server.resource.vo.GuiDiskUsageInfo;
+import com.bonree.brfs.gui.server.resource.vo.GuiLoadInfo;
+import com.bonree.brfs.gui.server.resource.vo.GuiMemInfo;
+import com.bonree.brfs.gui.server.resource.vo.GuiNetInfo;
+import com.bonree.brfs.gui.server.resource.vo.GuiNodeInfo;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.File;
 import java.io.IOException;
@@ -27,44 +24,41 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@ManageLifecycle
-public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
+public class GuiFileMaintainer implements GuiResourceMaintainer {
     private static final Logger LOG = LoggerFactory.getLogger(GuiFileMaintainer.class);
+    private static final String NODE_INFO = "node";
+    private static final String CPU_INFO = "cpu";
+    private static final String MEM_INFO = "mem";
+    private static final String LOAD_INFO = "load";
+    private static final String DISK_IO_INFO = "disk_io";
+    private static final String DISK_USAGE_INFO = "disk_usage";
+    private static final String NET_SPEED_INFO = "net_speed";
     private String basePath;
-    private String nodeFilePath;
-    private String cpuDirPath;
-    private String memDirPath;
-    private String loadDirPath;
-    private String diskIODirPath;
-    private String diskUsageDirPath;
-    private String netInfoDirPath;
     private Collection<String> scanPaths = null;
     private ScheduledExecutorService pool = null;
     private int intervalTime;
     private int ttlTime;
-    private boolean run = false;
+    private boolean run = true;
     private boolean start;
 
-    @Inject
-    public GuiFileMaintainer(GuiResourceConfig config) {
-        this.basePath = config.getGuiDir();
-        this.run = config.isRunFlag();
-        nodeFilePath = this.basePath + File.separator + "sys/node";
-        cpuDirPath = this.basePath + File.separator + "cpu";
-        memDirPath = this.basePath + File.separator + "mem";
-        loadDirPath = this.basePath + File.separator + "load";
-        diskIODirPath = this.basePath + File.separator + "disk/io";
-        diskUsageDirPath = this.basePath + File.separator + "disk/usage";
-        netInfoDirPath = this.basePath + File.separator + "net/stat";
-        this.intervalTime = config.getScanIntervalTime();
-        this.ttlTime = config.getTtlTime();
+    public GuiFileMaintainer(String path, int scanIntervalTime, int ttlTime) {
+        this.basePath = path;
+        this.intervalTime = scanIntervalTime;
+        this.ttlTime = ttlTime;
 
+    }
+
+    private String createPath(String type, String node) {
+        return new StringBuilder(this.basePath)
+            .append(File.separator)
+            .append(type)
+            .append(File.separator)
+            .append(node).toString();
     }
 
     /**
@@ -231,12 +225,12 @@ public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     }
 
     @Override
-    public GuiNodeInfo getNodeInfo() {
-        File node = new File(nodeFilePath);
-        if (!node.exists()) {
+    public GuiNodeInfo getNodeInfo(String node) {
+        File file = new File(createPath(NODE_INFO, node));
+        if (!file.exists()) {
             return null;
         }
-        byte[] data = readFile(node);
+        byte[] data = readFile(file);
         if (data == null || data.length == 0) {
             return null;
         }
@@ -244,8 +238,30 @@ public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     }
 
     @Override
-    public void setNodeInfo(GuiNodeInfo nodeInfo) {
-        File node = new File(nodeFilePath);
+    public Collection<GuiNodeInfo> getNodeInfos() {
+        File rootDir = new File(createRoot(NODE_INFO));
+        if (!rootDir.exists()) {
+            return ImmutableList.of();
+        }
+        File[] childs = rootDir.listFiles();
+        if (childs == null || childs.length == 0) {
+            return ImmutableList.of();
+        }
+        Collection<GuiNodeInfo> list = new ArrayList<>();
+        for (File child : childs) {
+            String name = child.getName();
+            GuiNodeInfo node = getNodeInfo(name);
+            if (node == null) {
+                continue;
+            }
+            list.add(node);
+        }
+        return list;
+    }
+
+    @Override
+    public void setNodeInfo(String id, GuiNodeInfo nodeInfo) {
+        File node = new File(createPath(NODE_INFO, id));
         if (node.exists()) {
             FileUtils.deleteQuietly(node);
         }
@@ -262,53 +278,53 @@ public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     }
 
     @Override
-    public Collection<GuiCpuInfo> getCpuInfos(long time) {
-        return collectObject(cpuDirPath, time, GuiCpuInfo.class);
+    public Collection<GuiCpuInfo> getCpuInfos(String id, long time) {
+        return collectObject(createPath(CPU_INFO, id), time, GuiCpuInfo.class);
     }
 
     @Override
-    public void setCpuInfo(GuiCpuInfo cpuInfo) {
+    public void setCpuInfo(String id, GuiCpuInfo cpuInfo) {
         if (cpuInfo == null) {
             return;
         }
         String timeStamp = formateTime(cpuInfo.getTime());
         byte[] data = JsonUtils.toJsonBytesQuietly(cpuInfo);
-        saveObject(cpuDirPath + File.separator + timeStamp, data);
+        saveObject(createPath(CPU_INFO, id) + File.separator + timeStamp, data);
     }
 
     @Override
-    public Collection<GuiMemInfo> getMemInfos(long time) {
-        return collectObject(memDirPath, time, GuiMemInfo.class);
+    public Collection<GuiMemInfo> getMemInfos(String id, long time) {
+        return collectObject(createPath(MEM_INFO, id), time, GuiMemInfo.class);
     }
 
     @Override
-    public void setMemInfo(GuiMemInfo memInfo) {
+    public void setMemInfo(String id, GuiMemInfo memInfo) {
         if (memInfo == null) {
             return;
         }
         String timeStamp = formateTime(memInfo.getTime());
         byte[] data = JsonUtils.toJsonBytesQuietly(memInfo);
-        saveObject(memDirPath + File.separator + timeStamp, data);
+        saveObject(createPath(MEM_INFO, id) + File.separator + timeStamp, data);
     }
 
     @Override
-    public Collection<GuiLoadInfo> getLoadInfos(long time) {
-        return collectObject(loadDirPath, time, GuiLoadInfo.class);
+    public Collection<GuiLoadInfo> getLoadInfos(String id, long time) {
+        return collectObject(createPath(LOAD_INFO, id), time, GuiLoadInfo.class);
     }
 
     @Override
-    public void setLoadInfo(GuiLoadInfo loadInfo) {
+    public void setLoadInfo(String id, GuiLoadInfo loadInfo) {
         if (loadInfo == null) {
             return;
         }
         String timeStamp = formateTime(loadInfo.getTime());
         byte[] data = JsonUtils.toJsonBytesQuietly(loadInfo);
-        saveObject(loadDirPath + File.separator + timeStamp, data);
+        saveObject(createPath(LOAD_INFO, id) + File.separator + timeStamp, data);
     }
 
     @Override
-    public Map<String, Collection<GuiDiskIOInfo>> getDiskIOInfos(long time) {
-        Collection<GuiDiskIOInfo> array = collectObjects(diskIODirPath, time, GuiNetInfo[].class);
+    public Map<String, Collection<GuiDiskIOInfo>> getDiskIOInfos(String id, long time) {
+        Collection<GuiDiskIOInfo> array = collectObjects(createPath(DISK_IO_INFO, id), time, GuiNetInfo[].class);
         if (array == null || array.isEmpty()) {
             return new HashMap<>();
         }
@@ -324,19 +340,19 @@ public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     }
 
     @Override
-    public void setDiskIOs(Collection<GuiDiskIOInfo> diskIOs) {
+    public void setDiskIOs(String id, Collection<GuiDiskIOInfo> diskIOs) {
         if (diskIOs == null || diskIOs.isEmpty()) {
             return;
         }
         GuiDiskIOInfo tmp = diskIOs.stream().findAny().get();
         String name = formateTime(tmp.getTime());
         byte[] data = JsonUtils.toJsonBytesQuietly(diskIOs);
-        saveObject(diskUsageDirPath + File.separator + name, data);
+        saveObject(createPath(DISK_IO_INFO, id) + File.separator + name, data);
     }
 
     @Override
-    public Map<String, Collection<GuiDiskUsageInfo>> getDiskUsages(long time) {
-        Collection<GuiDiskUsageInfo> array = collectObjects(diskUsageDirPath, time, GuiNetInfo[].class);
+    public Map<String, Collection<GuiDiskUsageInfo>> getDiskUsages(String id, long time) {
+        Collection<GuiDiskUsageInfo> array = collectObjects(createPath(DISK_USAGE_INFO, id), time, GuiNetInfo[].class);
         if (array == null || array.isEmpty()) {
             return new HashMap<>();
         }
@@ -352,19 +368,19 @@ public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     }
 
     @Override
-    public void setDiskUsages(Collection<GuiDiskUsageInfo> usages) {
+    public void setDiskUsages(String id, Collection<GuiDiskUsageInfo> usages) {
         if (usages == null || usages.isEmpty()) {
             return;
         }
         GuiDiskUsageInfo tmp = usages.stream().findAny().get();
         String name = formateTime(tmp.getTime());
         byte[] data = JsonUtils.toJsonBytesQuietly(usages);
-        saveObject(diskUsageDirPath + File.separator + name, data);
+        saveObject(createPath(DISK_USAGE_INFO, id) + File.separator + name, data);
     }
 
     @Override
-    public Map<String, Collection<GuiNetInfo>> getNetInfos(long time) {
-        Collection<GuiNetInfo> array = collectObjects(netInfoDirPath, time, GuiNetInfo[].class);
+    public Map<String, Collection<GuiNetInfo>> getNetInfos(String id, long time) {
+        Collection<GuiNetInfo> array = collectObjects(createPath(NET_SPEED_INFO, id), time, GuiNetInfo[].class);
         if (array == null || array.isEmpty()) {
             return new HashMap<>();
         }
@@ -381,32 +397,30 @@ public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
     }
 
     @Override
-    public void setNetInfos(Collection<GuiNetInfo> netInfos) {
+    public void setNetInfos(String id, Collection<GuiNetInfo> netInfos) {
         if (netInfos == null || netInfos.isEmpty()) {
             return;
         }
         GuiNetInfo tmp = netInfos.stream().findAny().get();
         String name = formateTime(tmp.getTime());
         byte[] data = JsonUtils.toJsonBytesQuietly(netInfos);
-        saveObject(netInfoDirPath + File.separator + name, data);
+        saveObject(createPath(NET_SPEED_INFO, id) + File.separator + name, data);
+    }
+
+    private String createRoot(String type) {
+        return new StringBuilder(this.basePath).append(File.separator).append(type).toString();
     }
 
     @LifecycleStart
     @Override
     public void start() throws Exception {
-        if (!run) {
-            LOG.info("gui switch is close !!");
-            return;
-        } else {
-            LOG.info("gui starting !!");
-        }
         scanPaths = Arrays.asList(
-            cpuDirPath,
-            memDirPath,
-            loadDirPath,
-            diskIODirPath,
-            diskUsageDirPath,
-            netInfoDirPath);
+            createRoot(CPU_INFO),
+            createRoot(MEM_INFO),
+            createRoot(LOAD_INFO),
+            createRoot(DISK_IO_INFO),
+            createRoot(DISK_USAGE_INFO),
+            createRoot(NET_SPEED_INFO));
         pool = Executors.newScheduledThreadPool(2, new ThreadFactoryBuilder().setNameFormat("GuiFileWorker").build());
         start = true;
         pool.scheduleAtFixedRate(new Runnable() {
@@ -417,27 +431,40 @@ public class GuiFileMaintainer implements GuiResourceMaintainer, LifeCycle {
                         LOG.info("stop it ");
                         return;
                     }
-                    File file = new File(y);
+                    File rootDir = new File(y);
+                    if (!rootDir.exists()) {
+                        LOG.info("{} not exists ", rootDir.getName());
+                        return;
+                    }
+                    if (!rootDir.isDirectory()) {
+                        rootDir.delete();
+                        LOG.info("{} not dir delete it ", rootDir.getName());
+                        return;
+                    }
                     long time = System.currentTimeMillis() - ttlTime;
                     String timeStr = GuiFileMaintainer.this.formateTime(time);
-                    Collection<File> loss = GuiFileMaintainer.this.collectTTLFile(file, timeStr);
-                    if (loss != null && !loss.isEmpty() && start) {
-                        loss.stream().forEach(FileUtils::deleteQuietly);
+                    File[] childs = rootDir.listFiles();
+                    if (childs == null || childs.length == 0) {
+                        return;
                     }
+                    Collection<File> sumLoss = new ArrayList<>();
+                    for (File file : childs) {
+                        Collection<File> loss = GuiFileMaintainer.this.collectTTLFile(file, timeStr);
+                        if (loss != null && !loss.isEmpty()) {
+                            sumLoss.addAll(loss);
+                        }
+                    }
+                    if (sumLoss != null && !sumLoss.isEmpty() && start) {
+                        sumLoss.stream().forEach(FileUtils::deleteQuietly);
+                    }
+                    LOG.info("{} delete {} file", rootDir.getName(), sumLoss == null ? 0 : sumLoss.size());
                 });
             }
         }, 0, intervalTime, TimeUnit.SECONDS);
     }
 
-    @LifecycleStop
     @Override
     public void stop() throws Exception {
-        if (!run) {
-            LOG.info("gui switch is close !!");
-            return;
-        } else {
-            LOG.info("gui stoping !!");
-        }
         start = false;
         if (pool != null) {
             pool.shutdown();
