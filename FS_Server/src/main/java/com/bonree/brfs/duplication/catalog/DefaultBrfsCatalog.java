@@ -32,6 +32,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     static final byte[] DIR_VALUE = "0".getBytes();
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBrfsCatalog.class);
     private static final String pattern = "^(/+(\\.*[\\w,\\-]+\\.*)+)+$";
+    private static Pattern p = Pattern.compile(pattern);
     private LoadingCache<PathKey, Boolean> pathCache = CacheBuilder.newBuilder()
                                                                    .concurrencyLevel(Runtime.getRuntime().availableProcessors())
                                                                    .maximumSize(200)
@@ -162,7 +163,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         if ("/".equals(path)) {
             return true;
         }
-        return Pattern.matches(pattern, path);
+        return p.matcher(path).matches();
     }
 
     /**
@@ -302,27 +303,5 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         public int hashCode() {
             return Objects.hash(srName, path);
         }
-    }
-
-    public static void main(String[] args) {
-        String s = "/1/2/3/4";
-        String[] split = s.split("/");
-        System.out.println(split.length);
-        System.out.println(s.substring(1, s.lastIndexOf("/")));
-        System.out.println(new DefaultBrfsCatalog(null).getAllAncesstors(s).length);
-
-        System.out.println(new DefaultBrfsCatalog(null).validPath("/da"));
-
-        System.out.println(new String(new DefaultBrfsCatalog(null).transferToKey("/")));
-
-        System.out.println(new String(encoder.encode("/chao".getBytes())));
-        System.out.println(new String(encoder.encode("/chao/1".getBytes())));
-        System.out.println(new String(Bytes.byteMerge(encoder.encode("/chao".getBytes()), "/".getBytes())));
-        System.out.println(new String(encoder.encode("/data".getBytes())));
-        System.out.println(new String(Base64.getDecoder()
-                                            .decode("TDJSaGRHRT0vMDAwNWE0YjItNGIzMi00Y2RkLThhNjktNTExMjk4NGE1ZTlk".getBytes())));
-        System.out.println(new String(Base64.getDecoder().decode("L2RhdGE=".getBytes())));
-        System.out.println(new String(Base64.getDecoder().decode("L3Rlc3Qy".getBytes())));
-        System.out.println(new String(encoder.encode("/test2/1/2/3/4/5/".getBytes())));
     }
 }
