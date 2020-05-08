@@ -67,7 +67,7 @@ public class PartitionGather implements LifeCycle {
             this.worker.setAlive(false);
         }
         if (this.pool != null) {
-            this.pool.shutdown();
+            this.pool.shutdownNow();
         }
         LOG.info("partition gather work stop");
     }

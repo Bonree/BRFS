@@ -327,7 +327,7 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     public void stop() throws Exception {
         if (pool != null) {
             queue.clear();
-            pool.shutdown();
+            pool.shutdownNow();
         }
     }
 
