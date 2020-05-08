@@ -61,7 +61,7 @@ public class ResourceMaintainer implements LifeCycle {
             });
         }
         if (pool != null) {
-            pool.shutdown();
+            pool.shutdownNow();
         }
         LOG.info("resource pool stop");
     }
