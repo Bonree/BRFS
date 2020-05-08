@@ -36,13 +36,4 @@ public interface RunnableTaskInterface {
      */
     TaskRunPattern taskRunnPattern(TaskModel task) throws Exception;
 
-    /**
-     * 概述：设置异常过滤指标
-     *
-     * @param limits
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    void setLimitParameter(TaskExecutablePattern limits);
-
 }

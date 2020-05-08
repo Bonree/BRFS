@@ -60,7 +60,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
     @Override
     public void start() throws Exception {
 
-        this.cache = new PathChildrenCache(client, path, false);
+        this.cache = new PathChildrenCache(client, path, true);
         this.cache.start();
         this.listener = new DiskPartitionInfoListener();
         this.cache.getListenable().addListener(this.listener);
@@ -133,7 +133,6 @@ public class DiskPartitionInfoManager implements LifeCycle {
 
         @Override
         public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-            LOG.info("event :{} {},cacheSize:{}", event.getType(), event.getData().getPath(), diskPartitionInfoCache.size());
             if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_ADDED)
                 || event.getType().equals(PathChildrenCacheEvent.Type.CHILD_UPDATED)) {
                 if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {

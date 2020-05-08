@@ -65,26 +65,7 @@ public class JobDataMapConstract {
     public static final String CHECK_TIME_RANGE = "CHECK_TIME_RANGE";
     public static final String BASE_SERVER_ID_PATH = "BASE_SERVER_ID_PATH";
 
-    /**
-     * 概述：生成采集job需要的参数
-     *
-     * @param resource
-     *
-     * @return
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public static Map<String, String> createGatherResourceDataMap(ResourceTaskConfig resource, String serverId,
-                                                                  String zkServerPath, String zkaddress) {
-        Map<String, String> dataMap = new HashMap<>();
-        String host = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_HOST);
-        dataMap.put(IP, host);
-        dataMap.put(GATHER_INVERAL_TIME, resource.getGatherResourceInveralTime() + "");
-        dataMap.put(CALC_RESOURCE_COUNT, resource.getCalcResourceValueCount() + "");
-        dataMap.put(BASE_SERVER_ID_PATH, zkServerPath);
-        dataMap.put(ZOOKEEPER_ADDRESS, zkaddress);
-        return dataMap;
-    }
+
 
     /**
      * 概述：任务管理信息
@@ -179,7 +160,7 @@ public class JobDataMapConstract {
     public static Map<String, String> createCOPYDataMap(String taskName, String serviceId, long invertalTime, String zkHost,
                                                         String path) {
         Map<String, String> dataMap = new HashMap<>();
-        dataMap.put(TASK_NAME, "");
+        dataMap.put(TASK_NAME, taskName);
         dataMap.put(SERVER_ID, serviceId);
         dataMap.put(TASK_TYPE, TaskType.SYSTEM_COPY_CHECK.code() + "");
         dataMap.put(TASK_STAT, TaskState.INIT + "");

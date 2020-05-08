@@ -108,6 +108,7 @@ public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
 
             List<BRFSPath> deleteDirs =
                 BRFSFileUtil.scanBRFSFiles(path.getDataDir(), snMap, snMap.size(), new BRFSTimeFilter(0, endTime));
+            granule = granule <= 0 ? 60 : granule;
             if (deleteDirs == null || deleteDirs.isEmpty()) {
                 LOG.debug("delete dir {} - {} is empty ", TimeUtils.timeInterval(startTime, granule),
                           TimeUtils.timeInterval(endTime, granule));

@@ -14,6 +14,7 @@
 
 package com.bonree.brfs.client.data.read;
 
+import com.bonree.brfs.client.ClientException;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.write.data.FileDecoder;
@@ -40,6 +41,9 @@ public class TcpFidContentReader implements FidContentReader {
             readBytes(socket.getInputStream(), length, 0, length.length);
 
             int l = Ints.fromBytes(length[4], length[5], length[6], length[7]);
+            if (l < 0) {
+                throw new ClientException("file is not found in sr[%s]", srName);
+            }
 
             byte[] b = new byte[l];
             readBytes(socket.getInputStream(), b, 0, b.length);
