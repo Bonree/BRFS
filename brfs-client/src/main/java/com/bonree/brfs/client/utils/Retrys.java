@@ -61,10 +61,6 @@ public final class Retrys {
         private Throwable cause;
 
         protected MultiObjectRetryable(String description, Iterator<E> iter) {
-            if (!iter.hasNext()) {
-                throw new IllegalArgumentException("Empty iterator is specified");
-            }
-
             this.description = description;
             this.iter = iter;
         }
