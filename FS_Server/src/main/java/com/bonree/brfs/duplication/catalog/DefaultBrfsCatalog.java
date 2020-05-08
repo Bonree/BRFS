@@ -3,6 +3,7 @@ package com.bonree.brfs.duplication.catalog;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.utils.Bytes;
+import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -22,7 +23,6 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
-import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +32,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     static final byte[] DIR_VALUE = "0".getBytes();
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBrfsCatalog.class);
     private static final String pattern = "^(/+(\\.*[\\w,\\-]+\\.*)+)+$";
+    private static Pattern p = Pattern.compile(pattern);
     private LoadingCache<PathKey, Boolean> pathCache = CacheBuilder.newBuilder()
                                                                    .concurrencyLevel(Runtime.getRuntime().availableProcessors())
                                                                    .maximumSize(200)
@@ -162,7 +163,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         if ("/".equals(path)) {
             return true;
         }
-        return Pattern.matches(pattern, path);
+        return p.matcher(path).matches();
     }
 
     /**
@@ -176,8 +177,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
      */
     @Override
     public boolean writeFid(String srName, String path, String fid) {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
+        Stopwatch started = Stopwatch.createStarted();
         if (!validPath(path)) {
             LOG.error("invalid path : [{}]", path);
             return true;
@@ -188,8 +188,8 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             //写文件
             key = transferToKey(path);
             WriteStatus write = rocksDBManager.write(srName, key, fid.getBytes(), true);
-            stopWatch.split();
-            LOG.info("write the path[{}] cost [{}]", path, stopWatch.getSplitTime());
+            LOG.info("write the path[{}] cost [{}]", path, started.elapsed(TimeUnit.MICROSECONDS));
+            started.stop();
             if (write != WriteStatus.SUCCESS) {
                 return true;
             }
@@ -199,8 +199,6 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         } catch (Exception e) {
             LOG.error("Maybe its rocksDB can not write");
             return true;
-        } finally {
-            stopWatch.stop();
         }
         return false;
     }
@@ -223,20 +221,18 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
 
     @Override
     public String getFid(String srName, String path) {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
+        Stopwatch started = Stopwatch.createStarted();
         byte[] query = transferToKey(path);
-        stopWatch.split();
-        LOG.info("transfer the path of [{}]:[{}] cost [{}]ms ", srName, path, stopWatch.getSplitTime());
+        LOG.info("transfer the path of [{}]:[{}] cost [{}]micros ", srName, path, started.elapsed(TimeUnit.MICROSECONDS));
+        started.reset().start();
         byte[] value = rocksDBManager.read(srName, query);
         if (null == value) {
             String resp = "the path[" + path + "] is not store correctly";
             LOG.error(resp);
             throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
         }
-        stopWatch.split();
-        LOG.info("get fid of[{}]:[{}] from rocksDB cost [{}]ms", srName, path, stopWatch.getSplitTime());
-        stopWatch.stop();
+        LOG.info("get fid of[{}]:[{}] from rocksDB cost [{}]micros", srName, path, started.elapsed(TimeUnit.MICROSECONDS));
+        started.stop();
         return new String(value);
     }
 
@@ -307,27 +303,5 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         public int hashCode() {
             return Objects.hash(srName, path);
         }
-    }
-
-    public static void main(String[] args) {
-        String s = "/1/2/3/4";
-        String[] split = s.split("/");
-        System.out.println(split.length);
-        System.out.println(s.substring(1, s.lastIndexOf("/")));
-        System.out.println(new DefaultBrfsCatalog(null).getAllAncesstors(s).length);
-
-        System.out.println(new DefaultBrfsCatalog(null).validPath("/da"));
-
-        System.out.println(new String(new DefaultBrfsCatalog(null).transferToKey("/")));
-
-        System.out.println(new String(encoder.encode("/chao".getBytes())));
-        System.out.println(new String(encoder.encode("/chao/1".getBytes())));
-        System.out.println(new String(Bytes.byteMerge(encoder.encode("/chao".getBytes()), "/".getBytes())));
-        System.out.println(new String(encoder.encode("/data".getBytes())));
-        System.out.println(new String(Base64.getDecoder()
-                                            .decode("TDJSaGRHRT0vMDAwNWE0YjItNGIzMi00Y2RkLThhNjktNTExMjk4NGE1ZTlk".getBytes())));
-        System.out.println(new String(Base64.getDecoder().decode("L2RhdGE=".getBytes())));
-        System.out.println(new String(Base64.getDecoder().decode("L3Rlc3Qy".getBytes())));
-        System.out.println(new String(encoder.encode("/test2/1/2/3/4/5/".getBytes())));
     }
 }

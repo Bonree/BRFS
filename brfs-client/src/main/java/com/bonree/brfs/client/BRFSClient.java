@@ -661,6 +661,7 @@ public class BRFSClient implements BRFS {
                     .url(HttpUrl.get(uri)
                                 .newBuilder()
                                 .encodedPath("/data")
+                                .addEncodedPathSegment(srName)
                                 .addQueryParameter("startTime", formatTime(startTime))
                                 .addQueryParameter("endTime", formatTime(endTime))
                                 .build())
