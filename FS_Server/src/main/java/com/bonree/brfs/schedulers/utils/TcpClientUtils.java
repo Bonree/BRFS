@@ -15,6 +15,7 @@ import com.bonree.brfs.disknode.client.TcpDiskNodeClient;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.List;
 
 public class TcpClientUtils {
     public static final int idleTime = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_DEFAULT_IDLE_TIME_OUT);
@@ -56,5 +57,17 @@ public class TcpClientUtils {
             }
         });
         return new TcpDiskNodeClient(tcpClient, readerClient);
+    }
+
+    public static void main(String[] args) throws Exception {
+        String host = "192.168.150.237";
+        int port = 9881;
+        int export = 9900;
+        TcpDiskNodeClient client = getClient(host, port, export, 10000);
+        List<com.bonree.brfs.disknode.server.handler.data.FileInfo> list =
+            client.listFiles("/delSr1/1/2020/05/07/21_00_00/0_22", 1);
+        list.stream().forEach(x -> {
+            System.out.println(x.getPath());
+        });
     }
 }
