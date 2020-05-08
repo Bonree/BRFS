@@ -48,7 +48,6 @@ public class HttpFilePathMapper implements FilePathMapper {
 
     @Override
     public String getFidByPath(String srName, BRFSPath path) {
-        Stopwatch started1 = Stopwatch.createStarted();
         return Retrys.execute(new URIRetryable<String>(
             format("get fid of path[%s] in sr[%s]", path, srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
@@ -62,8 +61,6 @@ public class HttpFilePathMapper implements FilePathMapper {
                                 .build())
                     .get()
                     .build();
-                LOG.info("build url cost [{}]", started1.elapsed());
-                started1.stop();
                 try {
                     Stopwatch started = Stopwatch.createStarted();
                     Response response = httpClient.newCall(httpRequest).execute();
@@ -72,7 +69,7 @@ public class HttpFilePathMapper implements FilePathMapper {
                         if (responseBody == null) {
                             return TaskResult.fail(new IllegalStateException("No response content is found"));
                         }
-                        LOG.info("actual get fid cost [{}]" + started.elapsed(TimeUnit.MILLISECONDS));
+                        LOG.info("actual get fid cost [{}]", started.elapsed(TimeUnit.MICROSECONDS));
                         started.stop();
                         return TaskResult.success(responseBody.string());
                     }
