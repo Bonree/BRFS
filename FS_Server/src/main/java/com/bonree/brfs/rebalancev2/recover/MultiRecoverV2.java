@@ -510,7 +510,8 @@ public class MultiRecoverV2 implements DataRecover {
                                         fileRecover
                                             .getFirstServerID());
                                     if (service == null) {
-                                        log.warn("first id is {},maybe down!", fileRecover.getFirstServerID());
+                                        log.warn("get service by first server id [{}] is null, maybe wait and try again!",
+                                                 fileRecover.getFirstServerID());
                                         Thread.sleep(1000);
                                         continue;
                                     }
