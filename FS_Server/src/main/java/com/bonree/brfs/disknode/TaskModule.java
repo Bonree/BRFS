@@ -57,7 +57,6 @@ import org.apache.curator.framework.CuratorFramework;
 public class TaskModule implements Module {
     @Override
     public void configure(Binder binder) {
-        JsonConfigProvider.bind(binder, "datanode.gui", GuiResourceConfig.class);
         JsonConfigProvider.bind(binder, "datanode.resource", ResourceConfig.class);
         binder.bind(ResourceGatherInterface.class).to(LocalResourceGather.class).in(Singleton.class);
         binder.bind(ResourceRegisterInterface.class).to(ZKResourceRegister.class);
@@ -90,7 +89,6 @@ public class TaskModule implements Module {
     public ResourceMaintainer createResourceMaintainer(
         ResourceGatherInterface resourceGather,
         ResourceRegisterInterface resourceRegister,
-        GuiResourceConfig guiConf,
         ResourceConfig conf,
         Lifecycle lifecycle
     ) {

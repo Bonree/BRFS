@@ -3,6 +3,7 @@ package com.bonree.brfs.gui.server.resource.impl;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.gui.server.resource.GuiResourceConfig;
 import com.bonree.brfs.gui.server.resource.GuiResourceMaintainer;
 import com.bonree.brfs.gui.server.resource.vo.GuiCpuInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiDiskIOInfo;
@@ -13,6 +14,7 @@ import com.bonree.brfs.gui.server.resource.vo.GuiNetInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiNodeInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -43,13 +46,14 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
     private ScheduledExecutorService pool = null;
     private int intervalTime;
     private int ttlTime;
-    private boolean run = true;
+    private ScheduledFuture<?> future;
     private boolean start;
 
-    public GuiFileMaintainer(String path, int scanIntervalTime, int ttlTime) {
-        this.basePath = path;
-        this.intervalTime = scanIntervalTime;
-        this.ttlTime = ttlTime;
+    @Inject
+    public GuiFileMaintainer(GuiResourceConfig config) {
+        this.basePath = config.getGuiDir();
+        this.intervalTime = config.getScanIntervalTime();
+        this.ttlTime = config.getTtlTime();
 
     }
 
@@ -423,7 +427,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
             createRoot(NET_SPEED_INFO));
         pool = Executors.newScheduledThreadPool(2, new ThreadFactoryBuilder().setNameFormat("GuiFileWorker").build());
         start = true;
-        pool.scheduleAtFixedRate(new Runnable() {
+        future = pool.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 scanPaths.stream().forEach(y -> {
@@ -466,6 +470,9 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
     @Override
     public void stop() throws Exception {
         start = false;
+        if (future != null) {
+            future.cancel(true);
+        }
         if (pool != null) {
             pool.shutdown();
         }

@@ -3,6 +3,7 @@ package com.bonree.brfs.gui.server;
 import static com.facebook.airlift.jaxrs.JaxrsBinder.jaxrsBinder;
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
+import com.bonree.brfs.common.process.LifeCycle;
 import com.facebook.airlift.bootstrap.Bootstrap;
 import com.facebook.airlift.event.client.EventClient;
 import com.facebook.airlift.event.client.NullEventClient;
@@ -21,10 +22,12 @@ import javax.servlet.Filter;
  */
 public class Server {
 
-    public static void main(String[] args) {
+    @SuppressWarnings("checkstyle:WhitespaceAround")
+    public static void main(String[] args) throws Exception {
         Injector injector = new Bootstrap(
             new HttpServerModule(),
             new JaxrsModule(),
+            new ResourceModule(),
             binder -> {
                 binder.bind(EventClient.class).to(NullEventClient.class).in(Singleton.class);
                 binder.bind(NodeInfo.class).toInstance(new NodeInfo("env"));
@@ -41,5 +44,18 @@ public class Server {
             .initialize();
 
         injector.getInstance(HttpServer.class);
+        LifeCycle resourceLifeCycle = injector.getInstance(LifeCycle.class);
+        resourceLifeCycle.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    resourceLifeCycle.stop();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }));
+
     }
 }

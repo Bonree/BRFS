@@ -18,6 +18,7 @@ import com.bonree.brfs.gui.server.resource.vo.GuiLoadInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiMemInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiNetInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiNodeInfo;
+import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,6 +27,10 @@ import org.apache.commons.lang3.StringUtils;
 
 public class ResourceHandler implements ResourceHandlerInterface {
     private Map<String, GuiNetInfo> guiNetInfoMap = new HashMap<>();
+
+    @Inject
+    public ResourceHandler() {
+    }
 
     @Override
     public GuiNodeInfo gatherNodeInfo(NodeSnapshotInfo snapshot) throws Exception {

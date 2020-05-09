@@ -10,10 +10,12 @@ import com.bonree.brfs.client.utils.SocketChannelSocketFactory;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.resource.vo.NodeSnapshotInfo;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.gui.server.resource.GuiResourceConfig;
 import com.bonree.brfs.gui.server.resource.ResourceHandlerInterface;
 import com.bonree.brfs.gui.server.resource.impl.GuiFileMaintainer;
 import com.google.common.io.Closer;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.inject.Inject;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -42,19 +44,19 @@ public class ResourceRequestMaintainer implements LifeCycle {
     private ResourceHandlerInterface convertor;
     private GuiFileMaintainer guiFileMaintainer;
     private int intervalTime;
-    private OkHttpClient client;
     private Closer closer;
     private ScheduledExecutorService pool;
     private List<ScheduledFuture<?>> futures = new ArrayList<>();
     private boolean runFlag = false;
     private BlockingQueue<NodeSnapshotInfo> queue = new LinkedBlockingQueue<>(3);
 
+    @Inject
     public ResourceRequestMaintainer(HttpDiscovery httpDiscovery, ResourceHandlerInterface convertor,
-                                     GuiFileMaintainer guiFileMaintainer, int intervalTime) {
+                                     GuiFileMaintainer guiFileMaintainer, GuiResourceConfig config) {
         this.httpDiscovery = httpDiscovery;
         this.convertor = convertor;
         this.guiFileMaintainer = guiFileMaintainer;
-        this.intervalTime = intervalTime;
+        this.intervalTime = config.getIntervalTime();
 
     }
 
@@ -63,7 +65,7 @@ public class ResourceRequestMaintainer implements LifeCycle {
         // 1.初始化http请求
         closer = Closer.create();
 
-        OkHttpClient httpClient = new OkHttpClient.Builder()
+        OkHttpClient client = new OkHttpClient.Builder()
             .socketFactory(new SocketChannelSocketFactory())
             .callTimeout(Duration.ofSeconds(10))
             .connectTimeout(Duration.ofSeconds(10))
@@ -71,8 +73,8 @@ public class ResourceRequestMaintainer implements LifeCycle {
             .writeTimeout(Duration.ofSeconds(10))
             .build();
         closer.register(() -> {
-            httpClient.dispatcher().executorService().shutdown();
-            httpClient.connectionPool().evictAll();
+            client.dispatcher().executorService().shutdown();
+            client.connectionPool().evictAll();
         });
         // 2.初始化线程池
         ThreadFactory threadFactory = new ThreadFactoryBuilder()

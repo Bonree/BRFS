@@ -12,6 +12,7 @@ public class ResourceRegistTask extends SuperResourceTask {
     private static final Logger LOG = LoggerFactory.getLogger(ResourceRegistTask.class);
     private ResourceGatherInterface gather;
     private ResourceRegisterInterface register;
+    private int count = 0;
 
     public ResourceRegistTask(ResourceGatherInterface gather,
                               ResourceRegisterInterface register, ResourceConfig config) {
@@ -29,8 +30,14 @@ public class ResourceRegistTask extends SuperResourceTask {
                 return;
             }
             register.registerResource(model);
-            LOG.info("gather resource [{}] successfull !!",
-                     TimeUtils.formatTimeStamp(System.currentTimeMillis(), "yyyy-MM-dd HH:mm:ss"));
+            if (count < 10) {
+                LOG.info("gather resource [{}] successfull !! show per remain time {}",
+                         TimeUtils.formatTimeStamp(System.currentTimeMillis(), "yyyy-MM-dd HH:mm:ss"), 9 - count);
+            } else if (count % 100 == 0) {
+                LOG.info("gather resource [{}] successfull !! count time {}",
+                         TimeUtils.formatTimeStamp(System.currentTimeMillis(), "yyyy-MM-dd HH:mm:ss"), count);
+            }
+            count = count + 1;
         } catch (Exception e) {
             LOG.error("gather resource happen error !!", e);
         }
