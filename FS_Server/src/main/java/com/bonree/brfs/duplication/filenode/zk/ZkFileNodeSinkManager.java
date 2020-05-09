@@ -61,8 +61,8 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
         FileObjectCloser fileCloser) {
         this.client = client.usingNamespace(paths.getBaseClusterName().substring(1));
         this.service = service;
-        this.distributor = new FileNodeDistributor(client, storer, serviceManager, selector, timeEventEmitter, fileCloser);
-        this.selector = new LeaderSelector(client, ZKPaths.makePath(
+        this.distributor = new FileNodeDistributor(this.client, storer, serviceManager, selector, timeEventEmitter, fileCloser);
+        this.selector = new LeaderSelector(this.client, ZKPaths.makePath(
             ZkFileCoordinatorPaths.COORDINATOR_ROOT, ZkFileCoordinatorPaths.COORDINATOR_LEADER),
                                            new SinkManagerLeaderListener());
     }
@@ -82,7 +82,9 @@ public class ZkFileNodeSinkManager implements FileNodeSinkManager {
     public void registerFileNodeSink(FileNodeSink sink) {
         //PathChildrenCache会自动创建sink节点所在的路径
         PathChildrenCache sinkWatcher =
-            new PathChildrenCache(client, ZkFileCoordinatorPaths.buildSinkPath(service, sink.getStorageRegion().getName()), true);
+            new PathChildrenCache(client,
+                                  ZkFileCoordinatorPaths.buildSinkPath(service, sink.getStorageRegion().getName()),
+                                  true);
         sinkWatcher.getListenable().addListener(new SinkNodeListener(sink));
 
         try {
