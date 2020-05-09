@@ -13,3 +13,6 @@ message FSPacketProto{
     optional int32 storageName = 9;  //StorageName
     optional string writeID = 10;   //写入时的uuid
 }
+message BatchFSPackets{
+    repeated FSPacketProto batchPackets = 1;
+}

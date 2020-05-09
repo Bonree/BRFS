@@ -24,9 +24,12 @@ import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
+import com.bonree.brfs.common.proto.DataTransferProtos;
 import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.statistic.WriteStatsCountCollector;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
 import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
@@ -38,10 +41,12 @@ import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.collect.ImmutableList;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -59,6 +64,8 @@ import org.slf4j.LoggerFactory;
 @Path("/data")
 public class DataResource {
     private static final Logger LOG = LoggerFactory.getLogger(DataResource.class);
+    private static final Logger WRITE_LOG = LoggerFactory.getLogger("write_statistic");
+    private static WriteStatsCountCollector writeCollector = new WriteStatsCountCollector();
     private final ClusterConfig clusterConfig;
     private final ServiceManager serviceManager;
     private final StorageRegionManager storageRegionManager;
@@ -113,7 +120,7 @@ public class DataResource {
                 throw new WebApplicationException(resp, HttpStatus.CODE_NOT_ALLOW_CUSTOM_FILENAME);
             }
             if (packet.getSeqno() == 1) {
-                LOG.info("file [{}] is allow to write!", packet.getFileName());
+                LOG.info("file [{}] is allow to write!", packet.getWriteID());
             }
             LOG.debug("deserialize [{}]", packet);
             //如果是一个小于等于packet长度的文件，由handler直接写
@@ -142,6 +149,9 @@ public class DataResource {
                                 }
                             }
                             LOG.info("response fid:[{}]", fid);
+                            WRITE_LOG.info(" {} write [{}]", srName, file);
+                            writeCollector.submit(srName,
+                                 TimeUtils.prevTimeStamp(System.currentTimeMillis(), Duration.parse("PT1M").toMillis()));
                             response.resume(Response
                                                 .ok()
                                                 .entity(ImmutableList.of(fid)).build());
@@ -176,6 +186,9 @@ public class DataResource {
                         LOG.info("sync catalog into rocksDB. filename:[{}]", file);
                     }
                     LOG.info("response fid:[{}]", fid);
+                    WRITE_LOG.info(" {} write [{}]", srName, file);
+                    writeCollector.submit(srName,
+                                          TimeUtils.prevTimeStamp(System.currentTimeMillis(), Duration.parse("PT1M").toMillis()));
                     response.resume(Response
                                         .ok()
                                         .entity(ImmutableList.of(new String(result.getData()))).build());
@@ -200,6 +213,65 @@ public class DataResource {
             response.resume(e);
         }
 
+    }
+
+    @POST
+    @Path("{srName}/batch")
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(APPLICATION_JSON)
+    public void batchWrite(
+        @PathParam("srName") String srName,
+        DataTransferProtos.BatchFSPackets datas,
+        @Suspended AsyncResponse response) {
+        List<FSPacketProto> batchPacketsList = datas.getBatchPacketsList();
+        for (FSPacketProto fsPacketProto : batchPacketsList) {
+            FSPacket packet = new FSPacket();
+            packet.setProto(fsPacketProto);
+            String file = packet.getFileName();
+            if (packet.isATinyFile()) {
+                LOG.debug("writing a tiny file [{}]", packet.getFileName());
+                storageRegionWriter.write(
+                    packet.getStorageName(),
+                    packet.getData(),
+                    new StorageRegionWriteCallback() {
+                        long ctime = System.currentTimeMillis();
+
+                        @Override
+                        public void error() {
+                            response.resume(new Exception());
+                        }
+
+                        @Override
+                        public void complete(String fid) {
+                            LOG.info("write the tiny data to dn cost [{}]ms", System.currentTimeMillis() - ctime);
+                            LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
+                            if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
+                                if (brfsCatalog.writeFid(srName, file, fid)) {
+                                    LOG.error("failed when write fid to rocksDB.");
+                                    response.resume(new Exception("write fid to rocksDB failed."));
+                                    return;
+                                }
+                            }
+                            LOG.info("response fid:[{}]", fid);
+                            WRITE_LOG.info(" {} write [{}]", srName, file);
+                            writeCollector.submit(srName, TimeUtils.prevTimeStamp(System.currentTimeMillis(),
+                                                                                  Duration.parse("PT1M").toMillis()));
+                            response.resume(Response
+                                                .ok()
+                                                .entity(ImmutableList.of(fid)).build());
+
+                        }
+
+                        @Override
+                        public void complete(String[] fids) {
+                            response.resume(ImmutableList.of(fids));
+                            LOG.info("response file[{}]:fid[{}]", packet.getFileName(), fids[0]);
+                        }
+                    });
+                return;
+            }
+            LOG.warn("cannot batch write the datas because it is not tiny file");
+        }
     }
 
     @DELETE
@@ -265,5 +337,15 @@ public class DataResource {
         if (cuGra <= sgra || cuGra < egra) {
             throw new IllegalArgumentException("forbid delete current error");
         }
+    }
+
+
+    @GET
+    @Path("/statistic/{srName}")
+    @Produces(APPLICATION_JSON)
+    public Map<String, Integer> getStatistic(
+        @PathParam("srName") String srName,
+        @QueryParam("minutes") int minutes) {
+        return null;
     }
 }
