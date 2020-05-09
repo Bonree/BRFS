@@ -15,10 +15,8 @@ import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.impl.SimpleRouteZKLoader;
-import com.bonree.brfs.resource.GuiResourceMaintainer;
 import com.bonree.brfs.resource.ResourceGatherInterface;
 import com.bonree.brfs.resource.ResourceRegisterInterface;
-import com.bonree.brfs.resource.impl.GuiFileMaintainer;
 import com.bonree.brfs.resource.impl.LocalResourceGather;
 import com.bonree.brfs.resource.impl.ZKResourceRegister;
 import com.bonree.brfs.resource.vo.LimitServerResource;
@@ -37,7 +35,6 @@ import com.bonree.brfs.tasks.manager.TaskReleaseManager;
 import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 import com.bonree.brfs.tasks.monitor.impl.CycleRebalanceTaskMonitor;
 import com.bonree.brfs.tasks.resource.ResourceTask;
-import com.bonree.brfs.tasks.resource.impl.GuiResourcTask;
 import com.bonree.brfs.tasks.resource.impl.ResourceRegistTask;
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -65,7 +62,6 @@ public class TaskModule implements Module {
         binder.bind(ResourceGatherInterface.class).to(LocalResourceGather.class).in(Singleton.class);
         binder.bind(ResourceRegisterInterface.class).to(ZKResourceRegister.class);
         binder.bind(RebalanceTaskMonitor.class).to(CycleRebalanceTaskMonitor.class).in(ManageLifecycle.class);
-        binder.bind(GuiResourceMaintainer.class).to(GuiFileMaintainer.class).in(ManageLifecycle.class);
         binder.bind(FileBlockMaintainer.class).in(ManageLifecycle.class);
 
         binder.bind(RunnableTaskInterface.class).to(DefaultRunnableTask.class).in(Singleton.class);
@@ -94,7 +90,6 @@ public class TaskModule implements Module {
     public ResourceMaintainer createResourceMaintainer(
         ResourceGatherInterface resourceGather,
         ResourceRegisterInterface resourceRegister,
-        GuiResourceMaintainer resourceMaintainer,
         GuiResourceConfig guiConf,
         ResourceConfig conf,
         Lifecycle lifecycle
@@ -102,9 +97,6 @@ public class TaskModule implements Module {
         Collection<ResourceTask> tasks = new HashSet<>();
         if (conf.isRunFlag()) {
             tasks.add(new ResourceRegistTask(resourceGather, resourceRegister, conf));
-        }
-        if (guiConf.isRunFlag()) {
-            tasks.add(new GuiResourcTask(resourceGather, resourceMaintainer, guiConf));
         }
         ResourceMaintainer maintainer = new ResourceMaintainer(tasks);
         lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {

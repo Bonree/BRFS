@@ -278,8 +278,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         }
 
         Map<byte[], byte[]> result = new LinkedHashMap<>();
-        try {
-            RocksIterator iterator = this.newIterator(this.cfHandles.get(columnFamily));
+        try (RocksIterator iterator = this.newIterator(this.cfHandles.get(columnFamily))) {
             for (iterator.seek(prefixKey); iterator.isValid(); iterator.next()) {
                 if (new String(iterator.key()).startsWith(new String(prefixKey))) {
                     result.put(iterator.key(), iterator.value());
