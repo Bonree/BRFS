@@ -27,9 +27,6 @@ import org.slf4j.LoggerFactory;
  */
 @ManageLifecycle
 public class TaskReleaseManager implements LifeCycle {
-    private static final int BASE_SLEEP_TIME_MS = 1000;
-    private static final int MAX_SLEEP_TIME_MS = 45000;
-    private static final int MAX_RETRIES = 30;
     private static final Logger LOG = LoggerFactory.getLogger(TaskReleaseManager.class);
     private MetaTaskLeaderManager manager;
     private LeaderLatch leaderLatch = null;
@@ -40,9 +37,9 @@ public class TaskReleaseManager implements LifeCycle {
     @Inject
     public TaskReleaseManager(
         MetaTaskLeaderManager manager,
-        CuratorConfig curatorConfig, ZookeeperPaths zkPaths, ResourceTaskConfig config) {
+        CuratorFramework client, ZookeeperPaths zkPaths, ResourceTaskConfig config) {
         this.manager = manager;
-        this.client = create(curatorConfig);
+        this.client = client;
         this.zkPaths = zkPaths;
         this.config = config;
     }
@@ -51,8 +48,6 @@ public class TaskReleaseManager implements LifeCycle {
     @Override
     public void start() throws Exception {
         if (config.isTaskFrameWorkSwitch()) {
-            this.client.start();
-            this.client.blockUntilConnected();
             this.leaderLatch =
                 new LeaderLatch(
                     client, zkPaths.getBaseLocksPath() + "/TaskManager/MetaTaskLeaderLock");
@@ -65,31 +60,10 @@ public class TaskReleaseManager implements LifeCycle {
 
     }
 
-    private CuratorFramework create(CuratorConfig config) {
-        CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder();
-        if (!Strings.isNullOrEmpty(config.getZkUser()) && !Strings.isNullOrEmpty(config.getZkPasswd())) {
-            builder.authorization(
-                config.getAuthScheme(),
-                StringUtils.format("%s:%s", config.getZkUser(), config.getZkPasswd()).getBytes(StandardCharsets.UTF_8)
-            );
-        }
-
-        if (config.isEnableCompression()) {
-            builder.compressionProvider(new GzipCompressionProvider());
-        }
-
-        CuratorFramework framework = builder
-            .ensembleProvider(new FixedEnsembleProvider(config.getAddresses()))
-            .sessionTimeoutMs(config.getZkSessionTimeoutMs())
-            .retryPolicy(new BoundedExponentialBackoffRetry(BASE_SLEEP_TIME_MS, MAX_SLEEP_TIME_MS, MAX_RETRIES))
-            .build();
-        return framework;
-    }
-
     @LifecycleStop
     @Override
     public void stop() throws Exception {
-        if (config.isTaskFrameWorkSwitch()) {
+        if (leaderLatch != null) {
             leaderLatch.removeListener(manager);
             leaderLatch.close();
             this.client.close();

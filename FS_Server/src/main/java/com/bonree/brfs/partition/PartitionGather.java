@@ -8,6 +8,7 @@ import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.resource.vo.DiskPartitionInfo;
 import com.bonree.brfs.common.resource.vo.DiskPartitionStat;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.partition.model.PartitionInfo;
 import java.io.File;
@@ -87,6 +88,7 @@ public class PartitionGather implements LifeCycle {
         private Service firstServer;
         private boolean isAlive = true;
         private LocalPartitionListener listener = null;
+        private int count = 0;
 
         public GatherThread(ResourceCollectionInterface gather, PartitionInfoRegister register,
                             Collection<LocalPartitionInfo> partitions, Service firstServer) {
@@ -130,7 +132,14 @@ public class PartitionGather implements LifeCycle {
                     LOG.error("check partition happen error !!{}", elePart.getDataDir(), e);
                 }
             }
-            LOG.info("partition gather work end !!");
+            if (count < 10) {
+                LOG.info("register partitionID successfully. time : {}, remain show time {}",
+                         TimeUtils.formatTimeStamp(System.currentTimeMillis(), "yyyy-MM-dd HH:mm:ss"), 9 - count);
+            } else if (count % 100 == 0) {
+                LOG.info("register partitionID successfully. time : {}, count time {}",
+                         TimeUtils.formatTimeStamp(System.currentTimeMillis(), "yyyy-MM-dd HH:mm:ss"), count);
+            }
+            count = count + 1;
         }
 
         private PartitionInfo packagePartition(LocalPartitionInfo local, DiskPartitionStat fs) throws Exception {

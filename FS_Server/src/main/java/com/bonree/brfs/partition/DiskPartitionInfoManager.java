@@ -139,8 +139,10 @@ public class DiskPartitionInfoManager implements LifeCycle {
                     PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
                     if (info != null) {
                         diskPartitionInfoCache.put(info.getPartitionId(), info);
-                        LOG.info("disk partition info cache added, path:{}, info: {}", event.getData().getPath(), info);
-                        LOG.info("current disk partition ids: {}", diskPartitionInfoCache.keySet());
+                        if (!event.getType().equals(PathChildrenCacheEvent.Type.CHILD_UPDATED)) {
+                            LOG.info("disk partition info cache added, path:{}, info: {}", event.getData().getPath(), info);
+                            LOG.info("current disk partition ids: {}", diskPartitionInfoCache.keySet());
+                        }
                     }
                 }
             } else if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_REMOVED)) {
