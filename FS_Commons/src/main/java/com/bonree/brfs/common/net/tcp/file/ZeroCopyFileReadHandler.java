@@ -1,6 +1,7 @@
 package com.bonree.brfs.common.net.tcp.file;
 
 import com.bonree.brfs.common.net.tcp.file.client.TimePair;
+import com.bonree.brfs.common.statistic.ReadStatCollector;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.google.common.cache.CacheBuilder;
@@ -24,8 +25,8 @@ import org.slf4j.LoggerFactory;
 @Sharable
 public class ZeroCopyFileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
     private static final Logger LOG = LoggerFactory.getLogger(ZeroCopyFileReadHandler.class);
-
     private ReadObjectTranslator translator;
+    private ReadStatCollector readCountCollector;
     private LoadingCache<TimePair, String> timeCache;
     private LoadingCache<String, FileChannel> channelCache = (LoadingCache<String, FileChannel>) CacheBuilder.newBuilder()
         .concurrencyLevel(
@@ -77,9 +78,11 @@ public class ZeroCopyFileReadHandler extends SimpleChannelInboundHandler<ReadObj
 
             });
 
-    public ZeroCopyFileReadHandler(ReadObjectTranslator translator, LoadingCache<TimePair, String> timeCache) {
+    public ZeroCopyFileReadHandler(ReadObjectTranslator translator, LoadingCache<TimePair, String> timeCache,
+                                   ReadStatCollector readCountCollector) {
         this.translator = translator;
         this.timeCache = timeCache;
+        this.readCountCollector = readCountCollector;
     }
 
     @Override
@@ -87,9 +90,10 @@ public class ZeroCopyFileReadHandler extends SimpleChannelInboundHandler<ReadObj
         if (readObject.getFilePath().equals("-")) {
             readObject.setFilePath(TimeUtils.buildPath(readObject, timeCache));
         }
+        String srName = getStorageName(readObject.getFilePath());
+        readCountCollector.submit(srName);
         String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0
             ? translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
-
         FileChannel fileChannel = null;
         try {
             LOG.info("filepath = [{}]", filePath);
@@ -129,9 +133,24 @@ public class ZeroCopyFileReadHandler extends SimpleChannelInboundHandler<ReadObj
         }
     }
 
+    private String getStorageName(String filePath) {
+        String[] split = filePath.split("/");
+        if (split.length < 2) {
+            return "";
+        }
+        return split[1];
+    }
+
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         LOG.error("file read error", cause);
         ctx.close();
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        ReadStatCollector readStatCollector = new ReadStatCollector();
+        readStatCollector.submit("1");
+        Thread.sleep(1000);
+        readStatCollector.printMonitorInfo();
     }
 }

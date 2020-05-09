@@ -2,6 +2,7 @@ package com.bonree.brfs.common.net.tcp.file;
 
 import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.tcp.file.client.TimePair;
+import com.bonree.brfs.common.statistic.ReadStatCollector;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
@@ -27,11 +28,11 @@ public class FileChannelInitializer extends ChannelInitializer<SocketChannel> {
             }
         });
 
-    public FileChannelInitializer(ReadObjectTranslator translator, Deliver deliver) {
+    public FileChannelInitializer(ReadObjectTranslator translator, Deliver deliver, ReadStatCollector readStatCollector) {
         if (useZeroCopy) {
-            this.fileReadHandler = new ZeroCopyFileReadHandler(translator, timeCache);
+            this.fileReadHandler = new ZeroCopyFileReadHandler(translator, timeCache, readStatCollector);
         } else {
-            this.fileReadHandler = new MappedFileReadHandler(translator, deliver, timeCache);
+            this.fileReadHandler = new MappedFileReadHandler(translator, deliver, timeCache, readStatCollector);
         }
     }
 
