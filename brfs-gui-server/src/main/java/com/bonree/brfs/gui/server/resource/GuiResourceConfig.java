@@ -1,4 +1,4 @@
-package com.bonree.brfs.disknode;
+package com.bonree.brfs.gui.server.resource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

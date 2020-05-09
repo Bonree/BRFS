@@ -1,5 +1,7 @@
 package com.bonree.brfs.disknode;
 
+import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
+
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
@@ -48,7 +50,7 @@ public class DataNodeIDModule implements Module {
     public void configure(Binder binder) {
         // 加载配置
         JsonConfigProvider.bind(binder, "partition", PartitionConfig.class);
-
+        jaxrs(binder).resource(NodeStatResource.class);
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class);
         binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class);
         binder.bind(SecondIdsInterface.class).to(SecondMaintainerInterface.class).in(ManageLifecycle.class);
