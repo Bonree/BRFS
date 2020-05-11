@@ -311,10 +311,13 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                 do {
                     try {
                         info = queue.take();
+                        if (info == null) {
+                            continue;
+                        }
                         registerSecondIds(info.getFirstId(), info.getStorageId());
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
-                        LOG.error("repeat register secondId happen error ", e);
+                        LOG.error("repeat register secondId happen error {}", info, e);
                     }
                 } while (info.storageId < 0);
                 LOG.info("second id maintain thread shutdown !!");
@@ -354,6 +357,15 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
 
         public void setStorageId(int storageId) {
             this.storageId = storageId;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder("RegisterInfo{");
+            sb.append("firstId='").append(firstId).append('\'');
+            sb.append(", storageId=").append(storageId);
+            sb.append('}');
+            return sb.toString();
         }
     }
 }
