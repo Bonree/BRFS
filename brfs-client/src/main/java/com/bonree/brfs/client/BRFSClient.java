@@ -675,7 +675,12 @@ public class BRFSClient implements BRFS {
                         return TaskResult.success(null);
                     }
 
-                    return TaskResult.fail(new IllegalStateException(format("Server error[%d]", response.code())));
+                    String errorMsg = "Unkown";
+                    ResponseBody body = response.body();
+                    if (body != null) {
+                        errorMsg = body.string();
+                    }
+                    return TaskResult.fail(new IllegalStateException(format("Server error[%s]", errorMsg)));
                 } catch (IOException e) {
                     return TaskResult.retry(e);
                 }
