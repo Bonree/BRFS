@@ -35,17 +35,19 @@ import java.util.function.BiConsumer;
 import javax.inject.Singleton;
 import javax.servlet.Filter;
 import org.apache.curator.shaded.com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Hello world!
  */
 public class Server {
+    private static final Logger LOG = LoggerFactory.getLogger(Server.class);
     private static final String SYS_PROPERTIES_FILE = "configuration.file";
 
     @SuppressWarnings("checkstyle:WhitespaceAround")
     public static void main(String[] args) throws Exception {
         Properties prop = get();
-        System.out.println(prop);
         Injector injector = new Bootstrap(
             new ConfigModule(),
             new JsonModule(),
@@ -61,14 +63,12 @@ public class Server {
                 //                    jaxrsBinder(binder).bind(ZookeeperResource.class);
                 jaxrsBinder(binder).bind(DashBoardResource.class);
                 jaxrsBinder(binder).bind(SystemMonitorResource.class);
-
                 newSetBinder(binder, Filter.class, TheServlet.class).addBinding().to(HeaderFilter.class);
             }
 
         )
             .doNotInitializeLogging()
             .requireExplicitBindings(false)
-            //.setOptionalConfigurationProperties(toMap(prop))
             .setRequiredConfigurationProperties(toMap(prop))
             .initialize();
 
@@ -88,6 +88,7 @@ public class Server {
                 }
             }
         }));
+        LOG.info("server start successful !!");
     }
 
     private static Properties get() {

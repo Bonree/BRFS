@@ -5,6 +5,7 @@ import com.bonree.brfs.client.discovery.ServerNode;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.resource.vo.NodeSnapshotInfo;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.gui.server.BrfsConfig;
 import com.bonree.brfs.gui.server.GuiInnerClient;
 import com.bonree.brfs.gui.server.GuiResourceConfig;
@@ -12,7 +13,6 @@ import com.bonree.brfs.gui.server.resource.GuiResourceMaintainer;
 import com.bonree.brfs.gui.server.resource.ResourceHandlerInterface;
 import com.bonree.brfs.gui.server.resource.impl.GuiFileMaintainer;
 import com.bonree.brfs.gui.server.resource.impl.ResourceHandler;
-import com.facebook.airlift.log.Logger;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import java.io.IOException;
@@ -34,9 +34,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ResourceRequestMaintainer implements LifeCycle {
-    private static final Logger LOG = Logger.get(ResourceRequestMaintainer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ResourceRequestMaintainer.class);
     private GuiInnerClient httpDiscovery;
     private ResourceHandlerInterface convertor;
     private GuiResourceMaintainer guiFileMaintainer;
@@ -72,7 +74,7 @@ public class ResourceRequestMaintainer implements LifeCycle {
                     return;
                 }
             } catch (Exception e) {
-                LOG.error(e, "happen when request servers");
+                LOG.error("happen when request servers", e);
                 return;
             }
             // 2. create request queue
@@ -118,7 +120,7 @@ public class ResourceRequestMaintainer implements LifeCycle {
                         queue.add(snapshotInfo);
                         break;
                     } catch (IOException e) {
-                        LOG.error(e, "request node happen error ");
+                        LOG.error("request node happen error ", e);
                     } finally {
                         retryCount--;
                         try {
@@ -143,7 +145,7 @@ public class ResourceRequestMaintainer implements LifeCycle {
                 try {
                     snapshotInfo = queue.take();
                     String id = snapshotInfo.getNodeId();
-                    LOG.info("get node data %s", id);
+                    LOG.info("get node data {} {}", id, TimeUtils.formatTimeStamp(snapshotInfo.getTime(), "yyyy-MM-dd HH:mm:ss"));
                     guiFileMaintainer.setNodeInfo(id, convertor.gatherNodeInfo(snapshotInfo));
                     guiFileMaintainer.setCpuInfo(id, convertor.gatherCpuInfo(snapshotInfo));
                     guiFileMaintainer.setLoadInfo(id, convertor.gatherLoadInfo(snapshotInfo));
@@ -152,7 +154,7 @@ public class ResourceRequestMaintainer implements LifeCycle {
                     guiFileMaintainer.setDiskUsages(id, convertor.gatherDiskUsageInfos(snapshotInfo));
                     guiFileMaintainer.setNetInfos(id, convertor.gatherNetInfos(snapshotInfo));
                 } catch (Exception e) {
-                    LOG.error(e, "convert resource happen error ");
+                    LOG.error("convert resource happen error ", e);
                 }
             }
 

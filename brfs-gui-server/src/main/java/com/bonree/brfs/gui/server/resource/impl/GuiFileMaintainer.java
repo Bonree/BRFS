@@ -12,7 +12,6 @@ import com.bonree.brfs.gui.server.resource.vo.GuiLoadInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiMemInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiNetInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiNodeInfo;
-import com.facebook.airlift.log.Logger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
@@ -30,9 +29,11 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GuiFileMaintainer implements GuiResourceMaintainer {
-    private static final Logger LOG = Logger.get(GuiFileMaintainer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GuiFileMaintainer.class);
     private static final String NODE_INFO = "node";
     private static final String CPU_INFO = "cpu";
     private static final String MEM_INFO = "mem";
@@ -120,7 +121,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         try {
             FileUtils.writeByteArrayToFile(file, data, false);
         } catch (IOException e) {
-            LOG.error(e, "save happen error content: %s", new String(data));
+            LOG.error("save happen error content: %s", new String(data), e);
         }
     }
 
@@ -138,7 +139,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
             }
             return FileUtils.readFileToByteArray(file);
         } catch (IOException e) {
-            LOG.error(e, "read [%s] happen error", file.getName());
+            LOG.error("read [{}] happen error", file.getName(), e);
         }
         return null;
     }
@@ -182,7 +183,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
                 }
             });
         } catch (Exception e) {
-            LOG.error(e, "query %s happen error !!", dir.getName());
+            LOG.error("query {} happen error !!", dir.getName(), e);
         }
         return new ArrayList<>();
     }
@@ -222,7 +223,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
                 }
             });
         } catch (Exception e) {
-            LOG.error(e, "scan ttl file %s happen error !!", dir.getName());
+            LOG.error("scan ttl file {} happen error !!", dir.getName(), e);
         }
         return new ArrayList<>();
     }
@@ -270,13 +271,13 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         }
         byte[] data = JsonUtils.toJsonBytesQuietly(nodeInfo);
         if (data == null || data.length == 0) {
-            LOG.error("converto byte[] happen error !![%s]", node);
+            LOG.error("converto byte[] happen error !![{}]", node);
             return;
         }
         try {
             FileUtils.writeByteArrayToFile(node, data, false);
         } catch (IOException e) {
-            LOG.error(e, "save to file happen error !![%s]", node);
+            LOG.error("save to file happen error !![{}]", node, e);
         }
     }
 
@@ -436,12 +437,12 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
                     }
                     File rootDir = new File(y);
                     if (!rootDir.exists()) {
-                        LOG.info("%s not exists ", rootDir.getName());
+                        LOG.warn("{} not exists ", rootDir.getName());
                         return;
                     }
                     if (!rootDir.isDirectory()) {
                         rootDir.delete();
-                        LOG.info("%s not dir delete it ", rootDir.getName());
+                        LOG.warn("{} not dir delete it ", rootDir.getName());
                         return;
                     }
                     long time = System.currentTimeMillis() - ttlTime;
@@ -460,7 +461,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
                     if (sumLoss != null && !sumLoss.isEmpty() && start) {
                         sumLoss.stream().forEach(FileUtils::deleteQuietly);
                     }
-                    LOG.info("%s delete %s file", rootDir.getName(), sumLoss == null ? 0 : sumLoss.size());
+                    LOG.info("{} delete {} file", rootDir.getName(), sumLoss == null ? 0 : sumLoss.size());
                 });
             }
         }, 0, intervalTime, TimeUnit.SECONDS);
@@ -475,14 +476,5 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         if (pool != null) {
             pool.shutdown();
         }
-    }
-
-    public static void main(String[] args) {
-        GuiResourceConfig config = new GuiResourceConfig();
-        config.setGuiDir("/data/br/brfs/gui");
-        GuiFileMaintainer maintainer = new GuiFileMaintainer(config);
-        Map<String, Collection<GuiDiskUsageInfo>> map =
-            maintainer.getDiskUsages("10", System.currentTimeMillis() - 24 * 60 * 60 * 1000);
-        System.out.println(map);
     }
 }
