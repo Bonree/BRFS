@@ -68,7 +68,7 @@ public class Server {
         )
             .doNotInitializeLogging()
             .requireExplicitBindings(false)
-             //.setOptionalConfigurationProperties(toMap(prop))
+            //.setOptionalConfigurationProperties(toMap(prop))
             .setRequiredConfigurationProperties(toMap(prop))
             .initialize();
 
