@@ -362,7 +362,6 @@ public class MultiRecoverV2 implements DataRecover {
                         recoverableServerList = balanceSummary.getInputServers();
                     }
 
-                    log.info("recoverableServerList: {}", recoverableServerList);
                     exceptionServerIds = new ArrayList<>(fileServerIds);
                     exceptionServerIds.remove(deadServer);
                     selectableServerList = getSelectedList(recoverableServerList, exceptionServerIds);
@@ -370,6 +369,8 @@ public class MultiRecoverV2 implements DataRecover {
                     int index = RebalanceUtils.hashFileName(namePart, selectableServerList.size());
                     selectMultiId = selectableServerList.get(index);
                     fileServerIds.set(pot, selectMultiId);
+                    log.info("recoverableServerList: {}, selectableServerList:{}, selectMultiId:{}", recoverableServerList,
+                             selectableServerList, selectMultiId);
 
                     // 判断选取的新节点是否存活
                     if (isAlive(getAliveMultiIds(), selectMultiId)) {
