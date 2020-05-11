@@ -585,7 +585,7 @@ public class TaskDispatcherV2 implements Closeable {
                     joinerSecondIDs.remove(cs.getChangeServer());
                 }
 
-                boolean canRecover = isCanRecover(cs, joinerSecondIDs, aliveSecondIDs);
+                boolean canRecover = isCanRecover(cs, joinerSecondIDs, aliveSecondIDs, idManager, cs.getStorageIndex());
                 if (canRecover) {
                     // 构建任务
                     BalanceTaskSummaryV2 taskSummary = taskGenerator
@@ -609,7 +609,8 @@ public class TaskDispatcherV2 implements Closeable {
             .map(Service::getServiceId).collect(Collectors.toList());
     }
 
-    private boolean isCanRecover(DiskPartitionChangeSummary cs, List<String> joinerSecondIDs, List<String> aliveSecondIDs) {
+    private boolean isCanRecover(DiskPartitionChangeSummary cs, List<String> joinerSecondIDs, List<String> aliveSecondIDs,
+                                 IDSManager idManager, int storageIndex) {
         boolean canRecover = true;
         int replicas = snManager.findStorageRegionById(cs.getStorageIndex()).getReplicateNum();
         // 检查参与者是否都存活
@@ -623,6 +624,16 @@ public class TaskDispatcherV2 implements Closeable {
         if (aliveSecondIDs.size() < replicas) {
             canRecover = false;
         }
+
+        // 判断当前的磁盘分区是否是同一个节点的，如果是，不做恢复操作
+        String serverId = idManager.getFirstSever();
+        Collection<String> secondIds = idManager.getSecondIds(serverId, storageIndex);
+        if (secondIds.containsAll(aliveSecondIDs)) {
+            LOG.info("don't need recover, current serverId -> secondIds:{} -> {}, aliveSecondIds:{}", serverId, secondIds,
+                     aliveSecondIDs);
+            canRecover = false;
+        }
+
         return canRecover;
     }
 
