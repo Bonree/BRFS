@@ -36,7 +36,7 @@ public class CuratorConfig {
 
     @JsonProperty("sessionTimeoutMs")
     @Min(0)
-    private int zkSessionTimeoutMs = 30000;
+    private int zkSessionTimeoutMs = 3000;
 
     @JsonProperty("authScheme")
     private String authScheme = "digest";
