@@ -55,6 +55,7 @@ public class ResourceHandler implements ResourceHandlerInterface {
         cpu.setSystem(stat.getSys());
         cpu.setUser(stat.getUser());
         cpu.setSteal(stat.getStolen());
+        cpu.setTime(snapshot.getTime());
         return cpu;
     }
 
@@ -65,6 +66,7 @@ public class ResourceHandler implements ResourceHandlerInterface {
         SwapStat swapStat = snapshot.getSwapStat();
         mem.setSwapUsed(swapStat.getUsed());
         mem.setTotalUsed(memStat.getUsed());
+        mem.setTime(snapshot.getTime());
         return mem;
     }
 
@@ -73,6 +75,7 @@ public class ResourceHandler implements ResourceHandlerInterface {
         GuiLoadInfo loadInfo = new GuiLoadInfo();
         Load load = snapshot.getLoad();
         loadInfo.setLoad(load.getMin1Load());
+        loadInfo.setTime(snapshot.getTime());
         return loadInfo;
     }
 
@@ -93,8 +96,9 @@ public class ResourceHandler implements ResourceHandlerInterface {
             String key = StringUtils.join(groupId, ":", nodeId, ":", x.getNetDev());
             GuiNetInfo fetch = new GuiNetInfo();
             fetch.setNetDev(x.getNetDev());
+            fetch.setTime(x.getTime());
             if (guiNetInfoMap.get(key) != null) {
-                GuiNetInfo old = guiNetInfoMap.get(x.getNetDev());
+                GuiNetInfo old = guiNetInfoMap.get(key);
                 double second = (x.getTime() - old.getTime()) / 1000.0;
                 if (second != 0) {
                     long rxBytes = (long) ((x.getRxBytesPs() - old.getRxBytesPs()) / second);
@@ -131,17 +135,19 @@ public class ResourceHandler implements ResourceHandlerInterface {
             return new ArrayList<>(0);
         }
         Collection<GuiDiskIOInfo> disk = new ArrayList<>();
+        long time = snapshot.getTime();
         for (DiskPartitionStat stat : locals) {
-            GuiDiskIOInfo io = packageGuiDiskIO(stat);
+            GuiDiskIOInfo io = packageGuiDiskIO(stat, time);
             disk.add(io);
         }
         return disk;
     }
 
-    private GuiDiskIOInfo packageGuiDiskIO(DiskPartitionStat stat) {
+    private GuiDiskIOInfo packageGuiDiskIO(DiskPartitionStat stat, long time) {
         GuiDiskIOInfo ioInfo = new GuiDiskIOInfo();
         ioInfo.setDiskId(stat.getPartitionId());
         ioInfo.setUsage(stat.getDiskServiceTime());
+        ioInfo.setTime(time);
         return ioInfo;
     }
 
@@ -151,18 +157,20 @@ public class ResourceHandler implements ResourceHandlerInterface {
         if (locals == null || locals.isEmpty()) {
             return new ArrayList<>(0);
         }
+        long time = snapshot.getTime();
         Collection<GuiDiskUsageInfo> disk = new ArrayList<>();
         for (DiskPartitionStat stat : locals) {
-            GuiDiskUsageInfo io = packageGuiDiskUsage(stat);
-            disk.add(io);
+            GuiDiskUsageInfo usage = packageGuiDiskUsage(stat, time);
+            disk.add(usage);
         }
         return disk;
     }
 
-    private GuiDiskUsageInfo packageGuiDiskUsage(DiskPartitionStat stat) {
-        GuiDiskUsageInfo ioInfo = new GuiDiskUsageInfo();
-        ioInfo.setDiskId(stat.getPartitionId());
-        ioInfo.setUsage(stat.getUsePercent());
-        return ioInfo;
+    private GuiDiskUsageInfo packageGuiDiskUsage(DiskPartitionStat stat, long time) {
+        GuiDiskUsageInfo usage = new GuiDiskUsageInfo();
+        usage.setDiskId(stat.getPartitionId());
+        usage.setUsage(stat.getUsePercent());
+        usage.setTime(time);
+        return usage;
     }
 }

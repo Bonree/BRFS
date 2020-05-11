@@ -3,7 +3,7 @@ package com.bonree.brfs.gui.server.resource.impl;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.gui.server.resource.GuiResourceConfig;
+import com.bonree.brfs.gui.server.GuiResourceConfig;
 import com.bonree.brfs.gui.server.resource.GuiResourceMaintainer;
 import com.bonree.brfs.gui.server.resource.vo.GuiCpuInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiDiskIOInfo;
@@ -12,6 +12,7 @@ import com.bonree.brfs.gui.server.resource.vo.GuiLoadInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiMemInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiNetInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiNodeInfo;
+import com.facebook.airlift.log.Logger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
@@ -29,11 +30,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class GuiFileMaintainer implements GuiResourceMaintainer {
-    private static final Logger LOG = LoggerFactory.getLogger(GuiFileMaintainer.class);
+    private static final Logger LOG = Logger.get(GuiFileMaintainer.class);
     private static final String NODE_INFO = "node";
     private static final String CPU_INFO = "cpu";
     private static final String MEM_INFO = "mem";
@@ -54,7 +53,6 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         this.basePath = config.getGuiDir();
         this.intervalTime = config.getScanIntervalTime();
         this.ttlTime = config.getTtlTime();
-
     }
 
     private String createPath(String type, String node) {
@@ -103,6 +101,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
             if (data == null || data.length == 0) {
                 continue;
             }
+            System.out.println(new String(data));
             T[] objs = (T[]) JsonUtils.toObjectQuietly(data, clazz);
             if (objs != null && objs.length != 0) {
                 for (T t : objs) {
@@ -121,7 +120,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         try {
             FileUtils.writeByteArrayToFile(file, data, false);
         } catch (IOException e) {
-            LOG.error("save happen error content: {}", new String(data), e);
+            LOG.error(e, "save happen error content: %s", new String(data));
         }
     }
 
@@ -139,7 +138,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
             }
             return FileUtils.readFileToByteArray(file);
         } catch (IOException e) {
-            LOG.error("read [{}] happen error", file.getName(), e);
+            LOG.error(e, "read [%s] happen error", file.getName());
         }
         return null;
     }
@@ -183,7 +182,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
                 }
             });
         } catch (Exception e) {
-            LOG.error("query {} happen error !!", dir.getName(), e);
+            LOG.error(e, "query %s happen error !!", dir.getName());
         }
         return new ArrayList<>();
     }
@@ -223,7 +222,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
                 }
             });
         } catch (Exception e) {
-            LOG.error("scan ttl file {} happen error !!", dir.getName(), e);
+            LOG.error(e, "scan ttl file %s happen error !!", dir.getName());
         }
         return new ArrayList<>();
     }
@@ -269,15 +268,15 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         if (node.exists()) {
             FileUtils.deleteQuietly(node);
         }
-        byte[] data = JsonUtils.toJsonBytesQuietly(node);
+        byte[] data = JsonUtils.toJsonBytesQuietly(nodeInfo);
         if (data == null || data.length == 0) {
-            LOG.error("converto byte[] happen error !![{}]", node);
+            LOG.error("converto byte[] happen error !![%s]", node);
             return;
         }
         try {
             FileUtils.writeByteArrayToFile(node, data, false);
         } catch (IOException e) {
-            LOG.error("save to file happen error !![{}]", node);
+            LOG.error(e, "save to file happen error !![%s]", node);
         }
     }
 
@@ -328,7 +327,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
 
     @Override
     public Map<String, Collection<GuiDiskIOInfo>> getDiskIOInfos(String id, long time) {
-        Collection<GuiDiskIOInfo> array = collectObjects(createPath(DISK_IO_INFO, id), time, GuiNetInfo[].class);
+        Collection<GuiDiskIOInfo> array = collectObjects(createPath(DISK_IO_INFO, id), time, GuiDiskIOInfo[].class);
         if (array == null || array.isEmpty()) {
             return new HashMap<>();
         }
@@ -356,7 +355,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
 
     @Override
     public Map<String, Collection<GuiDiskUsageInfo>> getDiskUsages(String id, long time) {
-        Collection<GuiDiskUsageInfo> array = collectObjects(createPath(DISK_USAGE_INFO, id), time, GuiNetInfo[].class);
+        Collection<GuiDiskUsageInfo> array = collectObjects(createPath(DISK_USAGE_INFO, id), time, GuiDiskUsageInfo[].class);
         if (array == null || array.isEmpty()) {
             return new HashMap<>();
         }
@@ -437,12 +436,12 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
                     }
                     File rootDir = new File(y);
                     if (!rootDir.exists()) {
-                        LOG.info("{} not exists ", rootDir.getName());
+                        LOG.info("%s not exists ", rootDir.getName());
                         return;
                     }
                     if (!rootDir.isDirectory()) {
                         rootDir.delete();
-                        LOG.info("{} not dir delete it ", rootDir.getName());
+                        LOG.info("%s not dir delete it ", rootDir.getName());
                         return;
                     }
                     long time = System.currentTimeMillis() - ttlTime;
@@ -461,7 +460,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
                     if (sumLoss != null && !sumLoss.isEmpty() && start) {
                         sumLoss.stream().forEach(FileUtils::deleteQuietly);
                     }
-                    LOG.info("{} delete {} file", rootDir.getName(), sumLoss == null ? 0 : sumLoss.size());
+                    LOG.info("%s delete %s file", rootDir.getName(), sumLoss == null ? 0 : sumLoss.size());
                 });
             }
         }, 0, intervalTime, TimeUnit.SECONDS);
@@ -476,5 +475,14 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         if (pool != null) {
             pool.shutdown();
         }
+    }
+
+    public static void main(String[] args) {
+        GuiResourceConfig config = new GuiResourceConfig();
+        config.setGuiDir("/data/br/brfs/gui");
+        GuiFileMaintainer maintainer = new GuiFileMaintainer(config);
+        Map<String, Collection<GuiDiskUsageInfo>> map =
+            maintainer.getDiskUsages("10", System.currentTimeMillis() - 24 * 60 * 60 * 1000);
+        System.out.println(map);
     }
 }
