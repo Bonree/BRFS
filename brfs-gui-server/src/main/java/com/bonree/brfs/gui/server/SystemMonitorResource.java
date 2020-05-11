@@ -22,6 +22,7 @@ import com.bonree.brfs.gui.server.metrics.LoadAvgMetric;
 import com.bonree.brfs.gui.server.metrics.MemMetric;
 import com.bonree.brfs.gui.server.metrics.NetMetric;
 import com.bonree.brfs.gui.server.node.MonitorNode;
+import com.bonree.brfs.gui.server.resource.GuiResourceMaintainer;
 import com.bonree.brfs.gui.server.resource.impl.GuiFileMaintainer;
 import com.bonree.brfs.gui.server.resource.vo.GuiCpuInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiDiskIOInfo;
@@ -32,6 +33,7 @@ import com.bonree.brfs.gui.server.resource.vo.GuiNetInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiNodeInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,9 +48,10 @@ import jdk.nashorn.internal.runtime.UnwarrantedOptimismException;
 
 @Path("/sys")
 public class SystemMonitorResource {
-    private GuiFileMaintainer maintainer;
+    private GuiResourceMaintainer maintainer;
 
-    public SystemMonitorResource(GuiFileMaintainer maintainer) {
+    @Inject
+    public SystemMonitorResource(GuiResourceMaintainer maintainer) {
         this.maintainer = maintainer;
     }
 

@@ -3,7 +3,7 @@ package com.bonree.brfs.gui.server.resource.impl;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.gui.server.resource.GuiResourceConfig;
+import com.bonree.brfs.gui.server.GuiResourceConfig;
 import com.bonree.brfs.gui.server.resource.GuiResourceMaintainer;
 import com.bonree.brfs.gui.server.resource.vo.GuiCpuInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiDiskIOInfo;
@@ -54,7 +54,6 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         this.basePath = config.getGuiDir();
         this.intervalTime = config.getScanIntervalTime();
         this.ttlTime = config.getTtlTime();
-
     }
 
     private String createPath(String type, String node) {
@@ -103,6 +102,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
             if (data == null || data.length == 0) {
                 continue;
             }
+            System.out.println(new String(data));
             T[] objs = (T[]) JsonUtils.toObjectQuietly(data, clazz);
             if (objs != null && objs.length != 0) {
                 for (T t : objs) {
@@ -121,7 +121,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         try {
             FileUtils.writeByteArrayToFile(file, data, false);
         } catch (IOException e) {
-            LOG.error("save happen error content: {}", new String(data), e);
+            LOG.error("save happen error content: %s", new String(data), e);
         }
     }
 
@@ -269,7 +269,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         if (node.exists()) {
             FileUtils.deleteQuietly(node);
         }
-        byte[] data = JsonUtils.toJsonBytesQuietly(node);
+        byte[] data = JsonUtils.toJsonBytesQuietly(nodeInfo);
         if (data == null || data.length == 0) {
             LOG.error("converto byte[] happen error !![{}]", node);
             return;
@@ -277,7 +277,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         try {
             FileUtils.writeByteArrayToFile(node, data, false);
         } catch (IOException e) {
-            LOG.error("save to file happen error !![{}]", node);
+            LOG.error("save to file happen error !![{}]", node, e);
         }
     }
 
@@ -328,7 +328,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
 
     @Override
     public Map<String, Collection<GuiDiskIOInfo>> getDiskIOInfos(String id, long time) {
-        Collection<GuiDiskIOInfo> array = collectObjects(createPath(DISK_IO_INFO, id), time, GuiNetInfo[].class);
+        Collection<GuiDiskIOInfo> array = collectObjects(createPath(DISK_IO_INFO, id), time, GuiDiskIOInfo[].class);
         if (array == null || array.isEmpty()) {
             return new HashMap<>();
         }
@@ -356,7 +356,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
 
     @Override
     public Map<String, Collection<GuiDiskUsageInfo>> getDiskUsages(String id, long time) {
-        Collection<GuiDiskUsageInfo> array = collectObjects(createPath(DISK_USAGE_INFO, id), time, GuiNetInfo[].class);
+        Collection<GuiDiskUsageInfo> array = collectObjects(createPath(DISK_USAGE_INFO, id), time, GuiDiskUsageInfo[].class);
         if (array == null || array.isEmpty()) {
             return new HashMap<>();
         }
@@ -437,12 +437,12 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
                     }
                     File rootDir = new File(y);
                     if (!rootDir.exists()) {
-                        LOG.info("{} not exists ", rootDir.getName());
+                        LOG.warn("{} not exists ", rootDir.getName());
                         return;
                     }
                     if (!rootDir.isDirectory()) {
                         rootDir.delete();
-                        LOG.info("{} not dir delete it ", rootDir.getName());
+                        LOG.warn("{} not dir delete it ", rootDir.getName());
                         return;
                     }
                     long time = System.currentTimeMillis() - ttlTime;
