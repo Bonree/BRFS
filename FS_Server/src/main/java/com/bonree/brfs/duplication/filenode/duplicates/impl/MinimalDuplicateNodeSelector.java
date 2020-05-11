@@ -31,7 +31,7 @@ public class MinimalDuplicateNodeSelector implements DuplicateNodeSelector {
         int size = serviceList.size();
         long start = System.currentTimeMillis();
         List<DuplicateNode> selects = new ArrayList<>();
-        if (size > nums) {
+        if (size >= nums) {
             Iterator<Service> iterator = ListUtils.random(serviceList);
             for (int i = 0; i < nums; i++) {
                 Service service = iterator.next();
