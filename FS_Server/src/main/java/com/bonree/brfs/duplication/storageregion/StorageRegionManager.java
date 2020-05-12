@@ -80,4 +80,6 @@ public interface StorageRegionManager extends LifeCycle {
     List<StorageRegion> getStorageRegionList();
 
     void addStorageRegionStateListener(StorageRegionStateListener listener);
+
+    void removeStorageRegionStateListener(StorageRegionStateListener listener);
 }

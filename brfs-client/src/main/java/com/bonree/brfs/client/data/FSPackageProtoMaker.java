@@ -28,7 +28,6 @@ import java.util.function.LongSupplier;
 
 public class FSPackageProtoMaker implements Transformer<ByteBuffer, FSPacketProto> {
     private final LongSupplier sequenceGen;
-    private final int storageRegionId;
     private final String fileId;
     private final Optional<String> fileName;
     private final boolean useCrc;
@@ -38,13 +37,11 @@ public class FSPackageProtoMaker implements Transformer<ByteBuffer, FSPacketProt
 
     public FSPackageProtoMaker(
         LongSupplier sequenceGen,
-        int storageRegionId,
         String fileId,
         Optional<String> fileName,
         boolean useCrc,
         Compression compression) {
         this.sequenceGen = sequenceGen;
-        this.storageRegionId = storageRegionId;
         this.fileId = fileId;
         this.fileName = fileName;
         this.useCrc = useCrc;
@@ -56,7 +53,6 @@ public class FSPackageProtoMaker implements Transformer<ByteBuffer, FSPacketProt
         FSPacketProto.Builder builder = FSPacketProto.newBuilder();
         builder.setSeqno(sequenceGen.getAsLong());
         builder.setLastPacketInFile(noMoreElement);
-        builder.setStorageName(storageRegionId);
         builder.setWriteID(fileId);
 
         if (fileName.isPresent()) {
