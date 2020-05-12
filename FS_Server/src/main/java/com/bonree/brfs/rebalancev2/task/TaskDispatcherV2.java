@@ -39,7 +39,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -186,6 +185,7 @@ public class TaskDispatcherV2 implements Closeable {
         LOG.info("balance tasks path: {}", tasksPath);
         treeCache.addListener(tasksPath, new TaskStatusListenerV2(this));
 
+        // 此线程的作用就是将detailQueue队列中的磁盘变更情况更新到changeSummaryCache缓存中
         singleServer.execute(new Runnable() {
             @Override
             public void run() {
@@ -193,7 +193,6 @@ public class TaskDispatcherV2 implements Closeable {
                     dealChangeSDetail();
                 } catch (InterruptedException e) {
                     LOG.error("consumer queue error!!", e);
-                    e.printStackTrace();
                 }
             }
         });
@@ -219,7 +218,7 @@ public class TaskDispatcherV2 implements Closeable {
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOG.error("audit task schedule execute error", e);
                 }
             }
         }, 3000, 3000 * 20, TimeUnit.MILLISECONDS);
@@ -273,15 +272,14 @@ public class TaskDispatcherV2 implements Closeable {
     public void dealChangeSDetail() throws InterruptedException {
         while (true) {
             DiskPartitionChangeSummary cs = detailQueue.take();
-            List<DiskPartitionChangeSummary> changeSummaries = addOneCache(cs);
-            LOG.debug("consume disk partition change summary: {}", changeSummaries);
+            addOneCache(cs);
         }
     }
 
     /**
      * @description: 将记录在队列里的变更信息更新到缓存
      */
-    public List<DiskPartitionChangeSummary> addOneCache(DiskPartitionChangeSummary cs) {
+    public void addOneCache(DiskPartitionChangeSummary cs) {
         int storageIndex = cs.getStorageIndex();
         List<DiskPartitionChangeSummary> changeSummaries = changeSummaryCache.get(storageIndex);
 
@@ -290,12 +288,11 @@ public class TaskDispatcherV2 implements Closeable {
             changeSummaryCache.put(storageIndex, changeSummaries);
         }
         if (!changeSummaries.contains(cs)) {
-            LOG.info("add cache: {}", cs);
+            LOG.info("add change summary [{}] to cache.", cs);
             changeSummaries.add(cs);
-            LOG.info("changeSummaryCache: {}", changeSummaryCache);
         }
-        LOG.info("current storageIndex:{}, changeSummaries: {}", storageIndex, changeSummaries);
-        return changeSummaries;
+        LOG.info("current storageIndex:{}, changeSummaries: {}, all changeSummaryCache: {}", storageIndex, changeSummaries,
+                 changeSummaryCache);
     }
 
     public void syncTaskTerminal(CuratorFramework client, TreeCacheEvent event) {
@@ -481,7 +478,7 @@ public class TaskDispatcherV2 implements Closeable {
      */
     public void auditTask(int snIndex, List<DiskPartitionChangeSummary> changeSummaries) {
         if (changeSummaries == null || changeSummaries.isEmpty()) {
-            LOG.info("snIndex:{},changeSummaries is empty!!, return!!!", snIndex);
+            LOG.info("snIndex:{}, changeSummaries is empty, return!!!", snIndex);
             return;
         }
 
@@ -489,7 +486,7 @@ public class TaskDispatcherV2 implements Closeable {
 
         // 当前有任务在执行,则检查是否有影响该任务的change存在
         if (runTask.get(snIndex) != null) {
-            LOG.info("snIndex:{},check task!!!", snIndex);
+            LOG.info("this sn [{}] has running task, will check", snIndex);
             checkTask(snIndex, changeSummaries);
             return;
         }
@@ -691,7 +688,7 @@ public class TaskDispatcherV2 implements Closeable {
 
                             if (secondParticipators == null || secondParticipators.isEmpty()) {
                                 LOG.error("select participator for virtual recover error!!");
-                                return addFlag;
+                                return false;
                             }
 
                             // 构造任务
