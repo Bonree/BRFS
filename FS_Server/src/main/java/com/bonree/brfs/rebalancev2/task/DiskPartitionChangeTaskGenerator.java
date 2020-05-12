@@ -170,7 +170,6 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                         }
                     } catch (Exception e) {
                         LOG.error("generator a disk partition change record failed for storageRegion: [{}]", snModel, e);
-                        e.printStackTrace();
                     }
                 }
             }

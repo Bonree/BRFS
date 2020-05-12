@@ -180,10 +180,10 @@ public class TaskDispatcherV2 implements Closeable {
         LOG.info("begin leaderLath server!");
         leaderLath.start();
 
-        LOG.info("changeMonitorPath:" + changesPath);
+        LOG.info("changeMonitorPath: {}", changesPath);
         treeCache.addListener(changesPath, new ServerChangeListenerV2(this));
 
-        LOG.info("tasksPath:" + tasksPath);
+        LOG.info("balance tasks path: {}", tasksPath);
         treeCache.addListener(tasksPath, new TaskStatusListenerV2(this));
 
         singleServer.execute(new Runnable() {
@@ -310,14 +310,14 @@ public class TaskDispatcherV2 implements Closeable {
     public void taskTerminal(CuratorFramework client, TreeCacheEvent event) {
         if (leaderLath.hasLeadership()) {
             CuratorClient curatorClient = CuratorClient.wrapClient(client);
-            LOG.info("leaderLath: {}", getLeaderLatch().hasLeadership());
+            LOG.info("is leaderLath: {}", getLeaderLatch().hasLeadership());
             LOG.info("task Dispatch event detail: {}", RebalanceUtils.convertEvent(event));
 
             if (event.getType() == Type.NODE_UPDATED) {
                 if (event.getData() != null && event.getData().getData() != null) {
                     // 此处会检测任务是否完成
                     String eventPath = event.getData().getPath();
-                    if (eventPath.substring(eventPath.lastIndexOf('/') + 1, eventPath.length()).equals(Constants.TASK_NODE)) {
+                    if (eventPath.substring(eventPath.lastIndexOf('/') + 1).equals(Constants.TASK_NODE)) {
                         return;
                     }
                     String parentPath = StringUtils.substring(eventPath, 0, eventPath.lastIndexOf('/'));
@@ -325,21 +325,20 @@ public class TaskDispatcherV2 implements Closeable {
                     if (!curatorClient.checkExists(parentPath)) {
                         return;
                     }
-                    BalanceTaskSummaryV2 bts =
-                        JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummaryV2.class);
+
                     List<String> serverIds = curatorClient.getChildren(parentPath);
 
                     // 判断是否所有的节点做完任务
                     boolean finishFlag = true;
                     if (serverIds != null) {
                         if (serverIds.isEmpty()) {
-                            LOG.info("taskoperation is not execute task!!!");
+                            LOG.info("task operation is not execute task, because serverIds is empty!");
                             finishFlag = false;
                         } else {
                             for (String serverId : serverIds) {
                                 String nodePath = ZKPaths.makePath(parentPath, serverId);
                                 TaskDetail td = JsonUtils.toObjectQuietly(curatorClient.getData(nodePath), TaskDetail.class);
-                                if (td.getStatus() != DataRecover.ExecutionStatus.FINISH) {
+                                if (td != null && td.getStatus() != DataRecover.ExecutionStatus.FINISH) {
                                     finishFlag = false;
                                     break;
                                 }
@@ -347,30 +346,32 @@ public class TaskDispatcherV2 implements Closeable {
                         }
                     }
 
+                    BalanceTaskSummaryV2 bts =
+                        JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummaryV2.class);
                     // 所有的服务都则发布迁移规则，并清理任务
                     if (finishFlag) {
                         // 先更新任务状态为finish
                         updateTaskStatus(bts, TaskStatus.FINISH);
                         // 发布路由规则
                         if (bts.getTaskType() == RecoverType.VIRTUAL) {
-                            LOG.info("one virtual task finish,detail:" + RebalanceUtils.convertEvent(event));
+                            LOG.info("one virtual task finish, detail:" + RebalanceUtils.convertEvent(event));
                             String virtualRouteNode =
                                 ZKPaths.makePath(virtualRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                             VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(),
                                                                   bts.getInputServers().get(0), TaskVersion.V1);
-                            LOG.info("add virtual route:" + route);
+                            LOG.info("add virtual route: {}", route);
                             addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
 
                             // 删除virtual server ID
-                            LOG.info("delete the virtual server id:" + bts.getServerId());
+                            LOG.info("delete the virtual server id: {}", bts.getServerId());
                             idManager.deleteVirtualId(bts.getStorageIndex(), bts.getServerId());
                         } else if (bts.getTaskType() == RecoverType.NORMAL) {
-                            LOG.info("one normal task finish,detail:" + RebalanceUtils.convertEvent(event));
+                            LOG.info("one normal task finish, detail:" + RebalanceUtils.convertEvent(event));
                             String normalRouteNode =
                                 ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                             NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(),
                                                                 bts.getInputServers(), TaskVersion.V1);
-                            LOG.info("add normal route:" + route);
+                            LOG.info("add normal route: {}", route);
                             addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
                         }
 
@@ -381,13 +382,7 @@ public class TaskDispatcherV2 implements Closeable {
 
                         // 清理change cache缓存
                         if (changeSummaries != null) {
-                            Iterator<DiskPartitionChangeSummary> it = changeSummaries.iterator();
-                            while (it.hasNext()) {
-                                DiskPartitionChangeSummary cs = it.next();
-                                if (cs.getChangeID().equals(bts.getChangeID())) {
-                                    changeSummaries.remove(cs);
-                                }
-                            }
+                            changeSummaries.removeIf(cs -> cs.getChangeID().equals(bts.getChangeID()));
                         }
                         // 删除zk上的任务节点
                         if (delBalanceTask(bts)) {

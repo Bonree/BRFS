@@ -59,9 +59,9 @@ public class RebalanceManagerV2 implements Closeable {
 
     @LifecycleStart
     public void start() throws Exception {
-        LOG.info("start taskdispatch service!!");
+        LOG.info("start task dispatch service!!");
         dispatch.start();
-        LOG.info("start taskoperation service!!");
+        LOG.info("start task operation service!!");
         opt.start();
         LOG.info("start Simple file server!!!");
         simpleFileServer.execute(new Runnable() {
