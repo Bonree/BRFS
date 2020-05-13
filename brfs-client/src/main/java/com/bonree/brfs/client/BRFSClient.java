@@ -695,6 +695,11 @@ public class BRFSClient implements BRFS {
 
     @Override
     public void deleteObjects(String srName, long startTime, long endTime) {
+        if (startTime > endTime) {
+            throw new IllegalArgumentException(
+                Strings.format("start time[%d] should before than end time[%d]", startTime, endTime));
+        }
+
         Retrys.execute(new URIRetryable<Void>(
             format("delete data of storage region[%s]", srName),
             nodeSelector.getNodeHttpLocations(ServiceType.REGION),
