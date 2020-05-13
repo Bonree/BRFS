@@ -8,7 +8,6 @@ import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description: id综合查询管理类，负责二级serverid，虚拟serverid 的查询，以及datanode一级server查询
  **/
-public class IDSManager {
+public class IDSManager implements LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(IDSManager.class);
     private String firstSever = null;
     private SecondMaintainerInterface secondMaintainer;
@@ -34,11 +33,6 @@ public class IDSManager {
         this.secondMaintainer = secondMaintainer;
         this.virtualServerID = virtualServerID;
         this.diskDaemon = diskDaemon;
-        Collection<LocalPartitionInfo> partitions = this.diskDaemon.getPartitions();
-        Collection<String> parts = convertToId(partitions);
-
-        this.secondMaintainer.addAllPartitionRelation(parts, firstSever);
-        LOG.info("IDSManager start.");
     }
 
     private Collection<String> convertToId(Collection<LocalPartitionInfo> partitions) {
@@ -152,5 +146,19 @@ public class IDSManager {
 
     public String getPartitionId(String secondId, int storageRegionId) {
         return this.secondMaintainer.getPartitionId(secondId, storageRegionId);
+    }
+
+    
+    @Override
+    public void start() throws Exception {
+        Collection<LocalPartitionInfo> partitions = this.diskDaemon.getPartitions();
+        Collection<String> parts = convertToId(partitions);
+        this.secondMaintainer.addAllPartitionRelation(parts, firstSever);
+        LOG.info("IDSManager start.");
+    }
+
+    @Override
+    public void stop() throws Exception {
+
     }
 }

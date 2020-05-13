@@ -7,6 +7,7 @@ import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.identification.LevelServerIDGen;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
@@ -14,16 +15,15 @@ import com.bonree.brfs.rebalance.route.factory.SingleRouteFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
@@ -50,18 +50,21 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     private Queue<RegisterInfo> queue = new ConcurrentLinkedQueue<>();
     private ScheduledExecutorService pool = null;
     private Future<?> future = null;
+    private Service localService;
 
-    public SimpleSecondMaintainer(CuratorFramework client, String secondBasePath, String routeBasePath, String secondIdSeqPath) {
+    public SimpleSecondMaintainer(CuratorFramework client, Service localService, String secondBasePath, String routeBasePath,
+                                  String secondIdSeqPath) {
         this.client = client;
         this.secondBasePath = secondBasePath;
         this.routeBasePath = routeBasePath;
         this.secondIdWorker = new SecondServerIDGenImpl(this.client, secondIdSeqPath);
         this.secondIds = new RetryNTimesSecondIDShip(client, secondBasePath, 3, 100);
+        this.localService = localService;
     }
 
     @Inject
-    public SimpleSecondMaintainer(CuratorFramework client, ZookeeperPaths path) {
-        this(client, path.getBaseV2SecondIDPath(), path.getBaseV2RoutePath(), path.getBaseServerIdSeqPath());
+    public SimpleSecondMaintainer(CuratorFramework client, ZookeeperPaths path, Service localService) {
+        this(client, localService, path.getBaseV2SecondIDPath(), path.getBaseV2RoutePath(), path.getBaseServerIdSeqPath());
     }
 
     /**
@@ -316,6 +319,9 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     @Override
     public void start() throws Exception {
         LOG.info("second maintainer thread start !!");
+        // 1.检查服务的二级server是否失效
+        checkSecondIds(localService);
+        // 2.注册后台修复线程
         pool = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("SecondIdMaintainer").build());
         future = pool.scheduleAtFixedRate(new Runnable() {
             @Override
@@ -340,6 +346,55 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                 }
             }
         }, 0, 100, TimeUnit.MILLISECONDS);
+    }
+
+    private void checkSecondIds(Service local) {
+        String firstServerId = local.getServiceId();
+        Collection<String> partitions = null;
+        try {
+            partitions = getValidPartitions(firstServerId);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                MessageFormat.format("service:[{0}]check secondId happen error. when get partitions", local), e);
+        }
+        if (partitions == null && partitions.isEmpty()) {
+            throw new RuntimeException(MessageFormat.format("first server id [{0}] no partitionId", firstServerId));
+        }
+        partitions.stream().forEach(
+            x -> {
+                try {
+                    String partitionPath = ZKPaths.makePath(this.secondBasePath, x);
+                    if (this.client.checkExists().forPath(partitionPath) == null) {
+                        return;
+                    }
+                    byte[] fistData = this.client.getData().forPath(partitionPath);
+                    if (fistData == null || fistData.length == 0) {
+                        addPartitionRelation(firstServerId, x);
+                    }
+                    String checkFirst = new String(fistData, "utf-8");
+                    if (!checkFirst.equals(firstServerId)) {
+                        throw new RuntimeException(
+                            MessageFormat
+                                .format("find unexpect first id [{0}]! expect:[{1}] partitionId:[{2}]", checkFirst, firstServerId,
+                                        x));
+                    }
+                    List<String> childs = this.client.getChildren().forPath(partitionPath);
+                    if (childs == null || childs.isEmpty()) {
+                        return;
+                    }
+                    Collections.sort(childs);
+                    childs.stream().forEach(y -> {
+                        int storageIndex = Integer.parseInt(y);
+                        String secondId = getSecondId(y, storageIndex);
+                        if (!isValidSecondId(secondId, storageIndex)) {
+                            createSecondId(y, firstServerId, storageIndex);
+                        }
+                    });
+                } catch (Exception e) {
+                    throw new RuntimeException("check secondId happen error", e);
+                }
+            }
+        );
     }
 
     @LifecycleStop
