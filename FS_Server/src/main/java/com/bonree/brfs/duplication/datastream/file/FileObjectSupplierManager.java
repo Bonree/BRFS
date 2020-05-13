@@ -49,6 +49,7 @@ public class FileObjectSupplierManager {
     }
 
     private void close(String srName, FileObjectSupplier supplier) {
+        log.info("close file object supplier of sr[%s]", srName);
         if (supplier != null) {
             try {
                 supplier.close();
