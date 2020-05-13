@@ -6,9 +6,9 @@ import static com.google.inject.multibindings.Multibinder.newSetBinder;
 import com.bonree.brfs.common.guice.ConfigModule;
 import com.bonree.brfs.common.jackson.JsonModule;
 import com.bonree.brfs.common.utils.StringUtils;
-import com.bonree.brfs.gui.server.catalog.CatalogGuiResource;
 import com.bonree.brfs.gui.server.resource.GuiResourceMaintainer;
 import com.bonree.brfs.gui.server.resource.maintain.ResourceRequestMaintainer;
+import com.bonree.brfs.gui.server.zookeeper.ZookeeperResource;
 import com.facebook.airlift.bootstrap.Bootstrap;
 import com.facebook.airlift.event.client.EventClient;
 import com.facebook.airlift.event.client.NullEventClient;
@@ -56,10 +56,10 @@ public class Server {
                 binder.bind(EventClient.class).to(NullEventClient.class).in(Singleton.class);
                 binder.bind(NodeInfo.class).toInstance(new NodeInfo("env"));
 
-                //                    jaxrsBinder(binder).bind(ZookeeperResource.class);
+                jaxrsBinder(binder).bind(ZookeeperResource.class);
                 jaxrsBinder(binder).bind(DashBoardResource.class);
                 //jaxrsBinder(binder).bind(SystemMonitorResource.class);
-                jaxrsBinder(binder).bind(CatalogGuiResource.class);
+                //                jaxrsBinder(binder).bind(CatalogGuiResource.class);
                 newSetBinder(binder, Filter.class, TheServlet.class).addBinding().to(HeaderFilter.class);
             }
 
