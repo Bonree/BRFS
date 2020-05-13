@@ -807,6 +807,7 @@ public class TaskDispatcher implements Closeable {
 
         Map<String, List<ChangeSummary>> tempCsMap = Maps.newHashMap();
         // trim change cache 清除变更抵消,查看最终的状态即可
+        // 根据变更的server 分组
         for (ChangeSummary cs : changeSummaries) {
             if (!StringUtils.equals(cs.getChangeID(), runChangeID)) {
                 if (tempCsMap.get(cs.getChangeServer()) == null) {
@@ -818,7 +819,7 @@ public class TaskDispatcher implements Closeable {
                 }
             }
         }
-
+        // server分组排序，取最后的变更，将changeid 与最后一个不同的变更都删除
         for (Entry<String, List<ChangeSummary>> entry : tempCsMap.entrySet()) {
             List<ChangeSummary> csList = entry.getValue();
             Collections.sort(csList);

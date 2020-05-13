@@ -1,11 +1,13 @@
 package com.bonree.brfs.rebalance.route.impl;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.factory.SingleRouteFactory;
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
@@ -25,6 +27,11 @@ public class SimpleRouteZKLoader implements RouteLoader {
     public SimpleRouteZKLoader(CuratorFramework client, String basePath) {
         this.basePath = basePath;
         this.client = client;
+    }
+
+    @Inject
+    public SimpleRouteZKLoader(CuratorFramework client, ZookeeperPaths zookeeperPaths) {
+        this(client, zookeeperPaths.getBaseRoutePath());
     }
 
     @Override

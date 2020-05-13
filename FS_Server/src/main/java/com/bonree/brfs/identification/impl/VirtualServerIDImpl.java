@@ -1,9 +1,11 @@
 package com.bonree.brfs.identification.impl;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
 import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
 import com.bonree.brfs.identification.VirtualServerID;
 import com.google.common.primitives.Ints;
+import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
@@ -42,6 +44,11 @@ public class VirtualServerIDImpl implements VirtualServerID {
         this.client = client;
         this.virtualServerIDCreator = new ZkSequenceNumberBuilder(client, ZKPaths.makePath(basePath, VIRTUAL_ID_INDEX_NODE));
         this.virtualIdContainer = ZKPaths.makePath(basePath, VIRTUAL_ID_CONTAINER);
+    }
+
+    @Inject
+    public VirtualServerIDImpl(CuratorFramework client, ZookeeperPaths path) {
+        this(client, path.getBaseServerIdSeqPath());
     }
 
     @Override

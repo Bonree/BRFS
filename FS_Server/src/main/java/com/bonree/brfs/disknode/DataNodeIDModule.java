@@ -8,6 +8,7 @@ import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;
+import com.bonree.brfs.common.resource.vo.DiskPartitionInfo;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
@@ -23,6 +24,7 @@ import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
 import com.bonree.brfs.identification.impl.LocalDirMaintainer;
 import com.bonree.brfs.identification.impl.SimpleSecondMaintainer;
 import com.bonree.brfs.identification.impl.VirtualServerIDImpl;
+import com.bonree.brfs.metrics.DiskPartition;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.partition.PartitionCheckingRoutine;
 import com.bonree.brfs.partition.PartitionGather;
@@ -32,6 +34,7 @@ import com.bonree.brfs.rebalancev2.task.DiskPartitionChangeTaskGenerator;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import java.io.File;
 import java.util.Collection;
@@ -51,11 +54,20 @@ public class DataNodeIDModule implements Module {
         // 加载配置
         JsonConfigProvider.bind(binder, "partition", PartitionConfig.class);
         jaxrs(binder).resource(NodeStatResource.class);
-        binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class);
-        binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class);
-        binder.bind(SecondIdsInterface.class).to(SecondMaintainerInterface.class).in(ManageLifecycle.class);
+        binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class).in(Singleton.class);
+        binder.bind(LocalPartitionInterface.class).to(DiskDaemon.class).in(Singleton.class);
+        binder.bind(IDSManager.class).in(Singleton.class);
+        binder.bind(PartitionInterface.class).to(LocalDirMaintainer.class).in(Singleton.class);
+        binder.bind(FirstLevelServerIDImpl.class).in(Singleton.class);
+        binder.bind(SecondMaintainerInterface.class).to(SimpleSecondMaintainer.class).in(Singleton.class);
+        binder.bind(SecondIdsInterface.class).to(SimpleSecondMaintainer.class).in(Singleton.class);
+
         binder.bind(DiskPartitionInfoManager.class).in(ManageLifecycle.class);
-        LifecycleModule.register(binder, IDSManager.class);
+        binder.bind(SimpleSecondMaintainer.class).in(ManageLifecycle.class);
+        binder.bind(DiskPartitionChangeTaskGenerator.class).in(ManageLifecycle.class);
+
+        LifecycleModule.register(binder, DiskPartitionInfoManager.class);
+        LifecycleModule.register(binder, SimpleSecondMaintainer.class);
         LifecycleModule.register(binder, DiskPartitionChangeTaskGenerator.class);
     }
 
@@ -91,88 +103,4 @@ public class DataNodeIDModule implements Module {
         });
         return daemon;
     }
-
-    @Provides
-    @Singleton
-    public FirstLevelServerIDImpl getFirstLevelServerIDImpl(CuratorFramework client,
-                                                            ZookeeperPaths path, IDConfig idConfig) {
-        return new FirstLevelServerIDImpl(client, path.getBaseServerIdPath(),
-                                          idConfig.getServerIds() + File.separator + "disknode_id", path.getBaseSequencesPath());
-    }
-
-    @Provides
-    @Singleton
-    public VirtualServerIDImpl getVirtualServerId(CuratorFramework client,
-                                                  ZookeeperPaths path) {
-        return new VirtualServerIDImpl(client, path.getBaseServerIdSeqPath());
-    }
-
-    @Provides
-    @Singleton
-    public SecondMaintainerInterface getSecondMaintainer(CuratorFramework client, ZookeeperPaths path) {
-        return new SimpleSecondMaintainer(client, path.getBaseV2SecondIDPath(), path.getBaseV2RoutePath(),
-                                          path.getBaseServerIdSeqPath());
-    }
-
-    @Provides
-    @Singleton
-    public IDSManager getIDSManager(FirstLevelServerIDImpl firstLevelServerID,
-                                    SecondMaintainerInterface ship,
-                                    VirtualServerID virtualServerID,
-                                    DiskDaemon diskDaemon, Lifecycle lifecycle) {
-        IDSManager manager = new IDSManager(firstLevelServerID.initOrLoadServerID(), ship, virtualServerID, diskDaemon);
-        lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
-            @Override
-            public void start() throws Exception {
-                manager.start();
-            }
-
-            @Override
-            public void stop() {
-                manager.stop();
-            }
-        });
-        return manager;
-    }
-
-    @Provides
-    @Singleton
-    public PartitionInterface getPartitionInterface(DiskDaemon diskDaemon, SecondMaintainerInterface secondIds) {
-        return new LocalDirMaintainer(diskDaemon, secondIds);
-    }
-
-    @Provides
-    @Singleton
-    public DiskPartitionChangeTaskGenerator diskPartitionChangeTaskGenerator(
-        CuratorFramework client,
-        ServiceManager serviceManager,
-        IDSManager idsManager,
-        StorageRegionManager storageRegionManager,
-        ZookeeperPaths zkPaths,
-        DiskPartitionInfoManager diskPartitionInfoManager,
-        Lifecycle lifecycle) {
-        DiskPartitionChangeTaskGenerator generator = new DiskPartitionChangeTaskGenerator(client,
-                                                                                          serviceManager,
-                                                                                          idsManager,
-                                                                                          storageRegionManager,
-                                                                                          zkPaths,
-                                                                                          diskPartitionInfoManager);
-        lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
-            @Override
-            public void start() throws Exception {
-                generator.start();
-            }
-
-            @Override
-            public void stop() {
-                try {
-                    generator.stop();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        return generator;
-    }
-
 }

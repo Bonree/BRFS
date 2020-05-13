@@ -5,14 +5,20 @@ import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.task.TaskState;
+import com.bonree.brfs.disknode.ResourceConfig;
+import com.bonree.brfs.resource.ResourceGatherInterface;
+import com.bonree.brfs.resource.ResourceRegisterInterface;
 import com.bonree.brfs.tasks.resource.ResourceTask;
+import com.bonree.brfs.tasks.resource.impl.ResourceRegistTask;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
-import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +31,17 @@ public class ResourceMaintainer implements LifeCycle {
     private ScheduledExecutorService pool = null;
     private Collection<ResourceTask> tasks = null;
 
-    @Inject
-    public ResourceMaintainer(@Named("resourceTasks") Collection<ResourceTask> tasks) {
+    public ResourceMaintainer(Collection<ResourceTask> tasks) {
         this.tasks = tasks;
+    }
+
+    @Inject
+    public ResourceMaintainer(
+        ResourceGatherInterface resourceGather,
+        ResourceRegisterInterface resourceRegister,
+        ResourceConfig conf) {
+        this(conf.isRunFlag() ? Arrays.asList(new ResourceRegistTask(resourceGather, resourceRegister, conf)) :
+                 Collections.EMPTY_LIST);
     }
 
     @LifecycleStart

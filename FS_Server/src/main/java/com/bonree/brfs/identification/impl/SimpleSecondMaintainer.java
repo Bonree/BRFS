@@ -1,5 +1,6 @@
 package com.bonree.brfs.identification.impl;
 
+import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
@@ -11,6 +12,7 @@ import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.rebalance.route.factory.SingleRouteFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -42,6 +45,7 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     private SecondIdsInterface secondIds;
     private BlockingQueue<RegisterInfo> queue = new LinkedBlockingQueue<>();
     private ExecutorService pool = null;
+    private Future<?> future = null;
 
     public SimpleSecondMaintainer(CuratorFramework client, String secondBasePath, String routeBasePath, String secondIdSeqPath) {
         this.client = client;
@@ -49,6 +53,11 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
         this.routeBasePath = routeBasePath;
         this.secondIdWorker = new SecondServerIDGenImpl(this.client, secondIdSeqPath);
         this.secondIds = new RetryNTimesSecondIDShip(client, secondBasePath, 3, 100);
+    }
+
+    @Inject
+    public SimpleSecondMaintainer(CuratorFramework client, ZookeeperPaths path) {
+        this(client, path.getBaseV2SecondIDPath(), path.getBaseV2RoutePath(), path.getBaseServerIdSeqPath());
     }
 
     /**
@@ -304,7 +313,7 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     public void start() throws Exception {
         LOG.info("second maintainer thread start !!");
         pool = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("SecondIdMaintainer").build());
-        pool.execute(new Runnable() {
+        future = pool.submit(new Runnable() {
             @Override
             public void run() {
                 RegisterInfo info = null;
@@ -328,6 +337,9 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     @LifecycleStop
     @Override
     public void stop() throws Exception {
+        if (future != null && !future.isCancelled()) {
+            future.cancel(true);
+        }
         if (pool != null) {
             queue.clear();
             pool.shutdownNow();

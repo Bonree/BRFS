@@ -60,55 +60,28 @@ public class TaskModule implements Module {
         JsonConfigProvider.bind(binder, "datanode.resource", ResourceConfig.class);
         binder.bind(ResourceGatherInterface.class).to(LocalResourceGather.class).in(Singleton.class);
         binder.bind(ResourceRegisterInterface.class).to(ZKResourceRegister.class);
-        binder.bind(RebalanceTaskMonitor.class).to(CycleRebalanceTaskMonitor.class).in(ManageLifecycle.class);
-        binder.bind(FileBlockMaintainer.class).in(ManageLifecycle.class);
+        binder.bind(RebalanceTaskMonitor.class).to(CycleRebalanceTaskMonitor.class).in(Singleton.class);
 
+        binder.bind(ResourceTaskConfig.class);
         binder.bind(RunnableTaskInterface.class).to(DefaultRunnableTask.class).in(Singleton.class);
         binder.bind(MetaTaskManagerInterface.class).to(DefaultReleaseTask.class).in(Singleton.class);
-        binder.bind(SchedulerManagerInterface.class).to(DefaultSchedulersManager.class).in(ManageLifecycle.class);
+        binder.bind(MetaTaskLeaderManager.class).in(Singleton.class);
+        binder.bind(RouteLoader.class).to(SimpleRouteZKLoader.class).in(Singleton.class);
+        binder.bind(SchedulerManagerInterface.class).to(DefaultSchedulersManager.class).in(Singleton.class);
+
+        binder.bind(CycleRebalanceTaskMonitor.class).in(ManageLifecycle.class);
+        binder.bind(FileBlockMaintainer.class).in(ManageLifecycle.class);
         binder.bind(TaskReleaseManager.class).in(ManageLifecycle.class);
         binder.bind(TaskOpertionManager.class).in(ManageLifecycle.class);
-        binder.bind(ResourceTaskConfig.class);
-        binder.bind(MetaTaskLeaderManager.class).in(Singleton.class);
+        binder.bind(DefaultSchedulersManager.class).in(ManageLifecycle.class);
+        binder.bind(ResourceMaintainer.class).in(ManageLifecycle.class);
 
-        LifecycleModule.register(binder, RebalanceTaskMonitor.class);
+        LifecycleModule.register(binder, CycleRebalanceTaskMonitor.class);
         LifecycleModule.register(binder, FileBlockMaintainer.class);
-        LifecycleModule.register(binder, ResourceMaintainer.class);
-        //LifecycleModule.register(binder, SchedulerManagerInterface.class);
         LifecycleModule.register(binder, TaskReleaseManager.class);
         LifecycleModule.register(binder, TaskOpertionManager.class);
-    }
-
-    @Provides
-    @Singleton
-    public RouteLoader getRouteLoader(CuratorFramework client, ZookeeperPaths zookeeperPaths) {
-        return new SimpleRouteZKLoader(client, zookeeperPaths.getBaseRoutePath());
-    }
-
-    @Provides
-    public ResourceMaintainer createResourceMaintainer(
-        ResourceGatherInterface resourceGather,
-        ResourceRegisterInterface resourceRegister,
-        ResourceConfig conf,
-        Lifecycle lifecycle
-    ) {
-        Collection<ResourceTask> tasks = new HashSet<>();
-        if (conf.isRunFlag()) {
-            tasks.add(new ResourceRegistTask(resourceGather, resourceRegister, conf));
-        }
-        ResourceMaintainer maintainer = new ResourceMaintainer(tasks);
-        lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
-            @Override
-            public void start() throws Exception {
-                maintainer.start();
-            }
-
-            @Override
-            public void stop() {
-                maintainer.stop();
-            }
-        });
-        return maintainer;
+        LifecycleModule.register(binder, DefaultSchedulersManager.class);
+        LifecycleModule.register(binder, ResourceMaintainer.class);
     }
 
     @Provides

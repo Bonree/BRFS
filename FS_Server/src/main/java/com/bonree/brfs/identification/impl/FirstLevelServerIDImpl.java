@@ -1,5 +1,7 @@
 package com.bonree.brfs.identification.impl;
 
+import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.disknode.IDConfig;
 import com.bonree.brfs.identification.LevelServerIDGen;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -34,13 +36,19 @@ public class FirstLevelServerIDImpl {
 
     private String firstServer = null;
 
-    @Inject
     public FirstLevelServerIDImpl(CuratorFramework client, String firstZKPath, String firstServerIDFile, String seqPath) {
         this.client = client;
         this.firstZKPath = firstZKPath;
         this.firstServerIDFile = firstServerIDFile;
         firstServerIDGen = new FirstServerIDGenImpl(client, seqPath);
         initOrLoadServerID();
+    }
+
+    @Inject
+    public FirstLevelServerIDImpl(
+        CuratorFramework client, ZookeeperPaths path, IDConfig idConfig) {
+        this(client, path.getBaseServerIdPath(),
+             idConfig.getServerIds() + File.separator + "disknode_id", path.getBaseSequencesPath());
     }
 
     /**
