@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchangeListener, FileNodeSink {
-    private static Logger LOG = LoggerFactory.getLogger(DefaultFileObjectSupplier.class);
+    private static Logger log = LoggerFactory.getLogger(DefaultFileObjectSupplier.class);
 
     private FileObjectFactory fileFactory;
 
@@ -99,12 +99,11 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 
     @Override
     public FileObject fetch(int size) throws InterruptedException {
-        Future<FileObject> future = mainThread.submit(new FileFetcher(size));
-
         try {
+            Future<FileObject> future = mainThread.submit(new FileFetcher(size));
             return future.get();
         } catch (ExecutionException e) {
-            LOG.error("fetch file failed", e);
+            log.error("fetch file failed", e);
             return null;
         }
     }
@@ -121,7 +120,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
         }
 
         if (needSync) {
-            LOG.info("error occurred in file[{}]", file.node().getName());
+            log.info("error occurred in file[{}]", file.node().getName());
             exceptedFiles.add(file);
 
             fileSynchronizer.synchronize(file, new FileObjectSyncCallback() {
@@ -129,7 +128,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
                 @Override
                 public void complete(FileObject file, long fileLength) {
                     if (file.length() != fileLength) {
-                        LOG.warn("update file[{}] length from [{}] to [{}]", file.node().getName(), file.length(), fileLength);
+                        log.warn("update file[{}] length from [{}] to [{}]", file.node().getName(), file.length(), fileLength);
                         file.setLength(fileLength);
                     }
 
@@ -219,6 +218,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 
     @Override
     public void close() {
+        log.info("sr[%s] file object supplier is closed", storageRegion.getName());
         fileNodeSinkManager.removeStateListener(stateListener);
         fileNodeSinkManager.unregisterFileNodeSink(this);
         timeEventEmitter.removeListener(Duration.parse(storageRegion.getFilePartitionDuration()), this);
@@ -258,7 +258,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 
                     if ((totalSize() >= cleanLimit && Double.compare(file.length(), file.capacity() * cleanFileLengthRatio) >= 0)
                         || (totalSize() >= forceCleanLimit)) {
-                        LOG.info("force clean to file[{}]", file.node().getName());
+                        log.info("force clean to file[{}]", file.node().getName());
                         iter.remove();
                         fileCloser.close(file, true);
                     }
@@ -274,7 +274,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
                     checkSize(dataSize, file);
                 }
 
-                LOG.debug("idle => {}, busy => {}, exception => {}", idleFileList.size(), busyFileList.size(),
+                log.debug("idle => {}, busy => {}, exception => {}", idleFileList.size(), busyFileList.size(),
                           exceptionFileList.size());
                 if (totalSize() < cleanLimit || (totalSize() < forceCleanLimit && usableBusyFileList.isEmpty())) {
                     FileObject file = fileFactory.createFile(storageRegion);
@@ -282,7 +282,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
                         throw new RuntimeException("can not create file node!");
                     }
 
-                    LOG.info("create file object[{}] with capactiy[{}]", file.node().getName(), file.capacity());
+                    log.info("create file object[{}] with capactiy[{}]", file.node().getName(), file.capacity());
                     if (dataSize > file.capacity()) {
                         idleFileList.add(file);
                         throw new IllegalStateException(
@@ -295,7 +295,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
                     return file;
                 }
 
-                LOG.debug("available busy file count => {}", usableBusyFileList.size());
+                log.debug("available busy file count => {}", usableBusyFileList.size());
                 while (recycledFiles.isEmpty() && exceptedFiles.isEmpty()) {
                     Thread.yield();
                 }
@@ -311,7 +311,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
             @Override
             public void run() {
                 expiredTime = startTime;
-                LOG.info("Time[{}] to clear file list", new DateTime());
+                log.info("Time[{}] to clear file list", new DateTime());
                 clearList();
             }
         });
