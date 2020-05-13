@@ -9,7 +9,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,8 +27,8 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultBrfsCatalog implements BrfsCatalog {
     RocksDBManager rocksDBManager;
-    static final Base64.Encoder encoder = Base64.getEncoder();
     static final byte[] DIR_VALUE = "0".getBytes();
+    static final String SEPRATOR = "/";
     private static final Logger LOG = LoggerFactory.getLogger(DefaultBrfsCatalog.class);
     private static final String pattern = "^(/+(\\.*[\\w,\\-]+\\.*)+)+$";
     private static Pattern p = Pattern.compile(pattern);
@@ -72,10 +71,11 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
      * @return （parent'hashcode/nodeName）的二进制数组
      */
     private byte[] transferToKey(String path) {
-        String parentPath = getParentPath(path);
+        String parentPath = getParentPath(path) + SEPRATOR;
         String nodeName = getLastNodeName(path);
-        byte[] encode = encoder.encode(parentPath.getBytes());
-        return Bytes.byteMerge(encode, nodeName.getBytes());
+        //        byte[] encode = encoder.encode(parentPath.getBytes());
+
+        return Bytes.byteMerge(parentPath.getBytes(), nodeName.getBytes());
     }
 
     private String getParentPath(String path) {
@@ -104,7 +104,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         if (path.equals("/")) {
             prefixQueryKey = path.getBytes(StandardCharsets.UTF_8);
         } else {
-            prefixQueryKey = Bytes.byteMerge(encoder.encode(path.getBytes()), "/".getBytes());
+            prefixQueryKey = Bytes.byteMerge(path.getBytes(), "/".getBytes());
         }
         Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName, prefixQueryKey);
         if (map == null) {
