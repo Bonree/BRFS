@@ -343,9 +343,6 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
         if (BrStringUtils.isEmpty(taskpoolKey)) {
             throw new ParamsErrorException("task pool key is empty !!!");
         }
-        if (!taskPoolMap.containsKey(taskpoolKey)) {
-            throw new ParamsErrorException("task pool key is not exists !!!");
-        }
         BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
         if (pool == null) {
             return true;
@@ -364,9 +361,6 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
     public boolean closeTaskPool(String taskpoolKey, boolean isWaitTaskCompleted) throws ParamsErrorException {
         if (BrStringUtils.isEmpty(taskpoolKey)) {
             throw new ParamsErrorException("task pool key is empty !!!");
-        }
-        if (!taskPoolMap.containsKey(taskpoolKey)) {
-            throw new ParamsErrorException("task pool key is not exists !!!");
         }
         BaseSchedulerInterface pool = taskPoolMap.get(taskpoolKey);
         if (pool == null) {

@@ -40,6 +40,8 @@ public interface BRFS {
 
     void deleteStorageRegion(String srName) throws Exception;
 
+    BatchResult putObjects(String srName, PutObjectBatch batch) throws Exception;
+
     PutObjectResult putObject(String srName, byte[] bytes) throws Exception;
 
     PutObjectResult putObject(String srName, File file) throws Exception;

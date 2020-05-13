@@ -9,9 +9,9 @@ import com.bonree.brfs.common.net.http.data.FSPacket;
  */
 public interface BlockManager {
 
-    Block appendToBlock(FSPacket packet, HandleResultCallback callback);
+    Block appendToBlock(String srName, FSPacket packet, HandleResultCallback callback);
 
-    void addToWaitingPool(FSPacket packet, HandleResultCallback callback);
+    void addToWaitingPool(String srName, FSPacket packet, HandleResultCallback callback);
 
     long getBlockSize();
 }

@@ -24,10 +24,11 @@ import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.net.http.HandleResultCallback;
 import com.bonree.brfs.common.net.http.data.FSPacket;
-import com.bonree.brfs.common.proto.DataTransferProtos;
 import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
+import com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.common.statistic.WriteStatsCountCollector;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.catalog.BrfsCatalog;
@@ -41,12 +42,10 @@ import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.collect.ImmutableList;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -95,6 +94,54 @@ public class DataResource {
     }
 
     @POST
+    @Path("batch/{srName}")
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(APPLICATION_JSON)
+    public void writeBatch(@PathParam("srName") String srName,
+                           WriteBatch batch,
+                           @Suspended AsyncResponse response) {
+        final BatchDatas datas = new BatchDatas(batch.getItemsCount(), brfsCatalog.isUsable());
+        batch.getItemsList().forEach(datas::add);
+
+        storageRegionWriter.write(
+            srName,
+            datas.getDatas(),
+            new StorageRegionWriteCallback() {
+
+                @Override
+                public void complete(String[] fids) {
+                    String[] fileNames = datas.getFileNames();
+                    for (int i = 0; i < fileNames.length; i++) {
+                        String fileName = fileNames[i];
+                        if (fileName == null) {
+                            continue;
+                        }
+
+                        if (brfsCatalog.isUsable() && brfsCatalog.writeFid(srName, fileName, fids[i])) {
+                            LOG.error("failed when write fid to rocksDB for file[%s].", fileName);
+
+                            // set fid null after error
+                            fids[i] = null;
+                        }
+                    }
+
+                    response.resume(fids);
+                }
+
+                @Override
+                public void complete(String fid) {
+                    response.resume(Response.serverError().build());
+                    throw new RuntimeException("Batch writting should not return a single fid");
+                }
+
+                @Override
+                public void error(Throwable cause) {
+                    response.resume(cause);
+                }
+            });
+    }
+
+    @POST
     @Path("{srName}")
     @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
@@ -127,18 +174,23 @@ public class DataResource {
             if (packet.isATinyFile()) {
                 LOG.debug("writing a tiny file [{}]", packet.getFileName());
                 storageRegionWriter.write(
-                    packet.getStorageName(),
+                    srName,
                     packet.getData(),
                     new StorageRegionWriteCallback() {
                         long ctime = System.currentTimeMillis();
 
                         @Override
-                        public void error() {
-                            response.resume(new Exception());
+                        public void error(Throwable cause) {
+                            response.resume(cause);
                         }
 
                         @Override
                         public void complete(String fid) {
+                            if (fid == null) {
+                                response.resume(Response.serverError().build());
+                                return;
+                            }
+
                             LOG.info("write the tiny data to dn cost [{}]ms", System.currentTimeMillis() - ctime);
                             LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
                             if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
@@ -198,14 +250,14 @@ public class DataResource {
                 }
             };
             if (packet.isTheFirstPacketInFile()) {
-                blockManager.addToWaitingPool(packet, callback);
+                blockManager.addToWaitingPool(srName, packet, callback);
                 LOG.info("put a file [{}] into the waiting pool", packet.getFileName());
                 //todo server should tell client that file is waiting for write. but how
                 return;
             }
             LOG.debug("append packet[{}] into block", packet);
             //===== 追加数据的到blockManager
-            blockManager.appendToBlock(packet, callback);
+            blockManager.appendToBlock(srName, packet, callback);
         } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
@@ -213,65 +265,6 @@ public class DataResource {
             response.resume(e);
         }
 
-    }
-
-    @POST
-    @Path("{srName}/batch")
-    @Consumes(APPLICATION_OCTET_STREAM)
-    @Produces(APPLICATION_JSON)
-    public void batchWrite(
-        @PathParam("srName") String srName,
-        DataTransferProtos.BatchFSPackets datas,
-        @Suspended AsyncResponse response) {
-        List<FSPacketProto> batchPacketsList = datas.getBatchPacketsList();
-        for (FSPacketProto fsPacketProto : batchPacketsList) {
-            FSPacket packet = new FSPacket();
-            packet.setProto(fsPacketProto);
-            String file = packet.getFileName();
-            if (packet.isATinyFile()) {
-                LOG.debug("writing a tiny file [{}]", packet.getFileName());
-                storageRegionWriter.write(
-                    packet.getStorageName(),
-                    packet.getData(),
-                    new StorageRegionWriteCallback() {
-                        long ctime = System.currentTimeMillis();
-
-                        @Override
-                        public void error() {
-                            response.resume(new Exception());
-                        }
-
-                        @Override
-                        public void complete(String fid) {
-                            LOG.info("write the tiny data to dn cost [{}]ms", System.currentTimeMillis() - ctime);
-                            LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
-                            if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
-                                if (brfsCatalog.writeFid(srName, file, fid)) {
-                                    LOG.error("failed when write fid to rocksDB.");
-                                    response.resume(new Exception("write fid to rocksDB failed."));
-                                    return;
-                                }
-                            }
-                            LOG.info("response fid:[{}]", fid);
-                            WRITE_LOG.info(" {} write [{}]", srName, file);
-                            writeCollector.submit(srName, TimeUtils.prevTimeStamp(System.currentTimeMillis(),
-                                                                                  Duration.parse("PT1M").toMillis()));
-                            response.resume(Response
-                                                .ok()
-                                                .entity(ImmutableList.of(fid)).build());
-
-                        }
-
-                        @Override
-                        public void complete(String[] fids) {
-                            response.resume(ImmutableList.of(fids));
-                            LOG.info("response file[{}]:fid[{}]", packet.getFileName(), fids[0]);
-                        }
-                    });
-                return;
-            }
-            LOG.warn("cannot batch write the datas because it is not tiny file");
-        }
     }
 
     @DELETE
@@ -336,6 +329,51 @@ public class DataResource {
         // 4.当前时间
         if (cuGra <= sgra || cuGra < egra) {
             throw new IllegalArgumentException("forbid delete current error");
+        }
+    }
+
+    private class BatchDatas {
+        private final DataItem[] items;
+        private final String[] fileNames;
+        private final boolean pathOn;
+        private int index;
+
+        public BatchDatas(int count, boolean pathOn) {
+            this.items = new DataItem[count];
+            this.fileNames = new String[count];
+            this.pathOn = pathOn;
+        }
+
+        public void add(FSPacketProto data) {
+            String fileName = data.getFileName();
+            if (fileName != null && !fileName.isEmpty()) {
+                if (!pathOn) {
+                    String resp = "the rocksDB is not open, can not write with file name";
+                    LOG.warn(resp);
+                    throw new WebApplicationException(resp, HttpStatus.CODE_NOT_ALLOW_CUSTOM_FILENAME);
+                }
+
+                if (!brfsCatalog.validPath(fileName)) {
+                    LOG.warn("file path [{}]is invalid.", fileName);
+                    throw new WebApplicationException(
+                        "file path " + fileName + "is invalid",
+                        HttpStatus.CODE_NOT_AVAILABLE_FILENAME);
+                }
+
+                fileNames[index] = data.getFileName();
+            }
+
+            items[index] = new DataItem(data.getData().toByteArray());
+
+            index++;
+        }
+
+        public DataItem[] getDatas() {
+            return items;
+        }
+
+        public String[] getFileNames() {
+            return fileNames;
         }
     }
 

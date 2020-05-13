@@ -1,5 +1,6 @@
 package com.bonree.brfs.duplication.datastream.writer;
 
+import com.bonree.brfs.client.utils.Strings;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngine;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineManager;
@@ -22,41 +23,33 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
     }
 
     @Override
-    public void write(int storageRegionId, DataItem[] items, StorageRegionWriteCallback callback) {
-        DataEngine dataEngine = dataEngineManager.getDataEngine(storageRegionId);
+    public void write(String srName, DataItem[] items, StorageRegionWriteCallback callback) {
+        DataEngine dataEngine = dataEngineManager.getDataEngine(srName);
         if (dataEngine == null) {
-            LOG.error("can not get data engine by region[id={}]", storageRegionId);
-            callback.error();
+            LOG.error("can not get data engine by region[{}]", srName);
+            callback.error(new RuntimeException(
+                Strings.format("No data engine is found for storageRegion[%s]", srName)));
             return;
         }
 
         AtomicReferenceArray<String> fids = new AtomicReferenceArray<>(items.length);
         AtomicInteger count = new AtomicInteger(items.length);
         for (int i = 0; i < items.length; i++) {
-            if (items[i].getBytes() == null) {
-                LOG.error("write erro because of null bytes");
-                callback.error();
-                continue;
-            }
             dataEngine.store(items[i].getBytes(), new DataCallback(i, fids, count, callback));
         }
     }
 
-    public void write(int storageRegionId, byte[] data, StorageRegionWriteCallback callback) {
+    public void write(String srName, byte[] data, StorageRegionWriteCallback callback) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
-            DataEngine dataEngine = dataEngineManager.getDataEngine(storageRegionId);
+            DataEngine dataEngine = dataEngineManager.getDataEngine(srName);
             stopWatch.split();
             LOG.info("require a dataEngine cost [{}]", stopWatch.getSplitTime());
             if (dataEngine == null) {
-                LOG.error("can not get data engine by region[id={}]", storageRegionId);
-                callback.error();
-                return;
-            }
-            if (data == null) {
-                LOG.error("null data to write into the datapool！");
-                callback.error();
+                LOG.error("can not get data engine by region[{}]", srName);
+                callback.error(new RuntimeException(
+                    Strings.format("No data engine is found for storageRegion[%s]", srName)));
                 return;
             }
             dataEngine.store(data, new SingleDataCallback(callback));
@@ -65,7 +58,7 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
             stopWatch.stop();
         } catch (Exception e) {
             LOG.error("error when srWriter write the data");
-            callback.error();
+            callback.error(e);
         }
     }
 

@@ -330,4 +330,8 @@ public class DefaultStorageRegionManager implements StorageRegionManager {
         listeners.add(listener);
     }
 
+    @Override
+    public void removeStorageRegionStateListener(StorageRegionStateListener listener) {
+        listeners.remove(listener);
+    }
 }

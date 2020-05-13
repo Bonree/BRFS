@@ -7,6 +7,7 @@ import com.bonree.brfs.common.resource.vo.Load;
 import com.bonree.brfs.common.resource.vo.MemStat;
 import com.bonree.brfs.common.resource.vo.NodeSnapshotInfo;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
@@ -89,6 +90,7 @@ public class LocalResourceGather implements ResourceGatherInterface {
         }
         snapshot.setDiskPartitionStats(stats);
         snapshot.setTime(System.currentTimeMillis());
+        LOG.info("gather time {}", TimeUtils.formatTimeStamp(snapshot.getTime(), "yyyy-MM-dd HH:mm:ss"));
         return snapshot;
     }
 

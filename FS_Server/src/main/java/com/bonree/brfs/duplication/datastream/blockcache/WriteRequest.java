@@ -9,4 +9,6 @@ public interface WriteRequest {
     boolean ifRequestIsTimeOut();
 
     FSPacket getFsPacket();
+
+    String getSrName();
 }

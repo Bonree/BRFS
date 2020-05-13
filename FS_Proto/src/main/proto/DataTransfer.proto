@@ -10,9 +10,9 @@ message FSPacketProto{
     optional bytes data = 6;   //数据内容
     optional int32 compress = 7;      //是否压缩,0:不压缩,1:gzip,2:snappy,3保留
     optional int64 offsetInFile = 8; //在文件中的偏移量
-    optional int32 storageName = 9;  //StorageName
-    optional string writeID = 10;   //写入时的uuid
+    optional string writeID = 9;   //写入时的uuid
 }
-message BatchFSPackets{
-    repeated FSPacketProto batchPackets = 1;
+
+message WriteBatch {
+    repeated FSPacketProto items = 1;
 }

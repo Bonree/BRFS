@@ -165,27 +165,10 @@ public final class DataTransferProtos {
 
     /**
      * <pre>
-     *StorageName
-     * </pre>
-     *
-     * <code>optional int32 storageName = 9;</code>
-     */
-    boolean hasStorageName();
-    /**
-     * <pre>
-     *StorageName
-     * </pre>
-     *
-     * <code>optional int32 storageName = 9;</code>
-     */
-    int getStorageName();
-
-    /**
-     * <pre>
      *写入时的uuid
      * </pre>
      *
-     * <code>optional string writeID = 10;</code>
+     * <code>optional string writeID = 9;</code>
      */
     boolean hasWriteID();
     /**
@@ -193,7 +176,7 @@ public final class DataTransferProtos {
      *写入时的uuid
      * </pre>
      *
-     * <code>optional string writeID = 10;</code>
+     * <code>optional string writeID = 9;</code>
      */
     java.lang.String getWriteID();
     /**
@@ -201,7 +184,7 @@ public final class DataTransferProtos {
      *写入时的uuid
      * </pre>
      *
-     * <code>optional string writeID = 10;</code>
+     * <code>optional string writeID = 9;</code>
      */
     com.google.protobuf.ByteString
         getWriteIDBytes();
@@ -227,7 +210,6 @@ public final class DataTransferProtos {
       data_ = com.google.protobuf.ByteString.EMPTY;
       compress_ = 0;
       offsetInFile_ = 0L;
-      storageName_ = 0;
       writeID_ = "";
     }
 
@@ -300,14 +282,9 @@ public final class DataTransferProtos {
               offsetInFile_ = input.readInt64();
               break;
             }
-            case 72: {
-              bitField0_ |= 0x00000100;
-              storageName_ = input.readInt32();
-              break;
-            }
-            case 82: {
+            case 74: {
               com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000200;
+              bitField0_ |= 0x00000100;
               writeID_ = bs;
               break;
             }
@@ -551,47 +528,24 @@ public final class DataTransferProtos {
       return offsetInFile_;
     }
 
-    public static final int STORAGENAME_FIELD_NUMBER = 9;
-    private int storageName_;
-    /**
-     * <pre>
-     *StorageName
-     * </pre>
-     *
-     * <code>optional int32 storageName = 9;</code>
-     */
-    public boolean hasStorageName() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
-    }
-    /**
-     * <pre>
-     *StorageName
-     * </pre>
-     *
-     * <code>optional int32 storageName = 9;</code>
-     */
-    public int getStorageName() {
-      return storageName_;
-    }
-
-    public static final int WRITEID_FIELD_NUMBER = 10;
+    public static final int WRITEID_FIELD_NUMBER = 9;
     private volatile java.lang.Object writeID_;
     /**
      * <pre>
      *写入时的uuid
      * </pre>
      *
-     * <code>optional string writeID = 10;</code>
+     * <code>optional string writeID = 9;</code>
      */
     public boolean hasWriteID() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
+      return ((bitField0_ & 0x00000100) == 0x00000100);
     }
     /**
      * <pre>
      *写入时的uuid
      * </pre>
      *
-     * <code>optional string writeID = 10;</code>
+     * <code>optional string writeID = 9;</code>
      */
     public java.lang.String getWriteID() {
       java.lang.Object ref = writeID_;
@@ -612,7 +566,7 @@ public final class DataTransferProtos {
      *写入时的uuid
      * </pre>
      *
-     * <code>optional string writeID = 10;</code>
+     * <code>optional string writeID = 9;</code>
      */
     public com.google.protobuf.ByteString
         getWriteIDBytes() {
@@ -665,10 +619,7 @@ public final class DataTransferProtos {
         output.writeInt64(8, offsetInFile_);
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
-        output.writeInt32(9, storageName_);
-      }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 10, writeID_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 9, writeID_);
       }
       unknownFields.writeTo(output);
     }
@@ -710,11 +661,7 @@ public final class DataTransferProtos {
           .computeInt64Size(8, offsetInFile_);
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(9, storageName_);
-      }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(10, writeID_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(9, writeID_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -772,11 +719,6 @@ public final class DataTransferProtos {
         result = result && (getOffsetInFile()
             == other.getOffsetInFile());
       }
-      result = result && (hasStorageName() == other.hasStorageName());
-      if (hasStorageName()) {
-        result = result && (getStorageName()
-            == other.getStorageName());
-      }
       result = result && (hasWriteID() == other.hasWriteID());
       if (hasWriteID()) {
         result = result && getWriteID()
@@ -829,10 +771,6 @@ public final class DataTransferProtos {
         hash = (37 * hash) + OFFSETINFILE_FIELD_NUMBER;
         hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
             getOffsetInFile());
-      }
-      if (hasStorageName()) {
-        hash = (37 * hash) + STORAGENAME_FIELD_NUMBER;
-        hash = (53 * hash) + getStorageName();
       }
       if (hasWriteID()) {
         hash = (37 * hash) + WRITEID_FIELD_NUMBER;
@@ -983,10 +921,8 @@ public final class DataTransferProtos {
         bitField0_ = (bitField0_ & ~0x00000040);
         offsetInFile_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000080);
-        storageName_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000100);
         writeID_ = "";
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000100);
         return this;
       }
 
@@ -1045,10 +981,6 @@ public final class DataTransferProtos {
         result.offsetInFile_ = offsetInFile_;
         if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
           to_bitField0_ |= 0x00000100;
-        }
-        result.storageName_ = storageName_;
-        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
-          to_bitField0_ |= 0x00000200;
         }
         result.writeID_ = writeID_;
         result.bitField0_ = to_bitField0_;
@@ -1119,11 +1051,8 @@ public final class DataTransferProtos {
         if (other.hasOffsetInFile()) {
           setOffsetInFile(other.getOffsetInFile());
         }
-        if (other.hasStorageName()) {
-          setStorageName(other.getStorageName());
-        }
         if (other.hasWriteID()) {
-          bitField0_ |= 0x00000200;
+          bitField0_ |= 0x00000100;
           writeID_ = other.writeID_;
           onChanged();
         }
@@ -1594,71 +1523,23 @@ public final class DataTransferProtos {
         return this;
       }
 
-      private int storageName_ ;
-      /**
-       * <pre>
-       *StorageName
-       * </pre>
-       *
-       * <code>optional int32 storageName = 9;</code>
-       */
-      public boolean hasStorageName() {
-        return ((bitField0_ & 0x00000100) == 0x00000100);
-      }
-      /**
-       * <pre>
-       *StorageName
-       * </pre>
-       *
-       * <code>optional int32 storageName = 9;</code>
-       */
-      public int getStorageName() {
-        return storageName_;
-      }
-      /**
-       * <pre>
-       *StorageName
-       * </pre>
-       *
-       * <code>optional int32 storageName = 9;</code>
-       */
-      public Builder setStorageName(int value) {
-        bitField0_ |= 0x00000100;
-        storageName_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <pre>
-       *StorageName
-       * </pre>
-       *
-       * <code>optional int32 storageName = 9;</code>
-       */
-      public Builder clearStorageName() {
-        bitField0_ = (bitField0_ & ~0x00000100);
-        storageName_ = 0;
-        onChanged();
-        return this;
-      }
-
       private java.lang.Object writeID_ = "";
       /**
        * <pre>
        *写入时的uuid
        * </pre>
        *
-       * <code>optional string writeID = 10;</code>
+       * <code>optional string writeID = 9;</code>
        */
       public boolean hasWriteID() {
-        return ((bitField0_ & 0x00000200) == 0x00000200);
+        return ((bitField0_ & 0x00000100) == 0x00000100);
       }
       /**
        * <pre>
        *写入时的uuid
        * </pre>
        *
-       * <code>optional string writeID = 10;</code>
+       * <code>optional string writeID = 9;</code>
        */
       public java.lang.String getWriteID() {
         java.lang.Object ref = writeID_;
@@ -1679,7 +1560,7 @@ public final class DataTransferProtos {
        *写入时的uuid
        * </pre>
        *
-       * <code>optional string writeID = 10;</code>
+       * <code>optional string writeID = 9;</code>
        */
       public com.google.protobuf.ByteString
           getWriteIDBytes() {
@@ -1699,14 +1580,14 @@ public final class DataTransferProtos {
        *写入时的uuid
        * </pre>
        *
-       * <code>optional string writeID = 10;</code>
+       * <code>optional string writeID = 9;</code>
        */
       public Builder setWriteID(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000200;
+  bitField0_ |= 0x00000100;
         writeID_ = value;
         onChanged();
         return this;
@@ -1716,10 +1597,10 @@ public final class DataTransferProtos {
        *写入时的uuid
        * </pre>
        *
-       * <code>optional string writeID = 10;</code>
+       * <code>optional string writeID = 9;</code>
        */
       public Builder clearWriteID() {
-        bitField0_ = (bitField0_ & ~0x00000200);
+        bitField0_ = (bitField0_ & ~0x00000100);
         writeID_ = getDefaultInstance().getWriteID();
         onChanged();
         return this;
@@ -1729,14 +1610,14 @@ public final class DataTransferProtos {
        *写入时的uuid
        * </pre>
        *
-       * <code>optional string writeID = 10;</code>
+       * <code>optional string writeID = 9;</code>
        */
       public Builder setWriteIDBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000200;
+  bitField0_ |= 0x00000100;
         writeID_ = value;
         onChanged();
         return this;
@@ -1790,48 +1671,48 @@ public final class DataTransferProtos {
 
   }
 
-  public interface BatchFSPacketsOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:BatchFSPackets)
+  public interface WriteBatchOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:WriteBatch)
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .FSPacketProto batchPackets = 1;</code>
+     * <code>repeated .FSPacketProto items = 1;</code>
      */
     java.util.List<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto> 
-        getBatchPacketsList();
+        getItemsList();
     /**
-     * <code>repeated .FSPacketProto batchPackets = 1;</code>
+     * <code>repeated .FSPacketProto items = 1;</code>
      */
-    com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto getBatchPackets(int index);
+    com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto getItems(int index);
     /**
-     * <code>repeated .FSPacketProto batchPackets = 1;</code>
+     * <code>repeated .FSPacketProto items = 1;</code>
      */
-    int getBatchPacketsCount();
+    int getItemsCount();
     /**
-     * <code>repeated .FSPacketProto batchPackets = 1;</code>
+     * <code>repeated .FSPacketProto items = 1;</code>
      */
     java.util.List<? extends com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder> 
-        getBatchPacketsOrBuilderList();
+        getItemsOrBuilderList();
     /**
-     * <code>repeated .FSPacketProto batchPackets = 1;</code>
+     * <code>repeated .FSPacketProto items = 1;</code>
      */
-    com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder getBatchPacketsOrBuilder(
+    com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder getItemsOrBuilder(
         int index);
   }
   /**
-   * Protobuf type {@code BatchFSPackets}
+   * Protobuf type {@code WriteBatch}
    */
-  public  static final class BatchFSPackets extends
+  public  static final class WriteBatch extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:BatchFSPackets)
-      BatchFSPacketsOrBuilder {
+      // @@protoc_insertion_point(message_implements:WriteBatch)
+      WriteBatchOrBuilder {
   private static final long serialVersionUID = 0L;
-    // Use BatchFSPackets.newBuilder() to construct.
-    private BatchFSPackets(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // Use WriteBatch.newBuilder() to construct.
+    private WriteBatch(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private BatchFSPackets() {
-      batchPackets_ = java.util.Collections.emptyList();
+    private WriteBatch() {
+      items_ = java.util.Collections.emptyList();
     }
 
     @java.lang.Override
@@ -1839,7 +1720,7 @@ public final class DataTransferProtos {
     getUnknownFields() {
       return this.unknownFields;
     }
-    private BatchFSPackets(
+    private WriteBatch(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1864,10 +1745,10 @@ public final class DataTransferProtos {
             }
             case 10: {
               if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                batchPackets_ = new java.util.ArrayList<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto>();
+                items_ = new java.util.ArrayList<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto>();
                 mutable_bitField0_ |= 0x00000001;
               }
-              batchPackets_.add(
+              items_.add(
                   input.readMessage(com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.PARSER, extensionRegistry));
               break;
             }
@@ -1880,7 +1761,7 @@ public final class DataTransferProtos {
             e).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          batchPackets_ = java.util.Collections.unmodifiableList(batchPackets_);
+          items_ = java.util.Collections.unmodifiableList(items_);
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -1888,49 +1769,49 @@ public final class DataTransferProtos {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.bonree.brfs.common.proto.DataTransferProtos.internal_static_BatchFSPackets_descriptor;
+      return com.bonree.brfs.common.proto.DataTransferProtos.internal_static_WriteBatch_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.bonree.brfs.common.proto.DataTransferProtos.internal_static_BatchFSPackets_fieldAccessorTable
+      return com.bonree.brfs.common.proto.DataTransferProtos.internal_static_WriteBatch_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets.class, com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets.Builder.class);
+              com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch.class, com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch.Builder.class);
     }
 
-    public static final int BATCHPACKETS_FIELD_NUMBER = 1;
-    private java.util.List<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto> batchPackets_;
+    public static final int ITEMS_FIELD_NUMBER = 1;
+    private java.util.List<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto> items_;
     /**
-     * <code>repeated .FSPacketProto batchPackets = 1;</code>
+     * <code>repeated .FSPacketProto items = 1;</code>
      */
-    public java.util.List<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto> getBatchPacketsList() {
-      return batchPackets_;
+    public java.util.List<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto> getItemsList() {
+      return items_;
     }
     /**
-     * <code>repeated .FSPacketProto batchPackets = 1;</code>
+     * <code>repeated .FSPacketProto items = 1;</code>
      */
     public java.util.List<? extends com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder> 
-        getBatchPacketsOrBuilderList() {
-      return batchPackets_;
+        getItemsOrBuilderList() {
+      return items_;
     }
     /**
-     * <code>repeated .FSPacketProto batchPackets = 1;</code>
+     * <code>repeated .FSPacketProto items = 1;</code>
      */
-    public int getBatchPacketsCount() {
-      return batchPackets_.size();
+    public int getItemsCount() {
+      return items_.size();
     }
     /**
-     * <code>repeated .FSPacketProto batchPackets = 1;</code>
+     * <code>repeated .FSPacketProto items = 1;</code>
      */
-    public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto getBatchPackets(int index) {
-      return batchPackets_.get(index);
+    public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto getItems(int index) {
+      return items_.get(index);
     }
     /**
-     * <code>repeated .FSPacketProto batchPackets = 1;</code>
+     * <code>repeated .FSPacketProto items = 1;</code>
      */
-    public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder getBatchPacketsOrBuilder(
+    public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder getItemsOrBuilder(
         int index) {
-      return batchPackets_.get(index);
+      return items_.get(index);
     }
 
     private byte memoizedIsInitialized = -1;
@@ -1945,8 +1826,8 @@ public final class DataTransferProtos {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      for (int i = 0; i < batchPackets_.size(); i++) {
-        output.writeMessage(1, batchPackets_.get(i));
+      for (int i = 0; i < items_.size(); i++) {
+        output.writeMessage(1, items_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -1956,9 +1837,9 @@ public final class DataTransferProtos {
       if (size != -1) return size;
 
       size = 0;
-      for (int i = 0; i < batchPackets_.size(); i++) {
+      for (int i = 0; i < items_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, batchPackets_.get(i));
+          .computeMessageSize(1, items_.get(i));
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -1970,14 +1851,14 @@ public final class DataTransferProtos {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets)) {
+      if (!(obj instanceof com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch)) {
         return super.equals(obj);
       }
-      com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets other = (com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets) obj;
+      com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch other = (com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch) obj;
 
       boolean result = true;
-      result = result && getBatchPacketsList()
-          .equals(other.getBatchPacketsList());
+      result = result && getItemsList()
+          .equals(other.getItemsList());
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -1989,78 +1870,78 @@ public final class DataTransferProtos {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (getBatchPacketsCount() > 0) {
-        hash = (37 * hash) + BATCHPACKETS_FIELD_NUMBER;
-        hash = (53 * hash) + getBatchPacketsList().hashCode();
+      if (getItemsCount() > 0) {
+        hash = (37 * hash) + ITEMS_FIELD_NUMBER;
+        hash = (53 * hash) + getItemsList().hashCode();
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
     }
 
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseFrom(
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseFrom(
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseFrom(
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseFrom(
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseFrom(byte[] data)
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseFrom(
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseFrom(java.io.InputStream input)
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseFrom(
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseDelimitedFrom(java.io.InputStream input)
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseDelimitedFrom(
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseFrom(
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parseFrom(
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -2072,7 +1953,7 @@ public final class DataTransferProtos {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets prototype) {
+    public static Builder newBuilder(com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     public Builder toBuilder() {
@@ -2087,25 +1968,25 @@ public final class DataTransferProtos {
       return builder;
     }
     /**
-     * Protobuf type {@code BatchFSPackets}
+     * Protobuf type {@code WriteBatch}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:BatchFSPackets)
-        com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPacketsOrBuilder {
+        // @@protoc_insertion_point(builder_implements:WriteBatch)
+        com.bonree.brfs.common.proto.DataTransferProtos.WriteBatchOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return com.bonree.brfs.common.proto.DataTransferProtos.internal_static_BatchFSPackets_descriptor;
+        return com.bonree.brfs.common.proto.DataTransferProtos.internal_static_WriteBatch_descriptor;
       }
 
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.bonree.brfs.common.proto.DataTransferProtos.internal_static_BatchFSPackets_fieldAccessorTable
+        return com.bonree.brfs.common.proto.DataTransferProtos.internal_static_WriteBatch_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets.class, com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets.Builder.class);
+                com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch.class, com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch.Builder.class);
       }
 
-      // Construct using com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets.newBuilder()
+      // Construct using com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -2118,48 +1999,48 @@ public final class DataTransferProtos {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessageV3
                 .alwaysUseFieldBuilders) {
-          getBatchPacketsFieldBuilder();
+          getItemsFieldBuilder();
         }
       }
       public Builder clear() {
         super.clear();
-        if (batchPacketsBuilder_ == null) {
-          batchPackets_ = java.util.Collections.emptyList();
+        if (itemsBuilder_ == null) {
+          items_ = java.util.Collections.emptyList();
           bitField0_ = (bitField0_ & ~0x00000001);
         } else {
-          batchPacketsBuilder_.clear();
+          itemsBuilder_.clear();
         }
         return this;
       }
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.bonree.brfs.common.proto.DataTransferProtos.internal_static_BatchFSPackets_descriptor;
+        return com.bonree.brfs.common.proto.DataTransferProtos.internal_static_WriteBatch_descriptor;
       }
 
-      public com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets getDefaultInstanceForType() {
-        return com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets.getDefaultInstance();
+      public com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch getDefaultInstanceForType() {
+        return com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch.getDefaultInstance();
       }
 
-      public com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets build() {
-        com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets result = buildPartial();
+      public com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch build() {
+        com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
         return result;
       }
 
-      public com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets buildPartial() {
-        com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets result = new com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets(this);
+      public com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch buildPartial() {
+        com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch result = new com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch(this);
         int from_bitField0_ = bitField0_;
-        if (batchPacketsBuilder_ == null) {
+        if (itemsBuilder_ == null) {
           if (((bitField0_ & 0x00000001) == 0x00000001)) {
-            batchPackets_ = java.util.Collections.unmodifiableList(batchPackets_);
+            items_ = java.util.Collections.unmodifiableList(items_);
             bitField0_ = (bitField0_ & ~0x00000001);
           }
-          result.batchPackets_ = batchPackets_;
+          result.items_ = items_;
         } else {
-          result.batchPackets_ = batchPacketsBuilder_.build();
+          result.items_ = itemsBuilder_.build();
         }
         onBuilt();
         return result;
@@ -2192,39 +2073,39 @@ public final class DataTransferProtos {
         return (Builder) super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets) {
-          return mergeFrom((com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets)other);
+        if (other instanceof com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch) {
+          return mergeFrom((com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets other) {
-        if (other == com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets.getDefaultInstance()) return this;
-        if (batchPacketsBuilder_ == null) {
-          if (!other.batchPackets_.isEmpty()) {
-            if (batchPackets_.isEmpty()) {
-              batchPackets_ = other.batchPackets_;
+      public Builder mergeFrom(com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch other) {
+        if (other == com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch.getDefaultInstance()) return this;
+        if (itemsBuilder_ == null) {
+          if (!other.items_.isEmpty()) {
+            if (items_.isEmpty()) {
+              items_ = other.items_;
               bitField0_ = (bitField0_ & ~0x00000001);
             } else {
-              ensureBatchPacketsIsMutable();
-              batchPackets_.addAll(other.batchPackets_);
+              ensureItemsIsMutable();
+              items_.addAll(other.items_);
             }
             onChanged();
           }
         } else {
-          if (!other.batchPackets_.isEmpty()) {
-            if (batchPacketsBuilder_.isEmpty()) {
-              batchPacketsBuilder_.dispose();
-              batchPacketsBuilder_ = null;
-              batchPackets_ = other.batchPackets_;
+          if (!other.items_.isEmpty()) {
+            if (itemsBuilder_.isEmpty()) {
+              itemsBuilder_.dispose();
+              itemsBuilder_ = null;
+              items_ = other.items_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              batchPacketsBuilder_ = 
+              itemsBuilder_ = 
                 com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                   getBatchPacketsFieldBuilder() : null;
+                   getItemsFieldBuilder() : null;
             } else {
-              batchPacketsBuilder_.addAllMessages(other.batchPackets_);
+              itemsBuilder_.addAllMessages(other.items_);
             }
           }
         }
@@ -2241,11 +2122,11 @@ public final class DataTransferProtos {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets parsedMessage = null;
+        com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets) e.getUnfinishedMessage();
+          parsedMessage = (com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -2256,244 +2137,244 @@ public final class DataTransferProtos {
       }
       private int bitField0_;
 
-      private java.util.List<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto> batchPackets_ =
+      private java.util.List<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto> items_ =
         java.util.Collections.emptyList();
-      private void ensureBatchPacketsIsMutable() {
+      private void ensureItemsIsMutable() {
         if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          batchPackets_ = new java.util.ArrayList<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto>(batchPackets_);
+          items_ = new java.util.ArrayList<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto>(items_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilderV3<
-          com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder> batchPacketsBuilder_;
+          com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder> itemsBuilder_;
 
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public java.util.List<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto> getBatchPacketsList() {
-        if (batchPacketsBuilder_ == null) {
-          return java.util.Collections.unmodifiableList(batchPackets_);
+      public java.util.List<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto> getItemsList() {
+        if (itemsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(items_);
         } else {
-          return batchPacketsBuilder_.getMessageList();
+          return itemsBuilder_.getMessageList();
         }
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public int getBatchPacketsCount() {
-        if (batchPacketsBuilder_ == null) {
-          return batchPackets_.size();
+      public int getItemsCount() {
+        if (itemsBuilder_ == null) {
+          return items_.size();
         } else {
-          return batchPacketsBuilder_.getCount();
+          return itemsBuilder_.getCount();
         }
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto getBatchPackets(int index) {
-        if (batchPacketsBuilder_ == null) {
-          return batchPackets_.get(index);
+      public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto getItems(int index) {
+        if (itemsBuilder_ == null) {
+          return items_.get(index);
         } else {
-          return batchPacketsBuilder_.getMessage(index);
+          return itemsBuilder_.getMessage(index);
         }
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public Builder setBatchPackets(
+      public Builder setItems(
           int index, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto value) {
-        if (batchPacketsBuilder_ == null) {
+        if (itemsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          ensureBatchPacketsIsMutable();
-          batchPackets_.set(index, value);
+          ensureItemsIsMutable();
+          items_.set(index, value);
           onChanged();
         } else {
-          batchPacketsBuilder_.setMessage(index, value);
+          itemsBuilder_.setMessage(index, value);
         }
         return this;
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public Builder setBatchPackets(
+      public Builder setItems(
           int index, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder builderForValue) {
-        if (batchPacketsBuilder_ == null) {
-          ensureBatchPacketsIsMutable();
-          batchPackets_.set(index, builderForValue.build());
+        if (itemsBuilder_ == null) {
+          ensureItemsIsMutable();
+          items_.set(index, builderForValue.build());
           onChanged();
         } else {
-          batchPacketsBuilder_.setMessage(index, builderForValue.build());
+          itemsBuilder_.setMessage(index, builderForValue.build());
         }
         return this;
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public Builder addBatchPackets(com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto value) {
-        if (batchPacketsBuilder_ == null) {
+      public Builder addItems(com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto value) {
+        if (itemsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          ensureBatchPacketsIsMutable();
-          batchPackets_.add(value);
+          ensureItemsIsMutable();
+          items_.add(value);
           onChanged();
         } else {
-          batchPacketsBuilder_.addMessage(value);
+          itemsBuilder_.addMessage(value);
         }
         return this;
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public Builder addBatchPackets(
+      public Builder addItems(
           int index, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto value) {
-        if (batchPacketsBuilder_ == null) {
+        if (itemsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          ensureBatchPacketsIsMutable();
-          batchPackets_.add(index, value);
+          ensureItemsIsMutable();
+          items_.add(index, value);
           onChanged();
         } else {
-          batchPacketsBuilder_.addMessage(index, value);
+          itemsBuilder_.addMessage(index, value);
         }
         return this;
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public Builder addBatchPackets(
+      public Builder addItems(
           com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder builderForValue) {
-        if (batchPacketsBuilder_ == null) {
-          ensureBatchPacketsIsMutable();
-          batchPackets_.add(builderForValue.build());
+        if (itemsBuilder_ == null) {
+          ensureItemsIsMutable();
+          items_.add(builderForValue.build());
           onChanged();
         } else {
-          batchPacketsBuilder_.addMessage(builderForValue.build());
+          itemsBuilder_.addMessage(builderForValue.build());
         }
         return this;
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public Builder addBatchPackets(
+      public Builder addItems(
           int index, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder builderForValue) {
-        if (batchPacketsBuilder_ == null) {
-          ensureBatchPacketsIsMutable();
-          batchPackets_.add(index, builderForValue.build());
+        if (itemsBuilder_ == null) {
+          ensureItemsIsMutable();
+          items_.add(index, builderForValue.build());
           onChanged();
         } else {
-          batchPacketsBuilder_.addMessage(index, builderForValue.build());
+          itemsBuilder_.addMessage(index, builderForValue.build());
         }
         return this;
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public Builder addAllBatchPackets(
+      public Builder addAllItems(
           java.lang.Iterable<? extends com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto> values) {
-        if (batchPacketsBuilder_ == null) {
-          ensureBatchPacketsIsMutable();
+        if (itemsBuilder_ == null) {
+          ensureItemsIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, batchPackets_);
+              values, items_);
           onChanged();
         } else {
-          batchPacketsBuilder_.addAllMessages(values);
+          itemsBuilder_.addAllMessages(values);
         }
         return this;
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public Builder clearBatchPackets() {
-        if (batchPacketsBuilder_ == null) {
-          batchPackets_ = java.util.Collections.emptyList();
+      public Builder clearItems() {
+        if (itemsBuilder_ == null) {
+          items_ = java.util.Collections.emptyList();
           bitField0_ = (bitField0_ & ~0x00000001);
           onChanged();
         } else {
-          batchPacketsBuilder_.clear();
+          itemsBuilder_.clear();
         }
         return this;
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public Builder removeBatchPackets(int index) {
-        if (batchPacketsBuilder_ == null) {
-          ensureBatchPacketsIsMutable();
-          batchPackets_.remove(index);
+      public Builder removeItems(int index) {
+        if (itemsBuilder_ == null) {
+          ensureItemsIsMutable();
+          items_.remove(index);
           onChanged();
         } else {
-          batchPacketsBuilder_.remove(index);
+          itemsBuilder_.remove(index);
         }
         return this;
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder getBatchPacketsBuilder(
+      public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder getItemsBuilder(
           int index) {
-        return getBatchPacketsFieldBuilder().getBuilder(index);
+        return getItemsFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder getBatchPacketsOrBuilder(
+      public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder getItemsOrBuilder(
           int index) {
-        if (batchPacketsBuilder_ == null) {
-          return batchPackets_.get(index);  } else {
-          return batchPacketsBuilder_.getMessageOrBuilder(index);
+        if (itemsBuilder_ == null) {
+          return items_.get(index);  } else {
+          return itemsBuilder_.getMessageOrBuilder(index);
         }
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
       public java.util.List<? extends com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder> 
-           getBatchPacketsOrBuilderList() {
-        if (batchPacketsBuilder_ != null) {
-          return batchPacketsBuilder_.getMessageOrBuilderList();
+           getItemsOrBuilderList() {
+        if (itemsBuilder_ != null) {
+          return itemsBuilder_.getMessageOrBuilderList();
         } else {
-          return java.util.Collections.unmodifiableList(batchPackets_);
+          return java.util.Collections.unmodifiableList(items_);
         }
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder addBatchPacketsBuilder() {
-        return getBatchPacketsFieldBuilder().addBuilder(
+      public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder addItemsBuilder() {
+        return getItemsFieldBuilder().addBuilder(
             com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.getDefaultInstance());
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
-      public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder addBatchPacketsBuilder(
+      public com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder addItemsBuilder(
           int index) {
-        return getBatchPacketsFieldBuilder().addBuilder(
+        return getItemsFieldBuilder().addBuilder(
             index, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.getDefaultInstance());
       }
       /**
-       * <code>repeated .FSPacketProto batchPackets = 1;</code>
+       * <code>repeated .FSPacketProto items = 1;</code>
        */
       public java.util.List<com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder> 
-           getBatchPacketsBuilderList() {
-        return getBatchPacketsFieldBuilder().getBuilderList();
+           getItemsBuilderList() {
+        return getItemsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilderV3<
           com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder> 
-          getBatchPacketsFieldBuilder() {
-        if (batchPacketsBuilder_ == null) {
-          batchPacketsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+          getItemsFieldBuilder() {
+        if (itemsBuilder_ == null) {
+          itemsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto.Builder, com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProtoOrBuilder>(
-                  batchPackets_,
+                  items_,
                   ((bitField0_ & 0x00000001) == 0x00000001),
                   getParentForChildren(),
                   isClean());
-          batchPackets_ = null;
+          items_ = null;
         }
-        return batchPacketsBuilder_;
+        return itemsBuilder_;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -2506,39 +2387,39 @@ public final class DataTransferProtos {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:BatchFSPackets)
+      // @@protoc_insertion_point(builder_scope:WriteBatch)
     }
 
-    // @@protoc_insertion_point(class_scope:BatchFSPackets)
-    private static final com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:WriteBatch)
+    private static final com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets();
+      DEFAULT_INSTANCE = new com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch();
     }
 
-    public static com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets getDefaultInstance() {
+    public static com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    @java.lang.Deprecated public static final com.google.protobuf.Parser<BatchFSPackets>
-        PARSER = new com.google.protobuf.AbstractParser<BatchFSPackets>() {
-      public BatchFSPackets parsePartialFrom(
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<WriteBatch>
+        PARSER = new com.google.protobuf.AbstractParser<WriteBatch>() {
+      public WriteBatch parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-          return new BatchFSPackets(input, extensionRegistry);
+          return new WriteBatch(input, extensionRegistry);
       }
     };
 
-    public static com.google.protobuf.Parser<BatchFSPackets> parser() {
+    public static com.google.protobuf.Parser<WriteBatch> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<BatchFSPackets> getParserForType() {
+    public com.google.protobuf.Parser<WriteBatch> getParserForType() {
       return PARSER;
     }
 
-    public com.bonree.brfs.common.proto.DataTransferProtos.BatchFSPackets getDefaultInstanceForType() {
+    public com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -2550,10 +2431,10 @@ public final class DataTransferProtos {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_FSPacketProto_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_BatchFSPackets_descriptor;
+    internal_static_WriteBatch_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_BatchFSPackets_fieldAccessorTable;
+      internal_static_WriteBatch_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -2563,15 +2444,14 @@ public final class DataTransferProtos {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\022DataTransfer.proto\"\315\001\n\rFSPacketProto\022\017" +
+      "\n\022DataTransfer.proto\"\270\001\n\rFSPacketProto\022\017" +
       "\n\007crcFlag\030\001 \001(\010\022\024\n\014crcCheckCode\030\002 \001(\003\022\r\n" +
       "\005seqno\030\003 \001(\003\022\030\n\020lastPacketInFile\030\004 \001(\010\022\020" +
       "\n\010fileName\030\005 \001(\t\022\014\n\004data\030\006 \001(\014\022\020\n\010compre" +
-      "ss\030\007 \001(\005\022\024\n\014offsetInFile\030\010 \001(\003\022\023\n\013storag" +
-      "eName\030\t \001(\005\022\017\n\007writeID\030\n \001(\t\"6\n\016BatchFSP" +
-      "ackets\022$\n\014batchPackets\030\001 \003(\0132\016.FSPacketP" +
-      "rotoB2\n\034com.bonree.brfs.common.protoB\022Da" +
-      "taTransferProtos"
+      "ss\030\007 \001(\005\022\024\n\014offsetInFile\030\010 \001(\003\022\017\n\007writeI" +
+      "D\030\t \001(\t\"+\n\nWriteBatch\022\035\n\005items\030\001 \003(\0132\016.F" +
+      "SPacketProtoB2\n\034com.bonree.brfs.common.p" +
+      "rotoB\022DataTransferProtos"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -2590,13 +2470,13 @@ public final class DataTransferProtos {
     internal_static_FSPacketProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_FSPacketProto_descriptor,
-        new java.lang.String[] { "CrcFlag", "CrcCheckCode", "Seqno", "LastPacketInFile", "FileName", "Data", "Compress", "OffsetInFile", "StorageName", "WriteID", });
-    internal_static_BatchFSPackets_descriptor =
+        new java.lang.String[] { "CrcFlag", "CrcCheckCode", "Seqno", "LastPacketInFile", "FileName", "Data", "Compress", "OffsetInFile", "WriteID", });
+    internal_static_WriteBatch_descriptor =
       getDescriptor().getMessageTypes().get(1);
-    internal_static_BatchFSPackets_fieldAccessorTable = new
+    internal_static_WriteBatch_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_BatchFSPackets_descriptor,
-        new java.lang.String[] { "BatchPackets", });
+        internal_static_WriteBatch_descriptor,
+        new java.lang.String[] { "Items", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

@@ -32,7 +32,7 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
     private StorageRegionManager storageRegionManager;
     private DataEngineFactory storageRegionFactory;
 
-    private LoadingCache<Integer, DataEngine> dataEngineContainer;
+    private LoadingCache<String, DataEngine> dataEngineContainer;
 
     @Inject
     public DefaultDataEngineManager(StorageRegionManager storageRegionManager, DataEngineFactory factory) {
@@ -52,39 +52,39 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
     }
 
     @Override
-    public DataEngine getDataEngine(int baseId) {
+    public DataEngine getDataEngine(String srName) {
         try {
-            return dataEngineContainer.get(baseId);
+            return dataEngineContainer.get(srName);
         } catch (ExecutionException e) {
-            LOG.error("get dataEngine by id[{}] error.", baseId, e);
+            LOG.error("get dataEngine of sr[{}] error.", srName, e);
         }
 
         return null;
     }
 
-    private class DataEngineLoader extends CacheLoader<Integer, DataEngine> {
+    private class DataEngineLoader extends CacheLoader<String, DataEngine> {
 
         @Override
-        public DataEngine load(Integer storageRegionId) throws Exception {
-            StorageRegion storageRegion = storageRegionManager.findStorageRegionById(storageRegionId);
+        public DataEngine load(String srName) throws Exception {
+            StorageRegion storageRegion = storageRegionManager.findStorageRegionByName(srName);
             if (storageRegion == null) {
-                throw new StorageRegionNonexistentException("id[" + storageRegionId + "]");
+                throw new StorageRegionNonexistentException("sr[" + srName + "]");
             }
 
             return storageRegionFactory.createDataEngine(storageRegion);
         }
     }
 
-    private class StorageRegionRemovalListener implements RemovalListener<Integer, DataEngine> {
+    private class StorageRegionRemovalListener implements RemovalListener<String, DataEngine> {
 
         @Override
-        public void onRemoval(RemovalNotification<Integer, DataEngine> notification) {
-            LOG.info("closing dataEngine[id={}]...", notification.getKey());
+        public void onRemoval(RemovalNotification<String, DataEngine> notification) {
+            LOG.info("closing dataEngine of sr[{}]...", notification.getKey());
             DataEngine dataEngine = notification.getValue();
             try {
                 dataEngine.close();
             } catch (IOException e) {
-                LOG.error("close dataEngine[id={}] failed", notification.getKey());
+                LOG.error("close dataEngine of sr[{}] failed", notification.getKey());
             }
         }
 

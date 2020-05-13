@@ -19,11 +19,9 @@ public class PureStorageRegionWriter extends DefaultStorageRegionWriter {
         super(dataEngineManager);
     }
 
-    public void write(int storageRegionId, byte[] data, StorageRegionWriteCallback callback) {
+    public void write(String srName, byte[] data, StorageRegionWriteCallback callback) {
         Preconditions.checkNotNull(data, "写入的数据不应该是空！");
-        DataItem dataItem = new DataItem();
-        dataItem.setBytes(data);
-        write(storageRegionId, new DataItem[] {dataItem}, callback);
+        write(srName, new DataItem[] {new DataItem(data)}, callback);
     }
 
 }

@@ -5,5 +5,5 @@ public interface StorageRegionWriteCallback {
 
     void complete(String fid);
 
-    void error();
+    void error(Throwable cause);
 }

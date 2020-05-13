@@ -418,6 +418,49 @@ public class BRFSClient implements BRFS {
     }
 
     @Override
+    public BatchResult putObjects(String srName, PutObjectBatch batch) throws Exception {
+        if (batch.size() == 0) {
+            return BatchResult.EMPTY;
+        }
+
+        return Retrys.execute(new URIRetryable<BatchResult>(
+            format("put batch object to storage region[%s]", srName),
+            nodeSelector.getNodeHttpLocations(ServiceType.REGION),
+            uri -> {
+                Request httpRequest = new Request.Builder()
+                    .url(HttpUrl.get(uri)
+                             .newBuilder()
+                             .encodedPath("/data/batch")
+                             .addEncodedPathSegment(srName)
+                             .build())
+                    .post(RequestBody.create(OCTET_STREAM, batch.toByteArray()))
+                    .build();
+
+                try {
+                    Response response = httpClient.newCall(httpRequest).execute();
+                    ResponseBody body = response.body();
+                    if (response.code() != HttpStatus.CODE_OK) {
+                        String errorMsg = "Unkown server error";
+                        if (body != null) {
+                            errorMsg = body.string();
+                        }
+
+                        return TaskResult.fail(new IllegalStateException(format("Server error[%s]", errorMsg)));
+                    }
+
+                    if (body == null) {
+                        return TaskResult.fail(new IllegalStateException(format("No content is returned")));
+                    }
+
+                    return TaskResult.success(BatchResult.from(
+                        codec.fromJsonBytes(body.bytes(), new TypeReference<List<String>>() {})));
+                } catch (IOException e) {
+                    return TaskResult.retry(e);
+                }
+            }));
+    }
+
+    @Override
     public PutObjectResult putObject(String srName, byte[] bytes) throws Exception {
         return putObject(srName, dataSplitter.split(bytes), Optional.empty());
     }
@@ -461,7 +504,6 @@ public class BRFSClient implements BRFS {
         Iterator<Function<URI, Call>> callProvider = IteratorUtils.from(buffers)
                                                                   .map(new FSPackageProtoMaker(
                                                                       () -> sequenceIDs.getAndIncrement(),
-                                                                      getStorageRegionID(srName),
                                                                       UUID.randomUUID().toString(),
                                                                       objectPath.map(BRFSPath::getPath),
                                                                       false,
@@ -675,7 +717,12 @@ public class BRFSClient implements BRFS {
                         return TaskResult.success(null);
                     }
 
-                    return TaskResult.fail(new IllegalStateException(format("Server error[%d]", response.code())));
+                    String errorMsg = "Unkown";
+                    ResponseBody body = response.body();
+                    if (body != null) {
+                        errorMsg = body.string();
+                    }
+                    return TaskResult.fail(new IllegalStateException(format("Server error[%s]", errorMsg)));
                 } catch (IOException e) {
                     return TaskResult.retry(e);
                 }

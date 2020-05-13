@@ -15,11 +15,10 @@ public class FSPacketTest {
         byte[] buf = new byte[512];
         random.nextBytes(buf);
         String fileName = "a.txt";
-        int storageName = 0;
         long offset = 0;
         //**** client ***
         //构建一个数据包
-        FSPacket fsPacket = new FSPacket(storageName, fileName, offset, 0, buf);
+        FSPacket fsPacket = new FSPacket(fileName, offset, 0, buf);
         //如果这是文件中最后一个数据包
         fsPacket.setLastPacketInFile();
         //构建真正的pb对象
@@ -32,7 +31,6 @@ public class FSPacketTest {
         try {
             FSPacket deserialze = FSPacketUtil.deserialize(serialize);
             assert fileName.equals(deserialze.getFileName());
-            assert storageName == deserialze.getStorageName();
             assert offset == deserialze.getOffsetInFile();
             assert buf.length == deserialze.getData().length;
             assert Arrays.equals(buf, deserialze.getData());

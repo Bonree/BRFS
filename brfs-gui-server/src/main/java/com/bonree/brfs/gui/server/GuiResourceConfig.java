@@ -1,10 +1,9 @@
-package com.bonree.brfs.gui.server.resource;
+package com.bonree.brfs.gui.server;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.inject.Inject;
 
 public class GuiResourceConfig {
-    @JsonProperty("switch")
-    private boolean runFlag = false;
     @JsonProperty("dir")
     private String guiDir = "gui";
     @JsonProperty("interval.seconds")
@@ -13,6 +12,9 @@ public class GuiResourceConfig {
     private int ttlTime = 7 * 24 * 60 * 60;
     @JsonProperty("maintain.interval.seconds")
     private int scanIntervalTime = 60;
+
+    public GuiResourceConfig() {
+    }
 
     public String getGuiDir() {
         return guiDir;
@@ -46,11 +48,14 @@ public class GuiResourceConfig {
         this.scanIntervalTime = scanIntervalTime;
     }
 
-    public boolean isRunFlag() {
-        return runFlag;
-    }
-
-    public void setRunFlag(boolean runFlag) {
-        this.runFlag = runFlag;
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("GuiResourceConfig{");
+        sb.append("guiDir='").append(guiDir).append('\'');
+        sb.append(", intervalTime=").append(intervalTime);
+        sb.append(", ttlTime=").append(ttlTime);
+        sb.append(", scanIntervalTime=").append(scanIntervalTime);
+        sb.append('}');
+        return sb.toString();
     }
 }

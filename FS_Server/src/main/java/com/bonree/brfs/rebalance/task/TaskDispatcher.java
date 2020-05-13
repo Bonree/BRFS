@@ -659,7 +659,7 @@ public class TaskDispatcher implements Closeable {
                     // 加入正在执行的任务的缓存中
                     setRunTask(taskSummary.getStorageIndex(), taskSummary);
                 } else {
-                    LOG.info("because current server is not enough,normal recover can't create.change:{}", changeSummaries);
+                    LOG.info("because current server is not enough, normal recover can't create. summary:{}", changeSummaries);
                 }
             }
         }

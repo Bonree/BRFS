@@ -9,6 +9,7 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
+import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.system.OperationTaskJob;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
@@ -52,29 +53,38 @@ public class TaskOpertionManager implements LifeCycle {
         MetaTaskManagerInterface release = mcf.getTm();
         String serverId = mcf.getServerId();
 
-        Properties prop = DefaultBaseSchedulers.createSimplePrope(3, 1000);
-        boolean createFlag = manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
-        if (!createFlag) {
-            LOG.error("create task operation error !!!");
-            throw new NullPointerException("create task operation error !!!");
-        }
-        boolean startTaskPool = manager.startTaskPool(TASK_OPERATION_MANAGER);
-        if (!startTaskPool) {
-            LOG.error("create task operation error !!!");
-            throw new NullPointerException("start task operation error !!!");
-        }
-        Map<String, String> switchMap = null;
-        // 将任务信息不完全的任务补充完整
-        LOG.info("========================================================================================");
-        switchMap = recoveryTask(switchList, release, serverId);
-        LOG.info("========================================================================================");
-        SumbitTaskInterface task = QuartzSimpleInfo
-            .createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, switchMap,
-                                 OperationTaskJob.class);
-        boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
-        if (sumbitFlag) {
-            LOG.info("operation task sumbit complete !!!");
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Properties prop = DefaultBaseSchedulers.createSimplePrope(3, 1000);
+                    boolean createFlag = manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
+                    if (!createFlag) {
+                        LOG.error("create task operation error !!!");
+                        throw new NullPointerException("create task operation error !!!");
+                    }
+                    boolean startTaskPool = manager.startTaskPool(TASK_OPERATION_MANAGER);
+                    if (!startTaskPool) {
+                        LOG.error("create task operation error !!!");
+                        throw new NullPointerException("start task operation error !!!");
+                    }
+                    Map<String, String> switchMap = null;
+                    // 将任务信息不完全的任务补充完整
+                    LOG.info("========================================================================================");
+                    switchMap = recoveryTask(switchList, release, serverId);
+                    LOG.info("========================================================================================");
+                    SumbitTaskInterface task = QuartzSimpleInfo
+                        .createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, switchMap,
+                                             OperationTaskJob.class);
+                    boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
+                    if (sumbitFlag) {
+                        LOG.info("operation task sumbit complete !!!");
+                    }
+                } catch (ParamsErrorException e) {
+                    throw new RuntimeException("create task opertion manager happen error ", e);
+                }
+            }
+        }).start();
     }
 
     /**

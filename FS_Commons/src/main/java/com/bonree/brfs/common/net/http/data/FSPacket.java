@@ -16,7 +16,7 @@ public class FSPacket {
     public FSPacket() {
     } //use for deserialize
 
-    public FSPacket(int storageName, String fileName, long offsetInFile, long seqno,
+    public FSPacket(String fileName, long offsetInFile, long seqno,
                     byte[] data) {
 
         Preconditions.checkArgument(data.length <= MAX_DATA_LEN,
@@ -27,8 +27,7 @@ public class FSPacket {
         Preconditions.checkArgument(null != fileName && !"".equals(fileName),
                                     "[{}]is not a valid fileName!!you must specify the fileName", fileName);
         builder = FSPacketProto.newBuilder();
-        builder.setStorageName(storageName)
-            .setCrcFlag(false)
+        builder.setCrcFlag(false)
             .setFileName(fileName)
             .setOffsetInFile(offsetInFile)
             .setSeqno(seqno)
@@ -56,10 +55,6 @@ public class FSPacket {
     // setters and getters
     public boolean isLastPacketInFile() {
         return proto.getLastPacketInFile();
-    }
-
-    public int getStorageName() {
-        return proto.getStorageName();
     }
 
     public String getFileName() {
@@ -113,8 +108,7 @@ public class FSPacket {
 
     @Override
     public String toString() {
-        return "FSPacket of StorageName:[" + getStorageName()
-            + "] file[" + getFileName()
+        return "FSPacket of file[" + getFileName()
             + "] offset:[" + getOffsetInFile()
             + "] len:[" + getData().length
             + "]byte seqno: [" + getSeqno()

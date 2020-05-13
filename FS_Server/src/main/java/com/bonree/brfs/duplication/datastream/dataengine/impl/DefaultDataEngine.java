@@ -53,6 +53,11 @@ public class DefaultDataEngine implements DataEngine {
     @Override
     public void store(byte[] data, DataStoreCallback callback) {
         try {
+            if (data == null) {
+                callback.dataStored(null);
+                return;
+            }
+
             dataPool.put(new DataObject() {
                 long ctime = System.currentTimeMillis();
 
