@@ -82,7 +82,7 @@ public class CuratorModule implements Module {
             }
         });
 
-        lifecycle.addAnnotatedInstance(new Lifecycle.LifeCycleObject() {
+        lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
 
             @Override
             public void start() throws Exception {

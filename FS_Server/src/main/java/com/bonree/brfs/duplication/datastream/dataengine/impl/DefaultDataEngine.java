@@ -20,13 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DefaultDataEngine implements DataEngine {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultDataEngine.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultDataEngine.class);
 
-    private DataPool dataPool;
-    private FileObjectSupplier fileSupplier;
-    private DiskWriter diskWriter;
+    private final DataPool dataPool;
+    private final FileObjectSupplier fileSupplier;
+    private final DiskWriter diskWriter;
 
-    private ExecutorService mainThread;
+    private final ExecutorService mainThread;
 
     private final StorageRegion storageRegion;
 
@@ -73,12 +73,12 @@ public class DefaultDataEngine implements DataEngine {
 
                 @Override
                 public void processComplete(String result) {
-                    LOG.info("store the [{}] length data cost [{}]ms", data.length, System.currentTimeMillis() - ctime);
+                    log.info("store the [{}] length data cost [{}]ms", data.length, System.currentTimeMillis() - ctime);
                     callback.dataStored(result);
                 }
             });
         } catch (InterruptedException e) {
-            LOG.error("store data failed", e);
+            log.error("store data failed", e);
             callback.dataStored(null);
         }
     }
@@ -94,7 +94,7 @@ public class DefaultDataEngine implements DataEngine {
         @Override
         public void run() {
             if (!runningState.compareAndSet(false, true)) {
-                LOG.error("can not execute data engine again, because it's started!",
+                log.error("can not execute data engine again, because it's started!",
                           new IllegalStateException("Data engine has been started!"));
                 return;
             }
@@ -109,7 +109,7 @@ public class DefaultDataEngine implements DataEngine {
                 try {
                     DataObject data = unhandledData == null ? (unhandledData = dataPool.take()) : unhandledData;
 
-                    LOG.debug("fetch file with {}", data.length());
+                    log.debug("fetch file with {}", data.length());
                     FileObject file = fileSupplier.fetch(data.length());
                     unhandledData = null;
 
@@ -135,32 +135,27 @@ public class DefaultDataEngine implements DataEngine {
                         dataPool.remove();
                     }
 
-                    LOG.debug("out => {}", file.node().getName());
+                    log.debug("out => {}", file.node().getName());
                     diskWriter.write(file, dataList, new WriteProgressListener() {
 
                         @Override
                         public void writeCompleted(FileObject file, boolean errorOccurred) {
-                            LOG.debug("in => {}, sync => {}", file.node().getName(), errorOccurred);
+                            log.debug("in => {}, sync => {}", file.node().getName(), errorOccurred);
                             fileSupplier.recycle(file, errorOccurred);
                         }
                     });
                 } catch (InterruptedException e) {
                     if (quit) {
-                        LOG.info("data consumer close by itself");
+                        log.info("data consumer close by itself");
                     } else {
-                        LOG.error("data consumer interrupted!", e);
+                        log.error("data consumer interrupted!", e);
                     }
                 } catch (Exception e) {
-                    LOG.error("process data error", e);
+                    log.error("process data error", e);
                 }
             }
 
-            LOG.info("data engine[region={}] is shut down!", storageRegion.getName());
-            try {
-                fileSupplier.close();
-            } catch (IOException e) {
-                LOG.error("close file supplier of data engine[region={}] error.", storageRegion.getName());
-            }
+            log.info("data engine[region={}] is shut down!", storageRegion.getName());
         }
 
     }
