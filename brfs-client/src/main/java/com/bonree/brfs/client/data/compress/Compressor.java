@@ -19,10 +19,17 @@ import java.io.InputStream;
 public interface Compressor {
     InputStream compress(InputStream input);
 
+    byte[] compress(byte[] bytes);
+
     static Compressor NONE = new Compressor() {
 
         @Override
         public InputStream compress(InputStream bytes) {
+            return bytes;
+        }
+
+        @Override
+        public byte[] compress(byte[] bytes) {
             return bytes;
         }
     };

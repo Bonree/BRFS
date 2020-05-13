@@ -14,8 +14,11 @@
 
 package com.bonree.brfs.disknode;
 
+import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
+
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
+import com.bonree.brfs.common.jackson.JsonMapper;
 import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.Lifecycle.LifeCycleObject;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
@@ -29,10 +32,10 @@ import com.bonree.brfs.common.net.tcp.file.client.AsyncFileReaderGroup;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
+import com.bonree.brfs.common.statistic.ReadStatCollector;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
@@ -89,6 +92,9 @@ public class DataNodeModule implements Module {
 
         binder.bind(Deliver.class).toInstance(Deliver.NOOP);
 
+        jaxrs(binder).resource(JsonMapper.class);
+        binder.bind(ReadStatCollector.class).toInstance(new ReadStatCollector());
+        jaxrs(binder).resource(StatResource.class);
         LifecycleModule.register(binder, Service.class);
         LifecycleModule.register(binder, RebalanceManagerV2.class);
         LifecycleModule.register(binder, TcpServer.class, DataWrite.class);
@@ -314,7 +320,8 @@ public class DataNodeModule implements Module {
         Deliver deliver,
         DiskContext diskContext,
         FileFormater fileFormater,
-        Lifecycle lifecycle) {
+        Lifecycle lifecycle,
+        ReadStatCollector readStatCollector) {
         ServerConfig fileServerConfig = new ServerConfig();
         fileServerConfig.setBacklog(Integer.parseInt(System.getProperty(SystemProperties.PROP_NET_BACKLOG, "2048")));
         fileServerConfig.setBossThreadNums(1);
@@ -338,7 +345,7 @@ public class DataNodeModule implements Module {
                 return diskContext.getConcreteFilePath(path);
             }
 
-        }, deliver);
+        }, deliver, readStatCollector);
 
         TcpServer fileServer = new TcpServer(fileServerConfig, fileInitializer);
         lifecycle.addLifeCycleObject(new LifeCycleObject() {

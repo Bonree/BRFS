@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  *
  * @date 2018年4月19日 下午3:31:55
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
- * @Description: 监听Server变更，以便生成任务
+ * @Description: 监听changes目录，根据变更情况生成磁盘摘要信息并放入队列
  ******************************************************************************/
 public class ServerChangeListenerV2 implements TreeCacheListener {
 
@@ -32,7 +32,7 @@ public class ServerChangeListenerV2 implements TreeCacheListener {
 
     @Override
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-        LOG.info("leaderLath:" + dispatcher.getLeaderLatch().hasLeadership());
+        LOG.info("is leaderLath: {}", dispatcher.getLeaderLatch().hasLeadership());
         if (dispatcher.getLeaderLatch().hasLeadership()) {
 
             // 发现changes目录有新的任务产生，之所以不监听REMOVE事件是因为REMOVE事件是任务监听器逻辑控制的
@@ -49,9 +49,9 @@ public class ServerChangeListenerV2 implements TreeCacheListener {
                     if (event.getData().getData() != null) {
                         LOG.info("parse and add change: {}", RebalanceUtils.convertEvent(event));
                         String absolutePath = event.getData().getPath();
-                        String chanName = StringUtils
+                        String changeId = StringUtils
                             .substring(absolutePath, absolutePath.lastIndexOf('/') + 1, absolutePath.length());   // changeId
-                        if (chanName.length() > 16) {
+                        if (changeId.length() > 16) {
                             DiskPartitionChangeSummary summary =
                                 JsonUtils.toObjectQuietly(event.getData().getData(), DiskPartitionChangeSummary.class);
                             if (summary != null) {

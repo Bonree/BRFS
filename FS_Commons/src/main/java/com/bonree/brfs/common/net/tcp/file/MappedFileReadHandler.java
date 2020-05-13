@@ -2,6 +2,7 @@ package com.bonree.brfs.common.net.tcp.file;
 
 import com.bonree.brfs.common.net.Deliver;
 import com.bonree.brfs.common.net.tcp.file.client.TimePair;
+import com.bonree.brfs.common.statistic.ReadStatCollector;
 import com.bonree.brfs.common.supervisor.ReadMetric;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.BufferUtils;
@@ -38,7 +39,7 @@ import org.slf4j.LoggerFactory;
 @Sharable
 public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObject> {
     private static final Logger LOG = LoggerFactory.getLogger(MappedFileReadHandler.class);
-
+    private ReadStatCollector readCountCollector;
     private final Deliver deliver;
 
     private ReadObjectTranslator translator;
@@ -82,10 +83,12 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
 
     private LoadingCache<TimePair, String> timeCache;
 
-    public MappedFileReadHandler(ReadObjectTranslator translator, Deliver deliver, LoadingCache<TimePair, String> timeCache) {
+    public MappedFileReadHandler(ReadObjectTranslator translator, Deliver deliver, LoadingCache<TimePair, String> timeCache,
+                                 ReadStatCollector readCountCollector) {
         this.deliver = deliver;
         this.translator = translator;
         this.timeCache = timeCache;
+        this.readCountCollector = readCountCollector;
         this.releaseRunner.execute(() -> {
             while (true) {
                 Iterator<BufferRef> iter = releaseList.iterator();
@@ -118,6 +121,8 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         readMetric.setDataNodeId(readObject.getFileName().split("_")[readObject.getIndex()]);
         readMetric.setDataCount(1);
         TimeWatcher timeWatcher = new TimeWatcher();
+        String srName = getStorageName(readObject.getFilePath());
+        readCountCollector.submit(srName);
 
         String filePath = (readObject.getRaw() & ReadObject.RAW_PATH) == 0
             ? translator.filePath(readObject.getFilePath()) : readObject.getFilePath();
@@ -173,6 +178,14 @@ public class MappedFileReadHandler extends SimpleChannelInboundHandler<ReadObjec
         } finally {
             bufferCache.cleanUp();
         }
+    }
+
+    private String getStorageName(String filePath) {
+        String[] split = filePath.split("/");
+        if (split.length < 2) {
+            return "";
+        }
+        return split[1];
     }
 
     @Override

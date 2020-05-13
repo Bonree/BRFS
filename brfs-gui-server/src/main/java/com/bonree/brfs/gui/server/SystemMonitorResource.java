@@ -23,7 +23,6 @@ import com.bonree.brfs.gui.server.metrics.MemMetric;
 import com.bonree.brfs.gui.server.metrics.NetMetric;
 import com.bonree.brfs.gui.server.node.MonitorNode;
 import com.bonree.brfs.gui.server.resource.GuiResourceMaintainer;
-import com.bonree.brfs.gui.server.resource.impl.GuiFileMaintainer;
 import com.bonree.brfs.gui.server.resource.vo.GuiCpuInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiDiskIOInfo;
 import com.bonree.brfs.gui.server.resource.vo.GuiDiskUsageInfo;
@@ -44,7 +43,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import jdk.nashorn.internal.runtime.UnwarrantedOptimismException;
 
 @Path("/sys")
 public class SystemMonitorResource {

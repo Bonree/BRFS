@@ -59,6 +59,7 @@ import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectSupplierFact
 import com.bonree.brfs.duplication.datastream.file.FileObjectCloser;
 import com.bonree.brfs.duplication.datastream.file.FileObjectFactory;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
+import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierManager;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSyncProcessor;
 import com.bonree.brfs.duplication.datastream.file.sync.DefaultFileObjectSynchronier;
 import com.bonree.brfs.duplication.datastream.file.sync.FileObjectSyncProcessor;
@@ -110,6 +111,7 @@ public class RegionNodeModule implements Module {
         binder.bind(FileNodeSinkManager.class).to(ZkFileNodeSinkManager.class);
         binder.bind(FileNodeSinkSelector.class).toInstance(new RandomFileNodeSinkSelector());
         binder.bind(FileObjectSupplierFactory.class).to(DefaultFileObjectSupplierFactory.class).in(Scopes.SINGLETON);
+        binder.bind(FileObjectSupplierManager.class);
 
         binder.bind(DataPoolFactory.class).to(BlockingQueueDataPoolFactory.class).in(Scopes.SINGLETON);
         binder.bind(DiskWriter.class).in(ManageLifecycle.class);
@@ -127,6 +129,7 @@ public class RegionNodeModule implements Module {
         jaxrs(binder).resource(CatalogResource.class);
         jaxrs(binder).resource(DataResource.class);
         jaxrs(binder).resource(FSPackageProtoMapper.class);
+        jaxrs(binder).resource(WriteBatchMapper.class);
 
         LifecycleModule.register(binder, SimpleAuthentication.class);
         LifecycleModule.register(binder, MetadataBackupServer.class);
