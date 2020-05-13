@@ -242,7 +242,7 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     @Override
     public void addAllPartitionRelation(Collection<String> partitionIds, String firstServer) {
         if (partitionIds == null || partitionIds.isEmpty() || StringUtils.isEmpty(firstServer)) {
-            return;
+            throw new RuntimeException("first server [ " + firstServer + "] no partitionid to used ");
         }
         for (String partitionId : partitionIds) {
             addPartitionRelation(firstServer, partitionId);
@@ -325,6 +325,11 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                 while (queue != null && !queue.isEmpty()) {
                     info = queue.poll();
                     if (info == null) {
+                        continue;
+                    }
+                    Collection<String> partitionIds = getSecondIds(info.getFirstId(), info.getStorageId());
+                    if (partitionIds == null || partitionIds.isEmpty()) {
+                        LOG.warn("{} server no partition to register secondId");
                         continue;
                     }
                     registerSecondIds(info.getFirstId(), info.getStorageId());

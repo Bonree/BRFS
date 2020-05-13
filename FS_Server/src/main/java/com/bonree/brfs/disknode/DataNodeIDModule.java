@@ -63,6 +63,7 @@ public class DataNodeIDModule implements Module {
         LifecycleModule.register(binder, DiskPartitionInfoManager.class);
         LifecycleModule.register(binder, SimpleSecondMaintainer.class);
         LifecycleModule.register(binder, DiskPartitionChangeTaskGenerator.class);
+        LifecycleModule.register(binder, DiskDaemon.class);
     }
 
     @Provides

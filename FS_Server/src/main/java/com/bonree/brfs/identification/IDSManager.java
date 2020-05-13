@@ -1,12 +1,14 @@
 package com.bonree.brfs.identification;
 
 import com.bonree.brfs.common.process.LifeCycle;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,14 +28,15 @@ public class IDSManager {
     private DiskDaemon diskDaemon;
 
     @Inject
-    public IDSManager(String firstSever, SecondMaintainerInterface secondMaintainer, VirtualServerID virtualServerID,
+    public IDSManager(Service localService, SecondMaintainerInterface secondMaintainer, VirtualServerID virtualServerID,
                       DiskDaemon diskDaemon) {
-        this.firstSever = firstSever;
+        this.firstSever = localService.getServiceId();
         this.secondMaintainer = secondMaintainer;
         this.virtualServerID = virtualServerID;
         this.diskDaemon = diskDaemon;
         Collection<LocalPartitionInfo> partitions = this.diskDaemon.getPartitions();
         Collection<String> parts = convertToId(partitions);
+
         this.secondMaintainer.addAllPartitionRelation(parts, firstSever);
         LOG.info("IDSManager start.");
     }
