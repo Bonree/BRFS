@@ -18,7 +18,7 @@ public class BatchTest {
                         .build())
             .build("root", "12345", new URI[] {URI.create("http://localhost:8200")});
 
-        byte[] bytes = "1234567890abcd".getBytes();
+        byte[] bytes = new byte[1024 * 1024];
         try {
             BatchResult result = client.putObjects("guice_test", ProtobufPutObjectBatch.newBuilder()
                 .putObject(bytes)
