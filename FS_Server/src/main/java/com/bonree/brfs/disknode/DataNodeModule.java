@@ -96,7 +96,7 @@ public class DataNodeModule implements Module {
         binder.bind(ReadStatCollector.class).toInstance(new ReadStatCollector());
         jaxrs(binder).resource(StatResource.class);
         LifecycleModule.register(binder, Service.class);
-//        LifecycleModule.register(binder, RebalanceManagerV2.class);
+        LifecycleModule.register(binder, RebalanceManagerV2.class);
         LifecycleModule.register(binder, TcpServer.class, DataWrite.class);
         LifecycleModule.register(binder, TcpServer.class, DataRead.class);
     }
