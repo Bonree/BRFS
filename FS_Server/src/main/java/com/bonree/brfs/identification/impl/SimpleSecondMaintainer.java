@@ -17,11 +17,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
@@ -43,8 +47,8 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     private String secondBasePath;
     private String routeBasePath;
     private SecondIdsInterface secondIds;
-    private BlockingQueue<RegisterInfo> queue = new LinkedBlockingQueue<>();
-    private ExecutorService pool = null;
+    private Queue<RegisterInfo> queue = new ConcurrentLinkedQueue<>();
+    private ScheduledExecutorService pool = null;
     private Future<?> future = null;
 
     public SimpleSecondMaintainer(CuratorFramework client, String secondBasePath, String routeBasePath, String secondIdSeqPath) {
@@ -312,26 +316,25 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     @Override
     public void start() throws Exception {
         LOG.info("second maintainer thread start !!");
-        pool = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("SecondIdMaintainer").build());
-        future = pool.submit(new Runnable() {
+        pool = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("SecondIdMaintainer").build());
+        future = pool.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 RegisterInfo info = null;
-                do {
-                    try {
-                        info = queue.take();
-                        if (info == null) {
-                            continue;
-                        }
-                        registerSecondIds(info.getFirstId(), info.getStorageId());
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        LOG.error("repeat register secondId happen error {}", info, e);
+                int count = 0;
+                while (queue != null && !queue.isEmpty()) {
+                    info = queue.poll();
+                    if (info == null) {
+                        continue;
                     }
-                } while (info.storageId < 0);
-                LOG.info("second id maintain thread shutdown !!");
+                    registerSecondIds(info.getFirstId(), info.getStorageId());
+                    count += 1;
+                }
+                if (count > 0) {
+                    LOG.info("second id maintain thread fix {} seconIds!", count);
+                }
             }
-        });
+        }, 0, 100, TimeUnit.MILLISECONDS);
     }
 
     @LifecycleStop
@@ -341,7 +344,6 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
             future.cancel(true);
         }
         if (pool != null) {
-            queue.clear();
             pool.shutdownNow();
         }
     }

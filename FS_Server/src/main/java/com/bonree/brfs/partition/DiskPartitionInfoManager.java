@@ -59,11 +59,14 @@ public class DiskPartitionInfoManager implements LifeCycle {
     @LifecycleStart
     @Override
     public void start() throws Exception {
-
-        this.cache = new PathChildrenCache(client, path, true);
-        this.cache.start();
-        this.listener = new DiskPartitionInfoListener();
-        this.cache.getListenable().addListener(this.listener);
+        try {
+            this.cache = new PathChildrenCache(client, path, true);
+            this.cache.start();
+            this.listener = new DiskPartitionInfoListener();
+            this.cache.getListenable().addListener(this.listener);
+        } catch (Exception e) {
+            throw new RuntimeException("DiskPartitionManager start fail !", e);
+        }
         LOG.info("disk partition info manager start.");
     }
 
