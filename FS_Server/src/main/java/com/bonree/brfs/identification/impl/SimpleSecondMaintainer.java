@@ -201,14 +201,14 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                     byte[] data = client.getData().forPath(routePath);
                     NormalRouteInterface normalRoute = SingleRouteFactory.createRoute(data);
                     if (normalRoute.getBaseSecondId().equals(secondId)) {
-                        return true;
+                        return false;
                     }
                 }
             }
         } catch (Exception e) {
             LOG.error("check secondId[{}:{}] happen error {}", secondId, storageId, e);
         }
-        return false;
+        return true;
     }
 
     @Override
@@ -387,7 +387,9 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                         int storageIndex = Integer.parseInt(region);
                         String secondId = getSecondId(region, storageIndex);
                         if (!isValidSecondId(secondId, storageIndex)) {
-                            createSecondId(partition, firstServerId, storageIndex);
+                            String newSecondId = createSecondId(partition, firstServerId, storageIndex);
+                            LOG.info("re-register secondId storageId[{}],partitionId[{}] old:[{}] new:[{}]", storageIndex,
+                                     partition, secondId, newSecondId);
                         }
                     });
                 } catch (Exception e) {
