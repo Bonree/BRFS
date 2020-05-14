@@ -31,6 +31,7 @@ import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.service.impl.DefaultServiceManager;
+import com.bonree.brfs.common.statistic.WriteStatCollector;
 import com.bonree.brfs.common.timer.TimeExchangeEventEmitter;
 import com.bonree.brfs.common.utils.NetworkUtils;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
@@ -121,9 +122,12 @@ public class RegionNodeModule implements Module {
         binder.bind(StorageRegionWriter.class).to(DefaultStorageRegionWriter.class).in(Scopes.SINGLETON);
         binder.bind(RocksDBManager.class).to(NonRocksDBManager.class).in(Scopes.SINGLETON);
         binder.bind(BrfsCatalog.class).to(DefaultBrfsCatalog.class).in(Scopes.SINGLETON);
+        jaxrs(binder).resource(JsonMapper.class);
+        binder.bind(WriteStatCollector.class).toInstance(new WriteStatCollector());
 
         jaxrs(binder).resource(DiscoveryResource.class);
         jaxrs(binder).resource(RouterResource.class);
+        jaxrs(binder).resource(StatResource.class);
 
         jaxrs(binder).resource(JsonMapper.class);
         jaxrs(binder).resource(CatalogResource.class);

@@ -149,6 +149,9 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         if (!validPath(path)) {
             throw new NotFoundException();
         }
+        if ("/".equals(path)) {
+            return false;
+        }
         byte[] query = transferToKey(path);
         byte[] value = rocksDBManager.read(srName, query);
         if (value == null) {

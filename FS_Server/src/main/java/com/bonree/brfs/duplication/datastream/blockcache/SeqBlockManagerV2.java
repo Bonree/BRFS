@@ -79,14 +79,14 @@ public class SeqBlockManagerV2 implements BlockManager {
         if (packet.isTheFirstPacketInFile()) {
             LOG.info("After processor : storage [{}] : file[{}] waiting for write.", srName, fileName);
         }
-        LOG.debug("writing the file [{}]", fileName);
+        LOG.debug("writing the file [{}]", packet.getWriteID());
         try {
             BlockValue blockValue = blockcache.get(new BlockKey(srName, packet.getWriteID()));
             if (blockValue == null) {
                 HandleResult result = new HandleResult();
                 result.setSuccess(false);
                 result.setCause(new Exception("error when append block into block,cause by long time no write"));
-                LOG.error("can not get block value of file[{}] in blockcache", fileName);
+                LOG.error("can not get block value of file[{}] in blockcache", packet.getWriteID());
                 callback.completed(result);
                 return null;
             }
@@ -260,7 +260,7 @@ public class SeqBlockManagerV2 implements BlockManager {
             @Override
             public void run() {
                 if (System.currentTimeMillis() - accessTime > timeout) {
-                    LOG.info("clear a file [{}] out of blockcache.", file);
+                    LOG.info("clear a file [{}] out of blockcache.", file == null ? writeID : file);
                     // 3. clear file on heap
                     if (!isPutBack()) {
                         releaseData();
@@ -448,6 +448,7 @@ public class SeqBlockManagerV2 implements BlockManager {
             while (true) {
                 LOG.debug("loop for writing: start");
                 if (quit && fileWaiting.isEmpty()) {
+                    LOG.info("stop poll request for writing,[{}]", quit);
                     break;
                 }
                 try {
@@ -459,7 +460,6 @@ public class SeqBlockManagerV2 implements BlockManager {
                         LOG.info("loop for writing : wait until allow to write");
                         allowWrite.await();
                     }
-                    fileWritingCount.incrementAndGet();
                     LOG.info("Processor : the waiting request size is [{}]", fileWaiting.size());
                     if (unhandledRequest.ifRequestIsTimeOut()) {
                         LOG.info("abandon a file write request because of Time out");
@@ -469,6 +469,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                         unhandledRequest.getHandleResultCallback().completed(result);
                         continue;
                     }
+                    fileWritingCount.incrementAndGet();
                     BlockKey blockKey = new BlockKey(unhandledRequest.getSrName(),
                                                      unhandledRequest.getFsPacket().getWriteID());
                     Block block = blockPool.getBlock();

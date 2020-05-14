@@ -7,12 +7,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ReadCountModel {
-    private AtomicLong readCount;
+    private AtomicLong readCount = new AtomicLong(0);
     private String srName;
 
     @JsonCreator
     public ReadCountModel(@JsonProperty("count") long count, @JsonProperty("srName") String srName) {
-        this.readCount = new AtomicLong(count);
+        this.readCount.set(count);
         this.srName = srName;
     }
 
@@ -32,6 +32,13 @@ public class ReadCountModel {
 
     public void addReadCount() {
         this.readCount.incrementAndGet();
+    }
+
+    public void addReadCount(long count) {
+        if (count == 0) {
+            return;
+        }
+        this.readCount.addAndGet(count);
     }
 
     public void print() {

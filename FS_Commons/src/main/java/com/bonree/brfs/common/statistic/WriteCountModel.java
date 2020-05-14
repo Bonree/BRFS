@@ -1,30 +1,43 @@
 package com.bonree.brfs.common.statistic;
 
-import com.google.common.collect.Maps;
-import java.util.Map;
+import static com.google.common.base.MoreObjects.toStringHelper;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class WriteCountModel {
-    private Map<Long, Integer> countByTime = Maps.newConcurrentMap();
+    private AtomicLong writeCount = new AtomicLong(0);
 
-    public int getCountByTime(long startTime) {
-        return countByTime.get(startTime);
+    @JsonCreator
+    public WriteCountModel(@JsonProperty("count") long count) {
+        this.writeCount.set(count);
     }
 
-    public void addCountByTime(long startTime) {
-        synchronized (countByTime) {
-            if (countByTime.containsKey(startTime)) {
-                countByTime.put(startTime, countByTime.get(startTime) + 1);
-            } else {
-                countByTime.put(startTime, 1);
-            }
+    @JsonProperty("count")
+    public long getWriteCount() {
+        return writeCount.get();
+    }
+
+    public void addWriteCount() {
+        this.writeCount.incrementAndGet();
+    }
+
+    public void addWriteCount(long count) {
+        if (count == 0) {
+            return;
         }
+        this.writeCount.addAndGet(count);
     }
 
     public void print() {
-        if (!countByTime.isEmpty()) {
-            for (long startTime : countByTime.keySet()) {
-                System.out.println(startTime + ":" + countByTime.get(startTime));
-            }
-        }
+        System.out.println(writeCount);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+            .add("count", writeCount.get())
+            .toString();
     }
 }
