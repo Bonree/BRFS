@@ -49,7 +49,7 @@ public class FileObjectSupplierManager {
     }
 
     private void close(String srName, FileObjectSupplier supplier) {
-        log.info("close file object supplier of sr[%s]", srName);
+        log.info("close file object supplier of sr[{}]", srName);
         if (supplier != null) {
             try {
                 supplier.close();
@@ -59,25 +59,30 @@ public class FileObjectSupplierManager {
         }
     }
 
-
     private class FileObjectSupplierUpdater implements StorageRegionStateListener {
 
         @Override
         public void storageRegionAdded(StorageRegion region) {
-            if (suppliers.containsKey(region.getName())) {
-                log.error("No file object supplier should be bind to sr[{}], but get one", region.getName());
-                return;
-            }
+            suppliers.compute(region.getName(), (srName, supplier) -> {
+                if (supplier != null) {
+                    log.error("No file object supplier should be bind to sr[{}], but get one", region.getName());
+                    return supplier;
+                }
 
-            suppliers.computeIfAbsent(region.getName(), srName -> factory.create(region));
+                return factory.create(region);
+            });
         }
 
         @Override
         public void storageRegionUpdated(StorageRegion region) {
-            if (!suppliers.containsKey(region.getName())) {
-                log.error("A file object supplier should have been bind to sr[{}], bit none", region.getName());
-                suppliers.computeIfAbsent(region.getName(), srName -> factory.create(region));
-            }
+            suppliers.compute(region.getName(), (srName, supplier) -> {
+                if (supplier == null) {
+                    log.error("A file object supplier should have been bind to sr[{}], bit none", srName);
+                    return factory.create(region);
+                }
+
+                return supplier;
+            });
         }
 
         @Override

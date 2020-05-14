@@ -28,7 +28,11 @@ public class DefaultFileObjectSupplierFactory implements FileObjectSupplierFacto
 
     @Override
     public FileObjectSupplier create(StorageRegion storageRegion) {
-        return new DefaultFileObjectSupplier(storageRegion, fileFactory, fileCloser, fileSynchronizer, fileNodeSinkManager,
+        return new DefaultFileObjectSupplier(storageRegion,
+                                             fileFactory,
+                                             fileCloser,
+                                             fileSynchronizer,
+                                             fileNodeSinkManager,
                                              timeEventEmitter);
     }
 

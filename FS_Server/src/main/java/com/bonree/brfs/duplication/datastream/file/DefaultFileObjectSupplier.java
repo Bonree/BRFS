@@ -30,27 +30,27 @@ import org.slf4j.LoggerFactory;
 public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchangeListener, FileNodeSink {
     private static Logger log = LoggerFactory.getLogger(DefaultFileObjectSupplier.class);
 
-    private FileObjectFactory fileFactory;
+    private final FileObjectFactory fileFactory;
 
-    private ExecutorService mainThread;
+    private final ExecutorService mainThread;
 
     private final int cleanLimit;
     private final int forceCleanLimit;
     private final double cleanFileLengthRatio;
 
     //每个文件只会处于下列状态中的一个
-    private SortedList<FileObject> idleFileList = new SortedList<FileObject>(FileObject.LENGTH_COMPARATOR);
-    private SortedList<FileObject> busyFileList = new SortedList<FileObject>(FileObject.LENGTH_COMPARATOR);
-    private SortedList<FileObject> exceptionFileList = new SortedList<FileObject>(FileObject.LENGTH_COMPARATOR);
+    private final SortedList<FileObject> idleFileList = new SortedList<FileObject>(FileObject.LENGTH_COMPARATOR);
+    private final SortedList<FileObject> busyFileList = new SortedList<FileObject>(FileObject.LENGTH_COMPARATOR);
+    private final SortedList<FileObject> exceptionFileList = new SortedList<FileObject>(FileObject.LENGTH_COMPARATOR);
 
-    private List<FileObject> recycledFiles = Collections.synchronizedList(new ArrayList<FileObject>());
-    private List<FileObject> exceptedFiles = Collections.synchronizedList(new ArrayList<FileObject>());
+    private final List<FileObject> recycledFiles = Collections.synchronizedList(new ArrayList<FileObject>());
+    private final List<FileObject> exceptedFiles = Collections.synchronizedList(new ArrayList<FileObject>());
 
-    private FileObjectCloser fileCloser;
-    private FileObjectSynchronizer fileSynchronizer;
-    private FileNodeSinkManager fileNodeSinkManager;
+    private final FileObjectCloser fileCloser;
+    private final FileObjectSynchronizer fileSynchronizer;
+    private final FileNodeSinkManager fileNodeSinkManager;
 
-    private TimeExchangeEventEmitter timeEventEmitter;
+    private final TimeExchangeEventEmitter timeEventEmitter;
     private volatile long expiredTime;
 
     private final StorageRegion storageRegion;
@@ -218,7 +218,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 
     @Override
     public void close() {
-        log.info("sr[%s] file object supplier is closed", storageRegion.getName());
+        log.info("sr[{}] file object supplier is closed", storageRegion.getName());
         fileNodeSinkManager.removeStateListener(stateListener);
         fileNodeSinkManager.unregisterFileNodeSink(this);
         timeEventEmitter.removeListener(Duration.parse(storageRegion.getFilePartitionDuration()), this);
