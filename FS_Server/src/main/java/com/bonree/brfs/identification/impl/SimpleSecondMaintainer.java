@@ -361,33 +361,33 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
             throw new RuntimeException(MessageFormat.format("first server id [{0}] no partitionId", firstServerId));
         }
         partitions.stream().forEach(
-            x -> {
+            partition -> {
                 try {
-                    String partitionPath = ZKPaths.makePath(this.secondBasePath, x);
+                    String partitionPath = ZKPaths.makePath(this.secondBasePath, partition);
                     if (this.client.checkExists().forPath(partitionPath) == null) {
                         return;
                     }
                     byte[] fistData = this.client.getData().forPath(partitionPath);
                     if (fistData == null || fistData.length == 0) {
-                        addPartitionRelation(firstServerId, x);
+                        addPartitionRelation(firstServerId, partition);
                     }
                     String checkFirst = new String(fistData, "utf-8");
                     if (!checkFirst.equals(firstServerId)) {
                         throw new RuntimeException(
                             MessageFormat
                                 .format("find unexpect first id [{0}]! expect:[{1}] partitionId:[{2}]", checkFirst, firstServerId,
-                                        x));
+                                        partition));
                     }
                     List<String> childs = this.client.getChildren().forPath(partitionPath);
                     if (childs == null || childs.isEmpty()) {
                         return;
                     }
                     Collections.sort(childs);
-                    childs.stream().forEach(y -> {
-                        int storageIndex = Integer.parseInt(y);
-                        String secondId = getSecondId(y, storageIndex);
+                    childs.stream().forEach(region -> {
+                        int storageIndex = Integer.parseInt(region);
+                        String secondId = getSecondId(region, storageIndex);
                         if (!isValidSecondId(secondId, storageIndex)) {
-                            createSecondId(y, firstServerId, storageIndex);
+                            createSecondId(partition, firstServerId, storageIndex);
                         }
                     });
                 } catch (Exception e) {
