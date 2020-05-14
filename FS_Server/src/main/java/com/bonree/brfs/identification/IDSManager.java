@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * @author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @description: id综合查询管理类，负责二级serverid，虚拟serverid 的查询，以及datanode一级server查询
  **/
-public class IDSManager implements LifeCycle {
+public class IDSManager {
     private static final Logger LOG = LoggerFactory.getLogger(IDSManager.class);
     private String firstSever = null;
     private SecondMaintainerInterface secondMaintainer;
@@ -33,6 +33,7 @@ public class IDSManager implements LifeCycle {
         this.secondMaintainer = secondMaintainer;
         this.virtualServerID = virtualServerID;
         this.diskDaemon = diskDaemon;
+        start();
     }
 
     private Collection<String> convertToId(Collection<LocalPartitionInfo> partitions) {
@@ -148,17 +149,10 @@ public class IDSManager implements LifeCycle {
         return this.secondMaintainer.getPartitionId(secondId, storageRegionId);
     }
 
-    
-    @Override
-    public void start() throws Exception {
+    private void start() {
         Collection<LocalPartitionInfo> partitions = this.diskDaemon.getPartitions();
         Collection<String> parts = convertToId(partitions);
         this.secondMaintainer.addAllPartitionRelation(parts, firstSever);
         LOG.info("IDSManager start.");
-    }
-
-    @Override
-    public void stop() throws Exception {
-
     }
 }
