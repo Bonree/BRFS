@@ -33,6 +33,18 @@ public class ReadStatCollector {
         }
     }
 
+    public void addCount(String srName, long count) {
+        synchronized (statsMap) {
+            if (statsMap.containsKey(srName)) {
+                ReadCountModel readCountModel = statsMap.get(srName);
+                readCountModel.addReadCount(count);
+            } else {
+                ReadCountModel readCountModel = new ReadCountModel(count, srName);
+                statsMap.put(srName, readCountModel);
+            }
+        }
+    }
+
     void record(String srName) {
         cacheRecord(srName);
     }
