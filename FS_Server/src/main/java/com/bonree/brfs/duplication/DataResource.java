@@ -28,8 +28,7 @@ import com.bonree.brfs.common.proto.DataTransferProtos.FSPacketProto;
 import com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.statistic.WriteStatsCountCollector;
-import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.common.statistic.WriteStatCollector;
 import com.bonree.brfs.common.write.data.DataItem;
 import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
@@ -66,7 +65,7 @@ import org.slf4j.LoggerFactory;
 public class DataResource {
     private static final Logger LOG = LoggerFactory.getLogger(DataResource.class);
     private static final Logger WRITE_LOG = LoggerFactory.getLogger("write_statistic");
-    private static WriteStatsCountCollector writeCollector = new WriteStatsCountCollector();
+    private final WriteStatCollector writeCollector;
     private final ClusterConfig clusterConfig;
     private final ServiceManager serviceManager;
     private final StorageRegionManager storageRegionManager;
@@ -84,7 +83,9 @@ public class DataResource {
         ZookeeperPaths zkPaths,
         StorageRegionWriter storageRegionWriter,
         BlockManager blockManager,
-        BrfsCatalog brfsCatalog) {
+        BrfsCatalog brfsCatalog,
+        WriteStatCollector writeStatCollector) {
+        this.writeCollector = writeStatCollector;
         this.clusterConfig = clusterConfig;
         this.serviceManager = serviceManager;
         this.storageRegionManager = storageRegionManager;
@@ -194,7 +195,6 @@ public class DataResource {
                             }
 
                             LOG.info("write the tiny data to dn cost [{}]ms", System.currentTimeMillis() - ctime);
-                            LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
                             if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
                                 if (brfsCatalog.writeFid(srName, file, fid)) {
                                     LOG.error("failed when write fid to rocksDB.");
@@ -204,8 +204,7 @@ public class DataResource {
                             }
                             LOG.info("response fid:[{}]", fid);
                             WRITE_LOG.info(" {} write [{}]", srName, file);
-                            writeCollector.submit(srName,
-                                 TimeUtils.prevTimeStamp(System.currentTimeMillis(), Duration.parse("PT1M").toMillis()));
+                            writeCollector.submit(srName);
                             response.resume(Response
                                                 .ok()
                                                 .entity(ImmutableList.of(fid)).build());
@@ -228,7 +227,6 @@ public class DataResource {
                                         .entity(new NextData(result.getNextSeqno())).build());
                 } else if (result.isSuccess()) {
                     String fid = new String(result.getData());
-                    LOG.info("rocskDb is open ?:[{}]", brfsCatalog.isUsable());
                     LOG.debug("before sync : [{}]", fid);
 
                     if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
@@ -241,8 +239,7 @@ public class DataResource {
                     }
                     LOG.info("response fid:[{}]", fid);
                     WRITE_LOG.info(" {} write [{}]", srName, file);
-                    writeCollector.submit(srName,
-                                          TimeUtils.prevTimeStamp(System.currentTimeMillis(), Duration.parse("PT1M").toMillis()));
+                    writeCollector.submit(srName);
                     response.resume(Response
                                         .ok()
                                         .entity(ImmutableList.of(new String(result.getData()))).build());

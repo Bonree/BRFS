@@ -47,7 +47,7 @@ public class CatalogResource {
         @PathParam("srName") String srName,
         @QueryParam("absPath") String absPath) {
         Stopwatch started = Stopwatch.createStarted();
-        LOG.info("get fid request srName[{}],absPath[{}]", srName, absPath);
+        LOG.debug("get fid request srName[{}],absPath[{}]", srName, absPath);
 
         if (!catalog.isUsable()) {
             LOG.error("get fid error caused by the catalog is not open");

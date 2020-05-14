@@ -3,11 +3,10 @@ package com.bonree.brfs.gui.server;
 import com.bonree.brfs.client.BRFSClientBuilder;
 import com.bonree.brfs.client.utils.SocketChannelSocketFactory;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
+import com.bonree.brfs.gui.server.stats.StatConfigs;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
-import com.google.inject.Scopes;
-import com.google.inject.Singleton;
 import java.time.Duration;
 import java.util.Properties;
 import okhttp3.OkHttpClient;
@@ -28,6 +27,8 @@ public class ClientModule implements Module {
         JsonConfigProvider.bind(binder, "brfs", BrfsConfig.class);
         // http请求配置信息
         JsonConfigProvider.bind(binder, "http", HttpConfig.class);
+        JsonConfigProvider.bind(binder, "stat", StatConfigs.class);
+
     }
 
     @Provides
