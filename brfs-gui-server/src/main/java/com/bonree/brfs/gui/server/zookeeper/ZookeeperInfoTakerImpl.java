@@ -29,15 +29,15 @@ public class ZookeeperInfoTakerImpl implements ZookeeperInfoTaker {
     private final String rootNode;
 
     @Inject
-    public ZookeeperInfoTakerImpl(String addresses, String rootNode) {
+    public ZookeeperInfoTakerImpl(ZookeeperConfig config) {
         this.client = CuratorFrameworkFactory.builder()
-            .ensembleProvider(new FixedEnsembleProvider(addresses))
+            .ensembleProvider(new FixedEnsembleProvider(config.getAddresses()))
             .sessionTimeoutMs(10000)
             .retryPolicy(new BoundedExponentialBackoffRetry(BASE_SLEEP_TIME_MS, MAX_SLEEP_TIME_MS, MAX_RETRIES))
             .aclProvider(new DefaultACLProvider())
             .build();
 
-        this.rootNode = rootNode;
+        this.rootNode = config.getRoot();
     }
 
     @PostConstruct
