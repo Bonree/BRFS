@@ -85,7 +85,7 @@ public class SeqBlockManagerV2 implements BlockManager {
             if (blockValue == null) {
                 HandleResult result = new HandleResult();
                 result.setSuccess(false);
-                result.setCause(new Exception("error when append block into block,cause by long time no write"));
+                result.setCause(new Exception("error when append block into blockCache,cause by long time no write"));
                 LOG.error("can not get block value of file[{}] in blockcache", packet.getWriteID());
                 callback.completed(result);
                 return null;

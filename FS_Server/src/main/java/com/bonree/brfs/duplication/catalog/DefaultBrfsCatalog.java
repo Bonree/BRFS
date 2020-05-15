@@ -2,12 +2,12 @@ package com.bonree.brfs.duplication.catalog;
 
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
+import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.Bytes;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -101,11 +101,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         int count = 0;
         ArrayList<Inode> inodes = new ArrayList<>(pageSize);
         byte[] prefixQueryKey;
-        if (path.equals("/")) {
-            prefixQueryKey = path.getBytes(StandardCharsets.UTF_8);
-        } else {
-            prefixQueryKey = Bytes.byteMerge(path.getBytes(), "/".getBytes());
-        }
+        prefixQueryKey = Bytes.byteMerge(path.getBytes(), "/".getBytes());
         Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName, prefixQueryKey);
         if (map == null) {
             LOG.error("dir [{}] is not found.", path);
@@ -123,6 +119,9 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             }
             if (count >= (startPos + pageSize)) {
                 break;
+            }
+            if (key.equals("//")) {
+                continue;
             }
             String nodeName = getLastNodeNameWithOutSep(key);
             byte[] value = treeMap.get(key);
@@ -225,6 +224,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
     @Override
     public String getFid(String srName, String path) {
         Stopwatch started = Stopwatch.createStarted();
+        TimeWatcher watcher = new TimeWatcher();
         byte[] query = transferToKey(path);
         LOG.info("transfer the path of [{}]:[{}] cost [{}]micros ", srName, path, started.elapsed(TimeUnit.MICROSECONDS));
         started.reset().start();
@@ -235,8 +235,12 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
         }
         LOG.info("get fid of[{}]:[{}] from rocksDB cost [{}]micros", srName, path, started.elapsed(TimeUnit.MICROSECONDS));
+        started.reset().start();
+        String s = new String(value);
+        LOG.info("new String of value[{}]:[{}] from rocksDB cost [{}]micros",
+                 srName, path, started.elapsed(TimeUnit.MICROSECONDS));
         started.stop();
-        return new String(value);
+        return s;
     }
 
     private String getLastNodeName(String path) {
