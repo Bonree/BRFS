@@ -8,9 +8,7 @@ import com.bonree.brfs.common.net.tcp.ResponseWriter;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.BufferUtils;
 import com.bonree.brfs.common.utils.ByteUtils;
-import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.disknode.DiskContext;
-import com.bonree.brfs.disknode.data.read.DataFileReader;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.RecordFileWriter;
 import com.bonree.brfs.disknode.data.write.worker.WriteTask;
@@ -18,7 +16,6 @@ import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.utils.Pair;
 import com.google.common.io.Files;
-import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Longs;
 import java.io.File;
 import java.io.IOException;
@@ -81,20 +78,7 @@ public class CloseFileMessageHandler implements MessageHandler<BaseResponse> {
                 @Override
                 protected Long execute() throws Exception {
                     LOG.info("start writing file tailer for {}", filePath);
-                    binding.first().flush();
-                    byte[] fileBytes = DataFileReader.readFile(filePath, fileFormater.fileHeader().length());
-                    long crcCode = ByteUtils.crc(fileBytes);
-                    LOG.info("final crc code[{}] by bytes[{}] of file[{}]", crcCode, fileBytes.length, filePath);
-
-                    byte[] tailer = Bytes.concat(FileEncoder.validate(crcCode), FileEncoder.tail());
-
-                    binding.first().write(tailer);
-                    binding.first().flush();
-
-                    LOG.info("close over for file[{}]", filePath);
-                    writerManager.close(filePath);
-
-                    return crcCode;
+                    return writerManager.close(filePath);
                 }
 
                 @Override
