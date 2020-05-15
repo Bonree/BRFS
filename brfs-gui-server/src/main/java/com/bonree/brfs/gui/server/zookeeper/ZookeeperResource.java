@@ -17,6 +17,7 @@ package com.bonree.brfs.gui.server.zookeeper;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import java.util.List;
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -27,6 +28,7 @@ public class ZookeeperResource {
 
     private final ZookeeperInfoTaker taker;
 
+    @Inject
     public ZookeeperResource(ZookeeperInfoTaker taker) {
         this.taker = taker;
     }
