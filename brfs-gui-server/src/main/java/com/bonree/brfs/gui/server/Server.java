@@ -11,6 +11,7 @@ import com.bonree.brfs.gui.server.resource.GuiResourceMaintainer;
 import com.bonree.brfs.gui.server.resource.maintain.ResourceRequestMaintainer;
 import com.bonree.brfs.gui.server.stats.StatResource;
 import com.bonree.brfs.gui.server.stats.StatisticCollector;
+import com.bonree.brfs.gui.server.zookeeper.ZookeeperModule;
 import com.facebook.airlift.bootstrap.Bootstrap;
 import com.facebook.airlift.event.client.EventClient;
 import com.facebook.airlift.event.client.NullEventClient;
@@ -54,12 +55,12 @@ public class Server {
             new JaxrsModule(),
             new ResourceModule(),
             new CatalogModule(),
+            new ZookeeperModule(),
             binder -> {
 
                 binder.bind(EventClient.class).to(NullEventClient.class).in(Singleton.class);
                 binder.bind(NodeInfo.class).toInstance(new NodeInfo("env"));
 
-                //jaxrsBinder(binder).bind(ZookeeperResource.class);
                 jaxrsBinder(binder).bind(DashBoardResource.class);
                 //jaxrsBinder(binder).bind(SystemMonitorResource.class);
                 jaxrsBinder(binder).bind(CatalogGuiResource.class);
