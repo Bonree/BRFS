@@ -2,8 +2,8 @@ package com.bonree.brfs.rebalancev2.task;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.TaskVersion;
-import com.bonree.brfs.common.rebalance.route.NormalRoute;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
+import com.bonree.brfs.common.rebalance.route.impl.v2.NormalRouteV2;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BrStringUtils;
@@ -242,6 +242,7 @@ public class TaskDispatcherV2 implements Closeable {
                     for (String childNode : childPaths) {
                         String childPath = ZKPaths.makePath(snPath, childNode);
                         byte[] data = curatorClient.getData(childPath);
+                        LOG.info("current data:{}", new String(data));
                         DiskPartitionChangeSummary cs = JsonUtils.toObjectQuietly(data, DiskPartitionChangeSummary.class);
                         changeSummaries.add(cs);
                     }
@@ -366,8 +367,8 @@ public class TaskDispatcherV2 implements Closeable {
                             LOG.info("one normal task finish, detail:" + RebalanceUtils.convertEvent(event));
                             String normalRouteNode =
                                 ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
-                            NormalRoute route = new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(),
-                                                                bts.getInputServers(), TaskVersion.V1);
+                            NormalRouteV2 route = new NormalRouteV2(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(),
+                                                                    bts.getNewSecondIds());
                             LOG.info("add normal route: {}", route);
                             addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
                         }
@@ -427,9 +428,9 @@ public class TaskDispatcherV2 implements Closeable {
             } else if (bts.getTaskType() == RecoverType.NORMAL) {
                 LOG.info("one normal task finish, detail: {}", taskSummary);
                 String normalRouteNode = ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
-                NormalRoute route =
-                    new NormalRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers(),
-                                    TaskVersion.V1);
+
+                NormalRouteV2 route =
+                    new NormalRouteV2(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getNewSecondIds());
                 LOG.info("add normal route:" + route);
                 addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
             }
@@ -485,8 +486,9 @@ public class TaskDispatcherV2 implements Closeable {
         LOG.debug("audit snIndex:{},changeSummaries:{}", snIndex, changeSummaries);
 
         // 当前有任务在执行,则检查是否有影响该任务的change存在
-        if (runTask.get(snIndex) != null) {
-            LOG.info("this sn [{}] has running task, will check", snIndex);
+        BalanceTaskSummaryV2 runningTask = runTask.get(snIndex);
+        if (runningTask != null) {
+            LOG.info("this sn [{}] has running task, will check, tasks:{}", snIndex, runningTask);
             checkTask(snIndex, changeSummaries);
             return;
         }
@@ -582,7 +584,7 @@ public class TaskDispatcherV2 implements Closeable {
                     // 构建任务
                     BalanceTaskSummaryV2 taskSummary = taskGenerator
                         .genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangePartitionId(), cs.getChangeServer(),
-                                        aliveSecondIDs, joinerSecondIDs, normalDelay);
+                                        aliveSecondIDs, joinerSecondIDs, cs.getNewSecondIds(), normalDelay);
                     // 发布任务
                     dispatchTask(taskSummary);
                     // 加入正在执行的任务的缓存中
@@ -695,7 +697,7 @@ public class TaskDispatcherV2 implements Closeable {
                             BalanceTaskSummaryV2 taskSummary = taskGenerator
                                 .genVirtualTask(changeID, storageIndex, changeSummary.getChangePartitionId(), virtualID,
                                                 Lists.newArrayList(selectSecondID), (List<String>) secondParticipators,
-                                                virtualDelay);
+                                                changeSummary.getNewSecondIds(), virtualDelay);
                             // 只在任务节点上创建任务，taskOperator会监听，去执行任务
 
                             dispatchTask(taskSummary);
@@ -767,6 +769,7 @@ public class TaskDispatcherV2 implements Closeable {
             }
         }
 
+        LOG.info("check change summaries:{}", changeSummaries);
         // 查找影响当前任务的变更
         if (changeSummaries.size() > 1) {
             String changeID = currentTask.getChangeID();

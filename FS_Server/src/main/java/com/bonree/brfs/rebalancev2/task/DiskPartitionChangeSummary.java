@@ -4,6 +4,7 @@ import com.bonree.brfs.rebalance.task.ChangeType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import java.util.List;
+import java.util.Map;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -36,6 +37,9 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
     @JsonProperty("currentPartitionIds")
     private List<String> currentPartitionIds;
 
+    @JsonProperty("newSecondIds")
+    private Map<String, Integer> newSecondIds;
+
     public String getChangeID() {
         return changeID;
     }
@@ -64,13 +68,18 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         return currentPartitionIds;
     }
 
+    public Map<String, Integer> getNewSecondIds() {
+        return newSecondIds;
+    }
+
     @SuppressWarnings("unused")
     private DiskPartitionChangeSummary() {
 
     }
 
     public DiskPartitionChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer,
-                                      String changePartitionId, List<String> currentServers, List<String> currentPartitionIds) {
+                                      String changePartitionId, List<String> currentServers, List<String> currentPartitionIds,
+                                      Map<String, Integer> newSecondIds) {
         this.storageIndex = storageIndex;
         this.changeID = createTime;
         this.changeType = changeType;
@@ -78,6 +87,7 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         this.changePartitionId = changePartitionId;
         this.currentServers = currentServers;
         this.currentPartitionIds = currentPartitionIds;
+        this.newSecondIds = newSecondIds;
     }
 
     @Override
@@ -116,6 +126,7 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
                           .add("changePartitionId", changePartitionId)
                           .add("currentServers", currentServers)
                           .add("currentPartitionIds", currentPartitionIds)
+                          .add("newSecondIds", newSecondIds)
                           .toString();
     }
 }

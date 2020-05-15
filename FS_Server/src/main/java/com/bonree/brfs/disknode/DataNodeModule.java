@@ -63,6 +63,7 @@ import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
+import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalancev2.RebalanceManagerV2;
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -195,13 +196,16 @@ public class DataNodeModule implements Module {
         ServiceManager serviceManager,
         LocalPartitionInterface localPartitionInterface,
         DiskPartitionInfoManager diskPartitionInfoManager,
+        RouteLoader routeLoader,
         Lifecycle lifecycle) {
-        RebalanceManagerV2 rebalanceManagerV2 = new RebalanceManagerV2(zkPaths,
-                                                                       idsManager,
-                                                                       storageRegionManager,
-                                                                       serviceManager,
-                                                                       localPartitionInterface,
-                                                                       diskPartitionInfoManager);
+        RebalanceManagerV2 rebalanceManagerV2 =
+            new RebalanceManagerV2(zkPaths,
+                                   idsManager,
+                                   storageRegionManager,
+                                   serviceManager,
+                                   localPartitionInterface,
+                                   diskPartitionInfoManager,
+                                   routeLoader);
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
             @Override
             public void start() throws Exception {
