@@ -58,7 +58,7 @@ public class CatalogResource {
             LOG.error("invalid file path [{}]", absPath);
             throw new BadRequestException("invalid file path:" + absPath);
         }
-        LOG.info("check for absPath[{}] cost [{}]", absPath, started.elapsed(TimeUnit.MICROSECONDS));
+        LOG.info("check for absPath[{}] cost [{}] microSeconds", absPath, started.elapsed(TimeUnit.MICROSECONDS));
         started.reset().start();
         String fid = null;
         try {
@@ -72,7 +72,7 @@ public class CatalogResource {
             LOG.error("get null from rocksDB");
             throw new ServiceUnavailableException("get null when get fid from catalog!");
         }
-        LOG.info("catalogresource get fid cost[{}]", started.elapsed(TimeUnit.MICROSECONDS));
+        LOG.info("catalogresource get fid cost[{}] microSeconds", started.elapsed(TimeUnit.MICROSECONDS));
         started.stop();
         return fid;
     }

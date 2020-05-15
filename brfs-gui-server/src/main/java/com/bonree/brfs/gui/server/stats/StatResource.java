@@ -33,10 +33,10 @@ public class StatResource {
     }
 
     @GET
-    @Path("hello")
+    @Path("/")
     @Produces(APPLICATION_JSON)
-    public String hello() {
-        return "sss";
+    public List<BusinessStats> getAll(@QueryParam("minutes") int minutes) {
+        return statReportor.getCount("", minutes);
     }
 
 }
