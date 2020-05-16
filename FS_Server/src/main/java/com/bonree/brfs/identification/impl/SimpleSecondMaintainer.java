@@ -406,7 +406,7 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
             future.cancel(true);
         }
         if (pool != null) {
-            pool.shutdownNow();
+            pool.shutdown();
         }
     }
 

@@ -13,7 +13,9 @@ import com.bonree.brfs.configuration.units.PartitionIdsConfigs;
 import com.bonree.brfs.disknode.PartitionConfig;
 import com.bonree.brfs.partition.model.PartitionInfo;
 import com.bonree.brfs.resource.vo.ClusterStorageInfo;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -21,8 +23,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
@@ -41,7 +48,7 @@ import org.slf4j.LoggerFactory;
 public class DiskPartitionInfoManager implements LifeCycle {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiskPartitionInfoManager.class);
-
+    private ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("DiskPartitionInfoManager").build();
     private PathChildrenCache cache;
     private ZookeeperPaths zkPath;
     private DiskPartitionInfoListener listener;
@@ -59,8 +66,9 @@ public class DiskPartitionInfoManager implements LifeCycle {
     @LifecycleStart
     @Override
     public void start() throws Exception {
+
         try {
-            this.cache = new PathChildrenCache(client, path, true);
+            this.cache = new PathChildrenCache(client, path, true, this.factory);
             this.cache.start();
             this.listener = new DiskPartitionInfoListener();
             this.cache.getListenable().addListener(this.listener);
@@ -73,6 +81,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
     @LifecycleStop
     @Override
     public void stop() throws Exception {
+        this.cache.getListenable().removeListener(this.listener);
         this.cache.close();
         LOG.info("disk partition info manager stop. ");
     }

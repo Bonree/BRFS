@@ -360,6 +360,10 @@ public class DataResource {
                 }
 
                 fileNames[index] = data.getFileName();
+            } else if (pathOn) {
+                throw new WebApplicationException(
+                    "file path " + fileName + "is invalid",
+                    HttpStatus.CODE_NOT_AVAILABLE_FILENAME);
             }
 
             items[index] = new DataItem(data.getData().toByteArray());

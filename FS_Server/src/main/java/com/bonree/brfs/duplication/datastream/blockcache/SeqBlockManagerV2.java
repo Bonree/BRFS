@@ -42,6 +42,8 @@ public class SeqBlockManagerV2 implements BlockManager {
     private AtomicInteger fileWritingCount = new AtomicInteger(0);
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
+    // 避免信号丢失的问题
+    private volatile boolean wasSignalled = false;
 
     private ConcurrentHashMap<BlockKey, BlockValue> blockcache = new ConcurrentHashMap<>();
 
@@ -234,15 +236,19 @@ public class SeqBlockManagerV2 implements BlockManager {
 
         public void releaseData() {
             LOG.debug("prepare decrement fileWritingCount , now its size is [{}]", fileWritingCount.get());
-            LOCK.lock();
-            LOG.debug("decrementing: get the lock");
-            data.reset();
-            blockPool.putbackBlocks(data);
-            fileWritingCount.decrementAndGet();
-            LOG.info("decrement fileWritingCount , now its size is [{}]", fileWritingCount.get());
-            allowWrite.signal();
-            data = null;
-            LOCK.unlock();
+            try {
+                LOCK.lock();
+                LOG.debug("decrementing: get the lock");
+                data.reset();
+                blockPool.putbackBlocks(data);
+                fileWritingCount.decrementAndGet();
+                LOG.info("decrement fileWritingCount , now its size is [{}]", fileWritingCount.get());
+                wasSignalled = true;
+                allowWrite.signal();
+                data = null;
+            } finally {
+                LOCK.unlock();
+            }
         }
 
         public void addFid(String fid) {
@@ -458,7 +464,9 @@ public class SeqBlockManagerV2 implements BlockManager {
                     LOG.debug("loop for writing: get a element");
                     while (fileWritingCount.get() >= blockPoolSize) {
                         LOG.info("loop for writing : wait until allow to write");
-                        allowWrite.await();
+                        if (!wasSignalled) {
+                            allowWrite.await();
+                        }
                     }
                     LOG.info("Processor : the waiting request size is [{}]", fileWaiting.size());
                     if (unhandledRequest.ifRequestIsTimeOut()) {
@@ -484,9 +492,11 @@ public class SeqBlockManagerV2 implements BlockManager {
                     LOG.error("data consumer interrupted.");
                 } catch (Exception e) {
                     LOG.error("process data error", e);
+                } finally {
+                    wasSignalled = false;
+                    LOCK.unlock();
                 }
 
-                LOCK.unlock();
             }
 
             LOG.info("Write file worker is shut down!");

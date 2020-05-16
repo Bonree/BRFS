@@ -73,4 +73,15 @@ public class TaskModel {
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("TaskModel{");
+        sb.append("taskType=").append(taskType);
+        sb.append(", taskState=").append(taskState);
+        sb.append(", createTime='").append(createTime).append('\'');
+        sb.append(", atomList=").append(atomList);
+        sb.append('}');
+        return sb.toString();
+    }
 }
