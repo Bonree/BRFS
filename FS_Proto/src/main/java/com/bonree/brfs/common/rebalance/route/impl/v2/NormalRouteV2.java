@@ -2,11 +2,14 @@ package com.bonree.brfs.common.rebalance.route.impl.v2;
 
 import com.bonree.brfs.common.rebalance.TaskVersion;
 import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
+import java.util.function.BiConsumer;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -16,16 +19,42 @@ import java.util.Map;
  * @Author: <a href=mailto:zhucg@bonree.com>朱成岗</a>
  * @Description: 2级serverID的迁移记录
  ******************************************************************************/
+@JsonIgnoreProperties("routes")
 public class NormalRouteV2 extends SuperNormalRoute {
     private static final TaskVersion CURRENT_VERSION = TaskVersion.V2;
     private Map<String, Integer> newSecondIDs;
+    @JsonProperty("secondFirstShip")
+    private Map<String, String> secondToFirstShip;
+    @JsonIgnoreProperties
+    private Map<String, Collection<String>> firstSecondsSetShip = null;
 
     public NormalRouteV2(@JsonProperty("changeID") String changeID,
                          @JsonProperty("storageIndex") int storageIndex,
                          @JsonProperty("secondID") String secondID,
-                         @JsonProperty("newSecondIDs") Map<String, Integer> newSecondIDs) {
+                         @JsonProperty("newSecondIDs") Map<String, Integer> newSecondIDs,
+                         @JsonProperty("secondFirstShip") Map<String, String> secondToFirstShip) {
         super(changeID, storageIndex, secondID, CURRENT_VERSION);
         this.newSecondIDs = newSecondIDs;
+        this.secondToFirstShip = secondToFirstShip;
+        convertToShip(this.secondToFirstShip);
+    }
+
+    private void convertToShip(Map<String, String> map) {
+        if (map == null || map.isEmpty()) {
+            return;
+        }
+        Map<String, Collection<String>> cache = new HashMap<>();
+        map.forEach(
+            (key, value) -> {
+                if (key == null || value == null) {
+                    return;
+                }
+                if (cache.get(value) == null) {
+                    cache.put(value, new HashSet<>());
+                }
+                cache.get(value).add(key);
+            });
+        this.firstSecondsSetShip = cache;
     }
 
     public Map<String, Integer> getNewSecondIDs() {
@@ -61,6 +90,7 @@ public class NormalRouteV2 extends SuperNormalRoute {
      *
      * @param chosenServices
      * @param weightValue
+     *
      * @return
      */
     private int searchIndex(List<String> chosenServices, int weightValue) {
@@ -77,7 +107,7 @@ public class NormalRouteV2 extends SuperNormalRoute {
             }
             sum += this.newSecondIDs.get(server);
             lastVaild = index;
-            if (weightValue <= sum) {
+            if (weightValue < sum) {
                 break;
             }
         }
@@ -88,16 +118,33 @@ public class NormalRouteV2 extends SuperNormalRoute {
      * 过滤
      *
      * @param services
+     *
      * @return
      */
     private List<String> filterService(Collection<String> services) {
-        return filterService(this.newSecondIDs.keySet(), services);
+        Collection<String> cahce = new HashSet<>();
+        if (services != null) {
+            cahce.addAll(services);
+            services.forEach(x -> {
+                String first = this.secondToFirstShip.get(x);
+                if (first == null) {
+                    return;
+                }
+                Collection<String> tmp = this.firstSecondsSetShip.get(first);
+                if (tmp == null) {
+                    return;
+                }
+                cahce.addAll(tmp);
+            });
+        }
+        return filterService(this.newSecondIDs.keySet(), cahce);
     }
 
     /**
      * 计算权值
      *
      * @param services
+     *
      * @return
      */
     private int calcWeight(Collection<String> services) {
@@ -120,12 +167,15 @@ public class NormalRouteV2 extends SuperNormalRoute {
 
     @Override
     public String toString() {
-        return "NormalRouteV2{"
-            + "newSecondIDs=" + newSecondIDs
-            + ", changeID='" + changeID + '\''
-            + ", storageIndex=" + storageIndex
-            + ", secondID='" + secondID + '\''
-            + ", version=" + version
-            + '}';
+        final StringBuilder sb = new StringBuilder("NormalRouteV2{");
+        sb.append("newSecondIDs=").append(newSecondIDs);
+        sb.append(", secondToFirstShip=").append(secondToFirstShip);
+        sb.append(", firstSecondsSetShip=").append(firstSecondsSetShip);
+        sb.append(", changeID='").append(changeID).append('\'');
+        sb.append(", storageIndex=").append(storageIndex);
+        sb.append(", secondID='").append(secondID).append('\'');
+        sb.append(", version=").append(version);
+        sb.append('}');
+        return sb.toString();
     }
 }
