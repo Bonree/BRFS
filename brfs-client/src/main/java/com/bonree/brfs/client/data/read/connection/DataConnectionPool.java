@@ -54,25 +54,24 @@ public class DataConnectionPool implements Closeable {
     }
 
     public <T> DataRequestCall<T> newRequest(URI uri, DataRequestHandler<T> call) throws Exception {
-        DataConnection connection = null;
-        try {
-            connection = connections.borrowObject(uri);
+        final DataConnection connection = connections.borrowObject(uri);
 
-            final DataConnection param = connection;
-            return () -> call.handle(param);
-        } catch (Exception e) {
-            if (connection != null) {
-                connections.invalidateObject(uri, connection);
-                connection = null;
+        return () -> {
+            DataConnection param = null;
+            try {
+                param = connection;
+                return call.handle(param);
+            } catch (Exception e) {
+                connections.invalidateObject(uri, param);
+                param = null;
+                throw e;
+            } finally {
+                // make sure the object is returned to the pool
+                if (null != param) {
+                    connections.returnObject(uri, param);
+                }
             }
-
-            throw e;
-        } finally {
-            // make sure the object is returned to the pool
-            if (null != connection) {
-                connections.returnObject(uri, connection);
-            }
-        }
+        };
     }
 
     private static class UriConnectionFactory implements KeyedPooledObjectFactory<URI, DataConnection> {

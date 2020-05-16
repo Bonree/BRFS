@@ -9,6 +9,7 @@ import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.write.data.FileDecoder;
+import com.bonree.brfs.common.write.data.FileEncoder;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.disknode.data.read.DataFileReader;
@@ -21,9 +22,13 @@ import com.bonree.brfs.disknode.data.write.worker.WriteTask;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorker;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorkerGroup;
 import com.bonree.brfs.disknode.data.write.worker.WriteWorkerSelector;
+import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.utils.BRFSRdFileFilter;
 import com.bonree.brfs.disknode.utils.Pair;
+import com.bonree.brfs.duplication.filenode.FileNode;
+import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.google.common.base.Splitter;
+import com.google.common.primitives.Bytes;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,35 +43,54 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FileWriterManager implements LifeCycle {
-    private static final Logger LOG = LoggerFactory.getLogger(FileWriterManager.class);
+    private static final Logger log = LoggerFactory.getLogger(FileWriterManager.class);
 
     // 默认的写Worker线程数量
-    private WriteWorkerGroup workerGroup;
-    private WriteWorkerSelector workerSelector;
-    private RecordCollectionManager recorderManager;
+    private final WriteWorkerGroup workerGroup;
+    private final WriteWorkerSelector workerSelector;
+    private final RecordCollectionManager recorderManager;
+    private final FileNodeStorer fileNodeStorer;
 
     private static int recordCacheSize = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_WRITER_RECORD_CACHE_SIZE);
     private static int dataCacheSize = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_WRITER_DATA_CACHE_SIZE);
 
-    private ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>> runningWriters =
-        new ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>>();
+    private final ConcurrentHashMap<String, Pair<RecordFileWriter, WriteWorker>> runningWriters = new ConcurrentHashMap<>();
 
-    Duration fileIdleDuration = Duration.parse(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_FILE_IDLE_TIME));
-    private WheelTimer<String> timeoutWheel = new WheelTimer<String>((int) fileIdleDuration.getSeconds());
+    private final Duration fileIdleDuration = Duration.parse(
+        Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_FILE_IDLE_TIME));
+    private final WheelTimer<String> timeoutWheel = new WheelTimer<String>((int) fileIdleDuration.getSeconds());
 
-    public FileWriterManager(RecordCollectionManager recorderManager) {
-        this(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM), recorderManager);
+    private final FileFormater fileFormater;
+
+    public FileWriterManager(RecordCollectionManager recorderManager,
+                             FileNodeStorer fileNodeStorer,
+                             FileFormater fileFormater) {
+        this(Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_WRITER_WORKER_NUM),
+             recorderManager,
+             fileNodeStorer,
+             fileFormater);
     }
 
-    public FileWriterManager(int workerNum, RecordCollectionManager recorderManager) {
-        this(workerNum, new RandomWriteWorkerSelector(), recorderManager);
+    public FileWriterManager(int workerNum,
+                             RecordCollectionManager recorderManager,
+                             FileNodeStorer fileNodeStorer,
+                             FileFormater fileFormater) {
+        this(workerNum,
+             new RandomWriteWorkerSelector(),
+             recorderManager,
+             fileNodeStorer,
+             fileFormater);
     }
 
     public FileWriterManager(int workerNum, WriteWorkerSelector selector,
-                             RecordCollectionManager recorderManager) {
+                             RecordCollectionManager recorderManager,
+                             FileNodeStorer fileNodeStorer,
+                             FileFormater fileFormater) {
         this.workerGroup = new WriteWorkerGroup(workerNum);
         this.workerSelector = selector;
         this.recorderManager = recorderManager;
+        this.fileNodeStorer = fileNodeStorer;
+        this.fileFormater = fileFormater;
     }
 
     @Override
@@ -77,12 +101,12 @@ public class FileWriterManager implements LifeCycle {
 
             @Override
             public void timeout(String filePath) {
-                LOG.info("Time to flush file[{}]", filePath);
+                log.info("Time to flush file[{}]", filePath);
 
                 try {
                     flushFile(filePath);
                 } catch (FileNotFoundException e) {
-                    LOG.error("flush file[{}] error", filePath, e);
+                    log.error("flush file[{}] error", filePath, e);
                 }
             }
         });
@@ -103,7 +127,7 @@ public class FileWriterManager implements LifeCycle {
 
             @Override
             protected Void execute() throws Exception {
-                LOG.info("execute flush for file[{}] BEGIN", binding.first().getPath());
+                log.info("execute flush for file[{}] BEGIN", binding.first().getPath());
                 if (runningWriters.containsKey(path)) {
                     binding.first().flush();
                 }
@@ -113,12 +137,12 @@ public class FileWriterManager implements LifeCycle {
 
             @Override
             protected void onPostExecute(Void result) {
-                LOG.info("execute flush for file[{}] OVER", binding.first().getPath());
+                log.info("execute flush for file[{}] OVER", binding.first().getPath());
             }
 
             @Override
             protected void onFailed(Throwable e) {
-                LOG.error("flush error {}", path, e);
+                log.error("flush error {}", path, e);
             }
         });
     }
@@ -142,15 +166,21 @@ public class FileWriterManager implements LifeCycle {
             rdFile = new File(new StringBuilder().append(dataDirPath).append(FileUtils.FILE_SEPARATOR).append(path).toString());
             dataFile = RecordFileBuilder.reverse(rdFile);
             if (!dataFile.exists()) {
-                LOG.error("no data file is attached to a existed rd file[{}]!", rdFile.getAbsolutePath());
+                log.error("no data file is attached to a existed rd file[{}]!", rdFile.getAbsolutePath());
                 rdFile.delete();
                 continue;
             }
 
             try {
                 rebuildFileWriter(dataFile);
+
+                FileNode fileNode = fileNodeStorer.getFileNode(dataFile.getName());
+                if (fileNode == null) {
+                    log.info("file node of [{}] has been removed, close it", dataFile.getAbsolutePath());
+                    close(dataFile.getAbsolutePath());
+                }
             } catch (Throwable e) {
-                LOG.error("rebuild file[{}] error!", dataFile.getAbsolutePath(), e);
+                log.error("rebuild file[{}] error!", dataFile.getAbsolutePath(), e);
             }
         }
 
@@ -162,7 +192,7 @@ public class FileWriterManager implements LifeCycle {
             try {
                 entry.getValue().first().flush();
             } catch (IOException e) {
-                LOG.error("stop to flush file[{}] error", entry.getKey(), e);
+                log.error("stop to flush file[{}] error", entry.getKey(), e);
             }
         }
         workerGroup.stop();
@@ -183,7 +213,7 @@ public class FileWriterManager implements LifeCycle {
     }
 
     public void rebuildFileWriter(File dataFile) throws IOException {
-        LOG.info("rebuilding writer for file[{}]", dataFile.getAbsolutePath());
+        log.info("rebuilding writer for file[{}]", dataFile.getAbsolutePath());
         RecordFileWriter writer = new RecordFileWriter(
             recorderManager.getRecordCollection(dataFile, true, recordCacheSize, true),
             new BufferedFileWriter(dataFile, true, new ByteArrayFileBuffer(dataCacheSize)));
@@ -217,7 +247,7 @@ public class FileWriterManager implements LifeCycle {
 
                         runningWriters.put(filePath, binding);
                     } catch (Exception e) {
-                        LOG.error("build disk writer error", e);
+                        log.error("build disk writer error", e);
                     }
                 }
             }
@@ -230,7 +260,7 @@ public class FileWriterManager implements LifeCycle {
     private List<RecordElement> validElements(String filepath, List<RecordElement> originElements) {
         byte[] bytes = DataFileReader.readFile(filepath, 0);
         List<String> offsets = FileDecoder.getDataFileOffsets(bytes);
-        LOG.info("adjust get [{}] records from data file of [{}]", offsets.size(), filepath);
+        log.info("adjust get [{}] records from data file of [{}]", offsets.size(), filepath);
 
         List<RecordElement> validElmentList = new ArrayList<RecordElement>();
         RecordElement element = originElements.get(0);
@@ -255,17 +285,17 @@ public class FileWriterManager implements LifeCycle {
             element = originElements.get(index + 1);
 
             if (element.getOffset() != offset) {
-                LOG.warn("excepted offset[{}], but get offset[{}] for file[{}]", offset, element.getOffset(), filepath);
+                log.warn("excepted offset[{}], but get offset[{}] for file[{}]", offset, element.getOffset(), filepath);
                 break;
             }
 
             if (element.getSize() != size) {
-                LOG.warn("excepted size[{}], but get size[{}] for file[{}]", size, element.getSize(), filepath);
+                log.warn("excepted size[{}], but get size[{}] for file[{}]", size, element.getSize(), filepath);
                 break;
             }
 
             if (element.getCrc() != crc) {
-                LOG.warn("excepted crc[{}], but get crc[{}] for file[{}]", crc, element.getCrc(), filepath);
+                log.warn("excepted crc[{}], but get crc[{}] for file[{}]", crc, element.getCrc(), filepath);
                 break;
             }
 
@@ -282,28 +312,28 @@ public class FileWriterManager implements LifeCycle {
         }
 
         List<RecordElement> originElements = binding.first().getRecordCollection().getRecordElementList();
-        LOG.info("adjust get [{}] records from record collection of [{}]", originElements.size(), filePath);
+        log.info("adjust get [{}] records from record collection of [{}]", originElements.size(), filePath);
         if (originElements.isEmpty()) {
             //没有数据写入成功，不需要任何协调
             return;
         }
 
         List<RecordElement> elements = validElements(filePath, originElements);
-        LOG.info("adjust file get elements size[{}] for file[{}]", elements.size(), filePath);
+        log.info("adjust file get elements size[{}] for file[{}]", elements.size(), filePath);
         RecordElement lastElement = elements.get(elements.size() - 1);
         long validPosition = lastElement.getOffset() + lastElement.getSize();
-        LOG.debug("last element : {}", lastElement);
+        log.debug("last element : {}", lastElement);
 
         boolean needFlush = false;
         if (validPosition != binding.first().position()) {
-            LOG.info("rewrite file content of file[{}] from[{}] to [{}]", filePath, binding.first().position(), validPosition);
+            log.info("rewrite file content of file[{}] from[{}] to [{}]", filePath, binding.first().position(), validPosition);
             //数据文件的内容和日志信息不一致，需要调整数据文件
             binding.first().position(validPosition);
             needFlush = true;
         }
 
         if (elements.size() != originElements.size()) {
-            LOG.info("rewrite file records of file[{}]", filePath);
+            log.info("rewrite file records of file[{}]", filePath);
             binding.first().getRecordCollection().clear();
             for (RecordElement element : elements) {
                 binding.first().getRecordCollection().put(element);
@@ -316,13 +346,23 @@ public class FileWriterManager implements LifeCycle {
         }
     }
 
-    public void close(String path) {
-        Pair<RecordFileWriter, WriteWorker> binding = runningWriters.remove(path);
+    public long close(String filePath) throws IOException {
+        Pair<RecordFileWriter, WriteWorker> binding = runningWriters.remove(filePath);
         if (binding == null) {
-            return;
+            return -1;
         }
 
-        timeoutWheel.remove(path);
+        binding.first().flush();
+        byte[] fileBytes = DataFileReader.readFile(filePath, fileFormater.fileHeader().length());
+        long crcCode = ByteUtils.crc(fileBytes);
+        log.info("final crc code[{}] by bytes[{}] of file[{}]", crcCode, fileBytes.length, filePath);
+
+        binding.first().write(Bytes.concat(FileEncoder.validate(crcCode), FileEncoder.tail()));
+        binding.first().flush();
+
+        timeoutWheel.remove(filePath);
         CloseUtils.closeQuietly(binding.first());
+
+        return crcCode;
     }
 }
