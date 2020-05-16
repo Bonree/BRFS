@@ -2,7 +2,6 @@ package com.bonree.brfs.duplication.catalog;
 
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
-import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.Bytes;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
@@ -223,23 +222,14 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
 
     @Override
     public String getFid(String srName, String path) {
-        Stopwatch started = Stopwatch.createStarted();
-        TimeWatcher watcher = new TimeWatcher();
         byte[] query = transferToKey(path);
-        LOG.info("transfer the path of [{}]:[{}] cost [{}]micros ", srName, path, started.elapsed(TimeUnit.MICROSECONDS));
-        started.reset().start();
         byte[] value = rocksDBManager.read(srName, query);
         if (null == value) {
             String resp = "the path[" + path + "] is not store correctly";
             LOG.error(resp);
             throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
         }
-        LOG.info("get fid of[{}]:[{}] from rocksDB cost [{}]micros", srName, path, started.elapsed(TimeUnit.MICROSECONDS));
-        started.reset().start();
         String s = new String(value);
-        LOG.info("new String of value[{}]:[{}] from rocksDB cost [{}]micros",
-                 srName, path, started.elapsed(TimeUnit.MICROSECONDS));
-        started.stop();
         return s;
     }
 

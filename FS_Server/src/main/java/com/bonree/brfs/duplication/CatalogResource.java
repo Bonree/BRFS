@@ -16,11 +16,8 @@ package com.bonree.brfs.duplication;
 
 import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.duplication.catalog.Inode;
-import com.google.common.base.Stopwatch;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -46,7 +43,6 @@ public class CatalogResource {
     public String getFid(
         @PathParam("srName") String srName,
         @QueryParam("absPath") String absPath) {
-        Stopwatch started = Stopwatch.createStarted();
         LOG.debug("get fid request srName[{}],absPath[{}]", srName, absPath);
 
         if (!catalog.isUsable()) {
@@ -54,12 +50,10 @@ public class CatalogResource {
             throw new ServiceUnavailableException("get fid error caused by the catalog is not open");
         }
 
-        if (!catalog.validPath(absPath)) {
-            LOG.error("invalid file path [{}]", absPath);
-            throw new BadRequestException("invalid file path:" + absPath);
-        }
-        LOG.info("check for absPath[{}] cost [{}] microSeconds", absPath, started.elapsed(TimeUnit.MICROSECONDS));
-        started.reset().start();
+        //if (!catalog.validPath(absPath)) {
+        //    LOG.error("invalid file path [{}]", absPath);
+        //    throw new BadRequestException("invalid file path:" + absPath);
+        //}
         String fid = null;
         try {
             fid = catalog.getFid(srName, absPath);
@@ -72,8 +66,6 @@ public class CatalogResource {
             LOG.error("get null from rocksDB");
             throw new ServiceUnavailableException("get null when get fid from catalog!");
         }
-        LOG.info("catalogresource get fid cost[{}] microSeconds", started.elapsed(TimeUnit.MICROSECONDS));
-        started.stop();
         return fid;
     }
 
