@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,26 +106,28 @@ public class TaskOpertionManager implements LifeCycle {
             return swtichMap;
         }
         String typeName;
-        String currentTask;
+        String queueCurrentTask;
         for (TaskType taskType : swtichList) {
             typeName = taskType.name();
-            currentTask = release.getLastSuccessTaskIndex(typeName, serverId);
-            if (BrStringUtils.isEmpty(currentTask)) {
-                currentTask = release.getFirstServerTask(typeName, serverId);
+            // 检查历史队列，若历史队列的数据存在未执行的则将任务移动到执行 若存在多个服务执行，覆盖
+            release.recoveryTask(typeName, serverId);
+            queueCurrentTask = release.getLastSuccessTaskIndex(typeName, serverId);
+            if (BrStringUtils.isEmpty(queueCurrentTask)) {
+                queueCurrentTask = release.getFirstServerTask(typeName, serverId);
             }
-            if (BrStringUtils.isEmpty(currentTask)) {
-                currentTask = release.getFirstTaskName(typeName);
+            if (BrStringUtils.isEmpty(queueCurrentTask)) {
+                queueCurrentTask = release.getFirstTaskName(typeName);
             }
-            if (BrStringUtils.isEmpty(currentTask)) {
-                LOG.info("{} task queue is empty", currentTask);
+            if (BrStringUtils.isEmpty(queueCurrentTask)) {
+                LOG.info("{} task queue is empty", queueCurrentTask);
                 continue;
             }
             // 修复任务
-            recoveryTask(release, typeName, currentTask, serverId);
-            if (BrStringUtils.isEmpty(currentTask)) {
+            recoveryTask(release, typeName, queueCurrentTask, serverId);
+            if (BrStringUtils.isEmpty(queueCurrentTask)) {
                 continue;
             }
-            swtichMap.put(typeName, currentTask);
+            swtichMap.put(typeName, queueCurrentTask);
         }
         return swtichMap;
     }

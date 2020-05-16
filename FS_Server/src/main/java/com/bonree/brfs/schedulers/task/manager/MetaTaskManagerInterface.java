@@ -109,26 +109,6 @@ public interface MetaTaskManagerInterface {
      */
     String getLastSuccessTaskIndex(String taskType, String serverId);
 
-    /***
-     * 概述：删除指定类型的任务
-     * @param taskName
-     * @param taskType
-     * @return
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    boolean deleteTask(String taskName, String taskType);
-
-    /**
-     * 概述：删除指定类型 指定日期以前的任务信息
-     *
-     * @param deleteTime
-     * @param taskType
-     *
-     * @return
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    int deleteTasks(long deleteTime, String taskType);
 
     /**
      * 概述：判断是否初始化
@@ -252,4 +232,10 @@ public interface MetaTaskManagerInterface {
     boolean deleteTransferTask(String taskType, String taskName);
 
     boolean setTransferTask(String taskType, String taskName);
+
+    /**
+     * 将需要执行的历史任务移动到正在执行目录
+     * @param taskType
+     */
+    void recoveryTask(String taskType, String serverId);
 }
