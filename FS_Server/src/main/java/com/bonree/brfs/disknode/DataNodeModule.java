@@ -51,6 +51,8 @@ import com.bonree.brfs.disknode.server.tcp.handler.MetadataFetchMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.OpenFileMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.PingPongMessageHandler;
 import com.bonree.brfs.disknode.server.tcp.handler.WriteFileMessageHandler;
+import com.bonree.brfs.duplication.filenode.FileNodeStorer;
+import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.StorageRegionStateListener;
@@ -87,6 +89,8 @@ public class DataNodeModule implements Module {
         binder.bind(FileFormater.class).to(SimpleFileFormater.class).in(Scopes.SINGLETON);
 
         binder.bind(ServiceManager.class).to(DefaultServiceManager.class).in(Scopes.SINGLETON);
+
+        binder.bind(FileNodeStorer.class).to(ZkFileNodeStorer.class).in(Scopes.SINGLETON);
 
         binder.requestStaticInjection(CuratorCacheFactory.class);
 
@@ -220,8 +224,13 @@ public class DataNodeModule implements Module {
 
     @Provides
     @Singleton
-    public FileWriterManager getFileWriterManager(DiskContext diskContext, Lifecycle lifecycle) {
-        FileWriterManager writerManager = new FileWriterManager(new RecordCollectionManager());
+    public FileWriterManager getFileWriterManager(DiskContext diskContext,
+                                                  FileNodeStorer fileNodeStorer,
+                                                  FileFormater fileFormater,
+                                                  Lifecycle lifecycle) {
+        FileWriterManager writerManager = new FileWriterManager(new RecordCollectionManager(),
+                                                                fileNodeStorer,
+                                                                fileFormater);
 
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
 

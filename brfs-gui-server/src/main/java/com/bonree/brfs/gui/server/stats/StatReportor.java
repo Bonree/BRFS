@@ -105,7 +105,7 @@ public class StatReportor {
         String sr = s[1];
         String count = s[2];
         Instant instant = parseFromMinute(moment);
-        if (instant.compareTo(importantMoment.get()) >= 0 && sr.equals(srName)) {
+        if (instant.compareTo(importantMoment.get()) >= 0 && (srName.equals("") || sr.equals(srName))) {
             Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>> srMap = result.get();
             if (srMap == null) {
                 srMap = new ConcurrentHashMap<>();

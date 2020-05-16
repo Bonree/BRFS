@@ -10,6 +10,7 @@ import com.bonree.brfs.disknode.DiskContext;
 import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.server.tcp.handler.data.DeleteFileMessage;
 import java.io.File;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 import org.slf4j.Logger;
@@ -63,7 +64,7 @@ public class DeleteFileMessageHandler implements MessageHandler<BaseResponse> {
         }
     }
 
-    private void closeFile(File file, boolean forceClose) throws IllegalStateException {
+    private void closeFile(File file, boolean forceClose) throws IllegalStateException, IOException {
         LOG.info("DISK Deleting file[{}]", file.getAbsolutePath());
 
         if (writerManager.getBinding(file.getAbsolutePath(), false) == null) {
@@ -79,7 +80,7 @@ public class DeleteFileMessageHandler implements MessageHandler<BaseResponse> {
         file.delete();
     }
 
-    private void closeDir(File dir, boolean recursive, boolean forceClose) {
+    private void closeDir(File dir, boolean recursive, boolean forceClose) throws IOException {
         Queue<File> fileQueue = new LinkedList<File>();
         LinkedList<File> deletingDirs = new LinkedList<File>();
         fileQueue.add(dir);

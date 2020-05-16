@@ -7,7 +7,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -101,11 +100,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         int count = 0;
         ArrayList<Inode> inodes = new ArrayList<>(pageSize);
         byte[] prefixQueryKey;
-        if (path.equals("/")) {
-            prefixQueryKey = path.getBytes(StandardCharsets.UTF_8);
-        } else {
-            prefixQueryKey = Bytes.byteMerge(path.getBytes(), "/".getBytes());
-        }
+        prefixQueryKey = Bytes.byteMerge(path.getBytes(), "/".getBytes());
         Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName, prefixQueryKey);
         if (map == null) {
             LOG.error("dir [{}] is not found.", path);
@@ -123,6 +118,9 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             }
             if (count >= (startPos + pageSize)) {
                 break;
+            }
+            if (key.equals("//")) {
+                continue;
             }
             String nodeName = getLastNodeNameWithOutSep(key);
             byte[] value = treeMap.get(key);
@@ -224,19 +222,15 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
 
     @Override
     public String getFid(String srName, String path) {
-        Stopwatch started = Stopwatch.createStarted();
         byte[] query = transferToKey(path);
-        LOG.info("transfer the path of [{}]:[{}] cost [{}]micros ", srName, path, started.elapsed(TimeUnit.MICROSECONDS));
-        started.reset().start();
         byte[] value = rocksDBManager.read(srName, query);
         if (null == value) {
             String resp = "the path[" + path + "] is not store correctly";
             LOG.error(resp);
             throw new ServerErrorException(resp, Response.Status.NOT_FOUND);
         }
-        LOG.info("get fid of[{}]:[{}] from rocksDB cost [{}]micros", srName, path, started.elapsed(TimeUnit.MICROSECONDS));
-        started.stop();
-        return new String(value);
+        String s = new String(value);
+        return s;
     }
 
     private String getLastNodeName(String path) {

@@ -46,8 +46,6 @@ import org.slf4j.LoggerFactory;
 
 public class StatisticCollector implements LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(StatisticCollector.class);
-    private static final Logger READ_LOG = LoggerFactory.getLogger("read_Statistic");
-    private static final Logger WRITE_LOG = LoggerFactory.getLogger("write_Statistic");
     ObjectMapper readMapper = new ObjectMapper();
     JavaType readValue = readMapper.getTypeFactory().constructParametricType(HashMap.class, String.class,
                                                                              ReadCountModel.class);

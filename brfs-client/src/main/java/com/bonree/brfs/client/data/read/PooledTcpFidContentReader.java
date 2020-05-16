@@ -16,8 +16,8 @@ package com.bonree.brfs.client.data.read;
 
 import static java.util.Objects.requireNonNull;
 
-import com.bonree.brfs.client.ClientException;
 import com.bonree.brfs.client.data.read.connection.DataConnectionPool;
+import com.bonree.brfs.client.utils.Strings;
 import com.bonree.brfs.common.proto.FileDataProtos.Fid;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
 import com.bonree.brfs.common.write.data.FileDecoder;
@@ -25,6 +25,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -48,7 +49,7 @@ public class PooledTcpFidContentReader implements FidContentReader {
 
             int l = Ints.fromBytes(length[4], length[5], length[6], length[7]);
             if (l < 0) {
-                throw new ClientException("file is not found in sr[%s]", srName);
+                throw new FileNotFoundException(Strings.format("file is not found in sr[%s]", srName));
             }
 
             byte[] b = new byte[l];
