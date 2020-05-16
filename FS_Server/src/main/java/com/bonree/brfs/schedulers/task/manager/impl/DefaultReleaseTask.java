@@ -878,14 +878,4 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
             }
         );
     }
-
-    public static void main(String[] args) {
-        String address = "192.168.150.237:2181";
-        String taskRoot = "/test/tasks";
-        String taskLock = "/test/tasklock";
-        DefaultReleaseTask release = new DefaultReleaseTask(address, taskRoot, taskLock);
-        TaskModel task = new TaskModel();
-        task.setTaskState(TaskState.FINISH.code());
-        release.recoveryTask(TaskType.USER_DELETE.name(), "15");
-    }
 }
