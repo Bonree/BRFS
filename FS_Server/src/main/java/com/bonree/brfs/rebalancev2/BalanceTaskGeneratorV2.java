@@ -28,6 +28,6 @@ public interface BalanceTaskGeneratorV2 {
      */
     BalanceTaskSummaryV2 genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID,
                                         List<String> selectIDs, List<String> participators, Map<String, Integer> newSecondIds,
-                                        long delayTime);
+                                        Map<String, String> secondFirstShip, long delayTime);
 
 }

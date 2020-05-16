@@ -368,7 +368,7 @@ public class TaskDispatcherV2 implements Closeable {
                             String normalRouteNode =
                                 ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                             NormalRouteV2 route = new NormalRouteV2(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(),
-                                                                    bts.getNewSecondIds());
+                                                                    bts.getNewSecondIds(), bts.getSecondFirstShip());
                             LOG.info("add normal route: {}", route);
                             addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
                         }
@@ -430,7 +430,8 @@ public class TaskDispatcherV2 implements Closeable {
                 String normalRouteNode = ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
 
                 NormalRouteV2 route =
-                    new NormalRouteV2(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getNewSecondIds());
+                    new NormalRouteV2(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getNewSecondIds(),
+                                      bts.getSecondFirstShip());
                 LOG.info("add normal route:" + route);
                 addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
             }
@@ -584,7 +585,8 @@ public class TaskDispatcherV2 implements Closeable {
                     // 构建任务
                     BalanceTaskSummaryV2 taskSummary = taskGenerator
                         .genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangePartitionId(), cs.getChangeServer(),
-                                        aliveSecondIDs, joinerSecondIDs, cs.getNewSecondIds(), normalDelay);
+                                        aliveSecondIDs, joinerSecondIDs, cs.getNewSecondIds(), cs.getSecondFirstShip(),
+                                        normalDelay);
                     // 发布任务
                     dispatchTask(taskSummary);
                     // 加入正在执行的任务的缓存中

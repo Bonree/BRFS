@@ -49,7 +49,8 @@ public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
     @Override
     public BalanceTaskSummaryV2 genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID,
                                                List<String> selectIDs, List<String> participators,
-                                               Map<String, Integer> newSecondIds, long delayTime) {
+                                               Map<String, Integer> newSecondIds, Map<String, String> secondFirstShip,
+                                               long delayTime) {
         BalanceTaskSummaryV2 taskSummary = new BalanceTaskSummaryV2();
 
         taskSummary.setChangeID(changeID);
@@ -63,6 +64,7 @@ public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
         taskSummary.setDelayTime(delayTime);
         taskSummary.setPartitionId(partitionId);
         taskSummary.setNewSecondIds(newSecondIds);
+        taskSummary.setSecondFirstShip(secondFirstShip);
 
         return taskSummary;
     }

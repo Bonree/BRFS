@@ -1,6 +1,7 @@
 package com.bonree.brfs.identification;
 
 import java.util.Collection;
+import java.util.Map;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -51,4 +52,12 @@ public interface SecondIdsInterface {
      * @return
      */
     String getPartitionId(String secondId, int storageRegionId);
+
+    /**
+     * 获取二级serverid与一级serverid的关系
+     * @param storageRegionId
+     * @return
+     */
+    Map<String, String> getSecondFirstRelationship(int storageRegionId);
+
 }

@@ -39,6 +39,8 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
 
     @JsonProperty("newSecondIds")
     private Map<String, Integer> newSecondIds;
+    @JsonProperty("secondFirstShip")
+    private Map<String, String> secondFirstShip;
 
     public String getChangeID() {
         return changeID;
@@ -72,6 +74,10 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         return newSecondIds;
     }
 
+    public Map<String, String> getSecondFirstShip() {
+        return secondFirstShip;
+    }
+
     @SuppressWarnings("unused")
     private DiskPartitionChangeSummary() {
 
@@ -79,7 +85,7 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
 
     public DiskPartitionChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer,
                                       String changePartitionId, List<String> currentServers, List<String> currentPartitionIds,
-                                      Map<String, Integer> newSecondIds) {
+                                      Map<String, Integer> newSecondIds, Map<String, String> secondFirstShip) {
         this.storageIndex = storageIndex;
         this.changeID = createTime;
         this.changeType = changeType;
@@ -88,6 +94,7 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         this.currentServers = currentServers;
         this.currentPartitionIds = currentPartitionIds;
         this.newSecondIds = newSecondIds;
+        this.secondFirstShip = secondFirstShip;
     }
 
     @Override

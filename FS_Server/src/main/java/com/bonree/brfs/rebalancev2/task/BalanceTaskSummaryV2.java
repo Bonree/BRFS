@@ -75,6 +75,11 @@ public class BalanceTaskSummaryV2 {
     private Map<String, Integer> newSecondIds;
 
     /**
+     * 二级serverid与一级server的对应关系
+     */
+    private Map<String, String> secondFirstShip;
+
+    /**
      * 本次平衡时存活的server
      */
     @JsonProperty("aliveServer")
@@ -172,6 +177,14 @@ public class BalanceTaskSummaryV2 {
         this.newSecondIds = newSecondIds;
     }
 
+    public Map<String, String> getSecondFirstShip() {
+        return secondFirstShip;
+    }
+
+    public void setSecondFirstShip(Map<String, String> secondFirstShip) {
+        this.secondFirstShip = secondFirstShip;
+    }
+
     public List<String> getAliveServer() {
         return aliveServer;
     }
@@ -198,7 +211,7 @@ public class BalanceTaskSummaryV2 {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this.getClass())
+        return MoreObjects.toStringHelper(this)
                           .add("id", id)
                           .add("changeID", changeID)
                           .add("serverId", serverId)
@@ -209,6 +222,7 @@ public class BalanceTaskSummaryV2 {
                           .add("outputServers", outputServers)
                           .add("inputServers", inputServers)
                           .add("newSecondIds", newSecondIds)
+                          .add("secondFirstShip", secondFirstShip)
                           .add("aliveServer", aliveServer)
                           .add("delayTime", delayTime)
                           .add("interval", interval)

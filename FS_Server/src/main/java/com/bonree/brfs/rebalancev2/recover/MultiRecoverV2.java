@@ -267,7 +267,7 @@ public class MultiRecoverV2 implements DataRecover {
             RouteParser routeParser = new RouteParser(balanceSummary.getStorageIndex(), routeLoader);
             NormalRouteV2 normalRoute =
                 new NormalRouteV2(balanceSummary.getChangeID(), balanceSummary.getStorageIndex(), balanceSummary.getServerId(),
-                                  balanceSummary.getNewSecondIds());
+                                  balanceSummary.getNewSecondIds(), balanceSummary.getSecondFirstShip());
             // 遍历副本文件
             for (BRFSPath brfsPath : allPaths) {
                 if (status.get().equals(TaskStatus.CANCEL)) {
@@ -432,7 +432,8 @@ public class MultiRecoverV2 implements DataRecover {
         Pair<String, List<String>> fileInfoPair = parser.analyzingFileName(brfsPath.getFileName());
         int fileCode = parser.sumName(fileInfoPair.getFirst());
         List<String> excludes = fileInfoPair.getSecond();
-        excludes.addAll(idManager.getSecondIds(idManager.getFirstSever(), balanceSummary.getStorageIndex()));    // 排除本机二级serverId
+        // excludes.addAll(idManager.getSecondIds(idManager.getFirstSever(), balanceSummary.getStorageIndex()));
+        // 排除本机二级serverId
 
         log.info("dead second ids:{}", deadSecondIds);
         // 5.遍历不可用的服务
