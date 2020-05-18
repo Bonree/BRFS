@@ -100,7 +100,10 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
         int count = 0;
         ArrayList<Inode> inodes = new ArrayList<>(pageSize);
         byte[] prefixQueryKey;
-        prefixQueryKey = Bytes.byteMerge(path.getBytes(), "/".getBytes());
+        if ("/".equals(path)) {
+            path = "";
+        }
+        prefixQueryKey = Bytes.byteMerge(path.getBytes(), "//".getBytes());
         Map<byte[], byte[]> map = rocksDBManager.readByPrefix(srName, prefixQueryKey);
         if (map == null) {
             LOG.error("dir [{}] is not found.", path);
