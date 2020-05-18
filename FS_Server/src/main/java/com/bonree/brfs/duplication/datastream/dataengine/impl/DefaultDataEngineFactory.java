@@ -26,6 +26,10 @@ public class DefaultDataEngineFactory implements DataEngineFactory {
 
     @Override
     public DataEngine createDataEngine(StorageRegion storageRegion) {
+        if (!storageRegion.isEnable()) {
+            throw new IllegalStateException("storage region is disabled, No data engine can be created");
+        }
+
         return new DefaultDataEngine(storageRegion,
                                      dataPoolFactory.createDataPool(),
                                      fileObjectSupplierManager.getFileObjectSupplier(storageRegion.getName()),
