@@ -66,7 +66,11 @@ public class FileObjectSupplierManager {
             suppliers.compute(region.getName(), (srName, supplier) -> {
                 if (supplier != null) {
                     log.error("No file object supplier should be bind to sr[{}], but get one", region.getName());
-                    return supplier;
+                    close(srName, supplier);
+                }
+
+                if (!region.isEnable()) {
+                    return null;
                 }
 
                 return factory.create(region);
@@ -76,6 +80,15 @@ public class FileObjectSupplierManager {
         @Override
         public void storageRegionUpdated(StorageRegion region) {
             suppliers.compute(region.getName(), (srName, supplier) -> {
+                if (!region.isEnable()) {
+                    if (supplier != null) {
+                        log.info("storage region[{}] has been disabled", srName);
+                        close(srName, supplier);
+                    }
+
+                    return null;
+                }
+
                 if (supplier == null) {
                     log.error("A file object supplier should have been bind to sr[{}], bit none", srName);
                     return factory.create(region);

@@ -54,6 +54,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
     private volatile long expiredTime;
 
     private final StorageRegion storageRegion;
+    private volatile boolean closed = false;
 
     public DefaultFileObjectSupplier(StorageRegion storageRegion,
                                      FileObjectFactory factory,
@@ -99,13 +100,19 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 
     @Override
     public FileObject fetch(int size) throws InterruptedException {
+        if (closed) {
+            log.error("file Object supplier[{}] is already closed", storageRegion.getName());
+            return null;
+        }
+
         try {
             Future<FileObject> future = mainThread.submit(new FileFetcher(size));
             return future.get();
         } catch (ExecutionException e) {
-            log.error("fetch file failed", e);
-            return null;
+            log.error("fetch file failed", e.getCause());
         }
+
+        return null;
     }
 
     @Override
@@ -218,6 +225,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 
     @Override
     public void close() {
+        closed = true;
         log.info("sr[{}] file object supplier is closed", storageRegion.getName());
         fileNodeSinkManager.removeStateListener(stateListener);
         fileNodeSinkManager.unregisterFileNodeSink(this);
