@@ -653,10 +653,8 @@ public class BRFSClient implements BRFS {
             uri -> {
                 try {
                     return TaskResult.success(fidReader.read(uri, srName, fidObj, offset, size, idIndex.get(uri)));
-                } catch (IOException e) {
+                } catch (Exception e) {
                     return TaskResult.retry(e);
-                } catch (Exception cause) {
-                    return TaskResult.fail(cause);
                 }
             }));
     }
