@@ -5,6 +5,8 @@ import com.bonree.brfs.identification.PartitionInterface;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
@@ -15,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
  ******************************************************************************/
 
 public class LocalDirMaintainer implements PartitionInterface {
+    private static Logger LOG = LoggerFactory.getLogger(LocalDirMaintainer.class);
     private LocalPartitionInterface localPartitionInterface;
     private SecondIdsInterface secondIds;
 
@@ -28,8 +31,13 @@ public class LocalDirMaintainer implements PartitionInterface {
     public String getDataDir(String secondId, int storageRegionId) {
         String partitionId = secondIds.getPartitionId(secondId, storageRegionId);
         if (StringUtils.isEmpty(partitionId)) {
+            LOG.warn("partition Id is null sr:[{}],second:[{}]", storageRegionId, secondId);
             return null;
         }
-        return localPartitionInterface.getDataPaths(partitionId);
+        String path = localPartitionInterface.getDataPaths(partitionId);
+        if (StringUtils.isEmpty(path)) {
+            LOG.warn("partition path is null sr:[{}],second:[{}], paritionId:[{}]", storageRegionId, secondId, partitionId);
+        }
+        return path;
     }
 }
