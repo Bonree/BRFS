@@ -50,7 +50,7 @@ public class TaskReleaseManager implements LifeCycle {
         if (config.isTaskFrameWorkSwitch()) {
             this.leaderLatch =
                 new LeaderLatch(
-                    client, zkPaths.getBaseLocksPath() + "/TaskManager/MetaTaskLeaderLock");
+                    client, zkPaths.getBaseLocksPath() + "/TaskManager/MetaTaskLeaderLock", "TaskReleaseManager");
             leaderLatch.addListener(manager);
             leaderLatch.start();
             LOG.info("task release manager start .");
@@ -66,7 +66,6 @@ public class TaskReleaseManager implements LifeCycle {
         if (leaderLatch != null) {
             leaderLatch.removeListener(manager);
             leaderLatch.close();
-            this.client.close();
             LOG.info("task release manager stop .");
         } else {
             LOG.info("task framework switch is {}", config.isTaskFrameWorkSwitch());

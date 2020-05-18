@@ -9,6 +9,8 @@
 package com.bonree.brfs.common.rebalance.route.impl.v2;
 
 import com.bonree.brfs.common.data.utils.JsonUtils;
+import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
+import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -53,21 +55,25 @@ public class NormalRouteV2Test {
      */
     @Test
     public void testSerializeV2() throws Exception {
-        String filePath = resourcePath + File.separator + "V2.json";
-        System.out.println(filePath);
         String changeId = "123456";
         String secondServer = "10";
         int storageId = 0;
         Map<String, Integer> serverMap = new HashMap<>();
+        Map<String, String> ship = new HashMap<>();
         for (int index = 11; index < 14; index++) {
             serverMap.put(index + "", index % 5);
+            ship.put(index + "", index + "");
         }
         NormalRouteV2 normalRouteV2 =
-            new NormalRouteV2(changeId, storageId, secondServer, serverMap);
-        byte[] data = JsonUtils.toJsonBytesQuietly(normalRouteV2);
-        FileUtils.writeByteArrayToFile(new File(filePath), data);
+            new NormalRouteV2(changeId, storageId, secondServer, serverMap, ship);
+        System.out.println(JsonUtils.toJsonString(normalRouteV2));
+        String content =
+            "{\"changeID\":\"123456\",\"storageIndex\":0,\"secondID\":\"10\","
+                + "\"newSecondIDs\":{\"11\":1,\"12\":2,\"13\":3},\"secondFirstShip"
+                + "\":{\"11\":\"11\",\"12\":\"12\",\"13\":\"13\"},\"version\":\"V2\"}";
+        NormalRouteV2 vv2 = (NormalRouteV2) JsonUtils.toObjectQuietly(content, SuperNormalRoute.class);
+        System.out.println(vv2);
     }
-
 
     /**
      * 反序列化V2版本的json
@@ -87,6 +93,7 @@ public class NormalRouteV2Test {
      * @param fileName
      * @param services
      * @param weightValue
+     *
      * @return
      */
     private int searchIndexRunCase(String fileName, List<String> services, int weightValue) {
@@ -202,6 +209,7 @@ public class NormalRouteV2Test {
      *
      * @param fileName
      * @param servers
+     *
      * @return
      */
     private int calcWeightRunCase(String fileName, Collection<String> servers) {
@@ -287,6 +295,7 @@ public class NormalRouteV2Test {
      *
      * @param fileName
      * @param servers
+     *
      * @return
      */
     private List<String> filterServiceRunCase(String fileName, Collection<String> servers) {
@@ -396,6 +405,7 @@ public class NormalRouteV2Test {
      * 根据文件名生成code
      *
      * @param name
+     *
      * @return
      */
     protected int sumName(String name) {
@@ -404,5 +414,59 @@ public class NormalRouteV2Test {
             sum = sum + name.charAt(i);
         }
         return sum;
+    }
+
+    @Test
+    public void testAnalysis01() {
+        String changeId = "1";
+        int storageIndex = 0;
+        String secondId = "22";
+        Map<String, Integer> sizeMap = new HashMap<>();
+        sizeMap.put("20", 1);
+        sizeMap.put("21", 1);
+        sizeMap.put("23", 1);
+        Map<String, String> map = new HashMap<>();
+        map.put("20", "1");
+        map.put("21", "1");
+        map.put("23", "3");
+        NormalRouteV2 v2 = new NormalRouteV2(changeId, storageIndex, secondId, sizeMap, map);
+        int code = 9;
+        List<String> services = Arrays.asList("20", "22");
+        String selector = v2.locateNormalServer(code, services);
+        Assert.assertEquals("23", selector);
+
+        code = 8;
+        selector = v2.locateNormalServer(code, services);
+        Assert.assertEquals("23", selector);
+
+        services = Arrays.asList("23", "22");
+        selector = v2.locateNormalServer(code, services);
+        Assert.assertEquals("20", selector);
+    }
+
+    @Test
+    public void testAnalysis02() {
+        String changeId = "1";
+        int storageIndex = 0;
+        String secondId = "20";
+        Map<String, Integer> sizeMap = new HashMap<>();
+        sizeMap.put("22", 1);
+        sizeMap.put("23", 1);
+        sizeMap.put("24", 1);
+        sizeMap.put("25", 1);
+        Map<String, String> map = new HashMap<>();
+        map.put("22", "1");
+        map.put("23", "1");
+        map.put("24", "2");
+        map.put("25", "2");
+        NormalRouteV2 v2 = new NormalRouteV2(changeId, storageIndex, secondId, sizeMap, map);
+        int code = 9;
+        List<String> services = Arrays.asList("20", "22");
+        String selector = v2.locateNormalServer(code, services);
+        Assert.assertEquals("25", selector);
+
+        code = 8;
+        selector = v2.locateNormalServer(code, services);
+        Assert.assertEquals("24", selector);
     }
 }

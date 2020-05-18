@@ -56,7 +56,7 @@ public class DefaultDataEngineManager implements DataEngineManager, Closeable {
         try {
             return dataEngineContainer.get(srName);
         } catch (ExecutionException e) {
-            LOG.error("get dataEngine of sr[{}] error.", srName, e);
+            LOG.error("get dataEngine of sr[{}] error.", srName, e.getCause());
         }
 
         return null;

@@ -344,16 +344,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 
     private boolean deleteTask(String taskName, String taskType, String taskQueuePath) {
         try {
-            if (BrStringUtils.isEmpty(taskName)) {
-                return false;
-            }
-            if (BrStringUtils.isEmpty(taskType)) {
-                return false;
-            }
-            String path = taskQueuePath + "/" + taskType + "/" + taskName;
-            if (!client.checkExists(path)) {
-                return false;
-            }
+            String path = createTaskPath(taskQueuePath, taskType, taskName);
             client.delete(path, true);
             return true;
         } catch (Exception e) {
@@ -489,70 +480,23 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
                 i++;
                 continue;
             }
-            mvHistory(taskModel, taskType, taskName);
-            List<String> taskServerList = getTaskServerList(taskType, taskName, taskQueue);
-            if (taskServerList != null && !taskServerList.isEmpty()) {
-                for (String staskname : taskServerList) {
-                    TaskServerNodeModel model = getTaskServerContentNodeInfo(taskType, taskName, staskname);
-                    if (model == null) {
-                        continue;
-                    }
-                    updateServerTaskContentNode(staskname, taskName, taskType, model, historyQueue);
-                }
-            }
-            deleteTask(taskName, taskType, taskQueue);
+            mvHistory(taskType, taskName);
+            LOG.info("[{}] task {} is history", taskType, taskName);
             i++;
         }
         return i;
     }
 
-    private String mvHistory(TaskModel data, String taskType, String taskName) {
-        String pathNode = null;
-        try {
-            if (data == null) {
-                LOG.warn("task content is empty");
-                return null;
-            }
-            byte[] datas = JsonUtils.toJsonBytes(data);
-            if (datas == null || datas.length == 0) {
-                LOG.warn("task content convert is empty");
-                return null;
-            }
-            if (BrStringUtils.isEmpty(taskType)) {
-                LOG.warn("task type is empty");
-                return null;
-            }
-            TaskType current = TaskType.valueOf(taskType);
-            int taskTypeIndex = current == null ? 0 : current.code();
-
-            StringBuilder pathBuilder = new StringBuilder();
-            pathBuilder.append(taskHistory).append("/").append(taskType).append("/");
-            if (BrStringUtils.isEmpty(taskName)) {
-                pathBuilder.append(taskTypeIndex);
-            } else {
-                pathBuilder.append(taskName);
-            }
-            String taskPath = pathBuilder.toString();
-            if (!BrStringUtils.isEmpty(taskName) && client.checkExists(taskPath)) {
-                client.setData(taskPath, datas);
-                return taskName;
-            }
-            pathNode = client.createPersistent(taskPath, true, datas);
-            String[] nodes = BrStringUtils.getSplit(pathNode, "/");
-            if (nodes != null && nodes.length != 0) {
-                return nodes[nodes.length - 1];
-            }
-        } catch (Exception e) {
-            LOG.error("update task error {}", e);
-        }
-        return pathNode;
+    private void mvHistory(String taskType, String taskName) {
+        String source = createTaskPath(this.taskQueue, taskType, taskName);
+        String dent = createTaskPath(this.taskHistory, taskType, taskName);
+        mvData(source, dent, true);
     }
 
     public void mvData(String sourcePath, String dentPath, boolean overFlag) {
         if (!client.checkExists(sourcePath)) {
             return;
         }
-
         List<String> childs = client.getChildren(sourcePath);
         boolean dentExists = client.checkExists(dentPath);
         if (dentExists && !overFlag) {
@@ -862,30 +806,20 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
             return;
         }
         needTasks.stream().parallel().forEach(
-            x -> {
-                String path = createTaskPath(this.taskHistory, taskType, x);
-                String dent = createTaskPath(this.taskQueue, taskType, x);
+            taskName -> {
+                String path = createTaskPath(this.taskHistory, taskType, taskName);
+                String dent = createTaskPath(this.taskQueue, taskType, taskName);
                 TaskModel task = getObject(path, TaskModel.class);
                 if (task == null) {
                     this.client.delete(path, true);
-                    LOG.info("[] task[{}] is invalid", taskType, x);
+                    LOG.info("[{}] task[{}] is invalid", taskType, taskName);
                     return;
                 }
                 task.setTaskState(TaskState.RERUN.code());
-                updateTaskContentNode(task, taskType, x, this.taskHistory);
+                updateTaskContentNode(task, taskType, taskName, this.taskHistory);
                 mvData(path, dent, true);
-                LOG.info("[] task[{}] is recovery", taskType, x);
+                LOG.info("[{}] task[{}] is recovery", taskType, taskName);
             }
         );
-    }
-
-    public static void main(String[] args) {
-        String address = "192.168.150.237:2181";
-        String taskRoot = "/test/tasks";
-        String taskLock = "/test/tasklock";
-        DefaultReleaseTask release = new DefaultReleaseTask(address, taskRoot, taskLock);
-        TaskModel task = new TaskModel();
-        task.setTaskState(TaskState.FINISH.code());
-        release.recoveryTask(TaskType.USER_DELETE.name(), "15");
     }
 }
