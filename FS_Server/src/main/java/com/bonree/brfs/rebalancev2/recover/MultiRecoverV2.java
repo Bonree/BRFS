@@ -450,7 +450,7 @@ public class MultiRecoverV2 implements DataRecover {
             // 5-2.根据预发布的路由规则进行解析，
             String selectMultiId = normal.locateNormalServer(fileCode, excludes);
 
-            log.info("alive multiIds:{}， normal route:{}", aliveMultiIds, normal);
+            log.info("alive multiIds:{}, normal route:{}", aliveMultiIds, normal);
 
             // 5-3.判断选取的新节点是否存活
             if (isAlive(aliveMultiIds, selectMultiId)) {
