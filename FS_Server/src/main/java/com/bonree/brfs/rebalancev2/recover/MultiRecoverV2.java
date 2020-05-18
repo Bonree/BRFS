@@ -269,25 +269,26 @@ public class MultiRecoverV2 implements DataRecover {
                     new NormalRouteV2(balanceSummary.getChangeID(), balanceSummary.getStorageIndex(),
                                       balanceSummary.getServerId(),
                                       balanceSummary.getNewSecondIds(), balanceSummary.getSecondFirstShip());
-                // 遍历副本文件
-                for (BRFSPath brfsPath : allPaths) {
-                    if (status.get().equals(TaskStatus.CANCEL)) {
-                        return;
+                try {
+                    // 遍历副本文件
+                    for (BRFSPath brfsPath : allPaths) {
+                        if (status.get().equals(TaskStatus.CANCEL)) {
+                            return;
+                        }
+                        String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
+                        if (!perFile.endsWith(".rd")) {
+                            log.info("prepare deal file:{}, partitionPath:{}", brfsPath.toString(), partitionPath);
+                            dealFileV2(brfsPath, partitionPath, routeParser, normalRoute);
+                        }
                     }
-                    String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
-                    if (!perFile.endsWith(".rd")) {
-                        log.info("prepare deal file:{}, partitionPath:{}", brfsPath.toString(), partitionPath);
-                        dealFileV2(brfsPath, partitionPath, routeParser, normalRoute);
-                    }
+                } finally {
+                    overFlag = true;
                 }
-
             }
             log.info("waiting consumer...");
             consumerThread.join();
         } catch (InterruptedException e) {
             log.error("consumerThread error!", e);
-        } finally {
-            overFlag = true;
         }
 
         finishTask();
