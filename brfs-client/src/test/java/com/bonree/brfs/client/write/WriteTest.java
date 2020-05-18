@@ -16,7 +16,9 @@ package com.bonree.brfs.client.write;
 
 import com.bonree.brfs.client.BRFS;
 import com.bonree.brfs.client.BRFSClientBuilder;
+import com.bonree.brfs.client.BRFSObject;
 import com.bonree.brfs.client.ClientConfigurationBuilder;
+import com.bonree.brfs.client.GetObjectRequest;
 import com.bonree.brfs.client.PutObjectResult;
 import java.net.URI;
 
@@ -37,6 +39,17 @@ public class WriteTest {
         try {
             PutObjectResult r = client.putObject("guice_test", "1234567890abcd".getBytes());
             System.out.println(r.getFID());
+
+            for (int i = 0; i < 5; i++) {
+                try {
+                    BRFSObject obj = client.getObject(GetObjectRequest.of("guice_test", r.getFID()));
+                    System.out.println("[" + obj.string() + "]");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                Thread.sleep(1000);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
