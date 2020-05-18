@@ -700,7 +700,7 @@ public class TaskDispatcherV2 implements Closeable {
                             BalanceTaskSummaryV2 taskSummary = taskGenerator
                                 .genVirtualTask(changeID, storageIndex, changeSummary.getChangePartitionId(), virtualID,
                                                 Lists.newArrayList(selectSecondID), (List<String>) secondParticipators,
-                                                changeSummary.getNewSecondIds(), virtualDelay);
+                                                partitionInfoManager.getDiskPartitionInfoFreeSize(), virtualDelay);
                             // 只在任务节点上创建任务，taskOperator会监听，去执行任务
 
                             dispatchTask(taskSummary);
