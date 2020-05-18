@@ -48,7 +48,7 @@ public class PooledTcpFidContentReader implements FidContentReader {
             readBytes(socket.getInputStream(), length, 0, length.length);
 
             int l = Ints.fromBytes(length[4], length[5], length[6], length[7]);
-            if (l < 0) {
+            if (l <= 0) {
                 throw new FileNotFoundException(Strings.format("file is not found in sr[%s]", srName));
             }
 
