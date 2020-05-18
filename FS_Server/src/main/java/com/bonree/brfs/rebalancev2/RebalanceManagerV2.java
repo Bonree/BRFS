@@ -41,7 +41,7 @@ public class RebalanceManagerV2 implements Closeable {
         String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         curatorClient = CuratorClient.getClientInstance(zkAddresses, 500, 500);
         dispatch = new TaskDispatcherV2(curatorClient, zkPaths.getBaseRebalancePath(),
-                                        zkPaths.getBaseRoutePath(), idManager,
+                                        zkPaths.getBaseV2RoutePath(), idManager,
                                         serviceManager, snManager,
                                         Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
                                         Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY),
