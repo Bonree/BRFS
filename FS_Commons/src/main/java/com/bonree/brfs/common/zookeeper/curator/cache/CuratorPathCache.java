@@ -1,6 +1,8 @@
 package com.bonree.brfs.common.zookeeper.curator.cache;
 
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +27,8 @@ public class CuratorPathCache {
         LOG.info("add listener for path:" + path);
         PathChildrenCache cache = cacheMap.get(path);
         if (cache == null) {
-            cache = new PathChildrenCache(client.getInnerClient(), path, true);
+            cache = new PathChildrenCache(client.getInnerClient(), path, true,
+                                          new ThreadFactoryBuilder().setNameFormat(new File(path).getName()).build());
             cacheMap.put(path, cache);
             startCache(path);
         }
@@ -37,6 +40,11 @@ public class CuratorPathCache {
         PathChildrenCache cache = cacheMap.get(path);
         if (cache != null) {
             cache.getListenable().removeListener(listener);
+        }
+        try {
+            cache.close();
+        } catch (IOException e) {
+            LOG.error("close path child cache happen error {}", path, e);
         }
     }
 

@@ -50,7 +50,6 @@ public class DiskPartitionInfoManager implements LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(DiskPartitionInfoManager.class);
     private ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("DiskPartitionInfoManager").build();
     private PathChildrenCache cache;
-    private ZookeeperPaths zkPath;
     private DiskPartitionInfoListener listener;
     private Map<String, PartitionInfo> diskPartitionInfoCache = new ConcurrentHashMap<>();
     private CuratorFramework client;
@@ -59,7 +58,6 @@ public class DiskPartitionInfoManager implements LifeCycle {
     @Inject
     public DiskPartitionInfoManager(CuratorFramework client, ZookeeperPaths zkPath, PartitionConfig partitionIdsConfigs) {
         this.client = client;
-        this.zkPath = zkPath;
         this.path = ZKPaths.makePath(zkPath.getBaseDiscoveryPath(), partitionIdsConfigs.getPartitionGroupName());
     }
 
@@ -81,7 +79,6 @@ public class DiskPartitionInfoManager implements LifeCycle {
     @LifecycleStop
     @Override
     public void stop() throws Exception {
-        this.cache.getListenable().removeListener(this.listener);
         this.cache.close();
         LOG.info("disk partition info manager stop. ");
     }
