@@ -2,6 +2,7 @@ package com.bonree.brfs.duplication.datastream.dataengine.impl;
 
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngine;
 import com.bonree.brfs.duplication.datastream.dataengine.DataEngineFactory;
+import com.bonree.brfs.duplication.datastream.file.FileObjectSupplier;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierManager;
 import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
@@ -27,12 +28,19 @@ public class DefaultDataEngineFactory implements DataEngineFactory {
     @Override
     public DataEngine createDataEngine(StorageRegion storageRegion) {
         if (!storageRegion.isEnable()) {
-            throw new IllegalStateException("storage region is disabled, No data engine can be created");
+            throw new IllegalStateException(
+                String.format("storage region[%s] is disabled, No data engine can be created", storageRegion.getName()));
+        }
+
+        FileObjectSupplier supplier = fileObjectSupplierManager.getFileObjectSupplier(storageRegion.getName());
+        if (supplier == null) {
+            throw new IllegalStateException(
+                String.format("can not create file Object supplier for sr[%s]", storageRegion));
         }
 
         return new DefaultDataEngine(storageRegion,
                                      dataPoolFactory.createDataPool(),
-                                     fileObjectSupplierManager.getFileObjectSupplier(storageRegion.getName()),
+                                     supplier,
                                      diskWriter);
     }
 
