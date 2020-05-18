@@ -246,47 +246,48 @@ public class MultiRecoverV2 implements DataRecover {
         // 启动消费队列
         Thread consumerThread = new Thread(consumerQueue());
         consumerThread.start();
-
-        for (LocalPartitionInfo partitionInfo : localPartitionInfos) {
-            String partitionPath = partitionInfo.getDataDir();
-            String snDataDir = partitionPath + FileUtils.FILE_SEPARATOR + storageName;
-            if (!FileUtils.isExist(snDataDir)) {
-                snDirNonExistNum.incrementAndGet();
-                continue;
-            }
-
-            List<BRFSPath> allPaths = BRFSFileUtil.scanFile(partitionPath, storageName);
-            int fileCounts = allPaths.size();
-
-            detail.setTotalDirectories(fileCounts);
-            updateDetail(selfNode, detail);
-
-            log.info("deal the local server: {}",
-                     idManager.getSecondId(partitionInfo.getPartitionId(), balanceSummary.getStorageIndex()));
-
-            RouteParser routeParser = new RouteParser(balanceSummary.getStorageIndex(), routeLoader);
-            NormalRouteV2 normalRoute =
-                new NormalRouteV2(balanceSummary.getChangeID(), balanceSummary.getStorageIndex(), balanceSummary.getServerId(),
-                                  balanceSummary.getNewSecondIds(), balanceSummary.getSecondFirstShip());
-            // 遍历副本文件
-            for (BRFSPath brfsPath : allPaths) {
-                if (status.get().equals(TaskStatus.CANCEL)) {
-                    return;
+        try {
+            for (LocalPartitionInfo partitionInfo : localPartitionInfos) {
+                String partitionPath = partitionInfo.getDataDir();
+                String snDataDir = partitionPath + FileUtils.FILE_SEPARATOR + storageName;
+                if (!FileUtils.isExist(snDataDir)) {
+                    snDirNonExistNum.incrementAndGet();
+                    continue;
                 }
-                String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
-                if (!perFile.endsWith(".rd")) {
-                    log.info("prepare deal file:{}, partitionPath:{}", brfsPath.toString(), partitionPath);
-                    dealFileV2(brfsPath, partitionPath, routeParser, normalRoute);
-                }
-            }
 
-            overFlag = true;
+                List<BRFSPath> allPaths = BRFSFileUtil.scanFile(partitionPath, storageName);
+                int fileCounts = allPaths.size();
+
+                detail.setTotalDirectories(fileCounts);
+                updateDetail(selfNode, detail);
+
+                log.info("deal the local server: {}",
+                         idManager.getSecondId(partitionInfo.getPartitionId(), balanceSummary.getStorageIndex()));
+
+                RouteParser routeParser = new RouteParser(balanceSummary.getStorageIndex(), routeLoader);
+                NormalRouteV2 normalRoute =
+                    new NormalRouteV2(balanceSummary.getChangeID(), balanceSummary.getStorageIndex(),
+                                      balanceSummary.getServerId(),
+                                      balanceSummary.getNewSecondIds(), balanceSummary.getSecondFirstShip());
+                // 遍历副本文件
+                for (BRFSPath brfsPath : allPaths) {
+                    if (status.get().equals(TaskStatus.CANCEL)) {
+                        return;
+                    }
+                    String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
+                    if (!perFile.endsWith(".rd")) {
+                        log.info("prepare deal file:{}, partitionPath:{}", brfsPath.toString(), partitionPath);
+                        dealFileV2(brfsPath, partitionPath, routeParser, normalRoute);
+                    }
+                }
+
+            }
             log.info("waiting consumer...");
-            try {
-                consumerThread.join();
-            } catch (InterruptedException e) {
-                log.error("consumerThread error!", e);
-            }
+            consumerThread.join();
+        } catch (InterruptedException e) {
+            log.error("consumerThread error!", e);
+        } finally {
+            overFlag = true;
         }
 
         finishTask();

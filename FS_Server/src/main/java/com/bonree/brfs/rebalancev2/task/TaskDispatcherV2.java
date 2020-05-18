@@ -585,7 +585,8 @@ public class TaskDispatcherV2 implements Closeable {
                     // 构建任务
                     BalanceTaskSummaryV2 taskSummary = taskGenerator
                         .genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangePartitionId(), cs.getChangeServer(),
-                                        aliveSecondIDs, joinerSecondIDs, cs.getNewSecondIds(), cs.getSecondFirstShip(),
+                                        aliveSecondIDs, joinerSecondIDs, partitionInfoManager.getDiskPartitionInfoFreeSize(),
+                                        cs.getSecondFirstShip(),
                                         normalDelay);
                     // 发布任务
                     dispatchTask(taskSummary);
