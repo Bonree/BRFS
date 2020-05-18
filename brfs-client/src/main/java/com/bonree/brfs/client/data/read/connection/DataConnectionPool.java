@@ -28,8 +28,12 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.EvictionConfig;
 import org.apache.commons.pool2.impl.EvictionPolicy;
 import org.apache.commons.pool2.impl.GenericKeyedObjectPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DataConnectionPool implements Closeable {
+    private static final Logger log = LoggerFactory.getLogger(DataConnectionPool.class);
+
     private final KeyedObjectPool<URI, DataConnection> connections;
 
     public DataConnectionPool() {
@@ -54,21 +58,23 @@ public class DataConnectionPool implements Closeable {
     }
 
     public <T> DataRequestCall<T> newRequest(URI uri, DataRequestHandler<T> call) throws Exception {
-        final DataConnection connection = connections.borrowObject(uri);
-
         return () -> {
-            DataConnection param = null;
+            DataConnection connection = null;
             try {
-                param = connection;
-                return call.handle(param);
+                connection = connections.borrowObject(uri);
+                return call.handle(connection);
             } catch (Exception e) {
-                connections.invalidateObject(uri, param);
-                param = null;
+                if (connection != null) {
+                    log.info("close the connection for[{}]", uri);
+                    connections.invalidateObject(uri, connection);
+                    connection = null;
+                }
+
                 throw e;
             } finally {
                 // make sure the object is returned to the pool
-                if (null != param) {
-                    connections.returnObject(uri, param);
+                if (null != connection) {
+                    connections.returnObject(uri, connection);
                 }
             }
         };
