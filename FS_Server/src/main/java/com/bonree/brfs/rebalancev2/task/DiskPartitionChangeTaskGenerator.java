@@ -151,7 +151,10 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         for (String partitionId : currentPartitionIds) {
             for (StorageRegion sn : snList) {
                 String secondId = idManager.getSecondId(partitionId, sn.getId());
-                newSecondIds.put(secondId, (int) partitionInfoManager.getPartitionInfoByPartitionId(partitionId).getFreeSize());
+                if (secondId != null) {
+                    newSecondIds
+                        .put(secondId, (int) partitionInfoManager.getPartitionInfoByPartitionId(partitionId).getFreeSize());
+                }
             }
         }
 
