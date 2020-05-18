@@ -39,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -500,7 +501,7 @@ public class TaskDispatcherV2 implements Closeable {
         // 没有找到虚拟serverID迁移的任务，执行普通迁移的任务
         if (!dealVirtualTask(snIndex, changeSummaries)) {
             // String serverId = changeSummary.getChangeServer();
-            dealNormalTask(changeSummaries);
+            dealNormalTask(snIndex, changeSummaries);
         }
 
     }
@@ -549,14 +550,20 @@ public class TaskDispatcherV2 implements Closeable {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    private boolean dealNormalTask(List<DiskPartitionChangeSummary> changeSummaries) {
+    private boolean dealNormalTask(int snIndex, List<DiskPartitionChangeSummary> changeSummaries) {
         /*
          * 根据当时的的情况来判定，决策者如何决定，分为三种
          * 1.该SN正常，未做任何操作
          * 2.该SN正在进行virtual serverID恢复，此时分为两种，1.移除的机器为正在进行virtual ID映射的机器，2.移除的机器为其他参与者的机器
          * 3.该SN正在进行副本丢失迁移，此时会根据副本数来决定迁移是否继续。
          */
-
+        Map<String, Integer> secondFreeMap = new HashMap<>();
+        partitionInfoManager.getDiskPartitionInfoFreeSize().forEach(
+            (key, value) -> {
+                String second = idManager.getSecondId(key, snIndex);
+                secondFreeMap.put(second, value);
+            }
+        );
         // 检测是否能进行数据恢复。
         for (DiskPartitionChangeSummary cs : changeSummaries) {
             if (cs.getChangeType().equals(ChangeType.REMOVE)) {
@@ -585,7 +592,7 @@ public class TaskDispatcherV2 implements Closeable {
                     // 构建任务
                     BalanceTaskSummaryV2 taskSummary = taskGenerator
                         .genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangePartitionId(), cs.getChangeServer(),
-                                        aliveSecondIDs, joinerSecondIDs, partitionInfoManager.getDiskPartitionInfoFreeSize(),
+                                        aliveSecondIDs, joinerSecondIDs, secondFreeMap,
                                         cs.getSecondFirstShip(),
                                         normalDelay);
                     // 发布任务
