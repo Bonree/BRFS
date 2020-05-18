@@ -345,7 +345,9 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
     private boolean deleteTask(String taskName, String taskType, String taskQueuePath) {
         try {
             String path = createTaskPath(taskQueuePath, taskType, taskName);
-            client.delete(path, true);
+            if (client.checkExists(path)) {
+                client.delete(path, true);
+            }
             return true;
         } catch (Exception e) {
             LOG.error("delete task error {}", e);
@@ -358,7 +360,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
             if (BrStringUtils.isEmpty(taskType)) {
                 return -1;
             }
-            List<String> nodes = getTaskList(taskType);
+            List<String> nodes = getTaskList(taskType, taskQueuePath);
             if (nodes == null || nodes.isEmpty()) {
                 return 0;
             }
