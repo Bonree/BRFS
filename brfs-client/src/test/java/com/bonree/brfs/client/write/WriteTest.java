@@ -40,7 +40,7 @@ public class WriteTest {
             PutObjectResult r = client.putObject("guice_test", "1234567890abcd".getBytes());
             System.out.println(r.getFID());
 
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 10; i++) {
                 try {
                     BRFSObject obj = client.getObject(GetObjectRequest.of("guice_test", r.getFID()));
                     System.out.println("[" + obj.string() + "]");
