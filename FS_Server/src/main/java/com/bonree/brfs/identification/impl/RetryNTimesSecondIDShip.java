@@ -4,6 +4,7 @@ import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.identification.SecondIdsInterface;
+import com.google.common.collect.ImmutableMap;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -156,6 +157,19 @@ public class RetryNTimesSecondIDShip implements SecondIdsInterface {
             }
         }
         return null;
+    }
+
+    @Override
+    public Map<String, String> getSecondFirstRelationship(int storageRegionId) {
+        if (partitionTofirstMap == null || partitionTofirstMap.isEmpty()) {
+            return ImmutableMap.of();
+        }
+        Map<String, String> cache = new ConcurrentHashMap<>();
+        partitionTofirstMap.forEach((partitionId, firstServerId) -> {
+            String second = getSecondId(partitionId, storageRegionId);
+            cache.put(second, firstServerId);
+        });
+        return cache;
     }
 
     /**

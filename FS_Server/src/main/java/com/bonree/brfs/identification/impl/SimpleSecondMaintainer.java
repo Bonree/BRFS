@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -313,6 +314,11 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     @Override
     public String getPartitionId(String secondId, int storageRegionId) {
         return this.secondIds.getPartitionId(secondId, storageRegionId);
+    }
+
+    @Override
+    public Map<String, String> getSecondFirstRelationship(int storageRegionId) {
+        return this.secondIds.getSecondFirstRelationship(storageRegionId);
     }
 
     @LifecycleStart
