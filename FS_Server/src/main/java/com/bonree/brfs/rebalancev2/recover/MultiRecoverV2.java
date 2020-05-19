@@ -248,6 +248,7 @@ public class MultiRecoverV2 implements DataRecover {
         consumerThread.start();
         try {
             for (LocalPartitionInfo partitionInfo : localPartitionInfos) {
+
                 String partitionPath = partitionInfo.getDataDir();
                 String snDataDir = partitionPath + FileUtils.FILE_SEPARATOR + storageName;
                 if (!FileUtils.isExist(snDataDir)) {
@@ -269,23 +270,27 @@ public class MultiRecoverV2 implements DataRecover {
                     new NormalRouteV2(balanceSummary.getChangeID(), balanceSummary.getStorageIndex(),
                                       balanceSummary.getServerId(),
                                       balanceSummary.getNewSecondIds(), balanceSummary.getSecondFirstShip());
-                try {
-                    // 遍历副本文件
-                    for (BRFSPath brfsPath : allPaths) {
-                        if (status.get().equals(TaskStatus.CANCEL)) {
-                            return;
-                        }
-                        String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
-                        if (!perFile.endsWith(".rd")) {
-                            log.info("prepare deal file:{}, partitionPath:{}", brfsPath.toString(), partitionPath);
-                            dealFileV2(brfsPath, partitionPath, routeParser, normalRoute);
-                        }
+
+                // 遍历副本文件
+                for (BRFSPath brfsPath : allPaths) {
+                    if (status.get().equals(TaskStatus.CANCEL)) {
+                        return;
                     }
-                } finally {
-                    overFlag = true;
+                    String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
+                    if (!perFile.endsWith(".rd")) {
+                        log.info("prepare deal file:{}, partitionPath:{}", brfsPath.toString(), partitionPath);
+                        dealFileV2(brfsPath, partitionPath, routeParser, normalRoute);
+                    }
                 }
+
             }
-            log.info("waiting consumer...");
+        } catch (Exception e) {
+            log.error("scan file happen error {}", localPartitionInfos, e);
+        } finally {
+            this.overFlag = true;
+        }
+        try {
+            log.info("waiting consumer...{}", this.overFlag);
             consumerThread.join();
         } catch (InterruptedException e) {
             log.error("consumerThread error!", e);
@@ -385,7 +390,8 @@ public class MultiRecoverV2 implements DataRecover {
                         if (!secondServerIDSelected.equals(selectMultiId)) {
                             String firstID = idManager.getFirstId(selectMultiId, balanceSummary.getStorageIndex());
                             FileRecoverMetaV2 fileMeta =
-                                new FileRecoverMetaV2(perFile, fileName, selectMultiId, timeFileName, replica, pot + 1, firstID,
+                                new FileRecoverMetaV2(perFile, fileName, selectMultiId, timeFileName, replica, pot + 1,
+                                                      firstID,
                                                       partitionPath);
                             try {
                                 fileRecoverQueue.put(fileMeta);
@@ -420,7 +426,8 @@ public class MultiRecoverV2 implements DataRecover {
         }
 
         List<String> aliveMultiIds = getAliveMultiIds();
-        log.info("analysis second ids from route:{}, valid second ids:{}, aliveMultiIds:{}", analysisSecondIds, validSecondIds,
+        log.info("analysis second ids from route:{}, valid second ids:{}, aliveMultiIds:{}", analysisSecondIds,
+                 validSecondIds,
                  aliveMultiIds);
 
         // 3.收集已经不可用的服务集合，若集合为空，则文件不需要恢复

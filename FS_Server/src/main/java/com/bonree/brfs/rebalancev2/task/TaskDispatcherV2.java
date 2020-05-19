@@ -931,16 +931,17 @@ public class TaskDispatcherV2 implements Closeable {
                             List<String> receivers = currentTask.getInputServers();
 
                             if (joiners.contains(secondID) || receivers.contains(secondID)) { // 参与者出现问题 或 既是参与者又是接收者
+                                if (!TaskStatus.PAUSE.equals(currentTask.getTaskStatus())) {
+                                    updateTaskStatus(currentTask, TaskStatus.PAUSE);
+                                }
                                 if (currentTask.getInterval() == -1) {
                                     currentTask.setInterval(DEFAULT_INTERVAL);
                                 } else if (currentTask.getInterval() == 0) {
                                     updateTaskStatus(currentTask, TaskStatus.CANCEL);
                                 } else {
-                                    if (!TaskStatus.PAUSE.equals(currentTask.getTaskStatus())) {
-                                        updateTaskStatus(currentTask, TaskStatus.PAUSE);
-                                    }
                                     currentTask.setInterval(currentTask.getInterval() - 1);
                                 }
+                                LOG.info("task interval", currentTask.getInterval());
                                 break;
                             }
                         }
