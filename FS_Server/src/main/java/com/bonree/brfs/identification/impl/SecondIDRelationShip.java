@@ -156,6 +156,9 @@ public class SecondIDRelationShip implements SecondIdsInterface {
         Map<String, String> cache = new ConcurrentHashMap<>();
         partitionTofirstMap.forEach((partitionId, firstServerId) -> {
             String second = getSecondId(partitionId, storageRegionId);
+            if (second == null) {
+                return;
+            }
             cache.put(second, firstServerId);
         });
         return cache;

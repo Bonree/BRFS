@@ -116,7 +116,7 @@ public class RetryNTimesSecondIDShip implements SecondIdsInterface {
                     return secondId;
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error("get secondID happen error ", e);
             }
         }
         return null;
@@ -167,6 +167,9 @@ public class RetryNTimesSecondIDShip implements SecondIdsInterface {
         Map<String, String> cache = new ConcurrentHashMap<>();
         partitionTofirstMap.forEach((partitionId, firstServerId) -> {
             String second = getSecondId(partitionId, storageRegionId);
+            if (second == null) {
+                return;
+            }
             cache.put(second, firstServerId);
         });
         return cache;
