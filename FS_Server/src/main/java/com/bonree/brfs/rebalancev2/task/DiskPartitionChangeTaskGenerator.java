@@ -28,6 +28,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
@@ -117,6 +118,8 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                     }
                 }
             } else if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_REMOVED)) {
+                // 该sleep的作用是防止监听事件已经发生但此时leader还未切换完成导致REMOVE事件丢失
+                TimeUnit.SECONDS.sleep(5);
                 if (leaderLath.hasLeadership()) {
                     if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
                         PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
