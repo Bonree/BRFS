@@ -13,6 +13,7 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
+import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalancev2.task.TaskDispatcherV2;
 import com.bonree.brfs.rebalancev2.task.TaskOperationV2;
 import com.bonree.brfs.rebalancev2.transfer.SimpleFileServer;
@@ -36,18 +37,18 @@ public class RebalanceManagerV2 implements Closeable {
     @Inject
     public RebalanceManagerV2(ZookeeperPaths zkPaths, IDSManager idManager, StorageRegionManager snManager,
                               ServiceManager serviceManager, LocalPartitionInterface partitionInterface,
-                              DiskPartitionInfoManager partitionInfoManager) {
+                              DiskPartitionInfoManager partitionInfoManager, RouteLoader routeLoader) {
         String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         curatorClient = CuratorClient.getClientInstance(zkAddresses, 500, 500);
         dispatch = new TaskDispatcherV2(curatorClient, zkPaths.getBaseRebalancePath(),
-                                        zkPaths.getBaseRoutePath(), idManager,
+                                        zkPaths.getBaseV2RoutePath(), idManager,
                                         serviceManager, snManager,
                                         Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
                                         Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY),
                                         partitionInfoManager);
 
         opt = new TaskOperationV2(curatorClient, zkPaths.getBaseRebalancePath(), zkPaths.getBaseRoutePath(), idManager,
-                                  snManager, serviceManager, partitionInterface);
+                                  snManager, serviceManager, partitionInterface, routeLoader);
 
         int port = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT);
         try {

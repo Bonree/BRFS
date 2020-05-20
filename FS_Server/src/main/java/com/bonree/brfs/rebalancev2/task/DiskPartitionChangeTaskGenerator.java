@@ -25,6 +25,7 @@ import com.bonree.brfs.rebalance.task.ChangeType;
 import com.bonree.mail.worker.MailWorker;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -112,17 +113,17 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                     if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
                         PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
                         if (info != null) {
-                            TimeUnit.MILLISECONDS.sleep(delayDeal);
                             generateChangeSummary(info, ChangeType.ADD);
                         }
                     }
                 }
             } else if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_REMOVED)) {
+                // 该sleep的作用是防止监听事件已经发生但此时leader还未切换完成导致REMOVE事件丢失
+                TimeUnit.SECONDS.sleep(5);
                 if (leaderLath.hasLeadership()) {
                     if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
                         PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
                         if (info != null) {
-                            TimeUnit.MILLISECONDS.sleep(delayDeal);
                             generateChangeSummary(info, ChangeType.REMOVE);
                         }
                     }
@@ -148,6 +149,17 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         List<String> currentServers = getCurrentServers(serverManager);
 
         List<String> currentPartitionIds = partitionInfoManager.getCurrentPartitionIds();
+        HashMap<String, Integer> newSecondIds = new HashMap<>();
+
+        for (String partitionId : currentPartitionIds) {
+            for (StorageRegion sn : snList) {
+                String secondId = idManager.getSecondId(partitionId, sn.getId());
+                if (secondId != null) {
+                    newSecondIds
+                        .put(secondId, (int) partitionInfoManager.getPartitionInfoByPartitionId(partitionId).getFreeSize());
+                }
+            }
+        }
 
         for (StorageRegion snModel : snList) {
             if (snModel.getReplicateNum() > 1) {   // 是否配置SN恢复
@@ -157,7 +169,8 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                     try {
                         DiskPartitionChangeSummary summaryObj =
                             new DiskPartitionChangeSummary(snModel.getId(), genChangeID(), type, secondID,
-                                                           partitionInfo.getPartitionId(), currentServers, currentPartitionIds);
+                                                           partitionInfo.getPartitionId(), currentServers, currentPartitionIds,
+                                                           newSecondIds, idManager.getSecondFirstShip(snModel.getId()));
                         String summary = JsonUtils.toJsonString(summaryObj);
                         String diskPartitionTaskNode =
                             ZKPaths.makePath(changesPath, String.valueOf(snModel.getId()), summaryObj.getChangeID());

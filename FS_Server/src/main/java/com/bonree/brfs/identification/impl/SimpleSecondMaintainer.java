@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -193,11 +194,12 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     public boolean isValidSecondId(String secondId, int storageId) {
         try {
             String normalPath = ZKPaths.makePath(routeBasePath, Constants.NORMAL_ROUTE);
-            String siPath = ZKPaths.makePath(normalPath, secondId);
+            String siPath = ZKPaths.makePath(normalPath, storageId + "");
             if (client.checkExists().forPath(normalPath) != null && client.checkExists().forPath(siPath) != null) {
                 List<String> routeNodes = client.getChildren().forPath(siPath);
                 for (String routeNode : routeNodes) {
                     String routePath = ZKPaths.makePath(siPath, routeNode);
+                    LOG.info("load reoute routePath {}", routePath);
                     byte[] data = client.getData().forPath(routePath);
                     NormalRouteInterface normalRoute = SingleRouteFactory.createRoute(data);
                     if (normalRoute.getBaseSecondId().equals(secondId)) {
@@ -315,6 +317,11 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
         return this.secondIds.getPartitionId(secondId, storageRegionId);
     }
 
+    @Override
+    public Map<String, String> getSecondFirstRelationship(int storageRegionId) {
+        return this.secondIds.getSecondFirstRelationship(storageRegionId);
+    }
+
     @LifecycleStart
     @Override
     public void start() throws Exception {
@@ -386,7 +393,8 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                     childs.stream().forEach(region -> {
                         int storageIndex = Integer.parseInt(region);
                         String secondId = getSecondId(region, storageIndex);
-                        if (!isValidSecondId(secondId, storageIndex)) {
+                        boolean valid = isValidSecondId(secondId, storageIndex);
+                        if (!valid) {
                             String newSecondId = createSecondId(partition, firstServerId, storageIndex);
                             LOG.info("re-register secondId storageId[{}],partitionId[{}] old:[{}] new:[{}]", storageIndex,
                                      partition, secondId, newSecondId);

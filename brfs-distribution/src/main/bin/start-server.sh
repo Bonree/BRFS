@@ -79,7 +79,7 @@ then
   mkdir $SERVER_ID_PATH
 fi
 
-JVM_PARAMS=`sed -i 's/\r//' ${CONFIG_DIR}/jvm.config | grep -v "^#.*$" | cat`
+JVM_PARAMS=`sed 's/\r//' ${CONFIG_DIR}/jvm.config | grep -v "^#.*$" | tr "\n" " "`
 
 #网络参数设置
 DISK_NET_BACKLOG=2048

@@ -13,6 +13,7 @@ import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
+import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalancev2.recover.MultiRecoverV2;
 import com.bonree.brfs.rebalancev2.recover.VirtualRecoverV2;
@@ -47,11 +48,12 @@ public class TaskOperationV2 implements Closeable {
     private ServiceManager serviceManager;
     private String baseRoutesPath;
     private LocalPartitionInterface partitionInterface;
+    private RouteLoader routeLoader;
     private ExecutorService es = Executors.newFixedThreadPool(10, new PooledThreadFactory("task_executor"));
 
     public TaskOperationV2(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, IDSManager idManager,
                            StorageRegionManager snManager, ServiceManager serviceManager,
-                           LocalPartitionInterface partitionInterface) {
+                           LocalPartitionInterface partitionInterface, RouteLoader routeLoader) {
         this.client = client;
         this.idManager = idManager;
         this.tasksPath = ZKPaths.makePath(baseBalancePath, Constants.TASKS_NODE);
@@ -60,6 +62,7 @@ public class TaskOperationV2 implements Closeable {
         this.snManager = snManager;
         this.serviceManager = serviceManager;
         this.partitionInterface = partitionInterface;
+        this.routeLoader = routeLoader;
     }
 
     public void start() {
@@ -86,8 +89,8 @@ public class TaskOperationV2 implements Closeable {
                 }
                 String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
                 recover =
-                    new MultiRecoverV2(partitionInterface, taskSummary, idManager, serviceManager, taskPath, client, storageName,
-                                       baseRoutesPath);
+                    new MultiRecoverV2(partitionInterface, this.routeLoader, taskSummary, idManager, serviceManager, taskPath,
+                                       client, storageName, baseRoutesPath);
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
                 StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
                 if (node == null) {

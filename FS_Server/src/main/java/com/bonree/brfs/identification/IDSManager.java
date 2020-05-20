@@ -8,6 +8,7 @@ import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,6 +148,10 @@ public class IDSManager {
 
     public String getPartitionId(String secondId, int storageRegionId) {
         return this.secondMaintainer.getPartitionId(secondId, storageRegionId);
+    }
+
+    public Map<String, String> getSecondFirstShip(int storageRegionId) {
+        return this.secondMaintainer.getSecondFirstRelationship(storageRegionId);
     }
 
     private void start() {

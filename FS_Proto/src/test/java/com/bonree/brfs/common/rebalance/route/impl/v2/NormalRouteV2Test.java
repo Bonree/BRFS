@@ -469,4 +469,32 @@ public class NormalRouteV2Test {
         selector = v2.locateNormalServer(code, services);
         Assert.assertEquals("24", selector);
     }
+
+    @Test
+    public void expectTest() {
+        String content = "{\n"
+            + "  \"newSecondIDs\": {\n"
+            + "    \"20\": 867744,\n"
+            + "    \"21\": 16585952,\n"
+            + "    \"23\": 379667068\n"
+            + "  },\n"
+            + "  \"secondFirstShip\": {\n"
+            + "    \"20\": \"10\",\n"
+            + "    \"21\": \"10\",\n"
+            + "    \"22\": \"12\",\n"
+            + "    \"23\": \"16\"\n"
+            + "  },\n"
+            + "  \"changeID\": \"15897948971bd9cf44-28bc-469f-a08d-39e925bdf93c\",\n"
+            + "  \"storageIndex\": 0,\n"
+            + "  \"secondID\": \"22\",\n"
+            + "  \"version\": \"V2\"\n"
+            + "}";
+        NormalRouteInterface route = JsonUtils.toObjectQuietly(content.getBytes(), SuperNormalRoute.class);
+        String fileName = "1bd88e9b5c2a4f0b9ddd48e8e07a7df8";
+        int code = sumName(fileName);
+        List<String> services = Arrays.asList("21", "22");
+        String selector = route.locateNormalServer(code, services);
+        System.out.println(selector);
+    }
+
 }

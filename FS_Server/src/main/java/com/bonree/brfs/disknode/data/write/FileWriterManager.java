@@ -177,7 +177,7 @@ public class FileWriterManager implements LifeCycle {
                 FileNode fileNode = fileNodeStorer.getFileNode(dataFile.getName());
                 if (fileNode == null) {
                     log.info("file node of [{}] has been removed, close it", dataFile.getAbsolutePath());
-                    close(dataFile.getAbsolutePath());
+                    closeUnexpected(dataFile.getAbsolutePath());
                 }
             } catch (Throwable e) {
                 log.error("rebuild file[{}] error!", dataFile.getAbsolutePath(), e);
@@ -344,6 +344,19 @@ public class FileWriterManager implements LifeCycle {
         if (needFlush) {
             binding.first().flush();
         }
+    }
+
+    private void closeUnexpected(String filePath) throws IOException {
+        Pair<RecordFileWriter, WriteWorker> binding = runningWriters.remove(filePath);
+        if (binding == null) {
+            throw new IllegalStateException(String.format("file[%s] is not built", filePath));
+        }
+
+        binding.first().write(Bytes.concat(FileEncoder.validate(-1), FileEncoder.tail()));
+        binding.first().flush();
+
+        timeoutWheel.remove(filePath);
+        CloseUtils.closeQuietly(binding.first());
     }
 
     public long close(String filePath) throws IOException {

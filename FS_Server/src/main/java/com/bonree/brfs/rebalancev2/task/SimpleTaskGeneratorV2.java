@@ -4,6 +4,7 @@ import com.bonree.brfs.rebalance.DataRecover.RecoverType;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalancev2.BalanceTaskGeneratorV2;
 import java.util.List;
+import java.util.Map;
 
 /*******************************************************************************
  * 版权信息：博睿宏远科技发展有限公司
@@ -17,7 +18,8 @@ public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
 
     @Override
     public BalanceTaskSummaryV2 genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId,
-                                               List<String> selectIDs, List<String> participators, long delayTime) {
+                                               List<String> selectIDs, List<String> participators,
+                                               Map<String, Integer> newSecondIds, long delayTime) {
 
         BalanceTaskSummaryV2 taskSummary = new BalanceTaskSummaryV2();
         // changeID
@@ -39,34 +41,30 @@ public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
         taskSummary.setDelayTime(delayTime); // 1分钟后开始迁移
 
         taskSummary.setPartitionId(partitionId);
+        taskSummary.setNewSecondIds(newSecondIds);
 
         return taskSummary;
     }
 
     @Override
     public BalanceTaskSummaryV2 genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID,
-                                               List<String> selectIDs, List<String> participators, long delayTime) {
+                                               List<String> selectIDs, List<String> participators,
+                                               Map<String, Integer> newSecondIds, Map<String, String> secondFirstShip,
+                                               long delayTime) {
         BalanceTaskSummaryV2 taskSummary = new BalanceTaskSummaryV2();
 
         taskSummary.setChangeID(changeID);
-
         taskSummary.setServerId(secondServerID);
-
         taskSummary.setInputServers(selectIDs);
-
         taskSummary.setOutputServers(participators);
-
         taskSummary.setAliveServer(selectIDs);
-
         taskSummary.setStorageIndex(storageIndex);
-
         taskSummary.setTaskType(RecoverType.NORMAL);
-
         taskSummary.setTaskStatus(TaskStatus.INIT);
-
         taskSummary.setDelayTime(delayTime);
-
         taskSummary.setPartitionId(partitionId);
+        taskSummary.setNewSecondIds(newSecondIds);
+        taskSummary.setSecondFirstShip(secondFirstShip);
 
         return taskSummary;
     }
