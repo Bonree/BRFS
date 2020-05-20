@@ -26,6 +26,8 @@ import com.bonree.brfs.partition.PartitionCheckingRoutine;
 import com.bonree.brfs.partition.PartitionGather;
 import com.bonree.brfs.partition.PartitionInfoRegister;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.rebalance.route.RouteCache;
+import com.bonree.brfs.rebalance.route.impl.RouteParserCache;
 import com.bonree.brfs.rebalancev2.task.DiskPartitionChangeTaskGenerator;
 import com.google.inject.Binder;
 import com.google.inject.Module;
@@ -55,15 +57,18 @@ public class DataNodeIDModule implements Module {
         binder.bind(FirstLevelServerIDImpl.class).in(Singleton.class);
         binder.bind(SecondMaintainerInterface.class).to(SimpleSecondMaintainer.class).in(Singleton.class);
         binder.bind(SecondIdsInterface.class).to(SimpleSecondMaintainer.class).in(Singleton.class);
+        binder.bind(RouteCache.class).to(RouteParserCache.class).in(Singleton.class);
 
         binder.bind(DiskPartitionInfoManager.class).in(ManageLifecycle.class);
         binder.bind(SimpleSecondMaintainer.class).in(ManageLifecycle.class);
         binder.bind(DiskPartitionChangeTaskGenerator.class).in(ManageLifecycle.class);
+        binder.bind(RouteParserCache.class).in(ManageLifecycle.class);
 
         LifecycleModule.register(binder, DiskPartitionInfoManager.class);
         LifecycleModule.register(binder, SimpleSecondMaintainer.class);
         LifecycleModule.register(binder, DiskPartitionChangeTaskGenerator.class);
         LifecycleModule.register(binder, DiskDaemon.class);
+        LifecycleModule.register(binder, RouteParserCache.class);
     }
 
     @Provides

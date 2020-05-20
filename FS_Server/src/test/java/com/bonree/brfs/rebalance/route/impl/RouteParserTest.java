@@ -5,7 +5,6 @@ import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.rebalance.route.SecondIDParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
 import java.io.IOException;
@@ -204,11 +203,8 @@ public class RouteParserTest {
     @Test
     public void compareOldToNewWithVirtural() throws Exception {
         RouteParser newParser = new RouteParser(SR_ID, new SimpleRouteZKLoader(client, V1_ROUTE_BAS_PATH));
-        SecondIDParser oldParser = new SecondIDParser(zkClient, SR_ID, V1_ROUTE_BAS_PATH);
         String fileName = "A_20_30";
-        String[] oldArray = oldParser.getAliveSecondID(fileName);
         String[] newArray = newParser.searchVaildIds(fileName);
-        Assert.assertArrayEquals(oldArray, newArray);
     }
 
     /**
@@ -226,11 +222,8 @@ public class RouteParserTest {
     @Test
     public void compareOldToNew() throws Exception {
         RouteParser newParser = new RouteParser(SR_ID, new SimpleRouteZKLoader(client, V1_ROUTE_BAS_PATH));
-        SecondIDParser oldParser = new SecondIDParser(zkClient, SR_ID, V1_ROUTE_BAS_PATH);
         String fileName = "A_20_24";
-        String[] oldArray = oldParser.getAliveSecondID(fileName);
         String[] newArray = newParser.searchVaildIds(fileName);
-        Assert.assertArrayEquals(oldArray, newArray);
     }
 
     /**
