@@ -5,6 +5,7 @@ import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import java.util.List;
+import java.util.Map;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -67,6 +68,16 @@ public class BalanceTaskSummaryV2 {
      */
     @JsonProperty("inputServers")
     private List<String> inputServers;
+
+    /**
+     * 装载二级serverId以及对应的磁盘剩余空间容量
+     */
+    private Map<String, Integer> newSecondIds;
+
+    /**
+     * 二级serverid与一级server的对应关系
+     */
+    private Map<String, String> secondFirstShip;
 
     /**
      * 本次平衡时存活的server
@@ -158,6 +169,22 @@ public class BalanceTaskSummaryV2 {
         this.inputServers = inputServers;
     }
 
+    public Map<String, Integer> getNewSecondIds() {
+        return newSecondIds;
+    }
+
+    public void setNewSecondIds(Map<String, Integer> newSecondIds) {
+        this.newSecondIds = newSecondIds;
+    }
+
+    public Map<String, String> getSecondFirstShip() {
+        return secondFirstShip;
+    }
+
+    public void setSecondFirstShip(Map<String, String> secondFirstShip) {
+        this.secondFirstShip = secondFirstShip;
+    }
+
     public List<String> getAliveServer() {
         return aliveServer;
     }
@@ -184,7 +211,7 @@ public class BalanceTaskSummaryV2 {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this.getClass())
+        return MoreObjects.toStringHelper(this)
                           .add("id", id)
                           .add("changeID", changeID)
                           .add("serverId", serverId)
@@ -194,6 +221,8 @@ public class BalanceTaskSummaryV2 {
                           .add("taskStatus", taskStatus)
                           .add("outputServers", outputServers)
                           .add("inputServers", inputServers)
+                          .add("newSecondIds", newSecondIds)
+                          .add("secondFirstShip", secondFirstShip)
                           .add("aliveServer", aliveServer)
                           .add("delayTime", delayTime)
                           .add("interval", interval)

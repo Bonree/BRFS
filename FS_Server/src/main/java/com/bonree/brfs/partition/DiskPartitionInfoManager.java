@@ -52,6 +52,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
     private PathChildrenCache cache;
     private DiskPartitionInfoListener listener;
     private Map<String, PartitionInfo> diskPartitionInfoCache = new ConcurrentHashMap<>();
+    private Map<String, Integer> diskPartitionInfoFreeSize = new ConcurrentHashMap<>();
     private CuratorFramework client;
     private String path;
 
@@ -101,6 +102,10 @@ public class DiskPartitionInfoManager implements LifeCycle {
         return map;
     }
 
+    public Map<String, Integer> getDiskPartitionInfoFreeSize() {
+        return this.diskPartitionInfoFreeSize;
+    }
+
     public PartitionInfo freeSizeSelector() {
         if (diskPartitionInfoCache.isEmpty()) {
             return null;
@@ -148,6 +153,8 @@ public class DiskPartitionInfoManager implements LifeCycle {
                     PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
                     if (info != null) {
                         diskPartitionInfoCache.put(info.getPartitionId(), info);
+                        int freeSize = (int) info.getFreeSize();
+                        diskPartitionInfoFreeSize.put(info.getPartitionId(), freeSize);
                         if (!event.getType().equals(PathChildrenCacheEvent.Type.CHILD_UPDATED)) {
                             LOG.info("disk partition info cache added, path:{}, info: {}", event.getData().getPath(), info);
                             LOG.info("current disk partition ids: {}", diskPartitionInfoCache.keySet());
@@ -157,6 +164,9 @@ public class DiskPartitionInfoManager implements LifeCycle {
             } else if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_REMOVED)) {
                 if (event.getData() != null) {
                     String partitionId = parsePartitionIdFromPath(event.getData().getPath());
+                    if (diskPartitionInfoFreeSize.get(partitionId) != null) {
+                        diskPartitionInfoFreeSize.remove(partitionId);
+                    }
                     if (diskPartitionInfoCache.containsKey(partitionId)) {
                         diskPartitionInfoCache.remove(partitionId);
                         LOG.info("disk partition info cache removed, path:{}", event.getData().getPath());
