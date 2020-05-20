@@ -558,7 +558,6 @@ public class BRFSClient implements BRFS {
 
     @Override
     public BRFSObject getObject(GetObjectRequest request) throws Exception {
-        Stopwatch stopwatch = Stopwatch.createStarted();
         String fid = null;
         if (request.getPath() != null) {
             fid = pathMapper.getFidByPath(request.getStorageRegionName(), request.getPath());
@@ -566,8 +565,6 @@ public class BRFSClient implements BRFS {
                 throw new FileNotFoundException(request.getPath().toString());
             }
         }
-        log.info("get fid of [{}] cost [{}]ms", request.getPath(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
-        stopwatch.reset().start();
         if (request.getFID() != null) {
             if (fid != null && !fid.equals(request.getFID())) {
                 throw new IllegalArgumentException(
@@ -584,7 +581,6 @@ public class BRFSClient implements BRFS {
             throw new IllegalArgumentException("either fid or file path should be supplied");
         }
         BRFSObject object = getObject(request.getStorageRegionName(), fid, request.getRange());
-        log.info("get content of file:[{}] cost [{}]", request.getPath(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
         return object;
     }
 
@@ -816,6 +812,13 @@ public class BRFSClient implements BRFS {
                 if (response.code() == HttpStatus.CODE_NOT_AVAILABLE_FILENAME) {
                     resultFuture.setException(new IllegalArgumentException(
                         Strings.format("the custom file name is not pattern the regex [^(/+(\\.*[\\w,\\-]+\\.*)+)+$]!"))
+                    );
+                    return;
+                }
+
+                if (response.code() == HttpStatus.CODE_STORAGE_NOT_EXIST) {
+                    resultFuture.setException(new IllegalArgumentException(
+                        Strings.format("the Storage is not exist!"))
                     );
                     return;
                 }
