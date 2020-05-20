@@ -1,8 +1,10 @@
 package com.bonree.brfs.duplication;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.disknode.PartitionConfig;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.duplicates.DuplicateNodeSelector;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
@@ -34,6 +36,7 @@ import org.apache.curator.framework.CuratorFramework;
 public class RegionIDModule implements Module {
     @Override
     public void configure(Binder binder) {
+        JsonConfigProvider.bind(binder, "partition", PartitionConfig.class);
         binder.bind(VirtualServerID.class).to(VirtualServerIDImpl.class).in(Scopes.SINGLETON);
         binder.bind(DiskPartitionInfoManager.class).in(ManageLifecycle.class);
         binder.bind(PartitionNodeSelector.class).to(SimplePartitionNodeSelecotr.class).in(Scopes.SINGLETON);
