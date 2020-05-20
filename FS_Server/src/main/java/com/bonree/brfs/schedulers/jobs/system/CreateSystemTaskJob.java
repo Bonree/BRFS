@@ -32,7 +32,6 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
         LOG.info("create system task working");
         //判断是否有恢复任务，有恢复任务则不进行创建
         JobDataMap data = context.getJobDetail().getJobDataMap();
-        long checkTtl = data.getLong(JobDataMapConstract.CHECK_TTL);
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
         MetaTaskManagerInterface release = mcf.getTm();
         // 获取开启的任务名称
@@ -60,7 +59,6 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
         TaskModel task;
         String taskName;
         TaskTypeModel tmodel;
-        long ttl = 0;
         Pair<TaskModel, TaskTypeModel> result;
         List<String> srs = TaskStateLifeContral.getSRs(snm);
         for (TaskType taskType : switchList) {
@@ -68,18 +66,13 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
                 continue;
             }
             TaskStateLifeContral.watchSR(release, srs, taskType.name());
-            if (TaskType.SYSTEM_DELETE.equals(taskType)) {
-                ttl = 0;
-            } else if (TaskType.SYSTEM_CHECK.equals(taskType)) {
-                ttl = checkTtl;
-            }
             tmodel = release.getTaskTypeInfo(taskType.name());
             if (tmodel == null) {
                 tmodel = new TaskTypeModel();
                 tmodel.setSwitchFlag(true);
                 LOG.warn("taskType{} is switch but metadata is null");
             }
-            result = CreateSystemTask.createSystemTask(tmodel, taskType, snList, ttl);
+            result = CreateSystemTask.createSystemTask(tmodel, taskType, snList);
             if (result == null) {
                 LOG.warn("create sys task is empty {}", taskType.name());
                 continue;

@@ -19,6 +19,7 @@ import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.google.inject.Inject;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
@@ -132,19 +133,18 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
          * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
          */
         public void sumbitTask(SchedulerManagerInterface manager, ResourceTaskConfig config) throws ParamsErrorException {
-            Map<String, String> createDataMap = JobDataMapConstract.createCreateDataMap(config);
+
             SumbitTaskInterface createJob = QuartzSimpleInfo.createCycleTaskInfo("CREATE_SYSTEM_TASK",
                                                                                  config.getCreateTaskIntervalTime(), 60000,
-                                                                                 createDataMap, CreateSystemTaskJob.class);
+                                                                                 new HashMap<>(), CreateSystemTaskJob.class);
             Map<String, String> metaDataMap = JobDataMapConstract.createMetaDataMap(config);
             SumbitTaskInterface metaJob = QuartzSimpleInfo.createCycleTaskInfo("META_MANAGER_TASK",
                                                                                config.getCreateTaskIntervalTime(), 60000,
                                                                                metaDataMap,
                                                                                ManagerMetaTaskJob.class);
-            Map<String, String> copyJobMap = JobDataMapConstract.createCopyCheckMap(config);
             SumbitTaskInterface checkJob = QuartzSimpleInfo.createCycleTaskInfo("COPY_CHECK_TASK",
                                                                                 config.getCreateCheckJobTaskervalTime(), 60000,
-                                                                                copyJobMap, CopyCheckJob.class);
+                                                                                new HashMap<>(), CopyCheckJob.class);
 
             boolean isSuccess = false;
             isSuccess = manager.addTask(META_TASK_MANAGER, createJob);

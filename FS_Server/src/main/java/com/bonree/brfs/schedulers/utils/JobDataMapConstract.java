@@ -28,18 +28,6 @@ public class JobDataMapConstract {
      */
     public static final String SERVER_ID = "SERVER_ID";
 
-    /**
-     * ip地址
-     */
-    public static final String IP = "IP";
-    /**
-     * 采集样本的间隔
-     */
-    public static final String GATHER_INVERAL_TIME = "GATHER_INVERAL_TIME";
-    /**
-     * 当样本数为几个是计算
-     */
-    public static final String CALC_RESOURCE_COUNT = "CALC_RESOURCE_COUNT";
 
     /**
      * 任务重复次数
@@ -60,10 +48,8 @@ public class JobDataMapConstract {
     public static final String TASK_RESULT = "TASK_RESULT";
     public static final String BATCH_SIZE = "BATCH_SIZE";
     public static final String BASE_ROUTE_PATH = "BASE_ROUTE_PATH";
-    public static final String CHECK_TTL = "CHECK_TTL";
     public static final String CURRENT_TASK_NAME = "CURRENT_TASK_NAME";
     public static final String CHECK_TIME_RANGE = "CHECK_TIME_RANGE";
-    public static final String BASE_SERVER_ID_PATH = "BASE_SERVER_ID_PATH";
 
 
 
@@ -79,21 +65,6 @@ public class JobDataMapConstract {
     public static Map<String, String> createMetaDataMap(ResourceTaskConfig resource) {
         Map<String, String> dataMap = new HashMap<>();
         dataMap.put(TASK_EXPIRED_TIME, resource.getTaskExpiredTime() + "");
-        return dataMap;
-    }
-
-    /**
-     * 概述：创建任务信息
-     *
-     * @param resource
-     *
-     * @return
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public static Map<String, String> createCreateDataMap(ResourceTaskConfig resource) {
-        Map<String, String> dataMap = new HashMap<>();
-        dataMap.put(CHECK_TTL, resource.getCheckTtl() + "");
         return dataMap;
     }
 
@@ -149,12 +120,6 @@ public class JobDataMapConstract {
                 "total batch [" + rsize + "] not equal source [" + size + "], batch count [" + batchCount + "]");
         }
         return batchMap;
-    }
-
-    public static Map<String, String> createCopyCheckMap(ResourceTaskConfig config) {
-        Map<String, String> dataMap = new HashMap<>();
-        dataMap.put(CHECK_TTL, config.getCheckTtl() + "");
-        return dataMap;
     }
 
     public static Map<String, String> createCOPYDataMap(String taskName, String serviceId, long invertalTime, String zkHost,

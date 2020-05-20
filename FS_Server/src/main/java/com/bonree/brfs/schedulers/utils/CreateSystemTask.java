@@ -41,7 +41,7 @@ public class CreateSystemTask {
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public static Pair<TaskModel, TaskTypeModel> createSystemTask(TaskTypeModel tmodel, final TaskType taskType,
-                                                                  final List<StorageRegion> snList, final long globalttl) {
+                                                                  final List<StorageRegion> snList) {
         if (snList == null || snList.isEmpty()) {
             return null;
         }
@@ -53,7 +53,7 @@ public class CreateSystemTask {
             return null;
         }
         snTimes = tmodel.getSnTimes();
-        Pair<TaskModel, Map<String, Long>> pair = creatSingleTask(snTimes, snList, taskType, globalttl);
+        Pair<TaskModel, Map<String, Long>> pair = creatSingleTask(snTimes, snList, taskType);
         if (pair == null) {
             return null;
         }
@@ -151,7 +151,7 @@ public class CreateSystemTask {
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
     public static Pair<TaskModel, Map<String, Long>> creatSingleTask(final Map<String, Long> snTimes, List<StorageRegion> needSn,
-                                                                     TaskType taskType, long globalTTL) {
+                                                                     TaskType taskType) {
         String snName;
         long ctime;
         long startTime;
@@ -175,7 +175,7 @@ public class CreateSystemTask {
                 startTime = ctime - ctime % granule;
             }
             // 获取有效的过期时间
-            ttl = getTTL(sn, taskType, globalTTL);
+            ttl = getTTL(sn, taskType, 0);
             endTime = startTime + granule;
             LOG.debug("sn : {} ,ttl:{}, taskType,", sn.getName(), ttl, taskType.name());
             // 当ttl小于等于0 的sn 跳过
@@ -212,26 +212,26 @@ public class CreateSystemTask {
      *
      * @param sn
      * @param taskType
-     * @param ttl
+     * @param defaultValue
      *
      * @return
      *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static long getTTL(StorageRegion sn, TaskType taskType, long ttl) {
+    public static long getTTL(StorageRegion sn, TaskType taskType, long defaultValue) {
         if (sn == null) {
-            return ttl;
+            return defaultValue;
         }
         if (taskType == null) {
-            return ttl;
+            return defaultValue;
         }
         if (TaskType.SYSTEM_DELETE.equals(taskType)) {
             return Duration.parse(sn.getDataTtl()).toMillis();
         }
-        if (TaskType.SYSTEM_COPY_CHECK.equals(taskType)) {
+        if (TaskType.SYSTEM_COPY_CHECK.equals(taskType) || TaskType.SYSTEM_CHECK.equals(taskType)) {
             return Duration.parse(sn.getFilePartitionDuration()).toMillis();
         }
-        return ttl;
+        return defaultValue;
     }
 
     /**
