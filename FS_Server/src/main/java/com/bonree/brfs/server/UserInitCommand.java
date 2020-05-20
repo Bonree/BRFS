@@ -66,6 +66,8 @@ public class UserInitCommand implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
+        } finally {
+            System.exit(0);
         }
 
     }
