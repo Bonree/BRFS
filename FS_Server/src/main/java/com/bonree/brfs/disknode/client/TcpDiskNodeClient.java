@@ -256,7 +256,7 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 
                 return resultList.getWriteResults();
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOG.error("write file error", e);
         }
 
