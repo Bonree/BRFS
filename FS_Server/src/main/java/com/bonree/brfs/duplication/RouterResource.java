@@ -164,6 +164,7 @@ public class RouterResource {
                     nr.getStorageRegionIndex(),
                     nr.getBaseSecondId(),
                     nr.getRoutes(),
+                    nr.getSecondFirst(),
                     nr.getRouteVersion().name()));
             }
         } catch (Exception e) {

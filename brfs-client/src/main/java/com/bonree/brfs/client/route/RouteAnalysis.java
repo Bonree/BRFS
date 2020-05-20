@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public final class RouteAnalysis {
             return secondId;
         }
 
-        List<String> selector = filterService(map.keySet(), services);
+        List<String> selector = filterService(map.keySet(), services, routerNode);
         if (selector == null || selector.isEmpty()) {
             return secondId;
         }
@@ -53,13 +54,28 @@ public final class RouteAnalysis {
      *
      * @return
      */
-    private static List<String> filterService(Collection<String> newSecondIDs, Collection<String> services) {
+    private static List<String> filterService(
+        Collection<String> newSecondIDs, Collection<String> services, NormalRouterNode node) {
         List<String> selectors = new ArrayList<>();
-
+        Collection<String> cahce = new HashSet<>();
+        if (services != null) {
+            cahce.addAll(services);
+            services.forEach(x -> {
+                String first = node.getSecondFirstShip().get(x);
+                if (first == null) {
+                    return;
+                }
+                Collection<String> tmp = node.getFirstSeconds().get(first);
+                if (tmp == null) {
+                    return;
+                }
+                cahce.addAll(tmp);
+            });
+        }
         // 1.过滤掉已经使用的service
-        if (services != null && !services.isEmpty()) {
+        if (cahce != null && !cahce.isEmpty()) {
             selectors = newSecondIDs.stream()
-                                    .filter(x -> !services.contains(x))
+                                    .filter(x -> !cahce.contains(x))
                                     .collect(toList());
         } else {
             selectors.addAll(newSecondIDs);
@@ -67,7 +83,7 @@ public final class RouteAnalysis {
 
         // 2.判断集合是否为空，为空，则解析失败。
         if (selectors.isEmpty()) {
-            throw new IllegalArgumentException("errror");
+            throw new IllegalArgumentException("none second server is used");
         }
 
         // 3.对select 服务进行排序。

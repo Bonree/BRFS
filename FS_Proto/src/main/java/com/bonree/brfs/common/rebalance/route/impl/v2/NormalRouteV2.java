@@ -85,6 +85,11 @@ public class NormalRouteV2 extends SuperNormalRoute {
         return this.newSecondIDs;
     }
 
+    @Override
+    public Map<String, String> getSecondFirst() {
+        return this.secondToFirstShip;
+    }
+
     /**
      * 路由规则V2版本检索二级serverId逻辑
      *

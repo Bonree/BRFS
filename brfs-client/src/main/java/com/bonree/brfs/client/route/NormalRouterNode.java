@@ -17,7 +17,11 @@ package com.bonree.brfs.client.route;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class NormalRouterNode implements RouterNode {
@@ -25,7 +29,10 @@ public class NormalRouterNode implements RouterNode {
     private final int storageRegionIndex;
     private final String baseSecondId;
     private final Map<String, Integer> newSecondIDs;
+    private final Map<String, String> secondFirstShip;
     private final String version;
+    @JsonIgnore
+    private Map<String, Collection<String>> firstSeconds;
 
     @JsonCreator
     public NormalRouterNode(
@@ -33,12 +40,33 @@ public class NormalRouterNode implements RouterNode {
         @JsonProperty("storageRegionIndex") int storageRegionIndex,
         @JsonProperty("baseSecondId") String baseSecondId,
         @JsonProperty("newSecondIDs") Map<String, Integer> newSecondIDs,
+        @JsonProperty("secondFirstShip") Map<String, String> secondFirstShip,
         @JsonProperty("version") String version) {
         this.changeId = changeId;
         this.storageRegionIndex = storageRegionIndex;
         this.baseSecondId = baseSecondId;
         this.newSecondIDs = newSecondIDs;
+        this.secondFirstShip = secondFirstShip;
         this.version = version;
+        convertToShip(this.secondFirstShip);
+    }
+
+    private void convertToShip(Map<String, String> map) {
+        if (map == null || map.isEmpty()) {
+            return;
+        }
+        Map<String, Collection<String>> cache = new HashMap<>();
+        map.forEach(
+            (key, value) -> {
+                if (key == null || value == null) {
+                    return;
+                }
+                if (cache.get(value) == null) {
+                    cache.put(value, new HashSet<>());
+                }
+                cache.get(value).add(key);
+            });
+        this.firstSeconds = cache;
     }
 
     @JsonProperty("changeId")
@@ -61,9 +89,18 @@ public class NormalRouterNode implements RouterNode {
         return newSecondIDs;
     }
 
+    @JsonProperty("secondFirstShip")
+    public Map<String, String> getSecondFirstShip() {
+        return secondFirstShip;
+    }
+
     @JsonProperty("version")
     public String getVersion() {
         return version;
+    }
+
+    public Map<String, Collection<String>> getFirstSeconds() {
+        return firstSeconds;
     }
 
     @Override
