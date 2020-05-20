@@ -23,6 +23,7 @@ import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.DataRecover;
+import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import com.bonree.brfs.rebalance.task.TaskDetail;
@@ -438,8 +439,8 @@ public class MultiRecoverV2 implements DataRecover {
             return;
         }
         // 4.解析文件名 用于当前需要发布的路由规则
-        Pair<String, List<String>> fileInfoPair = parser.analyzingFileName(brfsPath.getFileName());
-        int fileCode = parser.sumName(fileInfoPair.getFirst());
+        Pair<String, List<String>> fileInfoPair = BlockAnalyzer.analyzingFileName(brfsPath.getFileName());
+        int fileCode = BlockAnalyzer.sumName(fileInfoPair.getFirst());
         List<String> excludes = fileInfoPair.getSecond();
         // excludes.addAll(idManager.getSecondIds(idManager.getFirstSever(), balanceSummary.getStorageIndex()));
         // 排除本机二级serverId

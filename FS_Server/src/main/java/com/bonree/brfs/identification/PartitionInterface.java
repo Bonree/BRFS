@@ -18,4 +18,23 @@ public interface PartitionInterface {
      * @return
      */
     String getDataDir(String secondId, int storageRegionId);
+
+    /**
+     * 根据文件块名称获取文件块所在的磁盘路径
+     *
+     * @param fileName
+     * @param storageRegionId
+     *
+     * @return
+     */
+    String getDataDirByFileName(String fileName, int storageRegionId);
+
+    /**
+     * 根据相对路径获取文件块所在的磁盘路径
+     *
+     * @param filePath
+     *
+     * @return
+     */
+    String getDataDirByPath(String filePath);
 }

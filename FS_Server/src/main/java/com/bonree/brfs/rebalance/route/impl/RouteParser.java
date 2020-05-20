@@ -31,9 +31,15 @@ public class RouteParser implements BlockAnalyzer {
     private RouteLoader loader = null;
 
     public RouteParser(int storageRegionID, RouteLoader loader) {
+        this(storageRegionID, loader, true);
+    }
+
+    public RouteParser(int storageRegionID, RouteLoader loader, boolean update) {
         this.storageRegionID = storageRegionID;
         this.loader = loader;
-        update();
+        if (update) {
+            update();
+        }
     }
 
     /**
@@ -46,14 +52,14 @@ public class RouteParser implements BlockAnalyzer {
     @Override
     public String[] searchVaildIds(String fileBocker) {
         // 1.分解文件块的名称
-        Pair<String, List<String>> pair = analyzingFileName(fileBocker);
+        Pair<String, List<String>> pair = BlockAnalyzer.analyzingFileName(fileBocker);
         List<String> secondIds = pair.getSecond();
         String uuid = pair.getFirst();
         // 2.判断文件块是否合法
         if (secondIds == null || secondIds.isEmpty() || StringUtils.isEmpty(uuid) || StringUtils.isBlank(uuid)) {
             throw new IllegalStateException("fileBocker is invaild !! content:" + fileBocker);
         }
-        int fileCode = sumName(uuid);
+        int fileCode = BlockAnalyzer.sumName(uuid);
         String source = null;
         String dent = null;
         for (int index = 0; index < secondIds.size(); index++) {
@@ -88,6 +94,22 @@ public class RouteParser implements BlockAnalyzer {
         } catch (Exception e) {
             LOG.error("load data happen error !!");
         }
+    }
+
+    @Override
+    public void putVirtualRoute(VirtualRoute virtualRoute) {
+        if (virtualRoute == null) {
+            return;
+        }
+        this.virtualRouteRelationship.put(virtualRoute.getVirtualID(), virtualRoute);
+    }
+
+    @Override
+    public void putNormalRoute(NormalRouteInterface routeInterface) {
+        if (routeInterface == null) {
+            return;
+        }
+        this.normalRouteTree.put(routeInterface.getBaseSecondId(), routeInterface);
     }
 
     /**
@@ -136,37 +158,5 @@ public class RouteParser implements BlockAnalyzer {
             String tmpSI = this.normalRouteTree.get(secondId).locateNormalServer(fileCode, excludes);
             return searchNormalRouteTree(fileCode, tmpSI, excludes);
         }
-    }
-
-    /**
-     * 解析文件块名称
-     *
-     * @param fileBocker 文件块名称
-     *
-     * @return Pair\<String,List\<String>> key: 文件的uuid，value 二级serverId集合，按照其顺序排列
-     */
-    public Pair<String, List<String>> analyzingFileName(String fileBocker) {
-        String[] splitStr = fileBocker.split("_");
-        String fileUUID = splitStr[0];
-        List<String> fileServerIDs = new ArrayList<>(splitStr.length - 1);
-        for (int i = 1; i < splitStr.length; i++) {
-            fileServerIDs.add(splitStr[i]);
-        }
-        return new Pair<>(fileUUID, fileServerIDs);
-    }
-
-    /**
-     * 根据文件名生成code
-     *
-     * @param name
-     *
-     * @return
-     */
-    public int sumName(String name) {
-        int sum = 0;
-        for (int i = 0; i < name.length(); i++) {
-            sum = sum + name.charAt(i);
-        }
-        return sum;
     }
 }

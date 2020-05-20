@@ -58,13 +58,7 @@ public class DiskContext {
     }
 
     private String getStorageDir(String filePath) {
-        String[] parts = FilePathBuilder.parsePath(filePath);
-        StorageRegion sr = storageRegionManager.findStorageRegionByName(parts[0]);
-        if (sr == null) {
-            throw new IllegalStateException(String.format("no storage region[%s] is found.", parts[0]));
-        }
-
-        return partition.getDataDir(parts[1], sr.getId());
+        return partition.getDataDirByPath(filePath);
     }
 
     /**

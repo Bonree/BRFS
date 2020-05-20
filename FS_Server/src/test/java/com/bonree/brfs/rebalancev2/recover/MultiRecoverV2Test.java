@@ -5,6 +5,7 @@ import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.rebalance.route.impl.v2.NormalRouteV2;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
+import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import com.bonree.brfs.rebalance.route.impl.SimpleRouteZKLoader;
@@ -94,8 +95,8 @@ public class MultiRecoverV2Test {
         };
         RouteParser parser = new RouteParser(0, loader);
         String fileName = "97872496313e40289611d44ff6c5b041_21_20";
-        Pair<String, List<String>> fileInfoPair = parser.analyzingFileName(fileName);
-        int fileCode = parser.sumName(fileInfoPair.getFirst());
+        Pair<String, List<String>> fileInfoPair = BlockAnalyzer.analyzingFileName(fileName);
+        int fileCode = BlockAnalyzer.sumName(fileInfoPair.getFirst());
         List<String> excludes = fileInfoPair.getSecond();
         System.out.println(routeV2);
         String selector = routeV2.locateNormalServer(fileCode, excludes);

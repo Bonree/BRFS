@@ -930,7 +930,8 @@ public class TaskDispatcherV2 implements Closeable {
                             List<String> joiners = currentTask.getOutputServers();
                             List<String> receivers = currentTask.getInputServers();
 
-                            if (joiners.contains(secondID) || receivers.contains(secondID)) { // 参与者出现问题 或 既是参与者又是接收者
+                            // 参与者出现问题 或 既是参与者又是接收者
+                            if (joiners.contains(secondID) || receivers.contains(secondID)) {
                                 if (!TaskStatus.PAUSE.equals(currentTask.getTaskStatus())) {
                                     updateTaskStatus(currentTask, TaskStatus.PAUSE);
                                 }
@@ -941,7 +942,7 @@ public class TaskDispatcherV2 implements Closeable {
                                 } else {
                                     currentTask.setInterval(currentTask.getInterval() - 1);
                                 }
-                                LOG.info("task interval", currentTask.getInterval());
+                                LOG.info("task interval:{}", currentTask.getInterval());
                                 break;
                             }
                         }

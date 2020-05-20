@@ -282,6 +282,7 @@ public class VirtualRecoverV2 implements DataRecover {
                         if (status.get().equals(TaskStatus.CANCEL)) {
                             break;
                         }
+
                         fileRecover = fileRecoverQueue.poll(100, TimeUnit.MILLISECONDS);
                         if (fileRecover != null) {
                             String logicPath = storageName + FileUtils.FILE_SEPARATOR + fileRecover
@@ -293,17 +294,22 @@ public class VirtualRecoverV2 implements DataRecover {
                                     + fileRecover.getFileName();
                             boolean success;
                             LOG.info("transfer: {}", fileRecover);
-                            String firstID = fileRecover.getFirstServerID();
+                            String firstId = fileRecover.getFirstServerID();
 
+                            int retryTimes = 0;
                             while (true) {
                                 Service service = serviceManager.getServiceById(
-                                    Configs.getConfiguration()
-                                           .getConfig(
-                                               CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME),
-                                    firstID);
+                                    Configs.getConfiguration().getConfig(
+                                        CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME), firstId);
+
                                 if (service == null) {
-                                    LOG.warn("first id is {}, maybe down!", firstID);
-                                    Thread.sleep(1000);
+                                    LOG.warn("first id is {}, maybe down!", firstId);
+                                    Thread.sleep(3000);
+                                    // 当执行虚拟serverId迁移任务时发生目标节点挂掉的情况，则等待5分钟若目标节点还未连接上，则取消任务
+                                    if (retryTimes++ >= 100) {
+                                        status.set(TaskStatus.CANCEL);
+                                        break;
+                                    }
                                     continue;
                                 }
 

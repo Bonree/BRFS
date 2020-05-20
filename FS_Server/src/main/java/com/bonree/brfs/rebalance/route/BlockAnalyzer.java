@@ -1,5 +1,11 @@
 package com.bonree.brfs.rebalance.route;
 
+import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
+import com.bonree.brfs.common.rebalance.route.VirtualRoute;
+import com.bonree.brfs.common.utils.Pair;
+import java.util.ArrayList;
+import java.util.List;
+
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
@@ -10,6 +16,38 @@ package com.bonree.brfs.rebalance.route;
 
 public interface BlockAnalyzer {
     /**
+     * 解析文件块名称
+     *
+     * @param fileBocker 文件块名称
+     *
+     * @return Pair\<String,List\<String>> key: 文件的uuid，value 二级serverId集合，按照其顺序排列
+     */
+    static Pair<String, List<String>> analyzingFileName(String fileBocker) {
+        String[] splitStr = fileBocker.split("_");
+        String fileUUID = splitStr[0];
+        List<String> fileServerIDs = new ArrayList<>(splitStr.length - 1);
+        for (int i = 1; i < splitStr.length; i++) {
+            fileServerIDs.add(splitStr[i]);
+        }
+        return new Pair<>(fileUUID, fileServerIDs);
+    }
+
+    /**
+     * 根据文件名生成code
+     *
+     * @param name
+     *
+     * @return
+     */
+    static int sumName(String name) {
+        int sum = 0;
+        for (int i = 0; i < name.length(); i++) {
+            sum = sum + name.charAt(i);
+        }
+        return sum;
+    }
+
+    /**
      * 根据文件块解析可用的服务
      *
      * @param fileName
@@ -19,8 +57,21 @@ public interface BlockAnalyzer {
     String[] searchVaildIds(String fileName);
 
     /**
-     * 更新路由规则
+     * 更新所有路由规则
      */
     void update();
 
+    /**
+     * 添加虚拟路由规则
+     *
+     * @param virtualRoute
+     */
+    void putVirtualRoute(VirtualRoute virtualRoute);
+
+    /**
+     * 添加正常路由规则
+     *
+     * @param routeInterface
+     */
+    void putNormalRoute(NormalRouteInterface routeInterface);
 }
