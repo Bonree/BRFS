@@ -308,6 +308,8 @@ public class VirtualRecoverV2 implements DataRecover {
                                     // 当执行虚拟serverId迁移任务时发生目标节点挂掉的情况，则等待5分钟若目标节点还未连接上，则取消任务
                                     if (retryTimes++ >= 100) {
                                         status.set(TaskStatus.CANCEL);
+                                        LOG.warn("current virtual task will cancel because wait [{}] more than five minutes",
+                                                 firstId);
                                         break;
                                     }
                                     continue;
