@@ -1,5 +1,6 @@
 package com.bonree.brfs.rebalance.route;
 
+import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.Pair;
@@ -15,6 +16,17 @@ import java.util.List;
  ******************************************************************************/
 
 public interface BlockAnalyzer {
+    /**
+     * 判断serverid是否为虚拟serverid
+     *
+     * @param serverID
+     *
+     * @return
+     */
+    static boolean isVirtualID(String serverID) {
+        return serverID.charAt(0) == Constants.VIRTUAL_ID;
+    }
+
     /**
      * 解析文件块名称
      *

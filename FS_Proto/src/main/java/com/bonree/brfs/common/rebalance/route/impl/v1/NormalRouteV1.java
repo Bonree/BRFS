@@ -23,6 +23,8 @@ public class NormalRouteV1 extends SuperNormalRoute {
     private List<String> newSecondIDs;
     @JsonIgnore
     private Map<String, Integer> routes;
+    @JsonIgnore
+    private Map<String, String> secondFirstShip;
 
     public NormalRouteV1(@JsonProperty("changeID") String changeID,
                          @JsonProperty("storageIndex") int storageIndex,
@@ -33,6 +35,7 @@ public class NormalRouteV1 extends SuperNormalRoute {
         routes = new HashMap<>();
         for (String id : this.newSecondIDs) {
             routes.put(id, 1);
+            secondFirstShip.put(id, id);
         }
     }
 
@@ -49,6 +52,11 @@ public class NormalRouteV1 extends SuperNormalRoute {
     @Override
     public Map<String, Integer> getRoutes() {
         return routes;
+    }
+
+    @Override
+    public Map<String, String> getSecondFirst() {
+        return secondFirstShip;
     }
 
     public List<String> getNewSecondIDs() {

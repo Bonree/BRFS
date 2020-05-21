@@ -30,11 +30,15 @@ public class RouteAnalysisTest {
         newSecondIds.put("11", 1);
         newSecondIds.put("12", 2);
         newSecondIds.put("13", 3);
-        NormalRouterNode normalRoute = new NormalRouterNode("123456", 0, "10", newSecondIds, "V2");
+        Map<String, String> secondShip = new HashMap<>();
+        secondShip.put("11", "11");
+        secondShip.put("12", "11");
+        secondShip.put("13", "13");
+        NormalRouterNode normalRoute = new NormalRouterNode("123456", 0, "10", newSecondIds, secondShip, "V2");
 
         List<String> services = Arrays.asList("11");
         String secondId = "10";
-        String expectStr = "12";
+        String expectStr = "13";
         String uuid = "A";
 
         String dentStr = analysisNormal(indexCode(uuid), secondId, services, normalRoute);

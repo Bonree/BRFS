@@ -18,7 +18,7 @@ import org.apache.zookeeper.CreateMode;
 
 public class PartitionInfoRegister {
     private CuratorFramework framework;
-    private String zkBasePath = "/discovery/diskgroup";
+    private String zkBasePath;
 
     public PartitionInfoRegister(CuratorFramework framework, String zkBasePath) {
         this.framework = framework;

@@ -31,7 +31,7 @@ public class SimpleRouteZKLoader implements RouteLoader {
 
     @Inject
     public SimpleRouteZKLoader(CuratorFramework client, ZookeeperPaths zookeeperPaths) {
-        this(client, zookeeperPaths.getBaseRoutePath());
+        this(client, zookeeperPaths.getBaseV2RoutePath());
     }
 
     @Override

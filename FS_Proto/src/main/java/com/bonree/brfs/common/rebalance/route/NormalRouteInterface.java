@@ -57,4 +57,11 @@ public interface NormalRouteInterface {
      * @return
      */
     Map<String, Integer> getRoutes();
+
+    /**
+     * 获取二级serverid与一级serverid的关系
+     *
+     * @return
+     */
+    Map<String, String> getSecondFirst();
 }

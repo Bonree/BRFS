@@ -170,79 +170,85 @@ public class VirtualRecoverV2 implements DataRecover {
         LOG.info("update:" + selfNode + "-------------" + detail);
         updateDetail(selfNode, detail);
 
+        Thread cosumerThread = new Thread(consumerQueue());
+        cosumerThread.start();
+
         int timeFileCounts = 0;
         Collection<LocalPartitionInfo> localPartitionInfos = this.localPartitionInterface.getPartitions();
 
-        for (LocalPartitionInfo partitionInfo : localPartitionInfos) {
-            String partitionPath = partitionInfo.getDataDir();
-            String snDataDir = partitionPath + FileUtils.FILE_SEPARATOR + storageName;
-            LOG.info("storage data dir: {}", snDataDir);
+        try {
+            for (LocalPartitionInfo partitionInfo : localPartitionInfos) {
+                String partitionPath = partitionInfo.getDataDir();
+                String snDataDir = partitionPath + FileUtils.FILE_SEPARATOR + storageName;
+                LOG.info("storage data dir: {}", snDataDir);
 
-            if (!FileUtils.isExist(snDataDir)) {
-                snDirNonExistNum.incrementAndGet();
-                continue;
-            }
-
-            List<String> replicasNames = FileUtils.listFileNames(snDataDir);
-            for (String replicasName : replicasNames) {
-                String replicasPath = snDataDir + FileUtils.FILE_SEPARATOR + replicasName;
-                timeFileCounts += FileUtils.listFileNames(replicasPath).size();
-            }
-
-            Thread cosumerThread = new Thread(consumerQueue());
-            cosumerThread.start();
-
-            detail.setTotalDirectories(timeFileCounts);
-            updateDetail(selfNode, detail);
-
-            String remoteSecondId = balanceSummary.getInputServers().get(0);
-            String remoteFirstID = idManager.getFirstId(remoteSecondId, balanceSummary.getStorageIndex());
-            String virtualID = balanceSummary.getServerId();
-
-            LOG.info("balance virtual serverId:" + virtualID);
-            List<BRFSPath> allPaths = BRFSFileUtil.scanFile(partitionPath, storageName);
-            for (BRFSPath brfsPath : allPaths) {
-                if (status.get().equals(TaskStatus.CANCEL)) {
-                    break;
+                if (!FileUtils.isExist(snDataDir)) {
+                    snDirNonExistNum.incrementAndGet();
+                    continue;
                 }
-                String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
-                if (!perFile.endsWith(".rd")) {
-                    String timeFileName = brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
-                        .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
-                        .getHourMinSecond();
-                    String fileName = brfsPath.getFileName();
-                    int replicaPot = 0;
-                    String[] metaArr = fileName.split(NAME_SEPARATOR);
-                    List<String> fileServerIds = new ArrayList<>();
-                    for (int j = 1; j < metaArr.length; j++) {
-                        fileServerIds.add(metaArr[j]);
-                    }
 
-                    if (fileServerIds.contains(virtualID)) {
-                        // 此处位置需要加1，副本数从1开始
-                        replicaPot = fileServerIds.indexOf(virtualID) + 1;
-                        FileRecoverMetaV2 fileMeta =
-                            new FileRecoverMetaV2(perFile, fileName, remoteSecondId, timeFileName, Integer
-                                .parseInt(brfsPath.getIndex()), replicaPot, remoteFirstID, partitionPath);
-                        try {
-                            fileRecoverQueue.put(fileMeta);
-                        } catch (InterruptedException e) {
-                            LOG.error("put file: " + fileMeta, e);
+                List<String> replicasNames = FileUtils.listFileNames(snDataDir);
+                for (String replicasName : replicasNames) {
+                    String replicasPath = snDataDir + FileUtils.FILE_SEPARATOR + replicasName;
+                    timeFileCounts += FileUtils.listFileNames(replicasPath).size();
+                }
+
+                detail.setTotalDirectories(timeFileCounts);
+                updateDetail(selfNode, detail);
+
+                String remoteSecondId = balanceSummary.getInputServers().get(0);
+                String remoteFirstId = idManager.getFirstId(remoteSecondId, balanceSummary.getStorageIndex());
+                String virtualId = balanceSummary.getServerId();
+
+                LOG.info("balance virtual serverId: {}", virtualId);
+                List<BRFSPath> allPaths = BRFSFileUtil.scanFile(partitionPath, storageName);
+
+                for (BRFSPath brfsPath : allPaths) {
+                    if (status.get().equals(TaskStatus.CANCEL)) {
+                        break;
+                    }
+                    String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
+                    if (!perFile.endsWith(".rd")) {
+                        String timeFileName = brfsPath.getYear() + FileUtils.FILE_SEPARATOR + brfsPath
+                            .getMonth() + FileUtils.FILE_SEPARATOR + brfsPath.getDay() + FileUtils.FILE_SEPARATOR + brfsPath
+                            .getHourMinSecond();
+                        String fileName = brfsPath.getFileName();
+                        int replicaPot = 0;
+                        String[] metaArr = fileName.split(NAME_SEPARATOR);
+                        List<String> fileServerIds = new ArrayList<>();
+                        for (int j = 1; j < metaArr.length; j++) {
+                            fileServerIds.add(metaArr[j]);
+                        }
+
+                        if (fileServerIds.contains(virtualId)) {
+                            // 此处位置需要加1，副本数从1开始
+                            replicaPot = fileServerIds.indexOf(virtualId) + 1;
+                            FileRecoverMetaV2 fileMeta =
+                                new FileRecoverMetaV2(perFile, fileName, remoteSecondId, timeFileName, Integer
+                                    .parseInt(brfsPath.getIndex()), replicaPot, remoteFirstId, partitionPath);
+                            try {
+                                fileRecoverQueue.put(fileMeta);
+                            } catch (InterruptedException e) {
+                                LOG.error("put file: " + fileMeta, e);
+                            }
                         }
                     }
                 }
             }
-
+        } catch (Exception e) {
+            LOG.error("scan virtual serverId file error", e);
+        } finally {
             // 所有的文件已经处理完毕，等待队列为空
             overFlag = true;
-            try {
-                cosumerThread.join();
-            } catch (InterruptedException e) {
-                LOG.error("cosumerThread error!", e);
-            }
-
-            finishTask();
         }
+
+        try {
+            cosumerThread.join();
+        } catch (InterruptedException e) {
+            LOG.error("cosumerThread error!", e);
+        }
+
+        finishTask();
 
         if (snDirNonExistNum.get() == localPartitionInfos.size()) {
             LOG.info("virtual finish task because of snDirNonExistNum equal localPartitionInfos size");
@@ -308,6 +314,8 @@ public class VirtualRecoverV2 implements DataRecover {
                                     // 当执行虚拟serverId迁移任务时发生目标节点挂掉的情况，则等待5分钟若目标节点还未连接上，则取消任务
                                     if (retryTimes++ >= 100) {
                                         status.set(TaskStatus.CANCEL);
+                                        LOG.warn("current virtual task will cancel because wait [{}] more than five minutes",
+                                                 firstId);
                                         break;
                                     }
                                     continue;

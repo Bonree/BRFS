@@ -8,6 +8,7 @@ import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.RouteCache;
@@ -15,6 +16,7 @@ import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.factory.SingleRouteFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
@@ -35,27 +37,42 @@ public class RouteParserCache implements RouteCache, LifeCycle {
     private RouteLoader loader;
     private ZookeeperPaths zookeeperPaths;
     private CuratorFramework client;
+    private StorageRegionManager manager;
     private PathChildrenCache childrenCache;
 
     @Inject
-    public RouteParserCache(RouteLoader loader, ZookeeperPaths zookeeperPaths, CuratorFramework client) {
+    public RouteParserCache(RouteLoader loader, ZookeeperPaths zookeeperPaths, StorageRegionManager manager,
+                            CuratorFramework client) {
         this.loader = loader;
         this.zookeeperPaths = zookeeperPaths;
+        this.manager = manager;
         this.client = client;
     }
 
     @Override
     public BlockAnalyzer getBlockAnalyzer(int storageIndex) {
+        if (analyzerMap.get(storageIndex) == null) {
+            analyzerMap.put(storageIndex, new RouteParser(storageIndex, loader));
+        }
         return analyzerMap.get(storageIndex);
     }
 
     @LifecycleStart
     @Override
     public void start() throws Exception {
+        List<StorageRegion> regionList = manager.getStorageRegionList();
+        if (regionList != null) {
+            regionList.stream().forEach(region -> {
+                RouteParser parser = new RouteParser(region.getId(), loader);
+                LOG.info("load {} route", region.getName());
+                analyzerMap.put(region.getId(), parser);
+            });
+        }
         childrenCache =
             new PathChildrenCache(this.client, zookeeperPaths.getBaseV2RoutePath(), true, THREAD_FACTORY);
         childrenCache.start();
         childrenCache.getListenable().addListener(new RouteLister(zookeeperPaths.getBaseV2RoutePath()));
+        LOG.info("route parser cache load ");
     }
 
     @LifecycleStop
@@ -64,6 +81,7 @@ public class RouteParserCache implements RouteCache, LifeCycle {
         if (childrenCache != null) {
             childrenCache.close();
         }
+        LOG.info("route parser cache stop ");
     }
 
     private class RouteLister implements PathChildrenCacheListener {
@@ -103,6 +121,7 @@ public class RouteParserCache implements RouteCache, LifeCycle {
                     NormalRouteInterface normal = SingleRouteFactory.createRoute(data);
                     routeParser.putNormalRoute(normal);
                 }
+                LOG.info("load {} route ", baseRoutePathInfo.getStorageRegionId());
                 break;
             default:
                 LOG.info("event {}", type);

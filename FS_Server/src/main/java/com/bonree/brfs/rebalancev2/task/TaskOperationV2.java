@@ -13,6 +13,7 @@ import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
+import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import com.bonree.brfs.rebalancev2.recover.MultiRecoverV2;
@@ -46,23 +47,21 @@ public class TaskOperationV2 implements Closeable {
     private String tasksPath;
     private StorageRegionManager snManager;
     private ServiceManager serviceManager;
-    private String baseRoutesPath;
     private LocalPartitionInterface partitionInterface;
-    private RouteLoader routeLoader;
+    private RouteCache routeCache;
     private ExecutorService es = Executors.newFixedThreadPool(10, new PooledThreadFactory("task_executor"));
 
-    public TaskOperationV2(final CuratorClient client, final String baseBalancePath, String baseRoutesPath, IDSManager idManager,
+    public TaskOperationV2(final CuratorClient client, final String baseBalancePath, IDSManager idManager,
                            StorageRegionManager snManager, ServiceManager serviceManager,
-                           LocalPartitionInterface partitionInterface, RouteLoader routeLoader) {
+                           LocalPartitionInterface partitionInterface, RouteCache routeCache) {
         this.client = client;
         this.idManager = idManager;
         this.tasksPath = ZKPaths.makePath(baseBalancePath, Constants.TASKS_NODE);
-        this.baseRoutesPath = baseRoutesPath;
         treeCache = CuratorCacheFactory.getTreeCache();
         this.snManager = snManager;
         this.serviceManager = serviceManager;
         this.partitionInterface = partitionInterface;
-        this.routeLoader = routeLoader;
+        this.routeCache = routeCache;
     }
 
     public void start() {
@@ -87,10 +86,10 @@ public class TaskOperationV2 implements Closeable {
                     LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
                     return;
                 }
-                String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
                 recover =
-                    new MultiRecoverV2(partitionInterface, this.routeLoader, taskSummary, idManager, serviceManager, taskPath,
-                                       client, storageName, baseRoutesPath);
+                    new MultiRecoverV2(partitionInterface, routeCache, taskSummary, idManager, serviceManager, taskPath, client,
+                                       node);
+
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
                 StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
                 if (node == null) {
