@@ -5,9 +5,11 @@ import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
+import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
@@ -47,7 +49,7 @@ public class RouteParserTest {
      */
     @Before
     public void checkLoad() throws Exception {
-        load();
+        //load();
     }
 
     public void load() {
@@ -242,6 +244,19 @@ public class RouteParserTest {
         RouteParser newParser = new RouteParser(SR_ID, new SimpleRouteZKLoader(client, V2_ROUTE_BAS_PATH));
         String[] newArray = newParser.searchVaildIds(fileName);
         Assert.assertArrayEquals(expValue, newArray);
+    }
+
+    @Test
+    public void analysisV2Route02() throws Exception {
+        String fileName = "084adb555f284f61b67158c83c065204_20_30";
+        CuratorFramework client = CuratorFrameworkFactory
+            .newClient("192.168.150.236:2181", new RetryNTimes(50, 1000));
+        client.start();
+        client.blockUntilConnected();
+        RouteLoader loader = new SimpleRouteZKLoader(client, "/brfs/idea/routeSet");
+        RouteParser parser = new RouteParser(0, loader);
+        String[] array = parser.searchVaildIds(fileName);
+        System.out.println(Arrays.asList(array));
     }
 
     @After

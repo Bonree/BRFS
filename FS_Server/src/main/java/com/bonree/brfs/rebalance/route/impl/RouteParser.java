@@ -1,6 +1,5 @@
 package com.bonree.brfs.rebalance.route.impl;
 
-import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.utils.Pair;
@@ -72,10 +71,6 @@ public class RouteParser implements BlockAnalyzer {
         return secondIds.toArray(new String[0]);
     }
 
-    public boolean isVirtualID(String serverID) {
-        return serverID.charAt(0) == Constants.VIRTUAL_ID;
-    }
-
     @Override
     public void update() {
         try {
@@ -126,10 +121,10 @@ public class RouteParser implements BlockAnalyzer {
         String tmpSecondId = secondId;
         List<String> excludes = new ArrayList<>();
         // 1.判断secondId的类型，若为虚拟serverid 并且未迁移 则返回null
-        if (isVirtualID(secondId) && virtualRouteRelationship.get(secondId) == null) {
+        if (BlockAnalyzer.isVirtualID(secondId) && virtualRouteRelationship.get(secondId) == null) {
             return secondId;
             //2. 判断secondId的类型，若为虚拟serverid 并发生迁移则进行转换。
-        } else if (isVirtualID(secondId)) {
+        } else if (BlockAnalyzer.isVirtualID(secondId)) {
             tmpSecondId = virtualRouteRelationship.get(secondId).getNewSecondID();
         }
         excludes.addAll(excludeSecondIds);
