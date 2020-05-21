@@ -28,8 +28,13 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.CuratorFrameworkFactory.Builder;
 import org.apache.curator.framework.api.ACLProvider;
+import org.apache.curator.framework.api.CuratorEvent;
+import org.apache.curator.framework.api.CuratorEventType;
+import org.apache.curator.framework.api.CuratorListener;
 import org.apache.curator.framework.imps.DefaultACLProvider;
 import org.apache.curator.framework.imps.GzipCompressionProvider;
+import org.apache.curator.framework.state.ConnectionState;
+import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.BoundedExponentialBackoffRetry;
 import org.apache.curator.shaded.com.google.common.base.Strings;
 import org.apache.zookeeper.ZooDefs;
@@ -96,6 +101,26 @@ public class CuratorModule implements Module {
                 framework.close();
             }
         }, Lifecycle.Stage.INIT);
+
+        framework.getCuratorListenable().addListener(new CuratorListener() {
+
+            @Override
+            public void eventReceived(CuratorFramework client, CuratorEvent event) throws Exception {
+                if (event.getType() == CuratorEventType.CLOSING) {
+                    log.info("curator client[{}] is closing", client);
+                }
+            }
+
+        });
+
+        framework.getConnectionStateListenable().addListener(new ConnectionStateListener() {
+
+            @Override
+            public void stateChanged(CuratorFramework client, ConnectionState newState) {
+                log.info("curator client[{}] state changed to =====> {}", client, newState);
+            }
+
+        });
 
         try {
             // the design of first release requires that connection to
