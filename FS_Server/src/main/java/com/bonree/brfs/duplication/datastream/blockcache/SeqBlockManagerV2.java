@@ -119,7 +119,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                 return null;
             }
             if (needflush) { //flush a block
-                writer.write(srName, blockValue.getRealData(),
+                writer.write(srName, blockValue.getBytes(),
                              new WriteBlockCallback(srName, callback, packet, packet.isLastPacketInFile()));
                 LOG.info("flush a block of file[{}] into data pool ", fileName);
                 blockValue.reset();
@@ -254,6 +254,10 @@ public class SeqBlockManagerV2 implements BlockManager {
         public void addFid(String fid) {
             fids.add(fid);
             accessTime = System.currentTimeMillis();
+        }
+
+        public byte[] getBytes() {
+            return data.getBytes();
         }
 
         class ClearTimerTask extends TimerTask {
