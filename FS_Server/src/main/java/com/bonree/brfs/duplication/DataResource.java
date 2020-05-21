@@ -41,12 +41,10 @@ import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.collect.ImmutableList;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -103,6 +101,9 @@ public class DataResource {
     public void writeBatch(@PathParam("srName") String srName,
                            WriteBatch batch,
                            @Suspended AsyncResponse response) {
+        if (!storageRegionManager.exists(srName)) {
+            throw new WebApplicationException("storage:" + srName + "is not exist!", HttpStatus.CODE_STORAGE_NOT_EXIST);
+        }
         final BatchDatas datas = new BatchDatas(batch.getItemsCount(), brfsCatalog.isUsable());
         batch.getItemsList().forEach(datas::add);
 
@@ -152,8 +153,9 @@ public class DataResource {
         @PathParam("srName") String srName,
         FSPacketProto data,
         @Suspended AsyncResponse response) {
-        LOG.debug("DONE decode");
-
+        if (!storageRegionManager.exists(srName)) {
+            throw new WebApplicationException("storage:" + srName + "is not exist!", HttpStatus.CODE_STORAGE_NOT_EXIST);
+        }
         try {
             FSPacket packet = new FSPacket();
             packet.setProto(data);
@@ -380,13 +382,4 @@ public class DataResource {
         }
     }
 
-
-    @GET
-    @Path("/statistic/{srName}")
-    @Produces(APPLICATION_JSON)
-    public Map<String, Integer> getStatistic(
-        @PathParam("srName") String srName,
-        @QueryParam("minutes") int minutes) {
-        return null;
-    }
 }
