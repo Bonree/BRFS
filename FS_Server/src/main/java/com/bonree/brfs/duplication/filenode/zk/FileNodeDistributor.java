@@ -119,7 +119,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
                         continue;
                     }
 
-                    if (timeToLive(fileNode) > 0) {
+                    if (timeToLive(fileNode) >= 0) {
                         wildFileNodes.add(fileNode);
                         LOG.info("add FileNode[{}] to wild file list", fileNode.getName());
                         continue;
@@ -175,7 +175,8 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
     }
 
     private long timeToLive(FileNode file) {
-        return TimeUtils.nextTimeStamp(System.currentTimeMillis(), file.getTimeDurationMillis()) - file.getCreateTime();
+        return TimeUtils.nextTimeStamp(file.getCreateTime(), file.getTimeDurationMillis()) -
+            TimeUtils.nextTimeStamp(System.currentTimeMillis(), file.getTimeDurationMillis());
     }
 
     private boolean handleFileNode(FileNode fileNode) {
@@ -302,7 +303,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
                 Iterator<FileNode> iter = wildFileNodes.iterator();
                 while (iter.hasNext()) {
                     FileNode file = iter.next();
-                    if (timeToLive(file) > 0) {
+                    if (timeToLive(file) >= 0) {
                         continue;
                     }
 
