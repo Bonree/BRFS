@@ -126,6 +126,7 @@ public class RocksDBRestoreEngine implements LifeCycle {
                 .getConnection(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME), serviceId);
             if (connection == null || connection.getClient() == null) {
                 LOG.warn("region node connection/client is null! serviceId:{}", this.service.getServiceId());
+                clear(restorePath, tmpRestorePath);
                 return;
             }
 
@@ -133,6 +134,7 @@ public class RocksDBRestoreEngine implements LifeCycle {
                 connection.getClient().restoreData(TRANSFER_FILE_NAME, restorePath, this.service.getHost(), transferPort);
             if (backupIds == null || backupIds.isEmpty()) {
                 LOG.info("backupIds is null or empty, restore engine exit.");
+                clear(restorePath, tmpRestorePath);
                 return;
             }
 
@@ -158,14 +160,18 @@ public class RocksDBRestoreEngine implements LifeCycle {
 
                 rocksDBManager.mergeData(tmpRestorePath);
                 LOG.info("data transfer complete, cost time:{}", watcher.getElapsedTime());
-
-                FileUtils.deleteDir(restorePath, true);
-                FileUtils.deleteDir(tmpRestorePath, true);
             } catch (RocksDBException e) {
                 LOG.error("restore engine err", e);
             } finally {
+                clear(restorePath, tmpRestorePath);
                 close();
             }
+        }
+    }
+
+    private void clear(String... paths) {
+        for (String path : paths) {
+            FileUtils.deleteDir(path, true);
         }
     }
 
