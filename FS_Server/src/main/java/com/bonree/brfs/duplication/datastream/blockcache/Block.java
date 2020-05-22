@@ -16,4 +16,6 @@ public interface Block {
     int appendPacket(byte[] packetData);
 
     boolean isBlockSpill();
+
+    byte[] getBytes();
 }

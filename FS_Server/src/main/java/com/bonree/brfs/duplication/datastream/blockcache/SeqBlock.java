@@ -208,6 +208,11 @@ public class SeqBlock implements Block {
     }
 
     @Override
+    public byte[] getBytes() {
+        return data;
+    }
+
+    @Override
     public String toString() {
         return "Block{"
             + "defaulBlockSize=" + defaultBlockLen
