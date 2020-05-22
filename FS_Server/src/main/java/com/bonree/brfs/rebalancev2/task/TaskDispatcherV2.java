@@ -830,7 +830,7 @@ public class TaskDispatcherV2 implements Closeable {
                                         }
                                     }
                                 } else if (interval > 0) {
-                                    currentTask.setInterval(currentTask.getInterval() - 1);
+                                    currentTask.setInterval(currentTask.getInterval() - 10);
                                 }
                                 break;
                             } else {
