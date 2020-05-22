@@ -842,7 +842,7 @@ public class TaskDispatcherV2 implements Closeable {
                                     if (interval == -1) {
                                         currentTask.setInterval(DEFAULT_INTERVAL);
                                     } else if (interval > 0) {
-                                        currentTask.setInterval(currentTask.getInterval() - 1);
+                                        currentTask.setInterval(currentTask.getInterval() - 10);
                                     } else if (interval == 0) {
                                         List<String> aliveServices = getAliveServices();
                                         String otherFirstID = idManager.getFirstId(currentTask.getOutputServers().get(0),
@@ -940,7 +940,7 @@ public class TaskDispatcherV2 implements Closeable {
                                 } else if (currentTask.getInterval() == 0) {
                                     updateTaskStatus(currentTask, TaskStatus.CANCEL);
                                 } else {
-                                    currentTask.setInterval(currentTask.getInterval() - 1);
+                                    currentTask.setInterval(currentTask.getInterval() - 10);
                                 }
                                 LOG.info("task interval:{}", currentTask.getInterval());
                                 break;
