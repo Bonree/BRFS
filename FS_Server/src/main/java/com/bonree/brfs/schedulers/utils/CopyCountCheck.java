@@ -9,6 +9,7 @@ import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.identification.IDSManager;
+import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.mail.worker.MailWorker;
@@ -351,7 +352,7 @@ public class CopyCountCheck {
         return filterErrors(strs, errorFiles);
     }
 
-    public static boolean isUnlaw(String sid, RouteParser parser, String fileName) {
+    public static boolean isUnlaw(String sid, BlockAnalyzer parser, String fileName) {
         String[] alives = parser.searchVaildIds(fileName);
         if (alives == null || alives.length == 0) {
             LOG.warn("[{}] analys service error !! alives is null !!!", fileName);

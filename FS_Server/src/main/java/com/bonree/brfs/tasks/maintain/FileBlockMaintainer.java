@@ -6,20 +6,21 @@ import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
-import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
-import com.bonree.brfs.rebalance.route.RouteLoader;
-import com.bonree.brfs.rebalance.route.impl.RouteParser;
+import com.bonree.brfs.rebalance.route.BlockAnalyzer;
+import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.schedulers.utils.InvaildFileBlockFilter;
 import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import java.io.File;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +31,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,23 +47,23 @@ public class FileBlockMaintainer implements LifeCycle {
     private RebalanceTaskMonitor monitor;
     private StorageRegionManager manager;
     private SecondIdsInterface secondIds;
-    private RouteLoader loader;
+    private RouteCache routeCache;
     private long intervalTime;
 
     @Inject
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteLoader loader) {
+                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache loader) {
         this(localPartitionInterface, monitor, manager, secondIds, loader, 1);
     }
 
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteLoader loader,
+                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache loader,
                                long intervalTime) {
         this.localPartitionInterface = localPartitionInterface;
         this.monitor = monitor;
         this.manager = manager;
         this.secondIds = secondIds;
-        this.loader = loader;
+        this.routeCache = loader;
         this.intervalTime = intervalTime;
     }
 
@@ -69,7 +72,7 @@ public class FileBlockMaintainer implements LifeCycle {
     public void start() throws Exception {
         pool =
             Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("FileBlockMaintainer").build());
-        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, loader, LOG), 0,
+        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG), 0,
                                  intervalTime, TimeUnit.HOURS);
         LOG.info(" block server start");
     }
@@ -89,10 +92,10 @@ public class FileBlockMaintainer implements LifeCycle {
         private RebalanceTaskMonitor monitor;
         private StorageRegionManager manager;
         private SecondIdsInterface secondIds;
-        private RouteLoader loader;
+        private RouteCache loader;
 
         public FileBlockWorker(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteLoader loader, Logger log) {
+                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache loader, Logger log) {
             this.localPartitionInterface = localPartitionInterface;
             this.monitor = monitor;
             this.manager = manager;
@@ -123,22 +126,22 @@ public class FileBlockMaintainer implements LifeCycle {
          */
         public void handleInvalidBlocks(SecondIdsInterface secondIds, StorageRegionManager srManager,
                                         LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                                        RouteLoader loader, long limitTime) {
+                                        RouteCache loader, long limitTime) {
             // 1. 获取storageRegion信息
             Collection<StorageRegion> sns = srManager.getStorageRegionList();
             // 2. 获取磁盘信息
             Collection<LocalPartitionInfo> localPartitionInfos = localPartitionInterface.getPartitions();
             // 3. 扫描文件块，并获取非法文件块路径
-            Queue<String> invalidBlockQueue = scanInvalidBlocks(secondIds, monitor, sns, localPartitionInfos, loader, limitTime);
+            Queue<File> invalidBlockQueue = scanInvalidBlocks(secondIds, monitor, sns, localPartitionInfos, loader, limitTime);
             // 4. 若见采集结果不为空则调用删除线程
             int count = deleteInvalidBlock(invalidBlockQueue, monitor);
             LOG.info("handler invalid file block num :{}", count);
 
         }
 
-        private Queue<String> scanInvalidBlocks(SecondIdsInterface secondIds, RebalanceTaskMonitor monitor,
-                                                Collection<StorageRegion> sns, Collection<LocalPartitionInfo> localPartitionInfos,
-                                                RouteLoader loader, long limitTime) {
+        private Queue<File> scanInvalidBlocks(SecondIdsInterface secondIds, RebalanceTaskMonitor monitor,
+                                              Collection<StorageRegion> sns, Collection<LocalPartitionInfo> localPartitionInfos,
+                                              RouteCache loader, long limitTime) {
             if (localPartitionInfos == null || localPartitionInfos.isEmpty()) {
                 return null;
             }
@@ -146,55 +149,106 @@ public class FileBlockMaintainer implements LifeCycle {
                 log.debug("skip search data because is empty");
                 return null;
             }
-            Queue<String> invalidBlockQueue = new ConcurrentLinkedQueue<String>();
+            Queue<File> invalidBlockQueue = new ConcurrentLinkedQueue<File>();
             // sn 目录及文件
             int snId;
-            RouteParser parser;
+            BlockAnalyzer parser;
             Map<String, String> snMap;
             long granule;
             long snLimitTime;
 
-            for (StorageRegion sn : sns) {
-                // 单个副本的不做检查
-                if (sn.getReplicateNum() <= 1) {
-                    continue;
-                }
-                snId = sn.getId();
-                granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
-                ;
-                snLimitTime = limitTime - limitTime % granule;
-                log.info(" watch dog eat {} :{}", sn.getName(), sn.getId());
+            List<String> storageRegionName = sns.stream().map(StorageRegion::getName).collect(Collectors.toList());
+            for (LocalPartitionInfo local : localPartitionInfos) {
+                // 处理sr文件
+                for (StorageRegion sn : sns) {
+                    // 单个副本的不做检查
+                    if (sn.getReplicateNum() <= 1) {
+                        continue;
+                    }
+                    snId = sn.getId();
+                    granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
+                    ;
+                    snLimitTime = limitTime - limitTime % granule;
+                    log.info(" watch dog eat {} :{}", sn.getName(), sn.getId());
 
-                parser = new RouteParser(snId, loader);
-                // 使用前必须更新路由规则，否则会解析错误
-                snMap = new HashMap<>();
-                snMap.put(BRFSPath.STORAGEREGION, sn.getName());
-                for (LocalPartitionInfo local : localPartitionInfos) {
+                    parser = loader.getBlockAnalyzer(snId);
+                    // 使用前必须更新路由规则，否则会解析错误
+                    snMap = new HashMap<>();
+                    snMap.put(BRFSPath.STORAGEREGION, sn.getName());
                     if (monitor.isExecute()) {
                         invalidBlockQueue.clear();
                         return null;
                     }
-                    List<String> paths = scanSinglePartition(sn, local, secondIds, parser, snMap, snLimitTime);
+                    List<File> paths = scanSinglePartition(sn, local, secondIds, parser, snMap, snLimitTime);
                     if (paths != null && !paths.isEmpty()) {
                         invalidBlockQueue.addAll(paths);
+                    }
+                    List<File> invalids = scanInvalidFile(storageRegionName, local);
+                    if (invalids != null && !invalids.isEmpty()) {
+                        invalidBlockQueue.addAll(invalids);
                     }
                 }
 
             }
+
             return invalidBlockQueue;
         }
 
-        private List<String> scanSinglePartition(StorageRegion storageRegion, LocalPartitionInfo localPartitionInfo,
-                                                 SecondIdsInterface secondIdsInterface, RouteParser parser,
-                                                 Map<String, String> snMap, long lastTime) {
+        /**
+         * 扫描非法的目录
+         *
+         * @param sr
+         * @param local
+         *
+         * @return
+         */
+        private List<File> scanInvalidFile(Collection<String> sr, LocalPartitionInfo local) {
+            String dataDir = local.getDataDir();
+            File root = new File(dataDir);
+            if (!root.exists()) {
+                return ImmutableList.of();
+            }
+
+            File[] files = root.listFiles();
+            if (files == null || files.length == 0) {
+                return ImmutableList.of();
+            }
+            List<File> array = new ArrayList<>();
+            for (File file : files) {
+                if (!sr.contains(file.getName())) {
+                    array.add(file);
+                    LOG.info("partition [{}] find invalid file {}", local.getPartitionId(), file.getName());
+                }
+            }
+            return array;
+        }
+
+        /**
+         * 扫描单个磁盘分区的sr信息
+         *
+         * @param storageRegion
+         * @param localPartitionInfo
+         * @param secondIdsInterface
+         * @param analyzer
+         * @param snMap
+         * @param lastTime
+         *
+         * @return
+         */
+        private List<File> scanSinglePartition(StorageRegion storageRegion, LocalPartitionInfo localPartitionInfo,
+                                               SecondIdsInterface secondIdsInterface, BlockAnalyzer analyzer,
+                                               Map<String, String> snMap, long lastTime) {
             String dataDir = localPartitionInfo.getDataDir();
             String partitionId = localPartitionInfo.getPartitionId();
             String secondId = secondIdsInterface.getSecondId(partitionId, storageRegion.getId());
-            InvaildFileBlockFilter filter = new InvaildFileBlockFilter(parser, storageRegion, secondId, lastTime);
+            InvaildFileBlockFilter filter = new InvaildFileBlockFilter(analyzer, storageRegion, secondId, lastTime);
             List<BRFSPath> invalidFileBlocks = BRFSFileUtil.scanBRFSFiles(dataDir, snMap, snMap.size(), filter);
-            return invalidFileBlocks == null || invalidFileBlocks.isEmpty() ? null : invalidFileBlocks.stream().map(f -> {
-                return dataDir + File.separator + f.toString();
-            }).collect(Collectors.toList());
+            List<File> files = invalidFileBlocks == null || invalidFileBlocks.isEmpty() ? new ArrayList<>() :
+                invalidFileBlocks.stream().map(f -> {
+                    return new File(dataDir + File.separator + f.toString());
+                }).collect(Collectors.toList());
+
+            return files;
         }
 
         /**
@@ -203,7 +257,7 @@ public class FileBlockMaintainer implements LifeCycle {
          * @param invalidBlocks
          * @param monitor
          */
-        private int deleteInvalidBlock(Queue<String> invalidBlocks, RebalanceTaskMonitor monitor) {
+        private int deleteInvalidBlock(Queue<File> invalidBlocks, RebalanceTaskMonitor monitor) {
             // 为空跳出
             if (invalidBlocks == null || invalidBlocks.isEmpty()) {
                 log.info("queue is empty skip !!!");
@@ -212,11 +266,16 @@ public class FileBlockMaintainer implements LifeCycle {
             int count = 0;
             while (!invalidBlocks.isEmpty() && !monitor.isExecute()) {
                 try {
-                    String path = invalidBlocks.poll();
-                    boolean deleteFlag = FileUtils.deleteFile(path);
-                    log.debug("file : {} deleting!", path);
+                    File file = invalidBlocks.poll();
+                    boolean deleteFlag = true;
+                    if (file.isDirectory()) {
+                        FileUtils.deleteDirectory(file);
+                    } else {
+                        deleteFlag = FileUtils.deleteQuietly(file);
+                    }
+                    log.debug("file : {} deleting!", file.getAbsolutePath());
                     if (!deleteFlag) {
-                        log.info("file : {} cann't delete !!!", path);
+                        log.info("file : {} cann't delete !!!", file.getAbsolutePath());
                     }
                     count++;
                     if (count % 100 == 0) {
