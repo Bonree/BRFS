@@ -15,10 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class JobDataMapConstract {
-    /**
-     * zookeeper地址
-     */
-    public static final String ZOOKEEPER_ADDRESS = "ZOOKEEPER_ADDRESS";
+
     /**
      * 任务过期时间
      */
@@ -129,7 +126,6 @@ public class JobDataMapConstract {
         dataMap.put(SERVER_ID, serviceId);
         dataMap.put(TASK_TYPE, TaskType.SYSTEM_COPY_CHECK.code() + "");
         dataMap.put(TASK_STAT, TaskState.INIT + "");
-        dataMap.put(ZOOKEEPER_ADDRESS, zkHost);
         dataMap.put(BASE_ROUTE_PATH, path);
         dataMap.put(TASK_REPEAT_RUN_COUNT, "-1");
         dataMap.put(TASK_RUN_INVERAL_TIME, invertalTime + "");

@@ -109,7 +109,7 @@ public class TaskOpertionManager implements LifeCycle {
         for (TaskType taskType : swtichList) {
             typeName = taskType.name();
             // 检查历史队列，若历史队列的数据存在未执行的则将任务移动到执行 若存在多个服务执行，覆盖
-            release.recoveryTask(typeName, serverId);
+            // release.recoveryTask(typeName, serverId);
             queueCurrentTask = release.getLastSuccessTaskIndex(typeName, serverId);
             if (BrStringUtils.isEmpty(queueCurrentTask)) {
                 queueCurrentTask = release.getFirstServerTask(typeName, serverId);

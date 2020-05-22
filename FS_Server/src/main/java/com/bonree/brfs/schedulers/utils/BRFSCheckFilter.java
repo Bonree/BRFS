@@ -14,6 +14,9 @@ import java.util.zip.CRC32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 文件块检查类，若存在CRC错误的文件块将被收集
+ */
 public class BRFSCheckFilter extends BRFSTimeFilter {
     private static final Logger LOG = LoggerFactory.getLogger(BRFSCheckFilter.class);
 

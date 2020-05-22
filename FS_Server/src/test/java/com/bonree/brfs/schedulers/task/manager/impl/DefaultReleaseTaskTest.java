@@ -9,7 +9,7 @@ import java.util.Arrays;
 import org.junit.Test;
 
 public class DefaultReleaseTaskTest {
-    String zkAddress = "localhost:2181";
+    String zkAddress = "192.168.150.236:2181";
     String taskRoot = "/release/task";
     String taskLocl = "/release/task/lock";
 
@@ -28,6 +28,9 @@ public class DefaultReleaseTaskTest {
         releaseTask.updateServerTaskContentNode("10", name, TaskType.USER_DELETE.name(), serverNodeModel);
         System.out.println(name);
         releaseTask.reviseTaskStat(TaskType.USER_DELETE.name(), 7 * 24 * 60 * 60 * 1000, Arrays.asList("10"));
+        releaseTask.recoveryTask(TaskType.USER_DELETE.name(), "11");
+        releaseTask.reviseTaskStat(TaskType.USER_DELETE.name(), 7 * 24 * 60 * 60 * 1000, Arrays.asList("10"));
+        releaseTask.updateTaskContentNode(taskModel, TaskType.USER_DELETE.name(), null);
 
     }
 }

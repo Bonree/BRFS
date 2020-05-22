@@ -5,6 +5,7 @@ import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import java.io.File;
 import java.util.Map;
@@ -13,12 +14,12 @@ import org.slf4j.LoggerFactory;
 
 public class InvaildFileBlockFilter extends BRFSFileBaseFilter {
     private static final Logger LOG = LoggerFactory.getLogger(InvaildFileBlockFilter.class);
-    private RouteParser parser;
+    private BlockAnalyzer parser;
     private StorageRegion region;
     private long lastTime;
     private String secondId;
 
-    public InvaildFileBlockFilter(RouteParser parser, StorageRegion storageRegion, String secondId, long lastTime) {
+    public InvaildFileBlockFilter(BlockAnalyzer parser, StorageRegion storageRegion, String secondId, long lastTime) {
         super();
         this.parser = parser;
         this.region = storageRegion;

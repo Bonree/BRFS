@@ -30,8 +30,8 @@ import java.util.concurrent.ExecutorService;
 
 public class CachedDiscovery implements Discovery {
 
-    private static final Duration DEFAULT_EXPIRE_DURATION = Duration.ofMinutes(10);
-    private static final Duration DEFAULT_REFRESH_DURATION = Duration.ofMinutes(5);
+    private static final Duration DEFAULT_EXPIRE_DURATION = Duration.ofSeconds(30);
+    private static final Duration DEFAULT_REFRESH_DURATION = Duration.ofSeconds(5);
 
     private final Discovery delegate;
 

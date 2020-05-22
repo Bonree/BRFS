@@ -77,45 +77,7 @@ public class FileUtils {
         }
     }
 
-    public static List<String> readFileByLine(String fileName) {
-        File file = new File(fileName);
-        if (file.isDirectory()) {
-            throw new IllegalArgumentException("fileName not is directory");
-        }
-        List<String> lines = new ArrayList<String>(128);
-        InputStreamReader reader = null;
-        BufferedReader br = null;
-        String line = null;
-        try {
-            reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8);
-            br = new BufferedReader(reader);
-            while ((line = br.readLine()) != null) {
-                if (StringUtils.isNotEmpty(line)) {
-                    lines.add(line);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            LOG.error("read file error!", e);
-        } catch (IOException e) {
-            LOG.error("read file error!", e);
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    LOG.error("close BufferedReader error!", e);
-                }
-            }
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    LOG.error("close InputStreamReader error!", e);
-                }
-            }
-        }
-        return lines;
-    }
+
 
     public static List<String> listFileNames(String dir) {
         File file = new File(dir);
@@ -126,24 +88,7 @@ public class FileUtils {
         return Arrays.stream(file.list()).collect(Collectors.toList());
     }
 
-    public static List<String> listFileNames(String dir, final String filterEndStr) {
-        FilenameFilter filter = new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                if (name.toLowerCase().endsWith(filterEndStr)) {
-                    return false;
-                }
-                return true;
-            }
-        };
 
-        File file = new File(dir);
-        String[] files = file.list(filter);
-        if (files == null || files.length == 0) {
-            return new ArrayList<String>();
-        }
-        return Arrays.stream(file.list(filter)).collect(Collectors.toList());
-    }
 
     public static List<String> listFilePaths(String dir) {
         File file = new File(dir);
