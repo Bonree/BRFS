@@ -1,9 +1,9 @@
-package com.bonree.brfs.rebalancev2.task.listener;
+package com.bonree.brfs.rebalance.task.listener;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.rebalancev2.task.BalanceTaskSummaryV2;
-import com.bonree.brfs.rebalancev2.task.TaskOperationV2;
+import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
+import com.bonree.brfs.rebalance.task.TaskOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
@@ -12,13 +12,13 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TaskExecutorListenerV2 implements TreeCacheListener {
+public class TaskExecutorListener implements TreeCacheListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorListenerV2.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorListener.class);
 
-    private TaskOperationV2 opt;
+    private TaskOperation opt;
 
-    public TaskExecutorListenerV2(TaskOperationV2 opt) {
+    public TaskExecutorListener(TaskOperation opt) {
         this.opt = opt;
     }
 
@@ -33,7 +33,7 @@ public class TaskExecutorListenerV2 implements TreeCacheListener {
                 // 标识为一个任务节点
                 if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
                     byte[] data = event.getData().getData();
-                    BalanceTaskSummaryV2 taskSummary = JsonUtils.toObjectQuietly(data, BalanceTaskSummaryV2.class);
+                    BalanceTaskSummary taskSummary = JsonUtils.toObjectQuietly(data, BalanceTaskSummary.class);
                     LOG.info("deal task:" + taskSummary);
                     String taskPath = event.getData().getPath();
                     if (taskSummary != null) {

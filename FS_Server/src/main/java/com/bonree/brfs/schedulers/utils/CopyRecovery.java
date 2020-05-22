@@ -14,7 +14,8 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
-import com.bonree.brfs.rebalance.route.impl.RouteParser;
+import com.bonree.brfs.rebalance.route.BlockAnalyzer;
+import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
@@ -22,6 +23,7 @@ import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskResultModel;
 import com.bonree.mail.worker.MailWorker;
+import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
@@ -63,9 +65,9 @@ public class CopyRecovery {
         IDSManager sim = mcf.getSim();
         ServiceManager sm = mcf.getSm();
         StorageRegionManager snm = mcf.getSnm();
-
+        RouteCache routeCache = mcf.getRouteCache();
         StorageRegion sn;
-        RouteParser parser;
+        BlockAnalyzer parser;
         String snName;
         int snId;
         AtomTaskResultModel atomR;
@@ -84,7 +86,7 @@ public class CopyRecovery {
                 continue;
             }
             snId = sn.getId();
-            parser = new RouteParser(snId, mcf.getRouteLoader());
+            parser = routeCache.getBlockAnalyzer(snId);
             for (LocalPartitionInfo local : mcf.getDaemon().getPartitions()) {
                 errors = recoveryFiles(sm, sim, parser, sn, atom, local.getDataDir(), local.getPartitionId());
                 if (errors != null && !errors.isEmpty()) {
@@ -132,7 +134,7 @@ public class CopyRecovery {
      *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static List<String> recoveryFiles(ServiceManager sm, IDSManager sim, RouteParser parser, StorageRegion snNode,
+    public static List<String> recoveryFiles(ServiceManager sm, IDSManager sim, BlockAnalyzer parser, StorageRegion snNode,
                                              AtomTaskModel atom, String dataPath, String partitionId) {
 
         String snName = atom.getStorageName();
@@ -182,7 +184,7 @@ public class CopyRecovery {
      *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static boolean recoveryFileByName(ServiceManager sm, IDSManager sim, RouteParser parser, StorageRegion snNode,
+    public static boolean recoveryFileByName(ServiceManager sm, IDSManager sim, BlockAnalyzer parser, StorageRegion snNode,
                                              String fileName, String dirName, String dataPath, String partitionId,
                                              String operation) {
         String[] sss;
@@ -207,7 +209,8 @@ public class CopyRecovery {
         }
         localIndex = isContain(sss, secondId);
         if (-1 == localIndex) {
-            LOG.info("{} {} {} is not mine !! skip", secondId, snName, fileName);
+            LOG.info("secondID:[{}],sr:[{}] filename:[{}] analysisArray:[{}] not local !! skip",
+                     secondId, snName, fileName, ImmutableList.of(sss));
             return true;
         }
 
@@ -255,8 +258,7 @@ public class CopyRecovery {
                 continue;
             }
             remotePath = "/" + snName + "/" + remoteIndex + "/" + dirName + "/" + fileName;
-            isSuccess = copyFrom(remoteService.getHost(), remoteService.getPort(), remoteService.getExtraPort(), 5000, remotePath,
-                                 dataPath + localPath);
+            isSuccess = copyFrom(remoteService, remotePath, dataPath + localPath);
             LOG.info("remote address [{}: {} ：{}], remote [{}], local [{}], stat [{}]",
                      remoteService.getHost(), remoteService.getPort(), remoteService.getExtraPort(),
                      remotePath, localPath, isSuccess ? "success" : "fail");
@@ -297,10 +299,7 @@ public class CopyRecovery {
     /**
      * 概述：恢复数据文件
      *
-     * @param host       远程主机
-     * @param port       端口
-     * @param export
-     * @param timeout
+     * @param remote     远程主机
      * @param remotePath
      * @param localPath
      *
@@ -308,11 +307,10 @@ public class CopyRecovery {
      *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static boolean copyFrom(String host, int port, int export, int timeout, String remotePath, String localPath) {
+    public static boolean copyFrom(Service remote, String remotePath, String localPath) {
         TcpDiskNodeClient client = null;
         try {
-            client = TcpClientUtils.getClient(host, port, export, timeout);
-            LOG.debug("{}:{},{}:{}, read {} to local {}", host, port, host, export, remotePath, localPath);
+            client = new TcpClientBuilder().getClient(remote);
             LocalByteStreamConsumer consumer = new LocalByteStreamConsumer(localPath);
             client.readFile(remotePath, consumer);
             return consumer.getResult().get();
@@ -324,10 +322,9 @@ public class CopyRecovery {
             ManagerContralFactory mcf = ManagerContralFactory.getInstance();
             builder.setMessage(mcf.getGroupName() + "(" + mcf.getServerId() + ")服务 执行任务时发生问题");
             Map<String, String> map = new HashMap<>();
-            map.put("remote ", host);
+            map.put("remote ", remote.getHost());
             map.put("remote path", remotePath);
             map.put("local path", localPath);
-            map.put("connectTimeout", String.valueOf(timeout));
             builder.setVariable(map);
             emailPool.sendEmail(builder);
             LOG.error("copy from error {}", e);

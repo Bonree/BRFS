@@ -1,6 +1,5 @@
-package com.bonree.brfs.rebalancev2.task;
+package com.bonree.brfs.rebalance.task;
 
-import com.bonree.brfs.rebalance.task.ChangeType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import java.util.List;

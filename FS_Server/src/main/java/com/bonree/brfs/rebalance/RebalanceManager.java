@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalancev2;
+package com.bonree.brfs.rebalance;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
@@ -14,10 +14,9 @@ import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalance.route.RouteCache;
-import com.bonree.brfs.rebalance.route.RouteLoader;
-import com.bonree.brfs.rebalancev2.task.TaskDispatcherV2;
-import com.bonree.brfs.rebalancev2.task.TaskOperationV2;
-import com.bonree.brfs.rebalancev2.transfer.SimpleFileServer;
+import com.bonree.brfs.rebalance.task.TaskDispatcher;
+import com.bonree.brfs.rebalance.task.TaskOperation;
+import com.bonree.brfs.rebalance.transfer.SimpleFileServer;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -26,30 +25,30 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RebalanceManagerV2 implements Closeable {
-    private static final Logger LOG = LoggerFactory.getLogger(RebalanceManagerV2.class);
+public class RebalanceManager implements Closeable {
+    private static final Logger LOG = LoggerFactory.getLogger(RebalanceManager.class);
 
-    private TaskDispatcherV2 dispatch;
-    private TaskOperationV2 opt;
+    private TaskDispatcher dispatch;
+    private TaskOperation opt;
     SimpleFileServer fileServer = null;
     ExecutorService simpleFileServer = Executors.newSingleThreadExecutor();
     private CuratorClient curatorClient;
 
     @Inject
-    public RebalanceManagerV2(ZookeeperPaths zkPaths, IDSManager idManager, StorageRegionManager snManager,
-                              ServiceManager serviceManager, LocalPartitionInterface partitionInterface,
-                              DiskPartitionInfoManager partitionInfoManager, RouteCache routeCache) {
+    public RebalanceManager(ZookeeperPaths zkPaths, IDSManager idManager, StorageRegionManager snManager,
+                            ServiceManager serviceManager, LocalPartitionInterface partitionInterface,
+                            DiskPartitionInfoManager partitionInfoManager, RouteCache routeCache) {
         String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
         curatorClient = CuratorClient.getClientInstance(zkAddresses, 500, 500);
-        dispatch = new TaskDispatcherV2(curatorClient, zkPaths.getBaseRebalancePath(),
-                                        zkPaths.getBaseV2RoutePath(), idManager,
-                                        serviceManager, snManager,
-                                        Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
-                                        Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY),
-                                        partitionInfoManager);
+        dispatch = new TaskDispatcher(curatorClient, zkPaths.getBaseRebalancePath(),
+                                      zkPaths.getBaseV2RoutePath(), idManager,
+                                      serviceManager, snManager,
+                                      Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
+                                      Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY),
+                                      partitionInfoManager);
 
-        opt = new TaskOperationV2(curatorClient, zkPaths.getBaseRebalancePath(), idManager, snManager, serviceManager,
-                                  partitionInterface, routeCache);
+        opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), idManager, snManager, serviceManager,
+                                partitionInterface, routeCache);
 
         int port = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT);
         try {

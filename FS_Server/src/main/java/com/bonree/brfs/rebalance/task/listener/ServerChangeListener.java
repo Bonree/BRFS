@@ -1,9 +1,9 @@
-package com.bonree.brfs.rebalancev2.task.listener;
+package com.bonree.brfs.rebalance.task.listener;
 
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.RebalanceUtils;
-import com.bonree.brfs.rebalancev2.task.DiskPartitionChangeSummary;
-import com.bonree.brfs.rebalancev2.task.TaskDispatcherV2;
+import com.bonree.brfs.rebalance.task.DiskPartitionChangeSummary;
+import com.bonree.brfs.rebalance.task.TaskDispatcher;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
@@ -20,13 +20,13 @@ import org.slf4j.LoggerFactory;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 监听changes目录，根据变更情况生成磁盘摘要信息并放入队列
  ******************************************************************************/
-public class ServerChangeListenerV2 implements TreeCacheListener {
+public class ServerChangeListener implements TreeCacheListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ServerChangeListenerV2.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServerChangeListener.class);
 
-    private TaskDispatcherV2 dispatcher;
+    private TaskDispatcher dispatcher;
 
-    public ServerChangeListenerV2(TaskDispatcherV2 dispatcher) {
+    public ServerChangeListener(TaskDispatcher dispatcher) {
         this.dispatcher = dispatcher;
     }
 

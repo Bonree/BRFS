@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalancev2.task;
+package com.bonree.brfs.rebalance.task;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
@@ -21,7 +21,6 @@ import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.partition.model.PartitionInfo;
-import com.bonree.brfs.rebalance.task.ChangeType;
 import com.bonree.mail.worker.MailWorker;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;

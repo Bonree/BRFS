@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalancev2.transfer;
+package com.bonree.brfs.rebalance.transfer;
 
 import com.bonree.brfs.common.utils.FileUtils;
 import java.io.File;

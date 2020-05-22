@@ -28,7 +28,7 @@ import com.bonree.brfs.partition.PartitionInfoRegister;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.rebalance.route.impl.RouteParserCache;
-import com.bonree.brfs.rebalancev2.task.DiskPartitionChangeTaskGenerator;
+import com.bonree.brfs.rebalance.task.DiskPartitionChangeTaskGenerator;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;

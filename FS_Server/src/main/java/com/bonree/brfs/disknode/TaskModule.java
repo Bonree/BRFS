@@ -2,7 +2,6 @@ package com.bonree.brfs.disknode;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
-import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.Service;
@@ -13,6 +12,7 @@ import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
+import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.impl.SimpleRouteZKLoader;
 import com.bonree.brfs.resource.ResourceGatherInterface;
@@ -34,15 +34,11 @@ import com.bonree.brfs.tasks.manager.TaskOpertionManager;
 import com.bonree.brfs.tasks.manager.TaskReleaseManager;
 import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 import com.bonree.brfs.tasks.monitor.impl.CycleRebalanceTaskMonitor;
-import com.bonree.brfs.tasks.resource.ResourceTask;
-import com.bonree.brfs.tasks.resource.impl.ResourceRegistTask;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
 
@@ -96,7 +92,7 @@ public class TaskModule implements Module {
         Service localServer,
         DiskDaemon diskDaemon,
         RebalanceTaskMonitor taskMonitor,
-        RouteLoader routeLoader,
+        RouteCache routeCache,
         SchedulerManagerInterface manager,
         LimitServerResource lmit,
         MetaTaskManagerInterface release,
@@ -111,7 +107,7 @@ public class TaskModule implements Module {
         mcf.setServerId(localServer.getServiceId());
         mcf.setGroupName(localServer.getServiceGroup());
         mcf.setLimitServerResource(lmit);
-        mcf.setRouteLoader(routeLoader);
+        mcf.setRouteCache(routeCache);
         mcf.setRt(run);
         mcf.setSim(sim);
         mcf.setSm(sm);
