@@ -119,7 +119,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
                         continue;
                     }
 
-                    if (timeToLive(fileNode) >= 0) {
+                    if (timeToLive(fileNode) > 0) {
                         wildFileNodes.add(fileNode);
                         LOG.info("add FileNode[{}] to wild file list", fileNode.getName());
                         continue;
@@ -175,8 +175,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
     }
 
     private long timeToLive(FileNode file) {
-        return TimeUtils.nextTimeStamp(file.getCreateTime(), file.getTimeDurationMillis()) -
-            TimeUtils.nextTimeStamp(System.currentTimeMillis(), file.getTimeDurationMillis());
+        return TimeUtils.nextTimeStamp(file.getCreateTime(), file.getTimeDurationMillis()) - System.currentTimeMillis();
     }
 
     private boolean handleFileNode(FileNode fileNode) {
@@ -271,7 +270,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
         PathChildrenCache childWatcher = childWatchers.get(service.getServiceId());
         CloseUtils.closeQuietly(childWatcher);
 
-        //删除服务对应的文件槽
+        //删除服务对应的文件槽, 这里需要同时删除FileStore么
         try {
             client.delete()
                   .quietly()
@@ -303,7 +302,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
                 Iterator<FileNode> iter = wildFileNodes.iterator();
                 while (iter.hasNext()) {
                     FileNode file = iter.next();
-                    if (timeToLive(file) >= 0) {
+                    if (timeToLive(file) > 0) {
                         continue;
                     }
 
