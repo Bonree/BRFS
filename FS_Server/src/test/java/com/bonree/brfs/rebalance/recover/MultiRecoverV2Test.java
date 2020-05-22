@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalancev2.recover;
+package com.bonree.brfs.rebalance.recover;
 
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
@@ -8,13 +8,9 @@ import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
-import com.bonree.brfs.rebalance.route.impl.SimpleRouteZKLoader;
-import com.bonree.brfs.rebalancev2.task.BalanceTaskSummaryV2;
+import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import java.util.Collection;
 import java.util.List;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.RetryNTimes;
 import org.junit.Test;
 
 public class MultiRecoverV2Test {
@@ -77,7 +73,7 @@ public class MultiRecoverV2Test {
             "  \"interval\": -1\n"
             +
             "}";
-        BalanceTaskSummaryV2 balanceSummary = JsonUtils.toObject(content.getBytes(), BalanceTaskSummaryV2.class);
+        BalanceTaskSummary balanceSummary = JsonUtils.toObject(content.getBytes(), BalanceTaskSummary.class);
         NormalRouteV2 routeV2 =
             new NormalRouteV2(balanceSummary.getChangeID(), balanceSummary.getStorageIndex(), balanceSummary.getServerId(),
                               balanceSummary.getNewSecondIds(), balanceSummary.getSecondFirstShip());

@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalancev2.recover;
+package com.bonree.brfs.rebalance.recover;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.Service;
@@ -17,10 +17,10 @@ import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.DataRecover;
+import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.rebalancev2.task.BalanceTaskSummaryV2;
-import com.bonree.brfs.rebalancev2.transfer.SimpleFileClient;
+import com.bonree.brfs.rebalance.transfer.SimpleFileClient;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,9 +41,9 @@ import org.slf4j.LoggerFactory;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 恢复虚拟ServerID的
  ******************************************************************************/
-public class VirtualRecoverV2 implements DataRecover {
+public class VirtualRecover implements DataRecover {
 
-    private static final Logger LOG = LoggerFactory.getLogger(VirtualRecoverV2.class);
+    private static final Logger LOG = LoggerFactory.getLogger(VirtualRecover.class);
 
     private static final String NAME_SEPARATOR = "_";
 
@@ -53,7 +53,7 @@ public class VirtualRecoverV2 implements DataRecover {
     private final String taskNode;
     private final String selfNode;
 
-    private BalanceTaskSummaryV2 balanceSummary;
+    private BalanceTaskSummary balanceSummary;
     private CuratorNodeCache nodeCache;
     private SimpleFileClient fileClient;
     private final CuratorClient client;
@@ -66,11 +66,11 @@ public class VirtualRecoverV2 implements DataRecover {
     private AtomicReference<TaskStatus> status;
     private AtomicInteger snDirNonExistNum = new AtomicInteger();
 
-    private final BlockingQueue<FileRecoverMetaV2> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
+    private final BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
-    public VirtualRecoverV2(CuratorClient client, BalanceTaskSummaryV2 balanceSummary, String taskNode, String storageName,
-                            IDSManager idManager, ServiceManager serviceManager,
-                            LocalPartitionInterface localPartitionInterface) {
+    public VirtualRecover(CuratorClient client, BalanceTaskSummary balanceSummary, String taskNode, String storageName,
+                          IDSManager idManager, ServiceManager serviceManager,
+                          LocalPartitionInterface localPartitionInterface) {
         this.balanceSummary = balanceSummary;
         this.taskNode = taskNode;
         this.client = client;
@@ -98,7 +98,7 @@ public class VirtualRecoverV2 implements DataRecover {
             LOG.info("node change!!!");
             if (client.checkExists(taskNode)) {
                 byte[] data = client.getData(taskNode);
-                BalanceTaskSummaryV2 bts = JsonUtils.toObject(data, BalanceTaskSummaryV2.class);
+                BalanceTaskSummary bts = JsonUtils.toObject(data, BalanceTaskSummary.class);
                 String newID = bts.getId();
                 String oldID = balanceSummary.getId();
                 if (newID.equals(oldID)) { // 是同一个任务
@@ -223,8 +223,8 @@ public class VirtualRecoverV2 implements DataRecover {
                         if (fileServerIds.contains(virtualId)) {
                             // 此处位置需要加1，副本数从1开始
                             replicaPot = fileServerIds.indexOf(virtualId) + 1;
-                            FileRecoverMetaV2 fileMeta =
-                                new FileRecoverMetaV2(perFile, fileName, remoteSecondId, timeFileName, Integer
+                            FileRecoverMeta fileMeta =
+                                new FileRecoverMeta(perFile, fileName, remoteSecondId, timeFileName, Integer
                                     .parseInt(brfsPath.getIndex()), replicaPot, remoteFirstId, partitionPath);
                             try {
                                 fileRecoverQueue.put(fileMeta);
@@ -283,7 +283,7 @@ public class VirtualRecoverV2 implements DataRecover {
             @Override
             public void run() {
                 try {
-                    FileRecoverMetaV2 fileRecover = null;
+                    FileRecoverMeta fileRecover = null;
                     while (fileRecover != null || !overFlag) {
                         if (status.get().equals(TaskStatus.CANCEL)) {
                             break;

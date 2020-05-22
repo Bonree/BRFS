@@ -1,8 +1,8 @@
-package com.bonree.brfs.rebalancev2.recover;
+package com.bonree.brfs.rebalance.recover;
 
 import com.google.common.base.MoreObjects;
 
-public class FileRecoverMetaV2 {
+public class FileRecoverMeta {
 
     private final String filePath;
     private final String fileName;
@@ -13,8 +13,8 @@ public class FileRecoverMetaV2 {
     private final String firstServerID;
     private final String partitionPath;
 
-    public FileRecoverMetaV2(String filePath, String fileName, String selectedSecondId, String time, int replica, int pot,
-                             String firstServerID, String partitionPath) {
+    public FileRecoverMeta(String filePath, String fileName, String selectedSecondId, String time, int replica, int pot,
+                           String firstServerID, String partitionPath) {
         super();
         this.filePath = filePath;
         this.fileName = fileName;

@@ -1,6 +1,6 @@
-package com.bonree.brfs.rebalancev2.task.listener;
+package com.bonree.brfs.rebalance.task.listener;
 
-import com.bonree.brfs.rebalancev2.task.TaskDispatcherV2;
+import com.bonree.brfs.rebalance.task.TaskDispatcher;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
@@ -13,11 +13,11 @@ import org.apache.curator.framework.recipes.cache.TreeCacheListener;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 监听任务是否完成，以便进行通知
  ******************************************************************************/
-public class TaskStatusListenerV2 implements TreeCacheListener {
+public class TaskStatusListener implements TreeCacheListener {
 
-    TaskDispatcherV2 dispatch;
+    TaskDispatcher dispatch;
 
-    public TaskStatusListenerV2(TaskDispatcherV2 dispatch) {
+    public TaskStatusListener(TaskDispatcher dispatch) {
         this.dispatch = dispatch;
     }
 

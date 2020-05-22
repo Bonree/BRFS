@@ -63,9 +63,8 @@ import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
+import com.bonree.brfs.rebalance.RebalanceManager;
 import com.bonree.brfs.rebalance.route.RouteCache;
-import com.bonree.brfs.rebalance.route.RouteLoader;
-import com.bonree.brfs.rebalancev2.RebalanceManagerV2;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
@@ -102,7 +101,7 @@ public class DataNodeModule implements Module {
         binder.bind(ReadStatCollector.class).toInstance(new ReadStatCollector());
         jaxrs(binder).resource(StatResource.class);
         LifecycleModule.register(binder, Service.class);
-        LifecycleModule.register(binder, RebalanceManagerV2.class);
+        LifecycleModule.register(binder, RebalanceManager.class);
         LifecycleModule.register(binder, TcpServer.class, DataWrite.class);
         LifecycleModule.register(binder, TcpServer.class, DataRead.class);
     }
@@ -190,7 +189,7 @@ public class DataNodeModule implements Module {
 
     @Provides
     @Singleton
-    public RebalanceManagerV2 rebalanceManagerV2(
+    public RebalanceManager rebalanceManagerV2(
         ZookeeperPaths zkPaths,
         IDSManager idsManager,
         StorageRegionManager storageRegionManager,
@@ -199,32 +198,32 @@ public class DataNodeModule implements Module {
         DiskPartitionInfoManager diskPartitionInfoManager,
         RouteCache routeCache,
         Lifecycle lifecycle) {
-        RebalanceManagerV2 rebalanceManagerV2 =
-            new RebalanceManagerV2(zkPaths,
-                                   idsManager,
-                                   storageRegionManager,
-                                   serviceManager,
-                                   localPartitionInterface,
-                                   diskPartitionInfoManager,
-                                   routeCache);
+        RebalanceManager rebalanceManager =
+            new RebalanceManager(zkPaths,
+                                 idsManager,
+                                 storageRegionManager,
+                                 serviceManager,
+                                 localPartitionInterface,
+                                 diskPartitionInfoManager,
+                                 routeCache);
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
             @Override
             public void start() throws Exception {
-                rebalanceManagerV2.start();
+                rebalanceManager.start();
             }
 
             @Override
             public void stop() {
                 try {
 
-                    rebalanceManagerV2.close();
+                    rebalanceManager.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         });
 
-        return rebalanceManagerV2;
+        return rebalanceManager;
     }
 
     @Provides

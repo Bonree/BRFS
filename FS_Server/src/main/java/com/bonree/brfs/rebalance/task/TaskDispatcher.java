@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalancev2.task;
+package com.bonree.brfs.rebalance.task;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.TaskVersion;
@@ -20,15 +20,11 @@ import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
+import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
-import com.bonree.brfs.rebalance.task.ChangeType;
-import com.bonree.brfs.rebalance.task.TaskDetail;
-import com.bonree.brfs.rebalance.task.TaskMonitor;
-import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.rebalancev2.BalanceTaskGeneratorV2;
-import com.bonree.brfs.rebalancev2.task.listener.ServerChangeListenerV2;
-import com.bonree.brfs.rebalancev2.task.listener.TaskStatusListenerV2;
+import com.bonree.brfs.rebalance.task.listener.ServerChangeListener;
+import com.bonree.brfs.rebalance.task.listener.TaskStatusListener;
 import com.bonree.mail.worker.MailWorker;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -77,9 +73,9 @@ import org.slf4j.LoggerFactory;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 此处来进行任务分配，任务核心控制
  ******************************************************************************/
-public class TaskDispatcherV2 implements Closeable {
+public class TaskDispatcher implements Closeable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TaskDispatcherV2.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskDispatcher.class);
 
     private static final int DEFAULT_INTERVAL = 30;
     private static final double DEFAULT_PROCESS = 0.6;
@@ -98,7 +94,7 @@ public class TaskDispatcherV2 implements Closeable {
     private final CuratorTreeCache treeCache;
     private final String virtualRoutePath;
     private final String normalRoutePath;
-    private final BalanceTaskGeneratorV2 taskGenerator;
+    private final BalanceTaskGenerator taskGenerator;
     private DiskPartitionInfoManager partitionInfoManager;
 
     private int virtualDelay;
@@ -116,14 +112,14 @@ public class TaskDispatcherV2 implements Closeable {
     private Map<Integer, List<DiskPartitionChangeSummary>> changeSummaryCache = new ConcurrentHashMap<>();
 
     // 存放当前正在执行的任务
-    private Map<Integer, BalanceTaskSummaryV2> runTask = new ConcurrentHashMap<>();
+    private Map<Integer, BalanceTaskSummary> runTask = new ConcurrentHashMap<>();
 
     // 为了能够有序的处理变更，需要将变更添加到队列中
     private BlockingQueue<DiskPartitionChangeSummary> detailQueue = new ArrayBlockingQueue<>(256);
 
-    public TaskDispatcherV2(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath,
-                            IDSManager idManager, ServiceManager serviceManager, StorageRegionManager snManager, int virtualDelay,
-                            int normalDelay, DiskPartitionInfoManager partitionInfoManager) {
+    public TaskDispatcher(final CuratorClient curatorClient, String baseRebalancePath, String baseRoutesPath,
+                          IDSManager idManager, ServiceManager serviceManager, StorageRegionManager snManager, int virtualDelay,
+                          int normalDelay, DiskPartitionInfoManager partitionInfoManager) {
         String balancePath =
             BrStringUtils.trimBasePath(Preconditions.checkNotNull(baseRebalancePath, "baseRebalancePath is not null!"));
         this.virtualRoutePath =
@@ -141,7 +137,7 @@ public class TaskDispatcherV2 implements Closeable {
         this.snManager = snManager;
         this.partitionInfoManager = partitionInfoManager;
 
-        taskGenerator = new SimpleTaskGeneratorV2();
+        taskGenerator = new SimpleTaskGenerator();
         this.curatorClient = curatorClient;
         curatorClient.getInnerClient().getConnectionStateListenable().addListener(new ConnectionStateListener() {
             @Override
@@ -181,10 +177,10 @@ public class TaskDispatcherV2 implements Closeable {
         leaderLath.start();
 
         LOG.info("changeMonitorPath: {}", changesPath);
-        treeCache.addListener(changesPath, new ServerChangeListenerV2(this));
+        treeCache.addListener(changesPath, new ServerChangeListener(this));
 
         LOG.info("balance tasks path: {}", tasksPath);
-        treeCache.addListener(tasksPath, new TaskStatusListenerV2(this));
+        treeCache.addListener(tasksPath, new TaskStatusListener(this));
 
         // 此线程的作用就是将detailQueue队列中的磁盘变更情况更新到changeSummaryCache缓存中
         singleServer.execute(new Runnable() {
@@ -263,8 +259,8 @@ public class TaskDispatcherV2 implements Closeable {
             for (String sn : sns) {
                 String taskNode = ZKPaths.makePath(tasksPath, sn, Constants.TASK_NODE);
                 if (curatorClient.checkExists(taskNode)) {
-                    BalanceTaskSummaryV2 bts =
-                        JsonUtils.toObjectQuietly(curatorClient.getData(taskNode), BalanceTaskSummaryV2.class);
+                    BalanceTaskSummary bts =
+                        JsonUtils.toObjectQuietly(curatorClient.getData(taskNode), BalanceTaskSummary.class);
                     runTask.put(Integer.valueOf(sn), bts);
                 }
             }
@@ -345,8 +341,8 @@ public class TaskDispatcherV2 implements Closeable {
                         }
                     }
 
-                    BalanceTaskSummaryV2 bts =
-                        JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummaryV2.class);
+                    BalanceTaskSummary bts =
+                        JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummary.class);
                     // 所有的服务都则发布迁移规则，并清理任务
                     if (finishFlag) {
                         // 先更新任务状态为finish
@@ -402,7 +398,7 @@ public class TaskDispatcherV2 implements Closeable {
         }
     }
 
-    public void fixTaskMeta(BalanceTaskSummaryV2 taskSummary) {
+    public void fixTaskMeta(BalanceTaskSummary taskSummary) {
 
         // task路径
         String parentPath = ZKPaths.makePath(tasksPath, String.valueOf(taskSummary.getStorageIndex()), Constants.TASK_NODE);
@@ -410,7 +406,7 @@ public class TaskDispatcherV2 implements Closeable {
         if (!curatorClient.checkExists(parentPath)) {
             return;
         }
-        BalanceTaskSummaryV2 bts = JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummaryV2.class);
+        BalanceTaskSummary bts = JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummary.class);
 
         // 所有的服务都则发布迁移规则，并清理任务
         if (bts.getTaskStatus().equals(TaskStatus.FINISH)) {
@@ -488,7 +484,7 @@ public class TaskDispatcherV2 implements Closeable {
         LOG.debug("audit snIndex:{},changeSummaries:{}", snIndex, changeSummaries);
 
         // 当前有任务在执行,则检查是否有影响该任务的change存在
-        BalanceTaskSummaryV2 runningTask = runTask.get(snIndex);
+        BalanceTaskSummary runningTask = runTask.get(snIndex);
         if (runningTask != null) {
             LOG.info("this sn [{}] has running task, will check, tasks:{}", snIndex, runningTask);
             checkTask(snIndex, changeSummaries);
@@ -590,7 +586,7 @@ public class TaskDispatcherV2 implements Closeable {
                 boolean canRecover = isCanRecover(cs, joinerSecondIDs, aliveSecondIDs, idManager, cs.getStorageIndex());
                 if (canRecover) {
                     // 构建任务
-                    BalanceTaskSummaryV2 taskSummary = taskGenerator
+                    BalanceTaskSummary taskSummary = taskGenerator
                         .genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangePartitionId(), cs.getChangeServer(),
                                         aliveSecondIDs, joinerSecondIDs, secondFreeMap,
                                         cs.getSecondFirstShip(),
@@ -704,7 +700,7 @@ public class TaskDispatcherV2 implements Closeable {
                             }
 
                             // 构造任务
-                            BalanceTaskSummaryV2 taskSummary = taskGenerator
+                            BalanceTaskSummary taskSummary = taskGenerator
                                 .genVirtualTask(changeID, storageIndex, changeSummary.getChangePartitionId(), virtualID,
                                                 Lists.newArrayList(selectSecondID), (List<String>) secondParticipators,
                                                 partitionInfoManager.getDiskPartitionInfoFreeSize(), virtualDelay);
@@ -749,7 +745,7 @@ public class TaskDispatcherV2 implements Closeable {
 
     private void checkTask(int snIndex, List<DiskPartitionChangeSummary> changeSummaries) {
         // 获取当前任务信息
-        BalanceTaskSummaryV2 currentTask = runTask.get(snIndex);
+        BalanceTaskSummary currentTask = runTask.get(snIndex);
         String runChangeID = currentTask.getChangeID();
 
         Map<String, List<DiskPartitionChangeSummary>> tempCsMap = Maps.newHashMap();
@@ -971,7 +967,7 @@ public class TaskDispatcherV2 implements Closeable {
     /**
      * @description: 删除balance task, 本质就是将其信息移至history节点
      */
-    public boolean delBalanceTask(BalanceTaskSummaryV2 task) {
+    public boolean delBalanceTask(BalanceTaskSummary task) {
         LOG.info("delete task: {}", task);
         String taskNode = ZKPaths.makePath(tasksPath, String.valueOf(task.getStorageIndex()), Constants.TASK_NODE);
         String taskHistory = ZKPaths.makePath(tasksHistoryPath, String.valueOf(task.getStorageIndex()), task.getChangeID());
@@ -985,7 +981,7 @@ public class TaskDispatcherV2 implements Closeable {
         }
     }
 
-    public void updateTaskStatus(BalanceTaskSummaryV2 task, TaskStatus status) {
+    public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) {
         task.setTaskStatus(status);
         String taskNode = ZKPaths.makePath(tasksPath, String.valueOf(task.getStorageIndex()), Constants.TASK_NODE);
         curatorClient.setData(taskNode, JsonUtils.toJsonBytesQuietly(task));
@@ -1000,7 +996,7 @@ public class TaskDispatcherV2 implements Closeable {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean dispatchTask(BalanceTaskSummaryV2 taskSummary) {
+    public boolean dispatchTask(BalanceTaskSummary taskSummary) {
         int storageIndex = taskSummary.getStorageIndex();
         // 设置唯一任务UUID
         taskSummary.setId(UUID.randomUUID().toString());
@@ -1060,7 +1056,7 @@ public class TaskDispatcherV2 implements Closeable {
         return idManager;
     }
 
-    public void setRunTask(int storageIndex, BalanceTaskSummaryV2 task) {
+    public void setRunTask(int storageIndex, BalanceTaskSummary task) {
         runTask.put(storageIndex, task);
     }
 
@@ -1068,7 +1064,7 @@ public class TaskDispatcherV2 implements Closeable {
         runTask.remove(storageIndex);
     }
 
-    public void removeChange2History(BalanceTaskSummaryV2 bts) {
+    public void removeChange2History(BalanceTaskSummary bts) {
         String changePath = ZKPaths.makePath(changesPath, String.valueOf(bts.getStorageIndex()), bts.getChangeID());
         LOG.info("delete change path: {}", changePath);
         String changeHistoryPath = ZKPaths.makePath(changesHistoryPath, String.valueOf(bts.getStorageIndex()), bts.getChangeID());

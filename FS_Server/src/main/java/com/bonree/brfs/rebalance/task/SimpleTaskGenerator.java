@@ -1,8 +1,7 @@
-package com.bonree.brfs.rebalancev2.task;
+package com.bonree.brfs.rebalance.task;
 
+import com.bonree.brfs.rebalance.BalanceTaskGenerator;
 import com.bonree.brfs.rebalance.DataRecover.RecoverType;
-import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.rebalancev2.BalanceTaskGeneratorV2;
 import java.util.List;
 import java.util.Map;
 
@@ -14,14 +13,14 @@ import java.util.Map;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 通过change 生成 task
  ******************************************************************************/
-public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
+public class SimpleTaskGenerator implements BalanceTaskGenerator {
 
     @Override
-    public BalanceTaskSummaryV2 genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId,
-                                               List<String> selectIDs, List<String> participators,
-                                               Map<String, Integer> newSecondIds, long delayTime) {
+    public BalanceTaskSummary genVirtualTask(String changeID, int storageIndex, String partitionId, String virtualId,
+                                             List<String> selectIDs, List<String> participators,
+                                             Map<String, Integer> newSecondIds, long delayTime) {
 
-        BalanceTaskSummaryV2 taskSummary = new BalanceTaskSummaryV2();
+        BalanceTaskSummary taskSummary = new BalanceTaskSummary();
         // changeID
         taskSummary.setChangeID(changeID);
         // 参与者Server，提供数据
@@ -47,11 +46,11 @@ public class SimpleTaskGeneratorV2 implements BalanceTaskGeneratorV2 {
     }
 
     @Override
-    public BalanceTaskSummaryV2 genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID,
-                                               List<String> selectIDs, List<String> participators,
-                                               Map<String, Integer> newSecondIds, Map<String, String> secondFirstShip,
-                                               long delayTime) {
-        BalanceTaskSummaryV2 taskSummary = new BalanceTaskSummaryV2();
+    public BalanceTaskSummary genBalanceTask(String changeID, int storageIndex, String partitionId, String secondServerID,
+                                             List<String> selectIDs, List<String> participators,
+                                             Map<String, Integer> newSecondIds, Map<String, String> secondFirstShip,
+                                             long delayTime) {
+        BalanceTaskSummary taskSummary = new BalanceTaskSummary();
 
         taskSummary.setChangeID(changeID);
         taskSummary.setServerId(secondServerID);

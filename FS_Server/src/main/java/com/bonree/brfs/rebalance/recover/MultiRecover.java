@@ -1,4 +1,4 @@
-package com.bonree.brfs.rebalancev2.recover;
+package com.bonree.brfs.rebalance.recover;
 
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
@@ -24,10 +24,10 @@ import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.RouteCache;
+import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
-import com.bonree.brfs.rebalancev2.task.BalanceTaskSummaryV2;
-import com.bonree.brfs.rebalancev2.transfer.SimpleFileClient;
+import com.bonree.brfs.rebalance.transfer.SimpleFileClient;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,9 +51,9 @@ import org.slf4j.LoggerFactory;
  * @Author: <a href=mailto:weizheng@bonree.com>魏征</a>
  * @Description: 副本恢复
  ******************************************************************************/
-public class MultiRecoverV2 implements DataRecover {
+public class MultiRecover implements DataRecover {
 
-    private Logger log = LoggerFactory.getLogger(MultiRecoverV2.class);
+    private Logger log = LoggerFactory.getLogger(MultiRecover.class);
 
     private SimpleFileClient fileClient;
     private final StorageRegion storageRegion;
@@ -63,7 +63,7 @@ public class MultiRecoverV2 implements DataRecover {
     private final String taskNode;
     private final String selfNode;
 
-    private BalanceTaskSummaryV2 balanceSummary;
+    private BalanceTaskSummary balanceSummary;
     private CuratorNodeCache nodeCache;
     private final CuratorClient client;
     private final long delayTime;
@@ -75,11 +75,11 @@ public class MultiRecoverV2 implements DataRecover {
     private AtomicReference<TaskStatus> status;
     private AtomicInteger snDirNonExistNum = new AtomicInteger();
 
-    private BlockingQueue<FileRecoverMetaV2> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
+    private BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
-    public MultiRecoverV2(LocalPartitionInterface localPartitionInterface, RouteCache routeCache, BalanceTaskSummaryV2 summary,
-                          IDSManager idManager, ServiceManager serviceManager, String taskNode, CuratorClient client,
-                          StorageRegion storageRegion) {
+    public MultiRecover(LocalPartitionInterface localPartitionInterface, RouteCache routeCache, BalanceTaskSummary summary,
+                        IDSManager idManager, ServiceManager serviceManager, String taskNode, CuratorClient client,
+                        StorageRegion storageRegion) {
         this.balanceSummary = summary;
         this.idManager = idManager;
         this.serviceManager = serviceManager;
@@ -108,7 +108,7 @@ public class MultiRecoverV2 implements DataRecover {
             log.info("receive update event!!!");
             if (client.checkExists(taskNode)) {
                 byte[] data = client.getData(taskNode);
-                BalanceTaskSummaryV2 bts = JsonUtils.toObject(data, BalanceTaskSummaryV2.class);
+                BalanceTaskSummary bts = JsonUtils.toObject(data, BalanceTaskSummary.class);
                 String newID = bts.getId();
                 String oldID = balanceSummary.getId();
                 if (newID.equals(oldID)) { // 是同一个任务
@@ -331,10 +331,10 @@ public class MultiRecoverV2 implements DataRecover {
 
                 if (!secondServerIDSelected.equals(selectMultiId)) {
                     String firstID = idManager.getFirstId(selectMultiId, balanceSummary.getStorageIndex());
-                    FileRecoverMetaV2 fileMeta =
-                        new FileRecoverMetaV2(partitionPath + File.separator + brfsPath.toString(), brfsPath.getFileName(),
-                                              selectMultiId, getTimeDir(brfsPath), Integer.parseInt(brfsPath.getIndex()), pot,
-                                              firstID, partitionPath);
+                    FileRecoverMeta fileMeta =
+                        new FileRecoverMeta(partitionPath + File.separator + brfsPath.toString(), brfsPath.getFileName(),
+                                            selectMultiId, getTimeDir(brfsPath), Integer.parseInt(brfsPath.getIndex()), pot,
+                                            firstID, partitionPath);
                     try {
                         fileRecoverQueue.put(fileMeta);
                     } catch (InterruptedException e) {
@@ -363,7 +363,7 @@ public class MultiRecoverV2 implements DataRecover {
             @Override
             public void run() {
                 try {
-                    FileRecoverMetaV2 fileRecover = null;
+                    FileRecoverMeta fileRecover = null;
                     while (fileRecover != null || !overFlag) {
                         log.info("current task status:{}", status);
                         if (status.get().equals(TaskStatus.CANCEL)) {
