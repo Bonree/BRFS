@@ -9,29 +9,42 @@ import com.bonree.brfs.common.net.tcp.file.ReadObject;
 import com.bonree.brfs.common.net.tcp.file.client.AsyncFileReaderCreateConfig;
 import com.bonree.brfs.common.net.tcp.file.client.AsyncFileReaderGroup;
 import com.bonree.brfs.common.net.tcp.file.client.FileContentPart;
-import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.ResourceConfigs;
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.disknode.client.TcpDiskNodeClient;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.List;
 
-public class TcpClientUtils {
-    public static final int idleTime = Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_DEFAULT_IDLE_TIME_OUT);
-    public static final int readIdleTime =
-        Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_DEFAULT_READ_IDLE_TIME_OUT);
-    public static final int writeIdleTime =
-        Configs.getConfiguration().getConfig(ResourceConfigs.CONFIG_DEFAULT_WRITE_IDLE_TIME_OUT);
-    public static final TaskTcpClientGroup group = new TaskTcpClientGroup(4, idleTime, readIdleTime, writeIdleTime);
-    public static final AsyncFileReaderGroup group2 = new AsyncFileReaderGroup(4);
+public class TcpClientBuilder {
+    private static final int DEFAULT_IDLE_TIME_SECOND = 60;
+    private static final int DEFAULT_READ_IDLE_TIME_SECOND = 30;
+    private static final int DEFAULT_WRITE_IDLE_TIME_SECOND = 30;
+    private static final int DEFAULT_TIME_OUT = 10000;
+    private int idleTime;
+    private int readIdleTime;
+    private int writeIdleTime;
+    private int timeout;
+    private TaskTcpClientGroup group;
+    private AsyncFileReaderGroup group2;
 
-    public static TcpDiskNodeClient getClient(String host, int port, int export, int timeout)
-        throws InterruptedException, IOException {
+    public TcpClientBuilder() {
+        this(DEFAULT_IDLE_TIME_SECOND, DEFAULT_READ_IDLE_TIME_SECOND, DEFAULT_WRITE_IDLE_TIME_SECOND, DEFAULT_TIME_OUT);
+    }
+
+    public TcpClientBuilder(int idleTime, int readIdleTime, int writeIdleTime, int timeout) {
+        this.idleTime = idleTime;
+        this.readIdleTime = readIdleTime;
+        this.writeIdleTime = writeIdleTime;
+        this.timeout = timeout;
+        group = new TaskTcpClientGroup(4, this.idleTime, this.readIdleTime, this.writeIdleTime);
+        group2 = new AsyncFileReaderGroup(4);
+    }
+
+    public TcpDiskNodeClient getClient(Service service, int timeout) throws InterruptedException {
         TcpClient<BaseMessage, BaseResponse> tcpClient = group.createClient(new TcpClientConfig() {
             @Override
             public SocketAddress remoteAddress() {
-                return new InetSocketAddress(host, port);
+                return new InetSocketAddress(service.getHost(), service.getPort());
             }
 
             @Override
@@ -43,7 +56,7 @@ public class TcpClientUtils {
         TcpClient<ReadObject, FileContentPart> readerClient = group2.createClient(new AsyncFileReaderCreateConfig() {
             @Override
             public SocketAddress remoteAddress() {
-                return new InetSocketAddress(host, export);
+                return new InetSocketAddress(service.getHost(), service.getExtraPort());
             }
 
             @Override
@@ -59,11 +72,18 @@ public class TcpClientUtils {
         return new TcpDiskNodeClient(tcpClient, readerClient);
     }
 
+    public TcpDiskNodeClient getClient(Service service) throws InterruptedException {
+        return getClient(service, timeout);
+    }
+
     public static void main(String[] args) throws Exception {
         String host = "192.168.150.237";
         int port = 9881;
         int export = 9900;
-        TcpDiskNodeClient client = getClient(host, port, export, 10000);
+        Service service = new Service("10", "data_group", host, port);
+        service.setExtraPort(export);
+
+        TcpDiskNodeClient client = new TcpClientBuilder().getClient(service);
         List<com.bonree.brfs.disknode.server.handler.data.FileInfo> list =
             client.listFiles("/delSr1/1/2020/05/07/21_00_00/0_22", 1);
         list.stream().forEach(x -> {

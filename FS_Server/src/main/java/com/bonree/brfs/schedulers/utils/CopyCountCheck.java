@@ -10,7 +10,7 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.rebalance.route.BlockAnalyzer;
-import com.bonree.brfs.rebalance.route.impl.RouteParser;
+import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.mail.worker.MailWorker;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -162,16 +162,17 @@ public class CopyCountCheck {
         long time;
         String dirName;
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+        RouteCache routeCache = mcf.getRouteCache();
         IDSManager sim = mcf.getSim();
-        RouteParser parser;
-        int timeout = 10000;
+        BlockAnalyzer parser;
+        TcpClientBuilder builder1 = new TcpClientBuilder();
         for (Service service : services) {
             try {
-                client = TcpClientUtils.getClient(service.getHost(), service.getPort(), service.getExtraPort(), timeout);
+                client = builder1.getClient(service);
                 long granule;
                 for (StorageRegion sn : snList) {
 
-                    parser = new RouteParser(sn.getId(), mcf.getRouteLoader());
+                    parser = routeCache.getBlockAnalyzer(sn.getId());
 
                     granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
                     reCount = sn.getReplicateNum();
@@ -184,9 +185,6 @@ public class CopyCountCheck {
                     dirName = TimeUtils.timeInterval(time, granule);
                     Collection<String> sids = sim.getSecondIds(service.getServiceId(), sn.getId());
                     for (String sid : sids) {
-
-                        LOG.info("[TEST 2 copyTaskCreator ] sn: {} time: {} path:{}", snName, TimeUtils.formatTimeStamp(time),
-                                 dirName);
                         for (int i = 1; i <= reCount; i++) {
                             path = "/" + snName + "/" + i + "/" + dirName;
                             LOG.debug("path :{}", path);
@@ -211,7 +209,6 @@ public class CopyCountCheck {
                 builder.setMessage(mcf.getGroupName() + "(" + mcf.getServerId() + ")服务 执行任务时发生问题");
                 Map<String, String> map = new HashMap<>();
                 map.put("remote ", service.getHost());
-                map.put("connectTimeout", String.valueOf(timeout));
                 map.put("sn", StringUtils.isEmpty(snName) ? "" : snName);
                 if (snTimes != null && !snTimes.isEmpty()) {
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -292,7 +289,7 @@ public class CopyCountCheck {
      *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static List<String> getFileList(RouteParser parser, DiskNodeClient client, String path, String sid) throws Exception {
+    public static List<String> getFileList(BlockAnalyzer parser, DiskNodeClient client, String path, String sid) {
         if (client == null) {
             throw new NullPointerException("disk client is null !!!");
         }
@@ -316,7 +313,7 @@ public class CopyCountCheck {
      *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static List<String> converToStringList(RouteParser parser, List<FileInfo> files, String sid) {
+    public static List<String> converToStringList(BlockAnalyzer parser, List<FileInfo> files, String sid) {
         List<String> strs = new ArrayList<>();
         String path;
         String fileName;
@@ -536,8 +533,6 @@ public class CopyCountCheck {
                 LOG.info("skip {} create copy check task!! because forbid check current time ", snName);
                 continue;
             }
-            LOG.info("[TEST 1 copyTaskCreator ] currentTime {},sn: {}, checkTime: {}", TimeUtils.formatTimeStamp(currentTime),
-                     snName, TimeUtils.formatTimeStamp(sgra));
             repairs.put(snName, sgra);
         }
         return repairs;

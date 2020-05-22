@@ -94,7 +94,7 @@ public abstract class SuperNormalRoute implements NormalRouteInterface {
         // 2.判断集合是否为空，为空，则解析失败。
         // todo 1 定义无服务 的异常内容
         if (selectors.isEmpty()) {
-            throw new IllegalArgumentException("errror");
+            throw new IllegalArgumentException("route is invalid " + this.toString());
         }
         // 3.对select 服务进行排序。
         Collections.sort(selectors, new Comparator<String>() {
