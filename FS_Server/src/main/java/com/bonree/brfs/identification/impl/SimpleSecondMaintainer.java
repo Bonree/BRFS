@@ -326,8 +326,6 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     @Override
     public void start() throws Exception {
         LOG.info("second maintainer thread start !!");
-        // 1.检查服务的二级server是否失效
-        checkSecondIds(localService);
         // 2.注册后台修复线程
         pool = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("SecondIdMaintainer").build());
         future = pool.scheduleAtFixedRate(new Runnable() {
@@ -355,7 +353,8 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
         }, 0, 100, TimeUnit.MILLISECONDS);
     }
 
-    private void checkSecondIds(Service local) {
+    @Override
+    public void checkSecondIds(Service local) {
         String firstServerId = local.getServiceId();
         Collection<String> partitions = null;
         try {
@@ -372,6 +371,7 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                 try {
                     String partitionPath = ZKPaths.makePath(this.secondBasePath, partition);
                     if (this.client.checkExists().forPath(partitionPath) == null) {
+                        LOG.info("partition [{}] not exists", partitionPath);
                         return;
                     }
                     byte[] fistData = this.client.getData().forPath(partitionPath);
@@ -385,14 +385,14 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                                 .format("find unexpect first id [{0}]! expect:[{1}] partitionId:[{2}]", checkFirst, firstServerId,
                                         partition));
                     }
-                    List<String> childs = this.client.getChildren().forPath(partitionPath);
-                    if (childs == null || childs.isEmpty()) {
+                    List<String> storageRetions = this.client.getChildren().forPath(partitionPath);
+                    if (storageRetions == null || storageRetions.isEmpty()) {
                         return;
                     }
-                    Collections.sort(childs);
-                    childs.stream().forEach(region -> {
+                    Collections.sort(storageRetions);
+                    storageRetions.stream().forEach(region -> {
                         int storageIndex = Integer.parseInt(region);
-                        String secondId = getSecondId(region, storageIndex);
+                        String secondId = getSecondId(partition, storageIndex);
                         boolean valid = isValidSecondId(secondId, storageIndex);
                         if (!valid) {
                             String newSecondId = createSecondId(partition, firstServerId, storageIndex);

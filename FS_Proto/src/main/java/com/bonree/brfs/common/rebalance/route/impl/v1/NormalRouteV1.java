@@ -54,6 +54,7 @@ public class NormalRouteV1 extends SuperNormalRoute {
         return routes;
     }
 
+    @JsonIgnore
     @Override
     public Map<String, String> getSecondFirst() {
         return secondFirstShip;

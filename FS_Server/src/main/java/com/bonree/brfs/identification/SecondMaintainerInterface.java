@@ -1,5 +1,6 @@
 package com.bonree.brfs.identification;
 
+import com.bonree.brfs.common.service.Service;
 import java.util.Collection;
 
 /*******************************************************************************
@@ -94,5 +95,12 @@ public interface SecondMaintainerInterface extends SecondIdsInterface {
      * @return
      */
     boolean removeAllPartitionRelation(Collection<String> partitionIds);
+
+    /**
+     * 检查本机持有的二级serverid是否过期，过期则重新申请
+     *
+     * @param local
+     */
+    void checkSecondIds(Service local);
 
 }

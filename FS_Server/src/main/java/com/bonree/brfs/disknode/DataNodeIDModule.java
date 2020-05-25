@@ -73,9 +73,11 @@ public class DataNodeIDModule implements Module {
 
     @Provides
     @Singleton
-    public DiskDaemon getDiskDaemon(CuratorFramework client, ZookeeperPaths zkpath, Service firstLevelServerID,
+    public DiskDaemon getDiskDaemon(CuratorFramework client, ZookeeperPaths zkpath, Service local,
                                     StorageConfig storageConfig, PartitionConfig partitionConfig, IDConfig idConfig,
-                                    ResourceCollectionInterface resourceGather, Lifecycle lifecycle) {
+                                    ResourceCollectionInterface resourceGather, Lifecycle lifecycle,
+                                    SecondMaintainerInterface maintainer) {
+
         // 1.生成注册id实例
         DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client, zkpath.getBaseServerIdSeqPath(), zkpath.getBaseV2SecondIDPath());
         // 2.生成磁盘分区id检查类
@@ -87,7 +89,7 @@ public class DataNodeIDModule implements Module {
         PartitionInfoRegister register = new PartitionInfoRegister(client, zkpath.getBaseDiscoveryPath());
         // 4.生成采集线程池
         PartitionGather gather =
-            new PartitionGather(resourceGather, register, firstLevelServerID, routine.checkVaildPartition(),
+            new PartitionGather(resourceGather, register, local, routine.checkVaildPartition(),
                                 partitionConfig.getIntervalTime());
         DiskDaemon daemon = new DiskDaemon(gather, parts);
         lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
@@ -101,6 +103,8 @@ public class DataNodeIDModule implements Module {
                 daemon.stop();
             }
         });
+        // 检测二级serverid是否要更新
+        maintainer.checkSecondIds(local);
         return daemon;
     }
 }
