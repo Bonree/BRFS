@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -313,8 +315,8 @@ public class CopyRecovery {
             client = new TcpClientBuilder().getClient(remote);
             LocalByteStreamConsumer consumer = new LocalByteStreamConsumer(localPath);
             client.readFile(remotePath, consumer);
-            return consumer.getResult().get();
-        } catch (InterruptedException | IOException | ExecutionException e) {
+            return consumer.getResult().get(30, TimeUnit.SECONDS);
+        } catch (InterruptedException | IOException | TimeoutException | ExecutionException e) {
             EmailPool emailPool = EmailPool.getInstance();
             MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
             builder.setModel("collect file execute 模块服务发生问题");

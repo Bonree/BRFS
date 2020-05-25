@@ -66,10 +66,6 @@ public class LocalByteStreamConsumer implements ByteConsumer {
         result.completeExceptionally(e);
     }
 
-    public String getLocalPath() {
-        return localPath;
-    }
-
     public CompletableFuture<Boolean> getResult() {
         return result;
     }
