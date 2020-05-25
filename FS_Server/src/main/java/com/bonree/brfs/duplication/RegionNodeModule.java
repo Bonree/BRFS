@@ -135,6 +135,8 @@ public class RegionNodeModule implements Module {
         jaxrs(binder).resource(FSPackageProtoMapper.class);
         jaxrs(binder).resource(WriteBatchMapper.class);
 
+        jaxrs(binder).resource(LegacyDataResource.class);
+
         LifecycleModule.register(binder, SimpleAuthentication.class);
         LifecycleModule.register(binder, MetadataBackupServer.class);
 

@@ -44,7 +44,7 @@ public class PutObjectCallMaker implements Transformer<FSPacketProto, Function<U
         return uri -> httpClient.newCall(
             new Request.Builder()
                 .url(HttpUrl.get(uri).newBuilder()
-                            .encodedPath("/data")
+                            .encodedPath("/data/v2")
                             .addEncodedPathSegment(srName)
                             .build())
                 .post(RequestBodys.create(contentType, data))
