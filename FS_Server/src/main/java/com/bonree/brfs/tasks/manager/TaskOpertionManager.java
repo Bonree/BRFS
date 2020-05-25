@@ -118,7 +118,7 @@ public class TaskOpertionManager implements LifeCycle {
                 queueCurrentTask = release.getFirstTaskName(typeName);
             }
             if (BrStringUtils.isEmpty(queueCurrentTask)) {
-                LOG.info("{} task queue is empty", queueCurrentTask);
+                LOG.info("{} task queue is empty", typeName);
                 continue;
             }
             // 修复任务
