@@ -141,7 +141,7 @@
 		<quartz_version>2.0.2</quartz_version>
 		<protostuff_version>1.6.0</protostuff_version>
 		<commons_lang_version>3.4</commons_lang_version>
-		<configuration_version>2.2</configuration_version>
+		<configuration_version>2.7</configuration_version>
 		<beanutils_version>1.9.3</beanutils_version>
 		<rocksdb_version>5.18.3</rocksdb_version>
 	</properties>
