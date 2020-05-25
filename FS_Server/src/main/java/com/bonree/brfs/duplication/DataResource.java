@@ -165,7 +165,7 @@ public class DataResource {
                     LOG.warn("file path [{}]is invalid.", file);
                     throw new WebApplicationException("file path " + file + "is invalid", HttpStatus.CODE_NOT_AVAILABLE_FILENAME);
                 }
-            } else if (!checkNotNull(file)) {
+            } else if (checkNotNull(file)) {
                 String resp = "the rocksDB is not open, can not write with file name";
                 LOG.warn(resp);
                 throw new WebApplicationException(resp, HttpStatus.CODE_NOT_ALLOW_CUSTOM_FILENAME);
