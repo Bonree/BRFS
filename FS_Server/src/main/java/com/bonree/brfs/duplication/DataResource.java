@@ -59,10 +59,9 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/data")
+@Path("/data/v2")
 public class DataResource {
     private static final Logger LOG = LoggerFactory.getLogger(DataResource.class);
-    private static final Logger WRITE_LOG = LoggerFactory.getLogger("write_statistic");
     private final WriteStatCollector writeCollector;
     private final ClusterConfig clusterConfig;
     private final ServiceManager serviceManager;
@@ -162,17 +161,17 @@ public class DataResource {
             LOG.debug("write request data length：[{}]，prepare to append to block，", packet.getData().length);
             String file = packet.getFileName();
             if (brfsCatalog.isUsable()) {
-                if (!brfsCatalog.validPath(file)) {
+                if (checkNotNull(file) && !brfsCatalog.validPath(file)) {
                     LOG.warn("file path [{}]is invalid.", file);
                     throw new WebApplicationException("file path " + file + "is invalid", HttpStatus.CODE_NOT_AVAILABLE_FILENAME);
                 }
-            } else if (!file.equals("")) {
+            } else if (checkNotNull(file)) {
                 String resp = "the rocksDB is not open, can not write with file name";
                 LOG.warn(resp);
                 throw new WebApplicationException(resp, HttpStatus.CODE_NOT_ALLOW_CUSTOM_FILENAME);
             }
             if (packet.getSeqno() == 1) {
-                LOG.info("file [{}] is allow to write!", packet.getWriteID());
+                LOG.debug("file [{}] is allow to write!", packet.getWriteID());
             }
             LOG.debug("deserialize [{}]", packet);
             //如果是一个小于等于packet长度的文件，由handler直接写
@@ -182,7 +181,6 @@ public class DataResource {
                     srName,
                     packet.getData(),
                     new StorageRegionWriteCallback() {
-                        long ctime = System.currentTimeMillis();
 
                         @Override
                         public void error(Throwable cause) {
@@ -196,7 +194,6 @@ public class DataResource {
                                 return;
                             }
 
-                            LOG.info("write the tiny data to dn cost [{}]ms", System.currentTimeMillis() - ctime);
                             if (brfsCatalog.isUsable() && brfsCatalog.validPath(file)) {
                                 if (brfsCatalog.writeFid(srName, file, fid)) {
                                     LOG.error("failed when write fid to rocksDB.");
@@ -204,8 +201,7 @@ public class DataResource {
                                     return;
                                 }
                             }
-                            LOG.info("response fid:[{}]", fid);
-                            WRITE_LOG.info(" {} write [{}]", srName, file);
+                            LOG.debug("response fid:[{}]", fid);
                             writeCollector.submit(srName);
                             response.resume(Response
                                                 .ok()
@@ -216,7 +212,7 @@ public class DataResource {
                         @Override
                         public void complete(String[] fids) {
                             response.resume(ImmutableList.of(fids));
-                            LOG.info("response file[{}]:fid[{}]", packet.getFileName(), fids[0]);
+                            LOG.debug("response file[{}]:fid[{}]", packet.getFileName(), fids[0]);
                         }
                     });
                 return;
@@ -237,10 +233,9 @@ public class DataResource {
                             response.resume(new Exception("write fid to rocksDB failed."));
                             return;
                         }
-                        LOG.info("sync catalog into rocksDB. filename:[{}]", file);
+                        LOG.debug("sync catalog into rocksDB. filename:[{}]", file);
                     }
                     LOG.info("response fid:[{}]", fid);
-                    WRITE_LOG.info(" {} write [{}]", srName, file);
                     writeCollector.submit(srName);
                     response.resume(Response
                                         .ok()
@@ -252,8 +247,7 @@ public class DataResource {
             };
             if (packet.isTheFirstPacketInFile()) {
                 blockManager.addToWaitingPool(srName, packet, callback);
-                LOG.info("put a file [{}] into the waiting pool", packet.getFileName());
-                //todo server should tell client that file is waiting for write. but how
+                LOG.debug("put a file [{}] into the waiting pool", packet.getFileName());
                 return;
             }
             LOG.debug("append packet[{}] into block", packet);
@@ -380,6 +374,10 @@ public class DataResource {
         public String[] getFileNames() {
             return fileNames;
         }
+    }
+
+    private boolean checkNotNull(String args) {
+        return args != null && !args.equals("");
     }
 
 }

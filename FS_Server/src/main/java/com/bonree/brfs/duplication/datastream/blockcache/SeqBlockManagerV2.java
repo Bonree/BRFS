@@ -70,7 +70,7 @@ public class SeqBlockManagerV2 implements BlockManager {
             LOG.error("enqueue the write request is interrupted!");
         }
         LOG.info("waiting pool size is [{}]", fileWaiting.size());
-        LOG.info("storage [{}] : file[{}] waiting for write.", srName, packet.getFileName());
+        LOG.debug("storage [{}] : file[{}] waiting for write.", srName, packet.getFileName());
     }
 
     @Override
@@ -79,7 +79,7 @@ public class SeqBlockManagerV2 implements BlockManager {
         String writeID = packet.getWriteID();
         // file waiting for write
         if (packet.isTheFirstPacketInFile()) {
-            LOG.info("After processor : storage [{}] : file[{}] waiting for write.", srName, fileName);
+            LOG.debug("After processor : storage [{}] : file[{}] waiting for write.", srName, fileName);
         }
         LOG.debug("writing the file [{}]", packet.getWriteID());
         try {
@@ -125,12 +125,10 @@ public class SeqBlockManagerV2 implements BlockManager {
                 blockValue.reset();
                 return null;
             }
-            if (packet.isTheFirstPacketInFile()) {
-                LOG.info("response for the next packet of this file :seqno [{}]", packet.getSeqno());
-            }
-            if (packet.isLastPacketInFile()) {
-                LOG.info("the last packet of file [{}] has arrived", fileName);
-            }
+            //if (packet.isTheFirstPacketInFile()) {
+            //    LOG.info("response for the next packet of this file :seqno [{}]", packet.getSeqno());
+            //}
+
             HandleResult handleResult = new HandleResult();
             LOG.debug("packet[{}] append to block and still not flushed。", packet);
             handleResult.setNextSeqno(packet.getSeqno());
@@ -143,7 +141,6 @@ public class SeqBlockManagerV2 implements BlockManager {
             result.setCause(new Exception("error when get block from cache"));
             LOG.debug("error when get block from cache");
             callback.completed(result);
-            e.printStackTrace();
             return null;
         }
         return null;
@@ -226,7 +223,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                 sb.append(fid).append("\n");
             }
             accessTime = System.currentTimeMillis();
-            LOG.info("file[{}] : fids :\n[{}]", fileName, sb);
+            LOG.debug("file[{}] : fids :\n[{}]", fileName, sb);
             return sb.toString().getBytes();
         }
 
@@ -315,7 +312,7 @@ public class SeqBlockManagerV2 implements BlockManager {
         public void complete(String[] fids) {
             HandleResult result = new HandleResult();
             result.setSuccess(false);
-            result.setCause(new Exception("按文件流写入文件不应该一次向datapool中写多个！"));
+            result.setCause(new Exception("actually wo can not get here"));
             LOG.error("error come here");
             callback.completed(result);
         }
@@ -349,15 +346,10 @@ public class SeqBlockManagerV2 implements BlockManager {
                 }
                 blockValue.addFid(fid);
                 if (!isFileFinished) {
-                    String response = "seqno:" + seqno
-                        + " filename:" + fileName
-                        + " storageName:" + storageName
-                        + " done flush";
                     // DONE flush a block
                     result.setToContinue();
                     result.setNextSeqno(seqno);
                     callback.completed(result);
-                    LOG.info(response);
                 } else {
                     byte[] data = blockValue.writeFile(fileName);
                     writer.write(storageName, data,
@@ -370,7 +362,6 @@ public class SeqBlockManagerV2 implements BlockManager {
                 result.setCause(new Exception("error when append block into block,cause error packet size"));
                 LOG.error("error when append block into block in callback");
                 callback.completed(result);
-                e.printStackTrace();
             }
 
         }
@@ -411,7 +402,6 @@ public class SeqBlockManagerV2 implements BlockManager {
 
         @Override
         public void complete(String fid) {
-            LOG.info("prepare response a fid [{}]!", fid);
             HandleResult result = new HandleResult();
             if ("".equals(fid) || fid == null) {
                 result.setSuccess(false);

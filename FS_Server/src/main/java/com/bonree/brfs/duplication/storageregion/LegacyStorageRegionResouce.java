@@ -1,25 +1,8 @@
-/*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.bonree.brfs.duplication.storageregion;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-import com.bonree.brfs.client.storageregion.StorageRegionAttributes;
 import com.bonree.brfs.client.storageregion.StorageRegionID;
-import com.bonree.brfs.client.storageregion.StorageRegionInfo;
 import com.bonree.brfs.common.ReturnCode;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
@@ -30,28 +13,30 @@ import com.bonree.brfs.common.utils.StringUtils;
 import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 import com.google.common.base.Throwables;
+import com.google.common.primitives.Ints;
 import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/sr/v2")
-public class StorageRegionResource {
+@Deprecated
+@Path("/sr")
+public class LegacyStorageRegionResouce {
     private static final Logger log = LoggerFactory.getLogger(StorageRegionResource.class);
 
     private final ClusterConfig clusterConfig;
@@ -62,7 +47,7 @@ public class StorageRegionResource {
     private final RocksDBManager rocksDBManager;
 
     @Inject
-    public StorageRegionResource(
+    public LegacyStorageRegionResouce(
         ClusterConfig clusterConfig,
         StorageRegionManager storageRegionManager,
         ServiceManager serviceManager,
@@ -81,19 +66,25 @@ public class StorageRegionResource {
     @Produces(APPLICATION_JSON)
     public Response create(
         @PathParam("srName") String name,
-        Properties attributes) {
+        @Context UriInfo uriInfo) {
         if (storageRegionManager.exists(name)) {
             return Response.status(Status.CONFLICT)
-                           .entity(StringUtils.format("Storage Region[%s] has been existed", name))
-                           .build();
+                .entity(StringUtils.format("Storage Region[%s] has been existed", name))
+                .build();
         }
+
+        Properties properties = new Properties();
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        queryParams.forEach((key, values) -> {
+            properties.setProperty(key, values.get(0));
+        });
 
         try {
             StorageRegion storageRegion = storageRegionManager.createStorageRegion(
                 name,
-                StorageRegionProperties.withDefault().override(attributes));
+                StorageRegionProperties.withDefault().override(properties));
             rocksDBManager.createColumnFamilyWithTtl(name, (int) Duration
-                .parse(StorageRegionProperties.withDefault().override(attributes).getDataTtl()).getSeconds());
+                .parse(StorageRegionProperties.withDefault().override(properties).getDataTtl()).getSeconds());
             return Response.ok(new StorageRegionID(storageRegion.getName(), storageRegion.getId())).build();
         } catch (Exception e) {
             log.error(StringUtils.format("can not create storage region[%s]", name), e);
@@ -106,42 +97,24 @@ public class StorageRegionResource {
     @Produces(APPLICATION_JSON)
     public Response update(
         @PathParam("srName") String name,
-        Properties attributes) {
+        @Context UriInfo uriInfo) {
         if (!storageRegionManager.exists(name)) {
             return Response.status(Status.NOT_FOUND).build();
         }
 
+        Properties properties = new Properties();
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        queryParams.forEach((key, values) -> {
+            properties.setProperty(key, values.get(0));
+        });
+
         try {
-            storageRegionManager.updateStorageRegion(name, attributes);
+            storageRegionManager.updateStorageRegion(name, properties);
             return Response.ok().build();
         } catch (Exception e) {
             log.error(StringUtils.format("can not update storage region[%s]", name), e);
             return Response.serverError().entity(Throwables.getStackTraceAsString(e)).build();
         }
-    }
-
-    @HEAD
-    @Path("{srName}")
-    public Response doesStorageRegionExists(
-        @PathParam("srName") String name) {
-        StorageRegion node = storageRegionManager.findStorageRegionByName(name);
-        if (node == null) {
-            return Response.status(Status.NOT_FOUND).build();
-        }
-
-        return Response.ok().build();
-    }
-
-    @GET
-    @Path("id/{srName}")
-    @Produces(APPLICATION_JSON)
-    public Response getStorageRegionID(@PathParam("srName") String name) {
-        StorageRegion node = storageRegionManager.findStorageRegionByName(name);
-        if (node == null) {
-            return Response.status(Status.NOT_FOUND).build();
-        }
-
-        return Response.ok().entity(new StorageRegionID(node.getName(), node.getId())).build();
     }
 
     @GET
@@ -154,33 +127,7 @@ public class StorageRegionResource {
             return Response.status(Status.NOT_FOUND).build();
         }
 
-        StorageRegionInfo info = new StorageRegionInfo(
-            new StorageRegionID(node.getName(), node.getId()),
-            new StorageRegionAttributes(
-                node.isEnable(),
-                node.getReplicateNum(),
-                node.getDataTtl(),
-                node.getFileCapacity(),
-                node.getFilePartitionDuration()));
-        return Response.ok(info).build();
-    }
-
-    @GET
-    @Path("list")
-    @Produces(APPLICATION_JSON)
-    public List<String> listStorageRegions(
-        @QueryParam("prefix") String prefix,
-        @DefaultValue("true") @QueryParam("disableAllowed") boolean disableAllowed,
-        @DefaultValue("2147483647") @QueryParam("maxKeys") int maxKeys) {
-        List<StorageRegion> storageRegionList = storageRegionManager.getStorageRegionList();
-        return storageRegionList
-            .subList(0, Math.min(maxKeys, storageRegionList.size()))
-            .stream()
-            .filter(sr -> disableAllowed || sr.isEnable())
-            .map(StorageRegion::getName)
-            .filter(name -> prefix == null || name.startsWith(prefix))
-
-            .collect(toImmutableList());
+        return Response.ok(Ints.toByteArray(node.getId())).build();
     }
 
     @DELETE
@@ -206,8 +153,8 @@ public class StorageRegionResource {
 
         if (!ReturnCode.SUCCESS.equals(code)) {
             return Response.serverError()
-                           .entity(BrStringUtils.toUtf8Bytes(code.name()))
-                           .build();
+                .entity(BrStringUtils.toUtf8Bytes(code.name()))
+                .build();
         }
 
         try {
@@ -220,7 +167,7 @@ public class StorageRegionResource {
         }
 
         return Response.serverError()
-                       .entity(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()))
-                       .build();
+            .entity(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()))
+            .build();
     }
 }

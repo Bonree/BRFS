@@ -41,6 +41,8 @@ public class StorageRegionModule implements Module {
         jaxrs(binder).resource(StorageRegionExistedExceptionMapper.class);
         jaxrs(binder).resource(StorageRegionNonexistentExceptionMapper.class);
         jaxrs(binder).resource(StorageRegionStateExceptionMapper.class);
+
+        jaxrs(binder).resource(LegacyStorageRegionResouce.class);
     }
 
 }

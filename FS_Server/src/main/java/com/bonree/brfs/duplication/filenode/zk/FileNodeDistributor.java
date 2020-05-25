@@ -175,7 +175,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
     }
 
     private long timeToLive(FileNode file) {
-        return TimeUtils.nextTimeStamp(System.currentTimeMillis(), file.getTimeDurationMillis()) - file.getCreateTime();
+        return TimeUtils.nextTimeStamp(file.getCreateTime(), file.getTimeDurationMillis()) - System.currentTimeMillis();
     }
 
     private boolean handleFileNode(FileNode fileNode) {
@@ -270,7 +270,7 @@ class FileNodeDistributor implements ServiceStateListener, TimeExchangeListener,
         PathChildrenCache childWatcher = childWatchers.get(service.getServiceId());
         CloseUtils.closeQuietly(childWatcher);
 
-        //删除服务对应的文件槽
+        //删除服务对应的文件槽, 这里需要同时删除FileStore么
         try {
             client.delete()
                   .quietly()
