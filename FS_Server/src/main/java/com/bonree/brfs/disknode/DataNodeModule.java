@@ -273,7 +273,8 @@ public class DataNodeModule implements Module {
         FileWriterManager writerManager,
         ServiceManager serviceManager,
         Lifecycle lifecycle) {
-        AsyncFileReaderGroup readerGroup = new AsyncFileReaderGroup(Math.min(2, Runtime.getRuntime().availableProcessors() / 2));
+        AsyncFileReaderGroup readerGroup = new AsyncFileReaderGroup(Math.min(2, Runtime.getRuntime().availableProcessors() / 2),
+                                                                    "data_writer_server");
 
         ExecutorService threadPool = Executors.newFixedThreadPool(
             Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),

@@ -40,7 +40,11 @@ public class TaskTcpClientGroup implements TcpClientGroup<BaseMessage, BaseRespo
     private int defaultIdleTimeoutSeconds = 60;
 
     public TaskTcpClientGroup(int workerNum) {
-        this.group = new NioEventLoopGroup(workerNum, new PooledThreadFactory("async_client"));
+        this(workerNum, "task_tcp_client");
+    }
+
+    public TaskTcpClientGroup(int workerNum, String threadName) {
+        this.group = new NioEventLoopGroup(workerNum, new PooledThreadFactory(threadName));
     }
 
     public TaskTcpClientGroup(int workerNum, int defaultIdleTimeoutSeconds, int defaultReadIdleTimeoutSeconds,

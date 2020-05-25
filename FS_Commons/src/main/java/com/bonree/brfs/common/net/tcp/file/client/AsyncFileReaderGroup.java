@@ -29,8 +29,12 @@ public class AsyncFileReaderGroup implements TcpClientGroup<ReadObject, FileCont
     private EventLoopGroup group;
     private List<Channel> channelList = Collections.synchronizedList(new ArrayList<>());
 
+    public AsyncFileReaderGroup(int workerNum, String threadName) {
+        this.group = new NioEventLoopGroup(workerNum, new PooledThreadFactory(threadName));
+    }
+
     public AsyncFileReaderGroup(int workerNum) {
-        this.group = new NioEventLoopGroup(workerNum, new PooledThreadFactory("async_file_reader"));
+        this(workerNum, "async_file_reader");
     }
 
     @Override
