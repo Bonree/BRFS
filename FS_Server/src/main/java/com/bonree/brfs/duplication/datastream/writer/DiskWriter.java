@@ -141,8 +141,9 @@ public class DiskWriter implements Closeable {
                         };
                     }
                 }
-
-                writeMetric.setAvgElapsedTime(writeMetric.getElapsedTime() / writeMetric.getDataCount());
+                if (writeMetric.getDataCount() > 0) {
+                    writeMetric.setAvgElapsedTime(writeMetric.getElapsedTime() / writeMetric.getDataCount());
+                }
                 deliver.sendWriterMetric(writeMetric.toMap());
             } finally {
                 callback.complete(file, index, dataOuts);
