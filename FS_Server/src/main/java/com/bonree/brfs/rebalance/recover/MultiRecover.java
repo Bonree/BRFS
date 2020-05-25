@@ -1,5 +1,6 @@
 package com.bonree.brfs.rebalance.recover;
 
+import com.bonree.brfs.common.files.FileFilterInterface;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.impl.v2.NormalRouteV2;
@@ -33,7 +34,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -128,6 +131,7 @@ public class MultiRecover implements DataRecover {
         }
     }
 
+    @SuppressWarnings("checkstyle:EmptyCatchBlock")
     @Override
     public void recover() {
 
@@ -194,6 +198,8 @@ public class MultiRecover implements DataRecover {
         // 启动消费队列
         Thread consumerThread = new Thread(consumerQueue());
         consumerThread.start();
+        Map<String, String> fileMap = new HashMap<>();
+        fileMap.put(BRFSPath.STORAGEREGION, storageRegion.getName());
         try {
             for (LocalPartitionInfo partitionInfo : localPartitionInfos) {
 
@@ -224,7 +230,7 @@ public class MultiRecover implements DataRecover {
                         return;
                     }
                     String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
-                    if (!perFile.endsWith(".rd")) {
+                    if (!perFile.endsWith(".rd") && !FileUtils.isExist(perFile + ".rd")) {
                         log.info("prepare deal file:{}, partitionPath:{}", brfsPath.toString(), partitionPath);
                         dealFileV2(brfsPath, partitionPath, routeCache.getBlockAnalyzer(storageRegion.getId()), normalRoute);
                     }
@@ -243,12 +249,16 @@ public class MultiRecover implements DataRecover {
             log.error("consumerThread error!", e);
         }
 
-        finishTask();
-
+        // 当本机没有storageregion的目录，则等待10s 保证任务下的各个节点均注册
         if (snDirNonExistNum.get() == localPartitionInfos.size()) {
             log.info("normal finish task because of snDirNonExistNum equal localPartitionInfos size");
-            finishTask();
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException ingore) {
+                // 忽略异常
+            }
         }
+        finishTask();
     }
 
     public void finishTask() {

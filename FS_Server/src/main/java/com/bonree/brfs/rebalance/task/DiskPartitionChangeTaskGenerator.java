@@ -151,17 +151,6 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         List<String> currentServers = getCurrentServers(serverManager);
 
         List<String> currentPartitionIds = partitionInfoManager.getCurrentPartitionIds();
-        HashMap<String, Integer> newSecondIds = new HashMap<>();
-
-        for (String partitionId : currentPartitionIds) {
-            for (StorageRegion sn : snList) {
-                String secondId = idManager.getSecondId(partitionId, sn.getId());
-                if (secondId != null) {
-                    newSecondIds
-                        .put(secondId, (int) partitionInfoManager.getPartitionInfoByPartitionId(partitionId).getFreeSize());
-                }
-            }
-        }
 
         for (StorageRegion snModel : snList) {
             if (snModel.getReplicateNum() > 1) {   // 是否配置SN恢复
@@ -171,8 +160,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                     try {
                         DiskPartitionChangeSummary summaryObj =
                             new DiskPartitionChangeSummary(snModel.getId(), genChangeID(), type, secondID,
-                                                           partitionInfo.getPartitionId(), currentServers, currentPartitionIds,
-                                                           newSecondIds, idManager.getSecondFirstShip(snModel.getId()));
+                                                           partitionInfo.getPartitionId(), currentServers, currentPartitionIds);
                         String summary = JsonUtils.toJsonString(summaryObj);
                         String diskPartitionTaskNode =
                             ZKPaths.makePath(changesPath, String.valueOf(snModel.getId()), summaryObj.getChangeID());

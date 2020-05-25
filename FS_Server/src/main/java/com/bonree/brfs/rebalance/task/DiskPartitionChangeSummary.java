@@ -36,10 +36,10 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
     @JsonProperty("currentPartitionIds")
     private List<String> currentPartitionIds;
 
-    @JsonProperty("newSecondIds")
-    private Map<String, Integer> newSecondIds;
-    @JsonProperty("secondFirstShip")
-    private Map<String, String> secondFirstShip;
+    // @JsonProperty("newSecondIds")
+    // private Map<String, Integer> newSecondIds;
+    // @JsonProperty("secondFirstShip")
+    // private Map<String, String> secondFirstShip;
 
     public String getChangeID() {
         return changeID;
@@ -69,13 +69,9 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         return currentPartitionIds;
     }
 
-    public Map<String, Integer> getNewSecondIds() {
-        return newSecondIds;
-    }
-
-    public Map<String, String> getSecondFirstShip() {
-        return secondFirstShip;
-    }
+    //public Map<String, Integer> getNewSecondIds() {
+    //    return newSecondIds;
+    // }
 
     @SuppressWarnings("unused")
     private DiskPartitionChangeSummary() {
@@ -83,8 +79,7 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
     }
 
     public DiskPartitionChangeSummary(int storageIndex, String createTime, ChangeType changeType, String changeServer,
-                                      String changePartitionId, List<String> currentServers, List<String> currentPartitionIds,
-                                      Map<String, Integer> newSecondIds, Map<String, String> secondFirstShip) {
+                                      String changePartitionId, List<String> currentServers, List<String> currentPartitionIds) {
         this.storageIndex = storageIndex;
         this.changeID = createTime;
         this.changeType = changeType;
@@ -92,8 +87,6 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
         this.changePartitionId = changePartitionId;
         this.currentServers = currentServers;
         this.currentPartitionIds = currentPartitionIds;
-        this.newSecondIds = newSecondIds;
-        this.secondFirstShip = secondFirstShip;
     }
 
     @Override
@@ -132,7 +125,7 @@ public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChang
                           .add("changePartitionId", changePartitionId)
                           .add("currentServers", currentServers)
                           .add("currentPartitionIds", currentPartitionIds)
-                          .add("newSecondIds", newSecondIds)
+                          // .add("newSecondIds", newSecondIds)
                           .toString();
     }
 }
