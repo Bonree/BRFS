@@ -564,6 +564,7 @@ public class TaskDispatcher implements Closeable {
                 secondFreeMap.put(second, value);
             }
         );
+        Map<String, String> secondFirstShip = idManager.getSecondFirstShip(snIndex);
         // 检测是否能进行数据恢复。
         for (DiskPartitionChangeSummary cs : changeSummaries) {
             if (cs.getChangeType().equals(ChangeType.REMOVE)) {
@@ -592,9 +593,7 @@ public class TaskDispatcher implements Closeable {
                     // 构建任务
                     BalanceTaskSummary taskSummary = taskGenerator
                         .genBalanceTask(cs.getChangeID(), cs.getStorageIndex(), cs.getChangePartitionId(), cs.getChangeServer(),
-                                        aliveSecondIDs, joinerSecondIDs, secondFreeMap,
-                                        cs.getSecondFirstShip(),
-                                        normalDelay);
+                                        aliveSecondIDs, joinerSecondIDs, secondFreeMap, secondFirstShip, normalDelay);
                     // 发布任务
                     dispatchTask(taskSummary);
                     // 加入正在执行的任务的缓存中
