@@ -200,7 +200,7 @@ public class TaskDispatcher implements Closeable {
                 try {
                     if (leaderLath.hasLeadership()) {
                         if (isLoad.get()) {
-                            LOG.info("auditTask timer changeSummaryCache: {}", changeSummaryCache);
+                            LOG.debug("auditTask timer changeSummaryCache: {}", changeSummaryCache);
                             for (Entry<Integer, List<DiskPartitionChangeSummary>> entry : changeSummaryCache.entrySet()) {
                                 StorageRegion sn = snManager.findStorageRegionById(entry.getKey());
                                 // 因为sn可能会被删除
@@ -218,7 +218,7 @@ public class TaskDispatcher implements Closeable {
                     LOG.error("audit task schedule execute error", e);
                 }
             }
-        }, 3000, 3000 * 20, TimeUnit.MILLISECONDS);
+        }, 3000, 3000, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -773,7 +773,7 @@ public class TaskDispatcher implements Closeable {
             }
         }
 
-        LOG.info("check change summaries:{}", changeSummaries);
+        LOG.debug("check change summaries:{}", changeSummaries);
         // 查找影响当前任务的变更
         if (changeSummaries.size() > 1) {
             String changeID = currentTask.getChangeID();
@@ -824,7 +824,7 @@ public class TaskDispatcher implements Closeable {
                                         }
                                     }
                                 } else if (interval > 0) {
-                                    currentTask.setInterval(currentTask.getInterval() - 10);
+                                    currentTask.setInterval(currentTask.getInterval() - 1);
                                 }
                                 break;
                             } else {
@@ -836,7 +836,7 @@ public class TaskDispatcher implements Closeable {
                                     if (interval == -1) {
                                         currentTask.setInterval(DEFAULT_INTERVAL);
                                     } else if (interval > 0) {
-                                        currentTask.setInterval(currentTask.getInterval() - 10);
+                                        currentTask.setInterval(currentTask.getInterval() - 1);
                                     } else if (interval == 0) {
                                         List<String> aliveServices = getAliveServices();
                                         String otherFirstID = idManager.getFirstId(currentTask.getOutputServers().get(0),
@@ -934,7 +934,7 @@ public class TaskDispatcher implements Closeable {
                                 } else if (currentTask.getInterval() == 0) {
                                     updateTaskStatus(currentTask, TaskStatus.CANCEL);
                                 } else {
-                                    currentTask.setInterval(currentTask.getInterval() - 10);
+                                    currentTask.setInterval(currentTask.getInterval() - 1);
                                 }
                                 LOG.info("task interval:{}", currentTask.getInterval());
                                 break;
