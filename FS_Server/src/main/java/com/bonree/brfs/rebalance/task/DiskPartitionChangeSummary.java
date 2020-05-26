@@ -1,5 +1,6 @@
 package com.bonree.brfs.rebalance.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
  * @Author: <a href=mailto:zhangqi@bonree.com>张奇</a>
  * @Description:
  ******************************************************************************/
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DiskPartitionChangeSummary implements Comparable<DiskPartitionChangeSummary> {
 
     @JsonProperty("changeID")
