@@ -312,7 +312,7 @@ public class CopyRecovery {
     public static boolean copyFrom(Service remote, String remotePath, String localPath) {
         TcpDiskNodeClient client = null;
         try {
-            client = new TcpClientBuilder().getClient(remote);
+            client = TcpClientBuilder.getInstance().getClient(remote);
             LocalByteStreamConsumer consumer = new LocalByteStreamConsumer(localPath);
             client.readFile(remotePath, consumer);
             return consumer.getResult().get(30, TimeUnit.SECONDS);

@@ -165,7 +165,7 @@ public class CopyCountCheck {
         RouteCache routeCache = mcf.getRouteCache();
         IDSManager sim = mcf.getSim();
         BlockAnalyzer parser;
-        TcpClientBuilder builder1 = new TcpClientBuilder();
+        TcpClientBuilder builder1 = TcpClientBuilder.getInstance();
         for (Service service : services) {
             try {
                 client = builder1.getClient(service);

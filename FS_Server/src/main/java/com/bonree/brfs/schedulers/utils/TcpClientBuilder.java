@@ -26,12 +26,22 @@ public class TcpClientBuilder {
     private int timeout;
     private TaskTcpClientGroup group;
     private AsyncFileReaderGroup group2;
+    private static TcpClientBuilder builder;
 
-    public TcpClientBuilder() {
+    public static TcpClientBuilder getInstance() {
+        synchronized (builder) {
+            if (builder == null) {
+                builder = new TcpClientBuilder();
+            }
+            return builder;
+        }
+    }
+
+    private TcpClientBuilder() {
         this(DEFAULT_IDLE_TIME_SECOND, DEFAULT_READ_IDLE_TIME_SECOND, DEFAULT_WRITE_IDLE_TIME_SECOND, DEFAULT_TIME_OUT);
     }
 
-    public TcpClientBuilder(int idleTime, int readIdleTime, int writeIdleTime, int timeout) {
+    private TcpClientBuilder(int idleTime, int readIdleTime, int writeIdleTime, int timeout) {
         this.idleTime = idleTime;
         this.readIdleTime = readIdleTime;
         this.writeIdleTime = writeIdleTime;
