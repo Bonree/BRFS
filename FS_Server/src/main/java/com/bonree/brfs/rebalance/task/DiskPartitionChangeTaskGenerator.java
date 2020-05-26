@@ -116,6 +116,8 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                         PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
                         if (info != null) {
                             generateChangeSummary(info, ChangeType.ADD);
+                        } else {
+                            LOG.warn("DiskPartitionInfo is null ! path:{},event:{}", event.getData().getPath(), event.getType());
                         }
                     }
                 }
@@ -127,6 +129,8 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                         PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
                         if (info != null) {
                             generateChangeSummary(info, ChangeType.REMOVE);
+                        } else {
+                            LOG.warn("DiskPartitionInfo is null ! path:{},event:{}", event.getData().getPath(), event.getType());
                         }
                     }
                 }
@@ -174,6 +178,9 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                     } catch (Exception e) {
                         LOG.error("generator a disk partition change record failed for storageRegion: [{}]", snModel, e);
                     }
+                } else {
+                    LOG.warn("StorageRegion no secondID sr:[{}],partition:[{}]", snModel.getName(),
+                             partitionInfo.getPartitionId());
                 }
             }
         }

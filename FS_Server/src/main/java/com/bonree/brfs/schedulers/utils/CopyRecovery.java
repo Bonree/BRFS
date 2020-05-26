@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -211,8 +212,8 @@ public class CopyRecovery {
         }
         localIndex = isContain(sss, secondId);
         if (-1 == localIndex) {
-            LOG.info("secondID:[{}],sr:[{}] filename:[{}] analysisArray:[{}] not local !! skip",
-                     secondId, snName, fileName, ImmutableList.of(sss));
+            LOG.warn("secondID:[{}],sr:[{}] filename:[{}] analysisArray:[{}] not local !! skip",
+                     secondId, snName, fileName, Arrays.asList(sss));
             return true;
         }
 

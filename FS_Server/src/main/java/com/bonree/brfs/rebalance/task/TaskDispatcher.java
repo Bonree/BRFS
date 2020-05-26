@@ -239,9 +239,12 @@ public class TaskDispatcher implements Closeable {
                     for (String childNode : childPaths) {
                         String childPath = ZKPaths.makePath(snPath, childNode);
                         byte[] data = curatorClient.getData(childPath);
-                        LOG.info("current data:{}", new String(data));
                         DiskPartitionChangeSummary cs = JsonUtils.toObjectQuietly(data, DiskPartitionChangeSummary.class);
-                        changeSummaries.add(cs);
+                        if (cs != null) {
+                            changeSummaries.add(cs);
+                        } else {
+                            LOG.warn("find invalid change {}", childPath);
+                        }
                     }
                 }
                 // 如果该目录下有服务变更信息，则进行服务变更信息保存
