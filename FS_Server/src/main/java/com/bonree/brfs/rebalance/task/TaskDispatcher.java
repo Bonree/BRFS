@@ -588,9 +588,6 @@ public class TaskDispatcher implements Closeable {
                                       .collect(Collectors.toList());
 
                 // 挂掉的机器不能做生存者和参与者，此处进行再次过滤，防止其他情况
-                if (aliveSecondIDs.contains(cs.getChangeServer())) {
-                    aliveSecondIDs.remove(cs.getChangeServer());
-                }
                 if (joinerSecondIDs.contains(cs.getChangeServer())) {
                     joinerSecondIDs.remove(cs.getChangeServer());
                 }
@@ -624,6 +621,9 @@ public class TaskDispatcher implements Closeable {
     private boolean isCanRecover(DiskPartitionChangeSummary cs, List<String> joinerSecondIDs, List<String> aliveSecondIDs,
                                  IDSManager idManager, int storageIndex) {
         boolean canRecover = true;
+        if (aliveSecondIDs.contains(cs.getChangeServer())) {
+            return false;
+        }
         int replicas = snManager.findStorageRegionById(cs.getStorageIndex()).getReplicateNum();
         // 检查参与者是否都存活
         for (String joiner : joinerSecondIDs) {
