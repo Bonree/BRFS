@@ -33,7 +33,7 @@ public class CuratorCacheFactory {
     }
 
     public static CuratorTreeCache getTreeCache() {
-        LOG.info("create CuratorPathCache...");
+        LOG.info("create CuratorTreeCache...");
         if (treeCache == null) {
             synchronized (CuratorTreeCache.class) {
                 if (treeCache == null) {
@@ -57,9 +57,9 @@ public class CuratorCacheFactory {
     }
 
     public static CuratorNodeCache getNodeCache() {
-        LOG.info("create CuratorPathCache...");
+        LOG.info("create CuratorNodeCache...");
         if (nodeCache == null) {
-            synchronized (CuratorPathCache.class) {
+            synchronized (CuratorNodeCache.class) {
                 if (nodeCache == null) {
                     nodeCache = new CuratorNodeCache(Preconditions.checkNotNull(client, "CuratorCacheFactory is not init!!!"));
                 }

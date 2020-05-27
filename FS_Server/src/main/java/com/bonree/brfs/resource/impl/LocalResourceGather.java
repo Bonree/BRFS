@@ -51,7 +51,9 @@ public class LocalResourceGather implements ResourceGatherInterface {
         Collection<DiskPartitionStat> diskStats = new ArrayList<>();
         for (LocalPartitionInfo x : disks) {
             DiskPartitionStat stat = gather.collectSinglePartitionStats(x.getDataDir());
-            diskStats.add(stat);
+            if (stat != null) {
+                diskStats.add(stat);
+            }
         }
         long totalSize = diskStats.stream().mapToLong(DiskPartitionStat::getTotal).sum();
         long availSize = diskStats.stream().mapToLong(DiskPartitionStat::getAvail).sum();
