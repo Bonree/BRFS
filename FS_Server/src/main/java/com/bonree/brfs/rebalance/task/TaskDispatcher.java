@@ -484,7 +484,7 @@ public class TaskDispatcher implements Closeable {
      */
     public void auditTask(int snIndex, List<DiskPartitionChangeSummary> changeSummaries) {
         if (changeSummaries == null || changeSummaries.isEmpty()) {
-            LOG.info("snIndex:{}, changeSummaries is empty, return!!!", snIndex);
+            LOG.debug("snIndex:{}, changeSummaries is empty, return!!!", snIndex);
             return;
         }
 
