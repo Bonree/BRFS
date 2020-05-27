@@ -113,7 +113,11 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
             // 该sleep的作用有2
             // 1. 防止监听事件已经发生但此时leader还未切换完成导致REMOVE事件丢失
             // 2. 目前datanode启动顺序无法人为控制，为防止二级server监听器还没有同步完数据，导致获取的二级serverid为空，造成变更创建失败
-            TimeUnit.SECONDS.sleep(5);
+            try {
+                TimeUnit.SECONDS.sleep(5);
+            } catch (InterruptedException ignore) {
+                ;
+            }
             if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_ADDED)) {
                 if (leaderLath.hasLeadership()) {
                     if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
