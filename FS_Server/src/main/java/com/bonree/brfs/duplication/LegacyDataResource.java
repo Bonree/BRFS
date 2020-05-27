@@ -4,9 +4,10 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
-import com.bonree.brfs.common.proto.DataTransferProtos.WriteBatch;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
 import com.bonree.brfs.common.write.data.WriteDataMessage;
+import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriteCallback;
+import com.bonree.brfs.duplication.datastream.writer.StorageRegionWriter;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.duplication.storageregion.exception.StorageRegionNonexistentException;
@@ -28,12 +29,15 @@ public class LegacyDataResource {
 
     private final DataResource dataResource;
     private final StorageRegionManager storageRegionManager;
+    private final StorageRegionWriter storageRegionWriter;
 
     @Inject
     public LegacyDataResource(DataResource dataResource,
-                              StorageRegionManager storageRegionManager) {
+                              StorageRegionManager storageRegionManager,
+                              StorageRegionWriter storageRegionWriter) {
         this.dataResource = dataResource;
         this.storageRegionManager = storageRegionManager;
+        this.storageRegionWriter = storageRegionWriter;
     }
 
     @POST
@@ -49,9 +53,27 @@ public class LegacyDataResource {
             return;
         }
 
-        WriteBatch.Builder builder = WriteBatch.newBuilder();
+        storageRegionWriter.write(
+            storageRegion.getName(),
+            writeDatas.getItems(),
+            new StorageRegionWriteCallback() {
 
-        dataResource.writeBatch(storageRegion.getName(), builder.build(), response);
+                @Override
+                public void complete(String[] fids) {
+                    response.resume(fids);
+                }
+
+                @Override
+                public void complete(String fid) {
+                    response.resume(Response.serverError().build());
+                    throw new RuntimeException("Batch writting should not return a single fid");
+                }
+
+                @Override
+                public void error(Throwable cause) {
+                    response.resume(cause);
+                }
+            });
     }
 
     @DELETE
