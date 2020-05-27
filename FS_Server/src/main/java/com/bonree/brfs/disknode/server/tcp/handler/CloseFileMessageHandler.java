@@ -39,6 +39,7 @@ public class CloseFileMessageHandler implements MessageHandler<BaseResponse> {
     @Override
     public void handleMessage(BaseMessage baseMessage, ResponseWriter<BaseResponse> writer) {
         String path = BrStringUtils.fromUtf8Bytes(baseMessage.getBody());
+        LOG.info(" accept the CLOSE file[{}] request", path);
         if (path == null) {
             writer.write(new BaseResponse(ResponseCode.ERROR_PROTOCOL));
             return;

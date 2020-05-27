@@ -144,6 +144,7 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
 
                 @Override
                 public void timeout(FileObject file) {
+                    log.info("file[{}] is timeout to sync, just close it");
                     fileCloser.close(file, false);
                 }
             });

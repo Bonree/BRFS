@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 @ManageLifecycle
 public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultFileObjectCloser.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultFileObjectCloser.class);
 
     private ExecutorService closeThreads;
 
@@ -67,12 +67,13 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 
     @Override
     public void close(FileObject file, boolean syncIfFailed) {
+        log.info("commit file[{}] to close", file.node().getName());
         closeThreads.submit(new CloseProcessor(file, syncIfFailed));
     }
 
     private class CloseProcessor implements Runnable {
-        private FileObject file;
-        private boolean syncIfNeeded;
+        private final FileObject file;
+        private final boolean syncIfNeeded;
 
         public CloseProcessor(FileObject file, boolean syncIfNeeded) {
             this.file = file;
@@ -84,10 +85,11 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
             FileNode fileNode = file.node();
 
             long closeCode = -1;
+            log.info("start to close file[{}]", fileNode.getName());
             for (DuplicateNode node : fileNode.getDuplicateNodes()) {
                 DiskNodeConnection connection = connectionPool.getConnection(node.getGroup(), node.getId());
                 if (connection == null || connection.getClient() == null) {
-                    LOG.info("close error because node[{}] is disconnected!", node);
+                    log.info("close error because node[{}] is disconnected!", node);
                     closeAll = false;
                     continue;
                 }
@@ -95,9 +97,9 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
                 DiskNodeClient client = connection.getClient();
                 String filePath = pathMaker.buildPath(fileNode, node);
 
-                LOG.info("closing file[{}] at node[{}]", filePath, node);
+                log.info("closing file[{}] at node[{}]", filePath, node);
                 long code = client.closeFile(filePath);
-                LOG.info("close file[{}] at node[{}] result[{}]", filePath, node, code);
+                log.info("close file[{}] at node[{}] result[{}]", filePath, node, code);
                 if (code < 0) {
                     closeAll = false;
                     continue;
@@ -123,12 +125,13 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
 
                     @Override
                     public void complete(FileObject file, long fileLength) {
-                        LOG.info("final length is [{}] before close file[{}]", fileLength, file.node().getName());
+                        log.info("final length is [{}] before close file[{}]", fileLength, file.node().getName());
                         close(file, true);
                     }
 
                     @Override
                     public void timeout(FileObject file) {
+                        log.info("file[{}] is timeout to sync, close it");
                         close(file, false);
                     }
                 });
@@ -139,7 +142,7 @@ public class DefaultFileObjectCloser implements FileObjectCloser, Closeable {
             try {
                 fileNodeStorer.delete(file.node().getName());
             } catch (Exception e) {
-                LOG.error("delete file[{}] from file coordinator failed", file.node().getName());
+                log.error("delete file[{}] from file coordinator failed", file.node().getName());
             }
         }
 
