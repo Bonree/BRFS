@@ -28,20 +28,19 @@ public class TestRead {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-        String fid = "CAAQABgNIiAxY2EwOTE4N2JkNjE0YTJiYTU1M2VlZDc2ZGRiMTU2ZCit7Nqe5i0wgN3bAToDMjI3OgMyMjZAAEhX";
+        //CAAQABgJIiA0ZjRmNjM5ZWUyN2I0MGI1YjNhMWM4YWIzYTNjNzA5YiiAoLSnpS4wgN3bAToDMjEyOgIzMUAySDI=
+        String fid = "CAAQABgJIiA0ZjRmNjM5ZWUyN2I0MGI1YjNhMWM4YWIzYTNjNzA5YiiAoLSnpS4wgN3bAToDMjEyOgIzMUAASDI=";
 
-        FileSystemConfig config = FileSystemConfig.newBuilder()
-                                                  .setClusterName("brfs_sdk2")
-                                                  .setUsername("root")
-                                                  .setPasswd("12345")
-                                                  .setConnectionPoolSize(10)
-                                                  .setZkAddresses("192.168.13.91:2181")
-                                                  .build();
-        BRFileSystem fileSystem = new DefaultBRFileSystem(config);
-        StorageNameStick stick = fileSystem.openStorageName("T_WINSDK_STAT_ERROR_SNAPSHOT");
+        BRFileSystem fs = new DefaultBRFileSystem(FileSystemConfig.newBuilder()
+                                                      .setZkAddresses("192.168.101.87:2181")
+                                                      .setClusterName("guice_test")
+                                                      .setUsername("root")
+                                                      .setPasswd("12345")
+                                                      .build());
+        StorageNameStick stick = fs.openStorageName("sr_v1");
 
         InputItem input = stick.readData(fid);
-        System.out.println(input);
+        System.out.println(new String(input.getBytes(), "utf-8"));
     }
 
 }
