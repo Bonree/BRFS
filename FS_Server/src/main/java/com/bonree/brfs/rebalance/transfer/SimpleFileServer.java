@@ -18,16 +18,18 @@ public class SimpleFileServer implements Closeable {
     private ServerSocket serverSocket;
     private LocalPartitionInterface partitionInterface;
     private ExecutorService es = null;
+    private boolean run;
 
     public SimpleFileServer(int port, LocalPartitionInterface partitionInterface, int threadCount) throws IOException {
         serverSocket = new ServerSocket(port);
         this.partitionInterface = partitionInterface;
         es = Executors.newFixedThreadPool(threadCount, new PooledThreadFactory("file_transfer"));
+        run = true;
     }
 
     public void start() {
         LOG.info("start file server!!!");
-        while (true) {
+        while (run) {
             Socket sock = null;
             try {
                 sock = serverSocket.accept();
@@ -40,6 +42,7 @@ public class SimpleFileServer implements Closeable {
 
     @Override
     public void close() throws IOException {
+        run = false;
         if (serverSocket != null) {
             serverSocket.close();
         }
