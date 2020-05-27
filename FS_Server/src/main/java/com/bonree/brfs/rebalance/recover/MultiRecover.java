@@ -28,6 +28,7 @@ import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
+import com.bonree.brfs.rebalance.task.listener.TaskNodeCache;
 import com.bonree.brfs.rebalance.transfer.SimpleFileClient;
 import java.io.File;
 import java.io.IOException;
@@ -75,7 +76,7 @@ public class MultiRecover implements DataRecover {
     private int currentCount = 0;
     private LocalPartitionInterface localPartitionInterface;
     private RouteCache routeCache;
-    private AtomicReference<TaskStatus> status;
+    private TaskNodeCache cache;
     private AtomicInteger snDirNonExistNum = new AtomicInteger();
 
     private BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
@@ -93,42 +94,11 @@ public class MultiRecover implements DataRecover {
         this.localPartitionInterface = localPartitionInterface;
         // 开启监控
         nodeCache = CuratorCacheFactory.getNodeCache();
-        nodeCache.addListener(taskNode, new RecoverListener("recover_listener"));
+        cache = new TaskNodeCache(this.balanceSummary, client, taskNode);
+        nodeCache.addListener(taskNode, cache);
         this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstSever();
         this.delayTime = balanceSummary.getDelayTime();
-        status = new AtomicReference<>(summary.getTaskStatus());
         this.routeCache = routeCache;
-    }
-
-    private class RecoverListener extends AbstractNodeCacheListener {
-
-        public RecoverListener(String listenName) {
-            super(listenName);
-        }
-
-        @Override
-        public void nodeChanged() throws Exception {
-            log.info("receive update event!!!");
-            if (client.checkExists(taskNode)) {
-                byte[] data = client.getData(taskNode);
-                BalanceTaskSummary bts = JsonUtils.toObject(data, BalanceTaskSummary.class);
-                String newID = bts.getId();
-                String oldID = balanceSummary.getId();
-                if (newID.equals(oldID)) { // 是同一个任务
-                    TaskStatus stats = bts.getTaskStatus();
-                    // 更新缓存
-                    status.set(stats);
-                    log.info("stats: {}", stats);
-                } else { // 不是同一个任务
-                    log.info("newID:{} not match oldID:{}", newID, oldID);
-                    log.info("cancel multi recover:{}", balanceSummary);
-                    status.set(TaskStatus.CANCEL);
-                }
-            } else {
-                log.info("task is deleted, this task will cancel!");
-                status.set(TaskStatus.CANCEL);
-            }
-        }
     }
 
     @SuppressWarnings("checkstyle:EmptyCatchBlock")
@@ -160,12 +130,12 @@ public class MultiRecover implements DataRecover {
 
         try {
             for (int i = 0; i < delayTime; i++) {
-                if (status.get().equals(TaskStatus.CANCEL)) {
+                if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                     return;
                 }
                 // 暂时用循环控制，后期重构改成wait notify机制
                 while (true) {
-                    if (!status.get().equals(TaskStatus.PAUSE)) {
+                    if (!cache.getStatus().get().equals(TaskStatus.PAUSE)) {
                         break;
                     }
                     log.info("sub task is pause for {}", balanceSummary);
@@ -226,7 +196,7 @@ public class MultiRecover implements DataRecover {
 
                 // 遍历副本文件
                 for (BRFSPath brfsPath : allPaths) {
-                    if (status.get().equals(TaskStatus.CANCEL)) {
+                    if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                         return;
                     }
                     String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
@@ -263,7 +233,7 @@ public class MultiRecover implements DataRecover {
 
     public void finishTask() {
         // 没有取消任务
-        if (!status.get().equals(TaskStatus.CANCEL)) {
+        if (!cache.getStatus().get().equals(TaskStatus.CANCEL)) {
             detail.setStatus(ExecutionStatus.FINISH);
             updateDetail(selfNode, detail);
             log.info("恢复正常完成！！！！！");
@@ -375,13 +345,13 @@ public class MultiRecover implements DataRecover {
                 try {
                     FileRecoverMeta fileRecover = null;
                     while (fileRecover != null || !overFlag) {
-                        log.info("current task status:{}", status);
-                        if (status.get().equals(TaskStatus.CANCEL)) {
+                        log.info("current task status:{}", cache.getStatus());
+                        if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                             break;
-                        } else if (status.get().equals(TaskStatus.PAUSE)) {
+                        } else if (cache.getStatus().get().equals(TaskStatus.PAUSE)) {
                             log.info("task pause!!!");
                             Thread.sleep(1000);
-                        } else if (status.get().equals(TaskStatus.RUNNING)) {
+                        } else if (cache.getStatus().get().equals(TaskStatus.RUNNING)) {
                             fileRecover = fileRecoverQueue.poll(1, TimeUnit.SECONDS);
                             log.info("fileRecover:{}", fileRecover);
                             if (fileRecover != null) {
@@ -394,12 +364,12 @@ public class MultiRecover implements DataRecover {
                                     .getFileName();
                                 boolean success;
                                 while (true) {
-                                    if (status.get().equals(TaskStatus.PAUSE)) {
+                                    if (cache.getStatus().get().equals(TaskStatus.PAUSE)) {
                                         log.info("task pause!!!");
                                         Thread.sleep(1000);
                                         continue;
                                     }
-                                    if (status.get().equals(TaskStatus.CANCEL)) {
+                                    if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                                         break;
                                     }
                                     Service service = serviceManager.getServiceById(

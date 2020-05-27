@@ -309,7 +309,7 @@ public class TaskDispatcher implements Closeable {
         if (leaderLath.hasLeadership()) {
             CuratorClient curatorClient = CuratorClient.wrapClient(client);
             LOG.info("is leaderLath: {}", getLeaderLatch().hasLeadership());
-            LOG.info("task Dispatch event detail: {}", RebalanceUtils.convertEvent(event));
+            LOG.debug("task Dispatch event detail: {}", RebalanceUtils.convertEvent(event));
 
             if (event.getType() == Type.NODE_UPDATED) {
                 if (event.getData() != null && event.getData().getData() != null) {
@@ -344,20 +344,20 @@ public class TaskDispatcher implements Closeable {
                         }
                     }
 
-                    BalanceTaskSummary bts =
-                        JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummary.class);
-                    // 所有的服务都则发布迁移规则，并清理任务
                     if (finishFlag) {
+                        // 所有的服务都则发布迁移规则，并清理任务
+                        BalanceTaskSummary bts =
+                            JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummary.class);
                         // 先更新任务状态为finish
                         updateTaskStatus(bts, TaskStatus.FINISH);
                         // 发布路由规则
                         if (bts.getTaskType() == RecoverType.VIRTUAL) {
-                            LOG.info("one virtual task finish, detail:" + RebalanceUtils.convertEvent(event));
+                            LOG.debug("one virtual task finish, detail:" + RebalanceUtils.convertEvent(event));
                             String virtualRouteNode =
                                 ZKPaths.makePath(virtualRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                             VirtualRoute route = new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(),
                                                                   bts.getInputServers().get(0), TaskVersion.V1);
-                            LOG.info("add virtual route: {}", route);
+                            LOG.debug("add virtual route: {}", route);
                             addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
                             // 无效化virtualID,直到成功
                             boolean flag = false;
@@ -365,15 +365,15 @@ public class TaskDispatcher implements Closeable {
                                 flag = idManager.invalidVirtualId(bts.getStorageIndex(), bts.getServerId());
                             } while (!flag);
                             // 删除virtual server ID
-                            LOG.info("delete the virtual server id: {}", bts.getServerId());
+                            LOG.debug("delete the virtual server id: {}", bts.getServerId());
                             idManager.deleteVirtualId(bts.getStorageIndex(), bts.getServerId());
                         } else if (bts.getTaskType() == RecoverType.NORMAL) {
-                            LOG.info("one normal task finish, detail:" + RebalanceUtils.convertEvent(event));
+                            LOG.debug("one normal task finish, detail:" + RebalanceUtils.convertEvent(event));
                             String normalRouteNode =
                                 ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                             NormalRouteV2 route = new NormalRouteV2(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(),
                                                                     bts.getNewSecondIds(), bts.getSecondFirstShip());
-                            LOG.info("add normal route: {}", route);
+                            LOG.debug("add normal route: {}", route);
                             addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
                         }
 
@@ -391,7 +391,8 @@ public class TaskDispatcher implements Closeable {
                             // 清理task缓存
                             removeRunTask(bts.getStorageIndex());
                         }
-
+                        LOG.info("StorageRegion:[{}],task:[{}],type:[{}] finish", bts.getStorageIndex(), bts.getChangeID(),
+                                 bts.getTaskType());
                     }
                 }
             }
@@ -411,6 +412,8 @@ public class TaskDispatcher implements Closeable {
         String parentPath = ZKPaths.makePath(tasksPath, String.valueOf(taskSummary.getStorageIndex()), Constants.TASK_NODE);
         // 节点已经删除，则忽略
         if (!curatorClient.checkExists(parentPath)) {
+            LOG.warn("task node is not exists {}", parentPath);
+            runTask.remove(taskSummary.getStorageIndex());
             return;
         }
         BalanceTaskSummary bts = JsonUtils.toObjectQuietly(curatorClient.getData(parentPath), BalanceTaskSummary.class);
@@ -418,27 +421,29 @@ public class TaskDispatcher implements Closeable {
         // 所有的服务都则发布迁移规则，并清理任务
         if (bts.getTaskStatus().equals(TaskStatus.FINISH)) {
             if (bts.getTaskType() == RecoverType.VIRTUAL) {
-                LOG.info("one virtual task finish, detail: {}", taskSummary);
+                LOG.debug("one virtual task finish, detail: {}", taskSummary);
                 String virtualRouteNode = ZKPaths.makePath(virtualRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
                 VirtualRoute route =
                     new VirtualRoute(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getInputServers().get(0),
                                      TaskVersion.V1);
-                LOG.info("add virtual route: {}", route);
+                LOG.debug("add virtual route: {}", route);
                 addRoute(virtualRouteNode, JsonUtils.toJsonBytesQuietly(route));
 
                 // 删除virtual server ID
-                LOG.info("delete the virtual server id:" + bts.getServerId());
+                LOG.debug("delete the virtual server id:" + bts.getServerId());
                 idManager.deleteVirtualId(bts.getStorageIndex(), bts.getServerId());
             } else if (bts.getTaskType() == RecoverType.NORMAL) {
-                LOG.info("one normal task finish, detail: {}", taskSummary);
+                LOG.debug("one normal task finish, detail: {}", taskSummary);
                 String normalRouteNode = ZKPaths.makePath(normalRoutePath, String.valueOf(bts.getStorageIndex()), bts.getId());
 
                 NormalRouteV2 route =
                     new NormalRouteV2(bts.getChangeID(), bts.getStorageIndex(), bts.getServerId(), bts.getNewSecondIds(),
                                       bts.getSecondFirstShip());
-                LOG.info("add normal route:" + route);
+                LOG.debug("add normal route:" + route);
                 addRoute(normalRouteNode, JsonUtils.toJsonBytesQuietly(route));
             }
+            LOG.info("storage:[{}] task [{}] type:[{}] is finish. handler the route", bts.getStorageIndex(), bts.getChangeID(),
+                     bts.getTaskType());
         }
 
         List<DiskPartitionChangeSummary> changeSummaries = changeSummaryCache.get(bts.getStorageIndex());
@@ -493,7 +498,7 @@ public class TaskDispatcher implements Closeable {
         // 当前有任务在执行,则检查是否有影响该任务的change存在
         BalanceTaskSummary runningTask = runTask.get(snIndex);
         if (runningTask != null) {
-            LOG.info("this sn [{}] has running task, will check, tasks:{}", snIndex, runningTask);
+            LOG.debug("this sn [{}] has running task, will check, tasks:{}", snIndex, runningTask);
             checkTask(snIndex, changeSummaries);
             return;
         }
@@ -517,7 +522,6 @@ public class TaskDispatcher implements Closeable {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     private void trimTask(List<DiskPartitionChangeSummary> changeSummaries) {
-        LOG.info("trimTask !!!!");
         // 需要清除变更抵消。
         Map<String, List<DiskPartitionChangeSummary>> tempCsMap = Maps.newHashMap();
         // 需要清除变更抵消。
@@ -573,9 +577,9 @@ public class TaskDispatcher implements Closeable {
             if (cs.getChangeType().equals(ChangeType.REMOVE)) {
                 List<String> alivePartitionIds = this.partitionInfoManager.getCurrentPartitionIds();
                 List<String> joinerPartitionIds = cs.getCurrentPartitionIds();
-                LOG.info("alivePartitionIds: {}", alivePartitionIds);
-                LOG.info("joinerPartitionIds: {}", joinerPartitionIds);
-                LOG.info("further to filter dead server...");
+                LOG.debug("alivePartitionIds: {}", alivePartitionIds);
+                LOG.debug("joinerPartitionIds: {}", joinerPartitionIds);
+                LOG.debug("further to filter dead server...");
                 List<String> aliveSecondIDs =
                     alivePartitionIds.stream().map((x) -> idManager.getSecondId(x, cs.getStorageIndex()))
                                      .collect(Collectors.toList());
@@ -601,8 +605,10 @@ public class TaskDispatcher implements Closeable {
                     dispatchTask(taskSummary);
                     // 加入正在执行的任务的缓存中
                     setRunTask(taskSummary.getStorageIndex(), taskSummary);
+                    LOG.info("release storageRegion:[{}], task:[{}], type:[{}], status [{}], delaytime:[{}]s",
+                             cs.getStorageIndex(), cs.getChangeID(), cs.getChangeType(), normalDelay);
                 } else {
-                    LOG.info("because current server is not enough,normal recover can't create.change:{}", changeSummaries);
+                    LOG.warn("because current server is not enough,normal recover can't create.change:{}", changeSummaries);
                 }
             }
         }
@@ -722,7 +728,10 @@ public class TaskDispatcher implements Closeable {
                             // 虚拟serverID迁移完成，会清理缓存和zk上的任务
                             break;
                         } else {
-                            LOG.info("该变更不用参与虚拟迁移（使用过虚拟serverID，或者已经参与过虚拟serverID恢复: {}", changeSummaries);
+                            LOG.info(
+                                "This change does not need to participate in virtual migration"
+                                    + " (use virtual serverID, or have participated in virtual serverID recovery): {}",
+                                changeSummary.getChangeID());
                             changeSummaries.remove(changeSummary);
                             delChangeSummaryNode(changeSummary);
 
@@ -784,68 +793,53 @@ public class TaskDispatcher implements Closeable {
             Optional<DiskPartitionChangeSummary> runChangeOpt =
                 changeSummaries.stream().filter(x -> x.getChangeID().equals(changeID)).findFirst();
             if (!runChangeOpt.isPresent()) {
-                LOG.error("rebalance metadata is error: {}", currentTask);
+                LOG.error("rebalance metadata is error: {} try fix it !!", currentTask);
                 MailWorker.newBuilder(EmailPool.getInstance().getProgramInfo())
                           .setMessage("rebalance metadata is error:" + currentTask);
                 // 尝试修复下
-                LOG.info("fix the metadata!!!");
                 fixTaskMeta(currentTask);
                 return;
             }
             DiskPartitionChangeSummary runChangeSummary = runChangeOpt.get();
 
-            LOG.info("check running change: {}", runChangeSummary);
-
+            LOG.debug("check running change: {}", runChangeSummary);
             for (DiskPartitionChangeSummary cs : changeSummaries) {
                 if (!cs.getChangeID().equals(runChangeSummary.getChangeID())) { // 与正在执行的变更不同
                     if (runChangeSummary.getChangeType().equals(ChangeType.ADD)) { // 正在执行虚拟迁移任务
                         if (cs.getChangeType().equals(ChangeType.REMOVE)) { // 虚拟迁移时，出现问题
                             // 虚拟迁移时，接收者出现问题
                             if (cs.getChangeServer().equals(currentTask.getInputServers().get(0))) {
-                                LOG.info("running virtual task,receiver has fault,server id:{}",
+                                LOG.warn("running virtual task,receiver has fault,server id:{}",
                                          currentTask.getInputServers().get(0));
-                                // 用于倒计时
-                                int interval = currentTask.getInterval();
-                                if (interval == -1) {
-                                    currentTask.setInterval(DEFAULT_INTERVAL);
-                                } else if (interval == 0) {
-                                    List<String> aliveServices = getAliveServices();
-                                    String otherFirstID =
-                                        idManager.getFirstId(currentTask.getInputServers().get(0), currentTask.getStorageIndex());
-                                    if (!aliveServices.contains(otherFirstID)) {
-                                        if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
-                                            updateTaskStatus(currentTask, TaskStatus.CANCEL);
-                                        } else {
-                                            // 下次心跳删除该任务
-                                            changeSummaries.remove(runChangeSummary);
-                                            delChangeSummaryNode(runChangeSummary);
+                                List<String> aliveServices = getAliveServices();
+                                String otherFirstID =
+                                    idManager.getFirstId(currentTask.getInputServers().get(0), currentTask.getStorageIndex());
+                                if (!aliveServices.contains(otherFirstID) && countdownTime(currentTask)) {
+                                    if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
+                                        updateTaskStatus(currentTask, TaskStatus.CANCEL);
+                                        changeSummaries.remove(runChangeSummary);
+                                        delChangeSummaryNode(runChangeSummary);
 
-                                            removeRunTask(currentTask.getStorageIndex());
-                                            delBalanceTask(currentTask);
-                                            // 将virtual serverID 标为可用
-                                            idManager.validVirtualId(currentTask.getStorageIndex(), currentTask.getServerId());
-                                        }
+                                        removeRunTask(currentTask.getStorageIndex());
+                                        delBalanceTask(currentTask);
+                                        // 将virtual serverID 标为可用
+                                        idManager.validVirtualId(currentTask.getStorageIndex(), currentTask.getServerId());
+                                        LOG.warn("storage:[{}], task:[{}] type:[{}] cancle", snIndex, changeID,
+                                                 runChangeSummary.getChangeType());
                                     }
-                                } else if (interval > 0) {
-                                    currentTask.setInterval(currentTask.getInterval() - 1);
                                 }
-                                break;
+
                             } else {
                                 List<String> joiners = currentTask.getOutputServers();
                                 if (joiners.contains(cs.getChangeServer())) { // 参与者挂掉
-                                    LOG.info("running virtual task,joiner has fault,server id:{}",
+                                    LOG.warn("running virtual task,joiner has fault,server id:{}",
                                              currentTask.getInputServers().get(0));
-                                    int interval = currentTask.getInterval();
-                                    if (interval == -1) {
-                                        currentTask.setInterval(DEFAULT_INTERVAL);
-                                    } else if (interval > 0) {
-                                        currentTask.setInterval(currentTask.getInterval() - 1);
-                                    } else if (interval == 0) {
+                                    if (countdownTime(currentTask)) {
                                         List<String> aliveServices = getAliveServices();
                                         String otherFirstID = idManager.getFirstId(currentTask.getOutputServers().get(0),
                                                                                    runChangeSummary.getStorageIndex());
                                         if (!aliveServices.contains(otherFirstID)) {
-                                            LOG.info("joiner is not aliver,reselct route role");
+                                            LOG.warn("joiner is not aliver,reselct route role");
                                             // 重新选择
                                             String virtualServersPath = idManager.getVirtualIdContainerPath();
                                             List<String> participators = curatorClient.getChildren(
@@ -872,6 +866,8 @@ public class TaskDispatcher implements Closeable {
                                                 currentTask.setTaskStatus(TaskStatus.INIT);
                                                 // 重新分发task
                                                 dispatchTask(currentTask);
+                                                LOG.warn("storage:[{}], task:[{}] type:[{}] restart", snIndex, changeID,
+                                                         runChangeSummary.getChangeType());
                                             }
                                         }
                                     }
@@ -883,25 +879,22 @@ public class TaskDispatcher implements Closeable {
                         if (cs.getChangeType().equals(ChangeType.ADD)) {
                             // 正在执行的任务为remove恢复，检测到ADD事件，并且是同一个serverID
                             if (cs.getChangeServer().equals(runChangeSummary.getChangeServer())) {
-                                LOG.info("check the same change with running task...");
+                                LOG.debug("check the same change with running task...");
                                 String taskPath = ZKPaths
                                     .makePath(tasksPath, String.valueOf(runChangeSummary.getStorageIndex()), Constants.TASK_NODE);
-                                // 任务进度小于指定进度，则终止任务
-                                if (currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
-                                    // 下次心跳删除该任务
-                                    changeSummaries.remove(runChangeSummary);
-                                    delChangeSummaryNode(runChangeSummary);
-                                    removeRunTask(currentTask.getStorageIndex());
-                                    delBalanceTask(currentTask);
-                                    break;
-                                }
 
+                                // 任务进度小于指定进度，则终止任务
                                 double process = monitor.getTaskProgress(curatorClient, taskPath);
-                                LOG.info("process: {}", process);
 
                                 if (process < DEFAULT_PROCESS) {
                                     if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
                                         updateTaskStatus(currentTask, TaskStatus.CANCEL);
+                                        changeSummaries.remove(runChangeSummary);
+                                        delChangeSummaryNode(runChangeSummary);
+                                        removeRunTask(currentTask.getStorageIndex());
+                                        delBalanceTask(currentTask);
+                                        LOG.warn("storage:[{}], task:[{}] type:[{}] cancle with process {}", snIndex, changeID,
+                                                 runChangeSummary.getChangeType(), process);
                                     }
                                     break;
                                 }
@@ -917,6 +910,8 @@ public class TaskDispatcher implements Closeable {
                                     if (aliveSecondIDs.containsAll(currentTask.getOutputServers())
                                         && aliveSecondIDs.containsAll(currentTask.getInputServers())) {
                                         updateTaskStatus(currentTask, TaskStatus.RUNNING);
+                                        LOG.warn("storage:[{}], task:[{}] type:[{}] pause to runing", snIndex, changeID,
+                                                 runChangeSummary.getChangeType());
                                     }
                                 }
                             }
@@ -931,15 +926,16 @@ public class TaskDispatcher implements Closeable {
                             if (joiners.contains(secondID) || receivers.contains(secondID)) {
                                 if (!TaskStatus.PAUSE.equals(currentTask.getTaskStatus())) {
                                     updateTaskStatus(currentTask, TaskStatus.PAUSE);
+                                    LOG.warn("storage:[{}], task:[{}] type:[{}] {} to pause", snIndex, changeID,
+                                             currentTask.getTaskStatus(), runChangeSummary.getChangeType());
                                 }
-                                if (currentTask.getInterval() == -1) {
-                                    currentTask.setInterval(DEFAULT_INTERVAL);
-                                } else if (currentTask.getInterval() == 0) {
+                                if (countdownTime(currentTask)) {
                                     updateTaskStatus(currentTask, TaskStatus.CANCEL);
-                                } else {
-                                    currentTask.setInterval(currentTask.getInterval() - 1);
+                                    removeRunTask(currentTask.getStorageIndex());
+                                    delBalanceTask(currentTask);
+                                    LOG.warn("storage:[{}], task:[{}] type:[{}] {} to cancel", snIndex, changeID,
+                                             currentTask.getTaskStatus(), runChangeSummary.getChangeType());
                                 }
-                                LOG.info("task interval:{}", currentTask.getInterval());
                                 break;
                             }
                         }
@@ -947,8 +943,42 @@ public class TaskDispatcher implements Closeable {
                 }
             }
         } else {
-            LOG.info("one change result in running, changeid: {}", runChangeID);
+            LOG.debug("one change result in running, changeid: {}", runChangeID);
         }
+    }
+
+    /**
+     * 延迟任务倒计数
+     *
+     * @param currentTask
+     *
+     * @return
+     */
+    public boolean countdownTime(BalanceTaskSummary currentTask) {
+        boolean run;
+        long delay = currentTask.getDelayTime();
+        int interval = currentTask.getInterval();
+        if (interval == -1) {
+            currentTask.setInterval(DEFAULT_INTERVAL);
+            interval = currentTask.getInterval();
+        }
+        if (interval == DEFAULT_INTERVAL) {
+            LOG.warn("current run task have trouble !"
+                         + " will wait it for {} times, changeID:[{}], storageRegion:[{}],Type:[{}]",
+                     DEFAULT_INTERVAL, currentTask.getStorageIndex(), currentTask.getTaskType());
+        }
+        if (delay <= 600) {
+            run = true;
+        } else {
+            currentTask.setInterval(currentTask.getInterval() - 1);
+            run = currentTask.getInterval() == 0;
+        }
+        if (run) {
+            LOG.warn("current run task have trouble !"
+                         + " now run it , changeID:[{}], storageRegion:[{}],Type:[{}]",
+                     currentTask.getStorageIndex(), currentTask.getTaskType());
+        }
+        return run;
     }
 
     public void delChangeSummaryNode(DiskPartitionChangeSummary summary) {
