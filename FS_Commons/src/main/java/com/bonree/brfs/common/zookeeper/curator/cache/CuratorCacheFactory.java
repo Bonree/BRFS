@@ -59,7 +59,7 @@ public class CuratorCacheFactory {
     public static CuratorNodeCache getNodeCache() {
         LOG.info("create CuratorNodeCache...");
         if (nodeCache == null) {
-            synchronized (CuratorPathCache.class) {
+            synchronized (CuratorNodeCache.class) {
                 if (nodeCache == null) {
                     nodeCache = new CuratorNodeCache(Preconditions.checkNotNull(client, "CuratorCacheFactory is not init!!!"));
                 }
