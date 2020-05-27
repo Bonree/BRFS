@@ -185,7 +185,13 @@ public class PartitionGather implements LifeCycle {
                 return false;
             }
             DiskPartitionInfo fs = gather.collectSinglePartitionInfo(local.getDataDir());
+            if (fs == null) {
+                return false;
+            }
             DiskPartitionStat usage = gather.collectSinglePartitionStats(local.getDataDir());
+            if (usage == null) {
+                return false;
+            }
             // 设备名称不一致
             if (!local.getDevName().equals(fs.getDevName())) {
                 LOG.warn("devName is not same before[{}],after[{}]", local.getDevName(), fs.getDevName());
