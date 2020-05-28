@@ -126,13 +126,13 @@ public class FileBlockMaintainer implements LifeCycle {
          */
         public void handleInvalidBlocks(SecondIdsInterface secondIds, StorageRegionManager srManager,
                                         LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                                        RouteCache loader, long limitTime) {
+                                        RouteCache cache, long limitTime) {
             // 1. 获取storageRegion信息
             Collection<StorageRegion> sns = srManager.getStorageRegionList();
             // 2. 获取磁盘信息
             Collection<LocalPartitionInfo> localPartitionInfos = localPartitionInterface.getPartitions();
             // 3. 扫描文件块，并获取非法文件块路径
-            Queue<File> invalidBlockQueue = scanInvalidBlocks(secondIds, monitor, sns, localPartitionInfos, loader, limitTime);
+            Queue<File> invalidBlockQueue = scanInvalidBlocks(secondIds, monitor, sns, localPartitionInfos, cache, limitTime);
             // 4. 若见采集结果不为空则调用删除线程
             int count = deleteInvalidBlock(invalidBlockQueue, monitor);
             LOG.info("handler invalid file block num :{}", count);
@@ -141,7 +141,7 @@ public class FileBlockMaintainer implements LifeCycle {
 
         private Queue<File> scanInvalidBlocks(SecondIdsInterface secondIds, RebalanceTaskMonitor monitor,
                                               Collection<StorageRegion> sns, Collection<LocalPartitionInfo> localPartitionInfos,
-                                              RouteCache loader, long limitTime) {
+                                              RouteCache cache, long limitTime) {
             if (localPartitionInfos == null || localPartitionInfos.isEmpty()) {
                 return null;
             }
@@ -171,7 +171,7 @@ public class FileBlockMaintainer implements LifeCycle {
                     snLimitTime = limitTime - limitTime % granule;
                     log.info("scan {} before {}", sn.getName(), TimeUtils.formatTimeStamp(snLimitTime, "yyyy-MM-dd HH:mm:ss"));
 
-                    parser = loader.getBlockAnalyzer(snId);
+                    parser = cache.getBlockAnalyzer(snId);
                     // 使用前必须更新路由规则，否则会解析错误
                     snMap = new HashMap<>();
                     snMap.put(BRFSPath.STORAGEREGION, sn.getName());
