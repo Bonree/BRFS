@@ -465,8 +465,10 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
     private void syncColumnFamilyByStorageRegionInfo() {
         Map<String, Integer> srNameAndDataTtl = getStorageRegionNameAndDataTtl();
-        updateColumnFamilyHandles(srNameAndDataTtl);   // 先更新本地缓存
-        this.columnFamilyInfoManager.resetColumnFamilyInfo(srNameAndDataTtl);  // 再重置zk上保存的列族信息
+        // 先更新本地缓存
+        updateColumnFamilyHandles(srNameAndDataTtl);
+        // 再重置zk上保存的列族信息
+        this.columnFamilyInfoManager.resetColumnFamilyInfo(srNameAndDataTtl);
         LOG.info("sync column family by storage region info complete, sr list:{}", srNameAndDataTtl);
     }
 
@@ -502,7 +504,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     @Override
     public void updateColumnFamilyHandles(Map<String, Integer> columnFamilyMap) {
         try {
-            columnFamilyMap.put("default", -1);  // CF_HANDLE中默认有default列族，所以比较前需要先put
+            // CF_HANDLE中默认有default列族，所以比较前需要先put
+            columnFamilyMap.put("default", -1);
             Set<String> updatedCfs = columnFamilyMap.keySet();
             Set<String> currentCfs = this.cfHandles.keySet();
             Sets.SetView<String> diffUpdatedCfs = Sets.difference(updatedCfs, currentCfs);
@@ -514,6 +517,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                         .createColumnFamilyWithTtl(new ColumnFamilyDescriptor(diff.getBytes(), columnFamilyOptions),
                                                    columnFamilyMap.get(diff));
                     this.cfHandles.put(diff, handle);
+                    LOG.info("add column family of sr [{}] to rocksdb", diff);
                 }
             }
 
@@ -521,6 +525,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 if (cfHandles.containsKey(diff)) {
                     this.db.dropColumnFamily(this.cfHandles.get(diff));
                     this.cfHandles.remove(diff);
+                    LOG.info("remove column family of sr [{}] from rocksdb", diff);
                 }
             }
 
