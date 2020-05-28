@@ -410,9 +410,9 @@ public class MultiRecover implements DataRecover {
                                             String taskHistory = ZKPaths
                                                 .makePath(taskHistoryPath, String.valueOf(balanceSummary.getStorageIndex()),
                                                           balanceSummary.getChangeID());
-                                            byte[] data = client.getData(taskNode);
+                                            byte[] data = client.getData(taskPath);
                                             try {
-                                                client.checkAndDelte(taskNode, true);
+                                                client.checkAndDelte(taskPath, true);
                                                 client.getInnerClient().create().creatingParentsIfNeeded()
                                                       .forPath(taskHistory, data);
                                             } catch (Exception e) {
