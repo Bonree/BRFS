@@ -63,7 +63,7 @@ public class RouteParserCache implements RouteCache, LifeCycle {
         List<StorageRegion> regionList = manager.getStorageRegionList();
         if (regionList != null) {
             regionList.stream().forEach(region -> {
-                RouteParser parser = new RouteParser(region.getId(), loader);
+                RouteParser parser = new RouteParser(region.getId(), loader, true);
                 LOG.info("load {} route", region.getName());
                 analyzerMap.put(region.getId(), parser);
             });
@@ -72,6 +72,7 @@ public class RouteParserCache implements RouteCache, LifeCycle {
             TreeCache.newBuilder(this.client, zookeeperPaths.getBaseV2RoutePath())
                      .setCacheData(true)
                      .setExecutor(THREAD_FACTORY)
+                     .setMaxDepth(4)
                      .build();
         treeCache.start();
         treeCache.getListenable().addListener(new RouteLister(zookeeperPaths.getBaseV2RoutePath()));

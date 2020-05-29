@@ -53,7 +53,7 @@ public class FileBlockMaintainer implements LifeCycle {
     @Inject
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
                                StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache cache) {
-        this(localPartitionInterface, monitor, manager, secondIds, cache, 1);
+        this(localPartitionInterface, monitor, manager, secondIds, cache, 60);
     }
 
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
@@ -72,9 +72,10 @@ public class FileBlockMaintainer implements LifeCycle {
     public void start() throws Exception {
         pool =
             Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("FileBlockMaintainer").build());
-        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG), 0,
-                                 intervalTime, TimeUnit.HOURS);
-        LOG.info(" block server start");
+        // 延迟1分钟启动确保路由规则加载完成
+        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG), 1,
+                                 intervalTime, TimeUnit.MINUTES);
+        LOG.info("block server start");
     }
 
     @LifecycleStop
