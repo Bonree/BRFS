@@ -46,6 +46,7 @@ import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompactionStyle;
 import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
+import org.rocksdb.FlushOptions;
 import org.rocksdb.LRUCache;
 import org.rocksdb.Options;
 import org.rocksdb.ReadOptions;
@@ -544,9 +545,13 @@ public class DefaultRocksDBManager implements RocksDBManager {
         this.readOptions.close();
         this.columnFamilyOptions.close();
         Collection<ColumnFamilyHandle> handles = this.cfHandles.values();
+        FlushOptions flushOptions = new FlushOptions();
         for (ColumnFamilyHandle handle : handles) {
+            db.flush(flushOptions, handle);
+            LOG.info("flush column family [{}] complete, id:[{}]", new String(handle.getName()), handle.getID());
             handle.close();
         }
+        flushOptions.close();
         if (db != null) {
             db.close();
         }
