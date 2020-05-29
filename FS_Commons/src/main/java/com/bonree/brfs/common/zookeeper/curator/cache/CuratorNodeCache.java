@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.curator.framework.recipes.cache.NodeCache;
+import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +22,7 @@ public class CuratorNodeCache {
         cacheMap = new ConcurrentHashMap<String, NodeCache>();
     }
 
-    public void addListener(String path, AbstractNodeCacheListener listener) {
+    public void addListener(String path, NodeCacheListener listener) {
         LOG.info("add listener for path:" + path);
         NodeCache cache = cacheMap.get(path);
         if (cache == null) {
@@ -32,7 +33,7 @@ public class CuratorNodeCache {
         cache.getListenable().addListener(listener);
     }
 
-    public void removeListener(String path, AbstractNodeCacheListener listener) {
+    public void removeListener(String path, NodeCacheListener listener) {
         LOG.info("remove listener for path:" + path);
         NodeCache cache = cacheMap.get(path);
         if (cache != null) {

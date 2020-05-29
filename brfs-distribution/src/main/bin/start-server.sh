@@ -102,7 +102,7 @@ cd ${BRFS_HOME}
 case ${NODE_TYPE} in
 		###启动副本管理###
 		regionnode)
-			nohup java $JVM_PARAMS \
+			eval nohup java $JVM_PARAMS \
 			-Dbrfs.home=$BRFS_HOME \
 			-Dserver.ids=$SERVER_ID_PATH \
 			-Dlog.dir=$LOG_DIR \
@@ -118,7 +118,7 @@ case ${NODE_TYPE} in
 		;;
 		###启动磁盘管理###
 		datanode)
-			nohup java $JVM_PARAMS \
+			eval nohup java $JVM_PARAMS \
 			-Dbrfs.home=$BRFS_HOME \
 			-Dlog.dir=$LOG_DIR \
 			-Dlog.file.name=${NODE_TYPE} \

@@ -75,8 +75,8 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
             snName = atom.getStorageName();
             if ("1".equals(currentIndex)) {
                 operation = atom.getTaskOperation();
-                LOG.debug("task operation {} ",
-                          DELETE_SN_ALL.equals(operation) ? "Delete_Storage_Region" : "Delete_Part_Of_Storage_Region_Data");
+                LOG.info("task operation {} ",
+                         DELETE_SN_ALL.equals(operation) ? "Delete_Storage_Region" : "Delete_Part_Of_Storage_Region_Data");
                 if (DELETE_SN_ALL.equals(operation)) {
                     sns.add(snName);
                 }
@@ -96,9 +96,10 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
 
                 for (String sn : sns) {
                     if (FileUtils.deleteDir(local.getDataDir() + "/" + sn, true)) {
-                        LOG.debug("deltete {} successfull", sn);
+                        LOG.info("deltete {} successfull", sn);
                     } else {
                         result.setSuccess(false);
+                        LOG.warn("delete sn dir error {}", local.getDataDir() + "/" + sn);
                     }
                 }
             }
@@ -143,7 +144,9 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
             for (BRFSPath deletePath : deleteDirs) {
                 isSuccess =
                     isSuccess && FileUtils.deleteDir(path.getDataDir() + FileUtils.FILE_SEPARATOR + deletePath.toString(), true);
-                LOG.debug("delete [{}], status [{}]", deletePath, isSuccess);
+                if (!isSuccess) {
+                    LOG.info("delete [{}], status [{}]", deletePath, isSuccess);
+                }
             }
             atomR.setOperationFileCount(atomR.getOperationFileCount() + deleteDirs.size());
             atomR.setSuccess(atomR.isSuccess() && isSuccess);

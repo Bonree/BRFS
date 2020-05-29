@@ -8,7 +8,6 @@ import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
@@ -20,6 +19,7 @@ import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
+import com.bonree.brfs.rebalance.task.listener.TaskNodeCache;
 import com.bonree.brfs.rebalance.transfer.SimpleFileClient;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,14 +63,15 @@ public class VirtualRecover implements DataRecover {
     private TaskDetail detail;
     private int currentCount = 0;
     private LocalPartitionInterface localPartitionInterface;
-    private AtomicReference<TaskStatus> status;
     private AtomicInteger snDirNonExistNum = new AtomicInteger();
+    private TaskNodeCache cache;
+    private String baseBalancePath;
 
     private final BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
     public VirtualRecover(CuratorClient client, BalanceTaskSummary balanceSummary, String taskNode, String storageName,
                           IDSManager idManager, ServiceManager serviceManager,
-                          LocalPartitionInterface localPartitionInterface) {
+                          LocalPartitionInterface localPartitionInterface, String baseBalancePath) {
         this.balanceSummary = balanceSummary;
         this.taskNode = taskNode;
         this.client = client;
@@ -81,42 +82,11 @@ public class VirtualRecover implements DataRecover {
         this.fileClient = new SimpleFileClient();
         // 恢复需要对节点进行监听
         nodeCache = CuratorCacheFactory.getNodeCache();
-        nodeCache.addListener(taskNode, new RecoverListener("recover_listener"));
+        cache = new TaskNodeCache(balanceSummary, client, taskNode);
+        nodeCache.addListener(taskNode, cache);
         this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstSever();
         this.delayTime = balanceSummary.getDelayTime();
-        status = new AtomicReference<>(balanceSummary.getTaskStatus());
-    }
-
-    private class RecoverListener extends AbstractNodeCacheListener {
-
-        public RecoverListener(String listenName) {
-            super(listenName);
-        }
-
-        @Override
-        public void nodeChanged() throws Exception {
-            LOG.info("node change!!!");
-            if (client.checkExists(taskNode)) {
-                byte[] data = client.getData(taskNode);
-                BalanceTaskSummary bts = JsonUtils.toObject(data, BalanceTaskSummary.class);
-                String newID = bts.getId();
-                String oldID = balanceSummary.getId();
-                if (newID.equals(oldID)) { // 是同一个任务
-                    TaskStatus stats = bts.getTaskStatus();
-                    // 更新缓存
-                    status.set(stats);
-                    LOG.info("stats:" + stats);
-                } else { // 不是同一个任务
-                    LOG.info("newID:{} not match oldID:{}", newID, oldID);
-                    LOG.info("cancel multi recover:{}", balanceSummary);
-                    status.set(TaskStatus.CANCEL);
-                }
-            } else {
-                LOG.info("task is deleted!!,this task will cancel!");
-                status.set(TaskStatus.CANCEL);
-            }
-        }
-
+        this.baseBalancePath = baseBalancePath;
     }
 
     @Override
@@ -146,7 +116,7 @@ public class VirtualRecover implements DataRecover {
 
         try {
             for (int i = 0; i < delayTime; i++) {
-                if (status.get().equals(TaskStatus.CANCEL)) {
+                if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                     return;
                 }
                 // 倒计时完毕，则不需要倒计时
@@ -204,7 +174,7 @@ public class VirtualRecover implements DataRecover {
                 List<BRFSPath> allPaths = BRFSFileUtil.scanFile(partitionPath, storageName);
 
                 for (BRFSPath brfsPath : allPaths) {
-                    if (status.get().equals(TaskStatus.CANCEL)) {
+                    if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                         break;
                     }
                     String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
@@ -258,7 +228,7 @@ public class VirtualRecover implements DataRecover {
 
     public void finishTask() {
         // 没有取消任务
-        if (!status.get().equals(TaskStatus.CANCEL)) {
+        if (!cache.getStatus().get().equals(TaskStatus.CANCEL)) {
             detail.setStatus(ExecutionStatus.FINISH);
             LOG.info("update:" + selfNode + "-------------" + detail);
             updateDetail(selfNode, detail);
@@ -285,7 +255,7 @@ public class VirtualRecover implements DataRecover {
                 try {
                     FileRecoverMeta fileRecover = null;
                     while (fileRecover != null || !overFlag) {
-                        if (status.get().equals(TaskStatus.CANCEL)) {
+                        if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                             break;
                         }
 
@@ -303,6 +273,7 @@ public class VirtualRecover implements DataRecover {
                             String firstId = fileRecover.getFirstServerID();
 
                             int retryTimes = 0;
+                            int transferRetryTimes = 0;
                             while (true) {
                                 Service service = serviceManager.getServiceById(
                                     Configs.getConfiguration().getConfig(
@@ -313,7 +284,7 @@ public class VirtualRecover implements DataRecover {
                                     Thread.sleep(3000);
                                     // 当执行虚拟serverId迁移任务时发生目标节点挂掉的情况，则等待5分钟若目标节点还未连接上，则取消任务
                                     if (retryTimes++ >= 100) {
-                                        status.set(TaskStatus.CANCEL);
+                                        cache.getStatus().set(TaskStatus.CANCEL);
                                         LOG.warn("current virtual task will cancel because wait [{}] more than five minutes",
                                                  firstId);
                                         break;
@@ -329,6 +300,34 @@ public class VirtualRecover implements DataRecover {
                                 success = secureCopyTo(service, localFilePath, remoteDir, partitionIdRecoverFileName);
                                 if (success) {
                                     break;
+                                } else {
+                                    if (transferRetryTimes < 3) {
+                                        transferRetryTimes++;
+                                    } else {
+                                        // 当文件超过重试次数传输失败时，取消任务
+                                        balanceSummary.setTaskStatus(TaskStatus.CANCEL);
+                                        String taskPath = ZKPaths
+                                            .makePath(taskNode, String.valueOf(balanceSummary.getStorageIndex()),
+                                                      Constants.TASK_NODE);
+                                        LOG.info("replica file transfer failed, will cancel the virtual task [{}]", taskPath);
+                                        client.setData(taskPath, JsonUtils.toJsonBytesQuietly(balanceSummary));
+
+                                        // 删除在zk上的task任务
+                                        String taskHistoryPath =
+                                            ZKPaths.makePath(baseBalancePath, Constants.TASKS_HISTORY_NODE);
+                                        String taskHistory = ZKPaths
+                                            .makePath(taskHistoryPath, String.valueOf(balanceSummary.getStorageIndex()),
+                                                      balanceSummary.getChangeID());
+                                        byte[] data = client.getData(taskPath);
+                                        try {
+                                            client.checkAndDelte(taskPath, true);
+                                            client.getInnerClient().create().creatingParentsIfNeeded()
+                                                  .forPath(taskHistory, data);
+                                        } catch (Exception e) {
+                                            LOG.error("clear virtual task [{}] failed", taskPath, e);
+                                        }
+                                        break;
+                                    }
                                 }
                             }
 

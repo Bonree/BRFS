@@ -22,9 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,7 @@ public class RouteParserCache implements RouteCache, LifeCycle {
     private ZookeeperPaths zookeeperPaths;
     private CuratorFramework client;
     private StorageRegionManager manager;
-    private PathChildrenCache childrenCache;
+    private TreeCache treeCache;
 
     @Inject
     public RouteParserCache(RouteLoader loader, ZookeeperPaths zookeeperPaths, StorageRegionManager manager,
@@ -63,93 +63,156 @@ public class RouteParserCache implements RouteCache, LifeCycle {
         List<StorageRegion> regionList = manager.getStorageRegionList();
         if (regionList != null) {
             regionList.stream().forEach(region -> {
-                RouteParser parser = new RouteParser(region.getId(), loader);
+                RouteParser parser = new RouteParser(region.getId(), loader, true);
                 LOG.info("load {} route", region.getName());
                 analyzerMap.put(region.getId(), parser);
             });
         }
-        childrenCache =
-            new PathChildrenCache(this.client, zookeeperPaths.getBaseV2RoutePath(), true, THREAD_FACTORY);
-        childrenCache.start();
-        childrenCache.getListenable().addListener(new RouteLister(zookeeperPaths.getBaseV2RoutePath()));
+        treeCache =
+            TreeCache.newBuilder(this.client, zookeeperPaths.getBaseV2RoutePath())
+                     .setCacheData(true)
+                     .setExecutor(THREAD_FACTORY)
+                     .setMaxDepth(4)
+                     .build();
+        treeCache.start();
+        treeCache.getListenable().addListener(new RouteLister(zookeeperPaths.getBaseV2RoutePath()));
         LOG.info("route parser cache load ");
     }
 
     @LifecycleStop
     @Override
     public void stop() throws Exception {
-        if (childrenCache != null) {
-            childrenCache.close();
+        if (treeCache != null) {
+            treeCache.close();
         }
         LOG.info("route parser cache stop ");
     }
 
-    private class RouteLister implements PathChildrenCacheListener {
+    private class RouteLister implements TreeCacheListener {
         private String basePath;
 
         public RouteLister(String basePath) {
             this.basePath = basePath;
         }
 
+        private BaseRoutePathInfo analysisPath(String basepath, String eventPath) {
+
+            if (eventPath.equals(basepath)) {
+                return new BaseRoutePathInfo(-1, false, "", RouteNodeType.ROOT);
+            }
+            String relativePath = eventPath.substring(basepath.length() + 1);
+            String[] array = StringUtils.split(relativePath, Constants.SEPARATOR);
+            String zkNode = "";
+            int storageRegionId = -1;
+            RouteNodeType type = RouteNodeType.INVALID;
+            boolean virtualFlag = false;
+            if (array == null) {
+                return new BaseRoutePathInfo(storageRegionId, virtualFlag, zkNode, type);
+            }
+            if (array.length == 3) {
+                storageRegionId = Integer.parseInt(array[1]);
+                zkNode = array[2];
+                if (Constants.VIRTUAL_ROUTE.equals(array[0])) {
+                    type = RouteNodeType.VITRUAL_ROUTE;
+                    virtualFlag = true;
+                } else if (Constants.NORMAL_ROUTE.equals(array[0])) {
+                    type = RouteNodeType.NORMAL_ROUTE;
+                    virtualFlag = false;
+                } else {
+                    type = RouteNodeType.INVALID;
+                }
+            }
+            if (array.length == 2) {
+                storageRegionId = Integer.parseInt(array[1]);
+                type = RouteNodeType.STORAGE_REGION;
+            }
+            if (array.length == 1) {
+                if (Constants.VIRTUAL_ROUTE.equals(array[0])) {
+                    type = RouteNodeType.VIRTUAL;
+                    virtualFlag = true;
+                } else if (Constants.NORMAL_ROUTE.equals(array[0])) {
+                    type = RouteNodeType.NORMAL;
+                    virtualFlag = false;
+                } else {
+                    type = RouteNodeType.INVALID;
+                }
+            }
+            return new BaseRoutePathInfo(storageRegionId, virtualFlag, zkNode, type);
+        }
+
         @Override
-        public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-            PathChildrenCacheEvent.Type type = event.getType();
-            ChildData childData = event.getData();
-            if (childData == null) {
-                return;
-            }
-            String path = childData.getPath();
-            BaseRoutePathInfo baseRoutePathInfo = analysisPath(this.basePath, path);
-            if (baseRoutePathInfo == null) {
-                return;
-            }
-            byte[] data = childData.getData();
-            if (data == null && data.length == 0) {
-                return;
-            }
-            RouteParser routeParser = analyzerMap.get(baseRoutePathInfo.storageRegionId);
-            if (routeParser == null) {
-                routeParser = new RouteParser(baseRoutePathInfo.storageRegionId, loader, true);
-                analyzerMap.put(baseRoutePathInfo.storageRegionId, routeParser);
-            }
+        public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+            TreeCacheEvent.Type type = event.getType();
             switch (type) {
-            case CHILD_ADDED:
+            case NODE_ADDED:
+                ChildData childData = event.getData();
+                String path = childData.getPath();
+                if (childData == null) {
+                    LOG.warn("path[{}] data is null", path);
+                    return;
+                }
+                BaseRoutePathInfo baseRoutePathInfo = analysisPath(this.basePath, path);
+                RouteNodeType nodeType = baseRoutePathInfo.getType();
+                if (!RouteNodeType.NORMAL_ROUTE.equals(nodeType) && !RouteNodeType.VITRUAL_ROUTE.equals(nodeType)) {
+                    LOG.warn("path is {},{}", path, nodeType);
+                    return;
+                }
+                byte[] data = childData.getData();
+                if (data == null && data.length == 0) {
+                    return;
+                }
+                RouteParser routeParser = analyzerMap.get(baseRoutePathInfo.storageRegionId);
+                if (routeParser == null) {
+                    routeParser = new RouteParser(baseRoutePathInfo.storageRegionId, loader, true);
+                    analyzerMap.put(baseRoutePathInfo.storageRegionId, routeParser);
+                }
+                String typeName = null;
                 if (baseRoutePathInfo.isVirtualFlag()) {
                     VirtualRoute route = SingleRouteFactory.createVirtualRoute(data);
                     routeParser.putVirtualRoute(route);
+                    typeName = "virtual";
+
                 } else {
                     NormalRouteInterface normal = SingleRouteFactory.createRoute(data);
                     routeParser.putNormalRoute(normal);
+                    typeName = "normal";
                 }
-                LOG.info("load {} route ", baseRoutePathInfo.getStorageRegionId());
+                LOG.info("load storageRegion [{}] type:[{}] routeId: [{}]", baseRoutePathInfo.getStorageRegionId(), typeName,
+                         baseRoutePathInfo.getZkNodeName());
                 break;
             default:
                 LOG.info("event {}", type);
             }
         }
-
-        private BaseRoutePathInfo analysisPath(String basepath, String eventPath) {
-            String relativePath = eventPath.substring(basepath.length() + 1);
-            String[] array = StringUtils.split(relativePath, Constants.SEPARATOR);
-            if (array == null || array.length != 3) {
-                return null;
-            }
-            String zkNode = array[2];
-            int storageRegionId = Integer.parseInt(array[1]);
-            boolean virtualFlag = Constants.VIRTUAL_ROUTE.equals(array[0]);
-            return new BaseRoutePathInfo(storageRegionId, virtualFlag, zkNode);
-        }
     }
 
+    /**
+     * 路由节点的类型
+     */
+    private enum RouteNodeType {
+        ROOT,
+        VIRTUAL,
+        NORMAL,
+        STORAGE_REGION,
+        VITRUAL_ROUTE,
+        NORMAL_ROUTE,
+        INVALID
+    }
+
+    /**
+     * 路由节点信息
+     */
     private class BaseRoutePathInfo {
         private int storageRegionId;
         private boolean virtualFlag;
         private String zkNodeName;
+        private RouteNodeType type;
 
-        public BaseRoutePathInfo(int storageRegionId, boolean virtualFlag, String zkNodeName) {
+        public BaseRoutePathInfo(int storageRegionId, boolean virtualFlag, String zkNodeName, RouteNodeType type) {
             this.storageRegionId = storageRegionId;
             this.virtualFlag = virtualFlag;
             this.zkNodeName = zkNodeName;
+            this.type = type;
         }
 
         public int getStorageRegionId() {
@@ -162,6 +225,10 @@ public class RouteParserCache implements RouteCache, LifeCycle {
 
         public String getZkNodeName() {
             return zkNodeName;
+        }
+
+        public RouteNodeType getType() {
+            return type;
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.bonree.brfs.rebalance.recover;
 
-import com.bonree.brfs.common.files.FileFilterInterface;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.impl.v2.NormalRouteV2;
@@ -13,7 +12,6 @@ import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.common.zookeeper.curator.cache.AbstractNodeCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
@@ -28,6 +26,7 @@ import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskDetail;
 import com.bonree.brfs.rebalance.task.TaskStatus;
+import com.bonree.brfs.rebalance.task.listener.TaskNodeCache;
 import com.bonree.brfs.rebalance.transfer.SimpleFileClient;
 import java.io.File;
 import java.io.IOException;
@@ -41,8 +40,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,14 +74,15 @@ public class MultiRecover implements DataRecover {
     private int currentCount = 0;
     private LocalPartitionInterface localPartitionInterface;
     private RouteCache routeCache;
-    private AtomicReference<TaskStatus> status;
+    private TaskNodeCache cache;
+    private String baseBalancePath;
     private AtomicInteger snDirNonExistNum = new AtomicInteger();
 
     private BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
     public MultiRecover(LocalPartitionInterface localPartitionInterface, RouteCache routeCache, BalanceTaskSummary summary,
                         IDSManager idManager, ServiceManager serviceManager, String taskNode, CuratorClient client,
-                        StorageRegion storageRegion) {
+                        StorageRegion storageRegion, String baseBalancePath) {
         this.balanceSummary = summary;
         this.idManager = idManager;
         this.serviceManager = serviceManager;
@@ -93,42 +93,12 @@ public class MultiRecover implements DataRecover {
         this.localPartitionInterface = localPartitionInterface;
         // 开启监控
         nodeCache = CuratorCacheFactory.getNodeCache();
-        nodeCache.addListener(taskNode, new RecoverListener("recover_listener"));
+        cache = new TaskNodeCache(this.balanceSummary, client, taskNode);
+        nodeCache.addListener(taskNode, cache);
         this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstSever();
         this.delayTime = balanceSummary.getDelayTime();
-        status = new AtomicReference<>(summary.getTaskStatus());
         this.routeCache = routeCache;
-    }
-
-    private class RecoverListener extends AbstractNodeCacheListener {
-
-        public RecoverListener(String listenName) {
-            super(listenName);
-        }
-
-        @Override
-        public void nodeChanged() throws Exception {
-            log.info("receive update event!!!");
-            if (client.checkExists(taskNode)) {
-                byte[] data = client.getData(taskNode);
-                BalanceTaskSummary bts = JsonUtils.toObject(data, BalanceTaskSummary.class);
-                String newID = bts.getId();
-                String oldID = balanceSummary.getId();
-                if (newID.equals(oldID)) { // 是同一个任务
-                    TaskStatus stats = bts.getTaskStatus();
-                    // 更新缓存
-                    status.set(stats);
-                    log.info("stats: {}", stats);
-                } else { // 不是同一个任务
-                    log.info("newID:{} not match oldID:{}", newID, oldID);
-                    log.info("cancel multi recover:{}", balanceSummary);
-                    status.set(TaskStatus.CANCEL);
-                }
-            } else {
-                log.info("task is deleted, this task will cancel!");
-                status.set(TaskStatus.CANCEL);
-            }
-        }
+        this.baseBalancePath = baseBalancePath;
     }
 
     @SuppressWarnings("checkstyle:EmptyCatchBlock")
@@ -160,12 +130,12 @@ public class MultiRecover implements DataRecover {
 
         try {
             for (int i = 0; i < delayTime; i++) {
-                if (status.get().equals(TaskStatus.CANCEL)) {
+                if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                     return;
                 }
                 // 暂时用循环控制，后期重构改成wait notify机制
                 while (true) {
-                    if (!status.get().equals(TaskStatus.PAUSE)) {
+                    if (!cache.getStatus().get().equals(TaskStatus.PAUSE)) {
                         break;
                     }
                     log.info("sub task is pause for {}", balanceSummary);
@@ -226,7 +196,7 @@ public class MultiRecover implements DataRecover {
 
                 // 遍历副本文件
                 for (BRFSPath brfsPath : allPaths) {
-                    if (status.get().equals(TaskStatus.CANCEL)) {
+                    if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                         return;
                     }
                     String perFile = partitionPath + FileUtils.FILE_SEPARATOR + brfsPath.toString();
@@ -263,7 +233,7 @@ public class MultiRecover implements DataRecover {
 
     public void finishTask() {
         // 没有取消任务
-        if (!status.get().equals(TaskStatus.CANCEL)) {
+        if (!cache.getStatus().get().equals(TaskStatus.CANCEL)) {
             detail.setStatus(ExecutionStatus.FINISH);
             updateDetail(selfNode, detail);
             log.info("恢复正常完成！！！！！");
@@ -375,13 +345,13 @@ public class MultiRecover implements DataRecover {
                 try {
                     FileRecoverMeta fileRecover = null;
                     while (fileRecover != null || !overFlag) {
-                        log.info("current task status:{}", status);
-                        if (status.get().equals(TaskStatus.CANCEL)) {
+                        log.info("current task status:{}", cache.getStatus());
+                        if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                             break;
-                        } else if (status.get().equals(TaskStatus.PAUSE)) {
+                        } else if (cache.getStatus().get().equals(TaskStatus.PAUSE)) {
                             log.info("task pause!!!");
                             Thread.sleep(1000);
-                        } else if (status.get().equals(TaskStatus.RUNNING)) {
+                        } else if (cache.getStatus().get().equals(TaskStatus.RUNNING)) {
                             fileRecover = fileRecoverQueue.poll(1, TimeUnit.SECONDS);
                             log.info("fileRecover:{}", fileRecover);
                             if (fileRecover != null) {
@@ -393,13 +363,14 @@ public class MultiRecover implements DataRecover {
                                     + FileUtils.FILE_SEPARATOR + fileRecover
                                     .getFileName();
                                 boolean success;
+                                int retryTimes = 0;
                                 while (true) {
-                                    if (status.get().equals(TaskStatus.PAUSE)) {
+                                    if (cache.getStatus().get().equals(TaskStatus.PAUSE)) {
                                         log.info("task pause!!!");
                                         Thread.sleep(1000);
                                         continue;
                                     }
-                                    if (status.get().equals(TaskStatus.CANCEL)) {
+                                    if (cache.getStatus().get().equals(TaskStatus.CANCEL)) {
                                         break;
                                     }
                                     Service service = serviceManager.getServiceById(
@@ -421,6 +392,34 @@ public class MultiRecover implements DataRecover {
                                     success = secureCopyTo(service, localFilePath, remoteDir, partitionIdRecoverFileName);
                                     if (success) {
                                         break;
+                                    } else {
+                                        if (retryTimes < 3) {
+                                            retryTimes++;
+                                        } else {
+                                            // 当文件超过重试次数传输失败时，取消任务
+                                            balanceSummary.setTaskStatus(TaskStatus.CANCEL);
+                                            String taskPath = ZKPaths
+                                                .makePath(taskNode, String.valueOf(balanceSummary.getStorageIndex()),
+                                                          Constants.TASK_NODE);
+                                            log.info("replica file transfer failed, will cancel the normal task [{}]", taskPath);
+                                            client.setData(taskPath, JsonUtils.toJsonBytesQuietly(balanceSummary));
+
+                                            // 删除在zk上的task任务
+                                            String taskHistoryPath =
+                                                ZKPaths.makePath(baseBalancePath, Constants.TASKS_HISTORY_NODE);
+                                            String taskHistory = ZKPaths
+                                                .makePath(taskHistoryPath, String.valueOf(balanceSummary.getStorageIndex()),
+                                                          balanceSummary.getChangeID());
+                                            byte[] data = client.getData(taskPath);
+                                            try {
+                                                client.checkAndDelte(taskPath, true);
+                                                client.getInnerClient().create().creatingParentsIfNeeded()
+                                                      .forPath(taskHistory, data);
+                                            } catch (Exception e) {
+                                                log.error("clear normal task [{}] failed", taskPath, e);
+                                            }
+                                            break;
+                                        }
                                     }
                                 }
 

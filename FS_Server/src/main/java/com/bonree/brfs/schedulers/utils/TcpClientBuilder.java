@@ -29,7 +29,7 @@ public class TcpClientBuilder {
     private static TcpClientBuilder builder;
 
     public static TcpClientBuilder getInstance() {
-        synchronized (builder) {
+        synchronized (TcpClientBuilder.class) {
             if (builder == null) {
                 builder = new TcpClientBuilder();
             }

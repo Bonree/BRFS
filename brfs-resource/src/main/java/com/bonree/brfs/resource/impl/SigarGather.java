@@ -29,6 +29,7 @@ import com.bonree.brfs.resource.gather.impl.SigarSysInfoGather;
 import com.bonree.brfs.resource.utils.LibUtils;
 import com.bonree.brfs.resource.utils.SigarUtil;
 import com.google.inject.Inject;
+import java.io.File;
 import java.net.URL;
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
@@ -91,12 +92,18 @@ public class SigarGather implements ResourceCollectionInterface {
     @Override
     public DiskPartitionInfo collectSinglePartitionInfo(String path) throws Exception {
         checkStatus();
+        if (!new File(path).exists()) {
+            return null;
+        }
         return this.partitionGather.gatherDiskPartition(path);
     }
 
     @Override
     public DiskPartitionStat collectSinglePartitionStats(String path) throws Exception {
         checkStatus();
+        if (!new File(path).exists()) {
+            return null;
+        }
         return this.partitionGather.gatherDiskPartitonStat(path);
     }
 

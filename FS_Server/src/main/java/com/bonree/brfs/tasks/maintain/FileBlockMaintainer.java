@@ -6,6 +6,7 @@ import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
+import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
@@ -32,7 +33,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,18 +52,18 @@ public class FileBlockMaintainer implements LifeCycle {
 
     @Inject
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache loader) {
-        this(localPartitionInterface, monitor, manager, secondIds, loader, 1);
+                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache cache) {
+        this(localPartitionInterface, monitor, manager, secondIds, cache, 60);
     }
 
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache loader,
+                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache cache,
                                long intervalTime) {
         this.localPartitionInterface = localPartitionInterface;
         this.monitor = monitor;
         this.manager = manager;
         this.secondIds = secondIds;
-        this.routeCache = loader;
+        this.routeCache = cache;
         this.intervalTime = intervalTime;
     }
 
@@ -72,9 +72,10 @@ public class FileBlockMaintainer implements LifeCycle {
     public void start() throws Exception {
         pool =
             Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("FileBlockMaintainer").build());
-        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG), 0,
-                                 intervalTime, TimeUnit.HOURS);
-        LOG.info(" block server start");
+        // 延迟1分钟启动确保路由规则加载完成
+        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG), 1,
+                                 intervalTime, TimeUnit.MINUTES);
+        LOG.info("block server start");
     }
 
     @LifecycleStop
@@ -92,15 +93,15 @@ public class FileBlockMaintainer implements LifeCycle {
         private RebalanceTaskMonitor monitor;
         private StorageRegionManager manager;
         private SecondIdsInterface secondIds;
-        private RouteCache loader;
+        private RouteCache cache;
 
         public FileBlockWorker(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache loader, Logger log) {
+                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache cache, Logger log) {
             this.localPartitionInterface = localPartitionInterface;
             this.monitor = monitor;
             this.manager = manager;
             this.secondIds = secondIds;
-            this.loader = loader;
+            this.cache = cache;
             this.log = log;
         }
 
@@ -108,7 +109,7 @@ public class FileBlockMaintainer implements LifeCycle {
         public void run() {
             try {
                 if (!monitor.isExecute()) {
-                    handleInvalidBlocks(secondIds, manager, localPartitionInterface, monitor, loader, System.currentTimeMillis());
+                    handleInvalidBlocks(secondIds, manager, localPartitionInterface, monitor, cache, System.currentTimeMillis());
                 }
             } catch (Exception e) {
                 log.error("FileBlockWorker scan blockes happen error ", e);
@@ -126,13 +127,13 @@ public class FileBlockMaintainer implements LifeCycle {
          */
         public void handleInvalidBlocks(SecondIdsInterface secondIds, StorageRegionManager srManager,
                                         LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                                        RouteCache loader, long limitTime) {
+                                        RouteCache cache, long limitTime) {
             // 1. 获取storageRegion信息
             Collection<StorageRegion> sns = srManager.getStorageRegionList();
             // 2. 获取磁盘信息
             Collection<LocalPartitionInfo> localPartitionInfos = localPartitionInterface.getPartitions();
             // 3. 扫描文件块，并获取非法文件块路径
-            Queue<File> invalidBlockQueue = scanInvalidBlocks(secondIds, monitor, sns, localPartitionInfos, loader, limitTime);
+            Queue<File> invalidBlockQueue = scanInvalidBlocks(secondIds, monitor, sns, localPartitionInfos, cache, limitTime);
             // 4. 若见采集结果不为空则调用删除线程
             int count = deleteInvalidBlock(invalidBlockQueue, monitor);
             LOG.info("handler invalid file block num :{}", count);
@@ -141,7 +142,7 @@ public class FileBlockMaintainer implements LifeCycle {
 
         private Queue<File> scanInvalidBlocks(SecondIdsInterface secondIds, RebalanceTaskMonitor monitor,
                                               Collection<StorageRegion> sns, Collection<LocalPartitionInfo> localPartitionInfos,
-                                              RouteCache loader, long limitTime) {
+                                              RouteCache cache, long limitTime) {
             if (localPartitionInfos == null || localPartitionInfos.isEmpty()) {
                 return null;
             }
@@ -157,7 +158,7 @@ public class FileBlockMaintainer implements LifeCycle {
             long granule;
             long snLimitTime;
 
-            List<String> storageRegionName = sns.stream().map(StorageRegion::getName).collect(Collectors.toList());
+            List<String> storageRegionNames = sns.stream().map(StorageRegion::getName).collect(Collectors.toList());
             for (LocalPartitionInfo local : localPartitionInfos) {
                 // 处理sr文件
                 for (StorageRegion sn : sns) {
@@ -169,9 +170,9 @@ public class FileBlockMaintainer implements LifeCycle {
                     granule = Duration.parse(sn.getFilePartitionDuration()).toMillis();
                     ;
                     snLimitTime = limitTime - limitTime % granule;
-                    log.info(" watch dog eat {} :{}", sn.getName(), sn.getId());
+                    log.info("scan {} before {}", sn.getName(), TimeUtils.formatTimeStamp(snLimitTime, "yyyy-MM-dd HH:mm:ss"));
 
-                    parser = loader.getBlockAnalyzer(snId);
+                    parser = cache.getBlockAnalyzer(snId);
                     // 使用前必须更新路由规则，否则会解析错误
                     snMap = new HashMap<>();
                     snMap.put(BRFSPath.STORAGEREGION, sn.getName());
@@ -183,10 +184,10 @@ public class FileBlockMaintainer implements LifeCycle {
                     if (paths != null && !paths.isEmpty()) {
                         invalidBlockQueue.addAll(paths);
                     }
-                    List<File> invalids = scanInvalidFile(storageRegionName, local);
-                    if (invalids != null && !invalids.isEmpty()) {
-                        invalidBlockQueue.addAll(invalids);
-                    }
+                }
+                List<File> invalids = scanInvalidFile(storageRegionNames, local);
+                if (invalids != null && !invalids.isEmpty()) {
+                    invalidBlockQueue.addAll(invalids);
                 }
 
             }
@@ -197,12 +198,12 @@ public class FileBlockMaintainer implements LifeCycle {
         /**
          * 扫描非法的目录
          *
-         * @param sr
+         * @param storageRegions
          * @param local
          *
          * @return
          */
-        private List<File> scanInvalidFile(Collection<String> sr, LocalPartitionInfo local) {
+        private List<File> scanInvalidFile(Collection<String> storageRegions, LocalPartitionInfo local) {
             String dataDir = local.getDataDir();
             File root = new File(dataDir);
             if (!root.exists()) {
@@ -215,7 +216,7 @@ public class FileBlockMaintainer implements LifeCycle {
             }
             List<File> array = new ArrayList<>();
             for (File file : files) {
-                if (!sr.contains(file.getName())) {
+                if (!storageRegions.contains(file.getName())) {
                     array.add(file);
                     LOG.info("partition [{}] find invalid file {}", local.getPartitionId(), file.getName());
                 }

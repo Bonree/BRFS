@@ -6,6 +6,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
@@ -18,28 +19,37 @@ public class SimpleFileServer implements Closeable {
     private ServerSocket serverSocket;
     private LocalPartitionInterface partitionInterface;
     private ExecutorService es = null;
+    private boolean run;
 
     public SimpleFileServer(int port, LocalPartitionInterface partitionInterface, int threadCount) throws IOException {
         serverSocket = new ServerSocket(port);
         this.partitionInterface = partitionInterface;
         es = Executors.newFixedThreadPool(threadCount, new PooledThreadFactory("file_transfer"));
+        run = true;
     }
 
     public void start() {
         LOG.info("start file server!!!");
-        while (true) {
+        while (run) {
             Socket sock = null;
             try {
                 sock = serverSocket.accept();
                 es.execute(new FileServThread(sock, partitionInterface, LOG)); // 当成功连接客户端后开启新线程接收文件
+            } catch (SocketException ignore) {
+                if (!ignore.getMessage().trim().equals("Socket closed")) {
+                    LOG.error("accpect file happen error", ignore);
+                } else {
+                    LOG.warn(ignore.getMessage());
+                }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error("accpect file happen error ", e);
             }
         }
     }
 
     @Override
     public void close() throws IOException {
+        run = false;
         if (serverSocket != null) {
             serverSocket.close();
         }
