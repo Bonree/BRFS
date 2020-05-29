@@ -41,11 +41,7 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
 
     public void write(String srName, byte[] data, StorageRegionWriteCallback callback) {
         try {
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
             DataEngine dataEngine = dataEngineManager.getDataEngine(srName);
-            stopWatch.split();
-            LOG.info("require a dataEngine cost [{}]", stopWatch.getSplitTime());
             if (dataEngine == null) {
                 LOG.error("can not get data engine by region[{}]", srName);
                 callback.error(new RuntimeException(
@@ -53,9 +49,6 @@ public class DefaultStorageRegionWriter implements StorageRegionWriter {
                 return;
             }
             dataEngine.store(data, new SingleDataCallback(callback));
-            stopWatch.split();
-            LOG.info("enqueue the datapool cost [{}]", stopWatch.getSplitTime());
-            stopWatch.stop();
         } catch (Exception e) {
             LOG.error("error when srWriter write the data");
             callback.error(e);
