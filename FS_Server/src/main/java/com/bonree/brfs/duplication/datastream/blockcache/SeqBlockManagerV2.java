@@ -79,7 +79,7 @@ public class SeqBlockManagerV2 implements BlockManager {
         String writeID = packet.getWriteID();
         // file waiting for write
         if (packet.isTheFirstPacketInFile()) {
-            LOG.debug("After processor : storage [{}] : file[{}] waiting for write.", srName, fileName);
+            LOG.debug("After processor : storage [{}] : file[{}] waiting for write.", srName, writeID);
         }
         LOG.debug("writing the file [{}]", packet.getWriteID());
         try {
@@ -106,14 +106,14 @@ public class SeqBlockManagerV2 implements BlockManager {
                 if (packet.getBlockOffsetInFile(blockSize) == 0) {
                     writer.write(srName, blockValue.getRealData(),
                                  new WriteFileCallback(callback, fileName, false));
-                    LOG.info("flushing a small file[{}] into the data pool", fileName);
+                    LOG.info("flushing a small file[{}] into the data pool", writeID);
                     blockValue.releaseData();
                     blockcache.remove(new BlockKey(srName, writeID));
                 } else {
                     // we should flush the last block to get its fid
                     writer.write(srName, blockValue.getRealData(),
                                  new WriteBlockCallback(srName, callback, packet, true));
-                    LOG.info("flushing the last block of file [{}] into the data pool ", fileName);
+                    LOG.info("flushing the last block of file [{}] into the data pool ", writeID);
                     blockValue.releaseData();
                 }
                 return null;
@@ -121,7 +121,7 @@ public class SeqBlockManagerV2 implements BlockManager {
             if (needflush) { //flush a block
                 writer.write(srName, blockValue.getBytes(),
                              new WriteBlockCallback(srName, callback, packet, packet.isLastPacketInFile()));
-                LOG.info("flush a block of file[{}] into data pool ", fileName);
+                LOG.info("flush a block of file[{}] into data pool ", writeID);
                 blockValue.reset();
                 return null;
             }

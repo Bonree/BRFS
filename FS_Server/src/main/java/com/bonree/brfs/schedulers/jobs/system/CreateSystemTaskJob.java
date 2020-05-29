@@ -31,7 +31,6 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
     public void operation(JobExecutionContext context) {
         LOG.info("create system task working");
         //判断是否有恢复任务，有恢复任务则不进行创建
-        JobDataMap data = context.getJobDetail().getJobDataMap();
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
         MetaTaskManagerInterface release = mcf.getTm();
         // 获取开启的任务名称

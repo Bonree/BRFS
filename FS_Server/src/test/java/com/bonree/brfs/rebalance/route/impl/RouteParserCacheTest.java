@@ -41,6 +41,8 @@ public class RouteParserCacheTest {
         ZkStorageRegionIdBuilder builder = new ZkStorageRegionIdBuilder(client, zookeeperPaths);
         StorageRegionManager manager = new DefaultStorageRegionManager(client, zookeeperPaths, null);
         manager.start();
+        // 等缓存加载完毕
+        Thread.sleep(100000);
 
         StorageRegion region = new StorageRegion("abc", 0, System.currentTimeMillis(), true, 2, "PT2H", 3600, "PT2H");
 
@@ -48,6 +50,7 @@ public class RouteParserCacheTest {
         RouteLoader loader = new SimpleRouteZKLoader(client, zookeeperPaths.getBaseV2RoutePath());
         RouteParserCache cache = new RouteParserCache(loader, zookeeperPaths, manager, client);
         cache.start();
+
         new Thread(
             new Runnable() {
                 @Override

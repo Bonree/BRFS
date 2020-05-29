@@ -6,6 +6,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
@@ -34,8 +35,14 @@ public class SimpleFileServer implements Closeable {
             try {
                 sock = serverSocket.accept();
                 es.execute(new FileServThread(sock, partitionInterface, LOG)); // 当成功连接客户端后开启新线程接收文件
+            } catch (SocketException ignore) {
+                if (!ignore.getMessage().trim().equals("Socket closed")) {
+                    LOG.error("accpect file happen error", ignore);
+                } else {
+                    LOG.warn(ignore.getMessage());
+                }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error("accpect file happen error ", e);
             }
         }
     }

@@ -22,9 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
@@ -66,7 +63,7 @@ public class RouteParserCache implements RouteCache, LifeCycle {
         List<StorageRegion> regionList = manager.getStorageRegionList();
         if (regionList != null) {
             regionList.stream().forEach(region -> {
-                RouteParser parser = new RouteParser(region.getId(), loader);
+                RouteParser parser = new RouteParser(region.getId(), loader, true);
                 LOG.info("load {} route", region.getName());
                 analyzerMap.put(region.getId(), parser);
             });
@@ -75,6 +72,7 @@ public class RouteParserCache implements RouteCache, LifeCycle {
             TreeCache.newBuilder(this.client, zookeeperPaths.getBaseV2RoutePath())
                      .setCacheData(true)
                      .setExecutor(THREAD_FACTORY)
+                     .setMaxDepth(4)
                      .build();
         treeCache.start();
         treeCache.getListenable().addListener(new RouteLister(zookeeperPaths.getBaseV2RoutePath()));
