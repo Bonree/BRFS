@@ -9,12 +9,14 @@ import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.identification.DataNodeMetaMaintainerInterface;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.identification.PartitionInterface;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.identification.VirtualServerID;
+import com.bonree.brfs.identification.impl.DataNodeMetaMaintainer;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.identification.impl.DiskNodeIDImpl;
 import com.bonree.brfs.identification.impl.FirstLevelServerIDImpl;
@@ -58,6 +60,7 @@ public class DataNodeIDModule implements Module {
         binder.bind(SecondMaintainerInterface.class).to(SimpleSecondMaintainer.class).in(Singleton.class);
         binder.bind(SecondIdsInterface.class).to(SimpleSecondMaintainer.class).in(Singleton.class);
         binder.bind(RouteCache.class).to(RouteParserCache.class).in(Singleton.class);
+        binder.bind(DataNodeMetaMaintainerInterface.class).to(DataNodeMetaMaintainer.class).in(Singleton.class);
 
         binder.bind(DiskPartitionInfoManager.class).in(ManageLifecycle.class);
         binder.bind(SimpleSecondMaintainer.class).in(ManageLifecycle.class);
@@ -74,16 +77,16 @@ public class DataNodeIDModule implements Module {
     @Provides
     @Singleton
     public DiskDaemon getDiskDaemon(CuratorFramework client, ZookeeperPaths zkpath, Service local,
-                                    StorageConfig storageConfig, PartitionConfig partitionConfig, IDConfig idConfig,
+                                    StorageConfig storageConfig, PartitionConfig partitionConfig,
                                     ResourceCollectionInterface resourceGather, Lifecycle lifecycle,
-                                    SecondMaintainerInterface maintainer) {
+                                    SecondMaintainerInterface maintainer, DataNodeMetaMaintainerInterface metaMaintainer) {
 
         // 1.生成注册id实例
         DiskNodeIDImpl diskNodeID = new DiskNodeIDImpl(client, zkpath.getBaseServerIdSeqPath(), zkpath.getBaseV2SecondIDPath());
         // 2.生成磁盘分区id检查类
         PartitionCheckingRoutine routine =
-            new PartitionCheckingRoutine(diskNodeID, resourceGather, storageConfig.getStorageDirs(), idConfig.getPartitionIds(),
-                                         partitionConfig.getPartitionGroupName());
+            new PartitionCheckingRoutine(diskNodeID, resourceGather, storageConfig.getStorageDirs(),
+                                         metaMaintainer, partitionConfig.getPartitionGroupName());
         Collection<LocalPartitionInfo> parts = routine.checkVaildPartition();
         // 3.生成注册管理实例
         PartitionInfoRegister register = new PartitionInfoRegister(client, zkpath.getBaseDiscoveryPath());

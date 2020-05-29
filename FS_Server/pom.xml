@@ -23,6 +23,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.bonree.fs</groupId>
+            <artifactId>brfs-resource</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>

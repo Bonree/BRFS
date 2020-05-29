@@ -29,6 +29,8 @@ public class PartitionInfo {
     private double serviceTime;
     // 版本信息
     private int version = 1;
+    // 节点状态信息
+    private PartitionType type = PartitionType.NORMAL;
 
     public PartitionInfo() {
 
@@ -117,6 +119,14 @@ public class PartitionInfo {
         this.version = version;
     }
 
+    public PartitionType getType() {
+        return type;
+    }
+
+    public void setType(PartitionType type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -129,6 +139,7 @@ public class PartitionInfo {
                           .add("registerTime", registerTime)
                           .add("serviceTime", serviceTime)
                           .add("version", version)
+                          .add("type", type)
                           .toString();
     }
 }

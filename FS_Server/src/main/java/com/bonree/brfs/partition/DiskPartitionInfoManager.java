@@ -7,6 +7,7 @@ import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.disknode.PartitionConfig;
 import com.bonree.brfs.partition.model.PartitionInfo;
+import com.bonree.brfs.partition.model.PartitionType;
 import com.bonree.brfs.resource.vo.ClusterStorageInfo;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
@@ -141,7 +142,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
                 || event.getType().equals(PathChildrenCacheEvent.Type.CHILD_UPDATED)) {
                 if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
                     PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
-                    if (info != null) {
+                    if (info != null && !PartitionType.EXCEPTION.equals(info.getType())) {
                         diskPartitionInfoCache.put(info.getPartitionId(), info);
                         int freeSize = (int) info.getFreeSize();
                         diskPartitionInfoFreeSize.put(info.getPartitionId(), freeSize);
@@ -157,7 +158,7 @@ public class DiskPartitionInfoManager implements LifeCycle {
                     if (diskPartitionInfoFreeSize.get(partitionId) != null) {
                         diskPartitionInfoFreeSize.remove(partitionId);
                     }
-                    if (diskPartitionInfoCache.containsKey(partitionId)) {
+                    if (diskPartitionInfoCache.get(partitionId) != null) {
                         diskPartitionInfoCache.remove(partitionId);
                         LOG.info("disk partition info cache removed, path:{}", event.getData().getPath());
                         LOG.info("current disk partition ids: {}", diskPartitionInfoCache.keySet());

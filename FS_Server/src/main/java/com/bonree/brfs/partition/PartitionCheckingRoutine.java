@@ -4,8 +4,12 @@ import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.resource.vo.DiskPartitionInfo;
 import com.bonree.brfs.common.resource.vo.DiskPartitionStat;
 import com.bonree.brfs.common.utils.JsonUtils;
+import com.bonree.brfs.disknode.meta.DataNodeMetaModel;
+import com.bonree.brfs.disknode.meta.NodeStatus;
+import com.bonree.brfs.identification.DataNodeMetaMaintainerInterface;
 import com.bonree.brfs.identification.LevelServerIDGen;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.partition.model.PartitionType;
 import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,37 +40,57 @@ public class PartitionCheckingRoutine {
     private static final Logger LOG = LoggerFactory.getLogger(PartitionCheckingRoutine.class);
     private LevelServerIDGen idGen;
     private ResourceCollectionInterface gather;
-    // todo 磁盘变更主动发布接口
-    //private xxx
     private List<String> dataConfig;
-    private String innerDir;
     private String partitionGroup;
+    private DataNodeMetaMaintainerInterface maintainer;
 
     @Inject
     public PartitionCheckingRoutine(LevelServerIDGen idGen, ResourceCollectionInterface gather, List<String> dataConfig,
-                                    String innerDir, String partitionGroup) {
+                                    DataNodeMetaMaintainerInterface maintainer, String partitionGroup) {
         this.idGen = idGen;
         this.dataConfig = dataConfig;
-        this.innerDir = innerDir;
         this.partitionGroup = partitionGroup;
         this.gather = gather;
+        this.maintainer = maintainer;
     }
 
     public Collection<LocalPartitionInfo> checkVaildPartition() {
         String[] dirs = dataConfig.toArray(new String[dataConfig.size()]);
-        // 获取已注册过的磁盘分区节点信息
-        Map<String, LocalPartitionInfo> innerMap = readIds(innerDir);
-        // 获取有效的磁盘分区，判断是否存在多个目录位于一个磁盘分区的情况，若存在则抛异常。
-        Map<String, LocalPartitionInfo> fsMap = collectVaildFileSystem(dirs);
+        try {
+            // 获取已注册过的磁盘分区节点信息
+            Map<String, LocalPartitionInfo> innerMap = readIds();
+            // 获取有效的磁盘分区，判断是否存在多个目录位于一个磁盘分区的情况，若存在则抛异常。
+            Map<String, LocalPartitionInfo> fsMap = collectVaildFileSystem(dirs);
 
-        // 剔除未配置的磁盘分区，并发布磁盘变更
-        checkLoss(innerMap, fsMap);
+            // 判断是否存在增加的磁盘分区，若存在则申请磁盘id，若为恢复则将exception改为normal
+            checkAdd(innerMap, fsMap);
 
-        // 判断是否存在增加的磁盘分区，若存在则申请磁盘id
-        checkAdd(innerMap, fsMap);
+            // 判断是否存在减少磁盘分区，若存在则将其状态标识为exception
+            checkLoss(innerMap, fsMap);
 
-        // 返回有效的磁盘分区，该数据将提供给定时线程做定时上报处理
-        return innerMap.values();
+            updateIdInfo(innerMap);
+            // 返回有效的磁盘分区，该数据将提供给定时线程做定时上报处理
+            return innerMap.values();
+        } catch (Exception e) {
+            throw new RuntimeException("check partition happen error !!", e);
+        }
+    }
+
+    private synchronized void updateIdInfo(Map<String, LocalPartitionInfo> validMap) throws Exception {
+        Collection<LocalPartitionInfo> partitions = validMap.values();
+        Map<String, LocalPartitionInfo> newPartitions = new HashMap<>();
+        partitions.stream().forEach(partition -> {
+            newPartitions.put(partition.getPartitionId() + "", partition);
+        });
+        DataNodeMetaModel model = maintainer.getDataNodeMeta();
+        model.setPartitionInfoMap(newPartitions);
+        NodeStatus status = model.getStatus();
+        if (NodeStatus.EMPTY.equals(status)) {
+            model.setStatus(NodeStatus.ONLY_PARTITION);
+        } else if (NodeStatus.ONLY_SERVER.equals(status)) {
+            model.setStatus(NodeStatus.NORMAL);
+        }
+        maintainer.updateDataNodeMeta(model);
     }
 
     /**
@@ -84,14 +110,6 @@ public class PartitionCheckingRoutine {
         for (LocalPartitionInfo add : addPartions) {
             LocalPartitionInfo local = createPartitionId(validMap.get(add.getDataDir()));
             innerMap.put(local.getDataDir(), local);
-            File idFile = new File(this.innerDir + File.separator + local.getPartitionId());
-            try {
-                byte[] data = JsonUtils.toJsonBytesQuietly(local);
-                FileUtils.writeByteArrayToFile(idFile, data);
-            } catch (IOException e) {
-                throw new RuntimeException(
-                    "An error occurred while creating the internal file! path:" + idFile.getAbsolutePath(), e);
-            }
         }
     }
 
@@ -126,6 +144,10 @@ public class PartitionCheckingRoutine {
         } else {
             for (String add : validMap.keySet()) {
                 if (innerMap.containsKey(add)) {
+                    LocalPartitionInfo zkPart = innerMap.get(add);
+                    if (PartitionType.EXCEPTION.equals(zkPart.getType())) {
+                        zkPart.setType(PartitionType.NORMAL);
+                    }
                     continue;
                 }
                 adds.add(validMap.get(add));
@@ -153,71 +175,34 @@ public class PartitionCheckingRoutine {
                 continue;
             }
             loss = innerMap.get(inner);
-            iterator.remove();
-            // 发布磁盘变更信息后，内部文件不删除，
-            //            FileUtils.deleteQuietly(new File(this.innerDir+File.separator+loss.getPartitionId()));
+            loss.setType(PartitionType.EXCEPTION);
             LOG.warn("partition is loss [{}]", loss);
         }
     }
 
     /**
-     * 获取本地已经注册的id文件
-     *
-     * @param path
+     * 获取已经注册的id文件
      *
      * @return
      */
-    public Map<String, LocalPartitionInfo> readIds(String path) {
-        File file = new File(path);
-        if (!file.exists()) {
-            try {
-                FileUtils.forceMkdir(file);
-            } catch (IOException e) {
-                throw new RuntimeException("path [" + path + "] is not exists and can't create !!", e);
-            }
-        }
-        if (!file.isDirectory()) {
-            throw new RuntimeException("path [" + path + "] is not directory !!");
-        }
-        File[] files = file.listFiles();
-        if (files == null || files.length == 0) {
+    public Map<String, LocalPartitionInfo> readIds() throws Exception {
+
+        DataNodeMetaModel meta = this.maintainer.getDataNodeMeta();
+        if (NodeStatus.EMPTY.equals(meta.getStatus())) {
             return new HashMap<>();
         }
-        Map<String, LocalPartitionInfo> map = new HashMap<>(files.length);
-        LocalPartitionInfo part;
-        for (File f : files) {
-            if (file.equals(f)) {
-                continue;
+        Map<String, LocalPartitionInfo> map = meta.getPartitionInfoMap();
+        if (map == null || map.isEmpty()) {
+            return new HashMap<>();
+        }
+        Collection<LocalPartitionInfo> partitionInfos = map.values();
+        Map<String, LocalPartitionInfo> newMap = new HashMap<>();
+        partitionInfos.stream().forEach(
+            parition -> {
+                newMap.put(parition.getDataDir(), parition);
             }
-            part = readByFile(f);
-            map.put(part.getDataDir(), part);
-        }
-        return map;
-    }
-
-    /**
-     * 读取内部id文件
-     *
-     * @param file
-     *
-     * @return
-     */
-    private LocalPartitionInfo readByFile(File file) {
-        if (!file.isFile()) {
-            throw new RuntimeException("path [" + file.getAbsolutePath() + "] is not file !!");
-        }
-        try {
-            byte[] data = FileUtils.readFileToByteArray(file);
-            if (data == null || data.length == 0) {
-                throw new RuntimeException("path [" + file.getAbsolutePath() + "] is empty !!");
-            }
-            LocalPartitionInfo partitionInfo = JsonUtils.toObject(data, LocalPartitionInfo.class);
-            return partitionInfo;
-        } catch (IOException e) {
-            throw new RuntimeException("path [" + file.getAbsolutePath() + "] read happen error !!", e);
-        } catch (JsonUtils.JsonException e) {
-            throw new RuntimeException("path [" + file.getAbsolutePath() + "] convert to instance happen error !!", e);
-        }
+        );
+        return newMap;
     }
 
     public Map<String, LocalPartitionInfo> collectVaildFileSystem(String[] dataDir) {
