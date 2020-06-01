@@ -387,7 +387,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             ColumnFamilyHandle handle =
                 this.db.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), columnFamilyOptions), ttl);
             this.cfHandles.put(columnFamily, handle);
-            LOG.info("create column family complete, name:{}, ttl:{}", columnFamily, ttl);
+            LOG.info("create column family complete, name:{}, ttl:{}, id:{}", columnFamily, ttl, handle.getID());
             // 更新ZK信息
             this.columnFamilyInfoManager.initOrAddColumnFamilyInfo(columnFamily, ttl);
         } catch (Exception e) {
@@ -518,7 +518,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                         .createColumnFamilyWithTtl(new ColumnFamilyDescriptor(diff.getBytes(), columnFamilyOptions),
                                                    columnFamilyMap.get(diff));
                     this.cfHandles.put(diff, handle);
-                    LOG.info("add column family of sr [{}] to rocksdb", diff);
+                    LOG.info("add column family of sr [{}] to rocksdb, id:[{}]", diff, handle.getID());
                 }
             }
 
