@@ -580,12 +580,13 @@ public class TaskDispatcher implements Closeable {
                 LOG.debug("alivePartitionIds: {}", alivePartitionIds);
                 LOG.debug("joinerPartitionIds: {}", joinerPartitionIds);
                 LOG.debug("further to filter dead server...");
-                List<String> aliveSecondIDs =
-                    alivePartitionIds.stream().map((x) -> idManager.getSecondId(x, cs.getStorageIndex()))
-                                     .collect(Collectors.toList());
-                List<String> joinerSecondIDs =
-                    joinerPartitionIds.stream().map((x) -> idManager.getSecondId(x, cs.getStorageIndex()))
-                                      .collect(Collectors.toList());
+                List<String> aliveSecondIDs = alivePartitionIds.stream()
+                                                               .map((x) -> idManager.getSecondId(x, cs.getStorageIndex()))
+                                                               .collect(Collectors.toList());
+                List<String> joinerSecondIDs = joinerPartitionIds.stream()
+                                                                 .map((partitionId) -> idManager
+                                                                     .getSecondId(partitionId, cs.getStorageIndex()))
+                                                                 .collect(Collectors.toList());
 
                 // 挂掉的机器不能做生存者和参与者，此处进行再次过滤，防止其他情况
                 if (joinerSecondIDs.contains(cs.getChangeServer())) {
@@ -602,10 +603,9 @@ public class TaskDispatcher implements Closeable {
                     dispatchTask(taskSummary);
                     // 加入正在执行的任务的缓存中
                     setRunTask(taskSummary.getStorageIndex(), taskSummary);
-                    LOG.info("release storageRegion:[{}], task:[{}], type:[{}], status [{}], delaytime:[{}]s",
-                             cs.getStorageIndex(), cs.getChangeID(), cs.getChangeType(), normalDelay);
-                } else {
-                    LOG.warn("because current server is not enough,normal recover can't create.change:{}", changeSummaries);
+                    LOG.info("release storageRegion:[{}], task:[{}], type:[{}], status:[{}] delaytime:[{}]s",
+                             cs.getStorageIndex(), cs.getChangeID(), cs.getChangeType(), taskSummary.getTaskStatus(),
+                             normalDelay);
                 }
             }
         }
@@ -620,33 +620,40 @@ public class TaskDispatcher implements Closeable {
 
     private boolean isCanRecover(DiskPartitionChangeSummary cs, List<String> joinerSecondIDs, List<String> aliveSecondIDs,
                                  IDSManager idManager, int storageIndex) {
-        boolean canRecover = true;
         if (aliveSecondIDs.contains(cs.getChangeServer())) {
+            LOG.warn("change:[{}] No need to execute,the reason is changeServer alive!  change:[{}] aliveServers:{}",
+                     cs.getChangeID(), cs.getChangeServer(), aliveSecondIDs);
             return false;
         }
         int replicas = snManager.findStorageRegionById(cs.getStorageIndex()).getReplicateNum();
         // 检查参与者是否都存活
         for (String joiner : joinerSecondIDs) {
             if (!aliveSecondIDs.contains(joiner)) {
-                canRecover = false;
-                break;
+                LOG.warn("change:[{}] No need to execute,the reason is joiner dead!  joiners:{} aliveServers:{}",
+                         cs.getChangeID(), joinerSecondIDs, aliveSecondIDs);
+                return false;
             }
         }
         // 检查目前存活的服务，是否满足副本数
         if (aliveSecondIDs.size() < replicas) {
-            canRecover = false;
+            LOG.warn("change:[{}] No need to execute,the reason is replicas num > alive num!  replicas:[{}] aliveServers:{}",
+                     cs.getChangeID(), replicas, aliveSecondIDs);
+            return false;
         }
 
         // 判断当前的磁盘分区是否是同一个节点的，如果是，不做恢复操作
         String serverId = idManager.getFirstSever();
         Collection<String> secondIds = idManager.getSecondIds(serverId, storageIndex);
+
         if (secondIds.containsAll(aliveSecondIDs)) {
-            LOG.info("don't need recover, current serverId -> secondIds:{} -> {}, aliveSecondIds:{}", serverId, secondIds,
-                     aliveSecondIDs);
-            canRecover = false;
+            LOG.warn(
+                "change:[{}] No need to execute,the reason is only one server!  "
+                    + "firstServer: [{}], partitionFirstShip:{} aliveServers:{}",
+                cs.getChangeID(), serverId, secondIds, aliveSecondIDs);
+            return false;
         }
 
-        return canRecover;
+        return true;
     }
 
     /**
@@ -930,11 +937,12 @@ public class TaskDispatcher implements Closeable {
                                              currentTask.getTaskStatus(), runChangeSummary.getChangeType());
                                 }
                                 if (countdownTime(currentTask)) {
+                                    LOG.warn("storage:[{}], task:[{}] type:[{}] {} to cancel", snIndex, changeID,
+                                             currentTask.getTaskType(), currentTask.getTaskStatus(),
+                                             runChangeSummary.getChangeType());
                                     updateTaskStatus(currentTask, TaskStatus.CANCEL);
                                     removeRunTask(currentTask.getStorageIndex());
                                     delBalanceTask(currentTask);
-                                    LOG.warn("storage:[{}], task:[{}] type:[{}] {} to cancel", snIndex, changeID,
-                                             currentTask.getTaskStatus(), runChangeSummary.getChangeType());
                                 }
                                 break;
                             }
@@ -965,7 +973,7 @@ public class TaskDispatcher implements Closeable {
         if (interval == DEFAULT_INTERVAL) {
             LOG.warn("current run task have trouble !"
                          + " will wait it for {} times, changeID:[{}], storageRegion:[{}],Type:[{}]",
-                     DEFAULT_INTERVAL, currentTask.getStorageIndex(), currentTask.getTaskType());
+                     DEFAULT_INTERVAL, currentTask.getChangeID(), currentTask.getStorageIndex(), currentTask.getTaskType());
         }
         if (delay <= 600) {
             run = true;
@@ -1033,7 +1041,7 @@ public class TaskDispatcher implements Closeable {
         taskSummary.setId(UUID.randomUUID().toString());
 
         String jsonStr = JsonUtils.toJsonStringQuietly(taskSummary);
-        LOG.info("dispatch task:{}", jsonStr);
+        LOG.debug("dispatch task:{}", jsonStr);
         // 创建任务
         String taskNode = ZKPaths.makePath(tasksPath, String.valueOf(storageIndex), Constants.TASK_NODE);
         if (!curatorClient.checkExists(taskNode)) {
