@@ -51,7 +51,7 @@ public class RegionIDModule implements Module {
     @Provides
     @Singleton
     public RouteLoader getRouteLoader(CuratorFramework client, ZookeeperPaths zookeeperPaths) {
-        return new SimpleRouteZKLoader(client, zookeeperPaths.getBaseRoutePath());
+        return new SimpleRouteZKLoader(client, zookeeperPaths.getBaseV2RoutePath());
     }
 
     @Provides
