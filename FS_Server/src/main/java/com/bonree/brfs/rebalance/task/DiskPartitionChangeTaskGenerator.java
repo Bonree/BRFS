@@ -21,6 +21,7 @@ import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.partition.model.PartitionInfo;
+import com.bonree.brfs.partition.model.PartitionType;
 import com.bonree.mail.worker.MailWorker;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
@@ -122,7 +123,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                 if (leaderLath.hasLeadership()) {
                     if (event.getData() != null && event.getData().getData() != null && event.getData().getData().length > 0) {
                         PartitionInfo info = JsonUtils.toObject(event.getData().getData(), PartitionInfo.class);
-                        if (info != null) {
+                        if (info != null && PartitionType.NORMAL.equals(info.getType())) {
                             generateChangeSummary(info, ChangeType.ADD);
                         } else {
                             LOG.warn("DiskPartitionInfo is null ! path:{},event:{}", event.getData().getPath(), event.getType());

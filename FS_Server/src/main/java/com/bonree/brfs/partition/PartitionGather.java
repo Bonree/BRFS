@@ -11,6 +11,7 @@ import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.partition.model.PartitionInfo;
+import com.bonree.brfs.partition.model.PartitionType;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -39,9 +40,9 @@ public class PartitionGather implements LifeCycle {
     /**
      * 采集线程
      */
-    private GatherThread worker = null;
+    private GatherThread worker;
 
-    private int intervalTimes = 5;
+    private int intervalTimes;
 
     private LocalPartitionListener listener = null;
 
@@ -112,6 +113,17 @@ public class PartitionGather implements LifeCycle {
                     break;
                 }
                 try {
+                    if (PartitionType.EXCEPTION.equals(elePart.getType())) {
+                        if (count < 10) {
+                            partition = packageExceptionPartition(elePart);
+                            register.registerPartitionInfo(partition);
+                            LOG.info("register invalid partitionId {},", elePart.getPartitionId());
+                        } else if (count == 10) {
+                            register.unregisterPartitionInfo(elePart.getPartitionGroup(), elePart.getPartitionId());
+                            LOG.info("remove invalid partitionId {},", elePart.getPartitionId());
+                        }
+                        continue;
+                    }
                     fs = gather.collectSinglePartitionStats(elePart.getDataDir());
                     if (elePart == null) {
                         LOG.warn("find invalid partition info");
@@ -151,6 +163,20 @@ public class PartitionGather implements LifeCycle {
             obj.setRegisterTime(System.currentTimeMillis());
             obj.setFreeSize(fs.getAvail());
             obj.setTotalSize(fs.getTotal());
+            obj.setType(local.getType());
+            return obj;
+        }
+
+        private PartitionInfo packageExceptionPartition(LocalPartitionInfo local) {
+            PartitionInfo obj = new PartitionInfo();
+            obj.setPartitionGroup(local.getPartitionGroup());
+            obj.setPartitionId(local.getPartitionId());
+            obj.setServiceGroup(firstServer.getServiceGroup());
+            obj.setServiceId(firstServer.getServiceId());
+            obj.setRegisterTime(System.currentTimeMillis());
+            obj.setFreeSize(0);
+            obj.setTotalSize(0);
+            obj.setType(local.getType());
             return obj;
         }
 

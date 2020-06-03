@@ -291,10 +291,10 @@ public class DataResource {
         List<Service> serviceList = serviceManager.getServiceListByGroup(clusterConfig.getDataNodeGroup());
         ReturnCode code =
             TasksUtils.createUserDeleteTask(serviceList, zkPaths, storageRegion, startTimestamp, endTimeStamp, false);
+        LOG.info("create user delete task status{}", code.name());
         if (ReturnCode.SUCCESS.equals(code)) {
             return Response.ok().build();
         }
-
         return Response.status(Status.BAD_REQUEST).entity(code.name()).build();
     }
 

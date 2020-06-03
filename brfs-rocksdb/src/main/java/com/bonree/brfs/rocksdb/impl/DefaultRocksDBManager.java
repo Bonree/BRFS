@@ -46,6 +46,7 @@ import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompactionStyle;
 import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
+import org.rocksdb.FlushOptions;
 import org.rocksdb.LRUCache;
 import org.rocksdb.Options;
 import org.rocksdb.ReadOptions;
@@ -386,7 +387,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             ColumnFamilyHandle handle =
                 this.db.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), columnFamilyOptions), ttl);
             this.cfHandles.put(columnFamily, handle);
-            LOG.info("create column family complete, name:{}, ttl:{}", columnFamily, ttl);
+            LOG.info("create column family complete, name:{}, ttl:{}, id:{}", columnFamily, ttl, handle.getID());
             // 更新ZK信息
             this.columnFamilyInfoManager.initOrAddColumnFamilyInfo(columnFamily, ttl);
         } catch (Exception e) {
@@ -517,7 +518,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                         .createColumnFamilyWithTtl(new ColumnFamilyDescriptor(diff.getBytes(), columnFamilyOptions),
                                                    columnFamilyMap.get(diff));
                     this.cfHandles.put(diff, handle);
-                    LOG.info("add column family of sr [{}] to rocksdb", diff);
+                    LOG.info("add column family of sr [{}] to rocksdb, id:[{}]", diff, handle.getID());
                 }
             }
 
@@ -544,9 +545,13 @@ public class DefaultRocksDBManager implements RocksDBManager {
         this.readOptions.close();
         this.columnFamilyOptions.close();
         Collection<ColumnFamilyHandle> handles = this.cfHandles.values();
+        FlushOptions flushOptions = new FlushOptions();
         for (ColumnFamilyHandle handle : handles) {
+            db.flush(flushOptions, handle);
+            LOG.info("flush column family [{}] complete, id:[{}]", new String(handle.getName()), handle.getID());
             handle.close();
         }
+        flushOptions.close();
         if (db != null) {
             db.close();
         }

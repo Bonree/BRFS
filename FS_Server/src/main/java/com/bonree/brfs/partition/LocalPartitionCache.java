@@ -2,6 +2,7 @@ package com.bonree.brfs.partition;
 
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.partition.model.PartitionType;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,8 +37,10 @@ public class LocalPartitionCache implements LocalPartitionListener, LocalPartiti
 
     @Override
     public void add(LocalPartitionInfo partitionInfo) {
-        idToLocal.put(partitionInfo.getPartitionId(), partitionInfo);
-        pathToId.put(partitionInfo.getDataDir(), partitionInfo.getPartitionId());
+        if (PartitionType.NORMAL.equals(partitionInfo.getType())) {
+            idToLocal.put(partitionInfo.getPartitionId(), partitionInfo);
+            pathToId.put(partitionInfo.getDataDir(), partitionInfo.getPartitionId());
+        }
     }
 
     @Override

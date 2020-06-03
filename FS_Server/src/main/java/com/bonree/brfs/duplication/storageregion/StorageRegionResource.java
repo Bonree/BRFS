@@ -203,7 +203,7 @@ public class StorageRegionResource {
             region.getCreateTime(),
             System.currentTimeMillis(),
             true);
-
+        log.info("create user delete task status{}", code.name());
         if (!ReturnCode.SUCCESS.equals(code)) {
             return Response.serverError()
                            .entity(BrStringUtils.toUtf8Bytes(code.name()))

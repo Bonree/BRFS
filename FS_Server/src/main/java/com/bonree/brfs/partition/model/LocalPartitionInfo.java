@@ -1,5 +1,7 @@
 package com.bonree.brfs.partition.model;
 
+import com.google.common.base.MoreObjects;
+
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司
  * Copyright (c) 2007-2020 北京博睿宏远数据科技股份有限公司，Inc. All Rights Reserved.
@@ -9,11 +11,14 @@ package com.bonree.brfs.partition.model;
  ******************************************************************************/
 
 public class LocalPartitionInfo {
+
+
     private String partitionGroup;
     private String partitionId;
     private String devName;
     private String mountPoint;
     private String dataDir;
+    private PartitionType type = PartitionType.NORMAL;
     private long totalSize;
 
     public LocalPartitionInfo() {
@@ -75,15 +80,24 @@ public class LocalPartitionInfo {
         this.totalSize = totalSize;
     }
 
+    public PartitionType getType() {
+        return type;
+    }
+
+    public void setType(PartitionType type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
-        return "LocalPartitionInfo{"
-            + "partitionGroup='" + partitionGroup + '\''
-            + ", partitionId='" + partitionId + '\''
-            + ", devName='" + devName + '\''
-            + ", mountPoint='" + mountPoint + '\''
-            + ", dataDir='" + dataDir + '\''
-            + ", totalSize=" + totalSize
-            + '}';
+        return MoreObjects.toStringHelper(this)
+                          .add("partitionGroup", partitionGroup)
+                          .add("partitionId", partitionId)
+                          .add("devName", devName)
+                          .add("mountPoint", mountPoint)
+                          .add("dataDir", dataDir)
+                          .add("type", type)
+                          .add("totalSize", totalSize)
+                          .toString();
     }
 }

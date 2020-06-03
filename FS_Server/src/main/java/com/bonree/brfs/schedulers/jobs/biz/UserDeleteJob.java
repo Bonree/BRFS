@@ -7,6 +7,8 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
@@ -91,10 +93,15 @@ public class UserDeleteJob extends QuartzOperationStateWithZKTask {
             result.add(usrResult);
 
         }
+        StorageRegionManager snManager = ManagerContralFactory.getInstance().getSnm();
         if ("1".equals(currentIndex)) {
-            for (LocalPartitionInfo local : daemon.getPartitions()) {
-
-                for (String sn : sns) {
+            for (String sn : sns) {
+                StorageRegion region = snManager.findStorageRegionByName(sn);
+                if (region != null) {
+                    LOG.warn("skip delete {} directory ! because a new one is alive", sn);
+                    continue;
+                }
+                for (LocalPartitionInfo local : daemon.getPartitions()) {
                     if (FileUtils.deleteDir(local.getDataDir() + "/" + sn, true)) {
                         LOG.info("deltete {} successfull", sn);
                     } else {

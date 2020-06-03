@@ -46,9 +46,9 @@ public class ZookeeperPaths {
     public static final String ROCKSDB = "rocksdb";
 
     public static final String DISCOVER = "discovery";
-    // todo 为了兼容旧版本客户端，增加路径
     public static final String BAS_SECOND_ID = "secondIDSet";
     public static final String BAS_NEW_ROUTE = "routeSet";
+    public static final String DATA_NODE_META = "dataNodeMeta";
 
     private final String clusterName;
 
@@ -81,6 +81,16 @@ public class ZookeeperPaths {
     private String baseV2SecondIDPath;
 
     private String baseV2RoutePath;
+
+    private String baseDataNodeMetaPath;
+
+    public String getBaseDataNodeMetaPath() {
+        return baseDataNodeMetaPath;
+    }
+
+    public void setBaseDataNodeMetaPath(String baseDataNodeMetaPath) {
+        this.baseDataNodeMetaPath = baseDataNodeMetaPath;
+    }
 
     public String getBaseV2SecondIDPath() {
         return baseV2SecondIDPath;
@@ -215,6 +225,7 @@ public class ZookeeperPaths {
         createPathIfNotExist(client, baseDiscoveryPath);
         createPathIfNotExist(client, baseV2RoutePath);
         createPathIfNotExist(client, baseV2SecondIDPath);
+        createPathIfNotExist(client, baseDataNodeMetaPath);
     }
 
     public void createPathIfNotExist(CuratorClient client, String path) {
@@ -242,6 +253,7 @@ public class ZookeeperPaths {
         setBaseDiscoveryPath(baseClusterName + SEPARATOR + DISCOVER);
         setBaseV2RoutePath(baseClusterName + SEPARATOR + BAS_NEW_ROUTE);
         setBaseV2SecondIDPath(baseClusterName + SEPARATOR + BAS_SECOND_ID);
+        setBaseDataNodeMetaPath(baseClusterName + SEPARATOR + DATA_NODE_META);
 
     }
 
