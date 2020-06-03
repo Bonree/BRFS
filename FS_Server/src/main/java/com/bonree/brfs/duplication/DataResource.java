@@ -59,7 +59,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/data/v2")
+@Path("/data")
 public class DataResource {
     private static final Logger LOG = LoggerFactory.getLogger(DataResource.class);
     private final WriteStatCollector writeCollector;
@@ -356,10 +356,6 @@ public class DataResource {
                 }
 
                 fileNames[index] = data.getFileName();
-            } else if (pathOn) {
-                throw new WebApplicationException(
-                    "file path " + fileName + "is invalid",
-                    HttpStatus.CODE_NOT_AVAILABLE_FILENAME);
             }
 
             items[index] = new DataItem(data.getData().toByteArray());
