@@ -1,6 +1,6 @@
 package com.bonree.brfs.identification;
 
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 import java.util.Collection;
 
 /*******************************************************************************

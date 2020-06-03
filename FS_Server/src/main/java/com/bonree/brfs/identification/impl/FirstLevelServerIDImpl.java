@@ -1,21 +1,15 @@
 package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.ZookeeperPaths;
+import com.bonree.brfs.common.resource.vo.DataNodeMetaModel;
+import com.bonree.brfs.common.resource.vo.NodeStatus;
 import com.bonree.brfs.disknode.IDConfig;
-import com.bonree.brfs.disknode.meta.DataNodeMetaModel;
-import com.bonree.brfs.disknode.meta.NodeStatus;
 import com.bonree.brfs.identification.DataNodeMetaMaintainerInterface;
 import com.bonree.brfs.identification.LevelServerIDGen;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.utils.ZKPaths;
-import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

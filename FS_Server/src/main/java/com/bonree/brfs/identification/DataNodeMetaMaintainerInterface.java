@@ -1,6 +1,6 @@
 package com.bonree.brfs.identification;
 
-import com.bonree.brfs.disknode.meta.DataNodeMetaModel;
+import com.bonree.brfs.common.resource.vo.DataNodeMetaModel;
 import java.util.Collection;
 
 /**

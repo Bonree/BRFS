@@ -1,6 +1,5 @@
-package com.bonree.brfs.disknode.meta;
+package com.bonree.brfs.common.resource.vo;
 
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import java.util.Map;

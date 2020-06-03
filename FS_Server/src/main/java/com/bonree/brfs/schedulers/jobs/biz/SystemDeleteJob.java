@@ -1,6 +1,7 @@
 package com.bonree.brfs.schedulers.jobs.biz;
 
 import com.bonree.brfs.common.files.impl.BRFSTimeFilter;
+import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.common.utils.BrStringUtils;
@@ -8,7 +9,6 @@ import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.identification.impl.DiskDaemon;
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.AtomTaskResultModel;

@@ -1,6 +1,7 @@
 package com.bonree.brfs.schedulers.utils;
 
 import com.bonree.brfs.common.files.impl.BRFSTimeFilter;
+import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BRFSFileUtil;
@@ -12,7 +13,6 @@ import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
