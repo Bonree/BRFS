@@ -1,4 +1,4 @@
-package com.bonree.brfs.partition.model;
+package com.bonree.brfs.common.resource.vo;
 
 /**
  * 磁盘节点状态

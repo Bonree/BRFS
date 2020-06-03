@@ -43,6 +43,23 @@ case $1 in
     echo "restore metadata completed!"
     exit
   ;;
+  update)
+    if [ -z $2 ]; then
+      echo "ids file is empty"
+      echo "usage: start-server.sh update [disknode_id_file absolute path]"
+    else
+      cd ${BRFS_HOME}
+      java -Dbrfs.home=${BRFS_HOME} \
+            -Dconfiguration.file=${BRFS_HOME}/config/datanode/server.properties \
+            -Dlog.dir=$BRFS_HOME/logs \
+			      -Dlog.file.name=datanode \
+			      -Dlogback.configurationFile=${BRFS_HOME}/config/datanode/logback.xml \
+            -cp $LIB_DIR/*:${BRFS_HOME}/config/datanode "com.bonree.brfs.server.Main" update ids -i $2 \
+            -c ${BRFS_HOME}/config/datanode/server.properties
+      echo "deploy v1 update completed!"
+     fi
+     exit
+  ;;
   *)
     echo "usage: start-server.sh [region | node] [config_dir]"
     exit 1
