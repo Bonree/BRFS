@@ -59,7 +59,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/data")
+@Path("/data/v2")
 public class DataResource {
     private static final Logger LOG = LoggerFactory.getLogger(DataResource.class);
     private final WriteStatCollector writeCollector;
