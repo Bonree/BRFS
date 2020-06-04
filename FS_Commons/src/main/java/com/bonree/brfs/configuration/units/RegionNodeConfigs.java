@@ -44,7 +44,7 @@ public final class RegionNodeConfigs {
         ConfigUnit.ofInt("regionnode.waitfor.fileWrite.time", 300000);
 
     public static final ConfigUnit<Integer> CONFIG_DUPLICATION_SELECT_TYPE =
-        ConfigUnit.ofInt("regionnode.duplication.select.type", 1);
+        ConfigUnit.ofInt("regionnode.duplication.select.type", 2);
 
     private RegionNodeConfigs() {
     }

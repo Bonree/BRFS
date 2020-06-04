@@ -54,13 +54,13 @@ public class CopyRecovery {
         BatchAtomModel batch = converStringToBatch(content);
         if (batch == null) {
             result.setSuccess(false);
-            LOG.debug("batch is empty");
+            LOG.warn("batch is empty");
             return result;
         }
         List<AtomTaskModel> atoms = batch.getAtoms();
         if (atoms == null || atoms.isEmpty()) {
             result.setSuccess(true);
-            LOG.debug(" files is empty");
+            LOG.warn(" files is empty");
             return result;
         }
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
@@ -148,7 +148,7 @@ public class CopyRecovery {
         long currentTime = System.currentTimeMillis();
         String dirName = TimeUtils.timeInterval(start, granule);
         if (currentTime - endTime > ttl) {
-            LOG.info("{}[ttl:{}ms] {} is expired !! skip repaired !!!", snName, ttl, dirName);
+            LOG.warn("{}[ttl:{}ms] {} is expired !! skip repaired !!!", snName, ttl, dirName);
             return null;
         }
         List<String> fileNames = atom.getFiles();
