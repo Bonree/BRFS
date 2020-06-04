@@ -189,11 +189,11 @@ public class StatisticFlusher implements LifeCycle {
      * 查找过期文件
      *
      * @param dir
-     * @param ttlTime
+     * @param expectTime
      *
      * @return
      */
-    private Collection<File> collectTTLFile(File dir, String ttlTime) {
+    private Collection<File> collectTTLFile(File dir, long expectTime) {
         try {
             if (!dir.exists()) {
                 return new ArrayList<>();
@@ -201,7 +201,7 @@ public class StatisticFlusher implements LifeCycle {
             return FileUtils.listFiles(dir, new IOFileFilter() {
                 @Override
                 public boolean accept(File file) {
-                    return ttlTime.compareTo(file.getName()) > 0;
+                    return expectTime - Long.valueOf(file.getName()) > 0;
                 }
 
                 @Override
@@ -246,22 +246,21 @@ public class StatisticFlusher implements LifeCycle {
                     }
                     File rootDir = new File(y);
                     if (!rootDir.exists()) {
-                        LOG.info("{} not exists ", rootDir.getName());
-                        return;
+                        LOG.info("{} not exists, create it", rootDir.getName());
+                        rootDir.mkdirs();
                     }
                     if (!rootDir.isDirectory()) {
                         LOG.info("{} not dir delete it ", rootDir.getName());
                         return;
                     }
                     long time = System.currentTimeMillis() - ttlTime;
-                    String date = formatDay(time);
                     File[] childs = rootDir.listFiles();
                     if (childs == null || childs.length == 0) {
                         return;
                     }
                     Collection<File> sumLoss = new ArrayList<>();
                     for (File file : childs) {
-                        Collection<File> loss = StatisticFlusher.this.collectTTLFile(file, date);
+                        Collection<File> loss = StatisticFlusher.this.collectTTLFile(file, time);
                         if (loss != null && !loss.isEmpty()) {
                             sumLoss.addAll(loss);
                         }
