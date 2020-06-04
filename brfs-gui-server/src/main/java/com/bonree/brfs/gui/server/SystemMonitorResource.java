@@ -54,7 +54,7 @@ public class SystemMonitorResource {
     }
 
     private long convertTime(long time, int minute) {
-        return time - 60 * 1000 * minute;
+        return time - 60 * 1000 * ((long) minute);
     }
 
     @GET

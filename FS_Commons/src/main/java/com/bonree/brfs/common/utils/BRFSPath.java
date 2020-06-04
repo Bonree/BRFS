@@ -209,7 +209,6 @@ public class BRFSPath {
     public static long convertTime(Map<String, String> map) {
         StringBuilder timestr = new StringBuilder();
         String time = null;
-        DateTime date = new DateTime();
         try {
             if (map.containsKey(YEAR)) {
                 timestr.append(map.get(YEAR));

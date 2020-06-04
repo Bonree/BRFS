@@ -17,7 +17,7 @@ public class EmailPool {
     private static final Logger LOG = LoggerFactory.getLogger(EmailPool.class);
     private static String COMMA = ",";
     private static EmailPool instance = null;
-    public static boolean EMAIL_SWITCH = Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_EMAIL_SWITCH);
+    public static final boolean EMAIL_SWITCH = Configs.getConfiguration().getConfig(EmailConfigs.CONFIG_EMAIL_SWITCH);
 
     public ProgramInfo getProgramInfo() {
         return programInfo;
@@ -32,7 +32,7 @@ public class EmailPool {
         }
     }
 
-    public static EmailPool getInstance() {
+    public static synchronized EmailPool getInstance() {
         if (instance == null) {
             instance = new EmailPool();
         }

@@ -39,10 +39,9 @@ public class FileUtils {
             if (!file.getParentFile().exists()) {
                 createDir(file.getParent(), true);
             }
-            file.mkdirs();
-        } else {
-            file.mkdirs();
         }
+        file.mkdirs();
+
     }
 
     public static boolean isDirectory(String fileName) {
@@ -77,8 +76,6 @@ public class FileUtils {
         }
     }
 
-
-
     public static List<String> listFileNames(String dir) {
         File file = new File(dir);
         String[] files = file.list();
@@ -87,8 +84,6 @@ public class FileUtils {
         }
         return Arrays.stream(file.list()).collect(Collectors.toList());
     }
-
-
 
     public static List<String> listFilePaths(String dir) {
         File file = new File(dir);
@@ -146,7 +141,7 @@ public class FileUtils {
             return true;
         }
 
-        if (dir.list().length == 0) {
+        if (dir.list() == null || dir.list().length == 0) {
             return dir.delete();
         }
 
@@ -158,8 +153,11 @@ public class FileUtils {
         while (!fileQueue.isEmpty()) {
             File file = fileQueue.poll();
             if (file.isDirectory()) {
-                for (File child : file.listFiles()) {
-                    fileQueue.add(child);
+                File[] childs = file.listFiles();
+                if (childs != null) {
+                    for (File child : childs) {
+                        fileQueue.add(child);
+                    }
                 }
 
                 deletingDirs.addFirst(file);

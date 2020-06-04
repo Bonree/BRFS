@@ -146,14 +146,19 @@ public class RouteParserCache implements RouteCache, LifeCycle {
             switch (type) {
             case NODE_ADDED:
                 ChildData childData = event.getData();
-                String path = childData.getPath();
                 if (childData == null) {
-                    LOG.warn("path[{}] data is null", path);
+                    LOG.warn("child data is null");
+                    return;
+                }
+                String path = childData.getPath();
+                if (path == null) {
+                    LOG.warn("child data path is null");
                     return;
                 }
                 BaseRoutePathInfo baseRoutePathInfo = analysisPath(this.basePath, path);
                 RouteNodeType nodeType = baseRoutePathInfo.getType();
-                if (!RouteNodeType.NORMAL_ROUTE.equals(nodeType) && !RouteNodeType.VITRUAL_ROUTE.equals(nodeType)) {
+                if (nodeType == null
+                    || !RouteNodeType.NORMAL_ROUTE.equals(nodeType) && !RouteNodeType.VITRUAL_ROUTE.equals(nodeType)) {
                     LOG.warn("path is {},{}", path, nodeType);
                     return;
                 }
@@ -161,11 +166,11 @@ public class RouteParserCache implements RouteCache, LifeCycle {
                 if (data == null && data.length == 0) {
                     return;
                 }
-                RouteParser routeParser = analyzerMap.get(baseRoutePathInfo.storageRegionId);
-                if (routeParser == null) {
-                    routeParser = new RouteParser(baseRoutePathInfo.storageRegionId, loader, true);
-                    analyzerMap.put(baseRoutePathInfo.storageRegionId, routeParser);
+                if (analyzerMap.get(baseRoutePathInfo.storageRegionId) == null) {
+                    analyzerMap.put(baseRoutePathInfo.storageRegionId,
+                                    new RouteParser(baseRoutePathInfo.storageRegionId, loader, true));
                 }
+                RouteParser routeParser = analyzerMap.get(baseRoutePathInfo.storageRegionId);
                 String typeName = null;
                 if (baseRoutePathInfo.isVirtualFlag()) {
                     VirtualRoute route = SingleRouteFactory.createVirtualRoute(data);

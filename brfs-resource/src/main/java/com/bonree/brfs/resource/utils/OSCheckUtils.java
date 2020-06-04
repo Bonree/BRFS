@@ -12,7 +12,7 @@ package com.bonree.brfs.resource.utils;
 public final class OSCheckUtils {
     protected static OSType detectedOS;
 
-    public static OSType getOperatingSystemType() {
+    protected static OSType getOperatingSystemType() {
         if (detectedOS == null) {
             String os = System.getProperty("os.name", "generic").toLowerCase();
             if (os.indexOf("win") >= 0) {

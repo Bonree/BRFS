@@ -69,11 +69,9 @@ public class ResourceMaintainer implements LifeCycle {
             LOG.warn("no resource task !! no need stop!!");
             return;
         }
-        if (tasks != null && !tasks.isEmpty()) {
-            tasks.stream().forEach(x -> {
-                x.setStatus(TaskState.PAUSE);
-            });
-        }
+        tasks.stream().forEach(x -> {
+            x.setStatus(TaskState.PAUSE);
+        });
         if (pool != null) {
             pool.shutdownNow();
         }

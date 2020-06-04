@@ -88,7 +88,7 @@ public class FileBlockMaintainer implements LifeCycle {
     }
 
     private class FileBlockWorker implements Runnable {
-        private Logger log = null;
+        private Logger log;
         private LocalPartitionInterface localPartitionInterface;
         private RebalanceTaskMonitor monitor;
         private StorageRegionManager manager;

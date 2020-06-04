@@ -228,10 +228,6 @@ public class PartitionGather implements LifeCycle {
                 LOG.warn("mountPoint is not same before[{}],after[{}]", local.getMountPoint(), fs.getDirName());
                 return false;
             }
-            // 磁盘分区使用信息为空
-            if (usage == null) {
-                return false;
-            }
             long value = usage.getTotal();
             // 磁盘分区大小不一致
             if (local.getTotalSize() != value) {
