@@ -37,11 +37,11 @@ public class ResourceTaskConfig {
     //创建任务执行的时间间隔s
     private long createTaskIntervalTime = 60;
     private long executeTaskIntervalTime = 60;
-    private long gatherResourceInveralTime = 10;
+    //private long gatherResourceInveralTime = 10;
     private long taskExpiredTime = 7 * 24 * 60 * 60;
-    private int calcResourceValueCount = 2;
+    // private int calcResourceValueCount = 2;
     private boolean taskFrameWorkSwitch = true;
-    private boolean resourceFrameWorkSwitch = true;
+    // private boolean resourceFrameWorkSwitch = true;
     //    private String libPath;
     private double limitCpuRate = 0.9;
     private double limitMemoryRate = 0.9;
@@ -51,12 +51,12 @@ public class ResourceTaskConfig {
     private double limitNetTxRate = 0.9;
     private double limitNetRxRate = 0.9;
     private long createCheckJobTaskervalTime = 60;
-    private long checkTtl = 24 * 60 * 60;
+    // private long checkTtl = 24 * 60 * 60;
 
     private String checkCronStr = "0 30 2 * * ?";
     private int checkTimeRange = 7;
 
-    private String watchDogCron = "0 30 2 */7 * ?";
+    //private String watchDogCron = "0 30 2 */7 * ?";
 
     @Inject
     public ResourceTaskConfig() throws Exception {
@@ -70,12 +70,10 @@ public class ResourceTaskConfig {
             throw new NullPointerException("configuration is empty !!");
         }
         boolean sysDelFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_DELETE);
-        boolean sysMergeFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_MERGE);
         boolean sysCheckFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_CHECK);
         boolean userDelFlag = config.getConfig(ResourceConfigs.CONFIG_USER_DELETE);
         boolean sysCopyFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_COPY);
         taskPoolSwitchMap.put(TaskType.SYSTEM_DELETE.name(), sysDelFlag);
-        taskPoolSwitchMap.put(TaskType.SYSTEM_MERGER.name(), sysMergeFlag);
         taskPoolSwitchMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckFlag);
         taskPoolSwitchMap.put(TaskType.USER_DELETE.name(), userDelFlag);
         taskPoolSwitchMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyFlag);
@@ -83,13 +81,11 @@ public class ResourceTaskConfig {
         Map<String, Integer> taskPoolSizeMap = getTaskPoolSizeMap();
 
         int sysDelPool = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_DELETE_SIZE);
-        int sysMergePool = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_MERGE_SIZE);
         int sysCheckPool = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_CHECK_SIZE);
         int userDelPool = config.getConfig(ResourceConfigs.CONFIG_USER_DELETE_SIZE);
         int sysCopyPool = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_COPY_SIZE);
 
         taskPoolSizeMap.put(TaskType.SYSTEM_DELETE.name(), sysDelPool);
-        taskPoolSizeMap.put(TaskType.SYSTEM_MERGER.name(), sysMergePool);
         taskPoolSizeMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckPool);
         taskPoolSizeMap.put(TaskType.USER_DELETE.name(), userDelPool);
         taskPoolSizeMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool);
@@ -101,14 +97,7 @@ public class ResourceTaskConfig {
         setExecuteTaskIntervalTime(
             TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_TASK_EXECUTE_INTERVAL)));
 
-        setGatherResourceInveralTime(
-            TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_RESOURCE_GATHER_INTERVAL)));
-
-        setCalcResourceValueCount(config.getConfig(ResourceConfigs.CONFIG_RESOURCE_CALCULATE_COUNT));
-
         setTaskFrameWorkSwitch(config.getConfig(ResourceConfigs.CONFIG_TASK_ENABLE));
-
-        setResourceFrameWorkSwitch(config.getConfig(ResourceConfigs.CONFIG_RESOURCE_ENABLE));
 
         setTaskExpiredTime(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_TASK_EXPIRED_TIME)));
 
@@ -119,7 +108,6 @@ public class ResourceTaskConfig {
         setLimitDiskReadRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_DISK_READ_SPEED));
         setLimitNetTxRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_NET_SEND));
         setLimitNetRxRate(config.getConfig(ResourceConfigs.CONFIG_LIMIT_NET_RECEIVE));
-        setCheckTtl(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_DATA_CHECK_TTL)));
 
         String cronStr = analyseCronStr(config.getConfig(ResourceConfigs.CONFIG_SCHED_COPY_CHECK_CLOCK), 0);
         String tmpCronStr = config.getConfig(ResourceConfigs.CONFIG_TEST_COUNT_CRON_STR);
@@ -134,10 +122,6 @@ public class ResourceTaskConfig {
             throw new ConfigParseException("cycle.check.copy.count.time.range : " + day + " is error!! please check it");
         }
         setCheckTimeRange(day);
-        String watchTime = config.getConfig(ResourceConfigs.CONFIG_SCHED_WATCHDOG_TRIGGER_CLOCK);
-        int watchInt = config.getConfig(ResourceConfigs.CONFIG_SCHED_WATCHDOG_TRIGGER_INTERVAL);
-        String watchCron = analyseCronStr(watchTime, watchInt);
-        setWatchDogCron(watchCron);
     }
 
     private static String analyseCronStr(String content, int interval) throws ConfigParseException {
@@ -176,12 +160,11 @@ public class ResourceTaskConfig {
                  this.taskPoolSizeMap.get(TaskType.SYSTEM_COPY_CHECK.name()));
         LOG.info("{} :{} ", ResourceConfigs.CONFIG_USER_DELETE_SIZE.name(),
                  this.taskPoolSizeMap.get(TaskType.USER_DELETE.name()));
-        LOG.info("{}:{}", ResourceConfigs.CONFIG_RESOURCE_CALCULATE_COUNT.name(), this.calcResourceValueCount);
-        LOG.info("{}:{} ms", ResourceConfigs.CONFIG_DATA_CHECK_TTL.name(), this.checkTtl);
+
         LOG.info("{}:{} ms", ResourceConfigs.CONFIG_COPY_CHECK_CREATE_INTERVAL.name(), this.createCheckJobTaskervalTime);
         LOG.info("{}:{} ms", ResourceConfigs.CONFIG_TASK_EXECUTE_INTERVAL.name(), this.executeTaskIntervalTime);
         LOG.info("{}:{} ms", ResourceConfigs.CONFIG_TASK_CREATE_INTERVAL.name(), this.createTaskIntervalTime);
-        LOG.info("{}:{} ms", ResourceConfigs.CONFIG_RESOURCE_GATHER_INTERVAL.name(), this.gatherResourceInveralTime);
+
         LOG.info("{}:{} d", ResourceConfigs.CONFIG_TASK_EXPIRED_TIME.name(), this.taskExpiredTime / 1000 / 60 / 60 / 24);
         LOG.info("{}:{}", ResourceConfigs.CONFIG_LIMIT_NET_RECEIVE.name(), this.limitNetRxRate);
         LOG.info("{}:{}", ResourceConfigs.CONFIG_LIMIT_NET_SEND.name(), this.limitNetTxRate);
@@ -190,11 +173,11 @@ public class ResourceTaskConfig {
         LOG.info("{}:{}", ResourceConfigs.CONFIG_LIMIT_DISK_AVAILABLE_RATE.name(), this.limitDiskRemaintRate);
         LOG.info("{}:{}", ResourceConfigs.CONFIG_LIMIT_DISK_WRITE_SPEED.name(), this.limitDiskWriteRate);
         LOG.info("{}:{}", ResourceConfigs.CONFIG_LIMIT_MEM_RATE.name(), this.limitMemoryRate);
-        LOG.info("{}:{}", ResourceConfigs.CONFIG_RESOURCE_ENABLE.name(), this.resourceFrameWorkSwitch);
+
         LOG.info("{}:{}", ResourceConfigs.CONFIG_TASK_ENABLE.name(), this.taskFrameWorkSwitch);
         LOG.info("{}:{}", ResourceConfigs.CONFIG_SCHED_COPY_CHECK_CLOCK.name(), this.checkCronStr);
         LOG.info("{}:{}", ResourceConfigs.CONFIG_SCHED_COPY_CHECK_RANGE.name(), this.checkTimeRange);
-        LOG.info("{}:{}", ResourceConfigs.CONFIG_SCHED_WATCHDOG_TRIGGER_CLOCK.name(), this.watchDogCron);
+
     }
 
     public Map<String, Boolean> getTaskPoolSwitchMap() {
@@ -248,22 +231,6 @@ public class ResourceTaskConfig {
         this.executeTaskIntervalTime = executeTaskIntervalTime;
     }
 
-    public long getGatherResourceInveralTime() {
-        return gatherResourceInveralTime;
-    }
-
-    public void setGatherResourceInveralTime(long gatherResourceInveralTime) {
-        this.gatherResourceInveralTime = gatherResourceInveralTime;
-    }
-
-    public int getCalcResourceValueCount() {
-        return calcResourceValueCount;
-    }
-
-    public void setCalcResourceValueCount(int calcResourceValueCount) {
-        this.calcResourceValueCount = calcResourceValueCount;
-    }
-
     public boolean isTaskFrameWorkSwitch() {
         return taskFrameWorkSwitch;
     }
@@ -272,13 +239,6 @@ public class ResourceTaskConfig {
         this.taskFrameWorkSwitch = taskFrameWorkSwitch;
     }
 
-    public boolean isResourceFrameWorkSwitch() {
-        return resourceFrameWorkSwitch;
-    }
-
-    public void setResourceFrameWorkSwitch(boolean resourceFrameWorkSwitch) {
-        this.resourceFrameWorkSwitch = resourceFrameWorkSwitch;
-    }
 
     public long getTaskExpiredTime() {
         return taskExpiredTime;
@@ -352,13 +312,6 @@ public class ResourceTaskConfig {
         this.createCheckJobTaskervalTime = createCheckJobTaskervalTime;
     }
 
-    public long getCheckTtl() {
-        return checkTtl;
-    }
-
-    public void setCheckTtl(long checkTtl) {
-        this.checkTtl = checkTtl;
-    }
 
     public String getCheckCronStr() {
         return checkCronStr;
@@ -374,13 +327,5 @@ public class ResourceTaskConfig {
 
     public void setCheckTimeRange(int checkTimeRange) {
         this.checkTimeRange = checkTimeRange;
-    }
-
-    public String getWatchDogCron() {
-        return watchDogCron;
-    }
-
-    public void setWatchDogCron(String watchDogCron) {
-        this.watchDogCron = watchDogCron;
     }
 }

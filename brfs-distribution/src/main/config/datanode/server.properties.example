@@ -93,26 +93,14 @@ brfs.plugins.loadList = ["brfs-resource"]
 # 系统删除任务线程池设置
 # system.delete.pool.size = 1
 
-# 系统归并任务开关
-# system.merge.pool.switch = false
-
-# 系统归并任务线程池设置
-# system.merge.pool.size = 1
-
 # 系统校验任务开关
-# system.check.pool.switch = false
+# system.check.pool.switch = true
 
 # 系统校验任务线程池设置
 # system.check.pool.size = 1
 
-# 系统副本恢复任务开关
-# system.recovery.pool.switch = false
-
-# 系统副本恢复任务线程池设置
-# system.recovery.pool.size = 1
-
-# 副本校验任务开关
-# system.copy.pool.switch = false
+# 副本缺失任务开关
+# system.copy.pool.switch = true
 
 # 副本校验线程池大小
 # system.copy.pool.size = 1
@@ -136,14 +124,9 @@ brfs.plugins.loadList = ["brfs-resource"]
 # 任务总体控制开关
 # task.framework.switch = true
 
-# 资源采集功能控制开关
-# resource.framework.switch = true
-
 # 任务信息保留时长，单位s
 # task.expired.time = 680400
 
-# 对过多久的数据检查 单位s
-# system.check.data.ttl = 3600
 
 # 周期检查副本数的触发时刻，格式为24小时格式 HH:MM 默认为 02:30
 # cycle.check.copy.count.time = 2:30
@@ -151,21 +134,11 @@ brfs.plugins.loadList = ["brfs-resource"]
 # 周期检查副本数的时间范围，单位天
 # cycle.check.copy.count.time.range = 7
 
-# 周期清理多余文件的触发时刻，格式为24小时格式 HH:MM 默认为 02:30
-# watchdog.trigger.time = 2:30
-
-# 周期清理多余文件的时间间隔，单位天
-# watch.dog.trigger.interval = 7
 
 ###############################################
 ##############资源管理模块 Config################
 ###############################################
 #资源采集
-#资源采集的时间间隔 单位s
-# gather.resource.inveral.time = 10
-
-# 当有N个采样点时，计算资源值，最小值为2
-# calc.resource.value.count = 5
 
 # 资源选择的比值大小
 # resource.cent.size=1000
@@ -188,8 +161,7 @@ brfs.plugins.loadList = ["brfs-resource"]
 
 # 资源限制 网卡接收率
 # limit.resource.value.netrspeedrate = 0.9
-# 资源报警邮件发送时间间隔控制 单位s
-# resource.email.time = 300
+
 ######################
 #####报警邮件配置######
 ######################
@@ -289,15 +261,6 @@ regionnode.block.pool.init.count = 1
 ###############################################
 ##############Resource config##################
 ###############################################
-# GUI 资源采集任务开关 默认关闭
-datanode.gui.switch=false
-# GUI资源采集任务的时间间隔 单位秒，默认60s
-datanode.gui.interval.seconds=10
-# GUI资源文件定时扫描的时间 单位秒，默认60s
-datanode.gui.maintain.interval.seconds=10
-# GUI资源文件的过期时间，单位秒，默认为7*24*60*60
-datanode.gui.maintain.interval.seconds=1000
-
 # 资源采集开关 默认开启
 datanode.resource.switch=true
 # 资源采集的时间间隔 单位 秒 默认10s
