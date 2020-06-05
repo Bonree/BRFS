@@ -131,12 +131,21 @@ case ${NODE_TYPE} in
 			-cp $LIB_DIR/*:${CONFIG_DIR} "com.bonree.brfs.server.Main" node region \
 			> $BRFS_HOME/logs/regionnode.out 2>&1 &
 
-			region_pid=`jps -lm | awk '{if($4=="region")print $1}'`
+      COUNTER=0
+			while [ x$region_pid = 'x' ] && [ $COUNTER -lt 5 ]; do
+			    region_pid=`jps -lm | awk '{if($4=="region")print $1}'`
+			    if [ x$region_pid = 'x' ]; then
+			      COUNTER='expr $COUNTER+1'
+			      sleep 1
+			    fi
+			done
+
 			if [ x$region_pid != 'x' ]; then
 			  echo $region_pid > ${PID_FILE}
+			  echo "region node starts with pid[$data_pid]!"
 			fi
 
-			echo 'start region server completely!'
+			echo 'region node starts ERROR!'
 		;;
 		###启动磁盘管理###
 		datanode)
@@ -152,12 +161,21 @@ case ${NODE_TYPE} in
 			-cp $LIB_DIR/*:${CONFIG_DIR} "com.bonree.brfs.server.Main" node data \
 			> $BRFS_HOME/logs/datanode.out 2>&1 &
 
-			data_pid=`jps -lm | awk '{if($4=="data")print $1}'`
+      COUNTER=0
+			while [ x$data_pid = 'x' ] && [ $COUNTER -lt 5 ]; do
+			    data_pid=`jps -lm | awk '{if($4=="data")print $1}'`
+			    if [ x$data_pid = 'x' ]; then
+			      COUNTER='expr $COUNTER+1'
+			      sleep 1
+			    fi
+			done
+
 			if [ x$data_pid != 'x' ]; then
 			  echo $data_pid > ${PID_FILE}
+			  echo "data node starts with pid[$data_pid]!"
 			fi
 
-			echo 'start disk server completely!'
+      echo "data node starts ERROR!"
 		;;
 		*)
 		    echo "script error"
