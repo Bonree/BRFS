@@ -123,7 +123,7 @@ case ${NODE_TYPE} in
 			-Dbrfs.home=$BRFS_HOME \
 			-Dserver.ids=$SERVER_ID_PATH \
 			-Dlog.dir=$LOG_DIR \
-			-Dlog.file.name=brfs_${NODE_TYPE} \
+			-Dlog.file.name=BRFS_${NODE_TYPE^^} \
 			-Dconfiguration.file=${CONFIG_FILE} \
 			-Dlogback.configurationFile=$LOG_CONFIG \
 			-Dnet.backlog=$DUPLICATE_NET_BACKLOG \
@@ -143,7 +143,7 @@ case ${NODE_TYPE} in
 			eval nohup java $JVM_PARAMS \
 			-Dbrfs.home=$BRFS_HOME \
 			-Dlog.dir=$LOG_DIR \
-			-Dlog.file.name=brfs_${NODE_TYPE} \
+			-Dlog.file.name=BRFS_${NODE_TYPE^^} \
 			-Dserver.ids=$SERVER_ID_PATH \
 			-Dconfiguration.file=${CONFIG_FILE} \
 			-Dlogback.configurationFile=$LOG_CONFIG \
