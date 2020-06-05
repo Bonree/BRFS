@@ -44,13 +44,13 @@ public class ZookeeperResource {
     @Path("/list/{nodePath}")
     @Produces(APPLICATION_JSON)
     public List<ZookeeperNode> list(@PathParam("nodePath") String nodePath) {
-        return taker.list(nodePath);
+        return taker.list("/" + nodePath);
     }
 
     @GET
     @Path("/data/{nodePath}")
     @Produces(APPLICATION_JSON)
     public ZookeeperNodeData getData(@PathParam("nodePath") String nodePath) {
-        return taker.getData(nodePath);
+        return taker.getData("/" + nodePath);
     }
 }
