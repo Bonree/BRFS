@@ -48,7 +48,7 @@ public class ZookeeperResource {
     }
 
     @GET
-    @Path("/data/{nodePath}")
+    @Path("/data")
     @Produces(APPLICATION_JSON)
     public ZookeeperNodeData getData(@QueryParam("nodePath") String nodePath) {
         return taker.getData(nodePath);
