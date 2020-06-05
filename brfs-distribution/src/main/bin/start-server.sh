@@ -123,14 +123,19 @@ case ${NODE_TYPE} in
 			-Dbrfs.home=$BRFS_HOME \
 			-Dserver.ids=$SERVER_ID_PATH \
 			-Dlog.dir=$LOG_DIR \
-			-Dlog.file.name=${NODE_TYPE} \
+			-Dlog.file.name=brfs_${NODE_TYPE} \
 			-Dconfiguration.file=${CONFIG_FILE} \
 			-Dlogback.configurationFile=$LOG_CONFIG \
 			-Dnet.backlog=$DUPLICATE_NET_BACKLOG \
 			-Dnet.io.threads=$DUPLICATE_IO_THREADS \
 			-cp $LIB_DIR/*:${CONFIG_DIR} "com.bonree.brfs.server.Main" node region \
 			> $BRFS_HOME/logs/regionnode.out 2>&1 &
-			echo $! > ${PID_FILE}
+
+			region_pid=`jps -lm | awk '{if($4=="region")print $1}'`
+			if [ x$region_pid != 'x' ]; then
+			  echo $region_pid > ${PID_FILE}
+			fi
+			
 			echo 'start region server completely!'
 		;;
 		###启动磁盘管理###
@@ -138,7 +143,7 @@ case ${NODE_TYPE} in
 			eval nohup java $JVM_PARAMS \
 			-Dbrfs.home=$BRFS_HOME \
 			-Dlog.dir=$LOG_DIR \
-			-Dlog.file.name=${NODE_TYPE} \
+			-Dlog.file.name=brfs_${NODE_TYPE} \
 			-Dserver.ids=$SERVER_ID_PATH \
 			-Dconfiguration.file=${CONFIG_FILE} \
 			-Dlogback.configurationFile=$LOG_CONFIG \
@@ -146,7 +151,12 @@ case ${NODE_TYPE} in
 			-Dnet.io.threads=$DISK_IO_THREADS \
 			-cp $LIB_DIR/*:${CONFIG_DIR} "com.bonree.brfs.server.Main" node data \
 			> $BRFS_HOME/logs/datanode.out 2>&1 &
-			echo $! > ${PID_FILE}
+
+			data_pid=`jps -lm | awk '{if($4=="data")print $1}'`
+			if [ x$data_pid != 'x' ]; then
+			  echo $data_pid > ${PID_FILE}
+			fi
+
 			echo 'start disk server completely!'
 		;;
 		*)
