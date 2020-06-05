@@ -135,7 +135,7 @@ case ${NODE_TYPE} in
 			if [ x$region_pid != 'x' ]; then
 			  echo $region_pid > ${PID_FILE}
 			fi
-			
+
 			echo 'start region server completely!'
 		;;
 		###启动磁盘管理###
