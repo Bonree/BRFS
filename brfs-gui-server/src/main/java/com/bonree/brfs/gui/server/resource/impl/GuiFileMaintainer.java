@@ -102,7 +102,6 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
             if (data == null || data.length == 0) {
                 continue;
             }
-            System.out.println(new String(data));
             T[] objs = (T[]) JsonUtils.toObjectQuietly(data, clazz);
             if (objs != null && objs.length != 0) {
                 for (T t : objs) {
@@ -121,7 +120,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
         try {
             FileUtils.writeByteArrayToFile(file, data, false);
         } catch (IOException e) {
-            LOG.error("save happen error content: %s", new String(data), e);
+            LOG.error("save happen error content: {}", data == null ? "" : new String(data), e);
         }
     }
 
@@ -461,7 +460,7 @@ public class GuiFileMaintainer implements GuiResourceMaintainer {
                     if (sumLoss != null && !sumLoss.isEmpty() && start) {
                         sumLoss.stream().forEach(FileUtils::deleteQuietly);
                     }
-                    LOG.info("{} delete {} file", rootDir.getName(), sumLoss == null ? 0 : sumLoss.size());
+                    LOG.info("{} delete {} file", rootDir.getName(), sumLoss.size());
                 });
             }
         }, 0, intervalTime, TimeUnit.SECONDS);

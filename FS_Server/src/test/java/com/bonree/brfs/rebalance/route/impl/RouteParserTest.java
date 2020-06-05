@@ -248,12 +248,12 @@ public class RouteParserTest {
 
     @Test
     public void analysisV2Route02() throws Exception {
-        String fileName = "71d5fdc203f54ea1a8b8f6893494b7c0_228_230";
+        String fileName = "70cebb6fae074cb5b9431a9a185f2325_20_21";
         CuratorFramework client = CuratorFrameworkFactory
-            .newClient("192.168.150.106:2181", new RetryNTimes(50, 1000));
+            .newClient("192.168.150.236:2181", new RetryNTimes(50, 1000));
         client.start();
         client.blockUntilConnected();
-        RouteLoader loader = new SimpleRouteZKLoader(client, "/brfs/brfs_gxtest/routeSet");
+        RouteLoader loader = new SimpleRouteZKLoader(client, "/brfs/idea/routeSet");
         RouteParser parser = new RouteParser(0, loader);
         String[] array = parser.searchVaildIds(fileName);
         System.out.println(Arrays.asList(array));

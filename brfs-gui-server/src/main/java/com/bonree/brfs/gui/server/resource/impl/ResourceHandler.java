@@ -40,9 +40,10 @@ public class ResourceHandler implements ResourceHandlerInterface {
         MemorySwapInfo memorySwapInfo = snapshot.getMemSwap();
         node.setId(snapshot.getNodeId());
         node.setCpuBrand(cpuInfo.getVendor());
-        node.setCpuCores(cpuInfo.getCoresNum());
+        node.setCpuCores(cpuInfo.getTotalCores());
         node.setOs(os.getOsDescription());
         node.setTotalMemSize(memorySwapInfo.getTotalMemorySize());
+        node.setHost(snapshot.getHost());
         return node;
     }
 
@@ -145,7 +146,7 @@ public class ResourceHandler implements ResourceHandlerInterface {
 
     private GuiDiskIOInfo packageGuiDiskIO(DiskPartitionStat stat, long time) {
         GuiDiskIOInfo ioInfo = new GuiDiskIOInfo();
-        ioInfo.setDiskId(stat.getPartitionId());
+        ioInfo.setDiskId(stat.getDirName());
         ioInfo.setUsage(stat.getDiskServiceTime());
         ioInfo.setTime(time);
         return ioInfo;
@@ -168,9 +169,10 @@ public class ResourceHandler implements ResourceHandlerInterface {
 
     private GuiDiskUsageInfo packageGuiDiskUsage(DiskPartitionStat stat, long time) {
         GuiDiskUsageInfo usage = new GuiDiskUsageInfo();
-        usage.setDiskId(stat.getPartitionId());
+        usage.setDiskId(stat.getDirName());
         usage.setUsage(stat.getUsePercent());
         usage.setTime(time);
+
         return usage;
     }
 }

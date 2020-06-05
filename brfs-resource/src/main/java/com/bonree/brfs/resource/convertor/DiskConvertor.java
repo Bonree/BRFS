@@ -18,23 +18,23 @@ public class DiskConvertor {
         return info;
     }
 
-    public DiskPartitionStat convertToPartitionStat(FileSystem fs, FileSystemUsage net) {
+    public DiskPartitionStat convertToPartitionStat(FileSystem fs, FileSystemUsage usage) {
         DiskPartitionStat stat = new DiskPartitionStat();
         stat.setDirName(fs.getDirName());
         stat.setDevName(fs.getDevName());
-        stat.setTotal(net.getTotal());
-        stat.setFree(net.getFree());
-        stat.setUsed(net.getUsed());
-        stat.setAvail(net.getAvail());
-        stat.setFiles(net.getFiles());
-        stat.setFreeFiles(net.getFreeFiles());
-        stat.setDiskReads(net.getDiskReads());
-        stat.setDiskWrites(net.getDiskWrites());
-        stat.setDiskReadBytes(net.getDiskReadBytes());
-        stat.setDiskWriteBytes(net.getDiskWriteBytes());
-        stat.setDiskQueue(net.getDiskQueue());
-        stat.setDiskServiceTime(net.getDiskServiceTime());
-        stat.setUsePercent(net.getUsePercent());
+        stat.setTotal(usage.getTotal());
+        stat.setFree(usage.getFree());
+        stat.setUsed(usage.getUsed());
+        stat.setAvail(usage.getAvail());
+        stat.setFiles(usage.getFiles());
+        stat.setFreeFiles(usage.getFreeFiles());
+        stat.setDiskReads(usage.getDiskReads());
+        stat.setDiskWrites(usage.getDiskWrites());
+        stat.setDiskReadBytes(usage.getDiskReadBytes());
+        stat.setDiskWriteBytes(usage.getDiskWriteBytes());
+        stat.setDiskQueue(usage.getDiskQueue());
+        stat.setDiskServiceTime(usage.getDiskServiceTime());
+        stat.setUsePercent(usage.getUsePercent());
         return stat;
     }
 }

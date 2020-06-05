@@ -67,7 +67,8 @@ public class SystemMonitorResource {
         }
         List<MonitorNode> metrics = new ArrayList<>();
         guis.stream().forEach(x -> {
-            MonitorNode metric = new MonitorNode(x.getId(), x.getCpuCores(), x.getCpuBrand(), x.getTotalMemSize(), x.getOs());
+            MonitorNode metric =
+                new MonitorNode(x.getId(), x.getHost(), x.getCpuCores(), x.getCpuBrand(), x.getTotalMemSize(), x.getOs());
             metrics.add(metric);
         });
         return metrics;

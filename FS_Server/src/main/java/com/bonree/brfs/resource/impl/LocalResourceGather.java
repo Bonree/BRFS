@@ -75,6 +75,7 @@ public class LocalResourceGather implements ResourceGatherInterface {
         NodeSnapshotInfo snapshot = new NodeSnapshotInfo();
         snapshot.setGroupId(local.getServiceGroup());
         snapshot.setNodeId(local.getServiceId());
+        snapshot.setHost(local.getHost() + ":" + local.getPort());
         snapshot.setOs(gather.collectOSInfo());
         snapshot.setCpu(gather.collectCPUInfo());
         snapshot.setCpustat(gather.collectCpuStat());
