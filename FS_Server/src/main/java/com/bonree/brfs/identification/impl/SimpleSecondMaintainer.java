@@ -364,7 +364,8 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                 MessageFormat.format("service:[{0}]check secondId happen error. when get partitions", local), e);
         }
         if (partitions == null || partitions.isEmpty()) {
-            throw new RuntimeException(MessageFormat.format("first server id [{0}] no partitionId", firstServerId));
+            LOG.warn("no partition in {}", local);
+            return;
         }
         partitions.stream().forEach(
             partition -> {
