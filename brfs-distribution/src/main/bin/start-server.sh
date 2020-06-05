@@ -135,7 +135,7 @@ case ${NODE_TYPE} in
 			while [ x$region_pid = 'x' ] && [ $COUNTER -lt 5 ]; do
 			    region_pid=`jps -lm | awk '{if($4=="region")print $1}'`
 			    if [ x$region_pid = 'x' ]; then
-			      COUNTER='expr $COUNTER+1'
+			      COUNTER=`expr $COUNTER + 1`
 			      sleep 1
 			    fi
 			done
@@ -165,7 +165,7 @@ case ${NODE_TYPE} in
 			while [ x$data_pid = 'x' ] && [ $COUNTER -lt 5 ]; do
 			    data_pid=`jps -lm | awk '{if($4=="data")print $1}'`
 			    if [ x$data_pid = 'x' ]; then
-			      COUNTER='expr $COUNTER+1'
+			      COUNTER=`expr $COUNTER + 1`
 			      sleep 1
 			    fi
 			done
