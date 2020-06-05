@@ -126,7 +126,7 @@
 		<dep.jackson.version>2.9.8</dep.jackson.version>
 		<dep.bval.version>2.0.3</dep.bval.version>
 		<dep.joda.version>2.9.9</dep.joda.version>
-		<dep.curator.version>4.0.0</dep.curator.version>
+		<dep.curator.version>4.2.0</dep.curator.version>
 		<dep.zookeeper.version>3.4.6</dep.zookeeper.version>
 		<dep.netty.version>4.1.19.Final</dep.netty.version>
 		<dep.protobuf.version>3.4.0</dep.protobuf.version>
