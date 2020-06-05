@@ -23,9 +23,7 @@ import com.bonree.brfs.client.utils.HttpStatus;
 import com.bonree.brfs.client.utils.Retrys;
 import com.bonree.brfs.client.utils.URIRetryable;
 import com.bonree.brfs.client.utils.URIRetryable.TaskResult;
-import com.google.common.base.Stopwatch;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -62,15 +60,12 @@ public class HttpFilePathMapper implements FilePathMapper {
                     .get()
                     .build();
                 try {
-                    Stopwatch started = Stopwatch.createStarted();
                     Response response = httpClient.newCall(httpRequest).execute();
                     if (response.code() == HttpStatus.CODE_OK) {
                         ResponseBody responseBody = response.body();
                         if (responseBody == null) {
                             return TaskResult.fail(new IllegalStateException("No response content is found"));
                         }
-                        LOG.info("actual get fid cost [{}]", started.elapsed(TimeUnit.MICROSECONDS));
-                        started.stop();
                         return TaskResult.success(responseBody.string());
                     }
 

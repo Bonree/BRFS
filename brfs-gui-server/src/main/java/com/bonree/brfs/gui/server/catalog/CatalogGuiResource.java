@@ -175,6 +175,30 @@ public class CatalogGuiResource {
                        .header("Cache-Control", "no-cache").build();
     }
 
+    @GET
+    @Path("sr")
+    @Produces(APPLICATION_JSON)
+    public List<String> listSR() {
+        List<String> regionAddress = brfsConfig.getRegionAddress();
+        URI[] seeds = new URI[regionAddress.size()];
+        for (int i = 0; i < regionAddress.size(); i++) {
+            seeds[i] = URI.create(regionAddress.get(i));
+        }
+        BRFS client = new BRFSClientBuilder()
+            .config(new ClientConfigurationBuilder()
+                        .setDataPackageSize(4 * 1024 * 1024)
+                        .build())
+            .build(brfsConfig.getUsername(), brfsConfig.getPassword(), seeds);
+        List<String> result;
+        try {
+            result = client.listStorageRegions();
+        } catch (Exception e) {
+            LOG.warn("error when get srs");
+            throw new NotFoundException();
+        }
+        return result;
+    }
+
     private String getLastNodeName(String path) {
         return path.substring(path.lastIndexOf("/") + 1);
     }
