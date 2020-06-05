@@ -143,9 +143,9 @@ case ${NODE_TYPE} in
 			if [ x$region_pid != 'x' ]; then
 			  echo $region_pid > ${PID_FILE}
 			  echo "region node starts with pid[$data_pid]!"
+			else
+			  echo 'region node starts ERROR!'
 			fi
-
-			echo 'region node starts ERROR!'
 		;;
 		###启动磁盘管理###
 		datanode)
@@ -173,9 +173,9 @@ case ${NODE_TYPE} in
 			if [ x$data_pid != 'x' ]; then
 			  echo $data_pid > ${PID_FILE}
 			  echo "data node starts with pid[$data_pid]!"
+			else
+			  echo "data node starts ERROR!"
 			fi
-
-      echo "data node starts ERROR!"
 		;;
 		*)
 		    echo "script error"
