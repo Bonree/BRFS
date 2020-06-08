@@ -26,7 +26,7 @@ public class MessageChannelInitializer extends ChannelInitializer<SocketChannel>
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        ChannelTrafficShapingHandler channelTrafficShapingHandler = new ChannelTrafficShapingHandler(LIMIT,LIMIT);
+        ChannelTrafficShapingHandler channelTrafficShapingHandler = new ChannelTrafficShapingHandler(LIMIT, LIMIT);
         pipeline.addLast(channelTrafficShapingHandler);
         pipeline.addLast(new MessageResponseEncoder());
         pipeline.addLast(new MessageProtocolDecoder());
