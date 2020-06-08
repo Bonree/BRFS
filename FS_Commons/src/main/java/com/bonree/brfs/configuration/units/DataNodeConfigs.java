@@ -32,6 +32,9 @@ public final class DataNodeConfigs {
     public static final ConfigUnit<Long> CONFIG_FILE_MAX_CAPACITY =
         ConfigUnit.ofLong("datanode.file.max.capacity", 64 * 1024 * 1024);
 
+    public static final ConfigUnit<Integer> TRAFFIC_LIMIT =
+        ConfigUnit.ofInt("datanode.traffic.limit", 1 * 1024 * 1024);
+
     public static final ConfigUnit<Integer> CONFIG_WRITER_WORKER_NUM =
         ConfigUnit.ofInt("datanode.writer.worker.num", Runtime.getRuntime().availableProcessors());
 
