@@ -1,8 +1,8 @@
 package com.bonree.brfs.duplication.filenode.duplicates.impl;
 
+import com.bonree.brfs.common.resource.vo.PartitionInfo;
 import com.bonree.brfs.duplication.filenode.duplicates.PartitionNodeSelector;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
-import com.bonree.brfs.partition.model.PartitionInfo;
 import com.google.inject.Inject;
 import java.util.Map;
 import org.slf4j.Logger;

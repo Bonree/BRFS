@@ -324,7 +324,6 @@ public class RetryNTimesSecondIDShip implements SecondIdsInterface {
          * @param storageId
          */
         private void handlerSecondIDs(ChildData childData, TreeCacheEvent.Type type, String partitionId, String storageId) {
-            String key = storageId + SEPARATOR + partitionId;
             // todo 此处可能存在问题，加重测试
             if (TreeCacheEvent.Type.NODE_ADDED.equals(type) && childData.getData() != null) {
                 String secondId = new String(childData.getData(), StandardCharsets.UTF_8);

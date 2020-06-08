@@ -20,8 +20,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 
 @Path("/zookeeper")
 public class ZookeeperResource {
@@ -41,16 +41,16 @@ public class ZookeeperResource {
     }
 
     @GET
-    @Path("/list/{nodePath}")
+    @Path("/list")
     @Produces(APPLICATION_JSON)
-    public List<ZookeeperNode> list(@PathParam("nodePath") String nodePath) {
+    public List<ZookeeperNode> list(@QueryParam("nodePath") String nodePath) {
         return taker.list(nodePath);
     }
 
     @GET
-    @Path("/data/{nodePath}")
+    @Path("/data")
     @Produces(APPLICATION_JSON)
-    public ZookeeperNodeData getData(@PathParam("nodePath") String nodePath) {
+    public ZookeeperNodeData getData(@QueryParam("nodePath") String nodePath) {
         return taker.getData(nodePath);
     }
 }

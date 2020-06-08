@@ -5,6 +5,7 @@ import java.util.Collection;
 public class NodeSnapshotInfo {
     private String nodeId;
     private String groupId;
+    private String host;
     private long time;
     private OSInfo os;
     private CPUInfo cpu;
@@ -15,6 +16,14 @@ public class NodeSnapshotInfo {
     private Load load;
     private Collection<NetStat> netStats;
     private Collection<DiskPartitionStat> diskPartitionStats;
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
 
     public String getNodeId() {
         return nodeId;

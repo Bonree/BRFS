@@ -85,7 +85,7 @@ public class DeleteFileMessageHandler implements MessageHandler<BaseResponse> {
         LinkedList<File> deletingDirs = new LinkedList<File>();
         fileQueue.add(dir);
 
-        if (dir.list().length == 0) {
+        if (dir.list() == null || dir.list().length == 0) {
             dir.delete();
             return;
         }
@@ -98,8 +98,11 @@ public class DeleteFileMessageHandler implements MessageHandler<BaseResponse> {
         while (!fileQueue.isEmpty()) {
             File file = fileQueue.poll();
             if (file.isDirectory()) {
-                for (File child : file.listFiles()) {
-                    fileQueue.add(child);
+                File[] childs = file.listFiles();
+                if (childs != null) {
+                    for (File child : childs) {
+                        fileQueue.add(child);
+                    }
                 }
 
                 deletingDirs.addFirst(file);

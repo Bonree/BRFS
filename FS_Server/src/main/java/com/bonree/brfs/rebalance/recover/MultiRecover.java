@@ -3,6 +3,7 @@ package com.bonree.brfs.rebalance.recover;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.impl.v2.NormalRouteV2;
+import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.BRFSFileUtil;
@@ -19,7 +20,6 @@ import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.rebalance.DataRecover;
 import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.RouteCache;
@@ -283,7 +283,7 @@ public class MultiRecover implements DataRecover {
         Pair<String, List<String>> fileInfoPair = BlockAnalyzer.analyzingFileName(brfsPath.getFileName());
         int fileCode = BlockAnalyzer.sumName(fileInfoPair.getFirst());
         List<String> excludes = fileInfoPair.getSecond();
-        // excludes.addAll(idManager.getSecondIds(idManager.getFirstSever(), balanceSummary.getStorageIndex()));
+        excludes.addAll(idManager.getSecondIds(idManager.getFirstSever(), balanceSummary.getStorageIndex()));
         // 排除本机二级serverId
 
         log.info("dead second ids:{}", deadSecondIds);

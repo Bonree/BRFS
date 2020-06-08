@@ -2,12 +2,12 @@ package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;
+import com.bonree.brfs.common.resource.vo.DataNodeMetaModel;
 import com.bonree.brfs.common.resource.vo.NetInfo;
+import com.bonree.brfs.common.resource.vo.NodeStatus;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
-import com.bonree.brfs.disknode.meta.DataNodeMetaModel;
-import com.bonree.brfs.disknode.meta.NodeStatus;
 import com.bonree.brfs.identification.DataNodeMetaMaintainerInterface;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;

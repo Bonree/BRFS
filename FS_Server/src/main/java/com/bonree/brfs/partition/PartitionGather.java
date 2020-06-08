@@ -7,11 +7,11 @@ import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.resource.vo.DiskPartitionInfo;
 import com.bonree.brfs.common.resource.vo.DiskPartitionStat;
+import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
+import com.bonree.brfs.common.resource.vo.PartitionInfo;
+import com.bonree.brfs.common.resource.vo.PartitionType;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
-import com.bonree.brfs.partition.model.PartitionInfo;
-import com.bonree.brfs.partition.model.PartitionType;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -226,10 +226,6 @@ public class PartitionGather implements LifeCycle {
             // 挂载点不一致
             if (!local.getMountPoint().equals(fs.getDirName())) {
                 LOG.warn("mountPoint is not same before[{}],after[{}]", local.getMountPoint(), fs.getDirName());
-                return false;
-            }
-            // 磁盘分区使用信息为空
-            if (usage == null) {
                 return false;
             }
             long value = usage.getTotal();

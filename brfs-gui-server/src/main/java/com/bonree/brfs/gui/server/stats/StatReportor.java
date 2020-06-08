@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.ws.rs.NotFoundException;
 
 public class StatReportor {
     private StatConfigs configs;
@@ -44,7 +45,13 @@ public class StatReportor {
     public Map<String, Integer> getWriteCount(int minutes, String srName, boolean isWrite) {
         Instant now = importantMoment.get();
         File directory = new File(isWrite ? WRITE_RD : READ_RD);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
         File[] filelist = directory.listFiles();
+        if (filelist == null) {
+            throw new NotFoundException("no data has been collected");
+        }
         File tmp;
         Instant fileInstant;
         for (int i = 0; i < filelist.length; i++) {

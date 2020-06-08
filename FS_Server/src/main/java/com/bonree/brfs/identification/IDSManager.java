@@ -1,9 +1,8 @@
 package com.bonree.brfs.identification;
 
-import com.bonree.brfs.common.process.LifeCycle;
+import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.identification.impl.DiskDaemon;
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;

@@ -28,6 +28,7 @@ public class ZookeeperNodeData {
         this.data = data;
     }
 
+    @JsonProperty("data")
     public String getData() {
         return data;
     }

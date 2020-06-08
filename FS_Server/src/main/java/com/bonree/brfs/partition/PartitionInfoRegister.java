@@ -1,7 +1,7 @@
 package com.bonree.brfs.partition;
 
+import com.bonree.brfs.common.resource.vo.PartitionInfo;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.partition.model.PartitionInfo;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.curator.framework.CuratorFramework;

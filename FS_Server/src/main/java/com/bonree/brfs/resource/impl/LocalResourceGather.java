@@ -4,13 +4,13 @@ import com.bonree.brfs.common.resource.ResourceCollectionInterface;
 import com.bonree.brfs.common.resource.vo.CpuStat;
 import com.bonree.brfs.common.resource.vo.DiskPartitionStat;
 import com.bonree.brfs.common.resource.vo.Load;
+import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 import com.bonree.brfs.common.resource.vo.MemStat;
 import com.bonree.brfs.common.resource.vo.NodeSnapshotInfo;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.TimeUtils;
 import com.bonree.brfs.identification.impl.DiskDaemon;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.resource.ResourceGatherInterface;
 import com.bonree.brfs.resource.vo.ClusterStorageInfo;
 import com.bonree.brfs.resource.vo.ResourceModel;
@@ -66,7 +66,7 @@ public class LocalResourceGather implements ResourceGatherInterface {
         model.setStorageRemainSize(totalSize);
         model.setStorageSize(availSize);
         model.setDiskServiceTime(serviceTime);
-        model.setClustorStorageRemainValue(totalSize / cluster.getClustorStorageSize());
+        model.setClustorStorageRemainValue((double) (totalSize) / cluster.getClustorStorageSize());
         return model;
     }
 
@@ -75,6 +75,7 @@ public class LocalResourceGather implements ResourceGatherInterface {
         NodeSnapshotInfo snapshot = new NodeSnapshotInfo();
         snapshot.setGroupId(local.getServiceGroup());
         snapshot.setNodeId(local.getServiceId());
+        snapshot.setHost(local.getHost() + ":" + local.getPort());
         snapshot.setOs(gather.collectOSInfo());
         snapshot.setCpu(gather.collectCPUInfo());
         snapshot.setCpustat(gather.collectCpuStat());

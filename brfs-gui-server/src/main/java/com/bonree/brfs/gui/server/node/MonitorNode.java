@@ -16,11 +16,13 @@ package com.bonree.brfs.gui.server.node;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import com.bonree.brfs.common.jackson.Json;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class MonitorNode {
     private final String id;
+    private final String host;
     private final int cpuCores;
     private final String cpuBrand;
     private final long totalMemSize;
@@ -29,11 +31,13 @@ public class MonitorNode {
     @JsonCreator
     public MonitorNode(
         @JsonProperty("id") String id,
+        @JsonProperty("host") String host,
         @JsonProperty("cpuCores") int cpuCores,
         @JsonProperty("cpuBrand") String cpuBrand,
         @JsonProperty("totalMemSize") long totalMemSize,
         @JsonProperty("os") String os) {
         this.id = id;
+        this.host = host;
         this.cpuCores = cpuCores;
         this.cpuBrand = cpuBrand;
         this.totalMemSize = totalMemSize;
@@ -43,6 +47,11 @@ public class MonitorNode {
     @JsonProperty("id")
     public String getId() {
         return id;
+    }
+
+    @JsonProperty("host")
+    public String getHost() {
+        return host;
     }
 
     @JsonProperty("cpuCores")
@@ -67,8 +76,9 @@ public class MonitorNode {
 
     @Override
     public String toString() {
-        return toStringHelper(getClass())
+        return toStringHelper(this)
             .add("id", id)
+            .add("host", host)
             .add("cpuCores", cpuCores)
             .add("cpuBrand", cpuBrand)
             .add("totalMemSize", totalMemSize)

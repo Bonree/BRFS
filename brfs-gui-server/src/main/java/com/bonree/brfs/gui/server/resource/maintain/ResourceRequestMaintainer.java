@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -78,7 +79,7 @@ public class ResourceRequestMaintainer implements LifeCycle {
                 return;
             }
             // 2. create request queue
-            Collection<Request> requests = new ConcurrentSkipListSet<>();
+            Collection<Request> requests = new HashSet<>();
             serverNodes.stream().forEach(
                 x -> {
                     HttpUrl url = new HttpUrl.Builder()
@@ -103,18 +104,22 @@ public class ResourceRequestMaintainer implements LifeCycle {
                     try {
                         response = client.newCall(x).execute();
                         if (response.code() != 200) {
+                            LOG.warn("request response code not ok {}", response.message());
                             continue;
                         }
                         ResponseBody body = response.body();
                         if (body == null) {
+                            LOG.warn("request response body is null");
                             continue;
                         }
                         byte[] data = body.bytes();
                         if (data == null || data.length == 0) {
+                            LOG.warn("request response body data is null");
                             continue;
                         }
                         NodeSnapshotInfo snapshotInfo = JsonUtils.toObjectQuietly(data, NodeSnapshotInfo.class);
                         if (snapshotInfo == null) {
+                            LOG.warn("convert to object is null {}", data == null ? "" : new String(data));
                             continue;
                         }
                         queue.add(snapshotInfo);

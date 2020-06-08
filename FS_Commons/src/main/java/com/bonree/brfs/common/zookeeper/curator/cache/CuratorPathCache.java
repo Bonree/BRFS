@@ -42,7 +42,9 @@ public class CuratorPathCache {
             cache.getListenable().removeListener(listener);
         }
         try {
-            cache.close();
+            if (cache != null) {
+                cache.close();
+            }
         } catch (IOException e) {
             LOG.error("close path child cache happen error {}", path, e);
         }

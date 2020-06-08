@@ -55,8 +55,6 @@ public class ResourceWriteSelector implements DuplicateNodeSelector {
             duplicateNodes = new DuplicateNode[wins.size()];
             Iterator<ResourceModel> iterator = wins.iterator();
             int i = 0;
-            StringBuilder builder = new StringBuilder();
-            builder.append("select service -> ");
             ResourceModel next;
             while (iterator.hasNext()) {
                 next = iterator.next();

@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class CycleJobWithZKTask implements QuartzOperationStateInterface {
-    private static final Logger LOG = LoggerFactory.getLogger("CycleJobWithZKTask");
+    private static final Logger LOG = LoggerFactory.getLogger(CycleJobWithZKTask.class);
 
     @Override
     public abstract void operation(JobExecutionContext context) throws Exception;

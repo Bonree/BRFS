@@ -55,6 +55,7 @@ public class Server {
             new JaxrsModule(),
             new ResourceModule(),
             new CatalogModule(),
+            new StatModule(),
             new ZookeeperModule(),
             binder -> {
 
@@ -62,7 +63,7 @@ public class Server {
                 binder.bind(NodeInfo.class).toInstance(new NodeInfo("env"));
 
                 jaxrsBinder(binder).bind(DashBoardResource.class);
-                //jaxrsBinder(binder).bind(SystemMonitorResource.class);
+                jaxrsBinder(binder).bind(SystemMonitorResource.class);
                 jaxrsBinder(binder).bind(CatalogGuiResource.class);
                 jaxrsBinder(binder).bind(StatResource.class);
                 newSetBinder(binder, Filter.class, TheServlet.class).addBinding().to(HeaderFilter.class);

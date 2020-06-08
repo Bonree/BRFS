@@ -1,4 +1,4 @@
-package com.bonree.brfs.partition.model;
+package com.bonree.brfs.common.resource.vo;
 
 import com.google.common.base.MoreObjects;
 

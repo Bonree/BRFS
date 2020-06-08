@@ -2,10 +2,10 @@ package com.bonree.brfs.identification.impl;
 
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.resource.ResourceCollectionInterface;
+import com.bonree.brfs.common.resource.vo.DataNodeMetaModel;
+import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
+import com.bonree.brfs.common.resource.vo.NodeStatus;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.disknode.meta.DataNodeMetaModel;
-import com.bonree.brfs.disknode.meta.NodeStatus;
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
 import com.bonree.brfs.resource.impl.SigarGather;
 import java.util.HashMap;
 import java.util.Map;

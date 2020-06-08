@@ -1,6 +1,6 @@
 package com.bonree.brfs.partition;
 
-import com.bonree.brfs.partition.model.LocalPartitionInfo;
+import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 
 /*******************************************************************************
  * 版权信息： 北京博睿宏远数据科技股份有限公司

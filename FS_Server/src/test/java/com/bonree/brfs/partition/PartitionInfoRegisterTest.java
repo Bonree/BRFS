@@ -1,6 +1,6 @@
 package com.bonree.brfs.partition;
 
-import com.bonree.brfs.partition.model.PartitionInfo;
+import com.bonree.brfs.common.resource.vo.PartitionInfo;
 import com.bonree.brfs.rebalance.route.impl.RouteParserTest;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
