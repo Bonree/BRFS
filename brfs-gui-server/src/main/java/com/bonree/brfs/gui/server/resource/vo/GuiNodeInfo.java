@@ -2,6 +2,7 @@ package com.bonree.brfs.gui.server.resource.vo;
 
 public class GuiNodeInfo {
     private String id;
+    private String host;
     private int cpuCores;
     private String cpuBrand;
     private long totalMemSize;
@@ -45,5 +46,13 @@ public class GuiNodeInfo {
 
     public void setOs(String os) {
         this.os = os;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 }

@@ -283,7 +283,7 @@ public class MultiRecover implements DataRecover {
         Pair<String, List<String>> fileInfoPair = BlockAnalyzer.analyzingFileName(brfsPath.getFileName());
         int fileCode = BlockAnalyzer.sumName(fileInfoPair.getFirst());
         List<String> excludes = fileInfoPair.getSecond();
-        // excludes.addAll(idManager.getSecondIds(idManager.getFirstSever(), balanceSummary.getStorageIndex()));
+        excludes.addAll(idManager.getSecondIds(idManager.getFirstSever(), balanceSummary.getStorageIndex()));
         // 排除本机二级serverId
 
         log.info("dead second ids:{}", deadSecondIds);
