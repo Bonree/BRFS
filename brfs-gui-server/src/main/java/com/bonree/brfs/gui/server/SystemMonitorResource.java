@@ -167,7 +167,7 @@ public class SystemMonitorResource {
             }
             List<DiskUsageMetric> list = new ArrayList<>();
             usages.stream().forEach(y -> {
-                DiskUsageMetric metric = new DiskUsageMetric(y.getTime(), y.getUsage());
+                DiskUsageMetric metric = new DiskUsageMetric(y.getTime(), y.getUsage() < 0 ? 0 : y.getUsage());
                 list.add(metric);
             });
             if (list == null || list.isEmpty()) {
