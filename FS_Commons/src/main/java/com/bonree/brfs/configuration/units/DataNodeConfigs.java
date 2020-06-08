@@ -38,6 +38,9 @@ public final class DataNodeConfigs {
     public static final ConfigUnit<Integer> CONFIG_WRITER_WORKER_NUM =
         ConfigUnit.ofInt("datanode.writer.worker.num", Runtime.getRuntime().availableProcessors());
 
+    public static final ConfigUnit<Integer> CONFIG_TASKQ_LIMIT =
+        ConfigUnit.ofInt("datanode.task.queue.num", 1);
+
     public static final ConfigUnit<Integer> CONFIG_WRITER_DATA_CACHE_SIZE =
         ConfigUnit.ofInt("datanode.writer.data.cache", 512 * 1024);
 

@@ -1,5 +1,8 @@
 package com.bonree.brfs.disknode.data.write.worker;
 
+import com.bonree.brfs.configuration.ConfigUnit;
+import com.bonree.brfs.configuration.Configs;
+import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
@@ -12,8 +15,8 @@ import org.slf4j.LoggerFactory;
  */
 public class WriteWorker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(WriteWorker.class);
-
-    private LinkedBlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>(64);
+    private static final int TASK_Q_LIMIT = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_TASKQ_LIMIT);
+    private LinkedBlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>(TASK_Q_LIMIT);
 
     private volatile boolean isQuit = false;
 
