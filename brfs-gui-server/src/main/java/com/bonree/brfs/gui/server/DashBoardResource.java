@@ -19,6 +19,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import com.bonree.brfs.gui.server.mock.DashboardMock;
 import com.bonree.brfs.gui.server.node.NodeSummaryInfo;
 import com.bonree.brfs.gui.server.stats.BusinessStats;
+import com.bonree.brfs.gui.server.stats.StatReportor;
+import com.google.inject.Inject;
 import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,9 +32,12 @@ import javax.ws.rs.QueryParam;
 public class DashBoardResource {
 
     private final DashboardMock mock;
+    private StatReportor statReportor;
 
-    public DashBoardResource() {
+    @Inject
+    public DashBoardResource(StatReportor statReportor) {
         this.mock = new DashboardMock();
+        this.statReportor = statReportor;
     }
 
     @GET
@@ -62,7 +67,7 @@ public class DashBoardResource {
     public BusinessStats getBusinessStats(
         @PathParam("business") String business,
         @QueryParam("minutes") int minutes) {
-        return mock.getBusinessStats(business, minutes);
+        return statReportor.getCount(business, minutes);
     }
 
     @GET
@@ -70,6 +75,6 @@ public class DashBoardResource {
     @Produces(APPLICATION_JSON)
     public BusinessStats getBusinessStats(
         @QueryParam("minutes") int minutes) {
-        return mock.getAllBusinessStats(minutes);
+        return statReportor.getCount("", minutes);
     }
 }

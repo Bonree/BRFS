@@ -4,6 +4,7 @@ import com.bonree.brfs.common.statistic.ReadCountModel;
 import com.bonree.brfs.common.statistic.WriteCountModel;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.gui.server.TimedData;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -34,12 +35,12 @@ public class StatReportor {
         result.set(new ConcurrentHashMap<>());
     }
 
-    public List<BusinessStats> getCount(String srName, int minutes) {
+    public BusinessStats getCount(String srName, int minutes) {
         Instant startMoment = Instant.now().truncatedTo(ChronoUnit.MINUTES).minus(minutes, ChronoUnit.MINUTES);
         importantMoment.set(startMoment);
         getWriteCount(minutes, srName, true);
         getWriteCount(minutes, srName, false);
-        return popAll();
+        return popAll(srName);
     }
 
     public Map<String, Integer> getWriteCount(int minutes, String srName, boolean isWrite) {
@@ -173,5 +174,22 @@ public class StatReportor {
         }
         result.remove();
         return businessStats;
+    }
+
+    public BusinessStats popAll(String srName) {
+        Map<String, Map<Long, Pair<ReadCountModel, WriteCountModel>>> srMap = result.get();
+        if (srMap == null) {
+            new BusinessStats(srName, ImmutableList.of());
+        }
+
+        Map<Long, Pair<ReadCountModel, WriteCountModel>> tsMap = srMap.get(srName);
+        ArrayList<TimedData<DataStatistic>> timedDataStatistics = new ArrayList<>();
+        for (long ts : tsMap.keySet()) {
+            timedDataStatistics.add(new TimedData<>(ts, new DataStatistic(tsMap.get(ts).getSecond().getWriteCount(),
+                                                                          tsMap.get(ts).getFirst().getReadCount())));
+        }
+        result.remove();
+        return new BusinessStats(srName, timedDataStatistics);
+
     }
 }
