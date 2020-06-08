@@ -45,7 +45,7 @@ public final class DataNodeConfigs {
         ConfigUnit.ofString("datanode.file.idle.time", "PT3S");
 
     public static final ConfigUnit<Integer> CONFIG_REQUEST_HANDLER_NUM =
-        ConfigUnit.ofInt("datanode.request.handler.num", Runtime.getRuntime().availableProcessors());
+        ConfigUnit.ofInt("datanode.request.handler.num", 5);
 
     public static final ConfigUnit<Integer> CONFIG_FILE_READER_NUM =
         ConfigUnit.ofInt("datanode.file.reader.num", Runtime.getRuntime().availableProcessors());

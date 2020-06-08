@@ -17,7 +17,7 @@ public final class RegionNodeConfigs {
         ConfigUnit.ofInt("regionnode.writer.worker.num", Runtime.getRuntime().availableProcessors());
 
     public static final ConfigUnit<Integer> CONFIG_DATA_POOL_CAPACITY =
-        ConfigUnit.ofInt("regionnode.data.pool.capacity", 512);
+        ConfigUnit.ofInt("regionnode.data.pool.capacity", 60);
 
     public static final ConfigUnit<String> CONFIG_DATA_ENGINE_IDLE_TIME =
         ConfigUnit.ofString("regionnode.dataengine.idle.time", "PT1H");
