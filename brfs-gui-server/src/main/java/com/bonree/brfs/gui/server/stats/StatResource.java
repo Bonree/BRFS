@@ -29,14 +29,16 @@ public class StatResource {
     public List<BusinessStats> read(
         @PathParam("srName") String srName,
         @QueryParam("minutes") int minutes) {
-        return statReportor.getCount(srName, minutes);
+        //return statReportor.getCount(srName, minutes);
+        return null;
     }
 
     @GET
     @Path("/")
     @Produces(APPLICATION_JSON)
     public List<BusinessStats> getAll(@QueryParam("minutes") int minutes) {
-        return statReportor.getCount("", minutes);
+        //return statReportor.getCount("", minutes);
+        return null;
     }
 
 }
