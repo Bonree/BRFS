@@ -105,16 +105,16 @@ public class SeqBlockManagerV2 implements BlockManager {
             if (packet.isLastPacketInFile()) {
                 if (packet.getBlockOffsetInFile(blockSize) == 0) {
                     writer.write(srName, blockValue.getRealData(),
-                                 new WriteFileCallback(callback, fileName, false));
+                                 new WriteFileCallback(callback, fileName, false, blockValue));
                     LOG.info("flushing a small file[{}] into the data pool", writeID);
-                    blockValue.releaseData();
+                    //blockValue.releaseData();
                     blockcache.remove(new BlockKey(srName, writeID));
                 } else {
                     // we should flush the last block to get its fid
                     writer.write(srName, blockValue.getRealData(),
                                  new WriteBlockCallback(srName, callback, packet, true));
                     LOG.info("flushing the last block of file [{}] into the data pool ", writeID);
-                    blockValue.releaseData();
+                    //blockValue.releaseData();
                 }
                 return null;
             }
@@ -353,7 +353,7 @@ public class SeqBlockManagerV2 implements BlockManager {
                 } else {
                     byte[] data = blockValue.writeFile(fileName);
                     writer.write(storageName, data,
-                                 new WriteFileCallback(callback, fileName, true));
+                                 new WriteFileCallback(callback, fileName, true, blockValue));
                     LOG.info("flushing a big file in [{}],the filename is [{}]", storageName, fileName);
                 }
 
@@ -384,11 +384,13 @@ public class SeqBlockManagerV2 implements BlockManager {
         private HandleResultCallback callback;
         private String fileName;
         private boolean isBigFile;
+        private BlockValue blockValue;
 
-        public WriteFileCallback(HandleResultCallback callback, String file, boolean b) {
+        public WriteFileCallback(HandleResultCallback callback, String file, boolean b, BlockValue value) {
             this.callback = callback;
             this.fileName = file;
             this.isBigFile = b;
+            this.blockValue = value;
         }
 
         @Override
@@ -402,6 +404,7 @@ public class SeqBlockManagerV2 implements BlockManager {
 
         @Override
         public void complete(String fid) {
+            blockValue.releaseData();
             HandleResult result = new HandleResult();
             if ("".equals(fid) || fid == null) {
                 result.setSuccess(false);
