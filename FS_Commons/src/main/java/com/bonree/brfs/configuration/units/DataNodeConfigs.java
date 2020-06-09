@@ -50,6 +50,9 @@ public final class DataNodeConfigs {
     public static final ConfigUnit<String> CONFIG_FILE_IDLE_TIME =
         ConfigUnit.ofString("datanode.file.idle.time", "PT3S");
 
+    public static final ConfigUnit<Integer> CONFIG_MESSAGE_QUEUE_NUM =
+        ConfigUnit.ofInt("message.handler.queue.limit", 5);
+
     public static final ConfigUnit<Integer> CONFIG_REQUEST_HANDLER_NUM =
         ConfigUnit.ofInt("datanode.request.handler.num", 5);
 

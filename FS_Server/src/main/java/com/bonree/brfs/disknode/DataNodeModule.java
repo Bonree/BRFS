@@ -35,6 +35,7 @@ import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.statistic.ReadStatCollector;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
+import com.bonree.brfs.configuration.ConfigUnit;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
@@ -72,6 +73,9 @@ import com.google.inject.Scopes;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Singleton;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
@@ -275,10 +279,15 @@ public class DataNodeModule implements Module {
         Lifecycle lifecycle) {
         AsyncFileReaderGroup readerGroup = new AsyncFileReaderGroup(Math.min(2, Runtime.getRuntime().availableProcessors() / 2),
                                                                     "data_writer_server");
+        int threadQNum = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_MESSAGE_QUEUE_NUM);
+        int threadNum = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM);
 
-        ExecutorService threadPool = Executors.newFixedThreadPool(
-            Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),
-            new PooledThreadFactory("message_handler"));
+        ExecutorService threadPool = new ThreadPoolExecutor(threadNum, threadNum,
+                               10L, TimeUnit.SECONDS,
+                               new LinkedBlockingQueue<Runnable>(threadQNum),
+                               new PooledThreadFactory("message_handler"),
+                               new ThreadPoolExecutor.AbortPolicy());
+
 
         MessageChannelInitializer initializer = new MessageChannelInitializer(threadPool);
         initializer.addMessageHandler(TYPE_OPEN_FILE, new OpenFileMessageHandler(diskContext, writerManager));
