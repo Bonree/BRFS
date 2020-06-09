@@ -141,7 +141,9 @@ public class NormalRouteV2 extends SuperNormalRoute {
                 if (tmp == null) {
                     return;
                 }
-                cahce.addAll(tmp);
+                if (!tmp.contains(this.getBaseSecondId())) {
+                    cahce.addAll(tmp);
+                }
             });
         }
         return filterService(this.newSecondIDs.keySet(), cahce);

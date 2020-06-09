@@ -219,7 +219,7 @@ public class PartitionCheckingRoutine {
                 String key = StringUtils.join(fs.getDevName(), fs.getDirName(), usage.getTotal());
                 if (keepOnlyOne.add(key)) {
                     LocalPartitionInfo local = packageLocalPartitionInfo(fs, usage, file.getAbsolutePath());
-                    fsMap.put(dir, local);
+                    fsMap.put(file.getAbsolutePath(), local);
                 } else {
                     throw new RuntimeException(
                         "The configured directories are on the same disk partition!! dir:[" + dir + "],partition:["
