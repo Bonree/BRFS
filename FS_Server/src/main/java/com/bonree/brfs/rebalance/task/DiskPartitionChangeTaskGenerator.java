@@ -10,7 +10,6 @@ import com.bonree.brfs.common.resource.vo.PartitionType;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.AbstractPathChildrenCacheListener;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorPathCache;
@@ -36,6 +35,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
     private String changesPath;
     private IDSManager idManager;
     private ServiceManager serverManager;
-    private CuratorClient client;
+    private CuratorFramework client;
     private StorageRegionManager snManager;
     private int delayDeal;
     private ZookeeperPaths zkPath;
@@ -74,10 +74,10 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         this.snManager = snManager;
         this.delayDeal = 3000;
         this.zkPath = zkPath;
+        this.client = client;
         this.leaderPath = ZKPaths.makePath(this.zkPath.getBaseRebalancePath(), Constants.CHANGE_LEADER);
         this.changesPath = ZKPaths.makePath(this.zkPath.getBaseRebalancePath(), Constants.CHANGES_NODE);
-        this.client = CuratorClient.wrapClient(client);
-        this.leaderLath = new LeaderLatch(client, this.leaderPath);
+        this.leaderLath = new LeaderLatch(this.client, this.leaderPath);
         this.idManager = idManager;
         this.partitionInfoManager = partitionInfoManager;
         this.partitionConfig = partitionConfig;
@@ -174,7 +174,10 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                         String summary = JsonUtils.toJsonString(summaryObj);
                         String diskPartitionTaskNode =
                             ZKPaths.makePath(changesPath, String.valueOf(snModel.getId()), summaryObj.getChangeID());
-                        client.createPersistent(diskPartitionTaskNode, true, summary.getBytes(StandardCharsets.UTF_8));
+                        client.create()
+                              .creatingParentsIfNeeded()
+                              .withMode(CreateMode.PERSISTENT)
+                              .forPath(diskPartitionTaskNode,  summary.getBytes(StandardCharsets.UTF_8));
                         LOG.info("generator a disk partition change record [{}] for storageRegion [{}]", summary, snModel);
 
                         if (ChangeType.REMOVE == type) {

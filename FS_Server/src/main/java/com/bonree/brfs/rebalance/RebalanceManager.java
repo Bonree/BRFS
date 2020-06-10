@@ -4,12 +4,11 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.Configs;
-import com.bonree.brfs.configuration.units.CommonConfigs;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.configuration.units.RebalanceConfigs;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
+import com.bonree.brfs.guice.ClusterConfig;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
 import com.bonree.brfs.partition.DiskPartitionInfoManager;
@@ -22,6 +21,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.inject.Inject;
+import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,22 +32,20 @@ public class RebalanceManager implements Closeable {
     private TaskOperation opt;
     SimpleFileServer fileServer = null;
     ExecutorService simpleFileServer = Executors.newSingleThreadExecutor();
-    private CuratorClient curatorClient;
 
     @Inject
     public RebalanceManager(ZookeeperPaths zkPaths, IDSManager idManager, StorageRegionManager snManager,
                             ServiceManager serviceManager, LocalPartitionInterface partitionInterface,
-                            DiskPartitionInfoManager partitionInfoManager, RouteCache routeCache) {
-        String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-        curatorClient = CuratorClient.getClientInstance(zkAddresses, 500, 500);
-        dispatch = new TaskDispatcher(curatorClient, zkPaths.getBaseRebalancePath(),
+                            DiskPartitionInfoManager partitionInfoManager, RouteCache routeCache, CuratorFramework client,
+                            ClusterConfig clusterConfig) {
+        dispatch = new TaskDispatcher(client, zkPaths.getBaseRebalancePath(),
                                       zkPaths.getBaseV2RoutePath(), idManager,
                                       serviceManager, snManager,
                                       Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_VIRTUAL_DELAY),
                                       Configs.getConfiguration().getConfig(RebalanceConfigs.CONFIG_NORMAL_DELAY),
-                                      partitionInfoManager);
+                                      partitionInfoManager, clusterConfig);
 
-        opt = new TaskOperation(curatorClient, zkPaths.getBaseRebalancePath(), idManager, snManager, serviceManager,
+        opt = new TaskOperation(client, zkPaths.getBaseRebalancePath(), idManager, snManager, serviceManager,
                                 partitionInterface, routeCache);
 
         int port = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_PORT);
@@ -89,9 +87,6 @@ public class RebalanceManager implements Closeable {
 
         if (fileServer != null) {
             fileServer.close();
-        }
-        if (curatorClient != null) {
-            curatorClient.close();
         }
     }
 

@@ -4,7 +4,6 @@ import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorTreeCache;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
@@ -23,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class TaskOperation implements Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(TaskOperation.class);
 
-    private CuratorClient client;
+    private CuratorFramework curatorFramework;
     private IDSManager idManager;
     private CuratorTreeCache treeCache;
     private String tasksPath;
@@ -50,10 +50,11 @@ public class TaskOperation implements Closeable {
     private String baseBalancePath;
     private ExecutorService es = Executors.newFixedThreadPool(10, new PooledThreadFactory("task_executor"));
 
-    public TaskOperation(final CuratorClient client, final String baseBalancePath, IDSManager idManager,
+    public TaskOperation(CuratorFramework curatorFramework, final String baseBalancePath,
+                         IDSManager idManager,
                          StorageRegionManager snManager, ServiceManager serviceManager,
                          LocalPartitionInterface partitionInterface, RouteCache routeCache) {
-        this.client = client;
+        this.curatorFramework = curatorFramework;
         this.idManager = idManager;
         this.baseBalancePath = baseBalancePath;
         this.tasksPath = ZKPaths.makePath(baseBalancePath, Constants.TASKS_NODE);
@@ -69,7 +70,7 @@ public class TaskOperation implements Closeable {
         treeCache.addListener(tasksPath, new TaskExecutorListener(this));
     }
 
-    public void launchDelayTaskExecutor(BalanceTaskSummary taskSummary, String taskPath) {
+    public void launchDelayTaskExecutor(BalanceTaskSummary taskSummary, String taskPath) throws Exception {
         DataRecover recover = null;
         List<String> multiIds = taskSummary.getOutputServers();  // 二级serverId集合
         Collection<String> currentSecondIds =
@@ -86,9 +87,9 @@ public class TaskOperation implements Closeable {
                     LOG.error("无法开启对" + taskSummary.getStorageIndex() + "的任务");
                     return;
                 }
-                recover =
-                    new MultiRecover(partitionInterface, routeCache, taskSummary, idManager, serviceManager, taskPath, client,
-                                     node, baseBalancePath);
+                recover = new MultiRecover(partitionInterface, routeCache, taskSummary,
+                                           idManager, serviceManager, taskPath,
+                                           curatorFramework, node, baseBalancePath);
 
             } else if (taskSummary.getTaskType() == RecoverType.VIRTUAL) { // 虚拟迁移任务
                 StorageRegion node = snManager.findStorageRegionById(taskSummary.getStorageIndex());
@@ -97,7 +98,7 @@ public class TaskOperation implements Closeable {
                     return;
                 }
                 String storageName = snManager.findStorageRegionById(taskSummary.getStorageIndex()).getName();
-                recover = new VirtualRecover(client, taskSummary, taskPath, storageName, idManager, serviceManager,
+                recover = new VirtualRecover(curatorFramework, taskSummary, taskPath, storageName, idManager, serviceManager,
                                              partitionInterface, baseBalancePath);
             }
 
@@ -106,10 +107,11 @@ public class TaskOperation implements Closeable {
         }
     }
 
-    public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) {
+    public void updateTaskStatus(BalanceTaskSummary task, TaskStatus status) throws Exception {
         task.setTaskStatus(status);
         String taskNode = ZKPaths.makePath(tasksPath, String.valueOf(task.getStorageIndex()), Constants.TASK_NODE);
-        client.setData(taskNode, JsonUtils.toJsonBytesQuietly(task));
+        curatorFramework.setData().forPath(taskNode, JsonUtils.toJsonBytesQuietly(task));
+
     }
 
     /**
@@ -123,7 +125,11 @@ public class TaskOperation implements Closeable {
         es.execute(new Runnable() {
             @Override
             public void run() {
-                recover.recover();
+                try {
+                    recover.recover();
+                } catch (Exception e) {
+                    LOG.error("recover happen error", e);
+                }
             }
         });
     }

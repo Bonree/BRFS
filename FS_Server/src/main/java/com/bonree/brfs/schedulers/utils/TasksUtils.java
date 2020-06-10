@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,8 @@ public class TasksUtils {
      *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    public static ReturnCode createUserDeleteTask(List<Service> services, ZookeeperPaths zkPaths, StorageRegion sn,
+    public static ReturnCode createUserDeleteTask(CuratorFramework client, List<Service> services, ZookeeperPaths zkPaths,
+                                                  StorageRegion sn,
                                                   long startTime, long endTime, boolean isAll) {
         if (services == null || services.isEmpty()) {
             return ReturnCode.DELETE_DATA_ERROR;
@@ -54,9 +56,7 @@ public class TasksUtils {
             return ReturnCode.STORAGE_NONEXIST_ERROR;
         }
 
-        String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-        MetaTaskManagerInterface release =
-            new DefaultReleaseTask(zkAddresses, zkPaths.getBaseTaskPath(), zkPaths.getBaseLocksPath());
+        MetaTaskManagerInterface release = new DefaultReleaseTask(client, zkPaths);
         TaskTypeModel tmodel = release.getTaskTypeInfo(TaskType.USER_DELETE.name());
         if (!tmodel.isSwitchFlag()) {
             return ReturnCode.FORBID_DELETE_DATA_ERROR;

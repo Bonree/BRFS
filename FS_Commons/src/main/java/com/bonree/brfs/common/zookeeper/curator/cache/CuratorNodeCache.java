@@ -1,9 +1,9 @@
 package com.bonree.brfs.common.zookeeper.curator.cache;
 
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.slf4j.Logger;
@@ -15,10 +15,10 @@ public class CuratorNodeCache {
 
     private Map<String, NodeCache> cacheMap = null;
 
-    private CuratorClient client = null;
+    private CuratorFramework zkClient;
 
-    CuratorNodeCache(final CuratorClient client) {
-        this.client = client;
+    CuratorNodeCache(CuratorFramework zkClient) {
+        this.zkClient = zkClient;
         cacheMap = new ConcurrentHashMap<String, NodeCache>();
     }
 
@@ -26,7 +26,7 @@ public class CuratorNodeCache {
         LOG.info("add listener for path:" + path);
         NodeCache cache = cacheMap.get(path);
         if (cache == null) {
-            cache = new NodeCache(client.getInnerClient(), path);
+            cache = new NodeCache(zkClient, path);
             cacheMap.put(path, cache);
             startCache(path);
         }

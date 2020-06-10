@@ -7,20 +7,20 @@ import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
 import com.bonree.brfs.common.utils.TimeUtils;
-import com.bonree.brfs.common.zookeeper.ZookeeperClient;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
-import com.bonree.brfs.common.zookeeper.curator.CuratorConfig;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import javax.inject.Inject;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,34 +29,24 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
     private static final String QUEUE = "queue";
     private static final String TRANSFER = "transfer";
     private static final String HISTORY = "history";
-    private String zkUrl = null;
     private String taskRootPath = null;
-    private ZookeeperClient client = null;
+    private CuratorFramework zkclient = null;
     private String taskQueue = null;
     private String taskTransfer = null;
     private String taskHistory = null;
 
     @Inject
-    public DefaultReleaseTask(CuratorConfig curatorConfig, ZookeeperPaths zkPath) {
-        this(curatorConfig.getAddresses(), zkPath.getBaseTaskPath(), zkPath.getBaseLocksPath());
+    public DefaultReleaseTask(CuratorFramework client, ZookeeperPaths zkPath) {
+        this(client, zkPath.getBaseTaskPath());
     }
 
-    public DefaultReleaseTask(String zkUrl, String taskRootPath, String lockPath) {
-        this.zkUrl = zkUrl;
+    public DefaultReleaseTask(CuratorFramework client, String taskRootPath) {
+        this.zkclient = client;
         this.taskRootPath = taskRootPath;
-        if (BrStringUtils.isEmpty(this.zkUrl)) {
-            throw new NullPointerException("zookeeper address is empty");
-        }
-        if (BrStringUtils.isEmpty(this.taskRootPath)) {
-            throw new NullPointerException("task root path is empty");
-        }
-        if (BrStringUtils.isEmpty(lockPath)) {
-            throw new NullPointerException("task lock path is empty");
-        }
-        this.taskQueue = this.taskRootPath + "/" + QUEUE;
-        this.taskTransfer = this.taskRootPath + "/" + TRANSFER;
-        this.taskHistory = this.taskRootPath + "/" + HISTORY;
-        client = CuratorClient.getClientInstance(this.zkUrl);
+        Preconditions.checkNotNull(this.taskRootPath, "task root path is empty");
+        this.taskQueue = ZKPaths.makePath(this.taskRootPath, QUEUE);
+        this.taskTransfer = ZKPaths.makePath(this.taskRootPath, TRANSFER);
+        this.taskHistory = ZKPaths.makePath(this.taskRootPath, HISTORY);
     }
 
     @Override
@@ -67,19 +57,11 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
     private String updateTaskContentNode(TaskModel data, String taskType, String taskName, String taskQueuePath) {
         String pathNode = null;
         try {
-            if (data == null) {
-                LOG.warn("task content is empty");
-                return null;
-            }
+            Preconditions.checkNotNull(data, "task content is empty");
             byte[] datas = JsonUtils.toJsonBytes(data);
-            if (datas == null || datas.length == 0) {
-                LOG.warn("task content convert is empty");
-                return null;
-            }
-            if (BrStringUtils.isEmpty(taskType)) {
-                LOG.warn("task type is empty");
-                return null;
-            }
+            Preconditions.checkNotNull(datas, "task content convert is empty");
+            Preconditions.checkNotNull(taskType, "task type is empty");
+
             TaskType current = TaskType.valueOf(taskType);
             int taskTypeIndex = current == null ? 0 : current.code();
 
@@ -91,11 +73,15 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
                 pathBuilder.append(taskName);
             }
             String taskPath = pathBuilder.toString();
-            if (!BrStringUtils.isEmpty(taskName) && client.checkExists(taskPath)) {
-                client.setData(taskPath, datas);
+            if (!BrStringUtils.isEmpty(taskName) && zkclient.checkExists().forPath(taskPath) != null) {
+                zkclient.setData().forPath(taskPath, datas);
                 return taskName;
             }
-            pathNode = client.createPersistentSequential(taskPath, true, datas);
+            pathNode = zkclient.create()
+                               .creatingParentsIfNeeded()
+                               .withMode(CreateMode.PERSISTENT_SEQUENTIAL)
+                               .forPath(taskPath, datas);
+
             String[] nodes = BrStringUtils.getSplit(pathNode, "/");
             if (nodes != null && nodes.length != 0) {
                 return nodes[nodes.length - 1];
@@ -113,28 +99,16 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 
     private int queryTaskState(String taskName, String taskType, String taskQueuePath) {
         try {
-            if (BrStringUtils.isEmpty(taskName)) {
-                return -1;
-            }
-            if (BrStringUtils.isEmpty(taskType)) {
-                return -2;
-            }
-            StringBuilder taskPath = new StringBuilder();
-            taskPath.append(taskQueuePath).append("/").append(taskType).append("/").append(taskName);
-            String path = taskPath.toString();
-            if (!client.checkExists(path)) {
-                return -3;
-            }
-            byte[] data = client.getData(path);
-            if (data == null || data.length == 0) {
-                return -4;
-            }
-            TaskModel tmp = JsonUtils.toObject(data, TaskModel.class);
+            Preconditions.checkNotNull(taskQueuePath, "queue is empty !!");
+            Preconditions.checkNotNull(taskType, "TaskType is empty !!");
+            Preconditions.checkNotNull(taskName, "taskName is empty !!");
+            String path = ZKPaths.makePath(taskQueuePath, taskType, taskName);
+            TaskModel tmp = getObject(path, TaskModel.class);
             return tmp.getTaskState();
         } catch (Exception e) {
             LOG.error("query task status error {}", e);
         }
-        return -5;
+        return -1;
     }
 
     @Override
@@ -157,32 +131,14 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
                                                 String taskQueuePath) {
 
         try {
-            if (BrStringUtils.isEmpty(serverId)) {
-                return false;
-            }
-            if (BrStringUtils.isEmpty(taskName)) {
-                return false;
-            }
-            if (BrStringUtils.isEmpty(taskType)) {
-                return false;
-            }
-            if (data == null) {
-                LOG.warn("task content is empty");
-                return false;
-            }
-            byte[] datas = JsonUtils.toJsonBytes(data);
-            if (datas == null || datas.length == 0) {
-                LOG.warn("task content convert is empty");
-                return false;
-            }
-            StringBuilder taskPath = new StringBuilder();
-            taskPath.append(taskQueuePath).append("/").append(taskType).append("/").append(taskName).append("/").append(serverId);
-            String path = taskPath.toString();
-            if (client.checkExists(path)) {
-                client.setData(path, datas);
-            } else {
-                client.createPersistent(path, true, datas);
-            }
+            Preconditions.checkNotNull(taskQueuePath, "queue is empty !!");
+            Preconditions.checkNotNull(taskType, "TaskType is empty !!");
+            Preconditions.checkNotNull(taskName, "taskName is empty !!");
+            Preconditions.checkNotNull(serverId, "serverID is empty !!");
+            Preconditions.checkNotNull(data, "task content is empty !!");
+
+            String path = ZKPaths.makePath(taskQueuePath, taskType, taskName, serverId);
+            setPersistentObject(path, data);
             return true;
         } catch (Exception e) {
             LOG.error("update server task status error {}", e);
@@ -193,12 +149,8 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
     @Override
     public boolean changeTaskContentNodeState(String taskName, String taskType, int taskState) {
         try {
-            if (BrStringUtils.isEmpty(taskName)) {
-                return false;
-            }
-            if (BrStringUtils.isEmpty(taskType)) {
-                return false;
-            }
+            Preconditions.checkNotNull(taskType, "TaskType is empty !!");
+            Preconditions.checkNotNull(taskName, "taskName is empty !!");
             TaskModel tmp = getTaskContentNodeInfo(taskType, taskName);
             if (tmp == null) {
                 return false;
@@ -215,25 +167,15 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
     @Override
     public String getLastSuccessTaskIndex(String taskType, String serverId) {
         try {
-            List<String> taskInfos = getTaskList(taskType);
+            List<String> taskInfos = getTaskList(taskType, this.taskQueue);
             if (taskInfos == null || taskInfos.isEmpty()) {
                 return null;
             }
             int maxIndex = taskInfos.size() - 1;
-            StringBuilder path;
-            String taskName;
-            String taskPath;
-            TaskServerNodeModel tmpR;
             for (int i = maxIndex; i >= 0; i--) {
-                taskName = taskInfos.get(i);
-                path = new StringBuilder();
-                path.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName).append("/").append(
-                    serverId);
-                taskPath = path.toString();
-                if (!client.checkExists(taskPath)) {
-                    continue;
-                }
-                tmpR = getTaskServerContentNodeInfo(taskType, taskName, serverId);
+                String taskName = taskInfos.get(i);
+                String taskPath = ZKPaths.makePath(this.taskQueue, taskType, taskName, serverId);
+                TaskServerNodeModel tmpR = getObject(taskPath, TaskServerNodeModel.class);
                 if (tmpR == null) {
                     continue;
                 }
@@ -294,32 +236,18 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
     }
 
     private boolean isException(String queue, String taskType, String checkName, String serverId) {
-        TaskServerNodeModel model = getTaskServer(queue, taskType, checkName, serverId);
-        if (model == null || TaskState.EXCEPTION.code() == model.getTaskState()) {
-            return true;
-        } else {
-            return false;
+        try {
+            Preconditions.checkNotNull(queue, "queue is empty !!");
+            Preconditions.checkNotNull(taskType, "TaskType is empty !!");
+            Preconditions.checkNotNull(checkName, "taskName is empty !!");
+            Preconditions.checkNotNull(serverId, "serverId path is empty !!");
+            String path = ZKPaths.makePath(queue, taskType, checkName, serverId);
+            return TaskState.EXCEPTION.code() == getObject(path, TaskServerNodeModel.class).getTaskState();
+        } catch (Exception e) {
+            LOG.error("check task stat happen error ", e);
         }
-    }
+        return false;
 
-    private TaskServerNodeModel getTaskServer(String queue, String taskType, String name, String server) {
-        String serverPath = createServerTaskPath(queue, taskType, name, server);
-        if (!client.checkExists(serverPath)) {
-            return null;
-        }
-        byte[] data = client.getData(serverPath);
-        if (data == null || data.length == 0) {
-            return null;
-        }
-        return JsonUtils.toObjectQuietly(data, TaskServerNodeModel.class);
-    }
-
-    private String createTaskPath(String queue, String taskType, String name) {
-        return new StringBuilder(queue).append("/").append(taskType).append("/").append(name).toString();
-    }
-
-    private String createServerTaskPath(String queue, String taskType, String name, String server) {
-        return new StringBuilder(createTaskPath(queue, taskType, name)).append("/").append(server).toString();
     }
 
     @Override
@@ -328,25 +256,26 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
         if (taskInfos == null || taskInfos.isEmpty()) {
             return null;
         }
-        StringBuilder path;
-        String taskPath;
+        String taskPath = null;
         for (String taskInfo : taskInfos) {
-            path = new StringBuilder();
-            path.append(this.taskQueue).append("/").append(taskType).append("/").append(taskInfo).append("/").append(serverId);
-            taskPath = path.toString();
-            if (!client.checkExists(taskPath)) {
-                continue;
+            try {
+                taskPath = ZKPaths.makePath(this.taskQueue, taskType, taskInfo, serverId);
+                if (zkclient.checkExists().forPath(taskPath) == null) {
+                    continue;
+                }
+                return taskInfo;
+            } catch (Exception e) {
+                LOG.error("get task first server happen error path:[{}]", taskPath, e);
             }
-            return taskInfo;
         }
         return null;
     }
 
     private boolean deleteTask(String taskName, String taskType, String taskQueuePath) {
         try {
-            String path = createTaskPath(taskQueuePath, taskType, taskName);
-            if (client.checkExists(path)) {
-                client.delete(path, true);
+            String path = ZKPaths.makePath(taskQueuePath, taskType, taskName);
+            if (zkclient.checkExists().forPath(path) != null) {
+                zkclient.delete().deletingChildrenIfNeeded().forPath(path);
             }
             return true;
         } catch (Exception e) {
@@ -357,29 +286,21 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 
     public int deleteTasks(long deleteTime, String taskType, String taskQueuePath) {
         try {
-            if (BrStringUtils.isEmpty(taskType)) {
-                return -1;
-            }
+            Preconditions.checkNotNull(taskQueuePath, "queue is empty !!");
+            Preconditions.checkNotNull(taskType, "TaskType is empty !!");
             List<String> nodes = getTaskList(taskType, taskQueuePath);
             if (nodes == null || nodes.isEmpty()) {
                 return 0;
             }
-            int size = nodes.size();
-            if (size == 0) {
-                return 0;
-            }
-            long firstTime = getTaskCreateTime(nodes.get(0), taskType, taskQueuePath);
-            if (deleteTime < firstTime) {
-                return 0;
-            }
+
             //循环删除数据
             int count = 0;
-            long ctime;
             for (String taskName : nodes) {
-                if (BrStringUtils.isEmpty(taskName)) {
+                TaskModel taskModel = getTaskContentNodeInfo(taskType, taskName, taskQueuePath);
+                if (taskModel == null) {
                     continue;
                 }
-                ctime = getTaskCreateTime(taskName, taskType, taskQueuePath);
+                long ctime = TimeUtils.getMiles(taskModel.getCreateTime());
                 if (ctime > deleteTime) {
                     continue;
                 }
@@ -391,60 +312,15 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
         } catch (Exception e) {
             LOG.error("delete tasks error {}", e);
         }
-        return -1;
-    }
-
-    private long getTaskCreateTime(String taskName, String taskType, String taskQueuePath) {
-        try {
-            if (BrStringUtils.isEmpty(taskName)) {
-                return -1;
-            }
-            if (BrStringUtils.isEmpty(taskType)) {
-                return -2;
-            }
-            String path = taskQueuePath + "/" + taskType + "/" + taskName;
-            if (!client.checkExists(path)) {
-                return -3;
-            }
-            byte[] data;
-            data = client.getData(path);
-            if (data == null || data.length == 0) {
-                return -4;
-            }
-            TaskModel taskInfo = JsonUtils.toObject(data, TaskModel.class);
-            String createTime = taskInfo.getCreateTime();
-            if (BrStringUtils.isEmpty(createTime)) {
-                return 0;
-            } else {
-                return TimeUtils.getMiles(createTime, TimeUtils.TIME_MILES_FORMATE);
-            }
-        } catch (Exception e) {
-            LOG.error("get create time error {}", e);
-        }
-        return -5;
-    }
-
-    @Override
-    public boolean isInit() {
-        if (this.client == null) {
-            return false;
-        }
-        if (BrStringUtils.isEmpty(this.zkUrl)) {
-            return false;
-        }
-        return true;
+        return 0;
     }
 
     @Override
     public Pair<Integer, Integer> reviseTaskStat(String taskType, long ttl, Collection<String> aliveServers) {
         Pair<Integer, Integer> counts = new Pair<>(0, 0);
         try {
-            if (BrStringUtils.isEmpty(taskType)) {
-                throw new NullPointerException("taskType is empty");
-            }
-            if (aliveServers == null || aliveServers.isEmpty()) {
-                throw new NullPointerException("alive servers is empty");
-            }
+            Preconditions.checkNotNull(taskType, "TaskType is empty !!");
+            Preconditions.checkNotNull(aliveServers, "Services is empty !!");
             // 获取子任务名称队列
             List<String> taskQueues = getTaskList(taskType);
             if (taskQueues == null || taskQueues.isEmpty()) {
@@ -458,23 +334,28 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
             counts.setFirst(deleteCount);
             counts.setSecond(reviseCount);
             //将维护过后的任务状态为finish的迁移至history
-            mvHistoryQueue(taskType, this.taskQueue, this.taskHistory);
+            mvHistoryQueue(taskType, this.taskQueue, this.taskHistory, 86400000);
         } catch (Exception e) {
             LOG.error("revise task error {}", e);
         }
         return counts;
     }
 
-    private int mvHistoryQueue(String taskType, String taskQueue, String historyQueue) {
+    private int mvHistoryQueue(String taskType, String taskQueue, String historyQueue, long time) throws Exception {
         // 获取子任务名称队列
         List<String> taskQueues = getTaskList(taskType, taskQueue);
         if (taskQueue == null || taskQueue.isEmpty()) {
             return 0;
         }
         int i = 0;
+        long currentTime = System.currentTimeMillis();
         for (String taskName : taskQueues) {
             TaskModel taskModel = getTaskContentNodeInfo(taskType, taskName, taskQueue);
             if (TaskState.FINISH.code() != taskModel.getTaskState()) {
+                continue;
+            }
+            long createTime = TimeUtils.getMiles(taskModel.getCreateTime());
+            if (currentTime - createTime > time) {
                 continue;
             }
             if (taskModel == null) {
@@ -482,51 +363,66 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
                 i++;
                 continue;
             }
-            mvHistory(taskType, taskName);
+            String source = ZKPaths.makePath(taskQueue, taskType, taskName);
+            String dent = ZKPaths.makePath(historyQueue, taskType, taskName);
+            mvData(source, dent, true);
             LOG.info("[{}] task {} is history", taskType, taskName);
             i++;
         }
         return i;
     }
 
-    private void mvHistory(String taskType, String taskName) {
-        String source = createTaskPath(this.taskQueue, taskType, taskName);
-        String dent = createTaskPath(this.taskHistory, taskType, taskName);
-        mvData(source, dent, true);
-    }
-
-    public void mvData(String sourcePath, String dentPath, boolean overFlag) {
-        if (!client.checkExists(sourcePath)) {
+    public void mvData(String sourcePath, String dentPath, boolean overFlag) throws Exception {
+        if (zkclient.checkExists().forPath(sourcePath) == null) {
             return;
         }
-        List<String> childs = client.getChildren(sourcePath);
-        boolean dentExists = client.checkExists(dentPath);
+        List<String> childs = zkclient.getChildren().forPath(sourcePath);
+        boolean dentExists = zkclient.checkExists().forPath(dentPath) != null;
         if (dentExists && !overFlag) {
             return;
         }
         if (childs != null) {
-            childs.stream().forEach(x -> {
-                mvData(sourcePath + "/" + x, dentPath + "/" + x, overFlag);
-            });
+            for (String child : childs) {
+                mvData(sourcePath + "/" + child, dentPath + "/" + child, overFlag);
+            }
         }
-        byte[] data = client.getData(sourcePath);
-        if (client.checkExists(dentPath)) {
-            client.setData(dentPath, data);
+        byte[] data = zkclient.getData().forPath(sourcePath);
+        if (zkclient.checkExists().forPath(dentPath) != null) {
+            zkclient.setData().forPath(dentPath, data);
         } else {
-            client.createPersistent(dentPath, true, data);
+            zkclient.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(dentPath, data);
         }
-        client.delete(sourcePath, false);
+        zkclient.delete().forPath(sourcePath);
     }
 
-    public <T> T getObject(String path, Class<T> clazz) {
-        if (!client.checkExists(path)) {
+    public <T> T getObject(String path, Class<T> clazz) throws Exception {
+        if (zkclient.checkExists().forPath(path) == null) {
             return null;
         }
-        byte[] data = client.getData(path);
+        byte[] data = zkclient.getData().forPath(path);
         if (data == null || data.length == 0) {
             return null;
         }
         return JsonUtils.toObjectQuietly(data, clazz);
+    }
+
+    public void setPersistentObject(String path, Object obj) throws Exception {
+        byte[] data = JsonUtils.toJsonBytes(obj);
+        if (zkclient.checkExists().forPath(path) == null) {
+            zkclient.create()
+                    .creatingParentsIfNeeded()
+                    .withMode(CreateMode.PERSISTENT)
+                    .forPath(path, data);
+        } else {
+            zkclient.setData().forPath(path, data);
+        }
+    }
+
+    public List<String> getChilds(String path) throws Exception {
+        if (zkclient.checkExists().forPath(path) == null) {
+            return new ArrayList<>();
+        }
+        return zkclient.getChildren().forPath(path);
     }
 
     /**
@@ -545,7 +441,6 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
         int count = 0;
         try {
             int size = taskQueue.size();
-            StringBuilder taskPath;
             String taskName;
             String tmpPath;
             TaskModel taskContent;
@@ -553,7 +448,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
             List<String> servers;
             for (int i = (size - 1); i >= deleteIndex; i--) {
                 taskName = taskQueue.get(i);
-                taskContent = getTaskContentNodeInfo(taskType, taskName);
+                taskContent = getTaskContentNodeInfo(taskType, taskName, this.taskQueue);
                 if (taskContent == null) {
                     LOG.warn("{} {} is null", taskType, taskName);
                     continue;
@@ -565,15 +460,13 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
                     continue;
                 }
                 // 获取任务下的子节点
-                taskPath = new StringBuilder();
-                taskPath.append(this.taskQueue).append("/").append(taskType).append("/").append(taskName);
-                tmpPath = taskPath.toString();
-                servers = client.getChildren(tmpPath);
+                tmpPath = ZKPaths.makePath(this.taskQueue, taskType, taskName);
+                servers = getChilds(tmpPath);
                 // 服务为空，任务标记为异常
                 if (servers == null || servers.isEmpty()) {
                     count++;
                     taskContent.setTaskState(TaskState.EXCEPTION.code());
-                    updateTaskContentNode(taskContent, taskType, taskName);
+                    updateTaskContentNode(taskContent, taskType, taskName, this.taskQueue);
                     continue;
                 }
                 boolean isException = false;
@@ -583,7 +476,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
                         continue;
                     }
                     //不存活的server，节点标记为Exception
-                    taskServer = getTaskServerContentNodeInfo(taskType, taskName, server);
+                    taskServer = getTaskServerContentNodeInfo(taskType, taskName, server, this.taskQueue);
                     if (taskServer == null) {
                         LOG.warn("taskType :{}, taskName :{}, serverId :{} is not exists", taskType, taskName, server);
                         taskServer = new TaskServerNodeModel();
@@ -595,12 +488,12 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
                     }
                     isException = true;
                     taskServer.setTaskState(TaskState.EXCEPTION.code());
-                    updateServerTaskContentNode(server, taskName, taskType, taskServer);
+                    updateServerTaskContentNode(server, taskName, taskType, taskServer, this.taskQueue);
                 }
                 if (isException && !exceptionFlag) {
                     count++;
                     taskContent.setTaskState(TaskState.EXCEPTION.code());
-                    updateTaskContentNode(taskContent, taskType, taskName);
+                    updateTaskContentNode(taskContent, taskType, taskName, this.taskQueue);
                 }
 
             }
@@ -617,7 +510,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
 
     private TaskModel getTaskContentNodeInfo(String taskType, String taskName, String taskQueuePath) {
         try {
-            String path = createTaskPath(taskQueuePath, taskType, taskName);
+            String path = ZKPaths.makePath(taskQueuePath, taskType, taskName);
             return getObject(path, TaskModel.class);
         } catch (Exception e) {
             LOG.error("get task content error {}", e);
@@ -633,7 +526,8 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
     public TaskServerNodeModel getTaskServerContentNodeInfo(String taskType, String taskName, String serverId,
                                                             String taskQueuePath) {
         try {
-            String path = createServerTaskPath(taskQueuePath, taskType, taskName, serverId);
+
+            String path = ZKPaths.makePath(taskQueuePath, taskType, taskName, serverId);
             return getObject(path, TaskServerNodeModel.class);
         } catch (Exception e) {
             LOG.error("get server task content error {}", e);
@@ -680,21 +574,22 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
     }
 
     public List<String> getTaskServerList(String taskType, String taskName, String taskQueuePath) {
-        List<String> childeServers = new ArrayList<>();
-        if (BrStringUtils.isEmpty(taskType)) {
+        try {
+            Preconditions.checkNotNull(taskType, "TaskType is empty !!");
+            Preconditions.checkNotNull(taskName, "taskName is empty !!");
+            Preconditions.checkNotNull(taskQueuePath, "queue path is empty !!");
+            String path = ZKPaths.makePath(taskQueuePath, taskType, taskName);
+            List<String> childeServers = getChilds(path);
+            if (childeServers == null || childeServers.isEmpty()) {
+                return ImmutableList.of();
+            }
+            //升序排列任务
+            childeServers.sort(Comparator.naturalOrder());
             return childeServers;
+        } catch (Exception e) {
+            LOG.error("get task server list happen error", e);
         }
-        if (BrStringUtils.isEmpty(taskName)) {
-            return childeServers;
-        }
-        String path = taskQueuePath + "/" + taskType + "/" + taskName;
-        childeServers = client.getChildren(path);
-        if (childeServers == null || childeServers.isEmpty()) {
-            return childeServers;
-        }
-        //升序排列任务
-        childeServers.sort(Comparator.naturalOrder());
-        return childeServers;
+        return ImmutableList.of();
     }
 
     @Override
@@ -702,103 +597,98 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
         return getTaskList(taskType, this.taskQueue);
     }
 
-    public List<String> getTaskList(String taskType, String taskQueuePath) {
-        if (StringUtils.isEmpty(taskType)) {
-            throw new NullPointerException("taskType is empty");
-        }
-        String path = taskQueuePath + "/" + taskType;
-        if (!client.checkExists(path)) {
-            return null;
-        }
-        List<String> childNodes = client.getChildren(path);
-        if (childNodes == null || childNodes.isEmpty()) {
+    private List<String> getTaskList(String taskType, String taskQueuePath) {
+        try {
+            Preconditions.checkNotNull(taskType, "TaskType is null");
+            String path = ZKPaths.makePath(taskQueuePath, taskType);
+            List<String> childNodes = getChilds(path);
+            if (childNodes == null || childNodes.isEmpty()) {
+                return ImmutableList.of();
+            }
+            //升序排列任务
+            childNodes.sort(Comparator.naturalOrder());
             return childNodes;
+        } catch (Exception e) {
+            LOG.error("get task {} list happen error ", taskType, e);
         }
-        //升序排列任务
-        childNodes.sort(Comparator.naturalOrder());
-        return childNodes;
+        return ImmutableList.of();
     }
 
     @Override
     public TaskTypeModel getTaskTypeInfo(String taskType) {
-        if (BrStringUtils.isEmpty(taskType)) {
-            return null;
+        try {
+            Preconditions.checkNotNull(taskType, "TaskType is empty !!");
+            String path = ZKPaths.makePath(this.taskQueue, taskType);
+            return getObject(path, TaskTypeModel.class);
+        } catch (Exception e) {
+            LOG.error("get Task [{}] happen error ", taskType, e);
         }
-        String path = this.taskQueue + "/" + taskType;
-        if (!client.checkExists(path)) {
-            System.out.println(path);
-            return null;
-        }
-        byte[] data = client.getData(path);
-        if (data == null || data.length == 0) {
-            return null;
-        }
-        return JsonUtils.toObjectQuietly(data, TaskTypeModel.class);
+        return null;
     }
 
     @Override
     public boolean setTaskTypeModel(String taskType, TaskTypeModel type) {
-        if (BrStringUtils.isEmpty(taskType)) {
-            return false;
+        try {
+            Preconditions.checkNotNull(taskType, "TaskType is empty !!");
+            String path = ZKPaths.makePath(this.taskQueue, taskType);
+            setPersistentObject(path, type);
+            return true;
+        } catch (Exception e) {
+            LOG.error("set task [{}] content:[{}] happen error ", taskType, type, e);
         }
-        if (type == null) {
-            return false;
-        }
-        byte[] data = JsonUtils.toJsonBytesQuietly(type);
-        if (data == null || data.length == 0) {
-            return false;
-        }
-        String path = this.taskQueue + "/" + taskType;
-        if (client.checkExists(path)) {
-            client.setData(path, data);
-        } else {
-            client.createPersistent(path, true, data);
-        }
-        return true;
+        return false;
+
     }
 
     @Override
     public List<String> getTransferTask(String taskType) {
-        if (BrStringUtils.isEmpty(taskType)) {
-            return null;
+
+        try {
+            Preconditions.checkNotNull(taskType, "taskType is null");
+            String path = ZKPaths.makePath(this.taskTransfer, taskType);
+            return getChilds(path);
+        } catch (Exception e) {
+            LOG.error("get transfer task [{}] happen error", taskType, e);
         }
-        String path = this.taskTransfer + "/" + taskType;
-        if (!client.checkExists(path)) {
-            return null;
-        }
-        return client.getChildren(path);
+        return ImmutableList.of();
     }
 
     @Override
     public boolean deleteTransferTask(String taskType, String taskName) {
-        if (BrStringUtils.isEmpty(taskType)) {
-            return false;
-        }
-        if (BrStringUtils.isEmpty(taskName)) {
-            return false;
-        }
-        String path = this.taskTransfer + "/" + taskType + "/" + taskName;
-        if (!client.checkExists(path)) {
+        try {
+            Preconditions.checkNotNull(taskType, "TaskType is null");
+            Preconditions.checkNotNull(taskName, "TaskName is null");
+            String path = ZKPaths.makePath(this.taskTransfer, taskType, taskName);
+            if (zkclient.checkExists().forPath(path) == null) {
+                return true;
+            }
+            zkclient.delete().deletingChildrenIfNeeded().forPath(path);
             return true;
+        } catch (Exception e) {
+            LOG.error("delete transfer task {} {} happen error", taskType, taskName, e);
         }
-        client.delete(path, true);
-        return true;
+        return false;
     }
 
     @Override
     public boolean setTransferTask(String taskType, String taskName) {
-        if (BrStringUtils.isEmpty(taskType)) {
-            return false;
+
+        try {
+            Preconditions.checkNotNull(taskType, "TaskType is null");
+            Preconditions.checkNotNull(taskName, "TaskName is null");
+            String path = ZKPaths.makePath(this.taskTransfer, taskType, taskName);
+            if (zkclient.checkExists().forPath(path) != null) {
+                return false;
+            }
+            String str = zkclient.create()
+                                 .creatingParentsIfNeeded()
+                                 .withMode(CreateMode.PERSISTENT)
+                                 .forPath(path);
+            return !BrStringUtils.isEmpty(str);
+        } catch (Exception e) {
+            LOG.error("set transfer task {} {} happen error ", taskType, taskName, e);
         }
-        if (BrStringUtils.isEmpty(taskName)) {
-            return false;
-        }
-        String path = this.taskTransfer + "/" + taskType + "/" + taskName;
-        if (client.checkExists(path)) {
-            return false;
-        }
-        String str = client.createPersistent(path, true);
-        return !BrStringUtils.isEmpty(str);
+        return false;
     }
 
     @Override
@@ -807,21 +697,23 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
         if (needTasks == null || needTasks.isEmpty()) {
             return;
         }
-        needTasks.stream().parallel().forEach(
-            taskName -> {
-                String path = createTaskPath(this.taskHistory, taskType, taskName);
-                String dent = createTaskPath(this.taskQueue, taskType, taskName);
+        for (String taskName : needTasks) {
+            String path = ZKPaths.makePath(this.taskHistory, taskType, taskName);
+            String dent = ZKPaths.makePath(this.taskQueue, taskType, taskName);
+            try {
                 TaskModel task = getObject(path, TaskModel.class);
                 if (task == null) {
-                    this.client.delete(path, true);
+                    this.zkclient.delete().deletingChildrenIfNeeded().forPath(path);
                     LOG.info("[{}] task[{}] is invalid", taskType, taskName);
-                    return;
+                    continue;
                 }
                 task.setTaskState(TaskState.RERUN.code());
                 updateTaskContentNode(task, taskType, taskName, this.taskHistory);
                 mvData(path, dent, true);
                 LOG.info("[{}] task[{}] is recovery", taskType, taskName);
+            } catch (Exception e) {
+                LOG.error("recovery task {} {} happen error ", taskType, taskName);
             }
-        );
+        }
     }
 }

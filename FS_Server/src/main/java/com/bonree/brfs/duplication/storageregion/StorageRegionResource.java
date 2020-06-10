@@ -47,6 +47,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +61,7 @@ public class StorageRegionResource {
 
     private final ZookeeperPaths zkPaths;
     private final RocksDBManager rocksDBManager;
+    private final CuratorFramework client;
 
     @Inject
     public StorageRegionResource(
@@ -67,12 +69,14 @@ public class StorageRegionResource {
         StorageRegionManager storageRegionManager,
         ServiceManager serviceManager,
         ZookeeperPaths zkPaths,
-        RocksDBManager rocksDBManager) {
+        RocksDBManager rocksDBManager,
+        CuratorFramework client) {
         this.clusterConfig = clusterConfig;
         this.storageRegionManager = storageRegionManager;
         this.serviceManager = serviceManager;
         this.zkPaths = zkPaths;
         this.rocksDBManager = rocksDBManager;
+        this.client = client;
     }
 
     @PUT
@@ -196,13 +200,13 @@ public class StorageRegionResource {
         }
 
         List<Service> services = serviceManager.getServiceListByGroup(clusterConfig.getDataNodeGroup());
-        ReturnCode code = TasksUtils.createUserDeleteTask(
-            services,
-            zkPaths,
-            region,
-            region.getCreateTime(),
-            System.currentTimeMillis(),
-            true);
+        ReturnCode code = TasksUtils.createUserDeleteTask(client,
+                                                          services,
+                                                          zkPaths,
+                                                          region,
+                                                          region.getCreateTime(),
+                                                          System.currentTimeMillis(),
+                                                          true);
         log.info("create user delete task status{}", code.name());
         if (!ReturnCode.SUCCESS.equals(code)) {
             return Response.serverError()

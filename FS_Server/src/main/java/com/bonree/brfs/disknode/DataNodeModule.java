@@ -201,6 +201,8 @@ public class DataNodeModule implements Module {
         LocalPartitionInterface localPartitionInterface,
         DiskPartitionInfoManager diskPartitionInfoManager,
         RouteCache routeCache,
+        CuratorFramework client,
+        ClusterConfig clusterConfig,
         Lifecycle lifecycle) {
         RebalanceManager rebalanceManager =
             new RebalanceManager(zkPaths,
@@ -209,7 +211,9 @@ public class DataNodeModule implements Module {
                                  serviceManager,
                                  localPartitionInterface,
                                  diskPartitionInfoManager,
-                                 routeCache);
+                                 routeCache,
+                                 client,
+                                 clusterConfig);
         lifecycle.addLifeCycleObject(new LifeCycleObject() {
             @Override
             public void start() throws Exception {
@@ -283,11 +287,10 @@ public class DataNodeModule implements Module {
         int threadNum = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM);
 
         ExecutorService threadPool = new ThreadPoolExecutor(threadNum, threadNum,
-                               10L, TimeUnit.SECONDS,
-                               new LinkedBlockingQueue<Runnable>(threadQNum),
-                               new PooledThreadFactory("message_handler"),
-                               new ThreadPoolExecutor.AbortPolicy());
-
+                                                            10L, TimeUnit.SECONDS,
+                                                            new LinkedBlockingQueue<Runnable>(threadQNum),
+                                                            new PooledThreadFactory("message_handler"),
+                                                            new ThreadPoolExecutor.AbortPolicy());
 
         MessageChannelInitializer initializer = new MessageChannelInitializer(threadPool);
         initializer.addMessageHandler(TYPE_OPEN_FILE, new OpenFileMessageHandler(diskContext, writerManager));

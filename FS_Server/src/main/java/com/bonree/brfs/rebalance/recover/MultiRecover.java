@@ -12,7 +12,6 @@ import com.bonree.brfs.common.utils.CompareFromName;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.Pair;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
@@ -41,7 +40,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +68,7 @@ public class MultiRecover implements DataRecover {
 
     private BalanceTaskSummary balanceSummary;
     private CuratorNodeCache nodeCache;
-    private final CuratorClient client;
+    private CuratorFramework curatorFramework;
     private final long delayTime;
     private boolean overFlag = false;
     private TaskDetail detail;
@@ -81,19 +82,19 @@ public class MultiRecover implements DataRecover {
     private BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
     public MultiRecover(LocalPartitionInterface localPartitionInterface, RouteCache routeCache, BalanceTaskSummary summary,
-                        IDSManager idManager, ServiceManager serviceManager, String taskNode, CuratorClient client,
+                        IDSManager idManager, ServiceManager serviceManager, String taskNode, CuratorFramework curatorFramework,
                         StorageRegion storageRegion, String baseBalancePath) {
         this.balanceSummary = summary;
         this.idManager = idManager;
         this.serviceManager = serviceManager;
         this.taskNode = taskNode;
-        this.client = client;
+        this.curatorFramework = curatorFramework;
         this.storageRegion = storageRegion;
         this.fileClient = new SimpleFileClient();
         this.localPartitionInterface = localPartitionInterface;
         // 开启监控
         nodeCache = CuratorCacheFactory.getNodeCache();
-        cache = new TaskNodeCache(this.balanceSummary, client, taskNode);
+        cache = new TaskNodeCache(this.balanceSummary, curatorFramework, taskNode);
         nodeCache.addListener(taskNode, cache);
         this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstSever();
         this.delayTime = balanceSummary.getDelayTime();
@@ -103,7 +104,7 @@ public class MultiRecover implements DataRecover {
 
     @SuppressWarnings("checkstyle:EmptyCatchBlock")
     @Override
-    public void recover() {
+    public void recover()throws Exception {
 
         log.info("begin normal recover");
         // 注册节点
@@ -402,7 +403,6 @@ public class MultiRecover implements DataRecover {
                                                 .makePath(taskNode, String.valueOf(balanceSummary.getStorageIndex()),
                                                           Constants.TASK_NODE);
                                             log.info("replica file transfer failed, will cancel the normal task [{}]", taskPath);
-                                            client.setData(taskPath, JsonUtils.toJsonBytesQuietly(balanceSummary));
 
                                             // 删除在zk上的task任务
                                             String taskHistoryPath =
@@ -410,11 +410,15 @@ public class MultiRecover implements DataRecover {
                                             String taskHistory = ZKPaths
                                                 .makePath(taskHistoryPath, String.valueOf(balanceSummary.getStorageIndex()),
                                                           balanceSummary.getChangeID());
-                                            byte[] data = client.getData(taskPath);
                                             try {
-                                                client.checkAndDelte(taskPath, true);
-                                                client.getInnerClient().create().creatingParentsIfNeeded()
-                                                      .forPath(taskHistory, data);
+                                                curatorFramework.setData()
+                                                                .forPath(taskPath, JsonUtils.toJsonBytesQuietly(balanceSummary));
+                                                byte[] data = curatorFramework.getData().forPath(taskPath);
+                                                if (curatorFramework.checkExists().forPath(taskPath) != null) {
+                                                    curatorFramework.delete().deletingChildrenIfNeeded().forPath(taskPath);
+                                                }
+                                                curatorFramework.create().creatingParentsIfNeeded()
+                                                                .forPath(taskHistory, data);
                                             } catch (Exception e) {
                                                 log.error("clear normal task [{}] failed", taskPath, e);
                                             }
@@ -466,13 +470,14 @@ public class MultiRecover implements DataRecover {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     public void updateDetail(String node, TaskDetail detail) {
-        if (client.checkExists(node)) {
-            try {
-                client.setData(node, JsonUtils.toJsonBytes(detail));
-            } catch (Exception e) {
-                log.error("update task detail error!", e);
+        try {
+            if (curatorFramework.checkExists().forPath(node) != null) {
+                curatorFramework.setData().forPath(node, JsonUtils.toJsonBytes(detail));
             }
+        } catch (Exception e) {
+            log.error("update task detail error!", e);
         }
+
     }
 
     /**
@@ -482,13 +487,16 @@ public class MultiRecover implements DataRecover {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public TaskDetail registerNodeDetail(String node) {
+    public TaskDetail registerNodeDetail(String node) throws Exception {
         TaskDetail detail;
-        if (!client.checkExists(node)) {
+        if (curatorFramework.checkExists().forPath(node) == null) {
             detail = new TaskDetail(idManager.getFirstSever(), ExecutionStatus.INIT, 0, 0, 0);
-            client.createPersistent(node, false, JsonUtils.toJsonBytesQuietly(detail));
+            curatorFramework.create()
+                            .creatingParentsIfNeeded()
+                            .withMode(CreateMode.PERSISTENT)
+                            .forPath(node, JsonUtils.toJsonBytesQuietly(detail));
         } else {
-            byte[] data = client.getData(node);
+            byte[] data = curatorFramework.getData().forPath(node);
             detail = JsonUtils.toObjectQuietly(data, TaskDetail.class);
         }
         return detail;

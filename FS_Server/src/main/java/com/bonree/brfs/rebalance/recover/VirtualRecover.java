@@ -8,7 +8,6 @@ import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorNodeCache;
 import com.bonree.brfs.configuration.Configs;
@@ -29,7 +28,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,7 @@ public class VirtualRecover implements DataRecover {
     private BalanceTaskSummary balanceSummary;
     private CuratorNodeCache nodeCache;
     private SimpleFileClient fileClient;
-    private final CuratorClient client;
+    private CuratorFramework curatorFramework;
     private final long delayTime;
     private final ServiceManager serviceManager;
     private boolean overFlag = false;
@@ -69,12 +70,13 @@ public class VirtualRecover implements DataRecover {
 
     private final BlockingQueue<FileRecoverMeta> fileRecoverQueue = new ArrayBlockingQueue<>(2000);
 
-    public VirtualRecover(CuratorClient client, BalanceTaskSummary balanceSummary, String taskNode, String storageName,
+    public VirtualRecover(CuratorFramework curatorFramework, BalanceTaskSummary balanceSummary,
+                          String taskNode, String storageName,
                           IDSManager idManager, ServiceManager serviceManager,
                           LocalPartitionInterface localPartitionInterface, String baseBalancePath) {
         this.balanceSummary = balanceSummary;
         this.taskNode = taskNode;
-        this.client = client;
+        this.curatorFramework = curatorFramework;
         this.idManager = idManager;
         this.serviceManager = serviceManager;
         this.storageName = storageName;
@@ -82,7 +84,7 @@ public class VirtualRecover implements DataRecover {
         this.fileClient = new SimpleFileClient();
         // 恢复需要对节点进行监听
         nodeCache = CuratorCacheFactory.getNodeCache();
-        cache = new TaskNodeCache(balanceSummary, client, taskNode);
+        cache = new TaskNodeCache(balanceSummary, this.curatorFramework, taskNode);
         nodeCache.addListener(taskNode, cache);
         this.selfNode = taskNode + Constants.SEPARATOR + this.idManager.getFirstSever();
         this.delayTime = balanceSummary.getDelayTime();
@@ -90,7 +92,7 @@ public class VirtualRecover implements DataRecover {
     }
 
     @Override
-    public void recover() {
+    public void recover() throws Exception {
         LOG.info("begin virtual recover");
         // 注册节点
         LOG.info("create:" + selfNode + "-------------" + detail);
@@ -226,7 +228,7 @@ public class VirtualRecover implements DataRecover {
         }
     }
 
-    public void finishTask() {
+    public void finishTask() throws Exception {
         // 没有取消任务
         if (!cache.getStatus().get().equals(TaskStatus.CANCEL)) {
             detail.setStatus(ExecutionStatus.FINISH);
@@ -310,7 +312,6 @@ public class VirtualRecover implements DataRecover {
                                             .makePath(taskNode, String.valueOf(balanceSummary.getStorageIndex()),
                                                       Constants.TASK_NODE);
                                         LOG.info("replica file transfer failed, will cancel the virtual task [{}]", taskPath);
-                                        client.setData(taskPath, JsonUtils.toJsonBytesQuietly(balanceSummary));
 
                                         // 删除在zk上的task任务
                                         String taskHistoryPath =
@@ -318,11 +319,16 @@ public class VirtualRecover implements DataRecover {
                                         String taskHistory = ZKPaths
                                             .makePath(taskHistoryPath, String.valueOf(balanceSummary.getStorageIndex()),
                                                       balanceSummary.getChangeID());
-                                        byte[] data = client.getData(taskPath);
                                         try {
-                                            client.checkAndDelte(taskPath, true);
-                                            client.getInnerClient().create().creatingParentsIfNeeded()
-                                                  .forPath(taskHistory, data);
+                                            curatorFramework.setData()
+                                                            .forPath(taskPath, JsonUtils.toJsonBytesQuietly(balanceSummary));
+                                            byte[] data = curatorFramework.getData().forPath(taskPath);
+
+                                            if (curatorFramework.checkExists().forPath(taskPath) != null) {
+                                                curatorFramework.delete().deletingChildrenIfNeeded().forPath(taskPath);
+                                            }
+                                            curatorFramework.create().creatingParentsIfNeeded()
+                                                            .forPath(taskHistory, data);
                                         } catch (Exception e) {
                                             LOG.error("clear virtual task [{}] failed", taskPath, e);
                                         }
@@ -338,7 +344,7 @@ public class VirtualRecover implements DataRecover {
                             LOG.info("update:" + selfNode + "-------------" + detail);
                         }
                     }
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -366,10 +372,10 @@ public class VirtualRecover implements DataRecover {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public void updateDetail(String node, TaskDetail detail) {
-        if (client.checkExists(node)) {
+    public void updateDetail(String node, TaskDetail detail) throws Exception {
+        if (curatorFramework.checkExists().forPath(node) != null) {
             try {
-                client.setData(node, JsonUtils.toJsonBytes(detail));
+                curatorFramework.setData().forPath(node, JsonUtils.toJsonBytes(detail));
             } catch (Exception e) {
                 LOG.error("change Task status error!", e);
             }
@@ -386,11 +392,14 @@ public class VirtualRecover implements DataRecover {
     public TaskDetail registerNodeDetail(String node) {
         TaskDetail detail = null;
         try {
-            if (!client.checkExists(node)) {
+            if (curatorFramework.checkExists().forPath(node) == null) {
                 detail = new TaskDetail(idManager.getFirstSever(), ExecutionStatus.INIT, 0, 0, 0);
-                client.createPersistent(node, false, JsonUtils.toJsonBytes(detail));
+                curatorFramework.create()
+                                .creatingParentsIfNeeded()
+                                .withMode(CreateMode.PERSISTENT)
+                                .forPath(node, JsonUtils.toJsonBytes(detail));
             } else {
-                byte[] data = client.getData(node);
+                byte[] data = curatorFramework.getData().forPath(node);
                 detail = JsonUtils.toObject(data, TaskDetail.class);
             }
         } catch (Exception e) {

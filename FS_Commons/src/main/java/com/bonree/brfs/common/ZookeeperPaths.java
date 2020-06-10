@@ -1,9 +1,9 @@
 package com.bonree.brfs.common;
 
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import java.util.Objects;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,7 @@ public class ZookeeperPaths {
 
     private final String clusterName;
 
-    private final CuratorFramework zkClient;
+    private final CuratorFramework client;
 
     private String baseClusterName;
 
@@ -108,9 +108,9 @@ public class ZookeeperPaths {
         this.baseV2RoutePath = baseV2RoutePath;
     }
 
-    private ZookeeperPaths(final String clusterName, final CuratorFramework zkClient) {
+    private ZookeeperPaths(final String clusterName, final CuratorFramework client) {
         this.clusterName = clusterName;
-        this.zkClient = zkClient;
+        this.client = client;
     }
 
     public String getBaseServerIdSeqPath() {
@@ -210,7 +210,6 @@ public class ZookeeperPaths {
     }
 
     public void createZkPath() {
-        CuratorClient client = CuratorClient.wrapClient(zkClient);
         createPathIfNotExist(client, baseClusterName);
         createPathIfNotExist(client, baseLocksPath);
         createPathIfNotExist(client, baseSequencesPath);
@@ -228,10 +227,13 @@ public class ZookeeperPaths {
         createPathIfNotExist(client, baseDataNodeMetaPath);
     }
 
-    public void createPathIfNotExist(CuratorClient client, String path) {
+    public void createPathIfNotExist(CuratorFramework curatorFramework, String path) {
         try {
-            if (!client.checkExists(path)) {
-                client.createPersistent(path, true);
+            if (curatorFramework.checkExists().forPath(path) == null) {
+                curatorFramework.create()
+                                .creatingParentsIfNeeded()
+                                .withMode(CreateMode.PERSISTENT)
+                                .forPath(path);
             }
         } catch (Exception e) {
             LOG.error("create path failed!!", e);

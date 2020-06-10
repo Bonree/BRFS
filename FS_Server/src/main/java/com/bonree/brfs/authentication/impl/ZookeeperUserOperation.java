@@ -4,13 +4,12 @@ import com.bonree.brfs.authentication.UserOperation;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.utils.JsonUtils.JsonException;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
+import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,12 +27,12 @@ public class ZookeeperUserOperation implements UserOperation {
 
     private static final String ROOT_USER = "root";
 
-    private CuratorClient curatorClient;
+    private CuratorFramework client;
 
     private String basePath;
 
     public ZookeeperUserOperation(CuratorFramework client, String basePath) {
-        this.curatorClient = CuratorClient.wrapClient(client);
+        this.client = client;
         this.basePath = BrStringUtils.trimBasePath(basePath);
     }
 
@@ -42,8 +41,11 @@ public class ZookeeperUserOperation implements UserOperation {
         try {
             String userNode = ZKPaths.makePath(basePath, user.getUserName());
             String jsonStr = JsonUtils.toJsonString(user);
-            if (!curatorClient.checkExists(userNode)) {
-                curatorClient.createPersistent(userNode, false, jsonStr.getBytes(StandardCharsets.UTF_8));
+            if (client.checkExists().forPath(userNode) == null) {
+                client.create()
+                      .creatingParentsIfNeeded()
+                      .withMode(CreateMode.PERSISTENT)
+                      .forPath(userNode, jsonStr.getBytes(StandardCharsets.UTF_8));
             } else {
                 LOG.warn("the user:" + user.getUserName() + " is exist!");
             }
@@ -54,12 +56,17 @@ public class ZookeeperUserOperation implements UserOperation {
 
     @Override
     public void deleteUser(String userName) {
-        if (org.apache.commons.lang3.StringUtils.equals(userName, ROOT_USER)) {
-            LOG.warn("can not delete: " + ROOT_USER);
-            return;
+        try {
+            if (org.apache.commons.lang3.StringUtils.equals(userName, ROOT_USER)) {
+                LOG.warn("can not delete: " + ROOT_USER);
+                return;
+            }
+            String userNode = ZKPaths.makePath(basePath, userName);
+            client.delete().forPath(userNode);
+        } catch (Exception e) {
+            LOG.error("deleteUser [{}] happen error", userName, e);
         }
-        String userNode = ZKPaths.makePath(basePath, userName);
-        curatorClient.delete(userNode, false);
+
     }
 
     @Override
@@ -67,7 +74,7 @@ public class ZookeeperUserOperation implements UserOperation {
         try {
             String userNode = ZKPaths.makePath(basePath, user.getUserName());
             String jsonStr = JsonUtils.toJsonString(user);
-            curatorClient.setData(userNode, jsonStr.getBytes(StandardCharsets.UTF_8));
+            client.setData().forPath(userNode, jsonStr.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             LOG.error("updateUser", e);
         }
@@ -76,14 +83,15 @@ public class ZookeeperUserOperation implements UserOperation {
     @Override
     public UserModel getUser(String userName) {
         String userNode = ZKPaths.makePath(basePath, userName);
-        if (!curatorClient.checkExists(userNode)) {
-            return null;
-        }
-        String jsonStr = new String(curatorClient.getData(userNode), StandardCharsets.UTF_8);
         try {
+            if (client.checkExists().forPath(userNode) == null) {
+                return null;
+            }
+            byte[] data = client.getData().forPath(userNode);
+            String jsonStr = new String(data, StandardCharsets.UTF_8);
             return JsonUtils.toObject(jsonStr, UserModel.class);
-        } catch (JsonException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            LOG.error("getUser [{}] happen error ", userName, e);
         }
         return null;
     }
@@ -91,7 +99,12 @@ public class ZookeeperUserOperation implements UserOperation {
     @Override
     public List<UserModel> getUserList() {
         List<UserModel> userList = new ArrayList<>();
-        List<String> userNameList = curatorClient.getChildren(basePath);
+        List<String> userNameList = null;
+        try {
+            userNameList = client.getChildren().forPath(basePath);
+        } catch (Exception e) {
+            LOG.error("getUserList happen error ", e);
+        }
         if (userNameList != null && userNameList.size() > 0) {
             for (String userName : userNameList) {
                 UserModel user = getUser(userName);

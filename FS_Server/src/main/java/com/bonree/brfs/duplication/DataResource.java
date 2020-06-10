@@ -55,6 +55,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.apache.curator.framework.CuratorFramework;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,7 @@ public class DataResource {
     private final StorageRegionWriter storageRegionWriter;
     private final BlockManager blockManager;
     private final BrfsCatalog brfsCatalog;
+    private final CuratorFramework client;
 
     @Inject
     public DataResource(
@@ -81,7 +83,8 @@ public class DataResource {
         StorageRegionWriter storageRegionWriter,
         BlockManager blockManager,
         BrfsCatalog brfsCatalog,
-        WriteStatCollector writeStatCollector) {
+        WriteStatCollector writeStatCollector,
+        CuratorFramework client) {
         this.writeCollector = writeStatCollector;
         this.clusterConfig = clusterConfig;
         this.serviceManager = serviceManager;
@@ -90,6 +93,7 @@ public class DataResource {
         this.storageRegionWriter = storageRegionWriter;
         this.blockManager = blockManager;
         this.brfsCatalog = brfsCatalog;
+        this.client = client;
 
     }
 
@@ -290,7 +294,7 @@ public class DataResource {
 
         List<Service> serviceList = serviceManager.getServiceListByGroup(clusterConfig.getDataNodeGroup());
         ReturnCode code =
-            TasksUtils.createUserDeleteTask(serviceList, zkPaths, storageRegion, startTimestamp, endTimeStamp, false);
+            TasksUtils.createUserDeleteTask(client, serviceList, zkPaths, storageRegion, startTimestamp, endTimeStamp, false);
         LOG.info("create user delete task status{}", code.name());
         if (ReturnCode.SUCCESS.equals(code)) {
             return Response.ok().build();

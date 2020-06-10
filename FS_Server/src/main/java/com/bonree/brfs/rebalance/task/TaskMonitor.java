@@ -1,8 +1,8 @@
 package com.bonree.brfs.rebalance.task;
 
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import java.util.List;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 
 /*******************************************************************************
@@ -25,18 +25,18 @@ public class TaskMonitor {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public double getTaskProgress(CuratorClient client, String taskPath) {
+    public double getTaskProgress(CuratorFramework client, String taskPath) throws Exception {
         double process = 0.0;
         int curent = 0;
         int total = 0;
-        if (!client.checkExists(taskPath)) {
+        if (client.checkExists().forPath(taskPath) == null) {
             return process;
         }
-        List<String> joiners = client.getChildren(taskPath);
+        List<String> joiners = client.getChildren().forPath(taskPath);
         if (joiners != null && !joiners.isEmpty()) {
             for (String joiner : joiners) {
                 String joinerPath = ZKPaths.makePath(taskPath, joiner);
-                byte[] data = client.getData(joinerPath);
+                byte[] data = client.getData().forPath(joinerPath);
                 TaskDetail detail = JsonUtils.toObjectQuietly(data, TaskDetail.class);
                 curent += detail.getCurentCount();
                 total += detail.getTotalDirectories();

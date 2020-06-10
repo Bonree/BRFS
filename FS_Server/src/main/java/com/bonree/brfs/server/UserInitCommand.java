@@ -17,13 +17,15 @@ package com.bonree.brfs.server;
 import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.authentication.model.UserModel;
 import com.bonree.brfs.common.ZookeeperPaths;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.units.CommonConfigs;
 import io.airlift.airline.Command;
 import java.util.Scanner;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.RetryNTimes;
 
 @Command(
     name = "init",
@@ -36,10 +38,12 @@ public class UserInitCommand implements Runnable {
 
         try {
             String zkAddresses = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_ZOOKEEPER_ADDRESSES);
-            CuratorClient client = CuratorClient.getClientInstance(zkAddresses);
+            CuratorFramework curatorFramework = CuratorFrameworkFactory.newClient(zkAddresses, new RetryNTimes(30, 1000));
+            curatorFramework.start();
+            curatorFramework.blockUntilConnected();
             ZookeeperPaths zookeeperPaths = ZookeeperPaths
-                .create(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_CLUSTER_NAME), client.getInnerClient());
-            CuratorCacheFactory.init(client.getInnerClient());
+                .create(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_CLUSTER_NAME), curatorFramework);
+            CuratorCacheFactory.init(curatorFramework);
             String passwd = null;
             Scanner sc = new Scanner(System.in);
             Thread.sleep(500);
@@ -57,7 +61,7 @@ public class UserInitCommand implements Runnable {
             }
 
             SimpleAuthentication authentication =
-                SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseLocksPath(), client.getInnerClient());
+                SimpleAuthentication.getAuthInstance(zookeeperPaths.getBaseLocksPath(), curatorFramework);
             authentication.init(zookeeperPaths.getBaseUserPath());
             UserModel user = new UserModel("root", passwd, (byte) 0);
             authentication.createUser(user);
