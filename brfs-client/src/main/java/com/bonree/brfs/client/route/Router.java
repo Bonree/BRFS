@@ -120,7 +120,7 @@ public class Router {
         }
 
         NormalRouterNode normalUpdate;
-        while ((normalUpdate = normalMapper.get(serverId)) != null) {
+        while ((normalUpdate = normalMapper.get(secondId)) != null) {
             secondId = RouteAnalysis.analysisNormal(code, secondId, secondServerIdList, normalUpdate);
         }
 
