@@ -1,11 +1,11 @@
 package com.bonree.brfs.common.zookeeper.curator.cache;
 
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,18 +16,18 @@ public class CuratorPathCache {
 
     private Map<String, PathChildrenCache> cacheMap = null;
 
-    private CuratorClient client = null;
+    private CuratorFramework zkClient;
 
-    CuratorPathCache(CuratorClient client) {
-        this.client = client;
+    CuratorPathCache(CuratorFramework zkClient) {
         cacheMap = new ConcurrentHashMap<String, PathChildrenCache>();
+        this.zkClient = zkClient;
     }
 
     public void addListener(String path, AbstractPathChildrenCacheListener listener) {
         LOG.info("add listener for path:" + path);
         PathChildrenCache cache = cacheMap.get(path);
         if (cache == null) {
-            cache = new PathChildrenCache(client.getInnerClient(), path, true,
+            cache = new PathChildrenCache(zkClient, path, true,
                                           new ThreadFactoryBuilder().setNameFormat(new File(path).getName()).build());
             cacheMap.put(path, cache);
             startCache(path);

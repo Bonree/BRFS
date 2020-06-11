@@ -5,17 +5,16 @@ import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
+import org.apache.zookeeper.CreateMode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,7 +31,6 @@ import org.junit.Test;
 public class SimpleRouteZKLoaderTest {
     public static String ZK_ADDRESS = "192.168.101.87:2181";
     private static String resourcePath = SimpleRouteZKLoaderTest.class.getResource("/Routes/ZookeeperRoute").getPath();
-    private static CuratorClient zkClient = null;
     private static String V1_ARRAY = "V1Array.json";
     private static String V2_ARRAY = "V2Array.json";
     private static String MUL_ARRAY = "MULArray.json";
@@ -53,24 +51,23 @@ public class SimpleRouteZKLoaderTest {
 
     public void load() {
         //1. 初始化zk客户端
-        zkClient = CuratorClient.getClientInstance(ZK_ADDRESS);
         client = CuratorFrameworkFactory.newClient(ZK_ADDRESS, new RetryNTimes(10, 1000));
         try {
             client.start();
-            zkClient.blockUntilConnected(10, TimeUnit.SECONDS);
             client.blockUntilConnected();
-        } catch (InterruptedException e) {
+            // 2.创建虚拟路由规则
+            createZkVirtualRouteData(client, V1_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
+            createZkVirtualRouteData(client, V2_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
+            createZkVirtualRouteData(client, MUL_VERSION_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
+            // 3. 创建V1版本的路由规则
+            createZkNormalData(client, V1_ROUTE_BAS_PATH, V1_ARRAY);
+            createZkNormalData(client, V2_ROUTE_BAS_PATH, V2_ARRAY);
+            createZkNormalData(client, MUL_VERSION_ROUTE_BAS_PATH, MUL_ARRAY);
+        } catch (Exception e) {
             Assert.fail("zookeeper is invaild ! address: " + ZK_ADDRESS);
         }
-        // 2.创建虚拟路由规则
-        createZkVirtualRouteData(zkClient, V1_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
-        createZkVirtualRouteData(zkClient, V2_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
-        createZkVirtualRouteData(zkClient, MUL_VERSION_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
-        // 3. 创建V1版本的路由规则
-        createZkNormalData(zkClient, V1_ROUTE_BAS_PATH, V1_ARRAY);
-        createZkNormalData(zkClient, V2_ROUTE_BAS_PATH, V2_ARRAY);
-        createZkNormalData(zkClient, MUL_VERSION_ROUTE_BAS_PATH, MUL_ARRAY);
     }
+
 
     /**
      * 在zookeeper 创建路由规则
@@ -79,9 +76,12 @@ public class SimpleRouteZKLoaderTest {
      * @param zkNode
      * @param fileName
      */
-    public void createZkNormalData(CuratorClient client, String zkNode, String fileName) {
-        if (!client.checkExists(zkNode)) {
-            client.createPersistent(zkNode, true);
+    public void createZkNormalData(CuratorFramework client, String zkNode, String fileName) throws Exception {
+        if (client.checkExists().forPath(zkNode) == null) {
+            client.create()
+                  .creatingParentsIfNeeded()
+                  .withMode(CreateMode.PERSISTENT)
+                  .forPath(zkNode);
         }
         List<SuperNormalRoute> routes = readNormalRoute(fileName);
         int srId = -1;
@@ -92,8 +92,11 @@ public class SimpleRouteZKLoaderTest {
             changeID = route.getChangeID();
             nznode = zkNode + Constants.SEPARATOR + Constants.NORMAL_ROUTE + Constants.SEPARATOR + srId + Constants.SEPARATOR
                 + changeID;
-            if (!client.checkExists(nznode)) {
-                client.createPersistent(nznode, true, JsonUtils.toJsonBytesQuietly(route));
+            if (client.checkExists().forPath(nznode) == null) {
+                client.create()
+                      .creatingParentsIfNeeded()
+                      .withMode(CreateMode.PERSISTENT)
+                      .forPath(nznode, JsonUtils.toJsonBytesQuietly(route));
             }
         }
     }
@@ -105,9 +108,12 @@ public class SimpleRouteZKLoaderTest {
      * @param zkNode
      * @param fileName
      */
-    public void createZkVirtualRouteData(CuratorClient client, String zkNode, String fileName) {
-        if (!client.checkExists(zkNode)) {
-            client.createPersistent(zkNode, true);
+    public void createZkVirtualRouteData(CuratorFramework client, String zkNode, String fileName) throws Exception {
+        if (client.checkExists().forPath(zkNode) == null) {
+            client.create()
+                  .creatingParentsIfNeeded()
+                  .withMode(CreateMode.PERSISTENT)
+                  .forPath(zkNode);
         }
         List<VirtualRoute> routes = readVirtualRoute(fileName);
         int srId = -1;
@@ -118,8 +124,11 @@ public class SimpleRouteZKLoaderTest {
             changeID = route.getChangeID();
             nznode = zkNode + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE + Constants.SEPARATOR + srId + Constants.SEPARATOR
                 + changeID;
-            if (!client.checkExists(nznode)) {
-                client.createPersistent(nznode, true, JsonUtils.toJsonBytesQuietly(route));
+            if (client.checkExists().forPath(nznode) == null) {
+                client.create()
+                      .creatingParentsIfNeeded()
+                      .withMode(CreateMode.PERSISTENT)
+                      .forPath(nznode, JsonUtils.toJsonBytesQuietly(route));
             }
         }
     }
@@ -225,9 +234,6 @@ public class SimpleRouteZKLoaderTest {
 
     @After
     public void close() {
-        if (zkClient != null) {
-            zkClient.close();
-        }
         if (client != null) {
             client.close();
         }

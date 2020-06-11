@@ -31,6 +31,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ public class LegacyStorageRegionResouce {
 
     private final ZookeeperPaths zkPaths;
     private final RocksDBManager rocksDBManager;
+    private final CuratorFramework client;
 
     @Inject
     public LegacyStorageRegionResouce(
@@ -52,12 +54,14 @@ public class LegacyStorageRegionResouce {
         StorageRegionManager storageRegionManager,
         ServiceManager serviceManager,
         ZookeeperPaths zkPaths,
-        RocksDBManager rocksDBManager) {
+        RocksDBManager rocksDBManager,
+        CuratorFramework client) {
         this.clusterConfig = clusterConfig;
         this.storageRegionManager = storageRegionManager;
         this.serviceManager = serviceManager;
         this.zkPaths = zkPaths;
         this.rocksDBManager = rocksDBManager;
+        this.client = client;
     }
 
     @PUT
@@ -69,8 +73,8 @@ public class LegacyStorageRegionResouce {
         @Context UriInfo uriInfo) {
         if (storageRegionManager.exists(name)) {
             return Response.status(Status.CONFLICT)
-                .entity(StringUtils.format("Storage Region[%s] has been existed", name))
-                .build();
+                           .entity(StringUtils.format("Storage Region[%s] has been existed", name))
+                           .build();
         }
 
         Properties properties = new Properties();
@@ -144,6 +148,7 @@ public class LegacyStorageRegionResouce {
 
         List<Service> services = serviceManager.getServiceListByGroup(clusterConfig.getDataNodeGroup());
         ReturnCode code = TasksUtils.createUserDeleteTask(
+            client,
             services,
             zkPaths,
             region,
@@ -153,8 +158,8 @@ public class LegacyStorageRegionResouce {
         log.info("create user delete task status{}", code.name());
         if (!ReturnCode.SUCCESS.equals(code)) {
             return Response.serverError()
-                .entity(BrStringUtils.toUtf8Bytes(code.name()))
-                .build();
+                           .entity(BrStringUtils.toUtf8Bytes(code.name()))
+                           .build();
         }
 
         try {
@@ -167,7 +172,7 @@ public class LegacyStorageRegionResouce {
         }
 
         return Response.serverError()
-            .entity(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()))
-            .build();
+                       .entity(BrStringUtils.toUtf8Bytes(ReturnCode.STORAGE_REMOVE_ERROR.name()))
+                       .build();
     }
 }

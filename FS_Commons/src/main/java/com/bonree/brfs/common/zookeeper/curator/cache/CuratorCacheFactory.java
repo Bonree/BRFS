@@ -1,6 +1,5 @@
 package com.bonree.brfs.common.zookeeper.curator.cache;
 
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.google.common.base.Preconditions;
 import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
@@ -25,11 +24,11 @@ public class CuratorCacheFactory {
 
     private static volatile CuratorPathCache pathCache = null;
 
-    private static CuratorClient client = null;
+    private static CuratorFramework zkClient;
 
     @Inject
     public static void init(CuratorFramework framework) {
-        client = CuratorClient.wrapClient(framework);
+        zkClient = framework;
     }
 
     public static CuratorTreeCache getTreeCache() {
@@ -37,7 +36,7 @@ public class CuratorCacheFactory {
         if (treeCache == null) {
             synchronized (CuratorTreeCache.class) {
                 if (treeCache == null) {
-                    treeCache = new CuratorTreeCache(Preconditions.checkNotNull(client, "CuratorCacheFactory is not init!!!"));
+                    treeCache = new CuratorTreeCache(Preconditions.checkNotNull(zkClient, "CuratorCacheFactory is not init!!!"));
                 }
             }
         }
@@ -49,7 +48,7 @@ public class CuratorCacheFactory {
         if (pathCache == null) {
             synchronized (CuratorPathCache.class) {
                 if (pathCache == null) {
-                    pathCache = new CuratorPathCache(Preconditions.checkNotNull(client, "CuratorCacheFactory is not init!!!"));
+                    pathCache = new CuratorPathCache(Preconditions.checkNotNull(zkClient, "CuratorCacheFactory is not init!!!"));
                 }
             }
         }
@@ -61,7 +60,7 @@ public class CuratorCacheFactory {
         if (nodeCache == null) {
             synchronized (CuratorNodeCache.class) {
                 if (nodeCache == null) {
-                    nodeCache = new CuratorNodeCache(Preconditions.checkNotNull(client, "CuratorCacheFactory is not init!!!"));
+                    nodeCache = new CuratorNodeCache(Preconditions.checkNotNull(zkClient, "CuratorCacheFactory is not init!!!"));
                 }
             }
         }

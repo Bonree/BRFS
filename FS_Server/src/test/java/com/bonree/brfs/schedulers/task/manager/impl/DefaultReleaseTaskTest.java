@@ -6,6 +6,9 @@ import com.bonree.brfs.schedulers.task.model.TaskModel;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
 import com.bonree.brfs.schedulers.utils.TasksUtils;
 import java.util.Arrays;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.RetryNTimes;
 import org.junit.Test;
 
 public class DefaultReleaseTaskTest {
@@ -14,8 +17,11 @@ public class DefaultReleaseTaskTest {
     String taskLocl = "/release/task/lock";
 
     @Test
-    public void testStart() {
-        DefaultReleaseTask releaseTask = new DefaultReleaseTask(zkAddress, taskRoot, taskLocl);
+    public void testStart() throws Exception {
+        CuratorFramework client = CuratorFrameworkFactory.newClient(zkAddress, new RetryNTimes(10, 1000));
+        client.start();
+        client.blockUntilConnected();
+        DefaultReleaseTask releaseTask = new DefaultReleaseTask(client, taskRoot);
         StorageRegion region =
             new StorageRegion("user", 0, System.currentTimeMillis() - 1000000, false, 2, "PT10M", 100, "PT10M");
         TaskModel taskModel =

@@ -4,7 +4,6 @@ import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.rebalance.route.impl.SuperNormalRoute;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
@@ -16,6 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
+import org.apache.zookeeper.CreateMode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,8 +42,6 @@ public class RouteParserTest {
     private static CuratorFramework client = null;
     private static int SR_ID = 0;
 
-    private static CuratorClient zkClient = null;
-
     /**
      * 检查测试资源是否存在，若不存在，则测试失败
      */
@@ -54,23 +52,17 @@ public class RouteParserTest {
 
     public void load() {
         //1. 初始化zk客户端
-        zkClient = CuratorClient.getClientInstance(ZK_ADDRESS);
         client = CuratorFrameworkFactory.newClient(ZK_ADDRESS, new RetryNTimes(10, 1000));
         try {
             client.start();
             client.blockUntilConnected();
-            zkClient.blockUntilConnected(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
+            createZkNormalData(client, V1_ROUTE_BAS_PATH, V1_ARRAY);
+            createZkNormalData(client, V2_ROUTE_BAS_PATH, V2_ARRAY);
+            createZkVirtualRouteData(client, V1_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
+            createZkVirtualRouteData(client, V2_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
+        } catch (Exception e) {
             Assert.fail("zookeeper is invaild ! address: " + ZK_ADDRESS);
         }
-        // 2.创建虚拟路由规则
-        createZkVirtualRouteData(zkClient, V1_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
-        createZkVirtualRouteData(zkClient, V2_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
-        createZkVirtualRouteData(zkClient, MUL_VERSION_ROUTE_BAS_PATH, VIRTUAL_ARRAY);
-        // 3. 创建V1版本的路由规则
-        createZkNormalData(zkClient, V1_ROUTE_BAS_PATH, V1_ARRAY);
-        createZkNormalData(zkClient, V2_ROUTE_BAS_PATH, V2_ARRAY);
-        createZkNormalData(zkClient, MUL_VERSION_ROUTE_BAS_PATH, MUL_ARRAY);
     }
 
     /**
@@ -80,9 +72,12 @@ public class RouteParserTest {
      * @param zkNode
      * @param fileName
      */
-    public void createZkNormalData(CuratorClient client, String zkNode, String fileName) {
-        if (!client.checkExists(zkNode)) {
-            client.createPersistent(zkNode, true);
+    public void createZkNormalData(CuratorFramework client, String zkNode, String fileName) throws Exception {
+        if (client.checkExists().forPath(zkNode) == null) {
+            client.create()
+                  .creatingParentsIfNeeded()
+                  .withMode(CreateMode.PERSISTENT)
+                  .forPath(zkNode);
         }
         List<SuperNormalRoute> routes = readNormalRoute(fileName);
         int srId = -1;
@@ -93,8 +88,11 @@ public class RouteParserTest {
             changeID = route.getChangeID();
             nznode = zkNode + Constants.SEPARATOR + Constants.NORMAL_ROUTE + Constants.SEPARATOR + srId + Constants.SEPARATOR
                 + changeID;
-            if (!client.checkExists(nznode)) {
-                client.createPersistent(nznode, true, JsonUtils.toJsonBytesQuietly(route));
+            if (client.checkExists().forPath(nznode) == null) {
+                client.create()
+                      .creatingParentsIfNeeded()
+                      .withMode(CreateMode.PERSISTENT)
+                      .forPath(nznode, JsonUtils.toJsonBytesQuietly(route));
             }
         }
     }
@@ -106,9 +104,12 @@ public class RouteParserTest {
      * @param zkNode
      * @param fileName
      */
-    public void createZkVirtualRouteData(CuratorClient client, String zkNode, String fileName) {
-        if (!client.checkExists(zkNode)) {
-            client.createPersistent(zkNode, true);
+    public void createZkVirtualRouteData(CuratorFramework client, String zkNode, String fileName) throws Exception {
+        if (client.checkExists().forPath(zkNode) == null) {
+            client.create()
+                  .creatingParentsIfNeeded()
+                  .withMode(CreateMode.PERSISTENT)
+                  .forPath(zkNode);
         }
         List<VirtualRoute> routes = readVirtualRoute(fileName);
         int srId = -1;
@@ -119,8 +120,11 @@ public class RouteParserTest {
             changeID = route.getChangeID();
             nznode = zkNode + Constants.SEPARATOR + Constants.VIRTUAL_ROUTE + Constants.SEPARATOR + srId + Constants.SEPARATOR
                 + changeID;
-            if (!client.checkExists(nznode)) {
-                client.createPersistent(nznode, true, JsonUtils.toJsonBytesQuietly(route));
+            if (client.checkExists().forPath(nznode) == null) {
+                client.create()
+                      .creatingParentsIfNeeded()
+                      .withMode(CreateMode.PERSISTENT)
+                      .forPath(nznode, JsonUtils.toJsonBytesQuietly(route));
             }
         }
     }
@@ -248,21 +252,15 @@ public class RouteParserTest {
 
     @Test
     public void analysisV2Route02() throws Exception {
-        String fileName = "a3b1013cb7b04462942a1ee0a9105b31_21_20";
+        String fileName = "e7c57a73a551483798b273695b4f5725_23_32";
         CuratorFramework client = CuratorFrameworkFactory
             .newClient("192.168.150.236:2181", new RetryNTimes(50, 1000));
         client.start();
         client.blockUntilConnected();
         RouteLoader loader = new SimpleRouteZKLoader(client, "/brfs/idea/routeSet");
-        RouteParser parser = new RouteParser(0, loader);
+        RouteParser parser = new RouteParser(2, loader);
         String[] array = parser.searchVaildIds(fileName);
         System.out.println(Arrays.asList(array));
     }
 
-    @After
-    public void close() {
-        if (zkClient != null) {
-            zkClient.close();
-        }
-    }
 }

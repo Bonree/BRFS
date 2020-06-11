@@ -18,5 +18,5 @@ public interface DataRecover {
         VIRTUAL, NORMAL
     }
 
-    void recover();
+    void recover()throws Exception;
 }

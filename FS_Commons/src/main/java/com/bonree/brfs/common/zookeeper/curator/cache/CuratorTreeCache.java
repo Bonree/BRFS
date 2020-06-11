@@ -1,8 +1,8 @@
 package com.bonree.brfs.common.zookeeper.curator.cache;
 
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.slf4j.Logger;
@@ -14,10 +14,10 @@ public class CuratorTreeCache {
 
     private Map<String, TreeCache> cacheMap = null;
 
-    private CuratorClient client = null;
+    private CuratorFramework zkClient = null;
 
-    CuratorTreeCache(CuratorClient client) {
-        this.client = client;
+    CuratorTreeCache(CuratorFramework zkClient) {
+        this.zkClient = zkClient;
         cacheMap = new ConcurrentHashMap<String, TreeCache>();
     }
 
@@ -25,7 +25,7 @@ public class CuratorTreeCache {
         LOG.info("add listener for tree:" + path);
         TreeCache cache = cacheMap.get(path);
         if (cache == null) {
-            cache = new TreeCache(client.getInnerClient(), path);
+            cache = new TreeCache(zkClient, path);
             cacheMap.put(path, cache);
             startCache(path);
         }

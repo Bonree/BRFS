@@ -50,7 +50,6 @@ public class Main {
                .withCommands(serverCommands);
 
         List<Class<? extends Runnable>> toolCommands = Arrays.asList(
-            UserInitCommand.class,
             MetadataRestoreCommand.class
         );
 

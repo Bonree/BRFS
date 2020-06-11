@@ -7,7 +7,6 @@ import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
@@ -88,7 +87,6 @@ public class TaskModule implements Module {
         ServiceManager sm,
         StorageRegionManager snm,
         IDSManager sim,
-        CuratorFramework client,
         Service localServer,
         DiskDaemon diskDaemon,
         RebalanceTaskMonitor taskMonitor,
@@ -99,7 +97,6 @@ public class TaskModule implements Module {
         RunnableTaskInterface run) throws Exception {
         managerConfig.printDetail();
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-        mcf.setClient(CuratorClient.wrapClient(client));
         mcf.setTm(release);
         mcf.setRt(run);
         mcf.setZkPath(zkPath);

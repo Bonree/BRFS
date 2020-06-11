@@ -3,7 +3,6 @@ package com.bonree.brfs.schedulers;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
@@ -40,7 +39,6 @@ public class ManagerContralFactory {
      */
     private List<TaskType> taskOn = new ArrayList<TaskType>();
     private ZookeeperPaths zkPath = null;
-    private CuratorClient client = null;
     private LimitServerResource limitServerResource;
     // TODO: 4/14/20 没有赋值操作
     private RouteCache routeCache;
@@ -150,13 +148,6 @@ public class ManagerContralFactory {
         this.zkPath = zkPath;
     }
 
-    public CuratorClient getClient() {
-        return client;
-    }
-
-    public void setClient(CuratorClient client) {
-        this.client = client;
-    }
 
     public LimitServerResource getLimitServerResource() {
         return limitServerResource;

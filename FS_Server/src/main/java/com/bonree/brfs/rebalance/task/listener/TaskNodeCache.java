@@ -1,22 +1,22 @@
 package com.bonree.brfs.rebalance.task.listener;
 
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorClient;
 import com.bonree.brfs.rebalance.task.BalanceTaskSummary;
 import com.bonree.brfs.rebalance.task.TaskStatus;
 import java.util.concurrent.atomic.AtomicReference;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TaskNodeCache implements NodeCacheListener {
     private Logger log;
-    private CuratorClient client;
+    private CuratorFramework client;
     private String taskNode;
     private BalanceTaskSummary currentTask;
     private AtomicReference<TaskStatus> status;
 
-    public TaskNodeCache(BalanceTaskSummary currentTask, CuratorClient client, String taskNode) {
+    public TaskNodeCache(BalanceTaskSummary currentTask, CuratorFramework client, String taskNode) {
         this.log = LoggerFactory.getLogger(currentTask.getTaskType().name());
         this.client = client;
         this.taskNode = taskNode;
@@ -26,9 +26,9 @@ public class TaskNodeCache implements NodeCacheListener {
 
     @Override
     public void nodeChanged() throws Exception {
-        if (client.checkExists(taskNode)) {
+        if (client.checkExists().forPath(taskNode) != null) {
             try {
-                byte[] data = client.getData(taskNode);
+                byte[] data = client.getData().forPath(taskNode);
                 BalanceTaskSummary bts = JsonUtils.toObject(data, BalanceTaskSummary.class);
                 String newID = bts.getId();
                 String currentID = currentTask.getId();

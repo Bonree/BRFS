@@ -109,16 +109,6 @@ public interface MetaTaskManagerInterface {
      */
     String getLastSuccessTaskIndex(String taskType, String serverId);
 
-
-    /**
-     * 概述：判断是否初始化
-     *
-     * @return
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    boolean isInit();
-
     /**
      * 概述：维护任务数据状态，包括删除及任务状态校验
      *
