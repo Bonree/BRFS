@@ -114,14 +114,14 @@ public class PartitionGather implements LifeCycle {
                 }
                 try {
                     if (PartitionType.EXCEPTION.equals(elePart.getType())) {
-                        if (count < 10) {
-                            partition = packageExceptionPartition(elePart);
-                            register.registerPartitionInfo(partition);
-                            LOG.info("register invalid partitionId {},", elePart.getPartitionId());
-                        } else if (count == 10) {
-                            register.unregisterPartitionInfo(elePart.getPartitionGroup(), elePart.getPartitionId());
-                            LOG.info("remove invalid partitionId {},", elePart.getPartitionId());
-                        }
+                        // if (count <= 0) {
+                        //     partition = packageExceptionPartition(elePart);
+                        //     register.registerPartitionInfo(partition);
+                        //     LOG.info("register invalid partitionId {},", elePart.getPartitionId());
+                        // } else if (count == 10) {
+                        //     register.unregisterPartitionInfo(elePart.getPartitionGroup(), elePart.getPartitionId());
+                        //     LOG.info("remove invalid partitionId {},", elePart.getPartitionId());
+                        // }
                         continue;
                     }
                     fs = gather.collectSinglePartitionStats(elePart.getDataDir());
@@ -139,6 +139,7 @@ public class PartitionGather implements LifeCycle {
                         if (listener != null) {
                             listener.remove(elePart);
                         }
+                        LOG.info("remove invalid partitionId {},", elePart.getPartitionId());
                     }
                 } catch (Exception e) {
                     LOG.error("check partition happen error !!{}", elePart.getDataDir(), e);

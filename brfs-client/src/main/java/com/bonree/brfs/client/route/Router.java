@@ -104,7 +104,7 @@ public class Router {
         List<String> secondServerIdList,
         Map<String, NormalRouterNode> normalMapper,
         Map<String, VirtualRouterNode> virtualMapper) {
-        String secondId = null;
+        String secondId = serverId;
         if (serverId.startsWith("3")) {
             //virtual id
             VirtualRouterNode update = virtualMapper.get(serverId);
@@ -120,7 +120,7 @@ public class Router {
         }
 
         NormalRouterNode normalUpdate;
-        while ((normalUpdate = normalMapper.get(serverId)) != null) {
+        while ((normalUpdate = normalMapper.get(secondId)) != null) {
             secondId = RouteAnalysis.analysisNormal(code, secondId, secondServerIdList, normalUpdate);
         }
 

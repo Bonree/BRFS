@@ -31,7 +31,7 @@ public final class RouteAnalysis {
             return secondId;
         }
 
-        List<String> selector = filterService(map.keySet(), services, routerNode);
+        List<String> selector = filterService(map.keySet(), services, secondId, routerNode);
         if (selector == null || selector.isEmpty()) {
             return secondId;
         }
@@ -55,7 +55,7 @@ public final class RouteAnalysis {
      * @return
      */
     private static List<String> filterService(
-        Collection<String> newSecondIDs, Collection<String> services, NormalRouterNode node) {
+        Collection<String> newSecondIDs, Collection<String> services, String baseSecond, NormalRouterNode node) {
         List<String> selectors = new ArrayList<>();
         Collection<String> cahce = new HashSet<>();
         if (services != null) {
@@ -69,7 +69,9 @@ public final class RouteAnalysis {
                 if (tmp == null) {
                     return;
                 }
-                cahce.addAll(tmp);
+                if (!tmp.contains(baseSecond)) {
+                    cahce.addAll(tmp);
+                }
             });
         }
         // 1.过滤掉已经使用的service
