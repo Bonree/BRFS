@@ -60,7 +60,7 @@ regionnode.httpserver.port = 8100
 regionnode.block.size = 16777216
 
 # blockpool的最大值
-regionnode.block.pool.capacity = 5
+regionnode.block.pool.capacity = 3
 
 # blockpool的初始值
 regionnode.block.pool.init.count = 1
@@ -207,12 +207,3 @@ rocksdb.target.file.size.base = 256
 # L1的总大小，L1的大小建议设置成和L0大小一致，提升L0->L1的compaction效率，单位MB
 rocksdb.max.bytes.level.base = 2048
 
-
-# 写数据时的blocksize，最好与dn的文件块大小一致
-regionnode.block.size = 65536
-
-# blockpool的最大值
-regionnode.block.pool.capacity = 10
-
-# blockpool的初始值
-regionnode.block.pool.init.count = 1
