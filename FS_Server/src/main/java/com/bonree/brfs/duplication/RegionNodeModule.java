@@ -16,7 +16,6 @@ package com.bonree.brfs.duplication;
 
 import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
 
-import com.bonree.brfs.authentication.SimpleAuthentication;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.http.HttpServerConfig;
@@ -137,7 +136,6 @@ public class RegionNodeModule implements Module {
 
         jaxrs(binder).resource(LegacyDataResource.class);
 
-        LifecycleModule.register(binder, SimpleAuthentication.class);
         LifecycleModule.register(binder, MetadataBackupServer.class);
 
         binder.requestStaticInjection(CuratorCacheFactory.class);

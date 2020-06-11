@@ -14,7 +14,6 @@
 
 package com.bonree.brfs.server;
 
-import com.bonree.brfs.authentication.SimpleAuthenticationModule;
 import com.bonree.brfs.common.plugin.NodeType;
 import com.bonree.brfs.disknode.DataNodeIDModule;
 import com.bonree.brfs.disknode.DataNodeModule;
@@ -42,7 +41,6 @@ public class DataNodeCommand extends BaseCommand {
     protected List<Module> getModules() {
         return ImmutableList.of(
             new EmailModule().withNodeType(getNodeType()),
-            new SimpleAuthenticationModule(),
             new DataNodeModule(),
             new DataNodeIDModule(),
             new TaskModule());

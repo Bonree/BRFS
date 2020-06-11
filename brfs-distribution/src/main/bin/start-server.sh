@@ -29,13 +29,6 @@ case $1 in
   data)
     NODE_TYPE=datanode
   ;;
-  init)
-    java -Dbrfs.home=${BRFS_HOME} \
-            -Dconfiguration.file=${BRFS_HOME}/config/regionnode/server.properties \
-            -cp $LIB_DIR/*:${BRFS_HOME}/config/regionnode "com.bonree.brfs.server.Main" tools init
-    echo "init process completed!"
-    exit
-  ;;
   restore)
     java -Dbrfs.home=${BRFS_HOME} \
             -Dconfiguration.file=${BRFS_HOME}/config/regionnode/server.properties \

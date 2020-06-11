@@ -14,7 +14,6 @@
 
 package com.bonree.brfs.server;
 
-import com.bonree.brfs.authentication.SimpleAuthenticationModule;
 import com.bonree.brfs.common.plugin.NodeType;
 import com.bonree.brfs.duplication.RegionIDModule;
 import com.bonree.brfs.duplication.RegionNodeModule;
@@ -42,7 +41,6 @@ public class RegionNodeCommand extends BaseCommand {
     protected List<Module> getModules() {
         return ImmutableList.of(
             new EmailModule().withNodeType(getNodeType()),
-            new SimpleAuthenticationModule(),
             new StorageRegionModule(),
             new RegionNodeModule(),
             new RegionIDModule());
