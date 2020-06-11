@@ -142,7 +142,7 @@ case ${NODE_TYPE} in
 
 			if [ x$region_pid != 'x' ]; then
 			  echo $region_pid > ${PID_FILE}
-			  echo "region node starts with pid[$data_pid]!"
+			  echo "region node starts with pid[$region_pid]!"
 			else
 			  echo 'region node starts ERROR!'
 			fi
