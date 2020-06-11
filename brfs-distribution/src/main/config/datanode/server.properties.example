@@ -54,6 +54,7 @@ datanode.service.host = 192.168.150.103
 # datanode.task.queue.num=32
 
 # datanode处理message的线程池的阻塞队列
+# 默认为机器CPU核数
 # message.handler.queue.limit=16
 
 
@@ -69,9 +70,11 @@ datanode.service.host = 192.168.150.103
 # datanode.file.idle.time = PT3S
 
 # datanode中用于处理Http请求的线程数
+# 默认为机器CPU核数
 # datanode.request.handler.num = 16
 
 # datanode中进行文件读取的线程数
+# 默认为机器CPU核数
 # datanode.file.reader.num = 16
 
 # datanode 一级serverid存储目录，内部配置
@@ -149,6 +152,12 @@ datanode.service.host = 192.168.150.103
 ##############资源管理模块 Config################
 ###############################################
 #资源采集
+
+# 资源采集开关 默认开启
+datanode.resource.switch=true
+
+# 资源采集的时间间隔 单位 秒 默认10s
+datanode.resource.interval.seconds=10
 
 # 资源选择的比值大小
 # resource.cent.size=1000
