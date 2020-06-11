@@ -3,7 +3,7 @@
 ###############################################
 
 # 机器集群名
-cluster.name = cluster_name
+# cluster.name = brfs
 
 # Zookeeper地址
 zookeeper.addresses = localhost:2181
@@ -17,12 +17,6 @@ zookeeper.addresses = localhost:2181
 # 插件配置
 brfs.plugins.loadList = ["brfs-resource"]
 
-###############################################
-###############http-server配置####################
-###############################################
-
-# 用于gui采集数据的服务端口
-# datanode.httpserver.port = 18002
 
 ###############################################
 ###############磁盘分区配置####################
@@ -37,8 +31,8 @@ brfs.plugins.loadList = ["brfs-resource"]
 ###############################################
 ##############Data Node Config###################
 ###############################################
-# datanode的服务地址
-# datanode.service.host = 192.168.150.103
+# datanode的服务地址,必须配本机ip
+datanode.service.host = 192.168.150.103
 
 # datanode的服务端口
 # datanode.service.port = 8881
@@ -60,7 +54,7 @@ brfs.plugins.loadList = ["brfs-resource"]
 # datanode.task.queue.num=32
 
 # datanode处理message的线程池的阻塞队列
-message.handler.queue.limit=16
+# message.handler.queue.limit=16
 
 
 # 数据文件的写入缓存
@@ -164,7 +158,7 @@ message.handler.queue.limit=16
 
 # 资源磁盘剩余限制值，当分区剩余量低于该值，则不会参与写入服务选择， 单位kb
 # limit.resource.value.force.disk.remain.size=10485760
-#资源磁盘剩余告警值，当分区剩余大小低于该值，则会发送邮件告警，单位KB
+# 资源磁盘剩余告警值，当分区剩余大小低于该值，则会发送邮件告警，单位KB
 # limit.resource.value.disk.remain.size=20971520
 # 资源限制 磁盘写入率
 # limit.resource.value.disk.write.speed.rate = 0.9
@@ -241,32 +235,22 @@ message.handler.queue.limit=16
 # deliver.table.reader=brfs_reader_metric
 
 ###############################################
-##############Resource config##################
+##############  gui config   ##################
 ###############################################
 
 
 # GUI 资源采集任务开关 默认关闭
-datanode.gui.switch=false
+# datanode.gui.switch=false
 
 # GUI资源采集任务的时间间隔 单位秒，默认60s
-datanode.gui.interval.seconds=10
+# datanode.gui.interval.seconds=10
 
 # GUI资源文件定时扫描的时间 单位秒，默认60s
-datanode.gui.maintain.interval.seconds=10
+# datanode.gui.maintain.interval.seconds=10
 
 # GUI资源文件的过期时间，单位秒，默认为7*24*60*60
-datanode.gui.maintain.interval.seconds=1000
+# datanode.gui.maintain.interval.seconds=1000
 
-# 资源采集开关 默认开启
-datanode.resource.switch=true
-
-# 资源采集的时间间隔 单位 秒 默认10s
-datanode.resource.interval.seconds=10
-
-
-# 系统校验任务开关
-system.check.pool.switch = false
-
-# 系统副本恢复任务开关
-system.recovery.pool.switch = false
+# 用于gui采集数据的服务端口
+# datanode.httpserver.port = 18002
 

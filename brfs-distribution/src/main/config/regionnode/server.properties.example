@@ -3,7 +3,7 @@
 ###############################################
 
 # 机器集群名
-cluster.name = cluster_name
+# cluster.name = brfs
 
 # Zookeeper地址
 zookeeper.addresses = localhost:2181
@@ -157,53 +157,53 @@ regionnode.file.closer.thead_num=8
 ###############################################
 
 # rocksdb存储自定义文件名和FID的磁盘路径
-rocksdb.storage.path = /tmp/rocksdb
+# rocksdb.storage.path = /tmp/rocksdb
 
 # rocksdb的数据备份磁盘路径
-rocksdb.backup.path = /tmp/rocksdb_backup
+# rocksdb.backup.path = /tmp/rocksdb_backup
 
 # rocksdb用于接收其他节点的备份文件的恢复目录
-rocksdb.restore.path = /tmp/rocksdb_restore
+#rocksdb.restore.path = /tmp/rocksdb_restore
 
 # rocksdb用于临时数据恢复的目录，恢复完成后，将数据迁移到rocksdb.storage.path
-rocksdb.restore.temporary.path = /tmp/rocksdb_temporary
+# rocksdb.restore.temporary.path = /tmp/rocksdb_temporary
 
 # 备份文件socket传输时使用的端口
-rocksdb.backup.file.transfer.port = 9696
+# rocksdb.backup.file.transfer.port = 9696
 
 # 备份周期，单位毫秒
-rocksdb.backup.cycle = 600000
+# rocksdb.backup.cycle = 600000
 
-# rocksdb将数据从memtable flush到level 0的并发线程数目，默认为1
-rocksdb.max.background.flush = 4
+# rocksdb将数据从memtable flush到level 0的并发线程数目，默认为2
+rocksdb.max.background.flush = 2
 
-# rocksdb由低级level向更高级的level进行数据归并操作的并发线程数目，默认为1
-rocksdb.max.background.compaction = 4
+# rocksdb由低级level向更高级的level进行数据归并操作的并发线程数目，默认为2
+# rocksdb.max.background.compaction = 2
 
 # 最大打开文件句柄数，默认为-1
-rocksdb.max.open.files = -1
+# rocksdb.max.open.files = -1
 
-# 支持compaction的并行度，为1时表示不支持，默认为1
-rocksdb.max.subcompaction = 4
+# 支持compaction的并行度，为1时表示不支持，默认为2
+# rocksdb.max.subcompaction = 2
 
 # 配置LRU cache的大小，用来缓存未经过压缩的block，单位MB
-rocksdb.block.cache = 1024
+# rocksdb.block.cache = 512
 
 # 单个memtable的大小，单位MB。默认是64MB
-rocksdb.write.buffer.size = 128
+# rocksdb.write.buffer.size = 64
 
 # 指定一个RocksDB中一个列族下memtable和immutable memtable的最大数目
-rocksdb.max.write.buffer.number = 4
+# rocksdb.max.write.buffer.number = 2
 
-# 至少有2个immutable memtable后才进行flush操作
-rocksdb.min.write.buffer.num.to.merge = 2
+# 至少有1个immutable memtable后才进行flush操作
+# rocksdb.min.write.buffer.num.to.merge = 1
 
 # L0达到指定个数的sstable后，触发compaction L0->L1，默认是4
-rocksdb.level0.file.num.compaction.trigger = 8
+# rocksdb.level0.file.num.compaction.trigger = 4
 
 # L1单个文件大小，单位MB
-rocksdb.target.file.size.base = 256
+# rocksdb.target.file.size.base = 64
 
 # L1的总大小，L1的大小建议设置成和L0大小一致，提升L0->L1的compaction效率，单位MB
-rocksdb.max.bytes.level.base = 2048
+# rocksdb.max.bytes.level.base = 256
 
