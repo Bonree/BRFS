@@ -350,17 +350,22 @@ public class CopyCountCheck {
     }
 
     public static boolean isUnlaw(String sid, BlockAnalyzer parser, String fileName) {
-        String[] alives = parser.searchVaildIds(fileName);
-        if (alives == null || alives.length == 0) {
-            LOG.warn("[{}] analys service error !! alives is null !!!", fileName);
-            return true;
+        try {
+            String[] alives = parser.searchVaildIds(fileName);
+            if (alives == null || alives.length == 0) {
+                LOG.warn("[{}] analys service error !! alives is null !!!", fileName);
+                return true;
+            }
+            List<String> eles = Arrays.asList(alives);
+            boolean status = !eles.contains(sid);
+            if (status) {
+                LOG.warn("file: [{}], server: [{}], serverlist :{}", fileName, sid, eles);
+            }
+            return status;
+        } catch (Exception e) {
+            LOG.error("check storageregion :{}, file {} happener error", fileName, sid, e);
         }
-        List<String> eles = Arrays.asList(alives);
-        boolean status = !eles.contains(sid);
-        if (status) {
-            LOG.warn("file: [{}], server: [{}], serverlist :{}", fileName, sid, eles);
-        }
-        return status;
+        return false;
     }
 
     /**

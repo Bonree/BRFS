@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import javax.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -300,7 +301,8 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
                 if (taskModel == null) {
                     continue;
                 }
-                long ctime = TimeUtils.getMiles(taskModel.getCreateTime());
+                String createTime = taskModel.getCreateTime();
+                long ctime = StringUtils.isEmpty(createTime) ? 0 : TimeUtils.getMiles(createTime, TimeUtils.TIME_MILES_FORMATE);
                 if (ctime > deleteTime) {
                     continue;
                 }
@@ -354,7 +356,7 @@ public class DefaultReleaseTask implements MetaTaskManagerInterface {
             if (TaskState.FINISH.code() != taskModel.getTaskState()) {
                 continue;
             }
-            long createTime = TimeUtils.getMiles(taskModel.getCreateTime());
+            long createTime = TimeUtils.getMiles(taskModel.getCreateTime(), TimeUtils.TIME_MILES_FORMATE);
             if (currentTime - createTime > time) {
                 continue;
             }

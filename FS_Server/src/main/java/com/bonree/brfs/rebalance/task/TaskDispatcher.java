@@ -230,12 +230,19 @@ public class TaskDispatcher implements Closeable {
      */
     public void loadCache() throws Exception {
         // 此处获得子节点名称
-        List<String> snPaths = this.client.getChildren().forPath(changesPath);
+
+        List<String> snPaths = null;
+        if (this.client.checkExists().forPath(changesPath) != null) {
+            snPaths = this.client.getChildren().forPath(changesPath);
+        }
 
         if (snPaths != null) {
             for (String snNode : snPaths) {
                 String snPath = ZKPaths.makePath(changesPath, snNode);
-                List<String> childPaths = this.client.getChildren().forPath(snPath);
+                List<String> childPaths = null;
+                if (this.client.checkExists().forPath(snPath) != null) {
+                    childPaths = this.client.getChildren().forPath(snPath);
+                }
 
                 List<DiskPartitionChangeSummary> changeSummaries = new CopyOnWriteArrayList<>();
                 if (childPaths != null) {
@@ -260,7 +267,10 @@ public class TaskDispatcher implements Closeable {
         }
 
         // 加载任务缓存
-        List<String> sns = this.client.getChildren().forPath(tasksPath);
+        List<String> sns = null;
+        if (this.client.checkExists().forPath(tasksPath) != null) {
+            sns = this.client.getChildren().forPath(tasksPath);
+        }
         if (sns != null && !sns.isEmpty()) {
             for (String sn : sns) {
                 String taskNode = ZKPaths.makePath(tasksPath, sn, Constants.TASK_NODE);

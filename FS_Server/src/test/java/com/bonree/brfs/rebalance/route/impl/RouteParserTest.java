@@ -252,13 +252,13 @@ public class RouteParserTest {
 
     @Test
     public void analysisV2Route02() throws Exception {
-        String fileName = "a3b1013cb7b04462942a1ee0a9105b31_21_20";
+        String fileName = "e7c57a73a551483798b273695b4f5725_23_32";
         CuratorFramework client = CuratorFrameworkFactory
             .newClient("192.168.150.236:2181", new RetryNTimes(50, 1000));
         client.start();
         client.blockUntilConnected();
         RouteLoader loader = new SimpleRouteZKLoader(client, "/brfs/idea/routeSet");
-        RouteParser parser = new RouteParser(0, loader);
+        RouteParser parser = new RouteParser(2, loader);
         String[] array = parser.searchVaildIds(fileName);
         System.out.println(Arrays.asList(array));
     }
