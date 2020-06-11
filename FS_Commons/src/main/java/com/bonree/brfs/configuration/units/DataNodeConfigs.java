@@ -2,7 +2,6 @@ package com.bonree.brfs.configuration.units;
 
 import com.bonree.brfs.configuration.ConfigUnit;
 import com.bonree.brfs.configuration.SystemProperties;
-
 import java.io.File;
 
 public final class DataNodeConfigs {
