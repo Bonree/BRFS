@@ -49,6 +49,10 @@ public class BRFSClientBuilder {
         return this;
     }
 
+    public BRFS build(URI[] regionNodes) {
+        return build("anonym", "", regionNodes);
+    }
+
     /**
      * create a brfs client with a customized configuration
      *
