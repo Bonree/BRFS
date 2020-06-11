@@ -8,20 +8,27 @@ cluster.name = cluster_name
 # Zookeeper地址
 zookeeper.addresses = localhost:2181
 
-# 磁盘节点服务所在的服务组
+# datanode服务所在的服务组
 # datanode.service.group = data_group
 
-# 副本节点服务群组名
+# regionnode服务群组名
 # regionnode.service.group = region_group
 
 # 插件配置
 brfs.plugins.loadList = ["brfs-resource"]
 
 ###############################################
+###############http-server配置####################
+###############################################
+
+# 用于gui采集数据的服务端口
+# datanode.httpserver.port = 18002
+
+###############################################
 ###############磁盘分区配置####################
 ###############################################
 
-# 磁盘节点组名
+# datanode组名
 # partition.group = partition_group
 
 # 磁盘分区的检查周期 单位秒
@@ -30,24 +37,31 @@ brfs.plugins.loadList = ["brfs-resource"]
 ###############################################
 ##############Data Node Config###################
 ###############################################
-# 磁盘节点的服务地址
-# datanode.service.host = localhost
+# datanode的服务地址
+# datanode.service.host = 192.168.150.103
 
-# 磁盘节点的服务端口
+# datanode的服务端口
 # datanode.service.port = 8881
 
-# 磁盘节点中文件读取端口
+# datanode中文件读取端口
 # datanode.file.server.port = 8900
 
-# 磁盘节点保存数据文件的目录路径
+# datanode保存数据文件的目录路径
 # datanode.storage.dirs = ["/data1", "/data2"]
 
 # 磁盘文件的最大容量（字节）
-#datanode.file.max.capacity = 6815744
+#datanode.file.max.capacity = 67108864
 
-# 磁盘节点处理数据写入的线程数
+# datanode处理数据写入的线程数
 # 默认为机器CPU核数
-# datanode.writer.worker.num = 8
+# datanode.writer.worker.num = 16
+
+# datanode写文件线程池的阻塞队列
+# datanode.task.queue.num=32
+
+# datanode处理message的线程池的阻塞队列
+message.handler.queue.limit=16
+
 
 # 数据文件的写入缓存
 # 单位（字节）
@@ -60,25 +74,27 @@ brfs.plugins.loadList = ["brfs-resource"]
 # 如果文件空闲时间超过此值，则会把缓存中的内容刷入磁盘
 # datanode.file.idle.time = PT3S
 
-# 磁盘节点中用于处理Http请求的线程数
-# datanode.request.handler.num = 8
+# datanode中用于处理Http请求的线程数
+# datanode.request.handler.num = 16
 
 # datanode中进行文件读取的线程数
-# datanode.file.reader.num = 8
+# datanode.file.reader.num = 16
 
 # datanode 一级serverid存储目录，内部配置
 # datanode.ids.server.dir = ./ids
 
 # datanode 磁盘id存储目录 内部配置
 # datanode.ids.partition.dir = ./ids/partitionids
+
 ###############################################
 ##############文件平衡模块 Config################
 ###############################################
+
 # 虚拟服务文件的迁移触发时间（秒）
 # -1为立即触发
 # rebalance.virtual.recover.time = 3600
 
-# 磁盘节点异常的迁移触发时间（秒）
+# datanode异常的迁移触发时间（秒）
 # -1为立即触发
 # rebalance.serverdown.recover.time = 3600
 
@@ -167,26 +183,36 @@ brfs.plugins.loadList = ["brfs-resource"]
 ######################
 # 邮件开关，true发送邮件，false不发送邮件 默认为不开启
 # email.switch=false
+
 # 邮箱服务地址
 # email.smtp=mail.bonree.com
+
 # 邮箱服务发送端口
 # email.smtp.port=25
+
 # 邮箱发送者
 # email.send.user=redalert@bonree.com
+
 # 邮箱发送者密码
 # email.send.user.password=alert!^*90
+
 # 是否开启ssl发送
 # email.use_ssl=false
+
 # 接收者列表，通过，分割
 # email.recipient=zhucg@bonree.com
+
 # 邮件内容标题，并非邮件主题
 # email.header=BRFS集群
 # 邮件默认模块
 # email.model=brfs
+
 # 公司信息
 # email.company=北京博睿宏远数据科技股份有限公司 版权所有   京 ICP备 08104257 号 京公网安备 1101051190
+
 # 版权信息
 # email.copyright=Copyright ©2007-2019 All rights reserved
+
 # 发送email线程池大小
 # email.pool.size=3
 
@@ -215,53 +241,17 @@ brfs.plugins.loadList = ["brfs-resource"]
 # deliver.table.reader=brfs_reader_metric
 
 ###############################################
-##############RocksDB Config###################
-###############################################
-# rocksdb存储自定义文件名和FID的磁盘路径
-rocksdb.storage.path = /tmp/rocksdb
-# rocksdb的数据备份磁盘路径
-rocksdb.backup.path = /tmp/rocksdb_backup
-# rocksdb用于接收其他节点的备份文件的恢复目录
-rocksdb.restore.path = /tmp/rocksdb_restore
-# rocksdb用于临时数据恢复的目录，恢复完成后，将数据迁移到rocksdb.storage.path
-rocksdb.restore.temporary.path = /tmp/rocksdb_temporary
-# 备份文件socket传输时使用的端口
-rocksdb.backup.file.transfer.port = 9696
-# 备份周期，单位毫秒
-rocksdb.backup.cycle = 600000
-# rocksdb将数据从memtable flush到level 0的并发线程数目，默认为1
-rocksdb.max.background.flush = 4
-# rocksdb由低级level向更高级的level进行数据归并操作的并发线程数目，默认为1
-rocksdb.max.background.compaction = 4
-# 最大打开文件句柄数，默认为-1
-rocksdb.max.open.files = -1
-# 支持compaction的并行度，为1时表示不支持，默认为1
-rocksdb.max.subcompaction = 4
-# 配置LRU cache的大小，用来缓存未经过压缩的block，单位MB
-rocksdb.block.cache = 1024
-# 单个memtable的大小，单位MB。默认是64MB
-rocksdb.write.buffer.size = 128
-# 指定一个RocksDB中一个列族下memtable和immutable memtable的最大数目
-rocksdb.max.write.buffer.number = 4
-# 至少有2个immutable memtable后才进行flush操作
-rocksdb.min.write.buffer.num.to.merge = 2
-# L0达到指定个数的sstable后，触发compaction L0->L1，默认是4
-rocksdb.level0.file.num.compaction.trigger = 8
-# L1单个文件大小，单位MB
-rocksdb.target.file.size.base = 256
-# L1的总大小，L1的大小建议设置成和L0大小一致，提升L0->L1的compaction效率，单位MB
-rocksdb.max.bytes.level.base = 2048
-# 写数据时的blocksize，最好与dn的文件块大小一致
-regionnode.block.size = 65536
-# blockpool的最大值
-regionnode.block.pool.capacity = 10
-# blockpool的初始值
-regionnode.block.pool.init.count = 1
-
-###############################################
 ##############Resource config##################
 ###############################################
 # 资源采集开关 默认开启
 datanode.resource.switch=true
+
 # 资源采集的时间间隔 单位 秒 默认10s
 datanode.resource.interval.seconds=10
+
+
+# 系统校验任务开关
+system.check.pool.switch = false
+
+# 系统副本恢复任务开关
+system.recovery.pool.switch = false
