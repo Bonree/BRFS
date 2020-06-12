@@ -37,12 +37,8 @@ public class ResourceTaskConfig {
     //创建任务执行的时间间隔s
     private long createTaskIntervalTime = 60;
     private long executeTaskIntervalTime = 60;
-    //private long gatherResourceInveralTime = 10;
     private long taskExpiredTime = 7 * 24 * 60 * 60;
-    // private int calcResourceValueCount = 2;
     private boolean taskFrameWorkSwitch = true;
-    // private boolean resourceFrameWorkSwitch = true;
-    //    private String libPath;
     private double limitCpuRate = 0.9;
     private double limitMemoryRate = 0.9;
     private double limitDiskRemaintRate = 0.01;
@@ -51,12 +47,9 @@ public class ResourceTaskConfig {
     private double limitNetTxRate = 0.9;
     private double limitNetRxRate = 0.9;
     private long createCheckJobTaskervalTime = 60;
-    // private long checkTtl = 24 * 60 * 60;
 
     private String checkCronStr = "0 30 2 * * ?";
     private int checkTimeRange = 7;
-
-    //private String watchDogCron = "0 30 2 */7 * ?";
 
     @Inject
     public ResourceTaskConfig() throws Exception {
@@ -73,10 +66,12 @@ public class ResourceTaskConfig {
         boolean sysCheckFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_CHECK);
         boolean userDelFlag = config.getConfig(ResourceConfigs.CONFIG_USER_DELETE);
         boolean sysCopyFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_COPY);
+        boolean virtualFlag = config.getConfig(ResourceConfigs.CONFIG_SYSTEM_VIRTUAL);
         taskPoolSwitchMap.put(TaskType.SYSTEM_DELETE.name(), sysDelFlag);
         taskPoolSwitchMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckFlag);
         taskPoolSwitchMap.put(TaskType.USER_DELETE.name(), userDelFlag);
         taskPoolSwitchMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyFlag);
+        taskPoolSwitchMap.put(TaskType.VIRTUAL_ID_RECOVERY.name(), virtualFlag);
 
         Map<String, Integer> taskPoolSizeMap = getTaskPoolSizeMap();
 
@@ -89,6 +84,7 @@ public class ResourceTaskConfig {
         taskPoolSizeMap.put(TaskType.SYSTEM_CHECK.name(), sysCheckPool);
         taskPoolSizeMap.put(TaskType.USER_DELETE.name(), userDelPool);
         taskPoolSizeMap.put(TaskType.SYSTEM_COPY_CHECK.name(), sysCopyPool);
+        taskPoolSizeMap.put(TaskType.VIRTUAL_ID_RECOVERY.name(), 1);
 
         setCreateTaskIntervalTime(TimeUnit.SECONDS.toMillis(config.getConfig(ResourceConfigs.CONFIG_TASK_CREATE_INTERVAL)));
         setCreateCheckJobTaskervalTime(
@@ -239,7 +235,6 @@ public class ResourceTaskConfig {
         this.taskFrameWorkSwitch = taskFrameWorkSwitch;
     }
 
-
     public long getTaskExpiredTime() {
         return taskExpiredTime;
     }
@@ -311,7 +306,6 @@ public class ResourceTaskConfig {
     public void setCreateCheckJobTaskervalTime(long createCheckJobTaskervalTime) {
         this.createCheckJobTaskervalTime = createCheckJobTaskervalTime;
     }
-
 
     public String getCheckCronStr() {
         return checkCronStr;

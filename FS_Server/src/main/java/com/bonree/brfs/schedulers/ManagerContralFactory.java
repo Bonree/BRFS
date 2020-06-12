@@ -6,14 +6,14 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
+import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalance.route.RouteCache;
-import com.bonree.brfs.resource.vo.LimitServerResource;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.curator.framework.CuratorFramework;
 
 public class ManagerContralFactory {
     /**
@@ -32,14 +32,12 @@ public class ManagerContralFactory {
      * 任务执行服务
      */
     private SchedulerManagerInterface stm;
-    private RunnableTaskInterface rt;
     private IDSManager sim;
     /**
      * 开启任务列表
      */
     private List<TaskType> taskOn = new ArrayList<TaskType>();
     private ZookeeperPaths zkPath = null;
-    private LimitServerResource limitServerResource;
     // TODO: 4/14/20 没有赋值操作
     private RouteCache routeCache;
     // TODO: 4/14/20 没有赋值操作
@@ -49,6 +47,10 @@ public class ManagerContralFactory {
 
     String serverId;
     String groupName;
+
+    private DiskPartitionInfoManager partitionInfoManager;
+
+    private CuratorFramework client;
 
     private ManagerContralFactory() {
     }
@@ -124,14 +126,6 @@ public class ManagerContralFactory {
         this.taskOn = taskOn;
     }
 
-    public RunnableTaskInterface getRt() {
-        return rt;
-    }
-
-    public void setRt(RunnableTaskInterface rt) {
-        this.rt = rt;
-    }
-
     public IDSManager getSim() {
         return sim;
     }
@@ -146,15 +140,6 @@ public class ManagerContralFactory {
 
     public void setZkPath(ZookeeperPaths zkPath) {
         this.zkPath = zkPath;
-    }
-
-
-    public LimitServerResource getLimitServerResource() {
-        return limitServerResource;
-    }
-
-    public void setLimitServerResource(LimitServerResource limitServerResource) {
-        this.limitServerResource = limitServerResource;
     }
 
     public RouteCache getRouteCache() {
@@ -179,5 +164,21 @@ public class ManagerContralFactory {
 
     public void setTaskMonitor(RebalanceTaskMonitor taskMonitor) {
         this.taskMonitor = taskMonitor;
+    }
+
+    public DiskPartitionInfoManager getPartitionInfoManager() {
+        return partitionInfoManager;
+    }
+
+    public void setPartitionInfoManager(DiskPartitionInfoManager partitionInfoManager) {
+        this.partitionInfoManager = partitionInfoManager;
+    }
+
+    public CuratorFramework getClient() {
+        return client;
+    }
+
+    public void setClient(CuratorFramework client) {
+        this.client = client;
     }
 }

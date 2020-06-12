@@ -37,6 +37,8 @@ public interface LocalPartitionInterface {
      */
     Collection<String> listPartitionId();
 
+    LocalPartitionInfo getPartition(String partitionID);
+
     /**
      * 获取本机存储目录信息
      *

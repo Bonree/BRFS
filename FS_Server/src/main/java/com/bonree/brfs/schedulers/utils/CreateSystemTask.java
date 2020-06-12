@@ -36,7 +36,6 @@ public class CreateSystemTask {
      * 概述：创建系统任务model
      * @param taskType
      * @param snList
-     * @param globalttl
      * @return
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
@@ -134,7 +133,7 @@ public class CreateSystemTask {
         if (sumAtoms == null || sumAtoms.isEmpty()) {
             return new Pair<>(null, lastSnTimes);
         }
-        TaskModel task = TaskModel.getInitInstance(taskType, "1", granule);
+        TaskModel task = TaskModel.getInitInstance(taskType);
         task.putAtom(sumAtoms);
         return new Pair<>(task, lastSnTimes);
     }
@@ -201,7 +200,7 @@ public class CreateSystemTask {
         if (sumAtoms.isEmpty()) {
             return null;
         }
-        TaskModel task = TaskModel.getInitInstance(taskType, "", granule);
+        TaskModel task = TaskModel.getInitInstance(taskType);
         task.putAtom(sumAtoms);
 
         return new Pair<>(task, lastSnTimes);

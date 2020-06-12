@@ -17,6 +17,8 @@ public final class ResourceConfigs {
 
     public static final ConfigUnit<Boolean> CONFIG_SYSTEM_COPY =
         ConfigUnit.ofBoolean("system.copy.pool.switch", true);
+    public static final ConfigUnit<Boolean> CONFIG_SYSTEM_VIRTUAL =
+        ConfigUnit.ofBoolean("system.virtual.pool.switch", true);
 
     public static final ConfigUnit<Integer> CONFIG_SYSTEM_COPY_SIZE =
         ConfigUnit.ofInt("system.copy.pool.size", 1);

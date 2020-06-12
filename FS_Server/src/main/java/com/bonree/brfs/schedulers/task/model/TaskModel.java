@@ -26,7 +26,7 @@ public class TaskModel {
      */
     private List<AtomTaskModel> atomList = new ArrayList<AtomTaskModel>();
 
-    public static TaskModel getInitInstance(TaskType taskType, String taskOperation, long granule) {
+    public static TaskModel getInitInstance(TaskType taskType) {
         TaskModel task = new TaskModel();
         task.setCreateTime(TimeUtils.formatTimeStamp(System.currentTimeMillis(), TimeUtils.TIME_MILES_FORMATE));
         task.setTaskState(TaskState.INIT.code());

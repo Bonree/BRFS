@@ -68,13 +68,12 @@ public class TaskOpertionManager implements LifeCycle {
                         LOG.error("create task operation error !!!");
                         throw new NullPointerException("start task operation error !!!");
                     }
-                    Map<String, String> switchMap = null;
                     // 将任务信息不完全的任务补充完整
                     LOG.info("========================================================================================");
-                    switchMap = recoveryTask(switchList, release, serverId);
+                    recoveryTask(switchList, release, serverId);
                     LOG.info("========================================================================================");
                     SumbitTaskInterface task = QuartzSimpleInfo
-                        .createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, switchMap,
+                        .createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, null,
                                              OperationTaskJob.class);
                     boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
                     if (sumbitFlag) {

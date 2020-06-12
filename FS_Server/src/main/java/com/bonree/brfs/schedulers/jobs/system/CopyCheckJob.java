@@ -53,7 +53,7 @@ public class CopyCheckJob extends QuartzOperationStateTask {
         }
         String taskType = TaskType.SYSTEM_COPY_CHECK.name();
         List<Service> services =
-            sm.getServiceListByGroup(Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_DATA_SERVICE_GROUP_NAME));
+            sm.getServiceListByGroup(mcf.getGroupName());
         if (services == null || services.isEmpty()) {
             LOG.warn("skip create {} task, because service is empty", taskType);
             return;

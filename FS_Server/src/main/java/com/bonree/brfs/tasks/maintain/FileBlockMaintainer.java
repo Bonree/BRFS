@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /***
- * 文件块维护类，负责清理非法数据，不符合BRFS路径规则，不应当存储在本地合法文件
+ * 文件块维护类，负责清理非法数据，不符合BRFS路径规则，不应当存储在本地非法文件
  */
 @ManageLifecycle
 public class FileBlockMaintainer implements LifeCycle {

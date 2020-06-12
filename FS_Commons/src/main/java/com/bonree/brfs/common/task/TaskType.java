@@ -7,7 +7,7 @@ public enum TaskType {
     SYSTEM_CHECK(3),
     USER_DELETE(4),
     SYSTEM_COPY_CHECK(5),
-    FILE_REPAIR(6);
+    VIRTUAL_ID_RECOVERY(6);
     private int index = 0;
 
     TaskType(int index) {
@@ -26,7 +26,7 @@ public enum TaskType {
         } else if (5 == index) {
             return SYSTEM_COPY_CHECK;
         } else if (6 == index) {
-            return FILE_REPAIR;
+            return VIRTUAL_ID_RECOVERY;
         } else {
             return UNDEFINE;
         }
