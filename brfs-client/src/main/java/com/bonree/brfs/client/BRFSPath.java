@@ -17,7 +17,8 @@ package com.bonree.brfs.client;
 import com.google.common.base.Strings;
 
 public class BRFSPath {
-    private static final char PATH_SEPARATER = '/';
+    private static final char PATH_SEPARATOR_CHAR = '/';
+    private static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
     private final String path;
 
@@ -55,8 +56,8 @@ public class BRFSPath {
 
     public static BRFSPath get(String root, String... subPath) {
         StringBuilder pathBuilder = new StringBuilder();
-        if (root.startsWith("/")) {
-            pathBuilder.append(PATH_SEPARATER);
+        if (root.startsWith(PATH_SEPARATOR)) {
+            pathBuilder.append(PATH_SEPARATOR);
         }
 
         appendPath(pathBuilder, trimPath(root));
@@ -73,7 +74,7 @@ public class BRFSPath {
 
     private static void appendPath(StringBuilder builder, String path) {
         if (!Strings.isNullOrEmpty(path)) {
-            builder.append(path).append(PATH_SEPARATER);
+            builder.append(path).append(PATH_SEPARATOR);
         }
     }
 
@@ -81,10 +82,10 @@ public class BRFSPath {
         int len = value.length();
         int st = 0;
 
-        while ((st < len) && (value.charAt(st) <= ' ' || value.charAt(st) == PATH_SEPARATER)) {
+        while ((st < len) && (value.charAt(st) <= ' ' || value.charAt(st) == PATH_SEPARATOR_CHAR)) {
             st++;
         }
-        while ((st < len) && (value.charAt(len - 1) <= ' ' || value.charAt(len - 1) == PATH_SEPARATER)) {
+        while ((st < len) && (value.charAt(len - 1) <= ' ' || value.charAt(len - 1) == PATH_SEPARATOR_CHAR)) {
             len--;
         }
 
