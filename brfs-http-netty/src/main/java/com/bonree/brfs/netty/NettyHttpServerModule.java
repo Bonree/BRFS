@@ -26,7 +26,10 @@ import com.google.inject.Scopes;
 import io.netty.handler.ssl.SslContext;
 import java.net.URI;
 import javax.inject.Singleton;
+import org.glassfish.jersey.server.ManagedAsync;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.spi.ExecutorServiceProvider;
+import org.glassfish.jersey.spi.ThreadPoolExecutorProvider;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 
 public class NettyHttpServerModule extends BrfsModule {
@@ -55,8 +58,16 @@ public class NettyHttpServerModule extends BrfsModule {
 
     @Provides
     @Singleton
-    public NettyHttpContainer getContainer(ResourceConfig configuration) {
-        return NettyHttpContainer.create(configuration);
+    @ManagedAsync
+    public ExecutorServiceProvider getExecutorServiceProvider() {
+        return new DefaultManagedAsyncExecutorProvider(Runtime.getRuntime().availableProcessors());
+    }
+
+    @Provides
+    @Singleton
+    public NettyHttpContainer getContainer(ResourceConfig configuration,
+                                           ExecutorServiceProvider executorServiceProvider) {
+        return NettyHttpContainer.create(configuration, executorServiceProvider);
     }
 
     @Provides
@@ -66,5 +77,19 @@ public class NettyHttpServerModule extends BrfsModule {
         NettyHttpContainer container,
         ResourceConfig resourceConfig) {
         return new JerseyServerHandler(uri, container, resourceConfig);
+    }
+
+    private static class DefaultManagedAsyncExecutorProvider extends ThreadPoolExecutorProvider {
+        private final int maxPoolSize;
+
+        public DefaultManagedAsyncExecutorProvider(int maxPoolSize) {
+            super("jersey-server-managed-async-executor");
+            this.maxPoolSize = maxPoolSize;
+        }
+
+        @Override
+        protected int getMaximumPoolSize() {
+            return maxPoolSize;
+        }
     }
 }
