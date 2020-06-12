@@ -19,7 +19,8 @@ import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 public class HttpRegionNodeConnection implements RegionNodeConnection {
 
     private static final int DEFAULT_RESPONSE_TIMEOUT_MILLIS = 15 * 1000;
-    private static final int DEFAULT_CONNECTION_TIME_OUT = 60 * 1000;
+    private static final int DEFAULT_CONNECTION_TIME_OUT =
+        Configs.getConfiguration().getConfig(RegionNodeConfigs.FILE_WAIT_FOR_WRITE_TIME);
 
     private static final int MAX_CONNECTION_RER_ROUTE =
         Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_WRITER_WORKER_NUM);
