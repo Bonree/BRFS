@@ -59,7 +59,7 @@ public class Server {
             new StatModule(),
             new ZookeeperModule(),
             binder -> {
-                httpServerBinder(binder).bindResource("/ui", "webapp").withWelcomeFile("index.html");
+                httpServerBinder(binder).bindResource("/", "webapp").withWelcomeFile("index.html");
 
                 binder.bind(EventClient.class).to(NullEventClient.class).in(Singleton.class);
                 binder.bind(NodeInfo.class).toInstance(new NodeInfo("env"));
