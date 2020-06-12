@@ -249,7 +249,7 @@ datanode.resource.interval.seconds=10
 
 
 # GUI 资源采集任务开关 默认关闭
-# datanode.gui.switch=false
+# datanode.gui.switch=true
 
 # GUI资源采集任务的时间间隔 单位秒，默认60s
 # datanode.gui.interval.seconds=10
