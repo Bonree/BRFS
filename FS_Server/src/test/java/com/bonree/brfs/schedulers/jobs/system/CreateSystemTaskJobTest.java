@@ -61,7 +61,7 @@ public class CreateSystemTaskJobTest {
     @Test
     public void testCreateVirtualTask() {
         CreateSystemTaskJob job = new CreateSystemTaskJob();
-        TaskModel task = job.createVirtualTask(release, virtualServerID, manager);
-        LOG.info("--->{}",task);
+        TaskModel task = job.createVirtualTask(release, virtualServerID, manager, null, null, null);
+        LOG.info("--->{}", task);
     }
 }

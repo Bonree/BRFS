@@ -36,6 +36,10 @@ public class IDSManager {
         start();
     }
 
+    public SecondMaintainerInterface getSecondMaintainer() {
+        return secondMaintainer;
+    }
+
     private Collection<String> convertToId(Collection<LocalPartitionInfo> partitions) {
         List<String> parts = new ArrayList<>();
         for (LocalPartitionInfo part : partitions) {

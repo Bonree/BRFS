@@ -1,5 +1,6 @@
 package com.bonree.brfs.schedulers.jobs.system;
 
+import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
@@ -18,10 +19,12 @@ import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
 import com.bonree.brfs.schedulers.task.operation.impl.QuartzOperationStateTask;
 import com.bonree.brfs.schedulers.utils.CreateSystemTask;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
+import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +75,9 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
                 continue;
             }
             if (TaskType.VIRTUAL_ID_RECOVERY.equals(taskType)) {
-                task = createVirtualTask(release, mcf.getSim().getVirtualServerID(), mcf.getSnm());
+                task =
+                    createVirtualTask(release, mcf.getSim().getVirtualServerID(), mcf.getSnm(), mcf.getSm(), mcf.getTaskMonitor(),
+                                      mcf.getGroupName());
             } else {
                 TaskStateLifeContral.watchSR(release, srs, taskType.name());
                 tmodel = release.getTaskTypeInfo(taskType.name());
@@ -84,7 +89,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
                 result = CreateSystemTask.createSystemTask(tmodel, taskType, snList);
 
                 if (result == null) {
-                    LOG.warn("create sys task is empty {}", taskType.name());
+                    LOG.debug("create sys task is empty {}", taskType.name());
                     continue;
                 }
                 task = result.getFirst();
@@ -100,16 +105,49 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
     }
 
     public TaskModel createVirtualTask(MetaTaskManagerInterface release, VirtualServerID idsManager,
-                                        StorageRegionManager regionManager) {
+                                       StorageRegionManager regionManager, ServiceManager serviceManager,
+                                       RebalanceTaskMonitor taskMonitor, String group) {
+        if (taskMonitor.isExecute()) {
+            return null;
+        }
         List<StorageRegion> regions = regionManager.getStorageRegionList();
+        List<Service> services = serviceManager.getServiceListByGroup(group);
+        if (services == null || services.isEmpty()) {
+            return null;
+        }
+        List<String> servers = services.stream().map(Service::getServiceId).collect(Collectors.toList());
+        if (servers == null || servers.isEmpty()) {
+            LOG.info("servers {} [{}]", servers, services);
+            return null;
+        }
         if (regions == null || regions.isEmpty()) {
             return null;
         }
         Map<StorageRegion, List<String>> virtualMap = new HashMap<>();
         for (StorageRegion region : regions) {
+            if (taskMonitor.isExecute()) {
+                return null;
+            }
             List<String> virtuals = idsManager.listVirtualIds(region.getId());
             if (virtuals == null || virtuals.isEmpty()) {
                 continue;
+            }
+            List<String> recoverys = new ArrayList<>();
+            for (String virtual : virtuals) {
+                List<String> tmps = idsManager.listFirstServer(region.getId(), virtual);
+                if (tmps.isEmpty()) {
+                    continue;
+                }
+                boolean add = false;
+                for (String first : servers) {
+                    if (!tmps.contains(first)) {
+                        add = true;
+                        break;
+                    }
+                }
+                if (add) {
+                    recoverys.add(virtual);
+                }
             }
             virtualMap.put(region, virtuals);
         }
@@ -120,6 +158,9 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
         List<String> tasks = release.getTaskList(TaskType.VIRTUAL_ID_RECOVERY.name());
         if (tasks != null) {
             for (String x : tasks) {
+                if (taskMonitor.isExecute()) {
+                    return null;
+                }
                 TaskModel model = release.getTaskContentNodeInfo(TaskType.VIRTUAL_ID_RECOVERY.name(), x);
                 if (model != null && model.getTaskState() != TaskState.FINISH.code()) {
                     LOG.info("there is  virtual id  recovery task");
@@ -135,6 +176,9 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
         task.setTaskType(TaskType.VIRTUAL_ID_RECOVERY.code());
         List<AtomTaskModel> atoms = new ArrayList<>();
         for (Map.Entry<StorageRegion, List<String>> entry : virtualMap.entrySet()) {
+            if (taskMonitor.isExecute()) {
+                return null;
+            }
             StorageRegion region1 = entry.getKey();
             List<String> tmpVirtuals = entry.getValue();
             for (String virtual : tmpVirtuals) {

@@ -49,8 +49,6 @@ import org.slf4j.LoggerFactory;
 
 public class VirtaulRecoveryTask implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(VirtaulRecoveryTask.class);
-    private static final ThreadFactory THREAD_FACTORY =
-        new ThreadFactoryBuilder().setNameFormat(TaskType.VIRTUAL_ID_RECOVERY.name()).setDaemon(true).build();
     private CuratorFramework client;
     private ServiceManager serviceManager;
     private StorageRegionManager regionManager;
@@ -92,6 +90,7 @@ public class VirtaulRecoveryTask implements Runnable {
         TaskServerNodeModel model =
             taskMetaWork.getTaskServerContentNodeInfo(taskType.name(), currentTask, idsManager.getFirstSever());
         if (model == null) {
+            LOG.warn("rebalance task server node is null {} {} {}", taskType, currentTask, idsManager.getFirstSever());
             model = new TaskServerNodeModel();
         }
         try {
@@ -104,16 +103,16 @@ public class VirtaulRecoveryTask implements Runnable {
             if (atoms == null || atoms.isEmpty()) {
                 model.setTaskState(TaskState.FINISH.code());
                 model.setTaskStopTime(time);
-                taskMetaWork.updateServerTaskContentNode(taskType.name(), currentTask, idsManager.getFirstSever(), model);
+                taskMetaWork.updateServerTaskContentNode(idsManager.getFirstSever(), currentTask, taskType.name(), model);
                 return;
             } else {
                 model.setTaskState(TaskState.RUN.code());
-                taskMetaWork.updateServerTaskContentNode(taskType.name(), currentTask, idsManager.getFirstSever(), model);
+                taskMetaWork.updateServerTaskContentNode(idsManager.getFirstSever(), currentTask, taskType.name(), model);
             }
             TaskResultModel resultModel = new TaskResultModel();
             for (AtomTaskModel atom : atoms) {
                 if (taskMonitor.isExecute()) {
-                    LOG.warn("rebalance task is running skip run {} {}", taskType, currentTask);
+                    LOG.warn("cycle atom rebalance task is running skip run {} {}", taskType, currentTask);
                     return;
                 }
                 AtomTaskResultModel result = dealAtom(atom);
@@ -129,14 +128,17 @@ public class VirtaulRecoveryTask implements Runnable {
             model.setTaskState(TaskState.EXCEPTION.code());
             model.setRetryCount(model.getRetryCount() + 1);
         }
-        taskMetaWork.updateServerTaskContentNode(taskType.name(), currentTask, idsManager.getFirstSever(), model);
+        taskMetaWork.updateServerTaskContentNode(idsManager.getFirstSever(), currentTask, taskType.name(), model);
         String lockPath = ZKPaths.makePath(zkPaths.getBaseLocksPath(), currentTask);
         InterProcessMutex lock = new InterProcessMutex(client, lockPath);
+        LOG.info("select lock {}", lockPath);
         try {
             lock.acquire();
+            LOG.info("get lock {}", lockPath);
             // 更新TaskContent
             List<Pair<String, Integer>> serverStatus = taskMetaWork.getServerStatus(taskType.name(), currentTask);
             if (serverStatus == null || serverStatus.isEmpty()) {
+                LOG.warn("status is null !!!");
                 return;
             }
             int cstat;
@@ -169,15 +171,19 @@ public class VirtaulRecoveryTask implements Runnable {
             taskMetaWork.updateTaskContentNode(task, taskType.name(), currentTask);
             LOG.info("complete task :{} - {} - {}", taskType, currentTask, TaskState.valueOf(task.getTaskState()).name());
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("run {} happen error", currentTask, e);
         } finally {
             try {
                 if (lock.isAcquiredInThisProcess()) {
                     lock.release();
                 }
+                if (client.checkExists().forPath(lockPath) != null) {
+                    client.delete().deletingChildrenIfNeeded().forPath(lockPath);
+                }
             } catch (Exception e) {
                 LOG.error("release lock happen error ", e);
             }
+            LOG.info("release lockpath {}", lockPath);
         }
     }
 
@@ -191,6 +197,8 @@ public class VirtaulRecoveryTask implements Runnable {
             result.setMessage("NO");
             result.setOperationFileCount(0);
             result.setSuccess(true);
+            LOG.info("storageregion : {} virtual {} firstServer {} not execute", region.getName(), virtual,
+                     idsManager.getFirstSever());
             return result;
         }
         String lockPath = ZKPaths.makePath(zkPaths.getBaseLocksPath(), virtual);
@@ -203,6 +211,7 @@ public class VirtaulRecoveryTask implements Runnable {
                 result.setMessage("NO");
                 result.setOperationFileCount(0);
                 result.setSuccess(true);
+                LOG.info("storageregion : {} virtual {} is deal by rebalance skip", region.getName(), virtual);
                 return result;
             }
             List<Service> services = serviceManager.getServiceListByGroup(group);
@@ -219,7 +228,7 @@ public class VirtaulRecoveryTask implements Runnable {
             VirtualRoute route = new VirtualRoute(changeID, region.getId(), virtual, seconid, TaskVersion.V2);
             int count = 0;
             for (Service server : services) {
-                RemoteFileWorker worker = new RemoteFileWorker(server, idsManager, routeCache);
+                RemoteFileWorker worker = new RemoteFileWorker(server, idsManager.getSecondMaintainer(), routeCache);
                 Collection<BRFSPath> files = worker.listFiles(region);
                 if (files.isEmpty()) {
                     continue;
@@ -243,10 +252,7 @@ public class VirtaulRecoveryTask implements Runnable {
             }
             String path = ZKPaths.makePath(zkPaths.getBaseV2RoutePath(), Constants.VIRTUAL_ROUTE, region.getId() + "", uuid);
             client.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path, JsonUtils.toJsonBytes(route));
-
-            while (!idsManager.invalidVirtualId(region.getId(), virtual)) {
-                Thread.sleep(1000L);
-            }
+            idsManager.invalidVirtualId(region.getId(), virtual);
             idsManager.deleteVirtualId(region.getId(), virtual);
             result.setMessage("YES");
             result.setOperationFileCount(count);
@@ -258,6 +264,9 @@ public class VirtaulRecoveryTask implements Runnable {
             try {
                 if (lock.isAcquiredInThisProcess()) {
                     lock.release();
+                }
+                if (client.checkExists().forPath(lockPath) != null) {
+                    client.delete().deletingChildrenIfNeeded().forPath(lockPath);
                 }
             } catch (Exception e) {
                 LOG.error("release lock happen error ", e);

@@ -4,6 +4,7 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
 import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
 import com.bonree.brfs.identification.VirtualServerID;
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 import java.util.ArrayList;
@@ -130,6 +131,20 @@ public class VirtualServerIDImpl implements VirtualServerID {
     @Override
     public boolean validVirtualId(int storageIndex, String virtualId) {
         return updateVirutalIdState(storageIndex, virtualId, STATE_VALID);
+    }
+
+    @Override
+    public List<String> listFirstServer(int storageIndex, String virtual) {
+        try {
+            String path = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtual);
+            if (client.checkExists().forPath(path) == null) {
+                return ImmutableList.of();
+            }
+            return client.getChildren().forPath(path);
+        } catch (Exception e) {
+            LOG.error("list virtual {} {} childs happen error", storageIndex, virtual, e);
+        }
+        return ImmutableList.of();
     }
 
     @Override

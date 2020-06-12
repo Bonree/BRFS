@@ -643,7 +643,7 @@ public class TaskDispatcher implements Closeable {
                                      cs, List<String> joinerSecondIDs, List<String> aliveSecondIDs,
                                  IDSManager idManager, int storageIndex) {
         if (aliveSecondIDs.contains(cs.getChangeServer())) {
-            LOG.warn("change:[{}] No need to execute,the reason is changeServer alive!  change:[{}] aliveServers:{}",
+            LOG.debug("change:[{}] No need to execute,the reason is changeServer alive!  change:[{}] aliveServers:{}",
                      cs.getChangeID(), cs.getChangeServer(), aliveSecondIDs);
             return false;
         }
@@ -651,14 +651,14 @@ public class TaskDispatcher implements Closeable {
         // 检查参与者是否都存活
         for (String joiner : joinerSecondIDs) {
             if (!aliveSecondIDs.contains(joiner)) {
-                LOG.warn("change:[{}] No need to execute,the reason is joiner dead!  joiners:{} aliveServers:{}",
+                LOG.debug("change:[{}] No need to execute,the reason is joiner dead!  joiners:{} aliveServers:{}",
                          cs.getChangeID(), joinerSecondIDs, aliveSecondIDs);
                 return false;
             }
         }
         // 检查目前存活的服务，是否满足副本数
         if (aliveSecondIDs.size() < replicas) {
-            LOG.warn("change:[{}] No need to execute,the reason is replicas num > alive num!  replicas:[{}] aliveServers:{}",
+            LOG.debug("change:[{}] No need to execute,the reason is replicas num > alive num!  replicas:[{}] aliveServers:{}",
                      cs.getChangeID(), replicas, aliveSecondIDs);
             return false;
         }
@@ -668,7 +668,7 @@ public class TaskDispatcher implements Closeable {
         Collection<String> secondIds = idManager.getSecondIds(serverId, storageIndex);
 
         if (secondIds.containsAll(aliveSecondIDs)) {
-            LOG.warn(
+            LOG.debug(
                 "change:[{}] No need to execute,the reason is only one server!  "
                     + "firstServer: [{}], partitionFirstShip:{} aliveServers:{}",
                 cs.getChangeID(), serverId, secondIds, aliveSecondIDs);
@@ -701,14 +701,14 @@ public class TaskDispatcher implements Closeable {
          * 1.参与者不足的情况，该sn出现异常，之后的变更都不能处理
          * 2.参与者充足的情况，需要重新选择参与者进行执行，remove任务依旧放在最后
          */
-        LOG.info("deal virtual task, snIndex:{}", snIndex);
+        LOG.debug("deal virtual task, snIndex:{}", snIndex);
         boolean addFlag = false;
         for (DiskPartitionChangeSummary changeSummary : changeSummaries) {
             if (changeSummary.getChangeType().equals(ChangeType.ADD)) { // 找到第一个ADD
                 String changeID = changeSummary.getChangeID();
                 int storageIndex = changeSummary.getStorageIndex();
                 List<String> currentFirstIDs = getAliveServices();
-                List<String> virtualServerIds = idManager.listValidVirtualIds(changeSummary.getStorageIndex());
+                List<String> virtualServerIds = idManager.getVirtualServerID().listVirtualIds(changeSummary.getStorageIndex());
                 String virtualServersPath = idManager.getVirtualIdContainerPath();
                 if (virtualServerIds != null && !virtualServerIds.isEmpty()) {
                     Collections.sort(virtualServerIds);
@@ -1026,11 +1026,14 @@ public class TaskDispatcher implements Closeable {
         String historyPath =
             ZKPaths.makePath(changesHistoryPath, String.valueOf(summary.getStorageIndex()), summary.getChangeID());
         try {
-            byte[] data = client.getData().forPath(path);
-            client.delete().guaranteed().forPath(path);
-            client.create().creatingParentsIfNeeded().forPath(historyPath, data);
+            if (client.checkExists().forPath(path) != null) {
+                byte[] data = client.getData().forPath(path);
+                client.delete().guaranteed().forPath(path);
+                client.create().creatingParentsIfNeeded().forPath(historyPath, data);
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            //ignore
+            LOG.warn("mv change happen error {}", e.getMessage());
         }
     }
 

@@ -8,6 +8,7 @@ import com.bonree.brfs.disknode.client.TcpDiskNodeClient;
 import com.bonree.brfs.disknode.server.handler.data.FileInfo;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.identification.IDSManager;
+import com.bonree.brfs.identification.SecondMaintainerInterface;
 import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.schedulers.utils.LocalByteStreamConsumer;
@@ -32,10 +33,10 @@ import org.slf4j.LoggerFactory;
 public class RemoteFileWorker {
     private static final Logger LOG = LoggerFactory.getLogger(RemoteFileWorker.class);
     private Service remoteServer;
-    private IDSManager idsManager;
+    private SecondMaintainerInterface idsManager;
     private RouteCache routeCache;
 
-    public RemoteFileWorker(Service remoteServer, IDSManager idsManager, RouteCache routeCache) {
+    public RemoteFileWorker(Service remoteServer, SecondMaintainerInterface idsManager, RouteCache routeCache) {
         this.remoteServer = remoteServer;
         this.idsManager = idsManager;
         this.routeCache = routeCache;
@@ -251,7 +252,9 @@ public class RemoteFileWorker {
                                   .append(region.getName())
                                   .append('/')
                                   .append(serverIndex)
+                                  .append('/')
                                   .append(timeDirName)
+                                  .append('/')
                                   .append(fileName)
                                   .toString();
     }

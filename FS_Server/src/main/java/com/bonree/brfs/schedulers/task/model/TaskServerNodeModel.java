@@ -1,6 +1,7 @@
 package com.bonree.brfs.schedulers.task.model;
 
 import com.bonree.brfs.common.task.TaskState;
+import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,4 +97,15 @@ public class TaskServerNodeModel {
         return task;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                          .add("taskStartTime", taskStartTime)
+                          .add("taskStopTime", taskStopTime)
+                          .add("taskState", taskState)
+                          .add("retryCount", retryCount)
+                          .add("atomTaskModels", atomTaskModels)
+                          .add("result", result)
+                          .toString();
+    }
 }

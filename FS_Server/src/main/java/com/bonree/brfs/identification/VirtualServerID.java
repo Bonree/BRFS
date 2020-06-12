@@ -26,7 +26,6 @@ public interface VirtualServerID {
      */
     List<String> listValidVirtualIds(int storageIndex);
 
-
     /**
      * 概述：列出使用的virtualID
      *
@@ -38,9 +37,11 @@ public interface VirtualServerID {
 
     /**
      * 判断一级serverid是否存在有效的虚拟serverid数据
+     *
      * @param storageIndex
      * @param virtualId
      * @param first
+     *
      * @return
      */
     boolean hasVirtual(int storageIndex, String virtualId, String first);
@@ -78,6 +79,16 @@ public interface VirtualServerID {
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
     boolean validVirtualId(int storageIndex, String id);
+
+    /**
+     * 获取包含指定虚拟serverid的一级serverid集合
+     *
+     * @param storageIndex
+     * @param virtual
+     *
+     * @return
+     */
+    List<String> listFirstServer(int storageIndex, String virtual);
 
     /**
      * 概述：删除虚拟ID

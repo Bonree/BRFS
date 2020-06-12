@@ -3,9 +3,11 @@ package com.bonree.brfs.schedulers.utils;
 import com.bonree.brfs.disknode.client.DiskNodeClient.ByteConsumer;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +43,15 @@ public class LocalByteStreamConsumer implements ByteConsumer {
     }
 
     public void wirteLocalFileData(byte[] data) {
+        File outFile = new File(localPath);
         try {
+            File parentDir = outFile.getParentFile();
+            if (!parentDir.exists()) {
+                FileUtils.forceMkdir(parentDir);
+            }
             if (output == null) {
-                output = new BufferedOutputStream(new FileOutputStream(localPath), bufferSize);
+
+                output = new BufferedOutputStream(new FileOutputStream(new File(localPath)), bufferSize);
             }
             output.write(data);
             output.flush();

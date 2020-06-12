@@ -85,7 +85,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
                 Pair<String, TaskModel> taskPair =
                     TaskStateLifeContral.getCurrentOperationTask(release, typeName, serverId, retryCount);
                 if (taskPair == null) {
-                    LOG.warn("taskType :{} taskName: null is vaild ,skiping !!!", typeName);
+                    LOG.debug("taskType :{} taskName: null is vaild ,skiping !!!", typeName);
                     continue;
                 }
                 currentTaskName = taskPair.getFirst();
@@ -111,17 +111,11 @@ public class OperationTaskJob extends QuartzOperationStateTask {
                     continue;
                 }
                 if (sumbitTask == null) {
-                    LOG.warn("sumbit type:{}, taskName :{}, taskcontent is null", typeName, currentTaskName);
+                    LOG.debug("sumbit type:{}, taskName :{}, taskcontent is null", typeName, currentTaskName);
                     continue;
                 }
                 boolean isSumbit = schd.addTask(typeName, sumbitTask);
                 LOG.info("sumbit type:{}, taskName :{}, state:{}", typeName, currentTaskName, isSumbit);
-                if (!isSumbit) {
-                    LOG.warn("next cycle will sumbit against type : {}, taskName : {}", typeName, currentTaskName);
-                    continue;
-                }
-                // 更新任务状态
-                //更新任务执行的位置
             } catch (Exception e) {
                 LOG.error("{}", e);
                 EmailPool emailPool = EmailPool.getInstance();
@@ -169,11 +163,11 @@ public class OperationTaskJob extends QuartzOperationStateTask {
 
         int taskCount = threadCount;
         if (taskCount < 0) {
-            LOG.warn("there is no thread in the {} pool ", taskType);
+            LOG.debug("there is no thread in the {} pool ", taskType);
             return false;
         }
         if (poolSize <= 0 || poolSize <= taskCount) {
-            LOG.warn("task pool size is full !!! pool size :{}, thread count :{}", poolSize, threadCount);
+            LOG.debug("task pool size is full !!! pool size :{}, thread count :{}", poolSize, threadCount);
             return false;
         }
         if (TaskType.SYSTEM_DELETE.code() == taskType || TaskType.USER_DELETE.code() == taskType) {
