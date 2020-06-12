@@ -33,7 +33,7 @@
 		<repository>
 			<id>bonree_nexus</id>
 			<name>bonree nexus</name>
-			<url>http://192.168.4.201:8081/nexus/content/groups/public/</url>
+			<url>http://192.168.4.201:8081/nexus/content/repositories/releases/</url>
 		</repository>
 		<snapshotRepository>
 			<id>bonree_nexus</id>
