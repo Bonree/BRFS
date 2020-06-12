@@ -31,12 +31,12 @@
 
 	<distributionManagement>
 		<repository>
-			<id>nexus</id>
+			<id>bonree_nexus</id>
 			<name>bonree nexus</name>
-			<url>http://192.168.4.201:8081/nexus/content/groups/public/</url>
+			<url>http://192.168.4.201:8081/nexus/content/repositories/releases/</url>
 		</repository>
 		<snapshotRepository>
-			<id>snapshots</id>
+			<id>bonree_nexus</id>
 			<name>User Project SNAPSHOTS</name>
 			<url>http://192.168.4.201:8081/nexus/content/repositories/snapshots/</url>
 		</snapshotRepository>
@@ -45,7 +45,6 @@
 	<modules>
 		<module>build-tools</module>
 		<module>FS_Proto</module>
-		<module>FS_Client</module>
 		<module>FS_Commons</module>
 		<module>FS_Server</module>
 		<module>brfs-resource</module>
@@ -73,6 +72,7 @@
 	<properties>
 		<project.build.targetJdk>1.8</project.build.targetJdk>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<brfs.deploy.skip>false</brfs.deploy.skip>
 
 		<!-- Target Java version for Modernizer -->
 		<brfs.modernizer.java-version>${project.build.targetJdk}</brfs.modernizer.java-version>
@@ -681,6 +681,15 @@
 				</plugin>
 
 				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>3.0.0-M1</version>
+					<configuration>
+						<skip>${brfs.deploy.skip}</skip>
+					</configuration>
+				</plugin>
+
+				<plugin>
 					<groupId>org.basepom.maven</groupId>
 					<artifactId>duplicate-finder-maven-plugin</artifactId>
 					<version>1.3.0</version>
@@ -844,6 +853,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
 			</plugin>
 
 			<plugin>

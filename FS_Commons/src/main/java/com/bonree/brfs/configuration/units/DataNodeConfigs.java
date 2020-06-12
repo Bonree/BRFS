@@ -39,7 +39,7 @@ public final class DataNodeConfigs {
         ConfigUnit.ofInt("datanode.writer.worker.num", Runtime.getRuntime().availableProcessors());
 
     public static final ConfigUnit<Integer> CONFIG_TASKQ_LIMIT =
-        ConfigUnit.ofInt("datanode.task.queue.num", 1);
+            ConfigUnit.ofInt("datanode.task.queue.num", 32);
 
     public static final ConfigUnit<Integer> CONFIG_WRITER_DATA_CACHE_SIZE =
         ConfigUnit.ofInt("datanode.writer.data.cache", 512 * 1024);
@@ -51,10 +51,10 @@ public final class DataNodeConfigs {
         ConfigUnit.ofString("datanode.file.idle.time", "PT3S");
 
     public static final ConfigUnit<Integer> CONFIG_MESSAGE_QUEUE_NUM =
-        ConfigUnit.ofInt("message.handler.queue.limit", 5);
+            ConfigUnit.ofInt("message.handler.queue.limit", Runtime.getRuntime().availableProcessors());
 
     public static final ConfigUnit<Integer> CONFIG_REQUEST_HANDLER_NUM =
-        ConfigUnit.ofInt("datanode.request.handler.num", 5);
+            ConfigUnit.ofInt("datanode.request.handler.num", Runtime.getRuntime().availableProcessors());
 
     public static final ConfigUnit<Integer> CONFIG_FILE_READER_NUM =
         ConfigUnit.ofInt("datanode.file.reader.num", Runtime.getRuntime().availableProcessors());

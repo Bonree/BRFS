@@ -18,6 +18,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <brfs.check.skip-dependency>true</brfs.check.skip-dependency>
+        <brfs.deploy.skip>true</brfs.deploy.skip>
     </properties>
 
     <dependencies>

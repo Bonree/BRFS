@@ -1,5 +1,6 @@
 package com.bonree.brfs.gui.server;
 
+import static com.facebook.airlift.http.server.HttpServerBinder.httpServerBinder;
 import static com.facebook.airlift.jaxrs.JaxrsBinder.jaxrsBinder;
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
@@ -58,6 +59,7 @@ public class Server {
             new StatModule(),
             new ZookeeperModule(),
             binder -> {
+                httpServerBinder(binder).bindResource("/ui", "webapp").withWelcomeFile("index.html");
 
                 binder.bind(EventClient.class).to(NullEventClient.class).in(Singleton.class);
                 binder.bind(NodeInfo.class).toInstance(new NodeInfo("env"));
