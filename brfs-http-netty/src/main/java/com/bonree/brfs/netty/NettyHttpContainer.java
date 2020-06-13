@@ -26,16 +26,18 @@ import org.glassfish.jersey.spi.ScheduledExecutorServiceProvider;
 class NettyHttpContainer implements Container {
 
     private volatile ApplicationHandler appHandler;
+    private final ExecutorServiceProvider executorServiceProvider;
 
-    public static NettyHttpContainer create(Application application) {
-        NettyHttpContainer container = new NettyHttpContainer(application);
+    public static NettyHttpContainer create(Application application, ExecutorServiceProvider executorServiceProvider) {
+        NettyHttpContainer container = new NettyHttpContainer(application, executorServiceProvider);
         container.appHandler.onStartup(container);
 
         return container;
     }
 
-    private NettyHttpContainer(Application application) {
+    private NettyHttpContainer(Application application, ExecutorServiceProvider executorServiceProvider) {
         this.appHandler = new ApplicationHandler(application);
+        this.executorServiceProvider = executorServiceProvider;
     }
 
     @Override
@@ -68,7 +70,7 @@ class NettyHttpContainer implements Container {
      * @return Executor service associated with this container.
      */
     ExecutorService getExecutorService() {
-        return appHandler.getInjectionManager().getInstance(ExecutorServiceProvider.class).getExecutorService();
+        return executorServiceProvider.getExecutorService();
     }
 
     /**
@@ -80,4 +82,5 @@ class NettyHttpContainer implements Container {
         return appHandler.getInjectionManager().getInstance(ScheduledExecutorServiceProvider.class)
                          .getExecutorService();
     }
+
 }
