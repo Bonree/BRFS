@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -125,31 +127,31 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
         }
         Map<StorageRegion, List<String>> virtualMap = new HashMap<>();
         for (StorageRegion region : regions) {
-            if (taskMonitor.isExecute()) {
-                return null;
-            }
             List<String> virtuals = idsManager.listVirtualIds(region.getId());
             if (virtuals == null || virtuals.isEmpty()) {
                 continue;
             }
-            List<String> recoverys = new ArrayList<>();
-            for (String virtual : virtuals) {
-                List<String> tmps = idsManager.listFirstServer(region.getId(), virtual);
+            List<String> recoverys = virtuals.stream().filter(virtual -> {
+                final List<String> tmps = idsManager.listFirstServer(region.getId(), virtual);
+                LOG.warn("hasVirtual {}, alive servers {}", tmps, servers);
                 if (tmps.isEmpty()) {
-                    continue;
+                    return false;
                 }
-                boolean add = false;
-                for (String first : servers) {
-                    if (!tmps.contains(first)) {
-                        add = true;
-                        break;
-                    }
+                if (!tmps.stream().allMatch(servers::contains)) {
+                    LOG.warn("virtual serverIds is not all !! skip ");
+                    return false;
                 }
-                if (add) {
-                    recoverys.add(virtual);
+                if (servers.stream().allMatch(tmps::contains)) {
+                    LOG.warn("no new serverId in alive server list !! skip ");
+                    return false;
                 }
+                return true;
+            }).collect(Collectors.toList());
+            LOG.warn("recovery {} : virtuals {}", recoverys, virtuals);
+            if (recoverys.isEmpty()) {
+                continue;
             }
-            virtualMap.put(region, virtuals);
+            virtualMap.put(region, recoverys);
         }
         if (virtualMap.isEmpty()) {
             LOG.info("no virtual id to recovery");
@@ -158,12 +160,9 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
         List<String> tasks = release.getTaskList(TaskType.VIRTUAL_ID_RECOVERY.name());
         if (tasks != null) {
             for (String x : tasks) {
-                if (taskMonitor.isExecute()) {
-                    return null;
-                }
                 TaskModel model = release.getTaskContentNodeInfo(TaskType.VIRTUAL_ID_RECOVERY.name(), x);
                 if (model != null && model.getTaskState() != TaskState.FINISH.code()) {
-                    LOG.info("there is  virtual id  recovery task");
+                    LOG.warn("there is  virtual id  recovery task");
                     return null;
                 }
             }
