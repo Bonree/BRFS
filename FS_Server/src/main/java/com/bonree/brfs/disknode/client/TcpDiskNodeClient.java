@@ -9,7 +9,6 @@ import com.bonree.brfs.common.net.tcp.client.TcpClient;
 import com.bonree.brfs.common.net.tcp.file.ReadObject;
 import com.bonree.brfs.common.net.tcp.file.client.FileContentPart;
 import com.bonree.brfs.common.serialize.ProtoStuffUtils;
-import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
@@ -212,7 +211,6 @@ public class TcpDiskNodeClient implements DiskNodeClient {
     @Override
     public WriteResult[] writeDatas(String path, List<byte[]> dataList) throws IOException {
         try {
-            TimeWatcher tw = new TimeWatcher();
             WriteFileData[] datas = new WriteFileData[dataList.size()];
             for (int i = 0; i < datas.length; i++) {
                 WriteFileData data = new WriteFileData();
@@ -228,7 +226,6 @@ public class TcpDiskNodeClient implements DiskNodeClient {
             BaseMessage message = new BaseMessage(TYPE_WRITE_FILE);
             message.setBody(ProtoStuffUtils.serialize(writeFileMessage));
 
-            LOG.info("TIME_TEST prepare data for file[{}] take {} ms", path, tw.getElapsedTimeAndRefresh());
 
             CompletableFuture<BaseResponse> future = new CompletableFuture<BaseResponse>();
             LOG.debug("write [{}] datas to data node in file[{}]", dataList.size(), path);
@@ -247,12 +244,10 @@ public class TcpDiskNodeClient implements DiskNodeClient {
 
             BaseResponse response = future.get();
 
-            LOG.info("TIME_TEST write datalist[{}] to file[{}] take {} ms", dataList.size(), path, tw.getElapsedTimeAndRefresh());
 
             if (response != null && response.getCode() == ResponseCode.OK) {
                 WriteResultList resultList = ProtoStuffUtils.deserialize(response.getBody(), WriteResultList.class);
 
-                LOG.info("TIME_TEST deserialize response for file[{}] take {} ms", path, tw.getElapsedTimeAndRefresh());
 
                 return resultList.getWriteResults();
             }

@@ -1,6 +1,5 @@
 package com.bonree.brfs.disknode.data.write;
 
-import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.ByteUtils;
 import com.bonree.brfs.disknode.data.write.record.RecordCollection;
 import com.bonree.brfs.disknode.data.write.record.RecordElement;
@@ -40,15 +39,12 @@ public class RecordFileWriter implements FileWriter {
 
     @Override
     public void write(byte[] bytes, int offset, int size) throws IOException {
-        TimeWatcher tw = new TimeWatcher();
         RecordElement element = new RecordElement(delegate.position(), size, ByteUtils.crc(bytes, offset, size));
         recorder.put(element);
 
-        LOG.info("TIME_TEST record for file[{}] take {} ms", delegate.getPath(), tw.getElapsedTimeAndRefresh());
 
         delegate.write(bytes, offset, size);
 
-        LOG.info("TIME_TEST delegate for file[{}] take {} ms", delegate.getPath(), tw.getElapsedTimeAndRefresh());
     }
 
     @Override
