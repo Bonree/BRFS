@@ -14,8 +14,6 @@
 
 package com.bonree.brfs.disknode;
 
-import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
-
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.guice.JsonConfigProvider;
 import com.bonree.brfs.common.jackson.JsonMapper;
@@ -35,7 +33,6 @@ import com.bonree.brfs.common.service.impl.DefaultServiceManager;
 import com.bonree.brfs.common.statistic.ReadStatCollector;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.common.zookeeper.curator.cache.CuratorCacheFactory;
-import com.bonree.brfs.configuration.ConfigUnit;
 import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.SystemProperties;
 import com.bonree.brfs.configuration.units.DataNodeConfigs;
@@ -43,15 +40,7 @@ import com.bonree.brfs.disknode.data.write.FileWriterManager;
 import com.bonree.brfs.disknode.data.write.record.RecordCollectionManager;
 import com.bonree.brfs.disknode.fileformat.FileFormater;
 import com.bonree.brfs.disknode.fileformat.impl.SimpleFileFormater;
-import com.bonree.brfs.disknode.server.tcp.handler.CloseFileMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.DeleteFileMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.FileRecoveryMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.FlushFileMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.ListFileMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.MetadataFetchMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.OpenFileMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.PingPongMessageHandler;
-import com.bonree.brfs.disknode.server.tcp.handler.WriteFileMessageHandler;
+import com.bonree.brfs.disknode.server.tcp.handler.*;
 import com.bonree.brfs.duplication.filenode.FileNodeStorer;
 import com.bonree.brfs.duplication.filenode.zk.ZkFileNodeStorer;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
@@ -70,16 +59,16 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import javax.inject.Singleton;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Singleton;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
 
 public class DataNodeModule implements Module {
     private static final Logger log = LoggerFactory.getLogger(DataNodeModule.class);
@@ -283,14 +272,10 @@ public class DataNodeModule implements Module {
         Lifecycle lifecycle) {
         AsyncFileReaderGroup readerGroup = new AsyncFileReaderGroup(Math.min(2, Runtime.getRuntime().availableProcessors() / 2),
                                                                     "data_writer_server");
-        int threadQNum = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_MESSAGE_QUEUE_NUM);
-        int threadNum = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM);
 
-        ExecutorService threadPool = new ThreadPoolExecutor(threadNum, threadNum,
-                                                            10L, TimeUnit.SECONDS,
-                                                            new LinkedBlockingQueue<Runnable>(threadQNum),
-                                                            new PooledThreadFactory("message_handler"),
-                                                            new ThreadPoolExecutor.AbortPolicy());
+        ExecutorService threadPool = Executors.newFixedThreadPool(
+            Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),
+            new PooledThreadFactory("message_handler"));
 
         MessageChannelInitializer initializer = new MessageChannelInitializer(threadPool);
         initializer.addMessageHandler(TYPE_OPEN_FILE, new OpenFileMessageHandler(diskContext, writerManager));
