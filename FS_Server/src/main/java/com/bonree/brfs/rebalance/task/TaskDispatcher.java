@@ -6,6 +6,7 @@ import com.bonree.brfs.common.rebalance.route.VirtualRoute;
 import com.bonree.brfs.common.rebalance.route.impl.v2.NormalRouteV2;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
+import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.PooledThreadFactory;
@@ -644,7 +645,7 @@ public class TaskDispatcher implements Closeable {
                                  IDSManager idManager, int storageIndex) {
         if (aliveSecondIDs.contains(cs.getChangeServer())) {
             LOG.debug("change:[{}] No need to execute,the reason is changeServer alive!  change:[{}] aliveServers:{}",
-                     cs.getChangeID(), cs.getChangeServer(), aliveSecondIDs);
+                      cs.getChangeID(), cs.getChangeServer(), aliveSecondIDs);
             return false;
         }
         int replicas = snManager.findStorageRegionById(cs.getStorageIndex()).getReplicateNum();
@@ -652,14 +653,14 @@ public class TaskDispatcher implements Closeable {
         for (String joiner : joinerSecondIDs) {
             if (!aliveSecondIDs.contains(joiner)) {
                 LOG.debug("change:[{}] No need to execute,the reason is joiner dead!  joiners:{} aliveServers:{}",
-                         cs.getChangeID(), joinerSecondIDs, aliveSecondIDs);
+                          cs.getChangeID(), joinerSecondIDs, aliveSecondIDs);
                 return false;
             }
         }
         // 检查目前存活的服务，是否满足副本数
         if (aliveSecondIDs.size() < replicas) {
             LOG.debug("change:[{}] No need to execute,the reason is replicas num > alive num!  replicas:[{}] aliveServers:{}",
-                     cs.getChangeID(), replicas, aliveSecondIDs);
+                      cs.getChangeID(), replicas, aliveSecondIDs);
             return false;
         }
 
@@ -849,7 +850,10 @@ public class TaskDispatcher implements Closeable {
                                 String otherFirstID =
                                     idManager.getFirstId(currentTask.getInputServers().get(0), currentTask.getStorageIndex());
                                 if (!aliveServices.contains(otherFirstID) && countdownTime(currentTask)) {
-                                    if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
+                                    TaskStatus status = currentTask.getTaskStatus();
+                                    if (status.equals(TaskStatus.FINISH)) {
+                                        LOG.info("task is finish no need to cancel");
+                                    } else if (!status.equals(TaskStatus.CANCEL)) {
                                         updateTaskStatus(currentTask, TaskStatus.CANCEL);
                                         changeSummaries.remove(runChangeSummary);
                                         delChangeSummaryNode(runChangeSummary);
@@ -868,7 +872,7 @@ public class TaskDispatcher implements Closeable {
                                 if (joiners.contains(cs.getChangeServer())) { // 参与者挂掉
                                     LOG.warn("running virtual task,joiner has fault,server id:{}",
                                              currentTask.getInputServers().get(0));
-                                    if (countdownTime(currentTask)) {
+                                    if (countdownTime(currentTask) && !TaskStatus.FINISH.equals(currentTask.getTaskStatus())) {
                                         List<String> aliveServices = getAliveServices();
                                         String otherFirstID = idManager.getFirstId(currentTask.getOutputServers().get(0),
                                                                                    runChangeSummary.getStorageIndex());
@@ -924,7 +928,10 @@ public class TaskDispatcher implements Closeable {
                                 double process = monitor.getTaskProgress(client, taskPath);
 
                                 if (process < DEFAULT_PROCESS) {
-                                    if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
+                                    TaskStatus status = currentTask.getTaskStatus();
+                                    if (TaskStatus.FINISH.equals(status)) {
+                                        LOG.info("no need to  convet fininsh to  cancel");
+                                    } else if (!currentTask.getTaskStatus().equals(TaskStatus.CANCEL)) {
                                         updateTaskStatus(currentTask, TaskStatus.CANCEL);
                                         changeSummaries.remove(runChangeSummary);
                                         delChangeSummaryNode(runChangeSummary);
@@ -962,12 +969,15 @@ public class TaskDispatcher implements Closeable {
 
                             // 参与者出现问题 或 既是参与者又是接收者
                             if (joiners.contains(secondID) || receivers.contains(secondID)) {
-                                if (!TaskStatus.PAUSE.equals(currentTask.getTaskStatus())) {
+                                TaskStatus status = currentTask.getTaskStatus();
+                                if (TaskStatus.FINISH.equals(status)) {
+                                    LOG.info("no need to  convet fininsh to  cancel");
+                                } else if (!TaskStatus.PAUSE.equals(currentTask.getTaskStatus())) {
                                     updateTaskStatus(currentTask, TaskStatus.PAUSE);
                                     LOG.warn("storage:[{}], task:[{}] type:[{}] {} to pause", snIndex, changeID,
                                              currentTask.getTaskStatus(), runChangeSummary.getChangeType());
                                 }
-                                if (countdownTime(currentTask)) {
+                                if (countdownTime(currentTask) && !TaskStatus.FINISH.equals(status)) {
                                     LOG.warn("storage:[{}], task:[{}] type:[{}] {} to cancel", snIndex, changeID,
                                              currentTask.getTaskType(), currentTask.getTaskStatus(),
                                              runChangeSummary.getChangeType());
@@ -1046,8 +1056,17 @@ public class TaskDispatcher implements Closeable {
         String taskHistory = ZKPaths.makePath(tasksHistoryPath, String.valueOf(task.getStorageIndex()), task.getChangeID());
         try {
             byte[] data = client.getData().forPath(taskNode);
+            BalanceTaskSummary tmpTask = JsonUtils.toObject(data, BalanceTaskSummary.class);
+            if (!task.getTaskStatus().equals(tmpTask.getTaskStatus())) {
+                data = JsonUtils.toJsonBytes(task);
+                LOG.warn("Task {} status not equal ! mem:{} zk:{}", task.getChangeID(), task.getTaskStatus(),
+                         tmpTask.getTaskStatus());
+            }
             if (client.checkExists().forPath(taskNode) != null) {
                 client.delete().deletingChildrenIfNeeded().forPath(taskNode);
+            }
+            if (client.checkExists().forPath(taskHistory) != null) {
+                client.delete().deletingChildrenIfNeeded().forPath(taskHistory);
             }
             client.create().creatingParentsIfNeeded().forPath(taskHistory, data);
             return true;
