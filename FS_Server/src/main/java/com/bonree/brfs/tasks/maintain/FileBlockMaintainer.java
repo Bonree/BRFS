@@ -108,8 +108,11 @@ public class FileBlockMaintainer implements LifeCycle {
         @Override
         public void run() {
             try {
+
                 if (!monitor.isExecute()) {
                     handleInvalidBlocks(secondIds, manager, localPartitionInterface, monitor, cache, System.currentTimeMillis());
+                } else {
+                    LOG.info("scan file block worker skip run ! because there is rebalance task run !");
                 }
             } catch (Exception e) {
                 log.error("FileBlockWorker scan blockes happen error ", e);
