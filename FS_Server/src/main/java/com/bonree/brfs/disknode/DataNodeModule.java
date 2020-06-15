@@ -283,14 +283,10 @@ public class DataNodeModule implements Module {
         Lifecycle lifecycle) {
         AsyncFileReaderGroup readerGroup = new AsyncFileReaderGroup(Math.min(2, Runtime.getRuntime().availableProcessors() / 2),
                                                                     "data_writer_server");
-        int threadQNum = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_MESSAGE_QUEUE_NUM);
-        int threadNum = Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM);
 
-        ExecutorService threadPool = new ThreadPoolExecutor(threadNum, threadNum,
-                                                            10L, TimeUnit.SECONDS,
-                                                            new LinkedBlockingQueue<Runnable>(threadQNum),
-                                                            new PooledThreadFactory("message_handler"),
-                                                            new ThreadPoolExecutor.AbortPolicy());
+        ExecutorService threadPool = Executors.newFixedThreadPool(
+            Configs.getConfiguration().getConfig(DataNodeConfigs.CONFIG_REQUEST_HANDLER_NUM),
+            new PooledThreadFactory("message_handler"));
 
         MessageChannelInitializer initializer = new MessageChannelInitializer(threadPool);
         initializer.addMessageHandler(TYPE_OPEN_FILE, new OpenFileMessageHandler(diskContext, writerManager));

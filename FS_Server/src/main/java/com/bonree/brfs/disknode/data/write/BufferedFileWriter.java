@@ -1,6 +1,5 @@
 package com.bonree.brfs.disknode.data.write;
 
-import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.CloseUtils;
 import com.bonree.brfs.disknode.data.write.buf.FileBuffer;
 import java.io.File;
@@ -67,23 +66,16 @@ public class BufferedFileWriter implements FileWriter {
     @Override
     public void write(byte[] bytes, int offset, int length) throws IOException {
         if (length > buffer.writableSize() && buffer.readableSize() > 0) {
-            TimeWatcher tw = new TimeWatcher();
             flush();
-
-            LOG.info("TIME_TEST flush for file[{}] take {} ms", filePath, tw.getElapsedTime());
         }
 
         if (length > buffer.capacity()) {
             //如果写入的数据超过了缓存大小，则直接写入文件，这种情况不需要对数据
             //进行缓存
             try {
-                LOG.info("direct write data size[{}] to file[{}]", length, filePath);
-                TimeWatcher tw = new TimeWatcher();
+                LOG.debug("direct write data size[{}] to file[{}]", length, filePath);
                 file.getChannel().write(ByteBuffer.wrap(bytes, offset, length));
-                LOG.info("TIME_TEST channel write for file[{}] take {} ms", filePath, tw.getElapsedTimeAndRefresh());
-
                 fileLength = file.getChannel().position();
-                LOG.info("TIME_TEST get position for file[{}] take {} ms", filePath, tw.getElapsedTime());
 
                 LOG.debug("file length [{}] file[{}]", fileLength, filePath);
             } catch (IOException e) {
@@ -97,10 +89,8 @@ public class BufferedFileWriter implements FileWriter {
             return;
         }
 
-        TimeWatcher tw = new TimeWatcher();
         buffer.write(bytes, offset, length);
         position += length;
-        LOG.info("TIME_TEST buffer write for file[{}] take {} ms", filePath, tw.getElapsedTime());
         LOG.debug("write data size[{}] to buffer for file[{}], position become [{}]", length, filePath, position);
     }
 
