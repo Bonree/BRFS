@@ -33,7 +33,7 @@
 		<repository>
 			<id>bonree_nexus</id>
 			<name>bonree nexus</name>
-			<url>http://192.168.4.201:8081/nexus/content/groups/public/</url>
+			<url>http://192.168.4.201:8081/nexus/content/repositories/releases/</url>
 		</repository>
 		<snapshotRepository>
 			<id>bonree_nexus</id>
@@ -575,6 +575,24 @@
 					</configuration>
 				</plugin>
 
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>3.0.0-M1</version>
+					<configuration>
+						<releaseProfiles>${sweet.release.release-profiles}</releaseProfiles>
+						<autoVersionSubmodules>${sweet.release.auto-version-submodules}</autoVersionSubmodules>
+						<mavenExecutorId>forked-path</mavenExecutorId>
+						<pushChanges>${sweet.release.push-changes}</pushChanges>
+						<localCheckout>true</localCheckout>
+						<preparationGoals>${sweet.release.preparation-goals}</preparationGoals>
+						<tagNameFormat>${sweet.release.tag-name-format}</tagNameFormat>
+						<useReleaseProfile>false</useReleaseProfile>
+						<goals>deploy</goals>
+					</configuration>
+				</plugin>
+
+
 				<!-- Always build a jar with the test classes -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -848,6 +866,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
 			</plugin>
 
 			<plugin>

@@ -269,7 +269,7 @@ public class MultiRecover implements DataRecover {
         }
 
         List<String> aliveMultiIds = getAliveMultiIds();
-        log.info("analysis second ids from route:{}, valid second ids:{}, aliveMultiIds:{}", analysisSecondIds,
+        log.debug("analysis second ids from route:{}, valid second ids:{}, aliveMultiIds:{}", analysisSecondIds,
                  validSecondIds,
                  aliveMultiIds);
 
@@ -277,7 +277,7 @@ public class MultiRecover implements DataRecover {
         List<String> deadSecondIds =
             validSecondIds.stream().filter(x -> !aliveMultiIds.contains(x)).collect(Collectors.toList());
         if (deadSecondIds.isEmpty()) {
-            log.info("dead second ids is empty!");
+            log.warn("dead second ids is empty!");
             return;
         }
         // 4.解析文件名 用于当前需要发布的路由规则
@@ -287,10 +287,10 @@ public class MultiRecover implements DataRecover {
         excludes.addAll(idManager.getSecondIds(idManager.getFirstSever(), balanceSummary.getStorageIndex()));
         // 排除本机二级serverId
 
-        log.info("dead second ids:{}", deadSecondIds);
+        log.debug("dead second ids:{}", deadSecondIds);
         // 5.遍历不可用的服务
         for (String deadServer : deadSecondIds) {
-            log.info("deadServer: {}", deadServer);
+            log.debug("deadServer: {}", deadServer);
             int pot = validSecondIds.indexOf(deadServer) + 1;
             // 5-1.若发现不可用的secondid，则可能发生新的变更，将由下次任务执行，本次不进行操作
             if (!deadServer.equals(normal.getBaseSecondId())) {
@@ -301,14 +301,14 @@ public class MultiRecover implements DataRecover {
             // 5-2.根据预发布的路由规则进行解析，
             String selectMultiId = normal.locateNormalServer(fileCode, excludes);
 
-            log.info("alive multiIds:{}, normal route:{}", aliveMultiIds, normal);
+            log.debug("alive multiIds:{}, normal route:{}", aliveMultiIds, normal);
 
             // 5-3.判断选取的新节点是否存活
             if (isAlive(aliveMultiIds, selectMultiId)) {
                 String secondServerIDSelected =
                     idManager.getSecondId(balanceSummary.getPartitionId(), balanceSummary.getStorageIndex());
                 // 5-4.判断要恢复的secondId 与选中的secondid是否一致，一致，则表明该节点已经启动，则不做处理，不一致则需要作恢复
-                log.info("select second server id:{}, select multi id:{}", secondServerIDSelected, selectMultiId);
+                log.debug("select second server id:{}, select multi id:{}", secondServerIDSelected, selectMultiId);
 
                 if (!secondServerIDSelected.equals(selectMultiId)) {
                     String firstID = idManager.getFirstId(selectMultiId, balanceSummary.getStorageIndex());

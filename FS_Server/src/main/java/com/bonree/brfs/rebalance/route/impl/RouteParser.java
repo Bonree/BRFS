@@ -107,6 +107,15 @@ public class RouteParser implements BlockAnalyzer {
         this.normalRouteTree.put(routeInterface.getBaseSecondId(), routeInterface);
     }
 
+    @Override
+    public boolean isRoute(String secondId) {
+        if (BlockAnalyzer.isVirtualID(secondId)) {
+            return this.virtualRouteRelationship.get(secondId) != null;
+        } else {
+            return this.normalRouteTree.get(secondId) != null;
+        }
+    }
+
     /**
      * 单个服务检索
      * 性能可以进一步提升，uuid事先计算出数值

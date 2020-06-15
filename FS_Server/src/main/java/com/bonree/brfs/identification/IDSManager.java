@@ -36,6 +36,10 @@ public class IDSManager {
         start();
     }
 
+    public SecondMaintainerInterface getSecondMaintainer() {
+        return secondMaintainer;
+    }
+
     private Collection<String> convertToId(Collection<LocalPartitionInfo> partitions) {
         List<String> parts = new ArrayList<>();
         for (LocalPartitionInfo part : partitions) {
@@ -44,69 +48,8 @@ public class IDSManager {
         return parts;
     }
 
-    /**
-     * 注册二级serverid
-     *
-     * @param firstServer
-     * @param partitionId
-     * @param storageId
-     *
-     * @return
-     */
-    public String registerSecondId(String firstServer, String partitionId, int storageId) {
-        return this.secondMaintainer.registerSecondId(firstServer, partitionId, storageId);
-    }
-
-    /**
-     * 注册二级serverid
-     *
-     * @param firstServer
-     * @param storageId
-     *
-     * @return
-     */
-    public Collection<String> registerSecondIds(String firstServer, int storageId) {
-        return this.secondMaintainer.registerSecondIds(firstServer, storageId);
-    }
-
-    public boolean unregisterSecondId(String partitionId, int storageId) {
-        return this.secondMaintainer.unregisterSecondId(partitionId, storageId);
-    }
-
-    public boolean unregisterSecondIds(String firstServer, int storageid) {
-        return this.secondMaintainer.unregisterSecondId(firstServer, storageid);
-    }
-
-    public boolean isValidSecondId(String secondId, int storageId) {
-        return this.secondMaintainer.isValidSecondId(secondId, storageId);
-    }
-
-    public void addPartitionRelation(String firstServer, String partitionId) {
-        this.secondMaintainer.addPartitionRelation(firstServer, partitionId);
-    }
-
-    public void addAllPartitionRelation(Collection<String> parititionId, String firstServer) {
-        this.secondMaintainer.addAllPartitionRelation(parititionId, firstServer);
-    }
-
-    public boolean removePartitionRelation(String partitionid) {
-        return this.secondMaintainer.removePartitionRelation(partitionid);
-    }
-
-    public boolean removeAllPartitionRelation(Collection<String> partitionIds) {
-        return this.secondMaintainer.removeAllPartitionRelation(partitionIds);
-    }
-
-    public List<String> getVirtualID(int storageIndex, int count, List<String> diskFirstIDs) {
-        return this.virtualServerID.getVirtualID(storageIndex, count, diskFirstIDs);
-    }
-
     public List<String> listValidVirtualIds(int storageIndex) {
         return this.virtualServerID.listValidVirtualIds(storageIndex);
-    }
-
-    public List<String> listInvalidVirtualIds(int storageIndex) {
-        return this.virtualServerID.listInvalidVirtualIds(storageIndex);
     }
 
     public boolean invalidVirtualId(int storageIndex, String id) {
@@ -125,8 +68,8 @@ public class IDSManager {
         return this.virtualServerID.getVirtualIdContainerPath();
     }
 
-    public void addFirstId(int storageIndex, String virtualID, String firstId) {
-        this.virtualServerID.addFirstId(storageIndex, virtualID, firstId);
+    public boolean hasVirtual(String firstSever, String virtual, int storage) {
+        return this.virtualServerID.hasVirtual(storage, virtual, firstSever);
     }
 
     public String getFirstSever() {
@@ -158,5 +101,9 @@ public class IDSManager {
         Collection<String> parts = convertToId(partitions);
         this.secondMaintainer.addAllPartitionRelation(parts, firstSever);
         LOG.info("IDSManager start.");
+    }
+
+    public VirtualServerID getVirtualServerID() {
+        return virtualServerID;
     }
 }

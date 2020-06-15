@@ -48,7 +48,7 @@ public class LocalDirMaintainer implements PartitionInterface {
     public String getDataDir(String secondId, int storageRegionId) {
         String partitionId = secondIds.getPartitionId(secondId, storageRegionId);
         if (StringUtils.isEmpty(partitionId)) {
-            LOG.warn("partition Id is null sr:[{}],second:[{}]", storageRegionId, secondId);
+            LOG.debug("partition Id is null sr:[{}],second:[{}]", storageRegionId, secondId);
             return null;
         }
         return localPartitionInterface.getDataPaths(partitionId);

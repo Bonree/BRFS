@@ -3,13 +3,10 @@ package com.bonree.brfs.schedulers.utils;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.configuration.Configs;
 import com.bonree.brfs.configuration.ResourceTaskConfig;
-import com.bonree.brfs.configuration.units.DataNodeConfigs;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
-import com.bonree.brfs.schedulers.task.model.TaskRunPattern;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +21,6 @@ public class JobDataMapConstract {
      * serverid
      */
     public static final String SERVER_ID = "SERVER_ID";
-
 
     /**
      * 任务重复次数
@@ -48,8 +44,6 @@ public class JobDataMapConstract {
     public static final String CURRENT_TASK_NAME = "CURRENT_TASK_NAME";
     public static final String CHECK_TIME_RANGE = "CHECK_TIME_RANGE";
 
-
-
     /**
      * 概述：任务管理信息
      *
@@ -66,7 +60,7 @@ public class JobDataMapConstract {
     }
 
     public static Map<String, String> createOperationDataMap(String taskName, String serviceId, TaskModel task,
-                                                             TaskRunPattern pattern) throws Exception {
+                                                             int repeatCount, int sleep) throws Exception {
         Map<String, String> dataMap = new HashMap<>();
         dataMap.put(TASK_NAME, taskName);
         dataMap.put(SERVER_ID, serviceId);
@@ -74,12 +68,12 @@ public class JobDataMapConstract {
         dataMap.put(TASK_STAT, task.getTaskState() + "");
         dataMap.put(TASK_OPERATION_ARRAYS, JsonUtils.toJsonStringQuietly(task.getAtomList()));
         List<AtomTaskModel> atoms = task.getAtomList();
-        Map<Integer, BatchAtomModel> batchMap = groupAtoms(atoms, pattern.getRepeateCount());
+        Map<Integer, BatchAtomModel> batchMap = groupAtoms(atoms, repeatCount);
         for (Map.Entry<Integer, BatchAtomModel> entry : batchMap.entrySet()) {
             dataMap.put(entry.getKey().toString(), JsonUtils.toJsonStringQuietly(entry.getValue()));
         }
-        dataMap.put(TASK_REPEAT_RUN_COUNT, pattern.getRepeateCount() + "");
-        dataMap.put(TASK_RUN_INVERAL_TIME, pattern.getSleepTime() + "");
+        dataMap.put(TASK_REPEAT_RUN_COUNT, repeatCount + "");
+        dataMap.put(TASK_RUN_INVERAL_TIME, sleep + "");
         return dataMap;
     }
 

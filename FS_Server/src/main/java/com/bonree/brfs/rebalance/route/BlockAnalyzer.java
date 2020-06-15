@@ -86,4 +86,11 @@ public interface BlockAnalyzer {
      * @param routeInterface
      */
     void putNormalRoute(NormalRouteInterface routeInterface);
+
+    /**
+     * 是否发布路由规则
+     * @param secondId
+     * @return
+     */
+    boolean isRoute(String secondId);
 }

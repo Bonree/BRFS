@@ -59,6 +59,11 @@ public class LocalPartitionCache implements LocalPartitionListener, LocalPartiti
     }
 
     @Override
+    public LocalPartitionInfo getPartition(String partitionID) {
+        return idToLocal.get(partitionID);
+    }
+
+    @Override
     public Collection<LocalPartitionInfo> getPartitions() {
         return idToLocal.values();
     }

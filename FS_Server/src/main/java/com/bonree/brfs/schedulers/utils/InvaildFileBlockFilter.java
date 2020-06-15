@@ -8,6 +8,8 @@ import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.rebalance.route.BlockAnalyzer;
 import com.bonree.brfs.rebalance.route.impl.RouteParser;
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +68,7 @@ public class InvaildFileBlockFilter extends BRFSFileBaseFilter {
         //判断是否为本机该存在的
         String tmpRegion = values.get(BRFSPath.STORAGEREGION);
         if (!region.getName().equals(tmpRegion)) {
+            LOG.warn("file region is not match expect {} local", region.getName(), tmpRegion);
             return false;
         }
         String fileName = values.get(BRFSPath.FILE);
@@ -77,13 +80,32 @@ public class InvaildFileBlockFilter extends BRFSFileBaseFilter {
             LOG.warn("file: [{}]-[{}] contain dot !!", values, isFile);
             return true;
         }
-        boolean ulawFlag = CopyCountCheck.isUnlaw(secondId, this.parser, fileName);
-        if (ulawFlag) {
-            String path = BRFSFileUtil.createPath(root, values);
-            File file = new File(path + ".rd");
-            return !file.exists();
+        int index = getIndex(secondId, this.parser, fileName);
+        int local = Integer.parseInt(values.get(BRFSPath.INDEX));
+        if (index == -1) {
+            LOG.warn("file : {} should not in dir {} ", fileName, local);
+            return true;
+        }
+        if (local != index + 1) {
+            LOG.warn("file : {} analysis in {} but in {} ", fileName, index + 1, local);
+            return true;
         }
         return false;
+    }
+
+    private int getIndex(String sid, BlockAnalyzer parser, String fileName) {
+        try {
+            String[] alives = parser.searchVaildIds(fileName);
+            if (alives == null || alives.length == 0) {
+                LOG.warn("[{}] analys service error !! alives is null !!!", fileName);
+                return -1;
+            }
+            return Arrays.asList(alives).indexOf(sid);
+
+        } catch (Exception e) {
+            LOG.error("check storageregion :{}, file {} happener error", fileName, sid, e);
+        }
+        return -1;
     }
 
     private boolean isBug(Map<String, String> values, boolean isFile) {

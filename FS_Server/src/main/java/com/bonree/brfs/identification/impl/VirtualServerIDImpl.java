@@ -4,6 +4,7 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.sequencenumber.SequenceNumberBuilder;
 import com.bonree.brfs.common.sequencenumber.ZkSequenceNumberBuilder;
 import com.bonree.brfs.identification.VirtualServerID;
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 import java.util.ArrayList;
@@ -133,6 +134,20 @@ public class VirtualServerIDImpl implements VirtualServerID {
     }
 
     @Override
+    public List<String> listFirstServer(int storageIndex, String virtual) {
+        try {
+            String path = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtual);
+            if (client.checkExists().forPath(path) == null) {
+                return ImmutableList.of();
+            }
+            return client.getChildren().forPath(path);
+        } catch (Exception e) {
+            LOG.error("list virtual {} {} childs happen error", storageIndex, virtual, e);
+        }
+        return ImmutableList.of();
+    }
+
+    @Override
     public boolean invalidVirtualId(int storageIndex, String virtualId) {
         return updateVirutalIdState(storageIndex, virtualId, STATE_INVALID);
     }
@@ -153,7 +168,8 @@ public class VirtualServerIDImpl implements VirtualServerID {
     private List<String> getVirtualIdListByStorageId(int storageId, int state) {
         List<String> result = new ArrayList<String>();
         try {
-            List<String> nodeList = client.getChildren().forPath(ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId)));
+            String path = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId));
+            List<String> nodeList = client.getChildren().forPath(path);
             if (nodeList != null) {
                 for (String node : nodeList) {
                     String nodePath = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), node);
@@ -184,6 +200,48 @@ public class VirtualServerIDImpl implements VirtualServerID {
     @Override
     public List<String> listValidVirtualIds(int storageIndex) {
         return getVirtualIdListByStorageId(storageIndex, STATE_VALID);
+    }
+
+    @Override
+    public List<String> listVirtualIds(int storageId) {
+        List<String> result = new ArrayList<String>();
+        try {
+            String path = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId));
+            List<String> nodeList = client.getChildren().forPath(path);
+            if (nodeList != null) {
+                for (String node : nodeList) {
+                    String nodePath = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageId), node);
+                    List<String> childs = client.getChildren().forPath(nodePath);
+                    if (childs != null && !childs.isEmpty()) {
+                        result.add(node);
+                    }
+                }
+            }
+        } catch (NoNodeException e) {
+            //ignore
+        } catch (Exception e) {
+            LOG.error("get virtual id by sn[{}] node error", storageId, e);
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean hasVirtual(int storageIndex, String virtualId, String first) {
+        String virtualIdNodePath = ZKPaths.makePath(virtualIdContainer, String.valueOf(storageIndex), virtualId, first);
+        try {
+            if (client.checkExists().forPath(virtualIdNodePath) == null) {
+                return false;
+            }
+            byte[] data = client.getData().forPath(virtualIdNodePath);
+            if (data == null) {
+                return false;
+            }
+            return (Ints.fromByteArray(data) & STATE_VALID) > 0;
+        } catch (Exception e) {
+            LOG.error("judage valid virtual id happen error {},", virtualIdNodePath, e);
+        }
+        return true;
     }
 
     @Override

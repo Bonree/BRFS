@@ -11,6 +11,7 @@ import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
+import com.bonree.brfs.partition.DiskPartitionInfoManager;
 import com.bonree.brfs.rebalance.route.RouteCache;
 import com.bonree.brfs.rebalance.route.RouteLoader;
 import com.bonree.brfs.rebalance.route.impl.SimpleRouteZKLoader;
@@ -18,14 +19,11 @@ import com.bonree.brfs.resource.ResourceGatherInterface;
 import com.bonree.brfs.resource.ResourceRegisterInterface;
 import com.bonree.brfs.resource.impl.LocalResourceGather;
 import com.bonree.brfs.resource.impl.ZKResourceRegister;
-import com.bonree.brfs.resource.vo.LimitServerResource;
 import com.bonree.brfs.schedulers.ManagerContralFactory;
 import com.bonree.brfs.schedulers.MetaTaskLeaderManager;
 import com.bonree.brfs.schedulers.task.manager.MetaTaskManagerInterface;
-import com.bonree.brfs.schedulers.task.manager.RunnableTaskInterface;
 import com.bonree.brfs.schedulers.task.manager.SchedulerManagerInterface;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultReleaseTask;
-import com.bonree.brfs.schedulers.task.manager.impl.DefaultRunnableTask;
 import com.bonree.brfs.schedulers.task.manager.impl.DefaultSchedulersManager;
 import com.bonree.brfs.tasks.maintain.FileBlockMaintainer;
 import com.bonree.brfs.tasks.maintain.ResourceMaintainer;
@@ -58,7 +56,6 @@ public class TaskModule implements Module {
         binder.bind(RebalanceTaskMonitor.class).to(CycleRebalanceTaskMonitor.class).in(Singleton.class);
 
         binder.bind(ResourceTaskConfig.class);
-        binder.bind(RunnableTaskInterface.class).to(DefaultRunnableTask.class).in(Singleton.class);
         binder.bind(MetaTaskManagerInterface.class).to(DefaultReleaseTask.class).in(Singleton.class);
         binder.bind(MetaTaskLeaderManager.class).in(Singleton.class);
         binder.bind(RouteLoader.class).to(SimpleRouteZKLoader.class).in(Singleton.class);
@@ -92,20 +89,17 @@ public class TaskModule implements Module {
         RebalanceTaskMonitor taskMonitor,
         RouteCache routeCache,
         SchedulerManagerInterface manager,
-        LimitServerResource lmit,
         MetaTaskManagerInterface release,
-        RunnableTaskInterface run) throws Exception {
+        CuratorFramework client,
+        DiskPartitionInfoManager diskPartitionInfoManager) throws Exception {
         managerConfig.printDetail();
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
         mcf.setTm(release);
-        mcf.setRt(run);
         mcf.setZkPath(zkPath);
         mcf.setDaemon(diskDaemon);
         mcf.setServerId(localServer.getServiceId());
         mcf.setGroupName(localServer.getServiceGroup());
-        mcf.setLimitServerResource(lmit);
         mcf.setRouteCache(routeCache);
-        mcf.setRt(run);
         mcf.setSim(sim);
         mcf.setSm(sm);
         mcf.setSnm(snm);
@@ -113,6 +107,8 @@ public class TaskModule implements Module {
         mcf.setTaskMonitor(taskMonitor);
         mcf.setTm(release);
         mcf.setZkPath(zkPath);
+        mcf.setClient(client);
+        mcf.setPartitionInfoManager(diskPartitionInfoManager);
         // 创建任务线程池
         if (managerConfig.isTaskFrameWorkSwitch()) {
             List<TaskType> tasks = managerConfig.getSwitchOnTaskType();

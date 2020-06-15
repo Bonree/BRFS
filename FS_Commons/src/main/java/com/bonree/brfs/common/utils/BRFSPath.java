@@ -1,9 +1,11 @@
 package com.bonree.brfs.common.utils;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -101,6 +103,35 @@ public class BRFSPath {
         ele.setDay(day);
         ele.setHourMinSecond(hourMinSecond);
         ele.setFileName(fileName);
+        return ele;
+    }
+
+    public static BRFSPath parserFile(String relativePath) {
+        BRFSPath ele = new BRFSPath();
+        String[] fields = StringUtils.split(relativePath, "/");
+        if (fields == null || fields.length < 7) {
+            return null;
+        }
+        int len = fields.length;
+        ele.setFileName(fields[len - 1]);
+        ele.setHourMinSecond(fields[len - 2]);
+        ele.setDay(fields[len - 3]);
+        ele.setMonth(fields[len - 4]);
+        ele.setYear(fields[len - 5]);
+        ele.setIndex(fields[len - 6]);
+        ele.setStorageRegion(fields[len - 7]);
+        return ele;
+    }
+
+    public BRFSPath copy() {
+        BRFSPath ele = new BRFSPath();
+        ele.setStorageRegion(this.storageRegion);
+        ele.setIndex(this.index);
+        ele.setYear(this.year);
+        ele.setMonth(this.month);
+        ele.setDay(this.day);
+        ele.setHourMinSecond(this.hourMinSecond);
+        ele.setFileName(this.fileName);
         return ele;
     }
 

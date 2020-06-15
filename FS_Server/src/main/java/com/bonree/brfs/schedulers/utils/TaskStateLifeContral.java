@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -252,8 +253,10 @@ public class TaskStateLifeContral {
         Map<String, String> map;
         long granule;
         for (AtomTaskModel atom : modelList) {
-            startTime = TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
-            endTime = TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
+            startTime = StringUtils.isEmpty(atom.getDataStartTime()) ? 0 :
+                TimeUtils.getMiles(atom.getDataStartTime(), TimeUtils.TIME_MILES_FORMATE);
+            endTime = StringUtils.isEmpty(atom.getDataStopTime()) ? 0 :
+                TimeUtils.getMiles(atom.getDataStopTime(), TimeUtils.TIME_MILES_FORMATE);
             snName = atom.getStorageName();
             partNum = atom.getPatitionNum();
             granule = atom.getGranule();
@@ -264,8 +267,9 @@ public class TaskStateLifeContral {
                 List<BRFSPath> dirPaths =
                     BRFSFileUtil.scanBRFSFiles(local.getDataDir(), map, map.size(), new BRFSTimeFilter(startTime, endTime));
                 if (dirPaths == null || dirPaths.isEmpty()) {
-                    LOG.debug("It's no dir to take task [{}]:[{}]-[{}]", snName, TimeUtils.timeInterval(startTime, granule),
-                              TimeUtils.timeInterval(endTime, granule));
+                    LOG.debug("It's no dir to take task [{}]:[{}]-[{}]", snName,
+                              granule <= 0 ? "0" : TimeUtils.timeInterval(startTime, granule),
+                              granule <= 0 ? "0" : TimeUtils.timeInterval(endTime, granule));
                     continue;
                 }
                 List<Long> times = filterRepeatDirs(dirPaths);

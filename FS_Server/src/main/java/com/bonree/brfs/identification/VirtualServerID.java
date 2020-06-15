@@ -9,13 +9,13 @@ public interface VirtualServerID {
      *
      * @param storageIndex sn索引
      * @param count        获取virtual server id 个数
-     * @param diskFirstID  使用1级serverid，会进行注册，表明自身使用过该虚拟serverid
+     * @param diskFirstIDs 使用1级serverid，会进行注册，表明自身使用过该虚拟serverid
      *
      * @return
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> getVirtualID(int storageIndex, int count, List<String> diskFirstIDs);
+    List<String> getVirtualID(int storageIndex, int count, List<String> diskFirstIDs);
 
     /**
      * 概述：列出使用的virtualID
@@ -24,7 +24,27 @@ public interface VirtualServerID {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> listValidVirtualIds(int storageIndex);
+    List<String> listValidVirtualIds(int storageIndex);
+
+    /**
+     * 概述：列出使用的virtualID
+     *
+     * @return
+     *
+     * @user <a href=mailto:weizheng@bonree.com>魏征</a>
+     */
+    List<String> listVirtualIds(int storageIndex);
+
+    /**
+     * 判断一级serverid是否存在有效的虚拟serverid数据
+     *
+     * @param storageIndex
+     * @param virtualId
+     * @param first
+     *
+     * @return
+     */
+    boolean hasVirtual(int storageIndex, String virtualId, String first);
 
     /**
      * 概述：列出无效的VirtualID
@@ -35,7 +55,7 @@ public interface VirtualServerID {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public List<String> listInvalidVirtualIds(int storageIndex);
+    List<String> listInvalidVirtualIds(int storageIndex);
 
     /**
      * 概述：无效化虚拟ID
@@ -46,7 +66,7 @@ public interface VirtualServerID {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean invalidVirtualId(int storageIndex, String id);
+    boolean invalidVirtualId(int storageIndex, String id);
 
     /**
      * 概述：
@@ -58,7 +78,17 @@ public interface VirtualServerID {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean validVirtualId(int storageIndex, String id);
+    boolean validVirtualId(int storageIndex, String id);
+
+    /**
+     * 获取包含指定虚拟serverid的一级serverid集合
+     *
+     * @param storageIndex
+     * @param virtual
+     *
+     * @return
+     */
+    List<String> listFirstServer(int storageIndex, String virtual);
 
     /**
      * 概述：删除虚拟ID
@@ -69,7 +99,7 @@ public interface VirtualServerID {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public boolean deleteVirtualId(int storageIndex, String id);
+    boolean deleteVirtualId(int storageIndex, String id);
 
     /**
      * 概述：获取virtual servers path
@@ -78,17 +108,16 @@ public interface VirtualServerID {
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public String getVirtualIdContainerPath();
+    String getVirtualIdContainerPath();
 
     /**
      * 概述：为虚拟ID注册一个1级ID，标识该机器参与过virtual恢复,下次不能选择该server
      *
      * @param storageIndex
-     * @param firstID
      *
      * @return
      *
      * @user <a href=mailto:weizheng@bonree.com>魏征</a>
      */
-    public void addFirstId(int storageIndex, String virtualID, String firstId);
+    void addFirstId(int storageIndex, String virtualID, String firstId);
 }

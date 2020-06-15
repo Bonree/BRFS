@@ -93,6 +93,7 @@ public class RegionNodeModule implements Module {
     @Override
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
+        JsonConfigProvider.bind(binder, "regionnode.client", ConnectionPoolConfig.class);
 
         binder.bind(ServiceManager.class).to(DefaultServiceManager.class);
 

@@ -14,9 +14,12 @@
 
 package com.bonree.brfs.duplication;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ConnectionPoolConfig {
 
-    private int writeWorkerThreads;
+    @JsonProperty
+    private int writeWorkerThreads = Runtime.getRuntime().availableProcessors();
 
     public int getWriteWorkerThreads() {
         return writeWorkerThreads;

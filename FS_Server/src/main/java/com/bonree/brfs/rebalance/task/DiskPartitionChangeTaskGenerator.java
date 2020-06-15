@@ -165,7 +165,15 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         for (StorageRegion snModel : snList) {
             if (snModel.getReplicateNum() > 1) {   // 是否配置SN恢复
                 String secondID = idManager.getSecondId(partitionInfo.getPartitionId(), snModel.getId());
-
+                if (ChangeType.ADD.equals(type)) {
+                    // 有变更则无效当前的虚拟serverid
+                    List<String> virtuals = idManager.listValidVirtualIds(snModel.getId());
+                    if (virtuals != null) {
+                        for (String x : virtuals) {
+                            idManager.invalidVirtualId(snModel.getId(), x);
+                        }
+                    }
+                }
                 if (StringUtils.isNotEmpty(secondID)) {
                     try {
                         DiskPartitionChangeSummary summaryObj =
@@ -177,7 +185,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
                         client.create()
                               .creatingParentsIfNeeded()
                               .withMode(CreateMode.PERSISTENT)
-                              .forPath(diskPartitionTaskNode,  summary.getBytes(StandardCharsets.UTF_8));
+                              .forPath(diskPartitionTaskNode, summary.getBytes(StandardCharsets.UTF_8));
                         LOG.info("generator a disk partition change record [{}] for storageRegion [{}]", summary, snModel);
 
                         if (ChangeType.REMOVE == type) {
