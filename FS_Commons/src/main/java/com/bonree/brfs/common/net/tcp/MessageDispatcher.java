@@ -103,4 +103,10 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
             }
         }
     }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        LOG.error("handle message error :[{}]", cause.getMessage());
+        super.exceptionCaught(ctx, cause);
+    }
 }

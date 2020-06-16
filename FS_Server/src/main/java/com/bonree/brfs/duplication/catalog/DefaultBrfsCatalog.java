@@ -181,7 +181,6 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
      */
     @Override
     public boolean writeFid(String srName, String path, String fid) {
-        Stopwatch started = Stopwatch.createStarted();
         if (!validPath(path)) {
             LOG.error("invalid path : [{}]", path);
             return true;
@@ -192,8 +191,6 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             //写文件
             key = transferToKey(path);
             WriteStatus write = rocksDBManager.write(srName, key, fid.getBytes(), true);
-            LOG.info("write the path[{}] cost [{}]", path, started.elapsed(TimeUnit.MICROSECONDS));
-            started.stop();
             if (write != WriteStatus.SUCCESS) {
                 return true;
             }
