@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 @ManageLifecycle
 public class DefaultServiceManager implements ServiceManager {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultServiceManager.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultServiceManager.class);
 
     // 服务管理线程池名称
     private static final String DEFAULT_SERVICE_MANAGER_THREADPOOL_NAME = "serviceManager";
@@ -97,19 +97,19 @@ public class DefaultServiceManager implements ServiceManager {
 
     @Override
     public void registerService(Service service) throws Exception {
-        LOG.info("registerService service[{}]", service);
+        log.info("registerService service[{}]", service);
         serviceDiscovery.registerService(buildFrom(service));
     }
 
     @Override
     public void unregisterService(Service service) throws Exception {
-        LOG.info("unregisterService service[{}]", service);
+        log.info("unregisterService service[{}]", service);
         serviceDiscovery.unregisterService(buildFrom(service));
     }
 
     @Override
     public void updateService(String group, String serviceId, String payload) throws Exception {
-        LOG.info("update service payload for service[{}, {}, {}]", group, serviceId, payload);
+        log.info("update service payload for service[{}, {}, {}]", group, serviceId, payload);
         Service service = getServiceById(group, serviceId);
         if (service == null) {
             throw new Exception("No service{group=" + group + ", id=" + serviceId + "} is found!");
@@ -132,10 +132,10 @@ public class DefaultServiceManager implements ServiceManager {
                         serviceCache.start();
                         serviceCaches.put(serviceGroup, serviceCache);
 
-                        LOG.info("build service cache for group[{}]", serviceGroup);
+                        log.info("build service cache for group[{}]", serviceGroup);
                         return serviceCache;
                     } catch (Exception e) {
-                        LOG.error("build service cache error", e);
+                        log.error("build service cache error", e);
                     }
                 }
             }
@@ -146,7 +146,7 @@ public class DefaultServiceManager implements ServiceManager {
 
     @Override
     public void addServiceStateListener(String serviceGroup, ServiceStateListener listener) throws Exception {
-        LOG.info("add service state listener for group[{}]", serviceGroup);
+        log.info("add service state listener for group[{}]", serviceGroup);
         ServiceStateWatcher watcher = watchers.get(serviceGroup);
         if (watcher == null) {
             synchronized (watchers) {
@@ -169,7 +169,7 @@ public class DefaultServiceManager implements ServiceManager {
 
     @Override
     public void removeServiceStateListenerByGroup(String serviceGroup) {
-        LOG.info("remove all service state listeners for group[{}]", serviceGroup);
+        log.info("remove all service state listeners for group[{}]", serviceGroup);
         ServiceStateWatcher watcher = watchers.get(serviceGroup);
         if (watcher == null) {
             return;
@@ -180,7 +180,7 @@ public class DefaultServiceManager implements ServiceManager {
 
     @Override
     public void removeServiceStateListener(String serviceGroup, ServiceStateListener listener) {
-        LOG.info("remove service state listener[{}] for group[{}]", listener, serviceGroup);
+        log.info("remove service state listener[{}] for group[{}]", listener, serviceGroup);
         ServiceStateWatcher watcher = watchers.get(serviceGroup);
         if (watcher == null) {
             return;
@@ -191,7 +191,7 @@ public class DefaultServiceManager implements ServiceManager {
 
     @Override
     public Service getServiceById(String group, String serviceId) {
-        LOG.info("search service with group[{}], id[{}]", group, serviceId);
+        log.debug("search service with group[{}], id[{}]", group, serviceId);
         for (Service service : getServiceListByGroup(group)) {
             if (service.getServiceId().equals(serviceId)) {
                 return service;
@@ -203,7 +203,7 @@ public class DefaultServiceManager implements ServiceManager {
 
     @Override
     public List<Service> getServiceListByGroup(String serviceGroup) {
-        LOG.info("search all services with group[{}]", serviceGroup);
+        log.debug("search all services with group[{}]", serviceGroup);
         ArrayList<Service> serviceList = new ArrayList<Service>();
         ServiceCache<String> serviceCache = getOrBuildServiceCache(serviceGroup);
 
@@ -243,7 +243,7 @@ public class DefaultServiceManager implements ServiceManager {
                 try {
                     listener.serviceAdded(service);
                 } catch (Exception e) {
-                    LOG.error("notify service added error", e);
+                    log.error("notify service added error", e);
                 }
             }
         }
@@ -261,7 +261,7 @@ public class DefaultServiceManager implements ServiceManager {
                 try {
                     listener.serviceAdded(service);
                 } catch (Exception e) {
-                    LOG.error("notify service added error", e);
+                    log.error("notify service added error", e);
                 }
             }
         }
@@ -271,7 +271,7 @@ public class DefaultServiceManager implements ServiceManager {
                 try {
                     listener.serviceRemoved(service);
                 } catch (Exception e) {
-                    LOG.error("notify service removed error", e);
+                    log.error("notify service removed error", e);
                 }
             }
         }
