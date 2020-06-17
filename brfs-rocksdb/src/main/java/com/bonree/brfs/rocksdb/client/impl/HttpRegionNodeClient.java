@@ -1,20 +1,15 @@
 package com.bonree.brfs.rocksdb.client.impl;
 
-import com.bonree.brfs.client.utils.SocketChannelSocketFactory;
 import com.bonree.brfs.common.net.http.client.ClientConfig;
+import com.bonree.brfs.common.net.http.client.HttpResponse;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rocksdb.client.RegionNodeClient;
+import com.bonree.brfs.rocksdb.client.SyncHttpClient;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.net.URI;
-import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,19 +22,15 @@ import org.slf4j.LoggerFactory;
  * @Description:
  ******************************************************************************/
 public class HttpRegionNodeClient implements RegionNodeClient {
+
     private static final Logger LOG = LoggerFactory.getLogger(HttpRegionNodeClient.class);
 
     private static final String DEFAULT_SCHEME = "http";
-    private static final String URI_PATH_INNER_READ = "/rocksdb/inner/read";
-    private static final String URI_PATH_INNER_WRITE = "/rocksdb/inner/write";
-    private static final String URI_PATH_RESTORE = "/rocksdb/inner/restore";
+    private static final String URI_PATH_INNER_READ = "/rocksdb/inner/read/";
+    private static final String URI_PATH_INNER_WRITE = "/rocksdb/inner/write/";
+    private static final String URI_PATH_RESTORE = "/rocksdb/inner/restore/";
 
-    private OkHttpClient client;
-
-    private static final Duration DEFAULT_CONNECTION_TIME_OUT = Duration.ofSeconds(60);
-    private static final Duration DEFAULT_REQUEST_TIME_OUT = Duration.ofSeconds(30);
-    private static final Duration DEFAULT_READ_TIME_OUT = Duration.ofSeconds(30);
-    private static final Duration DEFAULT_WRITE_TIME_OUT = Duration.ofSeconds(30);
+    private SyncHttpClient client;
 
     private String host;
     private int port;
@@ -51,17 +42,25 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     public HttpRegionNodeClient(String host, int port, ClientConfig clientConfig) {
         this.host = host;
         this.port = port;
-        this.client = new OkHttpClient.Builder()
-            .socketFactory(new SocketChannelSocketFactory())
-            .callTimeout(DEFAULT_REQUEST_TIME_OUT)
-            .connectTimeout(DEFAULT_CONNECTION_TIME_OUT)
-            .readTimeout(DEFAULT_READ_TIME_OUT)
-            .writeTimeout(DEFAULT_WRITE_TIME_OUT)
-            .build();
+        this.client = new SyncHttpClient(clientConfig);
     }
 
     @Override
     public boolean ping() {
+        URI uri = new URIBuilder()
+            .setScheme(DEFAULT_SCHEME)
+            .setHost(host)
+            .setPort(port)
+            .setPath("/rocksdb/ping/")
+            .build();
+
+        try {
+            HttpResponse response = client.executeGet(uri);
+            return response.isReponseOK();
+        } catch (Exception e) {
+            LOG.error("region node ping to {}:{} error", host, port, e);
+        }
+
         return false;
     }
 
@@ -70,24 +69,19 @@ public class HttpRegionNodeClient implements RegionNodeClient {
         URI uri = new URIBuilder()
             .setScheme(DEFAULT_SCHEME)
             .setHost(host)
-            .setPort(port).build();
-
-        Request httpRequest = new Request.Builder()
-            .url(Objects.requireNonNull(HttpUrl.get(uri))
-                        .newBuilder()
-                        .encodedPath(URI_PATH_INNER_READ)
-                        .addEncodedQueryParameter("srName", columnFamily)
-                        .addEncodedQueryParameter("fileName", key)
-                        .build())
+            .setPort(port)
+            .setPath(URI_PATH_INNER_READ)
+            .setParamter("srName", columnFamily)
+            .setParamter("fileName", key)
             .build();
 
         try {
             LOG.info("read rocksdb data from {}, cf: {}, key:{}", host, columnFamily, key);
-            Response response = client.newCall(httpRequest).execute();
-            if (response.isSuccessful()) {
-                return response.body().bytes();
+            HttpResponse response = client.executeGet(uri);
+            if (response.isReponseOK()) {
+                return response.getResponseBody();
             }
-            LOG.debug("read rocksdb response[{}], host:{}, port:{}, cf: {}, key:{}", response.code(), host, port,
+            LOG.debug("read rocksdb response[{}], host:{}, port:{}, cf: {}, key:{}", response.getStatusCode(), host, port,
                       columnFamily, key);
         } catch (Exception e) {
             LOG.error("read rocksdb data to {}:{} error, cf: {}, key:{}", host, port, columnFamily, key, e);
@@ -103,33 +97,17 @@ public class HttpRegionNodeClient implements RegionNodeClient {
             .setScheme(DEFAULT_SCHEME)
             .setHost(host)
             .setPort(port)
-            .build();
-
-        Request httpRequest = new Request.Builder()
-            .url(Objects.requireNonNull(HttpUrl.get(uri))
-                        .newBuilder()
-                        .encodedPath(URI_PATH_INNER_WRITE)
-                        .addEncodedQueryParameter("cf", columnFamily)
-                        .addEncodedQueryParameter("key", key)
-                        .addEncodedQueryParameter("value", value)
-                        .build())
+            .setPath(URI_PATH_INNER_WRITE)
+            .setParamter("cf", columnFamily)
+            .setParamter("key", key)
+            .setParamter("value", value)
             .build();
 
         try {
             LOG.info("write rocksdb data to {}:{}, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value);
-            client.newCall(httpRequest).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    LOG.error("write rocksdb data to {}:{} error, cf: {}, key:{}, value:{}", host, port, columnFamily, key,
-                              value);
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    LOG.info("write rocksdb response[{}] from {}:{}, cf: {}, key:{}, value:{}", response.code(), host, port,
-                             columnFamily, key, value);
-                }
-            });
+            HttpResponse response = client.executePost(uri);
+            LOG.info("write rocksdb response[{}] from {}:{}, cf: {}, key:{}, value:{}", response.getStatusCode(), host, port,
+                     columnFamily, key, value);
         } catch (Exception e) {
             LOG.error("write rocksdb data to {}:{} error, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value, e);
         }
@@ -137,12 +115,38 @@ public class HttpRegionNodeClient implements RegionNodeClient {
 
     @Override
     public List<Integer> restoreData(String fileName, String restorePath, String host, int port) {
+
+        URI uri = new URIBuilder()
+            .setScheme(DEFAULT_SCHEME)
+            .setHost(this.host)
+            .setPort(this.port)
+            .setParamter("transferFileName", fileName)
+            .setParamter("restorePath", restorePath)
+            .setParamter("host", host)
+            .setParamter("port", String.valueOf(port))
+            .setPath(URI_PATH_RESTORE)
+            .build();
+
+        try {
+            LOG.info("send restore request to {}:{}, transferFileName:{}, restorePath:{}", this.host, this.port, fileName,
+                     restorePath);
+            HttpResponse response = client.executePost(uri);
+            LOG.debug("restore request {}:{} response[{}]", this.host, this.port, response.getStatusCode());
+
+            if (response.isReponseOK()) {
+                return JsonUtils.toObject(response.getResponseBody(), new TypeReference<List<Integer>>() {
+                });
+            }
+        } catch (Exception e) {
+            LOG.error("send restore request to {}:{} error", this.host, this.port, e);
+        }
         return null;
     }
 
     @Override
     public void close() throws IOException {
-        client.dispatcher().executorService().shutdown();
-        client.connectionPool().evictAll();
+        client.close();
     }
 }
+
+

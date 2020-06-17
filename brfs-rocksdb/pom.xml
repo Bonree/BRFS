@@ -33,12 +33,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.bonree.fs</groupId>
-            <artifactId>brfs-client</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <scope>provided</scope>
@@ -119,13 +113,6 @@
         <dependency>
             <groupId>org.rocksdb</groupId>
             <artifactId>rocksdbjni</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>3.14.7</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 
