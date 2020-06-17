@@ -357,6 +357,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         @Override
         public void run() {
             if (serviceCache.isEmpty()) {
+                LOG.warn("service cache is empty!");
                 return;
             }
 
