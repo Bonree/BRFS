@@ -98,7 +98,7 @@ public class HttpRegionNodeConnectionPool implements RegionNodeConnectionPool {
 
                 for (String col : cols) {
                     HttpRegionNodeConnection conn = connectionCache.get(row, col);
-                    if (conn != null && !conn.isValid()) {
+                    if (conn != null) {
                         LOG.info("Connection to service[{}, {}] is invalid!", row, col);
 
                         synchronized (connectionCache) {
