@@ -46,8 +46,6 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
     private final List<FileObject> recycledFiles = Collections.synchronizedList(new ArrayList<FileObject>());
     private final List<FileObject> exceptedFiles = Collections.synchronizedList(new ArrayList<FileObject>());
 
-    private final Object waitObj = new Object();
-
     private final FileObjectCloser fileCloser;
     private final FileObjectSynchronizer fileSynchronizer;
     private final FileNodeSinkManager fileNodeSinkManager;
@@ -128,47 +126,38 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
             return;
         }
 
-        try {
-            if (needSync) {
-                log.info("error occurred in file[{}]", file.node().getName());
-                exceptedFiles.add(file);
+        if (needSync) {
+            log.info("error occurred in file[{}]", file.node().getName());
+            exceptedFiles.add(file);
 
-                fileSynchronizer.synchronize(file, new FileObjectSyncCallback() {
+            fileSynchronizer.synchronize(file, new FileObjectSyncCallback() {
 
-                    @Override
-                    public void complete(FileObject file, long fileLength) {
-                        if (file.length() != fileLength) {
-                            log.warn("update file[{}] length from [{}] to [{}]",
-                                     file.node().getName(),
-                                     file.length(),
-                                     fileLength);
-                            file.setLength(fileLength);
-                        }
-
-                        recycle(file, false);
+                @Override
+                public void complete(FileObject file, long fileLength) {
+                    if (file.length() != fileLength) {
+                        log.warn("update file[{}] length from [{}] to [{}]", file.node().getName(), file.length(), fileLength);
+                        file.setLength(fileLength);
                     }
 
-                    @Override
-                    public void timeout(FileObject file) {
-                        log.info("file[{}] is timeout to sync, just close it");
-                        fileCloser.close(file, false);
-                    }
-                });
+                    recycle(file, false);
+                }
 
-                return;
-            }
+                @Override
+                public void timeout(FileObject file) {
+                    log.info("file[{}] is timeout to sync, just close it");
+                    fileCloser.close(file, false);
+                }
+            });
 
-            if (file.node().getCreateTime() < expiredTime) {
-                fileCloser.close(file, true);
-                return;
-            }
-
-            recycledFiles.add(file);
-        } finally {
-            synchronized (waitObj) {
-                waitObj.notifyAll();
-            }
+            return;
         }
+
+        if (file.node().getCreateTime() < expiredTime) {
+            fileCloser.close(file, true);
+            return;
+        }
+
+        recycledFiles.add(file);
     }
 
     private void recycleFileObjects() {
@@ -316,10 +305,8 @@ public class DefaultFileObjectSupplier implements FileObjectSupplier, TimeExchan
                 }
 
                 log.debug("available busy file count => {}", usableBusyFileList.size());
-                synchronized (waitObj) {
-                    if (recycledFiles.isEmpty() && exceptedFiles.isEmpty()) {
-                        waitObj.wait(1000);
-                    }
+                while (recycledFiles.isEmpty() && exceptedFiles.isEmpty()) {
+                    Thread.yield();
                 }
             }
         }
