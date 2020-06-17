@@ -4,6 +4,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
+import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.StringUtils;
@@ -42,6 +43,7 @@ public class RocksDBResource {
     private RocksDBManager rocksDBManager;
     private RocksDBBackupEngine backupEngine;
     private RocksDBConfig rocksDBConfig;
+    private TimeWatcher watcher = new TimeWatcher();
 
     @Inject
     public RocksDBResource(RocksDBConfig rocksDBConfig, RocksDBManager rocksDBManager, RocksDBBackupEngine backupEngine) {
@@ -110,7 +112,10 @@ public class RocksDBResource {
         @QueryParam("value") String value) {
 
         try {
+            watcher.getElapsedTimeAndRefresh();
             WriteStatus status = this.rocksDBManager.syncData(columnFamily, key.getBytes(), value.getBytes());
+            LOG.info("receive sync data request, cf:{}, key:{}, value:{}, write cost time:{}", columnFamily, key, value,
+                     watcher.getElapsedTime());
             return Response.ok().entity(BrStringUtils.toUtf8Bytes(status.name())).build();
         } catch (Exception e) {
             LOG.error(StringUtils.format("write data failed, cf:{}, key:{}, value:{}", columnFamily, key, value), e);

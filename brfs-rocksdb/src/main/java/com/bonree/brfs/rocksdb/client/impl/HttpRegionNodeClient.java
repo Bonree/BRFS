@@ -106,9 +106,9 @@ public class HttpRegionNodeClient implements RegionNodeClient {
             .build();
 
         try {
-            LOG.debug("write rocksdb data to {}:{}, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value);
+            LOG.info("write rocksdb data to {}:{}, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value);
             HttpResponse response = client.executePost(uri);
-            LOG.debug("write rocksdb response[{}], host:{}, port:{}, cf: {}, key:{}, value:{}", response.getStatusCode(), host,
+            LOG.info("write rocksdb response[{}], host:{}, port:{}, cf: {}, key:{}, value:{}", response.getStatusCode(), host,
                       port, columnFamily, key, value);
         } catch (Exception e) {
             LOG.error("write rocksdb data to {}:{} error, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value, e);
