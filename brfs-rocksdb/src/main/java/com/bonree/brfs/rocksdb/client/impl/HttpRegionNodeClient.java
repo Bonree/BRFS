@@ -3,6 +3,7 @@ package com.bonree.brfs.rocksdb.client.impl;
 import com.bonree.brfs.common.net.http.client.ClientConfig;
 import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
+import com.bonree.brfs.common.net.http.client.ResponseHandler;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rocksdb.client.RegionNodeClient;
@@ -107,9 +108,15 @@ public class HttpRegionNodeClient implements RegionNodeClient {
 
         try {
             LOG.info("write rocksdb data to {}:{}, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value);
-            HttpResponse response = client.executePost(uri);
-            LOG.info("write rocksdb response[{}], host:{}, port:{}, cf: {}, key:{}, value:{}", response.getStatusCode(), host,
-                      port, columnFamily, key, value);
+            client.executePost(uri, new ResponseHandler() {
+                @Override
+                public void onCompleted(HttpResponse response) {
+                }
+
+                @Override
+                public void onThrowable(Throwable e) {
+                }
+            });
         } catch (Exception e) {
             LOG.error("write rocksdb data to {}:{} error, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value, e);
         }
