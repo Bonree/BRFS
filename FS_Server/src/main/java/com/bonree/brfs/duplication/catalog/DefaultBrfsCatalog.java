@@ -190,6 +190,7 @@ public class DefaultBrfsCatalog implements BrfsCatalog {
             createDirIfNeccessary(srName, path);
             //写文件
             key = transferToKey(path);
+            LOG.info("write fid[{}] of path[{}] of [{}]to rocksdb", fid, path, srName);
             WriteStatus write = rocksDBManager.write(srName, key, fid.getBytes(), true);
             if (write != WriteStatus.SUCCESS) {
                 return true;
