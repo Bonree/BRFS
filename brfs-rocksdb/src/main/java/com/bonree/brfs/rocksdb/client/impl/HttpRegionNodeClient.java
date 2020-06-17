@@ -1,9 +1,7 @@
 package com.bonree.brfs.rocksdb.client.impl;
 
 import com.bonree.brfs.common.net.http.client.ClientConfig;
-import com.bonree.brfs.common.net.http.client.HttpClient;
 import com.bonree.brfs.common.net.http.client.HttpResponse;
-import com.bonree.brfs.common.net.http.client.ResponseHandler;
 import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rocksdb.client.RegionNodeClient;
@@ -31,8 +29,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     private static final String URI_PATH_INNER_WRITE = "/rocksdb/inner/write/";
     private static final String URI_PATH_RESTORE = "/rocksdb/inner/restore/";
 
-    private HttpClient client;
-    private SyncHttpClient syncClient;
+    private SyncHttpClient client;
 
     private String host;
     private int port;
@@ -44,8 +41,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     public HttpRegionNodeClient(String host, int port, ClientConfig clientConfig) {
         this.host = host;
         this.port = port;
-        this.client = new HttpClient(clientConfig);
-        this.syncClient = new SyncHttpClient(clientConfig);
+        this.client = new SyncHttpClient(clientConfig);
     }
 
     @Override
@@ -80,7 +76,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
 
         try {
             LOG.info("read rocksdb data from {}, cf: {}, key:{}", host, columnFamily, key);
-            HttpResponse response = syncClient.executeGet(uri);
+            HttpResponse response = client.executeGet(uri);
             if (response.isReponseOK()) {
                 return response.getResponseBody();
             }
@@ -108,15 +104,9 @@ public class HttpRegionNodeClient implements RegionNodeClient {
 
         try {
             LOG.info("write rocksdb data to {}:{}, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value);
-            client.executePost(uri, new ResponseHandler() {
-                @Override
-                public void onCompleted(HttpResponse response) {
-                }
-
-                @Override
-                public void onThrowable(Throwable e) {
-                }
-            });
+            HttpResponse response = client.executePost(uri);
+            LOG.info("write rocksdb response[{}] from {}:{}, cf: {}, key:{}, value:{}", response.getStatusCode(), host, port,
+                     columnFamily, key, value);
         } catch (Exception e) {
             LOG.error("write rocksdb data to {}:{} error, cf: {}, key:{}, value:{}", host, port, columnFamily, key, value, e);
         }
@@ -155,6 +145,5 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     @Override
     public void close() throws IOException {
         client.close();
-        syncClient.close();
     }
 }
