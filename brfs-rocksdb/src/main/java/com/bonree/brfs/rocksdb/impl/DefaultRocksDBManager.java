@@ -119,6 +119,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
         readOptions = new ReadOptions();
         writeOptionsSync = new WriteOptions();
         writeOptionsAsync = new WriteOptions();
+        writeOptionsSync.setSync(true);
+        writeOptionsAsync.setSync(false);
         bloomFilter = new BloomFilter(10);
         blockBasedTableConfig = new BlockBasedTableConfig();
         columnFamilyOptions = new ColumnFamilyOptions();
@@ -176,8 +178,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
                       .setRowCache(new LRUCache(this.config.getBlockCache() * SizeUnit.MB, 6, true, 5))
                       .setMaxSubcompactions(this.config.getMaxSubCompaction());
         readOptions.setPrefixSameAsStart(true);
-        writeOptionsSync.setSync(true);
-        writeOptionsAsync.setSync(false);
         blockBasedTableConfig.setFilter(bloomFilter)
                              .setCacheIndexAndFilterBlocks(true)
                              .setPinL0FilterAndIndexBlocksInCache(true);
