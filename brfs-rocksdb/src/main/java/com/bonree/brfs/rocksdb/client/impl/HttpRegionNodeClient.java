@@ -30,9 +30,9 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     private static final Logger LOG = LoggerFactory.getLogger(HttpRegionNodeClient.class);
 
     private static final String DEFAULT_SCHEME = "http";
-    private static final String URI_PATH_INNER_READ = "/rocksdb/inner/read/";
-    private static final String URI_PATH_INNER_WRITE = "/rocksdb/inner/write/";
-    private static final String URI_PATH_RESTORE = "/rocksdb/inner/restore/";
+    private static final String URI_PATH_INNER_READ = "/rocksdb/inner/read";
+    private static final String URI_PATH_INNER_WRITE = "/rocksdb/inner/write";
+    private static final String URI_PATH_RESTORE = "/rocksdb/inner/restore";
 
     private OkHttpClient client;
 
