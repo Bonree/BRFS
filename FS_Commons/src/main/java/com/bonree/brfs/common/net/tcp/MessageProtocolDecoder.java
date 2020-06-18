@@ -27,6 +27,7 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder {
             }
 
             final int token = in.readInt();
+            LOG.info("decoding message with token [{}]", token);
             final int type = in.readByte();
             final int length = in.readInt();
             if (type == -1) {
