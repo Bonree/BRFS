@@ -6,6 +6,7 @@ import com.bonree.brfs.common.net.http.client.URIBuilder;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.rocksdb.client.RegionNodeClient;
 import com.bonree.brfs.rocksdb.client.SyncHttpClient;
+import com.bonree.brfs.rocksdb.impl.RocksDBDataUnit;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.net.URI;
@@ -28,6 +29,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
     private static final String DEFAULT_SCHEME = "http";
     private static final String URI_PATH_INNER_READ = "/rocksdb/inner/read/";
     private static final String URI_PATH_INNER_WRITE = "/rocksdb/inner/write/";
+    private static final String URI_PATH_INNER_BATCH_WRITE = "/rocksdb/inner/batch_write/";
     private static final String URI_PATH_RESTORE = "/rocksdb/inner/restore/";
 
     private SyncHttpClient client;
@@ -88,6 +90,29 @@ public class HttpRegionNodeClient implements RegionNodeClient {
             return null;
         }
         return null;
+    }
+
+    @Override
+    public void writeBatchData(List<RocksDBDataUnit> datas) throws Exception {
+        URI uri = new URIBuilder()
+            .setScheme(DEFAULT_SCHEME)
+            .setHost(host)
+            .setPort(port)
+            .setPath(URI_PATH_INNER_BATCH_WRITE)
+            .build();
+
+        try {
+            byte[] bytes = JsonUtils.toJsonBytesQuietly(datas);
+            if (bytes == null) {
+                return;
+            }
+            
+            LOG.info("batch write rocksdb data to {}:{}, size:{}", host, port, datas.size());
+            HttpResponse response = client.executePost(uri, bytes);
+            LOG.debug("batch write rocksdb response[{}] from {}:{}, ", response.getStatusCode(), host, port);
+        } catch (Exception e) {
+            LOG.error("batch write rocksdb data to {}:{} error", host, port, e);
+        }
     }
 
     @Override

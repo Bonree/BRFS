@@ -1,22 +1,27 @@
 package com.bonree.brfs.rocksdb.guice;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.utils.FileUtils;
+import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.StringUtils;
 import com.bonree.brfs.common.utils.ZipUtils;
 import com.bonree.brfs.rocksdb.backup.RocksDBBackupEngine;
 import com.bonree.brfs.rocksdb.file.SimpleFileSender;
+import com.bonree.brfs.rocksdb.impl.RocksDBDataUnit;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Throwables;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -119,6 +124,27 @@ public class RocksDBResource {
             return Response.ok().entity(BrStringUtils.toUtf8Bytes(status.name())).build();
         } catch (Exception e) {
             LOG.error(StringUtils.format("write data failed, cf:{}, key:{}, value:{}", columnFamily, key, value), e);
+            return Response.serverError().entity(Throwables.getStackTraceAsString(e)).build();
+        }
+    }
+
+    @POST
+    @Path("inner/batch_write")
+    @Consumes(APPLICATION_OCTET_STREAM)
+    @Produces(APPLICATION_JSON)
+    public Response batchWriteInner(byte[] body) {
+
+        try {
+            List<RocksDBDataUnit> dataList = JsonUtils.toObject(body, new TypeReference<List<RocksDBDataUnit>>() {
+            });
+            watcher.getElapsedTimeAndRefresh();
+            for (RocksDBDataUnit unit : dataList) {
+                rocksDBManager.write(unit.getColumnFamily(), unit.getKey(), unit.getValue());
+            }
+            LOG.info("receive sync data request, size:{}, write cost time:{}", dataList.size(), watcher.getElapsedTime());
+            return Response.ok().build();
+        } catch (Exception e) {
+            LOG.error("batch write data failed", e);
             return Response.serverError().entity(Throwables.getStackTraceAsString(e)).build();
         }
     }
