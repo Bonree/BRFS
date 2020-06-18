@@ -39,6 +39,7 @@ import com.bonree.brfs.configuration.units.RegionNodeConfigs;
 import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.duplication.catalog.DefaultBrfsCatalog;
 import com.bonree.brfs.duplication.catalog.NonRocksDBManager;
+import com.bonree.brfs.duplication.configuration.ConfigurationResource;
 import com.bonree.brfs.duplication.datastream.FilePathMaker;
 import com.bonree.brfs.duplication.datastream.IDFilePathMaker;
 import com.bonree.brfs.duplication.datastream.blockcache.BlockManager;
@@ -125,6 +126,7 @@ public class RegionNodeModule implements Module {
         jaxrs(binder).resource(JsonMapper.class);
         binder.bind(WriteStatCollector.class).toInstance(new WriteStatCollector());
 
+        jaxrs(binder).resource(ConfigurationResource.class);
         jaxrs(binder).resource(DiscoveryResource.class);
         jaxrs(binder).resource(RouterResource.class);
         jaxrs(binder).resource(StatResource.class);

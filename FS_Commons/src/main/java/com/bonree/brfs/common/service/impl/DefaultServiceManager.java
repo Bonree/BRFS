@@ -75,10 +75,14 @@ public class DefaultServiceManager implements ServiceManager {
     }
 
     private static ServiceInstance<String> buildFrom(Service service) throws Exception {
-        return ServiceInstance.<String>builder().address(service.getHost()).id(service.getServiceId())
-            .name(service.getServiceGroup()).port(service.getPort())
+        return ServiceInstance.<String>builder()
+            .address(service.getHost())
+            .id(service.getServiceId())
+            .name(service.getServiceGroup())
+            .port(service.getPort())
             .sslPort(service.getExtraPort())
-            .registrationTimeUTC(service.getRegisterTime()).payload(service.getPayload())
+            .registrationTimeUTC(service.getRegisterTime())
+            .payload(service.getPayload())
             .build();
     }
 
