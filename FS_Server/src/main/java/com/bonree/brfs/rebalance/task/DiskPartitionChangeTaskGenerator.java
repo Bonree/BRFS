@@ -110,6 +110,10 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
 
         @Override
         public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+            // 无效虚拟serverid
+            if (leaderLath.hasLeadership()) {
+                invalidVirtuals(event.getType());
+            }
             // 该sleep的作用有2
             // 1. 防止监听事件已经发生但此时leader还未切换完成导致REMOVE事件丢失
             // 2. 目前datanode启动顺序无法人为控制，为防止二级server监听器还没有同步完数据，导致获取的二级serverid为空，造成变更创建失败
@@ -156,6 +160,31 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         }
     }
 
+    /**
+     * 无效化虚拟serverid
+     *
+     * @param type
+     */
+    private void invalidVirtuals(PathChildrenCacheEvent.Type type) {
+        if (!PathChildrenCacheEvent.Type.CHILD_ADDED.equals(type)) {
+            return;
+        }
+        List<StorageRegion> storageRegions = snManager.getStorageRegionList();
+        if (storageRegions == null || storageRegions.isEmpty()) {
+            return;
+        }
+        storageRegions.stream().forEach(region -> {
+            List<String> virtuals = idManager.listValidVirtualIds(region.getId());
+            if (virtuals == null || virtuals.isEmpty()) {
+                return;
+            }
+            virtuals.stream().forEach(virtual -> {
+                idManager.invalidVirtualId(region.getId(), virtual);
+                LOG.info("invalid virtual server storageregion:[{}] virtual id [{}] ", region.getId(), virtual);
+            });
+        });
+    }
+
     private void generateChangeSummary(PartitionInfo partitionInfo, ChangeType type) {
         List<StorageRegion> snList = snManager.getStorageRegionList();
         List<String> currentServers = getCurrentServers(serverManager);
@@ -165,15 +194,7 @@ public class DiskPartitionChangeTaskGenerator implements LifeCycle {
         for (StorageRegion snModel : snList) {
             if (snModel.getReplicateNum() > 1) {   // 是否配置SN恢复
                 String secondID = idManager.getSecondId(partitionInfo.getPartitionId(), snModel.getId());
-                if (ChangeType.ADD.equals(type)) {
-                    // 有变更则无效当前的虚拟serverid
-                    List<String> virtuals = idManager.listValidVirtualIds(snModel.getId());
-                    if (virtuals != null) {
-                        for (String x : virtuals) {
-                            idManager.invalidVirtualId(snModel.getId(), x);
-                        }
-                    }
-                }
+
                 if (StringUtils.isNotEmpty(secondID)) {
                     try {
                         DiskPartitionChangeSummary summaryObj =
