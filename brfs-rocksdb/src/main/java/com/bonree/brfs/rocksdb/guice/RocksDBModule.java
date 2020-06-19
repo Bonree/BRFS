@@ -3,20 +3,16 @@ package com.bonree.brfs.rocksdb.guice;
 import static com.bonree.brfs.common.http.rest.JaxrsBinder.jaxrs;
 
 import com.bonree.brfs.common.guice.JsonConfigProvider;
-import com.bonree.brfs.common.lifecycle.Lifecycle;
 import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.plugin.BrfsModule;
 import com.bonree.brfs.common.plugin.NodeType;
 import com.bonree.brfs.common.rocksdb.RocksDBManager;
-import com.bonree.brfs.rocksdb.backup.BackupEngineFactory;
-import com.bonree.brfs.rocksdb.backup.RocksDBBackupEngine;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.connection.http.HttpRegionNodeConnectionPool;
 import com.bonree.brfs.rocksdb.impl.DefaultRocksDBManager;
 import com.bonree.brfs.rocksdb.listener.ColumnFamilyInfoListener;
 import com.google.inject.Binder;
-import com.google.inject.Provides;
 
 /*******************************************************************************
  * 版权信息：北京博睿宏远数据科技股份有限公司
@@ -34,28 +30,9 @@ public class RocksDBModule extends BrfsModule {
 
         binder.bind(RegionNodeConnectionPool.class).to(HttpRegionNodeConnectionPool.class).in(ManageLifecycle.class);
         binder.bind(RocksDBManager.class).to(DefaultRocksDBManager.class).in(ManageLifecycle.class);
-        binder.bind(RocksDBBackupEngine.class).in(ManageLifecycle.class);
-
         LifecycleModule.register(binder, ColumnFamilyInfoListener.class);
 
-        LifecycleModule.register(binder, BackupEngineFactory.class);
         jaxrs(binder).resource(RocksDBResource.class);
 
-    }
-
-    @Provides
-    public BackupEngineFactory getBackupEngineFactory(Lifecycle lifecycle) {
-        lifecycle.addLifeCycleObject(new Lifecycle.LifeCycleObject() {
-            @Override
-            public void start() throws Exception {
-
-            }
-
-            @Override
-            public void stop() {
-                BackupEngineFactory.getInstance().stop();
-            }
-        });
-        return BackupEngineFactory.getInstance();
     }
 }
