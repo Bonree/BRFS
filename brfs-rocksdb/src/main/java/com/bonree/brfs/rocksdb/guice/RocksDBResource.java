@@ -7,16 +7,11 @@ import com.bonree.brfs.common.rocksdb.RocksDBManager;
 import com.bonree.brfs.common.rocksdb.WriteStatus;
 import com.bonree.brfs.common.supervisor.TimeWatcher;
 import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.common.utils.FileUtils;
 import com.bonree.brfs.common.utils.JsonUtils;
 import com.bonree.brfs.common.utils.StringUtils;
-import com.bonree.brfs.common.utils.ZipUtils;
-import com.bonree.brfs.rocksdb.backup.RocksDBBackupEngine;
-import com.bonree.brfs.rocksdb.file.SimpleFileSender;
 import com.bonree.brfs.rocksdb.impl.RocksDBDataUnit;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Throwables;
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -46,15 +41,13 @@ public class RocksDBResource {
     private static final Logger LOG = LoggerFactory.getLogger(RocksDBResource.class);
 
     private RocksDBManager rocksDBManager;
-    private RocksDBBackupEngine backupEngine;
     private RocksDBConfig rocksDBConfig;
     private TimeWatcher watcher = new TimeWatcher();
 
     @Inject
-    public RocksDBResource(RocksDBConfig rocksDBConfig, RocksDBManager rocksDBManager, RocksDBBackupEngine backupEngine) {
+    public RocksDBResource(RocksDBConfig rocksDBConfig, RocksDBManager rocksDBManager) {
         this.rocksDBConfig = rocksDBConfig;
         this.rocksDBManager = rocksDBManager;
-        this.backupEngine = backupEngine;
     }
 
     @GET
@@ -148,37 +141,4 @@ public class RocksDBResource {
             return Response.serverError().entity(Throwables.getStackTraceAsString(e)).build();
         }
     }
-
-    @POST
-    @Path("inner/restore")
-    @Produces(APPLICATION_JSON)
-    public Response restore(
-        @QueryParam("transferFileName") String transferFileName,
-        @QueryParam("restorePath") String restorePath,
-        @QueryParam("host") String host,
-        @QueryParam("port") int port) {
-
-        String backupPath = this.rocksDBConfig.getRocksDBBackupPath();
-
-        try {
-            int backupId = this.backupEngine.createNewBackup(backupPath);
-            List<Integer> backupIds = this.backupEngine.getBackupIds();
-            LOG.info("restore handler create new backup, this backupId:{}, all backupIds:{}", backupId, backupIds);
-
-            String outDir = backupPath + File.separator + transferFileName;
-            ZipUtils.zip(FileUtils.listFilePaths(backupPath), outDir);
-            SimpleFileSender sender = new SimpleFileSender();
-            sender.send(host, port, outDir, restorePath);
-
-            if (FileUtils.deleteFile(outDir)) {
-                LOG.info("socket client delete tmp transfer file :{}", outDir);
-            }
-
-            return Response.ok().entity(backupIds).build();
-        } catch (Exception e) {
-            LOG.error("restore request handler err, host:port {}:{}", host, port);
-            return Response.serverError().build();
-        }
-    }
-
 }
