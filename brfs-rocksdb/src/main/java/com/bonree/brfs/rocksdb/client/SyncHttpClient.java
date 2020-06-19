@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Consts;
 import org.apache.http.Header;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -47,6 +48,9 @@ public class SyncHttpClient implements Closeable {
                                                             .setBufferSize(clientConfig.getBufferSize())
                                                             .setCharset(Consts.UTF_8)
                                                             .build();
+        RequestConfig requestConfig = RequestConfig.custom()
+                                                   .setConnectTimeout(clientConfig.getConnectTimeout())
+                                                   .build();
 
         List<Header> defaultHeaders = new ArrayList<Header>();
         if (clientConfig.isKeepAlive()) {
@@ -57,6 +61,7 @@ public class SyncHttpClient implements Closeable {
                                   .setMaxConnPerRoute(clientConfig.getMaxConnectionPerRoute())
                                   .setMaxConnTotal(clientConfig.getMaxConnection())
                                   .setDefaultConnectionConfig(connectionConfig)
+                                  .setDefaultRequestConfig(requestConfig)
                                   .setConnectionReuseStrategy(new ConnectionReuseStrategy() {
 
                                       @Override

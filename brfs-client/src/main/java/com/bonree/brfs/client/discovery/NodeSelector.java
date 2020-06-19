@@ -21,6 +21,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.stream.Collectors;
 
 public class NodeSelector implements Closeable {
     private final Discovery discovery;
@@ -32,12 +33,33 @@ public class NodeSelector implements Closeable {
     }
 
     public Iterable<URI> getNodeHttpLocations(ServiceType type) {
-        return getNodeLocations(type, "http");
+        return getNodeLocations(type, null, "http");
     }
 
-    public Iterable<URI> getNodeLocations(ServiceType type, String scheme) {
+    public Iterable<URI> getNodeHttpLocations(ServiceType type, String srName) {
+        return getNodeLocations(type, srName, "http");
+    }
+
+    public Iterable<URI> getNodeLocations(ServiceType type, String srName, String scheme) {
         return Iterables.transform(
-            nodeRanker.rank(discovery.getServiceList(type)),
+            nodeRanker.rank(discovery.getServiceList(type)
+                                .stream()
+                                .filter(node -> {
+                                    if (srName == null) {
+                                        return true;
+                                    }
+
+                                    if (node.getAllowed() != null && !node.getAllowed().isEmpty()) {
+                                        return node.getAllowed().contains(srName);
+                                    }
+
+                                    if (node.getForbidden() != null && !node.getForbidden().isEmpty()) {
+                                        return !node.getForbidden().contains(srName);
+                                    }
+
+                                    return true;
+                                })
+                                .collect(Collectors.toList())),
             node -> buildUri(scheme, node.getHost(), node.getPort()));
     }
 
@@ -53,4 +75,5 @@ public class NodeSelector implements Closeable {
     public void close() throws IOException {
         discovery.close();
     }
+
 }

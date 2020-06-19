@@ -31,10 +31,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.rocksdb.BackupEngine;
@@ -69,6 +73,8 @@ import org.slf4j.LoggerFactory;
 public class DefaultRocksDBManager implements RocksDBManager {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRocksDBManager.class);
 
+    private static final int DEFAULT_QUEUE_FLUSH = 5000;
+
     private DBOptions dbOptions;
     private ReadOptions readOptions;
     private WriteOptions writeOptionsSync;
@@ -90,9 +96,17 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private ColumnFamilyInfoManager columnFamilyInfoManager;
     private Pair<List<ColumnFamilyDescriptor>, List<Integer>> columnFamilyInfo;
 
+    private int dataSynchronizeCountOnce;
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
-    private ExecutorService executor =
-        Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new PooledThreadFactory("sync_rocksdb_data"));
+    private TimeWatcher watcher = new TimeWatcher();
+    private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(100);
+
+    private ExecutorService produceExec = Executors
+        .newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2, new PooledThreadFactory("rocksdb_data_producer"));
+    private ScheduledExecutorService queueChecker =
+        Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
+    private ExecutorService synchronizeExec = Executors
+        .newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new PooledThreadFactory("rocksdb_data_synchronizer"));
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
@@ -102,6 +116,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         this.serviceManager = serviceManager;
         this.srManager = srManager;
         this.regionGroupName = Configs.getConfiguration().getConfig(CommonConfigs.CONFIG_REGION_SERVICE_GROUP_NAME);
+        this.dataSynchronizeCountOnce = Configs.getConfiguration().getConfig(RocksDBConfigs.ROCKSDB_DATA_SYNCHRONIZE_COUNT_ONCE);
         this.regionNodeConnectionPool = regionNodeConnectionPool;
         this.columnFamilyInfoManager = new ColumnFamilyInfoManager(this.client);
 
@@ -109,6 +124,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
         readOptions = new ReadOptions();
         writeOptionsSync = new WriteOptions();
         writeOptionsAsync = new WriteOptions();
+        writeOptionsSync.setSync(true);
+        writeOptionsAsync.setSync(false);
         bloomFilter = new BloomFilter(10);
         blockBasedTableConfig = new BlockBasedTableConfig();
         columnFamilyOptions = new ColumnFamilyOptions();
@@ -166,8 +183,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
                       .setRowCache(new LRUCache(this.config.getBlockCache() * SizeUnit.MB, 6, true, 5))
                       .setMaxSubcompactions(this.config.getMaxSubCompaction());
         readOptions.setPrefixSameAsStart(true);
-        writeOptionsSync.setSync(true);
-        writeOptionsAsync.setSync(false);
         blockBasedTableConfig.setFilter(bloomFilter)
                              .setCacheIndexAndFilterBlocks(true)
                              .setPinL0FilterAndIndexBlocksInCache(true);
@@ -189,6 +204,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                            .setTargetFileSizeBase(this.config.getTargetFileSizeBase() * SizeUnit.MB)
                            .setMaxBytesForLevelBase(this.config.getMaxBytesLevelBase() * SizeUnit.MB)
                            .setOptimizeFiltersForHits(true);
+        queueChecker.scheduleAtFixedRate(new QueueChecker(), 0L, 1L, TimeUnit.MILLISECONDS);
 
         try {
             columnFamilyInfo = loadColumnFamilyInfo();
@@ -306,7 +322,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         }
 
         WriteStatus writeStatus = this.write(this.cfHandles.get(columnFamily), writeOptionsAsync, key, value);
-        executor.execute(new RocksDBDataWriter(columnFamily, key, value));
+        produceExec.execute(new RocksDBDatProducer(columnFamily, key, value));
         return writeStatus;
     }
 
@@ -333,12 +349,15 @@ public class DefaultRocksDBManager implements RocksDBManager {
         return WriteStatus.SUCCESS;
     }
 
-    private class RocksDBDataWriter implements Runnable {
+    /**
+     * @description: 负责向阻塞队列put需要同步的数据
+     */
+    private class RocksDBDatProducer implements Runnable {
         private String columnFamily;
         private byte[] key;
         private byte[] value;
 
-        public RocksDBDataWriter(String columnFamily, byte[] key, byte[] value) {
+        public RocksDBDatProducer(String columnFamily, byte[] key, byte[] value) {
             this.columnFamily = columnFamily;
             this.key = key;
             this.value = value;
@@ -346,22 +365,58 @@ public class DefaultRocksDBManager implements RocksDBManager {
 
         @Override
         public void run() {
+            RocksDBDataUnit data = new RocksDBDataUnit(columnFamily, key, value);
+            boolean offer = queue.offer(data);
+            if (!offer) {
+                LOG.warn("offer data ro queue failed");
+            }
+        }
+    }
+
+    private class QueueChecker implements Runnable {
+
+        @Override
+        public void run() {
             if (serviceCache.isEmpty()) {
+                LOG.warn("service cache is empty!");
                 return;
             }
 
-            RegionNodeConnection connection;
-            for (Service service : serviceCache) {
-                connection =
-                    DefaultRocksDBManager.this.regionNodeConnectionPool.getConnection(regionGroupName, service.getServiceId());
-                if (connection == null || connection.getClient() == null) {
-                    LOG.warn("region node connection/client is null! serviceId:{}", service.getServiceId());
-                    continue;
+            if (queue.size() >= dataSynchronizeCountOnce) {
+                synchronizeExec.execute(new RocksDBDataSynchronizer(dataSynchronizeCountOnce));
+            } else {
+                if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH && queue.size() != 0) {
+                    synchronizeExec.execute(new RocksDBDataSynchronizer(queue.size()));
+                    watcher.getElapsedTimeAndRefresh();
                 }
-                try {
-                    connection.getClient().writeData(columnFamily, new String(key), new String(value));
-                } catch (Exception e) {
-                    LOG.error("rocksdb data writer occur error", e);
+            }
+        }
+
+        private class RocksDBDataSynchronizer implements Runnable {
+            private int size;
+
+            public RocksDBDataSynchronizer(int size) {
+                this.size = size;
+            }
+
+            @Override
+            public void run() {
+                List<RocksDBDataUnit> datas = new ArrayList<>(size);
+                queue.drainTo(datas, size);
+                RegionNodeConnection connection;
+                for (Service service : serviceCache) {
+                    connection =
+                        DefaultRocksDBManager.this.regionNodeConnectionPool
+                            .getConnection(regionGroupName, service.getServiceId());
+                    if (connection == null || connection.getClient() == null) {
+                        LOG.warn("region node connection/client is null! serviceId:{}", service.getServiceId());
+                        continue;
+                    }
+                    try {
+                        connection.getClient().writeBatchData(datas);
+                    } catch (Exception e) {
+                        LOG.error("rocksdb data writer occur error", e);
+                    }
                 }
             }
         }
@@ -385,7 +440,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
             }
 
             ColumnFamilyHandle handle =
-                this.db.createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), columnFamilyOptions), ttl);
+                this.db
+                    .createColumnFamilyWithTtl(new ColumnFamilyDescriptor(columnFamily.getBytes(), columnFamilyOptions), ttl);
             this.cfHandles.put(columnFamily, handle);
             LOG.info("create column family complete, name:{}, ttl:{}, id:{}", columnFamily, ttl, handle.getID());
             // 更新ZK信息
@@ -555,7 +611,9 @@ public class DefaultRocksDBManager implements RocksDBManager {
         if (db != null) {
             db.close();
         }
-        this.executor.shutdown();
+        this.produceExec.shutdown();
+        this.queueChecker.shutdown();
+        this.synchronizeExec.shutdown();
         LOG.info("rocksdb manager stop");
     }
 }

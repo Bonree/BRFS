@@ -425,7 +425,7 @@ public class BRFSClient implements BRFS {
 
         return Retrys.execute(new URIRetryable<BatchResult>(
             format("put batch object to storage region[%s]", srName),
-            nodeSelector.getNodeHttpLocations(ServiceType.REGION),
+            nodeSelector.getNodeHttpLocations(ServiceType.REGION, srName),
             uri -> {
                 Request httpRequest = new Request.Builder()
                     .url(HttpUrl.get(uri)
@@ -520,7 +520,7 @@ public class BRFSClient implements BRFS {
 
         return Retrys.execute(new URIRetryable<>(
             format("put object to storage region[%s]", srName),
-            nodeSelector.getNodeHttpLocations(ServiceType.REGION),
+            nodeSelector.getNodeHttpLocations(ServiceType.REGION, srName),
             uri -> {
                 SettableFuture<PutObjectCallback> retryFuture = SettableFuture.create();
 

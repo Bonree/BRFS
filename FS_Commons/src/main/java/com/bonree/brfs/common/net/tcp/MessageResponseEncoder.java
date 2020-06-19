@@ -11,7 +11,7 @@ public class MessageResponseEncoder extends MessageToByteEncoder<TokenMessage<Ba
 
     @Override
     protected void encode(ChannelHandlerContext ctx, TokenMessage<BaseResponse> msg, ByteBuf out) throws Exception {
-        LOG.debug("encoding response[{}, {}]", msg.messageToken());
+        LOG.info("encoding response[{}, {}]", msg.messageToken());
         out.writeInt(msg.messageToken());
 
         BaseResponse response = msg.message();

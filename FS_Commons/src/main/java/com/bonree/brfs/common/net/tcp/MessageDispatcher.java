@@ -47,7 +47,7 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
             return;
         }
 
-        LOG.debug("handle base message[{}, {}]", msg.messageToken(), baseMessage.getType());
+        LOG.info("handle base message[{}, {}]", msg.messageToken(), baseMessage.getType());
 
         executor.execute(new Runnable() {
 
@@ -102,5 +102,11 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
                 ctx.close();
             }
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        LOG.error("handle message error :[{}]", cause.getMessage());
+        super.exceptionCaught(ctx, cause);
     }
 }

@@ -1,14 +1,19 @@
 package com.bonree.brfs.common.net.tcp.client;
 
 import com.bonree.brfs.common.net.tcp.BaseResponse;
+import com.bonree.brfs.common.net.tcp.MessageProtocolDecoder;
 import com.bonree.brfs.common.net.tcp.TokenMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BaseResponseDecoder extends ByteToMessageDecoder {
+    private static final Logger LOG = LoggerFactory.getLogger(BaseResponseDecoder.class);
     private TokenMessage<BaseResponse> response;
+
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -18,6 +23,7 @@ public class BaseResponseDecoder extends ByteToMessageDecoder {
             }
 
             final int token = in.readInt();
+            LOG.info("decoding message with token [{}]", token);
             final int code = in.readInt();
             final int length = in.readInt();
 

@@ -53,6 +53,7 @@ public abstract class AbstractTcpClient<S, R> implements TcpClient<S, R> {
         Preconditions.checkNotNull(handler);
 
         final int token = tokenMaker.getAndIncrement() & Integer.MAX_VALUE;
+        LOG.info("send message with token [{}]", token);
         handlers.put(token, handler);
         channel.writeAndFlush(new TokenMessage<S>() {
 

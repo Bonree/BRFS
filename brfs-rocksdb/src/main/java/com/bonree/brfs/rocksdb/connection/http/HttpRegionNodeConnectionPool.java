@@ -4,16 +4,10 @@ import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.utils.CloseUtils;
-import com.bonree.brfs.common.utils.PooledThreadFactory;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnection;
 import com.bonree.brfs.rocksdb.connection.RegionNodeConnectionPool;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import javax.inject.Inject;
 import org.slf4j.Logger;
@@ -30,9 +24,6 @@ import org.slf4j.LoggerFactory;
 public class HttpRegionNodeConnectionPool implements RegionNodeConnectionPool {
     private static final Logger LOG = LoggerFactory.getLogger(HttpRegionNodeConnectionPool.class);
 
-    private static final int DEFAULT_CONNECTION_STATE_CHECK_INTERVAL = 5;
-    private ScheduledExecutorService exec =
-        Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("region_node_connection_checker"));
     private final Table<String, String, HttpRegionNodeConnection> connectionCache = HashBasedTable.create();
 
     private ServiceManager serviceManager;
@@ -40,13 +31,11 @@ public class HttpRegionNodeConnectionPool implements RegionNodeConnectionPool {
     @Inject
     public HttpRegionNodeConnectionPool(ServiceManager serviceManager) {
         this.serviceManager = serviceManager;
-        exec.scheduleAtFixedRate(new ConnectionStateChecker(), 0, DEFAULT_CONNECTION_STATE_CHECK_INTERVAL, TimeUnit.SECONDS);
     }
 
     @LifecycleStop
     @Override
     public void close() {
-        exec.shutdown();
         connectionCache.values().forEach(new Consumer<RegionNodeConnection>() {
 
             @Override
@@ -78,39 +67,6 @@ public class HttpRegionNodeConnectionPool implements RegionNodeConnectionPool {
         }
 
         return connection;
-    }
-
-    private class ConnectionStateChecker implements Runnable {
-
-        @Override
-        public void run() {
-            List<String> rows;
-            synchronized (connectionCache) {
-                rows = new ArrayList<String>(connectionCache.rowKeySet());
-            }
-
-            List<String> cols = new ArrayList<String>();
-            for (String row : rows) {
-                cols.clear();
-                synchronized (connectionCache) {
-                    cols.addAll(connectionCache.row(row).keySet());
-                }
-
-                for (String col : cols) {
-                    HttpRegionNodeConnection conn = connectionCache.get(row, col);
-                    if (conn != null && !conn.isValid()) {
-                        LOG.info("Connection to service[{}, {}] is invalid!", row, col);
-
-                        synchronized (connectionCache) {
-                            connectionCache.remove(row, col);
-                        }
-
-                        CloseUtils.closeQuietly(conn);
-                    }
-                }
-            }
-        }
-
     }
 
 }
