@@ -134,7 +134,7 @@ public class RocksDBResource {
             for (RocksDBDataUnit unit : dataList) {
                 rocksDBManager.write(unit.getColumnFamily(), unit.getKey(), unit.getValue());
             }
-            LOG.info("receive sync data request, size:{}, write cost time:{}", dataList.size(), watcher.getElapsedTime());
+            LOG.debug("receive sync data request, size:{}, write cost time:{}", dataList.size(), watcher.getElapsedTime());
             return Response.ok().build();
         } catch (Exception e) {
             LOG.error("batch write data failed", e);

@@ -378,7 +378,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         @Override
         public void run() {
             if (serviceCache.isEmpty()) {
-                LOG.warn("service cache is empty!");
+                LOG.debug("service cache is empty!");
                 return;
             }
 
@@ -409,7 +409,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
                         DefaultRocksDBManager.this.regionNodeConnectionPool
                             .getConnection(regionGroupName, service.getServiceId());
                     if (connection == null || connection.getClient() == null) {
-                        LOG.warn("region node connection/client is null! serviceId:{}", service.getServiceId());
+                        LOG.debug("region node connection/client is null! serviceId:{}", service.getServiceId());
                         continue;
                     }
                     try {

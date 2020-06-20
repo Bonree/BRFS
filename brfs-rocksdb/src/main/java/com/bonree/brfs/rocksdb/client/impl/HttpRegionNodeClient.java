@@ -107,7 +107,7 @@ public class HttpRegionNodeClient implements RegionNodeClient {
                 return;
             }
             
-            LOG.info("batch write rocksdb data to {}:{}, size:{}", host, port, datas.size());
+            LOG.debug("batch write rocksdb data to {}:{}, size:{}", host, port, datas.size());
             HttpResponse response = client.executePost(uri, bytes);
             LOG.debug("batch write rocksdb response[{}] from {}:{}, ", response.getStatusCode(), host, port);
         } catch (Exception e) {
