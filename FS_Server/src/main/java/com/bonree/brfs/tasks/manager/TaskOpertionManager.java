@@ -52,7 +52,7 @@ public class TaskOpertionManager implements LifeCycle {
         SchedulerManagerInterface manager = mcf.getStm();
         MetaTaskManagerInterface release = mcf.getTm();
         String serverId = mcf.getServerId();
-        if(confg.isTaskFrameWorkSwitch()){
+        if (confg.isTaskFrameWorkSwitch()) {
 
             new Thread(new Runnable() {
                 @Override
