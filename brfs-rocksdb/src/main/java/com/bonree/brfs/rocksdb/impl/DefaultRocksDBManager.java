@@ -403,6 +403,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             public void run() {
                 List<RocksDBDataUnit> datas = new ArrayList<>(size);
                 queue.drainTo(datas, size);
+                LOG.info("current sync data count:{}, queue size:{}", size, queue.size());
                 RegionNodeConnection connection;
                 for (Service service : serviceCache) {
                     connection =
