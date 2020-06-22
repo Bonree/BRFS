@@ -52,38 +52,40 @@ public class TaskOpertionManager implements LifeCycle {
         SchedulerManagerInterface manager = mcf.getStm();
         MetaTaskManagerInterface release = mcf.getTm();
         String serverId = mcf.getServerId();
+        if(confg.isTaskFrameWorkSwitch()){
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Properties prop = DefaultBaseSchedulers.createSimplePrope(3, 1000);
-                    boolean createFlag = manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
-                    if (!createFlag) {
-                        LOG.error("create task operation error !!!");
-                        throw new NullPointerException("create task operation error !!!");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Properties prop = DefaultBaseSchedulers.createSimplePrope(3, 1000);
+                        boolean createFlag = manager.createTaskPool(TASK_OPERATION_MANAGER, prop);
+                        if (!createFlag) {
+                            LOG.error("create task operation error !!!");
+                            throw new NullPointerException("create task operation error !!!");
+                        }
+                        boolean startTaskPool = manager.startTaskPool(TASK_OPERATION_MANAGER);
+                        if (!startTaskPool) {
+                            LOG.error("create task operation error !!!");
+                            throw new NullPointerException("start task operation error !!!");
+                        }
+                        // 将任务信息不完全的任务补充完整
+                        LOG.info("========================================================================================");
+                        recoveryTask(switchList, release, serverId);
+                        LOG.info("========================================================================================");
+                        SumbitTaskInterface task = QuartzSimpleInfo
+                            .createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, null,
+                                                 OperationTaskJob.class);
+                        boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
+                        if (sumbitFlag) {
+                            LOG.info("operation task sumbit complete !!!");
+                        }
+                    } catch (ParamsErrorException e) {
+                        throw new RuntimeException("create task opertion manager happen error ", e);
                     }
-                    boolean startTaskPool = manager.startTaskPool(TASK_OPERATION_MANAGER);
-                    if (!startTaskPool) {
-                        LOG.error("create task operation error !!!");
-                        throw new NullPointerException("start task operation error !!!");
-                    }
-                    // 将任务信息不完全的任务补充完整
-                    LOG.info("========================================================================================");
-                    recoveryTask(switchList, release, serverId);
-                    LOG.info("========================================================================================");
-                    SumbitTaskInterface task = QuartzSimpleInfo
-                        .createCycleTaskInfo(TASK_OPERATION_MANAGER, confg.getExecuteTaskIntervalTime(), 60000, null,
-                                             OperationTaskJob.class);
-                    boolean sumbitFlag = manager.addTask(TASK_OPERATION_MANAGER, task);
-                    if (sumbitFlag) {
-                        LOG.info("operation task sumbit complete !!!");
-                    }
-                } catch (ParamsErrorException e) {
-                    throw new RuntimeException("create task opertion manager happen error ", e);
                 }
-            }
-        }).start();
+            }).start();
+        }
     }
 
     /**

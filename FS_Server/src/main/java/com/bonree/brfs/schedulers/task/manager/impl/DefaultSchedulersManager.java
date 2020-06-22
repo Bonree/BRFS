@@ -239,7 +239,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
             count++;
         }
         LOG.info("pool :{} count: {} started !!!", getAllPoolKey(), count);
-        if (config.getSwitchOnTaskType().contains(TaskType.SYSTEM_COPY_CHECK)) {
+        if (config.isTaskFrameWorkSwitch() && config.getSwitchOnTaskType().contains(TaskType.SYSTEM_COPY_CHECK)) {
             SumbitTaskInterface copyJob = createCopySimpleTask(config.getExecuteTaskIntervalTime(),
                                                                TaskType.SYSTEM_COPY_CHECK.name(), service.getServiceId(),
                                                                CopyRecoveryJob.class.getCanonicalName(),

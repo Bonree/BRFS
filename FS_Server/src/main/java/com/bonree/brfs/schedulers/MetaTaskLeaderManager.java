@@ -94,8 +94,10 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
                 }
                 LOG.info("Leader create task manager server success !!!");
                 checkSwitchTask(config);
-                sumbitTask(manager, config);
-                createCheckCyclePool(manager, config);
+                if (config.isTaskFrameWorkSwitch()) {
+                    sumbitTask(manager, config);
+                    createCheckCyclePool(manager, config);
+                }
                 LOG.info("==========================LEADER FINISH=================================");
             } catch (ParamsErrorException e) {
                 LOG.error("create meta task manager happen error ", e);
