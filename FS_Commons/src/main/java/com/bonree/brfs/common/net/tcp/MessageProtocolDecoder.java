@@ -34,7 +34,6 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder {
                 //心跳消息
                 return;
             }
-            LOG.info("decoding message with token [{}]  length[{}]", token, length);
             decodingMessage = new TokenMessage<BaseMessage>() {
                 BaseMessage message = new BaseMessage(type);
 
