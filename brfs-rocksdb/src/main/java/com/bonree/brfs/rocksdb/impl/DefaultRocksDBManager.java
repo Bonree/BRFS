@@ -115,7 +115,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<>(500),
         new PooledThreadFactory("rocksdb_data_synchronizer"),
-        new ThreadPoolExecutor.DiscardOldestPolicy()
+        new ThreadPoolExecutor.AbortPolicy()
     );
 
     @Inject
