@@ -37,7 +37,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
@@ -105,8 +107,16 @@ public class DefaultRocksDBManager implements RocksDBManager {
         .newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2, new PooledThreadFactory("rocksdb_data_producer"));
     private ScheduledExecutorService queueChecker =
         Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
-    private ExecutorService synchronizeExec = Executors
-        .newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new PooledThreadFactory("rocksdb_data_synchronizer"));
+    
+    private ExecutorService synchronizeExec = new ThreadPoolExecutor(
+        Runtime.getRuntime().availableProcessors(),
+        Runtime.getRuntime().availableProcessors(),
+        0L,
+        TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<>(500),
+        new PooledThreadFactory("rocksdb_data_synchronizer"),
+        new ThreadPoolExecutor.DiscardOldestPolicy()
+    );
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
