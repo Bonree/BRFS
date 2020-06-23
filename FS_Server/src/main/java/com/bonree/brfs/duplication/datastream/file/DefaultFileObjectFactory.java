@@ -19,29 +19,34 @@ import org.slf4j.LoggerFactory;
 public class DefaultFileObjectFactory implements FileObjectFactory {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultFileObjectFactory.class);
 
-    private Service service;
-    private FileNodeStorer fileNodeStorer;
-    private DuplicateNodeSelector duplicationNodeSelector;
-    private VirtualServerID idManager;
-    private DiskNodeConnectionPool connectionPool;
+    private final Service service;
+    private final FileNodeStorer fileNodeStorer;
+    private final DuplicateNodeSelector duplicationNodeSelector;
+    private final VirtualServerID idManager;
+    private final DiskNodeConnectionPool connectionPool;
+
+    private final DuplicateNodeChecker nodeChecker;
 
     @Inject
     public DefaultFileObjectFactory(Service service,
                                     FileNodeStorer fileNodeStorer,
                                     DuplicateNodeSelector duplicationNodeSelector,
                                     VirtualServerID serverIDManager,
-                                    DiskNodeConnectionPool connectionPool) {
+                                    DiskNodeConnectionPool connectionPool,
+                                    DuplicateNodeChecker nodeChecker) {
         this.service = service;
         this.fileNodeStorer = fileNodeStorer;
         this.duplicationNodeSelector = duplicationNodeSelector;
         this.idManager = serverIDManager;
         this.connectionPool = connectionPool;
+        this.nodeChecker = nodeChecker;
     }
 
     @Override
     public FileObject createFile(StorageRegion storageRegion) {
-        DuplicateNode[] nodes =
-            duplicationNodeSelector.getDuplicationNodes(storageRegion.getId(), storageRegion.getReplicateNum());
+        DuplicateNode[] nodes = nodeChecker.filterCorruptNode(
+            duplicationNodeSelector.getDuplicationNodes(storageRegion.getId(), storageRegion.getReplicateNum()));
+
         if (nodes.length == 0) {
             LOG.error("No available duplication node to build FileNode");
             //没有磁盘节点可用
@@ -65,6 +70,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
             if (connection == null || connection.getClient() == null) {
                 LOG.info("can not write header for file[{}] because [{}] is disconnected", fileNodeBuilder.build().getName(),
                          node);
+
                 continue;
             }
 
@@ -73,6 +79,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
             LOG.info("client opening file [{}]", filePath);
             long result = connection.getClient().openFile(filePath, storageRegion.getFileCapacity());
             if (result < 0) {
+                nodeChecker.checkNode(node);
                 continue;
             }
 
