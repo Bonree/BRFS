@@ -77,12 +77,6 @@ datanode.service.host = 192.168.150.103
 # 默认为机器CPU核数
 # datanode.file.reader.num = 16
 
-# datanode 一级serverid存储目录，内部配置
-# datanode.ids.server.dir = ./ids
-
-# datanode 磁盘id存储目录 内部配置
-# datanode.ids.partition.dir = ./ids/partitionids
-
 ###############################################
 ##############文件平衡模块 Config################
 ###############################################

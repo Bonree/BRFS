@@ -86,7 +86,6 @@ public class DataNodeModule implements Module {
     @Override
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "cluster", ClusterConfig.class);
-        JsonConfigProvider.bind(binder, "datanode.ids", IDConfig.class);
         JsonConfigProvider.bind(binder, "datanode", StorageConfig.class);
 
         binder.bind(DiskContext.class).in(Scopes.SINGLETON);

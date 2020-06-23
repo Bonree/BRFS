@@ -3,7 +3,6 @@ package com.bonree.brfs.identification.impl;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.resource.vo.DataNodeMetaModel;
 import com.bonree.brfs.common.resource.vo.NodeStatus;
-import com.bonree.brfs.disknode.IDConfig;
 import com.bonree.brfs.identification.DataNodeMetaMaintainerInterface;
 import com.bonree.brfs.identification.LevelServerIDGen;
 import java.util.Collection;
@@ -34,8 +33,7 @@ public class FirstLevelServerIDImpl {
     private DataNodeMetaMaintainerInterface maintainer;
 
     public FirstLevelServerIDImpl(CuratorFramework client, DataNodeMetaMaintainerInterface mainter, String firstZKPath,
-                                  String seqPath,
-                                  String zkMetaPath) {
+                                  String seqPath) {
         this.client = client;
         this.firstZKPath = firstZKPath;
         this.maintainer = mainter;
@@ -45,12 +43,11 @@ public class FirstLevelServerIDImpl {
 
     @Inject
     public FirstLevelServerIDImpl(
-        CuratorFramework client, DataNodeMetaMaintainerInterface mainter, ZookeeperPaths path, IDConfig idConfig) {
+        CuratorFramework client, DataNodeMetaMaintainerInterface mainter, ZookeeperPaths path) {
         this(client,
              mainter,
              path.getBaseServerIdPath(),
-             path.getBaseSequencesPath(),
-             path.getBaseDataNodeMetaPath());
+             path.getBaseSequencesPath());
     }
 
     /**
