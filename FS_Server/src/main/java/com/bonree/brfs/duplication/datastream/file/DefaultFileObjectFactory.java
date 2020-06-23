@@ -71,6 +71,7 @@ public class DefaultFileObjectFactory implements FileObjectFactory {
                 LOG.info("can not write header for file[{}] because [{}] is disconnected", fileNodeBuilder.build().getName(),
                          node);
 
+                nodeChecker.checkNode(node);
                 continue;
             }
 
