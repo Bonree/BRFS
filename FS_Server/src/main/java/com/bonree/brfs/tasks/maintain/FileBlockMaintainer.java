@@ -88,10 +88,10 @@ public class FileBlockMaintainer implements LifeCycle {
         pool =
             Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("FileBlockMaintainer").build());
         int delayTime = getDelayTime(this.scanTime);
+        FileBlockWorker worker = new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG);
         // 延迟1分钟启动确保路由规则加载完成
-        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG),
-                                 delayTime,
-                                 intervalTime, TimeUnit.MINUTES);
+        pool.scheduleAtFixedRate(worker, delayTime, intervalTime, TimeUnit.MINUTES);
+        pool.submit(worker);
         LOG.info("block server start {} interval :{} minute", this.scanTime, this.intervalTime);
     }
 

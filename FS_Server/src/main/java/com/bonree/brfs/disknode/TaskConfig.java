@@ -45,7 +45,7 @@ public class TaskConfig {
     private String fileBlockScanTime = "02:00";
 
     @JsonProperty("file.block.scan.interval.minute")
-    private int fileBlockScanIntervalSecond = 60;
+    private int fileBlockScanIntervalSecond = 1440;
 
     @JsonProperty("second.register.interval.millisecond")
     private int secondIdRegisterIntervalMill = 1000;
