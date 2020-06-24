@@ -57,6 +57,7 @@ import com.bonree.brfs.duplication.datastream.dataengine.impl.DefaultDataEngineM
 import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectCloser;
 import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectFactory;
 import com.bonree.brfs.duplication.datastream.file.DefaultFileObjectSupplierFactory;
+import com.bonree.brfs.duplication.datastream.file.DuplicateNodeChecker;
 import com.bonree.brfs.duplication.datastream.file.FileObjectCloser;
 import com.bonree.brfs.duplication.datastream.file.FileObjectFactory;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplierFactory;
@@ -125,6 +126,8 @@ public class RegionNodeModule implements Module {
         binder.bind(BrfsCatalog.class).to(DefaultBrfsCatalog.class).in(Scopes.SINGLETON);
         jaxrs(binder).resource(JsonMapper.class);
         binder.bind(WriteStatCollector.class).toInstance(new WriteStatCollector());
+
+        binder.bind(DuplicateNodeChecker.class).in(ManageLifecycle.class);
 
         jaxrs(binder).resource(ConfigurationResource.class);
         jaxrs(binder).resource(DiscoveryResource.class);

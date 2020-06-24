@@ -27,14 +27,13 @@ public class MessageProtocolDecoder extends ByteToMessageDecoder {
             }
 
             final int token = in.readInt();
-            LOG.info("decoding message with token [{}]", token);
             final int type = in.readByte();
             final int length = in.readInt();
+            LOG.info("decoding message with token [{}], type[{}], length[{}]", token, type, length);
             if (type == -1) {
                 //心跳消息
                 return;
             }
-
             decodingMessage = new TokenMessage<BaseMessage>() {
                 BaseMessage message = new BaseMessage(type);
 

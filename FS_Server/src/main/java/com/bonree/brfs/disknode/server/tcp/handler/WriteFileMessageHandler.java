@@ -54,7 +54,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
                 return;
             }
 
-            binding.second().put(new DataWriteTask(binding, message, writer));
+            binding.second().put(new DataWriteTask(binding, message.getFilePath(), message.getDatas(), writer));
         } catch (Exception e) {
             LOG.error("EEEERRRRRR", e);
             writer.write(new BaseResponse(ResponseCode.ERROR));
@@ -62,28 +62,31 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
     }
 
     private class DataWriteTask extends WriteTask<WriteResult[]> {
-        private WriteFileMessage message;
-        private WriteResult[] results;
-        private Pair<RecordFileWriter, WriteWorker> binding;
-        private ResponseWriter<BaseResponse> writer;
+        private final String filePath;
+        private final WriteFileData[] datas;
+        private final WriteResult[] results;
+        private final Pair<RecordFileWriter, WriteWorker> binding;
+        private final ResponseWriter<BaseResponse> writer;
 
-        public DataWriteTask(Pair<RecordFileWriter, WriteWorker> binding, WriteFileMessage message,
+        public DataWriteTask(Pair<RecordFileWriter, WriteWorker> binding,
+                             String filePath,
+                             WriteFileData[] datas,
                              ResponseWriter<BaseResponse> writer) {
             this.binding = binding;
-            this.message = message;
+            this.filePath = filePath;
+            this.datas = datas;
+            this.results = new WriteResult[datas.length];
             this.writer = writer;
         }
 
         @Override
         protected WriteResult[] execute() throws Exception {
             RecordFileWriter writer = binding.first();
-            WriteFileData[] datas = message.getDatas();
-
-            results = new WriteResult[datas.length];
 
             LOG.debug("write [{}] datas to file[{}]", datas.length, writer.getPath());
             for (int i = 0; i < datas.length; i++) {
                 byte[] contentData = fileFormater.formatData(datas[i].getData());
+                datas[i] = null;
 
                 LOG.debug("writing file[{}] with data size[{}]", writer.getPath(), contentData.length);
 
@@ -114,7 +117,7 @@ public class WriteFileMessageHandler implements MessageHandler<BaseResponse> {
 
         @Override
         protected void onFailed(Throwable cause) {
-            LOG.error("write datas to file[{}] error", message.getFilePath(), cause);
+            LOG.error("write datas to file[{}] error", filePath, cause);
 
             try {
                 BaseResponse response = new BaseResponse(ResponseCode.OK);

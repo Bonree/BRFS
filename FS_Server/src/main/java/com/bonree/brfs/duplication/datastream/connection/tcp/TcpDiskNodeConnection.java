@@ -31,6 +31,7 @@ public class TcpDiskNodeConnection implements DiskNodeConnection {
 
     @Override
     public void close() throws IOException {
+        connected = false;
         tcpClient.close();
     }
 
