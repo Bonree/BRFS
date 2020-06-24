@@ -17,11 +17,15 @@ import com.bonree.brfs.schedulers.task.manager.impl.DefaultBaseSchedulers;
 import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskServerNodeModel;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import org.slf4j.Logger;
@@ -32,10 +36,15 @@ import org.slf4j.LoggerFactory;
  */
 @ManageLifecycle
 public class TaskOpertionManager implements LifeCycle {
+    private static final ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
+        .setDaemon(true)
+        .setNameFormat("InitTaskOpertionManager")
+        .build();
     private static final Logger LOG = LoggerFactory.getLogger(TaskOpertionManager.class);
     public static final String TASK_OPERATION_MANAGER = "TASK_OPERATION_MANAGER";
     private ManagerContralFactory mcf;
     private TaskConfig taskconfig;
+    private ExecutorService pool = null;
 
     @Inject
     public TaskOpertionManager(ManagerContralFactory mcf, TaskConfig taskconfig) {
@@ -51,12 +60,13 @@ public class TaskOpertionManager implements LifeCycle {
             LOG.info("no task need to run");
             return;
         }
+        pool = Executors.newSingleThreadExecutor(THREAD_FACTORY);
         Collection<TaskType> switchList = taskconfig.getTaskTypeSwitch();
         SchedulerManagerInterface manager = mcf.getStm();
         MetaTaskManagerInterface release = mcf.getTm();
         String serverId = mcf.getServerId();
 
-        new Thread(new Runnable() {
+        Runnable initWorker = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -87,7 +97,8 @@ public class TaskOpertionManager implements LifeCycle {
                     throw new RuntimeException("create task opertion manager happen error ", e);
                 }
             }
-        }).start();
+        };
+        pool.submit(initWorker);
     }
 
     /**
@@ -187,6 +198,9 @@ public class TaskOpertionManager implements LifeCycle {
     @LifecycleStop
     @Override
     public void stop() throws Exception {
+        if (this.pool != null) {
+            this.pool.shutdownNow();
+        }
         if (!taskconfig.getTaskTypeSwitch().isEmpty()) {
             LOG.info("task framework switch close");
             return;

@@ -14,12 +14,16 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzCronInfo;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.slf4j.Logger;
@@ -35,10 +39,15 @@ import org.slf4j.LoggerFactory;
  *****************************************************************************
  */
 public class MetaTaskLeaderManager implements LeaderLatchListener {
+    private static final ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
+        .setNameFormat("TaskLeader")
+        .setDaemon(true)
+        .build();
     private static final Logger LOG = LoggerFactory.getLogger(MetaTaskLeaderManager.class);
     private static final String META_TASK_MANAGER = "META_TASK_MANAGER";
     private static final String COPY_CYCLE_POOL = "COPY_CYCLE_POOL";
     private MetaWorker worker = null;
+    private ExecutorService pool = null;
 
     @Inject
     public MetaTaskLeaderManager(SchedulerManagerInterface manager, MetaTaskManagerInterface release, TaskConfig config) {
@@ -47,13 +56,17 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 
     @Override
     public void isLeader() {
-        new Thread(this.worker).start();
+        pool = Executors.newSingleThreadExecutor(THREAD_FACTORY);
+        pool.submit(this.worker);
     }
 
     @Override
     public void notLeader() {
         try {
             this.worker.close();
+            if (this.pool != null) {
+                this.pool.shutdownNow();
+            }
         } catch (IOException e) {
             LOG.error("close meta manager happen error", e);
         }

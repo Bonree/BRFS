@@ -30,6 +30,10 @@ public class CopyCheckJob extends QuartzOperationStateTask {
     public static final String RECOVERY_NUM = "1";
     public static final String RECOVERY_CRC = "0";
 
+    public CopyCheckJob() {
+        super(LOG);
+    }
+
     @Override
     public void interrupt() {
 

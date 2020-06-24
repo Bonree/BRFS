@@ -5,7 +5,6 @@ import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -48,20 +47,24 @@ public class TaskConfig {
     @JsonProperty("file.block.scan.interval.minute")
     private int fileBlockScanIntervalSecond = 60;
 
+    @JsonProperty("second.register.interval.millisecond")
+    private int secondIdRegisterIntervalMill = 1000;
+
     public void printDetail(Logger logger) {
-        logger.info("config item task.{}-{}", "switch.set", taskSwitch);
-        logger.info("config item task.{}-{}", "system.delete.pool.size", sysDeleteSize);
-        logger.info("config item task.{}-{}", "user.delete.pool.size", userDeleteSize);
-        logger.info("config item task.{}-{}", "system.check.pool.size", sysCheckSize);
-        logger.info("config item task.{}-{}", "system.copy.pool.size", sysCopySize);
-        logger.info("config item task.{}-{}", "common.create.delay.second", commonDelayTimeSecond);
-        logger.info("config item task.{}-{}", "common.create.interval.second", commonCreateIntervalSecond);
-        logger.info("config item task.{}-{}", "common.execute.interval.second", commonExecuteIntervalSecond);
-        logger.info("config item task.{}-{}", "cycle.check.copy.count.time", cycleCopyTimeStr);
-        logger.info("config item task.{}-{}", "cycle.check.copy.count.time.range", cycleCopyRangeDay);
-        logger.info("config item task.{}-{}", "ttl.second", ttlSecond);
-        logger.info("config item task.{}-{}", "file.block.scan.time", fileBlockScanTime);
-        logger.info("config item task.{}-{}", "file.block.scan.interval.minute", fileBlockScanIntervalSecond);
+        logger.info("config item: task.{}, value: {}", "switch.set", taskSwitch);
+        logger.info("config item: task.{}, value: {}", "system.delete.pool.size", sysDeleteSize);
+        logger.info("config item: task.{}, value: {}", "user.delete.pool.size", userDeleteSize);
+        logger.info("config item: task.{}, value: {}", "system.check.pool.size", sysCheckSize);
+        logger.info("config item: task.{}, value: {}", "system.copy.pool.size", sysCopySize);
+        logger.info("config item: task.{}, value: {}", "common.create.delay.second", commonDelayTimeSecond);
+        logger.info("config item: task.{}, value: {}", "common.create.interval.second", commonCreateIntervalSecond);
+        logger.info("config item: task.{}, value: {}", "common.execute.interval.second", commonExecuteIntervalSecond);
+        logger.info("config item: task.{}, value: {}", "cycle.check.copy.count.time", cycleCopyTimeStr);
+        logger.info("config item: task.{}, value: {}", "cycle.check.copy.count.time.range", cycleCopyRangeDay);
+        logger.info("config item: task.{}, value: {}", "ttl.second", ttlSecond);
+        logger.info("config item: task.{}, value: {}", "file.block.scan.time", fileBlockScanTime);
+        logger.info("config item: task.{}, value: {}", "file.block.scan.interval.minute", fileBlockScanIntervalSecond);
+        logger.info("config item: task.{}, value: {}", "second.register.interval.millisecond", secondIdRegisterIntervalMill);
     }
 
     public List<String> getTaskSwitch() {
@@ -213,4 +216,11 @@ public class TaskConfig {
         }
     }
 
+    public int getSecondIdRegisterIntervalMill() {
+        return secondIdRegisterIntervalMill;
+    }
+
+    public void setSecondIdRegisterIntervalMill(int secondIdRegisterIntervalMill) {
+        this.secondIdRegisterIntervalMill = secondIdRegisterIntervalMill;
+    }
 }

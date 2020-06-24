@@ -75,7 +75,7 @@ public class RemoteFileWorkerTest {
         RouteLoader loader = new SimpleRouteZKLoader(client, zkPaths);
         routeCache = new RouteParserCache(loader, zkPaths, manager, client);
         routeCache.start();
-        SimpleSecondMaintainer maintainerInterface = new SimpleSecondMaintainer(client, zkPaths, local);
+        SimpleSecondMaintainer maintainerInterface = new SimpleSecondMaintainer(client, zkPaths, null);
         maintainerInterface.start();
         secondMaintainerInterface = maintainerInterface;
         virtualServerID = new VirtualServerIDImpl(client, zkPaths);

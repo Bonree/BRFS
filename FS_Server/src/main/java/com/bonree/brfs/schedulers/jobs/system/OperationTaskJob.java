@@ -34,6 +34,10 @@ public class OperationTaskJob extends QuartzOperationStateTask {
         Executors.newSingleThreadExecutor(
             new ThreadFactoryBuilder().setNameFormat(TaskType.VIRTUAL_ID_RECOVERY.name()).build());
 
+    public OperationTaskJob() {
+        super(LOG);
+    }
+
     @Override
     public void interrupt() {
     }

@@ -38,6 +38,10 @@ import org.slf4j.LoggerFactory;
 public class SystemDeleteJob extends QuartzOperationStateWithZKTask {
     private static final Logger LOG = LoggerFactory.getLogger(SystemDeleteJob.class);
 
+    public SystemDeleteJob() {
+        super(LOG);
+    }
+
     @Override
     public void interrupt() {
     }

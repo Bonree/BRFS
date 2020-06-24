@@ -21,6 +21,10 @@ import org.slf4j.LoggerFactory;
 public class ManagerMetaTaskJob extends QuartzOperationStateTask {
     private static final Logger LOG = LoggerFactory.getLogger(ManagerMetaTaskJob.class);
 
+    public ManagerMetaTaskJob() {
+        super(LOG);
+    }
+
     @Override
     public void interrupt() {
 

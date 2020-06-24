@@ -8,6 +8,7 @@ import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.rebalance.Constants;
 import com.bonree.brfs.common.rebalance.route.NormalRouteInterface;
 import com.bonree.brfs.common.service.Service;
+import com.bonree.brfs.disknode.TaskConfig;
 import com.bonree.brfs.identification.LevelServerIDGen;
 import com.bonree.brfs.identification.SecondIdsInterface;
 import com.bonree.brfs.identification.SecondMaintainerInterface;
@@ -51,21 +52,21 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
     private Queue<RegisterInfo> queue = new ConcurrentLinkedQueue<>();
     private ScheduledExecutorService pool = null;
     private Future<?> future = null;
-    private Service localService;
+    private TaskConfig config = null;
 
-    public SimpleSecondMaintainer(CuratorFramework client, Service localService, String secondBasePath, String routeBasePath,
-                                  String secondIdSeqPath) {
+    public SimpleSecondMaintainer(CuratorFramework client, String secondBasePath, String routeBasePath,
+                                  String secondIdSeqPath, TaskConfig config) {
         this.client = client;
         this.secondBasePath = secondBasePath;
         this.routeBasePath = routeBasePath;
         this.secondIdWorker = new SecondServerIDGenImpl(this.client, secondIdSeqPath);
         this.secondIds = new RetryNTimesSecondIDShip(client, secondBasePath, 3, 100);
-        this.localService = localService;
+        this.config = config;
     }
 
     @Inject
-    public SimpleSecondMaintainer(CuratorFramework client, ZookeeperPaths path, Service localService) {
-        this(client, localService, path.getBaseV2SecondIDPath(), path.getBaseV2RoutePath(), path.getBaseServerIdSeqPath());
+    public SimpleSecondMaintainer(CuratorFramework client, ZookeeperPaths path, TaskConfig config) {
+        this(client, path.getBaseV2SecondIDPath(), path.getBaseV2RoutePath(), path.getBaseServerIdSeqPath(), config);
     }
 
     /**
@@ -350,7 +351,7 @@ public class SimpleSecondMaintainer implements SecondMaintainerInterface, LifeCy
                     LOG.info("second id maintain thread fix {} seconIds!", count);
                 }
             }
-        }, 0, 100, TimeUnit.MILLISECONDS);
+        }, 0, this.config.getSecondIdRegisterIntervalMill(), TimeUnit.MILLISECONDS);
     }
 
     @Override

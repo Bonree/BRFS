@@ -13,6 +13,10 @@ import org.slf4j.LoggerFactory;
 public class CopyRecoveryJob extends CycleJobWithZKTask {
     private static final Logger LOG = LoggerFactory.getLogger(CopyRecoveryJob.class);
 
+    public CopyRecoveryJob() {
+        super(LOG);
+    }
+
     @Override
     public void operation(JobExecutionContext context) {
 

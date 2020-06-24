@@ -30,6 +30,10 @@ import org.slf4j.LoggerFactory;
 public class CheckCycleJob extends QuartzOperationStateTask {
     private static final Logger LOG = LoggerFactory.getLogger(CheckCycleJob.class);
 
+    public CheckCycleJob() {
+        super(LOG);
+    }
+
     @Override
     public void interrupt() {
     }

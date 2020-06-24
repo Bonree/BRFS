@@ -35,6 +35,10 @@ import org.slf4j.LoggerFactory;
 public class CreateSystemTaskJob extends QuartzOperationStateTask {
     private static final Logger LOG = LoggerFactory.getLogger(CreateSystemTaskJob.class);
 
+    public CreateSystemTaskJob() {
+        super(LOG);
+    }
+
     @Override
     public void interrupt() {
     }

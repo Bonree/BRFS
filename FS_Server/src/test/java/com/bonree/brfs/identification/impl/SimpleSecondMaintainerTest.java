@@ -41,7 +41,7 @@ public class SimpleSecondMaintainerTest {
         String firstServer = "10";
         Service service = new Service();
         service.setServiceId(firstServer);
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, service, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH, null);
     }
 
     @Test
@@ -52,7 +52,7 @@ public class SimpleSecondMaintainerTest {
         String expectSecond = "20";
         Service service = new Service();
         service.setServiceId(firstServer);
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, service, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH, null);
         String secondId = maintainer.registerSecondId(firstServer, partitionId, storageId);
         Assert.assertEquals(expectSecond, secondId);
     }
@@ -64,7 +64,7 @@ public class SimpleSecondMaintainerTest {
         int storageId = 0;
         Service service = new Service();
         service.setServiceId(firstServer);
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, service, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH, null);
         String expectSecond = maintainer.registerSecondId(firstServer, partitionId, storageId);
         System.out.println(expectSecond);
         boolean status = maintainer.unregisterSecondId(partitionId, storageId);
@@ -77,7 +77,7 @@ public class SimpleSecondMaintainerTest {
         int storageId = 1;
         Service service = new Service();
         service.setServiceId(firstServer);
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, service, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH, null);
         maintainer.registerSecondIds(firstServer, storageId);
     }
 
@@ -87,7 +87,7 @@ public class SimpleSecondMaintainerTest {
         int storageId = 1;
         Service service = new Service();
         service.setServiceId(firstServer);
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, service, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH, null);
         maintainer.registerSecondIds(firstServer, storageId);
         maintainer.unregisterSecondIds(firstServer, storageId);
     }
@@ -99,7 +99,7 @@ public class SimpleSecondMaintainerTest {
         String partitionid = "45";
         Service service = new Service();
         service.setServiceId(firstServer);
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, service, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH, null);
         maintainer.addPartitionRelation(firstServer, partitionid);
     }
 
@@ -110,7 +110,7 @@ public class SimpleSecondMaintainerTest {
         String partitionid = "45";
         Service service = new Service();
         service.setServiceId(firstServer);
-        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, service, S_B_PATH, ROUTE_PATH, S_SEQ_PATH);
+        SimpleSecondMaintainer maintainer = new SimpleSecondMaintainer(client, S_B_PATH, ROUTE_PATH, S_SEQ_PATH, null);
         maintainer.removePartitionRelation(partitionid);
     }
 

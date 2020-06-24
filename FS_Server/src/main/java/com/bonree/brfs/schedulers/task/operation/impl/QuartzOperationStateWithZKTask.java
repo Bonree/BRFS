@@ -17,7 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class QuartzOperationStateWithZKTask implements QuartzOperationStateInterface {
-    private static final Logger LOG = LoggerFactory.getLogger(QuartzOperationStateWithZKTask.class);
+    private Logger log;
+
+    public QuartzOperationStateWithZKTask(Logger log) {
+        this.log = log;
+    }
 
     @Override
     public void execute(JobExecutionContext context) {
@@ -38,17 +42,17 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
             if (!data.containsKey(JobDataMapConstract.CURRENT_INDEX)) {
                 data.put(JobDataMapConstract.CURRENT_INDEX, repeatCount + "");
                 TaskStateLifeContral.updateTaskRunState(serverId, taskName, taskTypeName);
-                LOG.info("task {}-{} run", taskTypeName, taskName);
+                log.info("task {}-{} run", taskTypeName, taskName);
             }
             currentIndex = data.getInt(JobDataMapConstract.CURRENT_INDEX);
-            LOG.debug("taskType [{}],taskname [{}],batch id[{}], data :[{}]", taskTypeName, taskName, currentIndex,
+            log.debug("taskType [{}],taskname [{}],batch id[{}], data :[{}]", taskTypeName, taskName, currentIndex,
                       data.getString(currentIndex + ""));
             operation(context);
 
         } catch (Exception e) {
             context.put("ExceptionMessage", e.getMessage());
             isSuccess = false;
-            LOG.error("task {}-{} happen exception:{}", taskTypeName, taskName, e);
+            log.error("task {}-{} happen exception:{}", taskTypeName, taskName, e);
             EmailPool emailPool = EmailPool.getInstance();
             MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
             builder.setModel(this.getClass().getSimpleName() + " execute 模块服务发生问题");
@@ -61,7 +65,7 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
             if (data == null) {
                 return;
             }
-            LOG.debug("operation batch id {}", currentIndex);
+            log.debug("operation batch id {}", currentIndex);
             try {
                 // 更新任务状态
                 TaskResultModel resultTask = new TaskResultModel();
@@ -79,10 +83,10 @@ public abstract class QuartzOperationStateWithZKTask implements QuartzOperationS
                     }
                     TaskStateLifeContral.updateTaskStatusByCompelete(serverId, taskName, taskTypeName, resultModel);
                     data.put(JobDataMapConstract.CURRENT_INDEX, (currentIndex - 1) + "");
-                    LOG.info("task {}-{}:{} end!!", taskTypeName, taskName, resultModel.isSuccess());
+                    log.info("task {}-{}:{} end!!", taskTypeName, taskName, resultModel.isSuccess());
                 }
             } catch (Exception e) {
-                LOG.error("execute error", e);
+                log.error("execute error", e);
                 EmailPool emailPool = EmailPool.getInstance();
                 MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
                 builder.setModel(this.getClass().getSimpleName() + "模块服务发生问题");

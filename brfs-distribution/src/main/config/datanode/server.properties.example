@@ -110,25 +110,28 @@ datanode.service.host = 192.168.150.103
 
 # 通用任务创建的周期时间，默认为60s
 # 通用任务包含 系统删除任务，系统CRC校验任务，用户删除任务，副本缺失任务
-task.common.create.interval.second=60
+# task.common.create.interval.second=60
 
 # 通用任务周期执行时间，默认为60s
-task.common.execute.interval.second=30
+# task.common.execute.interval.second=30
 
 # 每天周期统计副本缺失任务的启动时间，默认为2:30
-task.cycle.check.copy.count.time="2:30"
+# task.cycle.check.copy.count.time="2:30"
 
 # 每天周期统计副本缺失任务，扫描的时间范围， 默认为7天
-task.cycle.check.copy.count.time.range=7
+# task.cycle.check.copy.count.time.range=7
 
 # 任务过期时间，默认为 604800s
-task.ttl.second=604800
+# task.ttl.second=604800
 
 # 清理脏数据线程执行的时刻，默认为 02:00
-task.file.block.scan.time="02:00"
+# task.file.block.scan.time="02:00"
 
 # 清理脏数据线程执行频率，默认60分钟
-task.file.block.scan.interval.minute=60
+# task.file.block.scan.interval.minute=60
+
+# 二级serverid 重新注册线程的频率，默认为1000ms
+task.second.register.interval.millisecond = 1000
 
 
 
@@ -152,10 +155,9 @@ datanode.resource.interval.seconds=10
 # 资源选择的比值大小
 # resource.cent.size=1000
 
-
-
 # 资源磁盘剩余限制值，当分区剩余量低于该值，则不会参与写入服务选择， 单位kb
 # limit.resource.value.force.disk.remain.size=10485760
+
 # 资源磁盘剩余告警值，当分区剩余大小低于该值，则会发送邮件告警，单位KB
 # limit.resource.value.disk.remain.size=20971520
 

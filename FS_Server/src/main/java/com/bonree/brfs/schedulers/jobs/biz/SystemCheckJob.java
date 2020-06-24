@@ -36,6 +36,10 @@ import org.slf4j.LoggerFactory;
 public class SystemCheckJob extends QuartzOperationStateWithZKTask {
     private static final Logger LOG = LoggerFactory.getLogger(SystemCheckJob.class);
 
+    public SystemCheckJob() {
+        super(LOG);
+    }
+
     @Override
     public void interrupt() {
 

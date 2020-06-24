@@ -10,7 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class QuartzOperationStateTask implements QuartzOperationStateInterface {
-    private static final Logger LOG = LoggerFactory.getLogger(QuartzOperationStateTask.class);
+    private Logger log;
+
+    public QuartzOperationStateTask(Logger log) {
+        this.log = log;
+    }
 
     @Override
     public void execute(JobExecutionContext context) {
@@ -18,7 +22,7 @@ public abstract class QuartzOperationStateTask implements QuartzOperationStateIn
             operation(context);
         } catch (Exception e) {
             context.put("ExceptionMessage", e.getMessage());
-            LOG.info("Run task error {}", e);
+            log.info("Run task error {}", e);
             EmailPool emailPool = EmailPool.getInstance();
             MailWorker.Builder builder = MailWorker.newBuilder(emailPool.getProgramInfo());
             builder.setModel(this.getClass().getSimpleName() + "模块服务发生问题");

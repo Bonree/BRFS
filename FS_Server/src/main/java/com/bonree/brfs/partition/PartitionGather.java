@@ -12,12 +12,14 @@ import com.bonree.brfs.common.resource.vo.PartitionInfo;
 import com.bonree.brfs.common.resource.vo.PartitionType;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -33,6 +35,10 @@ import org.slf4j.LoggerFactory;
 @ManageLifecycle
 public class PartitionGather implements LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(PartitionGather.class);
+    private static final ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
+        .setNameFormat("PartitionGather")
+        .setDaemon(true)
+        .build();
     /**
      * 定时执行线程池
      */
@@ -50,7 +56,7 @@ public class PartitionGather implements LifeCycle {
                            Collection<LocalPartitionInfo> validPartions,
                            int intervalTimes) {
         this.intervalTimes = intervalTimes;
-        this.pool = Executors.newScheduledThreadPool(1);
+        this.pool = Executors.newScheduledThreadPool(1, THREAD_FACTORY);
         this.worker = new GatherThread(gather, register, validPartions, localInfo);
     }
 

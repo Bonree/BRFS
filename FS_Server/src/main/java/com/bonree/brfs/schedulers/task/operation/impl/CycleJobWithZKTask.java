@@ -24,7 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class CycleJobWithZKTask implements QuartzOperationStateInterface {
-    private static final Logger LOG = LoggerFactory.getLogger(CycleJobWithZKTask.class);
+    private Logger log;
+
+    public CycleJobWithZKTask(Logger log) {
+        this.log = log;
+    }
 
     @Override
     public abstract void operation(JobExecutionContext context) throws Exception;
@@ -56,10 +60,10 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
             currentTaskName = data.getString(JobDataMapConstract.CURRENT_TASK_NAME);
             if (!data.containsKey(JobDataMapConstract.CURRENT_INDEX)) {
                 data.put(JobDataMapConstract.CURRENT_INDEX, "0");
-                LOG.info("task:{}-{} start", taskType.name(), currentTaskName);
+                log.info("task:{}-{} start", taskType.name(), currentTaskName);
             }
             batchIndex = data.getInt(JobDataMapConstract.CURRENT_INDEX);
-            LOG.debug("current :{}, batchId : {}", currentTaskName, batchIndex);
+            log.debug("current :{}, batchId : {}", currentTaskName, batchIndex);
             if (batchSize == 0) {
                 batchSize = 10;
             }
@@ -67,7 +71,7 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
                 operation(context);
             }
         } catch (Exception e) {
-            LOG.info("happend Exception :{}", e);
+            log.info("happend Exception :{}", e);
             context.put("ExceptionMessage", e.getMessage());
             isSuccess = false;
             EmailPool emailPool = EmailPool.getInstance();
@@ -81,11 +85,11 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
         } finally {
             //判断是否有恢复任务，有恢复任务则不进行创建
             if (ManagerContralFactory.getInstance().getTaskMonitor().isExecute()) {
-                LOG.warn("rebalance task is running !! skip check copy task");
+                log.warn("rebalance task is running !! skip check copy task");
                 return;
             }
             if (batchIndex >= 1) {
-                LOG.debug("batch ID :{} {} {} {} {}", batchIndex, taskType, currentTaskName, serverId,
+                log.debug("batch ID :{} {} {} {} {}", batchIndex, taskType, currentTaskName, serverId,
                           isSuccess ? TaskState.RUN : TaskState.EXCEPTION);
                 TaskResultModel resultTask = new TaskResultModel();
                 resultTask.setSuccess(isSuccess);
@@ -99,8 +103,8 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
                     resultModel = JsonUtils.toObjectQuietly(result, TaskResultModel.class);
                 }
                 TaskState state = isSuccess && resultModel.isSuccess() ? TaskState.FINISH : TaskState.EXCEPTION;
-                LOG.info("task:{}-{}-{}  end !", taskType.name(), currentTaskName, state.name());
-                LOG.debug("batch ID :{} {} {} {} {}", batchIndex, taskType, currentTaskName, serverId, state);
+                log.info("task:{}-{}-{}  end !", taskType.name(), currentTaskName, state.name());
+                log.debug("batch ID :{} {} {} {} {}", batchIndex, taskType, currentTaskName, serverId, state);
                 TaskStateLifeContral.updateTaskStatusByCompelete(serverId, currentTaskName, taskType.name(), resultModel);
                 data.put(JobDataMapConstract.CURRENT_INDEX, (batchIndex - 1) + "");
                 data.put(JobDataMapConstract.TASK_RESULT, "");
@@ -126,20 +130,20 @@ public abstract class CycleJobWithZKTask implements QuartzOperationStateInterfac
         Pair<String, TaskModel> taskPair =
             TaskStateLifeContral.getCurrentOperationTask(release, taskType.name(), serverId, limitCount);
         if (taskPair == null) {
-            LOG.info("{} task queue is empty !!!", taskType.name());
+            log.info("{} task queue is empty !!!", taskType.name());
             return;
         }
         // 将当前的任务分成批次执行
         TaskModel task = TaskStateLifeContral.changeRunTaskModel(taskPair.getSecond());
         String currentTaskName = taskPair.getFirst();
         if (BrStringUtils.isEmpty(currentTaskName)) {
-            LOG.info("{} {} task behind is empty !!!", taskType.name());
+            log.info("{} {} task behind is empty !!!", taskType.name());
             return;
         }
         Map<String, String> batchDatas = BatchTaskFactory.createBatch(task, batchSize);
         // 若批次为空则更新任务状态
         if (batchDatas == null || batchDatas.isEmpty()) {
-            LOG.info("batch data is empty !! update task :{} {}", taskType.name(), currentTaskName);
+            log.info("batch data is empty !! update task :{} {}", taskType.name(), currentTaskName);
             TaskStateLifeContral.updateTaskStatusByCompelete(serverId, currentTaskName, taskType.name(), new TaskResultModel());
             data.put(JobDataMapConstract.CURRENT_TASK_NAME, "");
             data.put(JobDataMapConstract.CURRENT_INDEX, 0 + "");
