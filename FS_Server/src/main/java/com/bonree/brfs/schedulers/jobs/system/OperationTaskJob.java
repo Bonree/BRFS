@@ -19,6 +19,7 @@ import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 import com.bonree.brfs.tasks.worker.VirtaulRecoveryTask;
 import com.bonree.mail.worker.MailWorker;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -44,7 +45,7 @@ public class OperationTaskJob extends QuartzOperationStateTask {
         if (release == null) {
             throw new NullPointerException("MetaTaskManager is empty !!!");
         }
-        List<TaskType> switchList = mcf.getTaskOn();
+        Collection<TaskType> switchList = mcf.getTaskConfig().getTaskTypeSwitch();
         if (switchList == null || switchList.isEmpty()) {
             LOG.warn("switch task is empty !!!");
             return;
@@ -69,14 +70,16 @@ public class OperationTaskJob extends QuartzOperationStateTask {
                     continue;
                 }
                 typeName = taskType.name();
-                poolSize = schd.getTaskPoolSize(typeName);
-                sumbitSize = schd.getSumbitedTaskCount(typeName);
                 //判断任务是否可以执行
-                boolean isRun = taskRunnable(taskType.code(), poolSize, sumbitSize);
-                if (!isRun) {
-                    LOG.warn("resource is limit !!! skip {} !!!", typeName);
-                    continue;
+                if (!TaskType.VIRTUAL_ID_RECOVERY.equals(taskType)) {
+                    poolSize = schd.getTaskPoolSize(typeName);
+                    sumbitSize = schd.getSumbitedTaskCount(typeName);
+                    if (!taskRunnable(taskType.code(), poolSize, sumbitSize)) {
+                        LOG.warn("resource is limit !!! skip {} !!!", typeName);
+                        continue;
+                    }
                 }
+
                 int retryCount = 3;
                 if (TaskType.SYSTEM_CHECK.equals(taskType) || TaskType.SYSTEM_MERGER.equals(taskType)
                     || TaskType.SYSTEM_DELETE.equals(taskType)) {

@@ -1,8 +1,7 @@
 package com.bonree.brfs.schedulers;
 
 import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.common.utils.BrStringUtils;
-import com.bonree.brfs.configuration.ResourceTaskConfig;
+import com.bonree.brfs.disknode.TaskConfig;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.system.CheckCycleJob;
 import com.bonree.brfs.schedulers.jobs.system.CopyCheckJob;
@@ -15,13 +14,13 @@ import com.bonree.brfs.schedulers.task.meta.SumbitTaskInterface;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzCronInfo;
 import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.task.model.TaskTypeModel;
-import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.google.inject.Inject;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +41,8 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
     private MetaWorker worker = null;
 
     @Inject
-    public MetaTaskLeaderManager(SchedulerManagerInterface manager, ResourceTaskConfig config) {
-        this.worker = new MetaWorker(manager, config);
+    public MetaTaskLeaderManager(SchedulerManagerInterface manager, MetaTaskManagerInterface release, TaskConfig config) {
+        this.worker = new MetaWorker(manager, release, config);
     }
 
     @Override
@@ -63,10 +62,12 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
 
     private class MetaWorker implements Runnable, Closeable {
         private SchedulerManagerInterface manager;
-        private ResourceTaskConfig config;
+        private TaskConfig config;
+        private MetaTaskManagerInterface release;
 
-        public MetaWorker(SchedulerManagerInterface manager, ResourceTaskConfig config) {
+        public MetaWorker(SchedulerManagerInterface manager, MetaTaskManagerInterface release, TaskConfig config) {
             this.manager = manager;
+            this.release = release;
             this.config = config;
         }
 
@@ -93,38 +94,39 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
                     return;
                 }
                 LOG.info("Leader create task manager server success !!!");
-                checkSwitchTask(config);
-                if (config.isTaskFrameWorkSwitch()) {
+                checkSwitchTask(config, release);
+                if (!config.getTaskTypeSwitch().isEmpty()) {
                     sumbitTask(manager, config);
                     createCheckCyclePool(manager, config);
                 }
                 LOG.info("==========================LEADER FINISH=================================");
-            } catch (ParamsErrorException e) {
+            } catch (Exception e) {
                 LOG.error("create meta task manager happen error ", e);
             }
         }
 
-        public void checkSwitchTask(ResourceTaskConfig config) {
-            ManagerContralFactory mcf = ManagerContralFactory.getInstance();
-            MetaTaskManagerInterface release = mcf.getTm();
-            Map<String, Boolean> switchTask = config.getTaskPoolSwitchMap();
-            TaskTypeModel type;
-            String taskTypeName;
-            boolean flag;
-            for (Map.Entry<String, Boolean> entry : switchTask.entrySet()) {
-                taskTypeName = entry.getKey();
-                flag = entry.getValue();
-                if (BrStringUtils.isEmpty(taskTypeName)) {
-                    continue;
-                }
-                type = release.getTaskTypeInfo(taskTypeName);
+        /**
+         * 同步zk任务的配置信息
+         *
+         * @param taskConfig
+         * @param release
+         */
+        public void checkSwitchTask(TaskConfig taskConfig, MetaTaskManagerInterface release) {
+            Collection<TaskType> taskTypes = taskConfig.getTaskTypeSwitch();
+            for (TaskType taskType : TaskType.getDefaultTaskType()) {
+                TaskTypeModel type = release.getTaskTypeInfo(taskType.name());
                 if (type == null) {
-                    type = new TaskTypeModel();
-                } else if (type.isSwitchFlag() == flag) {
+                    if (taskTypes.contains(taskType)) {
+                        type = new TaskTypeModel();
+                        release.setTaskTypeModel(taskType.name(), type);
+                    }
                     continue;
                 }
-                type.setSwitchFlag(flag);
-                release.setTaskTypeModel(taskTypeName, type);
+                if (type.isSwitchFlag() != taskTypes.contains(taskType)) {
+                    type.setSwitchFlag(taskTypes.contains(taskType));
+                    release.setTaskTypeModel(taskType.name(), type);
+                }
+
             }
         }
 
@@ -134,36 +136,48 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
          * @throws ParamsErrorException
          * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
          */
-        public void sumbitTask(SchedulerManagerInterface manager, ResourceTaskConfig config) throws ParamsErrorException {
-
+        public void sumbitTask(SchedulerManagerInterface manager, TaskConfig taskConfig) throws ParamsErrorException {
+            Collection<TaskType> taskTypes = taskConfig.getTaskTypeSwitch();
+            long createIntervalMil = TimeUnit.SECONDS.toMillis(taskConfig.getCommonCreateIntervalSecond());
             SumbitTaskInterface createJob = QuartzSimpleInfo.createCycleTaskInfo("CREATE_SYSTEM_TASK",
-                                                                                 config.getCreateTaskIntervalTime(), 60000,
+                                                                                 createIntervalMil,
+                                                                                 60000,
                                                                                  new HashMap<>(), CreateSystemTaskJob.class);
-            Map<String, String> metaDataMap = JobDataMapConstract.createMetaDataMap(config);
             SumbitTaskInterface metaJob = QuartzSimpleInfo.createCycleTaskInfo("META_MANAGER_TASK",
-                                                                               config.getCreateTaskIntervalTime(), 60000,
-                                                                               metaDataMap,
+                                                                               createIntervalMil,
+                                                                               60000,
+                                                                               new HashMap<>(),
                                                                                ManagerMetaTaskJob.class);
-            SumbitTaskInterface checkJob = QuartzSimpleInfo.createCycleTaskInfo("COPY_CHECK_TASK",
-                                                                                config.getCreateCheckJobTaskervalTime(), 60000,
-                                                                                new HashMap<>(), CopyCheckJob.class);
 
             boolean isSuccess = false;
             isSuccess = manager.addTask(META_TASK_MANAGER, createJob);
             LOG.info("sumbit create Job {} ", isSuccess ? " Sucess" : "Fail");
             isSuccess = manager.addTask(META_TASK_MANAGER, metaJob);
             LOG.info("sumbit meta Job {} ", isSuccess ? " Sucess" : "Fail");
-            boolean createFlag = config.getTaskPoolSwitchMap().get(TaskType.SYSTEM_COPY_CHECK.name());
-            if (createFlag) {
+            if (taskTypes.contains(TaskType.SYSTEM_COPY_CHECK)) {
+                SumbitTaskInterface checkJob = QuartzSimpleInfo.createCycleTaskInfo("COPY_CHECK_TASK",
+                                                                                    createIntervalMil,
+                                                                                    60000,
+                                                                                    new HashMap<>(), CopyCheckJob.class);
                 isSuccess = manager.addTask(META_TASK_MANAGER, checkJob);
                 LOG.info("sumbit Create Check Job {} ", isSuccess ? " Sucess" : "Fail");
-            } else {
-                LOG.info("=======> create copy check thread fail");
             }
+
         }
 
-        public void createCheckCyclePool(SchedulerManagerInterface manager, ResourceTaskConfig config)
-            throws ParamsErrorException {
+        /**
+         * 创建周期检查任务
+         *
+         * @param manager
+         * @param taskConfig
+         *
+         * @throws ParamsErrorException
+         */
+        public void createCheckCyclePool(SchedulerManagerInterface manager, TaskConfig taskConfig)
+            throws Exception {
+            if (!taskConfig.getTaskTypeSwitch().contains(TaskType.SYSTEM_COPY_CHECK)) {
+                return;
+            }
             Properties prop = DefaultBaseSchedulers.createSimplePrope(1, 1000L);
 
             boolean createFlag = manager.createTaskPool(COPY_CYCLE_POOL, prop);
@@ -177,10 +191,9 @@ public class MetaTaskLeaderManager implements LeaderLatchListener {
                 LOG.info("Follower will quiting  !!!");
                 return;
             }
-
-            Map content = JobDataMapConstract.createCylcCheckDataMap(config.getCheckTimeRange());
             SumbitTaskInterface sumbit = QuartzCronInfo
-                .getInstance("CYCLE_CHECK_JOB", "CYCLE_CHECK_JOB", config.getCheckCronStr(), content, CheckCycleJob.class);
+                .getInstance("CYCLE_CHECK_JOB", "CYCLE_CHECK_JOB", taskConfig.getCronStr(), new HashMap<>(),
+                             CheckCycleJob.class);
             startTaskPool = manager.addTask("COPY_CYCLE_POOL", sumbit);
             LOG.info("sumbit Cycle task :{}", Boolean.valueOf(startTaskPool));
         }

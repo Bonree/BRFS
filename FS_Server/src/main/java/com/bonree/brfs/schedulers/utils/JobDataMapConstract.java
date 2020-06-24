@@ -3,7 +3,6 @@ package com.bonree.brfs.schedulers.utils;
 import com.bonree.brfs.common.task.TaskState;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.JsonUtils;
-import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.schedulers.task.model.AtomTaskModel;
 import com.bonree.brfs.schedulers.task.model.BatchAtomModel;
 import com.bonree.brfs.schedulers.task.model.TaskModel;
@@ -13,10 +12,6 @@ import java.util.Map;
 
 public class JobDataMapConstract {
 
-    /**
-     * 任务过期时间
-     */
-    public static final String TASK_EXPIRED_TIME = "TASK_EXPIRED_TIME";
     /**
      * serverid
      */
@@ -40,24 +35,7 @@ public class JobDataMapConstract {
     public static final String CURRENT_INDEX = "CURRENT_INDEX";
     public static final String TASK_RESULT = "TASK_RESULT";
     public static final String BATCH_SIZE = "BATCH_SIZE";
-    public static final String BASE_ROUTE_PATH = "BASE_ROUTE_PATH";
     public static final String CURRENT_TASK_NAME = "CURRENT_TASK_NAME";
-    public static final String CHECK_TIME_RANGE = "CHECK_TIME_RANGE";
-
-    /**
-     * 概述：任务管理信息
-     *
-     * @param resource
-     *
-     * @return
-     *
-     * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
-     */
-    public static Map<String, String> createMetaDataMap(ResourceTaskConfig resource) {
-        Map<String, String> dataMap = new HashMap<>();
-        dataMap.put(TASK_EXPIRED_TIME, resource.getTaskExpiredTime() + "");
-        return dataMap;
-    }
 
     public static Map<String, String> createOperationDataMap(String taskName, String serviceId, TaskModel task,
                                                              int repeatCount, int sleep) throws Exception {
@@ -113,25 +91,15 @@ public class JobDataMapConstract {
         return batchMap;
     }
 
-    public static Map<String, String> createCOPYDataMap(String taskName, String serviceId, long invertalTime, String zkHost,
-                                                        String path) {
+    public static Map<String, String> createCOPYDataMap(String taskName, String serviceId, long invertalTime) {
         Map<String, String> dataMap = new HashMap<>();
         dataMap.put(TASK_NAME, taskName);
         dataMap.put(SERVER_ID, serviceId);
         dataMap.put(TASK_TYPE, TaskType.SYSTEM_COPY_CHECK.code() + "");
         dataMap.put(TASK_STAT, TaskState.INIT + "");
-        dataMap.put(BASE_ROUTE_PATH, path);
         dataMap.put(TASK_REPEAT_RUN_COUNT, "-1");
         dataMap.put(TASK_RUN_INVERAL_TIME, invertalTime + "");
         dataMap.put(BATCH_SIZE, "10");
-
         return dataMap;
     }
-
-    public static Map<String, String> createCylcCheckDataMap(int day) {
-        Map dataMap = new HashMap();
-        dataMap.put(CHECK_TIME_RANGE + "", day + "");
-        return dataMap;
-    }
-
 }

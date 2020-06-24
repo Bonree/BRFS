@@ -12,6 +12,7 @@ import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.mail.worker.MailWorker;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -30,10 +31,8 @@ public class ManagerMetaTaskJob extends QuartzOperationStateTask {
         LOG.info("revise task work");
         JobDataMap data = context.getJobDetail().getJobDataMap();
         // 任务过期时间 ms
-        String ttlTimeStr = data.getString(JobDataMapConstract.TASK_EXPIRED_TIME);
-        LOG.info("task ttl time : {}", ttlTimeStr);
-        long ttlTime = Long.parseLong(ttlTimeStr);
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+        long ttlTime = TimeUnit.SECONDS.toMillis(mcf.getTaskConfig().getTtlSecond());
 
         MetaTaskManagerInterface release = mcf.getTm();
         // 获取可用服务

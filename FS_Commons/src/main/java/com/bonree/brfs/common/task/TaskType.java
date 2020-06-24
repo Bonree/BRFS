@@ -1,5 +1,8 @@
 package com.bonree.brfs.common.task;
 
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+
 public enum TaskType {
     UNDEFINE(0),
     SYSTEM_DELETE(1),
@@ -34,5 +37,25 @@ public enum TaskType {
 
     public int code() {
         return this.index;
+    }
+
+    public static List<String> getDefaultTaskString() {
+        return ImmutableList.of(
+            SYSTEM_DELETE.name(),
+            SYSTEM_CHECK.name(),
+            USER_DELETE.name(),
+            SYSTEM_COPY_CHECK.name(),
+            VIRTUAL_ID_RECOVERY.name()
+        );
+    }
+
+    public static List<TaskType> getDefaultTaskType() {
+        return ImmutableList.of(
+            SYSTEM_DELETE,
+            SYSTEM_CHECK,
+            USER_DELETE,
+            SYSTEM_COPY_CHECK,
+            VIRTUAL_ID_RECOVERY
+        );
     }
 }

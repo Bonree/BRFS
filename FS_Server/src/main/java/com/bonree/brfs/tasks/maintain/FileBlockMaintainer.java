@@ -8,6 +8,7 @@ import com.bonree.brfs.common.resource.vo.LocalPartitionInfo;
 import com.bonree.brfs.common.utils.BRFSFileUtil;
 import com.bonree.brfs.common.utils.BRFSPath;
 import com.bonree.brfs.common.utils.TimeUtils;
+import com.bonree.brfs.disknode.TaskConfig;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.LocalPartitionInterface;
@@ -22,6 +23,7 @@ import com.google.inject.Inject;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +35,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,22 +51,34 @@ public class FileBlockMaintainer implements LifeCycle {
     private StorageRegionManager manager;
     private SecondIdsInterface secondIds;
     private RouteCache routeCache;
+    private String scanTime;
     private long intervalTime;
 
     @Inject
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
-                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache cache) {
-        this(localPartitionInterface, monitor, manager, secondIds, cache, 60);
+                               StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache cache,
+                               TaskConfig taskConfig) {
+        this(localPartitionInterface,
+             monitor,
+             manager,
+             secondIds,
+             cache,
+             taskConfig.getFileBlockScanTime(),
+             taskConfig.getFileBlockScanIntervalSecond());
+    }
+
+    protected FileBlockMaintainer() {
     }
 
     public FileBlockMaintainer(LocalPartitionInterface localPartitionInterface, RebalanceTaskMonitor monitor,
                                StorageRegionManager manager, SecondIdsInterface secondIds, RouteCache cache,
-                               long intervalTime) {
+                               String scanTime, long intervalTime) {
         this.localPartitionInterface = localPartitionInterface;
         this.monitor = monitor;
         this.manager = manager;
         this.secondIds = secondIds;
         this.routeCache = cache;
+        this.scanTime = scanTime;
         this.intervalTime = intervalTime;
     }
 
@@ -72,10 +87,49 @@ public class FileBlockMaintainer implements LifeCycle {
     public void start() throws Exception {
         pool =
             Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("FileBlockMaintainer").build());
+        int delayTime = getDelayTime(this.scanTime);
         // 延迟1分钟启动确保路由规则加载完成
-        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG), 1,
+        pool.scheduleAtFixedRate(new FileBlockWorker(localPartitionInterface, monitor, manager, secondIds, routeCache, LOG),
+                                 delayTime,
                                  intervalTime, TimeUnit.MINUTES);
-        LOG.info("block server start");
+        LOG.info("block server start {} interval :{} minute", this.scanTime, this.intervalTime);
+    }
+
+    public int getDelayTime(String scanTime) {
+        int startTime = convertScanTime(scanTime);
+        if (startTime < 0) {
+            return 1;
+        }
+        int currentMinute = currentMinute();
+        if (startTime - currentMinute == 0) {
+            return 0;
+        } else if (startTime - currentMinute > 0) {
+            return startTime - currentMinute;
+        } else {
+            return startTime + 1440 - currentMinute;
+        }
+    }
+
+    public int currentMinute() {
+        Calendar current = Calendar.getInstance();
+        int hour = current.get(Calendar.HOUR_OF_DAY);
+        int minute = current.get(Calendar.MINUTE);
+        return hour * 60 + minute;
+    }
+
+    public int convertScanTime(String scanTime) {
+        try {
+            String[] fields = StringUtils.split(scanTime, ":");
+            if (fields.length != 2) {
+                return -1;
+            }
+            int hour = Integer.parseInt(fields[0]);
+            int minute = Integer.parseInt(fields[1]);
+            return hour * 60 + minute;
+        } catch (Exception ignore) {
+            //
+        }
+        return -1;
     }
 
     @LifecycleStop

@@ -4,12 +4,11 @@ import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
-import com.bonree.brfs.common.process.LifeCycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.task.TaskType;
 import com.bonree.brfs.common.utils.BrStringUtils;
 import com.bonree.brfs.common.zookeeper.curator.CuratorConfig;
-import com.bonree.brfs.configuration.ResourceTaskConfig;
+import com.bonree.brfs.disknode.TaskConfig;
 import com.bonree.brfs.email.EmailPool;
 import com.bonree.brfs.schedulers.exception.ParamsErrorException;
 import com.bonree.brfs.schedulers.jobs.biz.CopyRecoveryJob;
@@ -20,12 +19,11 @@ import com.bonree.brfs.schedulers.task.meta.impl.QuartzSimpleInfo;
 import com.bonree.brfs.schedulers.utils.JobDataMapConstract;
 import com.bonree.mail.worker.MailWorker;
 import com.google.inject.Inject;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,17 +40,16 @@ import org.slf4j.LoggerFactory;
 public class DefaultSchedulersManager implements SchedulerManagerInterface<String, BaseSchedulerInterface, SumbitTaskInterface> {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultSchedulersManager.class);
     private Map<String, BaseSchedulerInterface> taskPoolMap = new ConcurrentHashMap<String, BaseSchedulerInterface>();
-    private ResourceTaskConfig config;
+    private TaskConfig taskConfig;
     private Service service;
     private ZookeeperPaths zookeeperPaths;
     private CuratorConfig curatorConfig;
 
     @Inject
     public DefaultSchedulersManager(
-        CuratorConfig curatorConfig, ResourceTaskConfig config, Service service,
-        ZookeeperPaths zookeeperPaths) {
+        CuratorConfig curatorConfig, TaskConfig taskConfig, Service service, ZookeeperPaths zookeeperPaths) {
         this.curatorConfig = curatorConfig;
-        this.config = config;
+        this.taskConfig = taskConfig;
         this.service = service;
         this.zookeeperPaths = zookeeperPaths;
     }
@@ -100,6 +97,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
             LOG.error("create task pool error {}", e);
             return false;
         }
+        LOG.info("creat pool {} size {}", taskpoolKey, prop.getProperty("org.quartz.threadPool.threadCount"));
         return true;
     }
 
@@ -212,38 +210,47 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
     @LifecycleStart
     @Override
     public void start() throws Exception {
-        Map<String, Boolean> switchMap = config.getTaskPoolSwitchMap();
-        Map<String, Integer> sizeMap = config.getTaskPoolSizeMap();
-        Properties prop;
-        String poolName;
         int count = 0;
-        int size;
-        for (TaskType taskType : TaskType.values()) {
-            poolName = taskType.name();
-            if (!switchMap.containsKey(poolName)) {
+
+        Collection<TaskType> taskTypes = taskConfig.getTaskTypeSwitch();
+
+        for (TaskType taskType : taskTypes) {
+            int size = 1;
+            switch (taskType) {
+            case SYSTEM_COPY_CHECK:
+                size = taskConfig.getSysCopySize();
+                break;
+            case USER_DELETE:
+                size = taskConfig.getUserDeleteSize();
+                break;
+            case SYSTEM_CHECK:
+                size = taskConfig.getSysCheckSize();
+                break;
+            case SYSTEM_DELETE:
+                size = taskConfig.getSysDeleteSize();
+                break;
+            default:
+
+            }
+            if (TaskType.VIRTUAL_ID_RECOVERY.equals(taskType)) {
                 continue;
             }
-            if (!switchMap.get(poolName)) {
-                continue;
-            }
-            size = sizeMap.get(poolName);
-            if (size == 0) {
-                LOG.warn("pool :{} config pool size is 0 ,will change to 1", poolName);
-                size = 1;
-            }
-            prop = DefaultBaseSchedulers.createSimplePrope(size, 1000L);
-            boolean createState = createTaskPool(poolName, prop);
+            size = size <= 0 ? 1 : size;
+            Properties prop = DefaultBaseSchedulers.createSimplePrope(size, 1000L);
+            boolean createState = createTaskPool(taskType.name(), prop);
             if (createState) {
-                startTaskPool(poolName);
+                startTaskPool(taskType.name());
             }
             count++;
+
         }
         LOG.info("pool :{} count: {} started !!!", getAllPoolKey(), count);
-        if (config.isTaskFrameWorkSwitch() && config.getSwitchOnTaskType().contains(TaskType.SYSTEM_COPY_CHECK)) {
-            SumbitTaskInterface copyJob = createCopySimpleTask(config.getExecuteTaskIntervalTime(),
-                                                               TaskType.SYSTEM_COPY_CHECK.name(), service.getServiceId(),
-                                                               CopyRecoveryJob.class.getCanonicalName(),
-                                                               curatorConfig.getAddresses(), zookeeperPaths.getBaseRoutePath());
+        if (taskTypes.contains(TaskType.SYSTEM_COPY_CHECK)) {
+            long executeInterval = TimeUnit.SECONDS.toMillis(taskConfig.getCommonExecuteIntervalSecond());
+            SumbitTaskInterface copyJob = createCopySimpleTask(executeInterval,
+                                                               TaskType.SYSTEM_COPY_CHECK.name(),
+                                                               service.getServiceId(),
+                                                               CopyRecoveryJob.class.getCanonicalName());
             addTask(TaskType.SYSTEM_COPY_CHECK.name(), copyJob);
         }
     }
@@ -259,8 +266,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
      *
      * @user <a href=mailto:zhucg@bonree.com>朱成岗</a>
      */
-    private SumbitTaskInterface createCopySimpleTask(long invertalTime, String taskName, String serverId, String clazzName,
-                                                     String zkHost, String path) {
+    private SumbitTaskInterface createCopySimpleTask(long invertalTime, String taskName, String serverId, String clazzName) {
         QuartzSimpleInfo task = new QuartzSimpleInfo();
         task.setRunNowFlag(true);
         task.setCycleFlag(true);
@@ -268,7 +274,7 @@ public class DefaultSchedulersManager implements SchedulerManagerInterface<Strin
         task.setTaskGroupName(TaskType.SYSTEM_COPY_CHECK.name());
         task.setRepeateCount(-1);
         task.setInterval(invertalTime);
-        Map<String, String> dataMap = JobDataMapConstract.createCOPYDataMap(taskName, serverId, invertalTime, zkHost, path);
+        Map<String, String> dataMap = JobDataMapConstract.createCOPYDataMap(taskName, serverId, invertalTime);
         if (dataMap != null && !dataMap.isEmpty()) {
             task.setTaskContent(dataMap);
         }

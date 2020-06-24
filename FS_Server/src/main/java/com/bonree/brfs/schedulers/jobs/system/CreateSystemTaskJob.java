@@ -21,6 +21,7 @@ import com.bonree.brfs.schedulers.utils.CreateSystemTask;
 import com.bonree.brfs.schedulers.utils.TaskStateLifeContral;
 import com.bonree.brfs.tasks.monitor.RebalanceTaskMonitor;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class CreateSystemTaskJob extends QuartzOperationStateTask {
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
         MetaTaskManagerInterface release = mcf.getTm();
         // 获取开启的任务名称
-        List<TaskType> switchList = mcf.getTaskOn();
+        Collection<TaskType> switchList = mcf.getTaskConfig().getTaskTypeSwitch();
         if (switchList == null || switchList.isEmpty()) {
             LOG.warn("switch on task is empty !!!");
             return;

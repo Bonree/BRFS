@@ -37,13 +37,12 @@ public class CheckCycleJob extends QuartzOperationStateTask {
     @Override
     public void operation(JobExecutionContext context) throws Exception {
         LOG.info("cycle check job work !!!");
-        JobDataMap data = context.getJobDetail().getJobDataMap();
-        int day = data.getInt(JobDataMapConstract.CHECK_TIME_RANGE);
+        ManagerContralFactory mcf = ManagerContralFactory.getInstance();
+        int day = mcf.getTaskConfig().getCycleCopyRangeDay();
         if (day <= 0) {
             LOG.warn("skip cycle job!! because check time range is 0");
             return;
         }
-        ManagerContralFactory mcf = ManagerContralFactory.getInstance();
         MetaTaskManagerInterface release = mcf.getTm();
         StorageRegionManager snm = mcf.getSnm();
         ServiceManager sm = mcf.getSm();

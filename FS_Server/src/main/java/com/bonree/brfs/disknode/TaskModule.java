@@ -6,8 +6,6 @@ import com.bonree.brfs.common.lifecycle.LifecycleModule;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.service.Service;
 import com.bonree.brfs.common.service.ServiceManager;
-import com.bonree.brfs.common.task.TaskType;
-import com.bonree.brfs.configuration.ResourceTaskConfig;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
@@ -35,8 +33,6 @@ import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
 
 /**
@@ -51,11 +47,11 @@ public class TaskModule implements Module {
     @Override
     public void configure(Binder binder) {
         JsonConfigProvider.bind(binder, "datanode.resource", ResourceConfig.class);
+        JsonConfigProvider.bind(binder, "task", TaskConfig.class);
         binder.bind(ResourceGatherInterface.class).to(LocalResourceGather.class).in(Singleton.class);
         binder.bind(ResourceRegisterInterface.class).to(ZKResourceRegister.class);
         binder.bind(RebalanceTaskMonitor.class).to(CycleRebalanceTaskMonitor.class).in(Singleton.class);
 
-        binder.bind(ResourceTaskConfig.class);
         binder.bind(MetaTaskManagerInterface.class).to(DefaultReleaseTask.class).in(Singleton.class);
         binder.bind(MetaTaskLeaderManager.class).in(Singleton.class);
         binder.bind(RouteLoader.class).to(SimpleRouteZKLoader.class).in(Singleton.class);
@@ -79,7 +75,7 @@ public class TaskModule implements Module {
     @Provides
     @Singleton
     public ManagerContralFactory getManagerContralFactory(
-        ResourceTaskConfig managerConfig,
+        TaskConfig managerConfig,
         ZookeeperPaths zkPath,
         ServiceManager sm,
         StorageRegionManager snm,
@@ -92,7 +88,6 @@ public class TaskModule implements Module {
         MetaTaskManagerInterface release,
         CuratorFramework client,
         DiskPartitionInfoManager diskPartitionInfoManager) throws Exception {
-        managerConfig.printDetail();
         ManagerContralFactory mcf = ManagerContralFactory.getInstance();
         mcf.setTm(release);
         mcf.setZkPath(zkPath);
@@ -109,15 +104,7 @@ public class TaskModule implements Module {
         mcf.setZkPath(zkPath);
         mcf.setClient(client);
         mcf.setPartitionInfoManager(diskPartitionInfoManager);
-        // 创建任务线程池
-        if (managerConfig.isTaskFrameWorkSwitch()) {
-            List<TaskType> tasks = managerConfig.getSwitchOnTaskType();
-            if (tasks == null || tasks.isEmpty()) {
-                mcf.setTaskOn(new ArrayList<>(0));
-            } else {
-                mcf.setTaskOn(tasks);
-            }
-        }
+        mcf.setTaskConfig(managerConfig);
         return mcf;
 
     }

@@ -3,6 +3,7 @@ package com.bonree.brfs.schedulers;
 import com.bonree.brfs.common.ZookeeperPaths;
 import com.bonree.brfs.common.service.ServiceManager;
 import com.bonree.brfs.common.task.TaskType;
+import com.bonree.brfs.disknode.TaskConfig;
 import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import com.bonree.brfs.identification.IDSManager;
 import com.bonree.brfs.identification.impl.DiskDaemon;
@@ -38,15 +39,14 @@ public class ManagerContralFactory {
      */
     private List<TaskType> taskOn = new ArrayList<TaskType>();
     private ZookeeperPaths zkPath = null;
-    // TODO: 4/14/20 没有赋值操作
     private RouteCache routeCache;
-    // TODO: 4/14/20 没有赋值操作
     private DiskDaemon daemon;
-    // TODO: 4/14/20 没有赋值操作
     private RebalanceTaskMonitor taskMonitor;
 
-    String serverId;
-    String groupName;
+    private TaskConfig taskConfig;
+    private String serverId;
+    private String groupName;
+
 
     private DiskPartitionInfoManager partitionInfoManager;
 
@@ -180,5 +180,13 @@ public class ManagerContralFactory {
 
     public void setClient(CuratorFramework client) {
         this.client = client;
+    }
+
+    public TaskConfig getTaskConfig() {
+        return taskConfig;
+    }
+
+    public void setTaskConfig(TaskConfig taskConfig) {
+        this.taskConfig = taskConfig;
     }
 }

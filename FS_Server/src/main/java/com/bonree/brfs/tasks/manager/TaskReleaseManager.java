@@ -5,20 +5,11 @@ import com.bonree.brfs.common.lifecycle.LifecycleStart;
 import com.bonree.brfs.common.lifecycle.LifecycleStop;
 import com.bonree.brfs.common.lifecycle.ManageLifecycle;
 import com.bonree.brfs.common.process.LifeCycle;
-import com.bonree.brfs.common.utils.StringUtils;
-import com.bonree.brfs.common.zookeeper.curator.CuratorConfig;
-import com.bonree.brfs.common.zookeeper.curator.CuratorModule;
-import com.bonree.brfs.configuration.ResourceTaskConfig;
+import com.bonree.brfs.disknode.TaskConfig;
 import com.bonree.brfs.schedulers.MetaTaskLeaderManager;
 import com.google.inject.Inject;
-import java.nio.charset.StandardCharsets;
-import org.apache.curator.ensemble.fixed.FixedEnsembleProvider;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.imps.GzipCompressionProvider;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
-import org.apache.curator.retry.BoundedExponentialBackoffRetry;
-import org.apache.curator.shaded.com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,24 +21,26 @@ public class TaskReleaseManager implements LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(TaskReleaseManager.class);
     private MetaTaskLeaderManager manager;
     private LeaderLatch leaderLatch = null;
-    private ResourceTaskConfig config;
+    private TaskConfig taskConfig;
     private CuratorFramework client;
     private ZookeeperPaths zkPaths;
 
     @Inject
     public TaskReleaseManager(
         MetaTaskLeaderManager manager,
-        CuratorFramework client, ZookeeperPaths zkPaths, ResourceTaskConfig config) {
+        CuratorFramework client,
+        ZookeeperPaths zkPaths,
+        TaskConfig taskConfig) {
         this.manager = manager;
         this.client = client;
         this.zkPaths = zkPaths;
-        this.config = config;
+        this.taskConfig = taskConfig;
     }
 
     @LifecycleStart
     @Override
     public void start() throws Exception {
-        if (config.isTaskFrameWorkSwitch()) {
+        if (!taskConfig.getTaskTypeSwitch().isEmpty()) {
             this.leaderLatch =
                 new LeaderLatch(
                     client, zkPaths.getBaseLocksPath() + "/TaskManager/MetaTaskLeaderLock", "TaskReleaseManager");
@@ -55,7 +48,7 @@ public class TaskReleaseManager implements LifeCycle {
             leaderLatch.start();
             LOG.info("task release manager start .");
         } else {
-            LOG.info("task framework switch is {}", config.isTaskFrameWorkSwitch());
+            LOG.info("no task need to release ");
         }
 
     }
@@ -68,7 +61,7 @@ public class TaskReleaseManager implements LifeCycle {
             leaderLatch.close();
             LOG.info("task release manager stop .");
         } else {
-            LOG.info("task framework switch is {}", config.isTaskFrameWorkSwitch());
+            LOG.info("no task need to stop");
         }
     }
 }
