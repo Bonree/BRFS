@@ -19,8 +19,8 @@ public abstract class AbstractTcpClient<S, R> implements TcpClient<S, R> {
     private Channel channel;
 
     protected Executor executor;
-    private AtomicInteger tokenMaker = new AtomicInteger(0);
-    private ConcurrentHashMap<Integer, ResponseHandler<R>> handlers;
+    private final AtomicInteger tokenMaker = new AtomicInteger(0);
+    private final ConcurrentHashMap<Integer, ResponseHandler<R>> handlers;
 
     private TcpClientCloseListener listener;
 
@@ -48,43 +48,22 @@ public abstract class AbstractTcpClient<S, R> implements TcpClient<S, R> {
     }
 
     @Override
-    public void sendMessage(S msg, ResponseHandler<R> handler) throws Exception {
+    public void sendMessage(S msg, ResponseHandler<R> handler) {
         Preconditions.checkNotNull(msg);
         Preconditions.checkNotNull(handler);
 
         final int token = tokenMaker.getAndIncrement() & Integer.MAX_VALUE;
         LOG.info("send message with token [{}]", token);
         handlers.put(token, handler);
-        channel.writeAndFlush(new TokenMessage<S>() {
-
-            @Override
-            public int messageToken() {
-                return token;
-            }
-
-            @Override
-            public S message() {
-                return msg;
-            }
-
-        }).addListener(new ChannelFutureListener() {
-
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
+        channel.writeAndFlush(new TokenMessage<>(token, msg))
+            .addListener((ChannelFutureListener) future -> {
                 if (!future.isSuccess()) {
                     handlers.remove(token);
-                    executor.execute(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            handler.error(new Exception("send message of token[" + token + "] error"));
-                        }
-                    });
+                    executor.execute(() -> handler.error(new Exception("send message of token[" + token + "] error")));
 
                     channel.close();
                 }
-            }
-        });
+            });
     }
 
     protected ResponseHandler<R> takeHandler(int token) {
@@ -106,30 +85,20 @@ public abstract class AbstractTcpClient<S, R> implements TcpClient<S, R> {
     private class ChannelCloseListener implements ChannelFutureListener {
 
         @Override
-        public void operationComplete(ChannelFuture future) throws Exception {
+        public void operationComplete(ChannelFuture future) {
             LOG.warn("channel closed!");
             if (listener != null) {
-                executor.execute(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            listener.clientClosed();
-                        } catch (Exception e) {
-                            LOG.error("call tcp client close listener error", e);
-                        }
+                executor.execute(() -> {
+                    try {
+                        listener.clientClosed();
+                    } catch (Exception e) {
+                        LOG.error("call tcp client close listener error", e);
                     }
                 });
             }
 
             for (ResponseHandler<R> handler : handlers.values()) {
-                executor.execute(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        handler.error(new Exception("channel is closed!"));
-                    }
-                });
+                executor.execute(() -> handler.error(new Exception("channel is closed!")));
             }
         }
 

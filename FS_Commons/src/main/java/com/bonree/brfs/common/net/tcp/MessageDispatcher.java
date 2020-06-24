@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
 public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<BaseMessage>> {
     private static final Logger LOG = LoggerFactory.getLogger(MessageDispatcher.class);
 
-    private Executor executor;
-    private Map<Integer, MessageHandler<BaseResponse>> handlers = new HashMap<Integer, MessageHandler<BaseResponse>>();
+    private final Executor executor;
+    private final Map<Integer, MessageHandler<BaseResponse>> handlers = new HashMap<>();
 
     public MessageDispatcher(Executor executor) {
         this.executor = executor;
@@ -27,76 +27,32 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, TokenMessage<BaseMessage> msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, TokenMessage<BaseMessage> msg) {
         BaseMessage baseMessage = msg.message();
         int token = msg.messageToken();
         MessageHandler<BaseResponse> handler = handlers.get(baseMessage.getType());
         if (handler == null) {
             LOG.error("unknown type[{}] of message!", baseMessage.getType());
-            ctx.writeAndFlush(new TokenMessage<BaseResponse>() {
-
-                @Override
-                public int messageToken() {
-                    return token;
-                }
-
-                @Override
-                public BaseResponse message() {
-                    return new BaseResponse(ResponseCode.ERROR_PROTOCOL);
-                }
-            });
+            ctx.writeAndFlush(new TokenMessage<>(token, new BaseResponse(ResponseCode.ERROR_PROTOCOL)));
             return;
         }
 
         LOG.info("handle base message[{}, {}]", token, baseMessage.getType());
 
-        executor.execute(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    handler.handleMessage(baseMessage, new ResponseWriter<BaseResponse>() {
-
-                        @Override
-                        public void write(BaseResponse response) {
-                            ctx.writeAndFlush(new TokenMessage<BaseResponse>() {
-
-                                @Override
-                                public int messageToken() {
-                                    return token;
-                                }
-
-                                @Override
-                                public BaseResponse message() {
-                                    return response;
-                                }
-                            });
-                        }
-
-                    });
-                } catch (Throwable e) {
-                    LOG.error("handle message error", e);
-
-                    ctx.writeAndFlush(new TokenMessage<BaseResponse>() {
-
-                        @Override
-                        public int messageToken() {
-                            return token;
-                        }
-
-                        @Override
-                        public BaseResponse message() {
-                            return new BaseResponse(ResponseCode.ERROR);
-                        }
-                    });
-                }
+        executor.execute(() -> {
+            try {
+                handler.handleMessage(baseMessage, response ->
+                    ctx.writeAndFlush(new TokenMessage<BaseResponse>(token, response)));
+            } catch (Throwable e) {
+                LOG.error("handle message error", e);
+                ctx.writeAndFlush(new TokenMessage<>(token,
+                                                     new BaseResponse(ResponseCode.ERROR)));
             }
         });
     }
 
     @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt)
-        throws Exception {
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent e = (IdleStateEvent) evt;
             if (e.state() == IdleState.READER_IDLE) {
