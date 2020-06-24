@@ -1,7 +1,6 @@
 package com.bonree.brfs.common.net.tcp.client;
 
 import com.bonree.brfs.common.net.tcp.BaseResponse;
-import com.bonree.brfs.common.net.tcp.MessageProtocolDecoder;
 import com.bonree.brfs.common.net.tcp.TokenMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,19 +26,7 @@ public class BaseResponseDecoder extends ByteToMessageDecoder {
             final int code = in.readInt();
             final int length = in.readInt();
 
-            response = new TokenMessage<BaseResponse>() {
-                BaseResponse baseResponse = new BaseResponse(code);
-
-                @Override
-                public int messageToken() {
-                    return token;
-                }
-
-                @Override
-                public BaseResponse message() {
-                    return baseResponse;
-                }
-            };
+            response = new TokenMessage<BaseResponse>(token, new BaseResponse(code));
 
             if (length == 0) {
                 out.add(response);

@@ -1,7 +1,19 @@
 package com.bonree.brfs.common.net.tcp;
 
-public interface TokenMessage<T> {
-    int messageToken();
+public class TokenMessage<T> {
+    private final int token;
+    private final T msg;
 
-    T message();
+    public TokenMessage(int token, T msg) {
+        this.token = token;
+        this.msg = msg;
+    }
+
+    public int messageToken() {
+        return token;
+    }
+
+    public T message() {
+        return msg;
+    }
 }
