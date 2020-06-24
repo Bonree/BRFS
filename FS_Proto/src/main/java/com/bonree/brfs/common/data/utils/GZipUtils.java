@@ -22,15 +22,13 @@ public class GZipUtils {
      */
     public static byte[] compress(byte[] data) throws Exception {
         requireNonNull(data);
-        ByteArrayInputStream bais = new ByteArrayInputStream(data);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        // 压缩
-        compress(bais, baos);
-        byte[] output = baos.toByteArray();
-        baos.flush();
-        baos.close();
-        bais.close();
-        return output;
+        GZIPOutputStream gos = new GZIPOutputStream(baos);
+        gos.write(data);
+        gos.flush();
+        gos.close();
+
+        return baos.toByteArray();
     }
 
     /**

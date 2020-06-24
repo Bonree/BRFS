@@ -2,6 +2,7 @@ package com.bonree.brfs.common.write.data;
 
 import com.bonree.brfs.common.data.utils.GZipUtils;
 import com.bonree.brfs.common.proto.FileDataProtos.FileContent;
+import java.nio.charset.StandardCharsets;
 
 /**
  * *****************************************************************************
@@ -70,14 +71,20 @@ public class FileEncoder {
      * @user <a href=mailto:zhangnl@bonree.com>张念礼</a>
      */
     public static byte[] contents(FileContent file) throws Exception {
-        byte[] content = file.getData().toByteArray();
+        return contents(file.getData().toByteArray(),
+                        file.getCompress(),
+                        file.getDescription(),
+                        file.getCrcFlag(),
+                        file.getCrcCheckCode());
+    }
+
+    public static byte[] contents(byte[] content, int compressFlag, String description, boolean useCRC, long crcCode)
+        throws Exception {
         if (content == null || content.length == 0) {
             return new byte[0];
         }
         int dataLength = 0;
         byte[] describeByte = null;
-        int compressFlag = file.getCompress();
-        String description = file.getDescription();
         // 1.压缩
         int compress = compressFlag << 6;
 
@@ -85,7 +92,7 @@ public class FileEncoder {
         if (description == null) {
             describeByte = new byte[0];
         } else {
-            describeByte = description.getBytes("utf-8");
+            describeByte = description.getBytes(StandardCharsets.UTF_8);
         }
 
         // 3.内容
@@ -107,8 +114,8 @@ public class FileEncoder {
         // 4.检验码
         byte[] validateByte = null;
         int crcFlag = 0; // 标识校验码开关
-        if (file.getCrcFlag()) {
-            validateByte = FSCode.moreFlagEncoder(file.getCrcCheckCode(), 7);
+        if (useCRC) {
+            validateByte = FSCode.moreFlagEncoder(crcCode, 7);
             crcFlag = 1 << 5; // 标识校验码开关
             dataLength += validateByte.length;
         }
@@ -118,7 +125,7 @@ public class FileEncoder {
         byte[] dataLengthByte = FSCode.moreFlagEncoder(dataLength, 7);
 
         return FSCode.addBytes(dataLengthByte, describeLengthByte, describeByte, contentLengthByte,
-            contentByte, validateByte);
+                               contentByte, validateByte);
     }
 
     /**

@@ -29,6 +29,7 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TokenMessage<BaseMessage> msg) throws Exception {
         BaseMessage baseMessage = msg.message();
+        int token = msg.messageToken();
         MessageHandler<BaseResponse> handler = handlers.get(baseMessage.getType());
         if (handler == null) {
             LOG.error("unknown type[{}] of message!", baseMessage.getType());
@@ -36,7 +37,7 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
 
                 @Override
                 public int messageToken() {
-                    return msg.messageToken();
+                    return token;
                 }
 
                 @Override
@@ -47,7 +48,7 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
             return;
         }
 
-        LOG.info("handle base message[{}, {}]", msg.messageToken(), baseMessage.getType());
+        LOG.info("handle base message[{}, {}]", token, baseMessage.getType());
 
         executor.execute(new Runnable() {
 
@@ -62,7 +63,7 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
 
                                 @Override
                                 public int messageToken() {
-                                    return msg.messageToken();
+                                    return token;
                                 }
 
                                 @Override
@@ -80,7 +81,7 @@ public class MessageDispatcher extends SimpleChannelInboundHandler<TokenMessage<
 
                         @Override
                         public int messageToken() {
-                            return msg.messageToken();
+                            return token;
                         }
 
                         @Override

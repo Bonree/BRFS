@@ -28,6 +28,7 @@ public class DuplicateNodeChecker {
     private final ServiceManager serviceManager;
 
     private final ScheduledExecutorService checkExec = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+
         @Override
         public Thread newThread(Runnable r) {
             Thread t = new Thread(r, "node_checker");
