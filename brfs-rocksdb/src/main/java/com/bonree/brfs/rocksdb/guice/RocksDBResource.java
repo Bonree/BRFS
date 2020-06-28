@@ -132,7 +132,7 @@ public class RocksDBResource {
             });
             watcher.getElapsedTimeAndRefresh();
             for (RocksDBDataUnit unit : dataList) {
-                rocksDBManager.write(unit.getColumnFamily(), unit.getKey(), unit.getValue());
+                rocksDBManager.syncData(unit.getColumnFamily(), unit.getKey(), unit.getValue());
             }
             LOG.debug("receive sync data request, size:{}, write cost time:{}", dataList.size(), watcher.getElapsedTime());
             return Response.ok().build();
