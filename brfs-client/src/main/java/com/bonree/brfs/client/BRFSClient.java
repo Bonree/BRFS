@@ -57,6 +57,7 @@ import com.google.common.io.Closer;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.google.protobuf.ProtocolStringList;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -67,6 +68,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -429,10 +431,10 @@ public class BRFSClient implements BRFS {
             uri -> {
                 Request httpRequest = new Request.Builder()
                     .url(HttpUrl.get(uri)
-                             .newBuilder()
-                             .encodedPath("/data/v2/batch")
-                             .addEncodedPathSegment(srName)
-                             .build())
+                                .newBuilder()
+                                .encodedPath("/data/v2/batch")
+                                .addEncodedPathSegment(srName)
+                                .build())
                     .post(RequestBody.create(OCTET_STREAM, batch.toByteArray()))
                     .build();
 
@@ -453,7 +455,8 @@ public class BRFSClient implements BRFS {
                     }
 
                     return TaskResult.success(BatchResult.from(
-                        codec.fromJsonBytes(body.bytes(), new TypeReference<List<String>>() {})));
+                        codec.fromJsonBytes(body.bytes(), new TypeReference<List<String>>() {
+                        })));
                 } catch (IOException e) {
                     return TaskResult.retry(e);
                 }
@@ -643,9 +646,13 @@ public class BRFSClient implements BRFS {
         long size = range == null ? fidObj.getSize() : Math.min(fidObj.getSize(), range.getSize());
 
         Map<URI, Integer> idIndex = new HashMap<>();
+        ProtocolStringList serverIdList = fidObj.getServerIdList();
+        int arraySize = serverIdList.size();
+        List<String> services = new ArrayList<>();
+        services.addAll(serverIdList.subList(0, arraySize));
         return Retrys.execute(new URIRetryable<>(
             format("read content of fid[%s]", fidObj),
-            router.getServerLocation(srName, fidObj.getUuid(), fidObj.getServerIdList(), idIndex),
+            router.getServerLocation(srName, fidObj.getUuid(), services, idIndex),
             uri -> {
                 try {
                     return TaskResult.success(fidReader.read(uri, srName, fidObj, offset, size, idIndex.get(uri)));

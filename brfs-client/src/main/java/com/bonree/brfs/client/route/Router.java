@@ -80,6 +80,10 @@ public class Router {
 
                         SecondServerID secondId = secondServers.get(finalId);
                         if (secondId == null) {
+                            int index = secondServerIdList.indexOf(serverId);
+                            if (index >= 0 && index < secondServerIdList.size()) {
+                                secondServerIdList.set(index, finalId);
+                            }
                             return null;
                         }
 
