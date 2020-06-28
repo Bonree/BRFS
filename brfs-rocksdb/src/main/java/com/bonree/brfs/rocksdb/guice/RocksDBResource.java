@@ -72,6 +72,7 @@ public class RocksDBResource {
         @PathParam("srName") String srName,
         @QueryParam("fileName") String fileName,
         @Suspended AsyncResponse asyncResponse) {
+        LOG.info("execute rocksdb reading!!!");
         readExec.submit(() -> {
             byte[] fid = this.rocksDBManager.read(srName, fileName.getBytes(StandardCharsets.UTF_8));
             if (fid == null) {
