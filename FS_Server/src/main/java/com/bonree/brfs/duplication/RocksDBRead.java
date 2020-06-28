@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package com.bonree.brfs.rocksdb.guice;
+package com.bonree.brfs.duplication;
 
 import com.google.inject.BindingAnnotation;
 import java.lang.annotation.ElementType;

@@ -84,6 +84,9 @@ import com.google.inject.Scopes;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import javax.inject.Singleton;
 import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
@@ -231,5 +234,25 @@ public class RegionNodeModule implements Module {
         int maxCount = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_CAPACITY);
         Integer initCount = Configs.getConfiguration().getConfig(RegionNodeConfigs.CONFIG_BLOCK_POOL_INIT_COUNT);
         return new SeqBlockPool(blocksize, maxCount, initCount);
+    }
+
+    @Provides
+    @Singleton
+    @RocksDBRead
+    public ExecutorService getDBreadExecs(Lifecycle lifecycle) {
+        int threadNum = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
+        ExecutorService execs = Executors.newFixedThreadPool(threadNum, new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, "rocksdb_reader");
+                t.setDaemon(true);
+
+                return t;
+            }
+        });
+
+        lifecycle.addCloseable(execs::shutdown);
+
+        return execs;
     }
 }

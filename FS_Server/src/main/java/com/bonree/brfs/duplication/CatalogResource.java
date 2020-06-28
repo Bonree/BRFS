@@ -17,6 +17,7 @@ package com.bonree.brfs.duplication;
 import com.bonree.brfs.duplication.catalog.BrfsCatalog;
 import com.bonree.brfs.duplication.catalog.Inode;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -25,6 +26,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.ServiceUnavailableException;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,16 +36,21 @@ public class CatalogResource {
     private static final Logger LOG = LoggerFactory.getLogger(CatalogResource.class);
     private final BrfsCatalog catalog;
 
+    private final ExecutorService readExec;
+
     @Inject
-    public CatalogResource(BrfsCatalog catalog) {
+    public CatalogResource(BrfsCatalog catalog,
+                           @RocksDBRead ExecutorService readExec) {
         this.catalog = catalog;
+        this.readExec = readExec;
     }
 
     @GET
     @Path("fid/{srName}")
-    public String getFid(
+    public void getFid(
         @PathParam("srName") String srName,
-        @QueryParam("absPath") String absPath) {
+        @QueryParam("absPath") String absPath,
+        @Suspended AsyncResponse asyncResponse) {
         LOG.debug("get fid request srName[{}],absPath[{}]", srName, absPath);
 
         if (!catalog.isUsable()) {
@@ -50,23 +58,24 @@ public class CatalogResource {
             throw new ServiceUnavailableException("get fid error caused by the catalog is not open");
         }
 
-        //if (!catalog.validPath(absPath)) {
-        //    LOG.error("invalid file path [{}]", absPath);
-        //    throw new BadRequestException("invalid file path:" + absPath);
-        //}
-        String fid = null;
-        try {
-            fid = catalog.getFid(srName, absPath);
-        } catch (Exception e) {
-            LOG.error("error when get fid from rocksDb!");
-            throw new ProcessingException("error when get fid from rocksDb");
-        }
+        readExec.submit(() -> {
+            String fid = null;
+            try {
+                fid = catalog.getFid(srName, absPath);
+            } catch (Exception e) {
+                LOG.error("error when get fid from rocksDb!");
+                asyncResponse.resume(new ProcessingException("error when get fid from rocksDb"));
+                return;
+            }
 
-        if (fid == null) {
-            LOG.error("get null from rocksDB");
-            throw new ServiceUnavailableException("get null when get fid from catalog!");
-        }
-        return fid;
+            if (fid == null) {
+                LOG.error("get null from rocksDB");
+                asyncResponse.resume(new ServiceUnavailableException("get null when get fid from catalog!"));
+                return;
+            }
+
+            asyncResponse.resume(fid);
+        });
     }
 
     @GET
