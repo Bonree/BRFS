@@ -103,28 +103,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private TimeWatcher watcher = new TimeWatcher();
     private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(500);
 
-    private ExecutorService produceExec = new ThreadPoolExecutor(
-        Runtime.getRuntime().availableProcessors() / 2,
-        Runtime.getRuntime().availableProcessors() / 2,
-        0L,
-        TimeUnit.MILLISECONDS,
-        new LinkedBlockingQueue<>(500),
-        new PooledThreadFactory("rocksdb_data_producer"),
-        new ThreadPoolExecutor.AbortPolicy()
-    );
-
     private ScheduledExecutorService queueChecker =
         Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
-
-    private ExecutorService synchronizeExec = new ThreadPoolExecutor(
-        Runtime.getRuntime().availableProcessors(),
-        Runtime.getRuntime().availableProcessors(),
-        0L,
-        TimeUnit.MILLISECONDS,
-        new LinkedBlockingQueue<>(500),
-        new PooledThreadFactory("rocksdb_data_synchronizer"),
-        new ThreadPoolExecutor.AbortPolicy()
-    );
 
     @Inject
     public DefaultRocksDBManager(CuratorFramework client, ZookeeperPaths zkPaths, Service service, ServiceManager serviceManager,
@@ -344,7 +324,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
         if (!offer) {
             LOG.warn("offer data ro queue failed, size:{}", queue.size());
         }
-        //produceExec.execute(new RocksDBDatProducer(columnFamily, key, value));
         return writeStatus;
     }
 
@@ -371,31 +350,6 @@ public class DefaultRocksDBManager implements RocksDBManager {
         return WriteStatus.SUCCESS;
     }
 
-    /**
-     * @description: 负责向阻塞队列put需要同步的数据
-     */
-    private class RocksDBDatProducer implements Runnable {
-        private String columnFamily;
-        private byte[] key;
-        private byte[] value;
-
-        public RocksDBDatProducer(String columnFamily, byte[] key, byte[] value) {
-            this.columnFamily = columnFamily;
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public void run() {
-            RocksDBDataUnit data = new RocksDBDataUnit(columnFamily, key, value);
-            boolean offer = queue.offer(data);
-            LOG.info("======================offer data ro queue ,size{}", queue.size());
-            if (!offer) {
-                LOG.warn("offer data ro queue failed");
-            }
-        }
-    }
-
     private class QueueChecker implements Runnable {
 
         @Override
@@ -410,10 +364,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
             }
 
             if (queue.size() >= dataSynchronizeCountOnce) {
-                LOG.info("===========1===========odataSynchronizer,size{}", queue.size());
                 dataSynchronizer(dataSynchronizeCountOnce);
             } else if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH) {
-                LOG.info("===========2===========odataSynchronizer, time:{} ,size{}", watcher.getElapsedTime(), queue.size());
                 dataSynchronizer(queue.size());
                 watcher.getElapsedTimeAndRefresh();
             }
@@ -630,9 +582,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         if (db != null) {
             db.close();
         }
-        this.produceExec.shutdown();
         this.queueChecker.shutdown();
-        this.synchronizeExec.shutdown();
         LOG.info("rocksdb manager stop");
     }
 }
