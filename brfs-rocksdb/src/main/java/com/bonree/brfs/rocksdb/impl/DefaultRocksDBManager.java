@@ -385,6 +385,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         public void run() {
             RocksDBDataUnit data = new RocksDBDataUnit(columnFamily, key, value);
             boolean offer = queue.offer(data);
+            LOG.info("======================offer data ro queue ,size{}", queue.size());
             if (!offer) {
                 LOG.warn("offer data ro queue failed");
             }
@@ -401,8 +402,10 @@ public class DefaultRocksDBManager implements RocksDBManager {
             }
 
             if (queue.size() >= dataSynchronizeCountOnce) {
+                LOG.info("===========1===========odataSynchronizer,size{}", queue.size());
                 dataSynchronizer(dataSynchronizeCountOnce);
             } else {
+                LOG.info("===========2===========odataSynchronizer, time:{} ,size{}",watcher.getElapsedTime(), queue.size());
                 if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH && !queue.isEmpty()) {
                     dataSynchronizer(queue.size());
                     watcher.getElapsedTimeAndRefresh();
