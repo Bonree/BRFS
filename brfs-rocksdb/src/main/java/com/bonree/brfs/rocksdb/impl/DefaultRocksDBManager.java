@@ -408,8 +408,8 @@ public class DefaultRocksDBManager implements RocksDBManager {
             if (queue.size() >= dataSynchronizeCountOnce) {
                 LOG.info("===========1===========odataSynchronizer,size{}", queue.size());
                 dataSynchronizer(dataSynchronizeCountOnce);
-            } else if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH ) {
-                LOG.info("===========2===========odataSynchronizer, time:{} ,size{}",watcher.getElapsedTime(), queue.size());
+            } else if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH) {
+                LOG.info("===========2===========odataSynchronizer, time:{} ,size{}", watcher.getElapsedTime(), queue.size());
                 dataSynchronizer(queue.size());
                 watcher.getElapsedTimeAndRefresh();
             }
