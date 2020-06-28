@@ -7,6 +7,7 @@ import com.bonree.brfs.duplication.datastream.file.FileObject;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplier;
 import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
+import com.bonree.brfs.duplication.storageregion.StorageRegionManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,26 +28,32 @@ public class DefaultDataEngine implements DataEngine {
 
     private final ExecutorService mainThread;
 
-    private final StorageRegion storageRegion;
+    private final StorageRegionManager storageRegionManager;
+    private final String storageRegionName;
 
     private final AtomicBoolean runningState = new AtomicBoolean(false);
     private volatile boolean quit = false;
 
-    public DefaultDataEngine(StorageRegion storageRegion, DataPool pool, FileObjectSupplier fileSupplier, DiskWriter writer) {
-        this.storageRegion = storageRegion;
+    public DefaultDataEngine(String storageRegionName,
+                             StorageRegionManager storageRegionManager,
+                             DataPool pool,
+                             FileObjectSupplier fileSupplier,
+                             DiskWriter writer) {
+        this.storageRegionName = storageRegionName;
+        this.storageRegionManager = storageRegionManager;
         this.dataPool = pool;
         this.fileSupplier = fileSupplier;
         this.diskWriter = writer;
         this.mainThread = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                                                 new LinkedBlockingQueue<Runnable>(),
-                                                 new PooledThreadFactory("dataengine_" + storageRegion.getName()));
+                                                 new LinkedBlockingQueue<>(),
+                                                 new PooledThreadFactory("dataengine_" + storageRegionName));
 
         this.mainThread.execute(new DataProcessor());
     }
 
     @Override
     public StorageRegion getStorageRegion() {
-        return storageRegion;
+        return storageRegionManager.findStorageRegionByName(storageRegionName);
     }
 
     @Override
@@ -144,7 +151,7 @@ public class DefaultDataEngine implements DataEngine {
                 }
             }
 
-            log.info("data engine[region={}] is shut down!", storageRegion.getName());
+            log.info("data engine[region={}] is shut down!", storageRegionName);
         }
 
     }
