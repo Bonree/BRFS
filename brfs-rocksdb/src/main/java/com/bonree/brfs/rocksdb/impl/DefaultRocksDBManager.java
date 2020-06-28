@@ -101,7 +101,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private int dataSynchronizeCountOnce;
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
     private TimeWatcher watcher = new TimeWatcher();
-    private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(100);
+    private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(500);
 
     private ExecutorService produceExec = new ThreadPoolExecutor(
         Runtime.getRuntime().availableProcessors() / 2,
