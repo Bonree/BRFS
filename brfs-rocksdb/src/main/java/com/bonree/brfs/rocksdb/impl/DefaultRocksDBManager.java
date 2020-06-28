@@ -101,7 +101,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private int dataSynchronizeCountOnce;
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
     private TimeWatcher watcher = new TimeWatcher();
-    private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(500);
+    private static BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(500);
 
     private ExecutorService produceExec = new ThreadPoolExecutor(
         Runtime.getRuntime().availableProcessors() / 2,
@@ -400,16 +400,18 @@ public class DefaultRocksDBManager implements RocksDBManager {
                 LOG.debug("service cache is empty!");
                 return;
             }
+            if (queue.isEmpty()) {
+                LOG.debug("sync queue is empty!");
+                return;
+            }
 
             if (queue.size() >= dataSynchronizeCountOnce) {
                 LOG.info("===========1===========odataSynchronizer,size{}", queue.size());
                 dataSynchronizer(dataSynchronizeCountOnce);
-            } else {
+            } else if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH ) {
                 LOG.info("===========2===========odataSynchronizer, time:{} ,size{}",watcher.getElapsedTime(), queue.size());
-                if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH && !queue.isEmpty()) {
-                    dataSynchronizer(queue.size());
-                    watcher.getElapsedTimeAndRefresh();
-                }
+                dataSynchronizer(queue.size());
+                watcher.getElapsedTimeAndRefresh();
             }
         }
 
