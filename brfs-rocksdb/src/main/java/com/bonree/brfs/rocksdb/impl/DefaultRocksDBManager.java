@@ -101,7 +101,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private int dataSynchronizeCountOnce;
     private List<Service> serviceCache = new CopyOnWriteArrayList<>();
     private TimeWatcher watcher = new TimeWatcher();
-    private static BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(500);
+    private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(500);
 
     private ExecutorService produceExec = new ThreadPoolExecutor(
         Runtime.getRuntime().availableProcessors() / 2,
@@ -340,7 +340,11 @@ public class DefaultRocksDBManager implements RocksDBManager {
         }
 
         WriteStatus writeStatus = this.write(this.cfHandles.get(columnFamily), writeOptionsAsync, key, value);
-        produceExec.execute(new RocksDBDatProducer(columnFamily, key, value));
+        boolean offer = queue.offer(new RocksDBDataUnit(columnFamily, key, value));
+        if (!offer) {
+            LOG.warn("offer data ro queue failed, size:{}", queue.size());
+        }
+//        produceExec.execute(new RocksDBDatProducer(columnFamily, key, value));
         return writeStatus;
     }
 
