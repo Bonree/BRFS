@@ -6,7 +6,6 @@ import com.bonree.brfs.duplication.datastream.dataengine.DataStoreCallback;
 import com.bonree.brfs.duplication.datastream.file.FileObject;
 import com.bonree.brfs.duplication.datastream.file.FileObjectSupplier;
 import com.bonree.brfs.duplication.datastream.writer.DiskWriter;
-import com.bonree.brfs.duplication.datastream.writer.DiskWriter.WriteProgressListener;
 import com.bonree.brfs.duplication.storageregion.StorageRegion;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -99,11 +98,7 @@ public class DefaultDataEngine implements DataEngine {
 
             DataObject unhandledData = null;
 
-            while (true) {
-                if (quit && dataPool.isEmpty()) {
-                    break;
-                }
-
+            while (!quit || !dataPool.isEmpty()) {
                 try {
                     DataObject data = unhandledData == null ? (unhandledData = dataPool.take()) : unhandledData;
 
@@ -116,7 +111,7 @@ public class DefaultDataEngine implements DataEngine {
                         continue;
                     }
 
-                    List<DataObject> dataList = new ArrayList<DataObject>();
+                    List<DataObject> dataList = new ArrayList<>();
                     dataList.add(data);
 
                     while (true) {
@@ -134,13 +129,9 @@ public class DefaultDataEngine implements DataEngine {
                     }
 
                     log.debug("out => {}", file.node().getName());
-                    diskWriter.write(file, dataList, new WriteProgressListener() {
-
-                        @Override
-                        public void writeCompleted(FileObject file, boolean errorOccurred) {
-                            log.debug("in => {}, sync => {}", file.node().getName(), errorOccurred);
-                            fileSupplier.recycle(file, errorOccurred);
-                        }
+                    diskWriter.write(file, dataList, (file1, errorOccurred) -> {
+                        log.debug("in => {}, sync => {}", file1.node().getName(), errorOccurred);
+                        fileSupplier.recycle(file1, errorOccurred);
                     });
                 } catch (InterruptedException e) {
                     if (quit) {

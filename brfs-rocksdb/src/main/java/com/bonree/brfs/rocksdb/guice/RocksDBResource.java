@@ -15,6 +15,7 @@ import com.google.common.base.Throwables;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -23,6 +24,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +47,15 @@ public class RocksDBResource {
     private RocksDBConfig rocksDBConfig;
     private TimeWatcher watcher = new TimeWatcher();
 
+    private final ExecutorService readExec;
+
     @Inject
-    public RocksDBResource(RocksDBConfig rocksDBConfig, RocksDBManager rocksDBManager) {
+    public RocksDBResource(RocksDBConfig rocksDBConfig,
+                           RocksDBManager rocksDBManager,
+                           @RocksDBRead ExecutorService readExec) {
         this.rocksDBConfig = rocksDBConfig;
         this.rocksDBManager = rocksDBManager;
+        this.readExec = readExec;
     }
 
     @GET
@@ -60,16 +68,19 @@ public class RocksDBResource {
     @GET
     @Path("read/{srName}")
     @Produces(APPLICATION_JSON)
-    public Response read(
+    public void read(
         @PathParam("srName") String srName,
-        @QueryParam("fileName") String fileName) {
+        @QueryParam("fileName") String fileName,
+        @Suspended AsyncResponse asyncResponse) {
+        readExec.submit(() -> {
+            byte[] fid = this.rocksDBManager.read(srName, fileName.getBytes(StandardCharsets.UTF_8));
+            if (fid == null) {
+                asyncResponse.resume(Response.status(Response.Status.NOT_FOUND).build());
+                return;
+            }
 
-        byte[] fid = this.rocksDBManager.read(srName, fileName.getBytes(StandardCharsets.UTF_8));
-        if (fid == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        return Response.ok().entity(fid).build();
+            asyncResponse.resume(Response.ok().entity(fid).build());
+        });
     }
 
     @GET
