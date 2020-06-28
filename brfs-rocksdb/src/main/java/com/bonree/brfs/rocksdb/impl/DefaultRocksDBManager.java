@@ -401,41 +401,32 @@ public class DefaultRocksDBManager implements RocksDBManager {
             }
 
             if (queue.size() >= dataSynchronizeCountOnce) {
-                synchronizeExec.execute(new RocksDBDataSynchronizer(dataSynchronizeCountOnce));
+                dataSynchronizer(dataSynchronizeCountOnce);
             } else {
                 if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH && !queue.isEmpty()) {
-                    synchronizeExec.execute(new RocksDBDataSynchronizer(queue.size()));
+                    dataSynchronizer(queue.size());
                     watcher.getElapsedTimeAndRefresh();
                 }
             }
         }
 
-        private class RocksDBDataSynchronizer implements Runnable {
-            private int size;
-
-            public RocksDBDataSynchronizer(int size) {
-                this.size = size;
-            }
-
-            @Override
-            public void run() {
-                List<RocksDBDataUnit> datas = new ArrayList<>(size);
-                queue.drainTo(datas, size);
-                LOG.info("current sync data count:{}, queue size:{}", size, queue.size());
-                RegionNodeConnection connection;
-                for (Service service : serviceCache) {
-                    connection =
-                        DefaultRocksDBManager.this.regionNodeConnectionPool
-                            .getConnection(regionGroupName, service.getServiceId());
-                    if (connection == null || connection.getClient() == null) {
-                        LOG.debug("region node connection/client is null! serviceId:{}", service.getServiceId());
-                        continue;
-                    }
-                    try {
-                        connection.getClient().writeBatchData(datas);
-                    } catch (Exception e) {
-                        LOG.error("rocksdb data writer occur error", e);
-                    }
+        public void dataSynchronizer(int size) {
+            List<RocksDBDataUnit> datas = new ArrayList<>(size);
+            queue.drainTo(datas, size);
+            LOG.info("current sync data count:{}, queue size:{}", size, queue.size());
+            RegionNodeConnection connection;
+            for (Service service : serviceCache) {
+                connection =
+                    DefaultRocksDBManager.this.regionNodeConnectionPool
+                        .getConnection(regionGroupName, service.getServiceId());
+                if (connection == null || connection.getClient() == null) {
+                    LOG.debug("region node connection/client is null! serviceId:{}", service.getServiceId());
+                    continue;
+                }
+                try {
+                    connection.getClient().writeBatchData(datas);
+                } catch (Exception e) {
+                    LOG.error("rocksdb data writer occur error", e);
                 }
             }
         }
