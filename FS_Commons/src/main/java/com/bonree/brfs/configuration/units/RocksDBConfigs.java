@@ -79,6 +79,6 @@ public class RocksDBConfigs {
         ConfigUnit.ofInt("rocksdb.max.bytes.level.base", 256);
 
     public static final ConfigUnit<Integer> ROCKSDB_DATA_SYNCHRONIZE_COUNT_ONCE =
-        ConfigUnit.ofInt("rocksdb.data.synchronize.count.once", 10);
+        ConfigUnit.ofInt("rocksdb.data.synchronize.count.once", 50);
 
 }
