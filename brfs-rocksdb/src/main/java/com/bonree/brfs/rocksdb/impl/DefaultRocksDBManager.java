@@ -107,7 +107,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
         .newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2, new PooledThreadFactory("rocksdb_data_producer"));
     private ScheduledExecutorService queueChecker =
         Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
-    
+
     private ExecutorService synchronizeExec = new ThreadPoolExecutor(
         Runtime.getRuntime().availableProcessors(),
         Runtime.getRuntime().availableProcessors(),
@@ -395,7 +395,7 @@ public class DefaultRocksDBManager implements RocksDBManager {
             if (queue.size() >= dataSynchronizeCountOnce) {
                 synchronizeExec.execute(new RocksDBDataSynchronizer(dataSynchronizeCountOnce));
             } else {
-                if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH && queue.size() != 0) {
+                if (watcher.getElapsedTime() >= DEFAULT_QUEUE_FLUSH && !queue.isEmpty()) {
                     synchronizeExec.execute(new RocksDBDataSynchronizer(queue.size()));
                     watcher.getElapsedTimeAndRefresh();
                 }
