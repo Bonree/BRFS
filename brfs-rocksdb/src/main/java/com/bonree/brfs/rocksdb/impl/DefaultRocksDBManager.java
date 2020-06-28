@@ -103,8 +103,16 @@ public class DefaultRocksDBManager implements RocksDBManager {
     private TimeWatcher watcher = new TimeWatcher();
     private BlockingQueue<RocksDBDataUnit> queue = new ArrayBlockingQueue<>(100);
 
-    private ExecutorService produceExec = Executors
-        .newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2, new PooledThreadFactory("rocksdb_data_producer"));
+    private ExecutorService produceExec = new ThreadPoolExecutor(
+        Runtime.getRuntime().availableProcessors() / 2,
+        Runtime.getRuntime().availableProcessors() / 2,
+        0L,
+        TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<>(500),
+        new PooledThreadFactory("rocksdb_data_producer"),
+        new ThreadPoolExecutor.AbortPolicy()
+    );
+
     private ScheduledExecutorService queueChecker =
         Executors.newSingleThreadScheduledExecutor(new PooledThreadFactory("queue_checker"));
 
